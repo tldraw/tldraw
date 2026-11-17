@@ -127,18 +127,9 @@
 	pointer-events: none;
 }
 
-/* Tucked onto the help icon's top-right edge, like an app badge. */
 .triggerDot {
-	position: absolute;
-	top: 9px;
-	right: 9px;
-	width: 6px;
-	height: 6px;
+	margin-inline-end: 8px;
 	box-shadow: 0 0 0 1.5px var(--tla-color-sidebar);
-}
-
-.triggerIcon {
-	position: relative;
 }
 
 .page {

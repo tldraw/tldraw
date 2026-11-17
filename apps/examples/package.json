@@ -54,6 +54,7 @@
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/commenting": "workspace:*",
 		"@tldraw/driver": "workspace:*",
+		"@tldraw/libraries": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
@@ -80,7 +81,6 @@
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
-		"@types/katex": "^0.16.8",
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",

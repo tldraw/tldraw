@@ -6,4 +6,5 @@ export const editorMessages = defineMessages({
 	downloadFile: { defaultMessage: 'Download' },
 	copyToMyfiles: { defaultMessage: 'Copy to my workspace' },
 	anonymousUser: { defaultMessage: 'Guest user' },
+	signInToComment: { defaultMessage: 'Sign in to comment' },
 })

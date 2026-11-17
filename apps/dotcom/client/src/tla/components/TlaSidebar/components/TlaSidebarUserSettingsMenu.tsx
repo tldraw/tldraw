@@ -23,7 +23,7 @@ import {
 	ThemeSubmenu,
 	UserManualMenuItem,
 } from '../../menu-items/menu-items'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	TlaWhatsNewDot,
@@ -75,10 +75,7 @@ export function TlaUserSettingsMenu() {
 						>
 							{user?.name || <F defaultMessage="Account" />}
 						</div>
-						<div className={classNames(styles.sidebarUserSettingsIcon, whatsNewStyles.triggerIcon)}>
-							<TlaIcon icon="help-circle" />
-							{hasUnreadWhatsNew && <TlaWhatsNewDot className={whatsNewStyles.triggerDot} />}
-						</div>
+						{hasUnreadWhatsNew && <TlaWhatsNewDot className={whatsNewStyles.triggerDot} />}
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				{/* Hang ~8px over the sidebar's right edge (see TlaFileMenu) rather than inset. */}
@@ -86,7 +83,7 @@ export function TlaUserSettingsMenu() {
 					side="bottom"
 					align="end"
 					{...TLA_MENU_POSITION}
-					alignOffset={-18}
+					alignOffset={-6}
 				>
 					{user && (
 						<>
@@ -105,7 +102,7 @@ export function TlaUserSettingsMenu() {
 					</TldrawUiMenuGroup>
 					{user && (
 						<TldrawUiMenuGroup id="signout">
-							<SignOutMenuItem />
+							<SignOutMenuItem source="sidebar" />
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiDropdownMenuContent>

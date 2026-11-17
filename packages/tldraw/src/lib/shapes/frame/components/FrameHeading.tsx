@@ -1,6 +1,10 @@
 import { TLFrameShape, TLShapeId, useEditor, useIsEditing, useValue } from '@tldraw/editor'
 import { memo, useEffect, useRef } from 'react'
-import { getFrameHeadingSide, getFrameHeadingTranslation } from '../frameHelpers'
+import {
+	FRAME_HEADING_MAX_SCALE,
+	getFrameHeadingSide,
+	getFrameHeadingTranslation,
+} from '../frameHelpers'
 import { FrameLabelInput } from './FrameLabelInput'
 
 export const FrameHeading = memo(function FrameHeading({
@@ -66,7 +70,7 @@ export const FrameHeading = memo(function FrameHeading({
 					side === 0 || side === 2 ? Math.ceil(width) : Math.ceil(height)
 				}px + ${showColors ? '0px' : 'var(--tl-frame-offset-width)'})`,
 				bottom: '100%',
-				transform: `${translation} scale(min(var(--tl-scale), 3.5)) translateX(${offsetX}px)`,
+				transform: `${translation} scale(min(var(--tl-scale), ${FRAME_HEADING_MAX_SCALE})) translateX(${offsetX}px)`,
 			}}
 		>
 			<div

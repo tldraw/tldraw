@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { cloneElement, memo, ReactElement, useLayoutEffect, useRef } from 'react'
-import { useAssetUrls } from '../../context/asset-urls'
+import { useAssetUrlsOrDefaults } from '../../context/asset-urls'
 import { TLUiIconType } from '../../icon-types'
 
 /** @public */
@@ -70,7 +70,7 @@ function TldrawUIIconInner({
 	className,
 	...props
 }: TLUiIconProps & { icon: TLUiIconType | Exclude<string, TLUiIconType> }) {
-	const assetUrls = useAssetUrls()
+	const assetUrls = useAssetUrlsOrDefaults()
 	const asset = assetUrls.icons[icon as TLUiIconType] ?? assetUrls.icons['question-mark-circle']
 	const ref = useRef<HTMLDivElement>(null)
 

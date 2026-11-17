@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "ارسال بازخورد"
   },
+  "0e4a10d921": {
+    "translation": "علامت گذاری همه اعلان ها به عنوان خوانده شده"
+  },
   "1063e38cb5": {
     "translation": "حذف"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "گزینه‌های اعلان"
   },
+  "15bf4fead9": {
+    "translation": "تغییر فضای کاری"
+  },
   "181b90f889": {
     "translation": "فایل ایجاد کنید"
+  },
+  "1a7222b4e5": {
+    "translation": "حرکت به"
   },
   "1da2e8106b": {
     "translation": "یک خطای غیرمنتظره رخ داد."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "درباره tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> در انجمن شما نظر داد"
-  },
   "28b2464e1f": {
     "translation": "نتوانستم بازخورد ارسال کنم"
+  },
+  "2944edaa8d": {
+    "translation": "از طرف {name}"
   },
   "299cb00a7a": {
     "translation": "آپلود انجام نشد"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "بازگشت به tldraw"
   },
+  "32811caa8c": {
+    "translation": "فایل تکراری"
+  },
   "335defdafe": {
     "translation": "لطفاً صفحه را بازخوانی کنید."
+  },
+  "34082694d2": {
+    "translation": "نام فایل"
   },
   "344a7f427f": {
     "translation": "ویرایشگر"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "حذف عضو"
+  },
+  "398f51738e": {
+    "translation": "برای پذیرش این دعوت، وارد شوید."
   },
   "3bc7d6ea2f": {
     "translation": "ادامه با ایمیل"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "از اینکه به ما در بهبود tldraw کمک کردید متشکریم!"
   },
+  "4630b65bb2": {
+    "translation": "انتقال فایل به"
+  },
   "46de2de6bb": {
     "translation": "شرایط استفاده را بپذیرید"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "نام"
+  },
+  "4a8165368a": {
+    "translation": "کپی کردن لینک منتشر شده"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> نظر داد"
   },
   "4d0d3ddec9": {
     "translation": "این سایت از کوکی‌ها برای عملکرد برنامه و جمع‌آوری تحلیل‌ها استفاده می‌کند."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "ایجاد یک فضای کاری"
   },
+  "5653ebed2e": {
+    "translation": "رفتن به فایل"
+  },
   "5677e381d2": {
     "translation": "ما از کوکی‌های تحلیلی برای بهبود tldraw استفاده می‌کنیم."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "فضای کاری من"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> به نظر شما واکنش نشان داد"
   },
   "5d04a002ea": {
     "translation": "اتصال برقرار نشد"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "بعدا"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {کسی به نظر شما واکنش نشان داد} other {# نفر به نظر شما واکنش نشان دادند}}"
-  },
   "625fd29749": {
     "translation": "قدیمی تر"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "نسخه جدید tldraw موجود است. لطفاً برای ادامه صفحه را دوباره بارگیری کنید."
   },
+  "67ed6ddb7d": {
+    "translation": "ویرایش شده"
+  },
   "681e10aecb": {
     "translation": "فایل جدید"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>، <name>{b}</name> و {count, plural, one {# other} other {# others}} واکنش نشان دادند."
   },
   "6832ac5936": {
     "translation": "آدرس ایمیل خود را وارد کنید"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "حذف فضای کاری"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {کسی واکنش نشان داد} other {# واکنش مردم}}"
+  },
   "6a26f54883": {
     "translation": "کمک کنید"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "شما مجوزهای لازم برای انجام این عمل را ندارید."
   },
   "6dfc62f621": {
     "translation": "برای وارد کردن دستی محتوا مراحل زیر را دنبال کنید:"
+  },
+  "6ea5359e01": {
+    "translation": "بوم نقاشی"
   },
   "70a6facb9d": {
     "translation": "این هفته"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "لطفا صفحه را دوباره بارگذاری کنید"
+  },
+  "747ee44424": {
+    "translation": "محتوا را به عنوان یک فایل .tldr ذخیره کنید: در منوی بالا سمت چپ، گزینه «ذخیره یک کپی» را انتخاب کنید."
   },
   "74ff4bad28": {
     "translation": "هیچ فایلی یافت نشد"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "با ما در Discord چت کنید"
+  },
+  "76ec4e4ed9": {
+    "translation": "کپی کردن لینک فایل"
   },
   "777f9e90cf": {
     "translation": "درخواست نامعتبر"
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "شما از قبل عضو این فضای کاری هستید"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> و {count, plural, one {# other} other {# others}} واکنش نشان دادند"
+  },
   "88bf6ab42c": {
     "translation": "این لینک دعوت منقضی شده است"
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "با شما به اشتراک گذاشته شده است"
+  },
+  "8f7f4c1ce7": {
+    "translation": "درباره ما"
   },
   "8ff3d0a705": {
     "translation": "نرخ محدود"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "آیا مطمئن هستید که می‌خواهید <strong>{workspaceName}</strong> را حذف کنید؟ این اقدام قابل بازگشت نیست."
   },
+  "91f3a2c0e4": {
+    "translation": "فایل‌ها"
+  },
+  "930390d222": {
+    "translation": "لینک دعوت کپی شده"
+  },
   "95aacd4d4a": {
     "translation": "با گوگل وارد شوید"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "این ماه"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> واکنش نشان داد"
   },
   "985a4b720f": {
     "translation": "شرایط استفاده"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# خوانده‌نشده} other {# خوانده‌نشده}}"
   },
-  "a0da245992": {
-    "translation": "محتوا را به عنوان یک فایل .tldr صادر کنید: در منوی بالا سمت چپ، «دانلود» را انتخاب کنید."
-  },
   "a104439641": {
     "translation": "بالشتک"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "خط مشی کوکی"
+  },
+  "a4bef6414b": {
+    "translation": "نوار کناری نظرات را تغییر دهید"
   },
   "a4d3b161ce": {
     "translation": "ارسال کنید"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "به محدودیت فایل رسیده است"
   },
+  "ac863f346e": {
+    "translation": "برنامه"
+  },
+  "aeb428554a": {
+    "translation": "کتابخانه‌ها"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "آخرین انتشار <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "فایل پر است"
+  },
+  "b3205c1e45": {
+    "translation": "باز کردن پنل اعلان‌ها"
   },
   "b357b524e7": {
     "translation": "آدرس ایمیل"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "به اشتراک گذاشته شده توسط {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "فایل فعلی"
+  },
   "c17466812d": {
     "translation": "مدیریت فضای کاری"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "رد کردن"
   },
+  "cb5feb1b73": {
+    "translation": "رنگ"
+  },
+  "cce99c598c": {
+    "translation": "پروفایل"
+  },
   "cceaefbc20": {
     "translation": "این فایل را به اشتراک بگذارید"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "درباره انتشار بیشتر بدانید."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> و {count, plural, one {# نفر دیگر} other {# نفر دیگر}} به نظر شما واکنش نشان دادند"
+  "d0834fcec6": {
+    "translation": "تنظیمات برگزیده"
+  },
+  "d28d6bbc42": {
+    "translation": "فایل را از حالت انتشار خارج کنید"
   },
   "d3d2e61733": {
     "translation": "بستن"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "نوار کناری را تغییر دهید"
+  },
+  "d5e92609cf": {
+    "translation": "فضاهای کاری"
   },
   "d638a3344b": {
     "translation": "قبل از شروع، لطفاً <tos>شرایط استفاده</tos> و <privacy>سیاست حفظ حریم خصوصی</privacy> ما را بپذیرید."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "فضای کاری را ترک کنید"
   },
-  "dfdb78a4e4": {
-    "translation": "پرچم‌های اشکال‌زدایی برنامه"
-  },
   "e0aa021e21": {
     "translation": "باشه"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "شرایط خدمات"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> و <name>{b}</name> به نظر شما واکنش نشان دادند"
-  },
   "e81c4e4f2b": {
     "translation": "یا"
+  },
+  "ea13ecec38": {
+    "translation": "تاریخچه پرونده"
   },
   "ea4788705e": {
     "translation": "لغو کنید"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "حذف کنید"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>، <name>{b}</name> و {count, plural, one {# نفر دیگر} other {# نفر دیگر}} به نظر شما واکنش نشان دادند"
+  "f408fa5fbd": {
+    "translation": "این لینک دعوت نامعتبر است یا منقضی شده است."
   },
   "f4f70727dc": {
     "translation": "تنظیمات"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "یک حساب کاربری رایگان ایجاد کنید تا فایل‌های خود را ذخیره کنید و با هم‌تیمی‌هایتان در tldraw نقاشی کنید."
+  },
+  "ffad261a48": {
+    "translation": "خطا در پذیرش دعوت"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> و <name>{b}</name> واکنش نشان دادند"
   },
   "ffcd73e997": {
     "translation": "وارد کردن فایل…"

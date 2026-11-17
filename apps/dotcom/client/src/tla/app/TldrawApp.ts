@@ -8,6 +8,7 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	Snapshot,
+	TlaApiErrorCode,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
@@ -26,6 +27,7 @@ import {
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
+import type { LibrarySource } from '@tldraw/libraries'
 import {
 	Result,
 	compact,
@@ -69,6 +71,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
+import { createLibrariesSource } from '../components/TlaLibraries/librariesSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -205,6 +208,9 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
+	readonly isUiV3Enabled: boolean
+	/** Null when the `libraries` flag is off for this user. */
+	readonly libraries: LibrarySource | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -293,6 +299,14 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
+		if (flags.libraries?.enabled) {
+			const libraries = createLibrariesSource(userId)
+			this.libraries = libraries
+			this.disposables.push(() => libraries.dispose())
+		} else {
+			this.libraries = null
+		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -646,6 +660,13 @@ export class TldrawApp {
 			// one" isn't a reason to skip it.
 			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
+		copied_invite_link: { defaultMessage: 'Copied invite link' },
+		// toast title
+		accept_invite_error_title: { defaultMessage: 'Error accepting invite' },
+		// toast descriptions
+		accept_invite_unauthorized: { defaultMessage: 'Sign in to accept this invite.' },
+		accept_invite_not_found: { defaultMessage: 'This invite link is invalid or has expired.' },
+		accept_invite_try_again: { defaultMessage: 'Please try again.' },
 	})
 
 	getMessage(id: keyof typeof this.messages) {
@@ -1090,13 +1111,35 @@ export class TldrawApp {
 		})
 	}
 
+	@computed
+	getFilesById(): Map<string, TlaFile | null> {
+		const files = new Map<string, TlaFile | null>()
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!files.has(groupFile.fileId)) files.set(groupFile.fileId, groupFile.file ?? null)
+			}
+		}
+		return files
+	}
+
+	@computed({ isEqual })
+	getSearchableFiles(): Array<{ fileId: string; workspaceId: string }> {
+		const seen = new Set<string>()
+		const files: Array<{ fileId: string; workspaceId: string }> = []
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!groupFile.file || seen.has(groupFile.fileId)) continue
+				if (!this.isFileListedInWorkspace(membership.groupId, groupFile.file)) continue
+				seen.add(groupFile.fileId)
+				files.push({ fileId: groupFile.fileId, workspaceId: membership.groupId })
+			}
+		}
+		return files
+	}
+
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		for (const membership of this.getWorkspaceMemberships()) {
-			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
-			if (groupFile) return groupFile.file ?? null
-		}
-		return null
+		return this.getFilesById().get(fileId) ?? null
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -1469,7 +1512,7 @@ export class TldrawApp {
 		}
 		const response = (await res.json()) as CreateFilesResponseBody
 		if (response.error) {
-			throw Error(response.message)
+			throw Error(response.code)
 		}
 		const fileId = response.slugs[0]
 		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
@@ -1493,23 +1536,42 @@ export class TldrawApp {
 		searchQuery: '',
 	})
 
-	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
-	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+	private getCopyableInviteSecret(workspaceId: string) {
 		// The home workspace can't be invited to.
-		if (workspaceId === this.getHomeWorkspaceId()) return false
+		if (workspaceId === this.getHomeWorkspaceId()) return undefined
 		const group = this.getWorkspaceMembership(workspaceId)?.group
-		if (!group?.inviteSecret) return false
+		// A new workspace has no invite secret until the server confirms it.
+		if (!group?.inviteSecret) return undefined
+		// Missing column on older cached rows means enabled.
+		if (!(group.inviteLinkEnabled ?? true)) return undefined
+		return group.inviteSecret
+	}
 
-		copyTextToClipboard(routes.tlaInvite(group.inviteSecret, { asUrl: true }))
+	canCopyWorkspaceInvite(workspaceId: string) {
+		return !!this.getCopyableInviteSecret(workspaceId)
+	}
+
+	/** Returns false when there is no invite link to copy (none yet, or disabled). */
+	copyWorkspaceInvite(
+		workspaceId: string,
+		{
+			showToast = true,
+			source = 'sidebar',
+		}: { showToast?: boolean; source?: TLAppUiEventSource } = {}
+	): boolean {
+		const inviteSecret = this.getCopyableInviteSecret(workspaceId)
+		if (!inviteSecret) return false
+
+		copyTextToClipboard(routes.tlaInvite(inviteSecret, { asUrl: true }))
 
 		if (showToast) {
 			this.toasts?.addToast({
 				id: 'copied-invite-link',
-				title: 'Copied invite link',
+				title: this.msg(this.messages.copied_invite_link),
 			})
 		}
 
-		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		this.trackEvent('copy-share-link', { source })
 		return true
 	}
 
@@ -1523,10 +1585,17 @@ export class TldrawApp {
 		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
 		if (!payload || payload.error || !response.ok) {
+			const code = payload?.error ? payload.code : undefined
+			const errorMessages: Partial<Record<TlaApiErrorCode, TLI18nMessage>> = {
+				unauthorized: this.messages.accept_invite_unauthorized,
+				invite_not_found: this.messages.accept_invite_not_found,
+			}
 			this.toasts?.addToast({
 				severity: 'error',
-				title: 'Error accepting invite',
-				description: payload?.message ?? 'Please try again.',
+				title: this.msg(this.messages.accept_invite_error_title),
+				description: this.msg(
+					(code && errorMessages[code]) ?? this.messages.accept_invite_try_again
+				),
 			})
 			this.navigate(routes.tlaRoot())
 			return
@@ -1540,8 +1609,8 @@ export class TldrawApp {
 			if (attempts++ > 100) {
 				this.toasts?.addToast({
 					severity: 'error',
-					title: 'Error accepting invite',
-					description: 'Please try again.',
+					title: this.msg(this.messages.accept_invite_error_title),
+					description: this.msg(this.messages.accept_invite_try_again),
 				})
 				this.navigate(routes.tlaRoot())
 				return

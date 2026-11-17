@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "إرسال التعليقات"
   },
+  "0e4a10d921": {
+    "translation": "ضع علامة \"مقروء\" على جميع الإشعارات"
+  },
   "1063e38cb5": {
     "translation": "يزيل"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "خيارات الإشعارات"
   },
+  "15bf4fead9": {
+    "translation": "مساحة عمل التبديل"
+  },
   "181b90f889": {
     "translation": "إنشاء ملف"
+  },
+  "1a7222b4e5": {
+    "translation": "انتقل إلى"
   },
   "1da2e8106b": {
     "translation": "حدث خطأ غير متوقع."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "حول tldraw"
   },
-  "2755e3ab39": {
-    "translation": "قام <name>{author}</name> بالتعليق على لوحتك"
-  },
   "28b2464e1f": {
     "translation": "لم أتمكن من إرسال التعليقات"
+  },
+  "2944edaa8d": {
+    "translation": "نيابة عن {name}"
   },
   "299cb00a7a": {
     "translation": "فشل التحميل"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "العودة إلى tldraw"
   },
+  "32811caa8c": {
+    "translation": "ملف مكرر"
+  },
   "335defdafe": {
     "translation": "يُرجى محاولة تحديث الصفحة."
+  },
+  "34082694d2": {
+    "translation": "اسم الملف"
   },
   "344a7f427f": {
     "translation": "المحرر"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "إزالة العضو"
+  },
+  "398f51738e": {
+    "translation": "قم بتسجيل الدخول لقبول هذه الدعوة."
   },
   "3bc7d6ea2f": {
     "translation": "متابعة بالبريد الإلكتروني"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "شكرًا لمساعدتنا على تحسين tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "انقل الملف إلى"
+  },
   "46de2de6bb": {
     "translation": "أوافق على شروط الاستخدام"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "اسم"
+  },
+  "4a8165368a": {
+    "translation": "انسخ الرابط المنشور"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> علّق"
   },
   "4d0d3ddec9": {
     "translation": "يستخدم هذا الموقع ملفات تعريف الارتباط لجعل التطبيق يعمل وجمع التحليلات."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "إنشاء مساحة عمل"
   },
+  "5653ebed2e": {
+    "translation": "انتقل إلى الملف"
+  },
   "5677e381d2": {
     "translation": "نحن نستخدم ملفات تعريف الارتباط التحليلية لتحسين tldraw."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "مساحة عملي"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> تفاعل مع تعليقك"
   },
   "5d04a002ea": {
     "translation": "تعذر الاتصال"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "لاحقًا"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, zero {لم يتفاعل أحد مع تعليقك} one {تفاعل شخص واحد مع تعليقك} two {تفاعل شخصان مع تعليقك} few {تفاعل # أشخاص مع تعليقك} many {تفاعل # شخصًا مع تعليقك} other {تفاعل # شخص مع تعليقك}}"
-  },
   "625fd29749": {
     "translation": "أقدم"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "تتوفر نسخة جديدة من tldraw. يُرجى إعادة تحميل الصفحة للمتابعة."
   },
+  "67ed6ddb7d": {
+    "translation": "تم التعديل"
+  },
   "681e10aecb": {
     "translation": "ملف جديد"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> و {count, plural, one {# other} other {# others}} reacted"
   },
   "6832ac5936": {
     "translation": "أدخل عنوان بريدك الإلكتروني"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "حذف مساحة العمل"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, zero {تفاعل # شخص} one {تفاعل شخص ما} two {تفاعل شخصان} few {تفاعل # أشخاص} many {تفاعل # شخصًا} other {تفاعل # شخص}}"
+  },
   "6a26f54883": {
     "translation": "المساعدة"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "ليست لديك الأذونات اللازمة للقيام بهذا."
   },
   "6dfc62f621": {
     "translation": "اتبع هذه الخطوات لاستيراد المحتوى يدويًا:"
+  },
+  "6ea5359e01": {
+    "translation": "قماش"
   },
   "70a6facb9d": {
     "translation": "هذا الأسبوع"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "يُرجى إعادة تحميل الصفحة"
+  },
+  "747ee44424": {
+    "translation": "احفظ المحتوى كملف .tldr: حدد \"حفظ نسخة\" في القائمة العلوية اليسرى."
   },
   "74ff4bad28": {
     "translation": "لم يتم العثور على أي ملفات"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "تحدث معنا على Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "انسخ رابط الملف"
   },
   "777f9e90cf": {
     "translation": "طلب غير صالح."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "أنت بالفعل عضو في مساحة العمل هذه"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> و {count, plural, one {# other} other {# others}} تفاعلوا"
+  },
   "88bf6ab42c": {
     "translation": "انتهت صلاحية رابط الدعوة هذا"
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "تمت المشاركة معك"
+  },
+  "8f7f4c1ce7": {
+    "translation": "عن"
   },
   "8ff3d0a705": {
     "translation": "معدل محدود"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "هل أنت متأكد من رغبتك في حذف <strong>{workspaceName}</strong>؟ لا يمكن التراجع عن هذا الإجراء."
   },
+  "91f3a2c0e4": {
+    "translation": "الملفات"
+  },
+  "930390d222": {
+    "translation": "تم نسخ رابط الدعوة"
+  },
   "95aacd4d4a": {
     "translation": "تسجيل الدخول باستخدام جوجل"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "هذا الشهر"
+  },
+  "9643c97d49": {
+    "translation": "تفاعل <name>{author}</name>"
   },
   "985a4b720f": {
     "translation": "شروط الاستخدام"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, zero {# غير مقروءة} one {# غير مقروء} two {# غير مقروءين} few {# غير مقروءة} many {# غير مقروءة} other {# غير مقروءة}}"
   },
-  "a0da245992": {
-    "translation": "تصدير المحتوى كملف .tldr: حدد \"تنزيل\" في القائمة الموجودة في أعلى اليسار."
-  },
   "a104439641": {
     "translation": "ترك مساحة"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "سياسة ملفات تعريف الارتباط"
+  },
+  "a4bef6414b": {
+    "translation": "إظهار/إخفاء شريط التعليقات الجانبي"
   },
   "a4d3b161ce": {
     "translation": "يُقدِّم"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "تم الوصول إلى الحد الأقصى للملفات"
   },
+  "ac863f346e": {
+    "translation": "برنامج"
+  },
+  "aeb428554a": {
+    "translation": "المكتبات"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "آخر نشر <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "الملف ممتلئ"
+  },
+  "b3205c1e45": {
+    "translation": "افتح لوحة الإشعارات"
   },
   "b357b524e7": {
     "translation": "عنوان البريد الإلكتروني"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "شاركه {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "الملف الحالي"
+  },
   "c17466812d": {
     "translation": "إدارة مساحة العمل"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "رفض"
   },
+  "cb5feb1b73": {
+    "translation": "لون"
+  },
+  "cce99c598c": {
+    "translation": "حساب تعريفي"
+  },
   "cceaefbc20": {
     "translation": "مشاركة هذا الملف"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "اعرف المزيد عن النشر."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> و {count, plural, zero {# آخرون} one {# شخص آخر} two {# شخصان آخران} few {# أشخاص آخرون} many {# شخصًا آخر} other {# شخص آخر}} تفاعلوا مع تعليقك"
+  "d0834fcec6": {
+    "translation": "التفضيلات"
+  },
+  "d28d6bbc42": {
+    "translation": "إلغاء نشر الملف"
   },
   "d3d2e61733": {
     "translation": "إغلاق"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "تبديل الشريط الجانبي"
+  },
+  "d5e92609cf": {
+    "translation": "مساحات العمل"
   },
   "d638a3344b": {
     "translation": "قبل أن تبدأ، يرجى قبول <tos>شروط الاستخدام</tos> و<privacy>سياسة الخصوصية</privacy> الخاصة بنا."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "اترك مساحة العمل"
   },
-  "dfdb78a4e4": {
-    "translation": "علامات تصحيح الأخطاء في التطبيق"
-  },
   "e0aa021e21": {
     "translation": "نعم"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "شروط الخدمة"
   },
-  "e65b2dcb6f": {
-    "translation": "تفاعل كل من <name>{a}</name> و <name>{b}</name> مع تعليقك"
-  },
   "e81c4e4f2b": {
     "translation": "أو"
+  },
+  "ea13ecec38": {
+    "translation": "سجل الملفات"
   },
   "ea4788705e": {
     "translation": "إلغاء"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "حذف"
   },
-  "f476ba8646": {
-    "translation": "تفاعل كل من <name>{a}</name> و <name>{b}</name> و {count, plural, zero {# آخرون} one {# شخص آخر} two {# شخصان آخران} few {# أشخاص آخرون} many {# شخصًا آخر} other {# شخص آخر}} مع تعليقك"
+  "f408fa5fbd": {
+    "translation": "رابط الدعوة هذا غير صالح أو انتهت صلاحيته."
   },
   "f4f70727dc": {
     "translation": "إعدادات"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "أنشئ حسابًا مجانيًا لحفظ ملفاتك واستخدام برنامج tldraw مع زملائك في الفريق."
+  },
+  "ffad261a48": {
+    "translation": "حدث خطأ أثناء قبول الدعوة"
+  },
+  "ffba7e098c": {
+    "translation": "تفاعل كل من <name>{a}</name> و <name>{b}</name>"
   },
   "ffcd73e997": {
     "translation": "استيراد الملف…"

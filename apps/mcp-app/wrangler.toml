@@ -11,6 +11,7 @@ binding = "ASSETS"
 run_worker_first = true
 
 [durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ class_name = "TldrawMCP", name = "MCP_OBJECT" },
 	{ class_name = "CanvasStore", name = "CANVAS_STORE" },

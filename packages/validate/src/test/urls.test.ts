@@ -56,4 +56,23 @@ describe('§15 URL validators', () => {
 		expect(() => T.srcUrl.validate(null)).toThrow('Expected string, got null')
 		expect(() => T.httpUrl.validate(undefined)).toThrow('Expected string, got undefined')
 	})
+
+	it('[UR7] linkUrl accepts app links with any scheme outside the block list', () => {
+		expect(T.linkUrl.validate('vscode://file/src/index.ts')).toBe('vscode://file/src/index.ts')
+		expect(T.linkUrl.validate('spotify:track:abc')).toBe('spotify:track:abc')
+		expect(T.linkUrl.validate('tel:5551234')).toBe('tel:5551234')
+
+		expect(() => T.linkUrl.validate('javascript://%0aalert(1)')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('data://text/html,hi')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('file:///etc/passwd')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('about:blank#blocked')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('ms-msdt:/id PCWDiagnostic')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('C:/Users/me/file.txt')).toThrow('(invalid protocol)')
+	})
+
+	it('[UR8] linkUrl rejects a host with a port, which parses as a scheme', () => {
+		expect(() => T.linkUrl.validate('localhost:3000')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('example.com:8080/path')).toThrow('(invalid protocol)')
+		expect(() => T.linkUrl.validate('intranet:80?q=1')).toThrow('(invalid protocol)')
+	})
 })

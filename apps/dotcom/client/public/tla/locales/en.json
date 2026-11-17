@@ -56,6 +56,9 @@
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
+  "0e4a10d921": {
+    "translation": "Mark all notifications as read"
+  },
   "1063e38cb5": {
     "translation": "Remove"
   },
@@ -74,8 +77,14 @@
   "14b03eeeb5": {
     "translation": "Notification options"
   },
+  "15bf4fead9": {
+    "translation": "Switch workspace"
+  },
   "181b90f889": {
     "translation": "Create file"
+  },
+  "1a7222b4e5": {
+    "translation": "Move to"
   },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
@@ -95,11 +104,11 @@
   "250ddea65c": {
     "translation": "About tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> commented on your board"
-  },
   "28b2464e1f": {
     "translation": "Could not submit feedback"
+  },
+  "2944edaa8d": {
+    "translation": "On behalf of {name}"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -131,11 +140,17 @@
   "324a0f3182": {
     "translation": "Back to tldraw"
   },
+  "32811caa8c": {
+    "translation": "Duplicate file"
+  },
   "335defdafe": {
     "translation": "Please try refreshing the page."
   },
   "33871b6190": {
     "translation": "What's new"
+  },
+  "34082694d2": {
+    "translation": "File name"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -145,6 +160,9 @@
   },
   "375396d6e5": {
     "translation": "Remove member"
+  },
+  "398f51738e": {
+    "translation": "Sign in to accept this invite."
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -176,6 +194,9 @@
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Move file to"
+  },
   "46de2de6bb": {
     "translation": "Accept terms of use"
   },
@@ -187,6 +208,12 @@
   },
   "49ee308734": {
     "translation": "Name"
+  },
+  "4a8165368a": {
+    "translation": "Copy published link"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> commented"
   },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
@@ -227,6 +254,9 @@
   "5638176be5": {
     "translation": "Create a workspace"
   },
+  "5653ebed2e": {
+    "translation": "Go to file"
+  },
   "5677e381d2": {
     "translation": "We use analytics cookies to make tldraw better."
   },
@@ -241,9 +271,6 @@
   },
   "5bff3c9c88": {
     "translation": "My workspace"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> reacted to your comment"
   },
   "5d04a002ea": {
     "translation": "Unable to connect"
@@ -266,9 +293,6 @@
   "61057a0c84": {
     "translation": "Later"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
-  },
   "625fd29749": {
     "translation": "Older"
   },
@@ -284,8 +308,14 @@
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
   },
+  "67ed6ddb7d": {
+    "translation": "Edited"
+  },
   "681e10aecb": {
     "translation": "New file"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted"
   },
   "6832ac5936": {
     "translation": "Enter your email address"
@@ -293,14 +323,23 @@
   "694f82ed9d": {
     "translation": "Delete workspace"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {Someone reacted} other {# people reacted}}"
+  },
   "6a26f54883": {
     "translation": "Help"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6ea5359e01": {
+    "translation": "Canvas"
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -316,6 +355,9 @@
   },
   "7408cf0d7b": {
     "translation": "Please reload the page"
+  },
+  "747ee44424": {
+    "translation": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
   },
   "74ff4bad28": {
     "translation": "No files found"
@@ -337,6 +379,9 @@
   },
   "7697920637": {
     "translation": "Please reload"
+  },
+  "76ec4e4ed9": {
+    "translation": "Copy file link"
   },
   "777f9e90cf": {
     "translation": "Invalid request."
@@ -401,6 +446,9 @@
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted"
+  },
   "88bf6ab42c": {
     "translation": "This invite link has expired"
   },
@@ -409,6 +457,9 @@
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
+  },
+  "8f7f4c1ce7": {
+    "translation": "About"
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
@@ -422,6 +473,12 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
+  "91f3a2c0e4": {
+    "translation": "Files"
+  },
+  "930390d222": {
+    "translation": "Copied invite link"
+  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -430,6 +487,9 @@
   },
   "96165d6df5": {
     "translation": "This month"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> reacted"
   },
   "985a4b720f": {
     "translation": "Terms of Use"
@@ -470,9 +530,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# unread} other {# unread}}"
   },
-  "a0da245992": {
-    "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -490,6 +547,9 @@
   },
   "a3debabee7": {
     "translation": "Cookie policy"
+  },
+  "a4bef6414b": {
+    "translation": "Toggle comments sidebar"
   },
   "a4d3b161ce": {
     "translation": "Submit"
@@ -518,6 +578,12 @@
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
+  "ac863f346e": {
+    "translation": "App"
+  },
+  "aeb428554a": {
+    "translation": "Libraries"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
@@ -536,6 +602,9 @@
   },
   "b2c3c2e30c": {
     "translation": "File is full"
+  },
+  "b3205c1e45": {
+    "translation": "Open notifications panel"
   },
   "b357b524e7": {
     "translation": "Email address"
@@ -567,6 +636,9 @@
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Current file"
+  },
   "bee0a8cf4d": {
     "translation": "Nothing here yet."
   },
@@ -597,6 +669,12 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
+  "cb5feb1b73": {
+    "translation": "Color"
+  },
+  "cce99c598c": {
+    "translation": "Profile"
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -609,8 +687,11 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  "d0834fcec6": {
+    "translation": "Preferences"
+  },
+  "d28d6bbc42": {
+    "translation": "Unpublish file"
   },
   "d3d2e61733": {
     "translation": "Close"
@@ -620,6 +701,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
+  },
+  "d5e92609cf": {
+    "translation": "Workspaces"
   },
   "d638a3344b": {
     "translation": "Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
@@ -657,11 +741,11 @@
   "e404559826": {
     "translation": "Terms of service"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"
-  },
   "e81c4e4f2b": {
     "translation": "or"
+  },
+  "ea13ecec38": {
+    "translation": "File history"
   },
   "ea4788705e": {
     "translation": "Cancel"
@@ -708,8 +792,8 @@
   "f2a6c498fb": {
     "translation": "Delete"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  "f408fa5fbd": {
+    "translation": "This invite link is invalid or has expired."
   },
   "f4f70727dc": {
     "translation": "Settings"
@@ -734,6 +818,12 @@
   },
   "ff52811b98": {
     "translation": "Create a free account to save your files and tldraw with your teammates."
+  },
+  "ffad261a48": {
+    "translation": "Error accepting invite"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> and <name>{b}</name> reacted"
   },
   "ffcd73e997": {
     "translation": "Import file…"

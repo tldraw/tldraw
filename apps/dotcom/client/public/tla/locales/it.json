@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Invia feedback"
   },
+  "0e4a10d921": {
+    "translation": "Contrassegna tutte le notifiche come lette"
+  },
   "1063e38cb5": {
     "translation": "Rimuovere"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "Opzioni di notifica"
   },
+  "15bf4fead9": {
+    "translation": "Passa allo spazio di lavoro"
+  },
   "181b90f889": {
     "translation": "Crea file"
+  },
+  "1a7222b4e5": {
+    "translation": "Spostarsi su"
   },
   "1da2e8106b": {
     "translation": "Si è verificato un errore imprevisto."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> ha commentato sulla tua bacheca"
-  },
   "28b2464e1f": {
     "translation": "Impossibile inviare il feedback"
+  },
+  "2944edaa8d": {
+    "translation": "A nome di {name}"
   },
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "Torna a tldraw"
   },
+  "32811caa8c": {
+    "translation": "File duplicato"
+  },
   "335defdafe": {
     "translation": "Prova a ricaricare la pagina."
+  },
+  "34082694d2": {
+    "translation": "Nome file"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "Rimuovere il membro"
+  },
+  "398f51738e": {
+    "translation": "Accedi per accettare questo invito."
   },
   "3bc7d6ea2f": {
     "translation": "Continua con l'email"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "Grazie per averci aiutato a migliorare tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Spostare il file in"
+  },
   "46de2de6bb": {
     "translation": "Accetta i termini di utilizzo"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Nome"
+  },
+  "4a8165368a": {
+    "translation": "Copia il link pubblicato"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> ha commentato"
   },
   "4d0d3ddec9": {
     "translation": "Questo sito utilizza i cookie per far funzionare l'app e per raccogliere dati analitici."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "Crea uno spazio di lavoro"
   },
+  "5653ebed2e": {
+    "translation": "Vai al file"
+  },
   "5677e381d2": {
     "translation": "Utilizziamo cookie analitici per migliorare tldraw."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Il mio spazio di lavoro"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> ha reagito al tuo commento"
   },
   "5d04a002ea": {
     "translation": "Impossibile connettersi"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "Più tardi"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {Qualcuno ha reagito al tuo commento} other {# persone hanno reagito al tuo commento}}"
-  },
   "625fd29749": {
     "translation": "Meno recenti"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
   },
+  "67ed6ddb7d": {
+    "translation": "Modificato"
+  },
   "681e10aecb": {
     "translation": "Nuovo file"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# altro} other {# altri}} hanno reagito"
   },
   "6832ac5936": {
     "translation": "Inserisci il tuo indirizzo email"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Elimina l'area di lavoro"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {Qualcuno ha reagito} other {# le persone hanno reagito}}"
+  },
   "6a26f54883": {
     "translation": "Aiuto"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Non hai le autorizzazioni necessarie per eseguire questa azione."
   },
   "6dfc62f621": {
     "translation": "Per importare il contenuto manualmente, segui questi passaggi:"
+  },
+  "6ea5359e01": {
+    "translation": "Tela"
   },
   "70a6facb9d": {
     "translation": "Questa settimana"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "Ricarica la pagina"
+  },
+  "747ee44424": {
+    "translation": "Salva il contenuto come file .tldr: seleziona \"Salva una copia\" nel menu in alto a sinistra."
   },
   "74ff4bad28": {
     "translation": "Nessun file trovato"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Chatta con noi su Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "Copia il collegamento al file"
   },
   "777f9e90cf": {
     "translation": "Richiesta non valida."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Sei già membro di questo spazio di lavoro"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> e {count, plural, one {# altro} other {# altri}} hanno reagito"
+  },
   "88bf6ab42c": {
     "translation": "Questo link di invito è scaduto."
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Condivisi con te"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Di"
   },
   "8ff3d0a705": {
     "translation": "Richieste limitate"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "Sei sicuro di voler eliminare <strong>{workspaceName}</strong>? Questa azione non può essere annullata."
   },
+  "91f3a2c0e4": {
+    "translation": "File"
+  },
+  "930390d222": {
+    "translation": "Link di invito copiato"
+  },
   "95aacd4d4a": {
     "translation": "Accedi con Google"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Questo mese"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> ha reagito"
   },
   "985a4b720f": {
     "translation": "Termini di utilizzo"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# non letto} other {# non letto}}"
   },
-  "a0da245992": {
-    "translation": "Esportare il contenuto come file .tldr: selezionare \"Scarica\" nel menu in alto a sinistra."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "Politica sui cookie"
+  },
+  "a4bef6414b": {
+    "translation": "Attiva/disattiva la barra laterale dei commenti"
   },
   "a4d3b161ce": {
     "translation": "Invia"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Limite file raggiunto"
   },
+  "ac863f346e": {
+    "translation": "App"
+  },
+  "aeb428554a": {
+    "translation": "Biblioteche"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Ultima pubblicazione: <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Il file è pieno"
+  },
+  "b3205c1e45": {
+    "translation": "Apri il pannello delle notifiche"
   },
   "b357b524e7": {
     "translation": "Indirizzo e-mail"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Condivisi da {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "File corrente"
+  },
   "c17466812d": {
     "translation": "Gestisci l'area di lavoro"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Chiudi"
   },
+  "cb5feb1b73": {
+    "translation": "Colore"
+  },
+  "cce99c598c": {
+    "translation": "Profilo"
+  },
   "cceaefbc20": {
     "translation": "Condividi questo file"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "Maggiori informazioni sulla pubblicazione."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> e {count, plural, one {# altro} other {# altri}} hanno reagito al tuo commento"
+  "d0834fcec6": {
+    "translation": "Preferenze"
+  },
+  "d28d6bbc42": {
+    "translation": "Annulla la pubblicazione del file"
   },
   "d3d2e61733": {
     "translation": "Chiudi"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Attiva/disattiva barra laterale"
+  },
+  "d5e92609cf": {
+    "translation": "Spazi di lavoro"
   },
   "d638a3344b": {
     "translation": "Prima di iniziare, accetta i nostri <tos>termini di utilizzo</tos> e la nostra <privacy>informativa sulla privacy</privacy>."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Lasciare l'area di lavoro"
   },
-  "dfdb78a4e4": {
-    "translation": "Flag di debug dell'app"
-  },
   "e0aa021e21": {
     "translation": "OK"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "Termini di servizio"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> e <name>{b}</name> hanno reagito al tuo commento"
-  },
   "e81c4e4f2b": {
     "translation": "O"
+  },
+  "ea13ecec38": {
+    "translation": "Cronologia dei file"
   },
   "ea4788705e": {
     "translation": "Annulla"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "Elimina"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# altro} other {# altri}} hanno reagito al tuo commento"
+  "f408fa5fbd": {
+    "translation": "Questo link di invito non è valido o è scaduto."
   },
   "f4f70727dc": {
     "translation": "Impostazioni"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "Crea un account gratuito per salvare i tuoi file e disegnare insieme ai tuoi compagni di squadra."
+  },
+  "ffad261a48": {
+    "translation": "Errore durante l'accettazione dell'invito"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> e <name>{b}</name> hanno reagito"
   },
   "ffcd73e997": {
     "translation": "Importa file…"

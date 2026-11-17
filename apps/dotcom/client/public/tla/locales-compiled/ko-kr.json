@@ -139,6 +139,12 @@
       "value": "피드백 보내기"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "모든 알림을 읽음으로 표시하세요"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -175,10 +181,22 @@
       "value": "알림 옵션"
     }
   ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "작업 공간 전환"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
       "value": "파일 생성"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "이동하다"
     }
   ],
   "1da2e8106b": [
@@ -227,26 +245,20 @@
       "value": "tldraw에 대하여"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " 님이 당신의 게시판에 댓글을 남겼습니다."
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "피드백을 제출할 수 없습니다."
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 님을 대신하여"
     }
   ],
   "299cb00a7a": [
@@ -309,10 +321,22 @@
       "value": "tldraw로 돌아가기"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "중복 파일"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "페이지를 새로 고침해 주세요."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "파일 이름"
     }
   ],
   "344a7f427f": [
@@ -331,6 +355,12 @@
     {
       "type": 0,
       "value": "멤버를 삭제합니다"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "이 초대장을 수락하려면 로그인하세요."
     }
   ],
   "3bc7d6ea2f": [
@@ -403,6 +433,12 @@
       "value": "tldraw 개선에 도움을 주셔서 감사합니다!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "파일을 다음 위치로 이동"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -425,6 +461,28 @@
     {
       "type": 0,
       "value": "이름"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "게시된 링크 복사"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 댓글을 남겼습니다."
     }
   ],
   "4d0d3ddec9": [
@@ -515,6 +573,12 @@
       "value": "워크스페이스 만들기"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "파일로 이동"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -543,22 +607,6 @@
     {
       "type": 0,
       "value": "내 작업 공간"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "님이 귀하의 댓글에 반응을 남겼습니다."
     }
   ],
   "5d04a002ea": [
@@ -603,27 +651,6 @@
       "value": "이후"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": "명이 당신의 댓글에 반응했습니다"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -654,10 +681,80 @@
       "value": "tldraw의 새 버전이 출시되었습니다. 계속하려면 페이지를 다시 로드하세요."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "편집됨"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "새 파일"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 및 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "가 반응했습니다."
     }
   ],
   "6832ac5936": [
@@ -672,10 +769,41 @@
       "value": "작업 공간 삭제"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 사람들이 반응했습니다"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "도움말"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -688,6 +816,12 @@
     {
       "type": 0,
       "value": "수동으로 콘텐츠를 가져오려면 다음 단계를 따르세요."
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "캔버스"
     }
   ],
   "70a6facb9d": [
@@ -712,6 +846,12 @@
     {
       "type": 0,
       "value": "페이지를 다시 로드해 주세요"
+    }
+  ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "내용을 .tldr 파일로 저장하려면 왼쪽 상단 메뉴에서 '사본 저장'을 선택하세요."
     }
   ],
   "74ff4bad28": [
@@ -754,6 +894,12 @@
     {
       "type": 0,
       "value": "다시 로드해주세요"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "파일 링크 복사"
     }
   ],
   "777f9e90cf": [
@@ -918,6 +1064,56 @@
       "value": "이미 이 워크스페이스의 멤버입니다."
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 및 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "명이 반응했습니다."
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -934,6 +1130,12 @@
     {
       "type": 0,
       "value": "나와 공유됨"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "에 대한"
     }
   ],
   "8ff3d0a705": [
@@ -970,6 +1172,18 @@
       "value": "을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "파일"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "초대 링크를 복사했습니다"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -986,6 +1200,22 @@
     {
       "type": 0,
       "value": "이번 달"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 반응했습니다"
     }
   ],
   "985a4b720f": [
@@ -1103,12 +1333,6 @@
       "value": "count"
     }
   ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '다운로드'를 선택하세요."
-    }
-  ],
   "a104439641": [
     {
       "type": 0,
@@ -1143,6 +1367,12 @@
     {
       "type": 0,
       "value": "쿠키 정책"
+    }
+  ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "댓글 사이드바 토글"
     }
   ],
   "a4d3b161ce": [
@@ -1199,6 +1429,18 @@
       "value": "파일 제한에 도달했습니다"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "앱"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "도서관"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1249,6 +1491,12 @@
     {
       "type": 0,
       "value": "파일이 가득 찼습니다"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "알림 패널 열기"
     }
   ],
   "b357b524e7": [
@@ -1339,6 +1587,12 @@
       "value": " 님이 공유함"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "현재 파일"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1408,6 +1662,18 @@
       "value": "닫기"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "색상"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "윤곽"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1432,43 +1698,16 @@
       "value": "게시에 대해 자세히 알아보세요."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": "님 외 "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " 명"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "환경설정"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": "이 회원님의 댓글에 반응했습니다."
+      "value": "게시 취소 파일"
     }
   ],
   "d3d2e61733": [
@@ -1487,6 +1726,12 @@
     {
       "type": 0,
       "value": "사이드바 전환"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "작업 공간"
     }
   ],
   "d638a3344b": [
@@ -1559,12 +1804,6 @@
       "value": "작업 공간 나가기"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "앱 디버그 신고"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1589,40 +1828,16 @@
       "value": "서비스 약관"
     }
   ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "님과 "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "님이 댓글에 반응을 남겼습니다."
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "또는"
+    }
+  ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "파일 기록"
     }
   ],
   "ea4788705e": [
@@ -1723,57 +1938,10 @@
       "value": "삭제"
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "f408fa5fbd": [
     {
       "type": 0,
-      "value": "님, "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "님 외 "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " 명"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": "이 회원님의 댓글에 반응했습니다."
+      "value": "이 초대 링크는 유효하지 않거나 만료되었습니다."
     }
   ],
   "f4f70727dc": [
@@ -1848,6 +2016,42 @@
     {
       "type": 0,
       "value": "무료 계정을 만들어 파일을 저장하고 팀원들과 함께 그림을 그려보세요."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "초대 수락 오류"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "와 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "가 반응했습니다."
     }
   ],
   "ffcd73e997": [

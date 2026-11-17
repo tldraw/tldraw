@@ -1,19 +1,11 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import {
-	ReactNode,
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useMemo,
-	useState,
-} from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
+	Editor,
 	TLUserStore,
 	UserRecordType,
-	assertExists,
 	commentSchemaRecords,
 	computed,
 	createUserId,
@@ -25,7 +17,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
-import { FileLoad, fileLoads } from '../../../utils/fileLoad'
+import { fileLoads } from '../../../utils/fileLoad'
 import { markFirstLoad } from '../../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
@@ -36,21 +28,8 @@ import {
 	resolveCachedFileVisit,
 } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
-
-type FileSyncStore = ReturnType<typeof useSync>
-
-const FileSyncStoreContext = createContext<FileSyncStore | null>(null)
-
-export function useFileSyncStore(): FileSyncStore {
-	return assertExists(useContext(FileSyncStoreContext), 'TlaFileSyncHost is missing above')
-}
-
-const FileLoadContext = createContext<FileLoad | null>(null)
-
-/** This file open's file_load tracker, begun where the open begins: the sync host. */
-export function useFileLoad(): FileLoad {
-	return assertExists(useContext(FileLoadContext), 'TlaFileSyncHost is missing above')
-}
+import { answerTabRender } from '../../utils/tabRender'
+import { FileSyncStoreContext, FileLoadContext, FileEditorRefContext } from './fileSyncHostContext'
 
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
 export const VIA_LAST_FILE_CACHE = 'viaLastFileCache'
@@ -91,6 +70,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
+	const editorRef = useRef<Editor | null>(null)
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -101,6 +81,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			const connectId = fileLoad.nextConnectId()
 			if (connectId) url.searchParams.set('loadId', connectId)
 			if (userId) {
+				// Signed in only: the room hands a job to the sockets of the user who asked for it.
+				url.searchParams.set(TAB_RENDER_PARAM, '1')
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
 				fileLoad.mark('sync-token-fetched')
@@ -118,9 +100,13 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 					fileLoad.setServerTimings(message)
 					return
 				}
+				if (message.type === 'mcp_tab_render') {
+					void answerTabRender(editorRef.current, fileSlug, message)
+					return
+				}
 				trackEvent(message.type)
 			},
-			[fileLoad]
+			[fileLoad, fileSlug]
 		),
 		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
 		// the editor's mount work, seconds on big boards.
@@ -210,7 +196,9 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	return (
 		<FileLoadContext.Provider value={fileLoad}>
-			<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+			<FileEditorRefContext.Provider value={editorRef}>
+				<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+			</FileEditorRefContext.Provider>
 		</FileLoadContext.Provider>
 	)
 }

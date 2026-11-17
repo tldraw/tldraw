@@ -1,0 +1,206 @@
+import { useEffect, useRef, useState } from 'react'
+import {
+	defineMessages,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	useContainer,
+	useTranslation,
+} from 'tldraw'
+import { type LibraryMenuTarget, MenuItem, MenuSubmenu, MenuTargetItems } from './menu-items'
+import { RenameInput } from './rename-input'
+
+const messages = defineMessages({
+	moreOptions: { id: 'libraries.item-menu.title', defaultMessage: 'Item options' },
+	rename: { id: 'libraries.item-menu.rename', defaultMessage: 'Rename' },
+	delete: { id: 'libraries.item-menu.delete', defaultMessage: 'Delete' },
+	moveTo: { id: 'libraries.item-menu.move-to', defaultMessage: 'Move to' },
+	copyTo: { id: 'libraries.item-menu.copy-to', defaultMessage: 'Copy to' },
+})
+
+/** @public */
+export interface ItemMenuProps {
+	/** Unique per item, so each tile's menu opens on its own. */
+	id: string
+	/** Shown at the top of the menu. Leave out for an unnamed item. */
+	name?: string
+	/**
+	 * Called with the input's value when a rename in the menu completes. Leave out to hide Rename,
+	 * e.g. when the source doesn't allow it.
+	 */
+	onRename?(name: string): void
+	/** Leave out to hide Delete. */
+	onDelete?(): void
+	/** The libraries the item can move to. Leave out, or leave empty, to hide "Move to". */
+	moveTargets?: LibraryMenuTarget[]
+	onMove?(libraryId: string): void
+	/** The libraries the item can be copied to. Leave out, or leave empty, to hide "Copy to". */
+	copyTargets?: LibraryMenuTarget[]
+	onCopy?(libraryId: string): void
+}
+
+/**
+ * The id of an item's {@link ItemMenu}, for opening it from elsewhere, e.g. a right-click on the
+ * tile: `editor.menus.addOpenMenu(getItemMenuId(id))`.
+ * @public
+ */
+export function getItemMenuId(id: string) {
+	return `libraries-item-menu-${id}`
+}
+
+/**
+ * A ⋯ menu for one item, headed by its name. Rename turns the heading into an input. Renders
+ * nothing when it has no actions.
+ * @public @react
+ */
+export function ItemMenu({
+	id,
+	name,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+	copyTargets,
+	onCopy,
+}: ItemMenuProps) {
+	const msg = useTranslation()
+	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
+	const canCopy = onCopy !== undefined && copyTargets !== undefined && copyTargets.length > 0
+	if (!onRename && !onDelete && !canMove && !canCopy) return null
+
+	return (
+		<TldrawUiDropdownMenuRoot id={getItemMenuId(id)}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton
+					type="icon"
+					className="tlui-libraries-tile__menu-button"
+					tooltip={msg(messages.moreOptions)}
+					title={msg(messages.moreOptions)}
+				>
+					<TldrawUiButtonIcon icon="dots-vertical" small />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent
+				className="tlui-libraries-menu"
+				side="bottom"
+				align="start"
+				alignOffset={0}
+				sideOffset={0}
+			>
+				<ItemMenuContent
+					id={id}
+					name={name}
+					onRename={onRename}
+					onDelete={onDelete}
+					moveTargets={canMove ? moveTargets : undefined}
+					onMove={onMove}
+					copyTargets={canCopy ? copyTargets : undefined}
+					onCopy={onCopy}
+				/>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
+
+/** Mounted only while the menu is open, so closing it ends a rename. */
+function ItemMenuContent({
+	id,
+	name,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+	copyTargets,
+	onCopy,
+}: ItemMenuProps) {
+	const msg = useTranslation()
+	const [renaming, setRenaming] = useState(false)
+	const renameItemRef = useRef<HTMLButtonElement>(null)
+	useKeepMenuOpenOnEscape(renaming)
+
+	const stopRenaming = () => {
+		setRenaming(false)
+		// Enter and Escape blur the input, leaving focus nowhere. Deferred so Enter's keypress doesn't
+		// land on Rename and start another rename.
+		requestAnimationFrame(() => {
+			const item = renameItemRef.current
+			if (item && item.ownerDocument.activeElement === item.ownerDocument.body) item.focus()
+		})
+	}
+
+	return (
+		<>
+			{renaming && onRename && (
+				<div className="tlui-libraries-menu__heading" onKeyDown={(e) => e.stopPropagation()}>
+					<RenameInput
+						className="tlui-libraries-menu__rename"
+						defaultValue={name ?? ''}
+						onComplete={(newName) => {
+							stopRenaming()
+							onRename(newName)
+						}}
+						onCancel={stopRenaming}
+					/>
+				</div>
+			)}
+			{!renaming && name && (
+				<div className="tlui-libraries-menu__heading" role="presentation">
+					<strong>{name}</strong>
+				</div>
+			)}
+			<TldrawUiDropdownMenuGroup>
+				{onRename && (
+					<MenuItem
+						buttonRef={renameItemRef}
+						label={msg(messages.rename)}
+						noClose
+						holdFocus={renaming}
+						onClick={() => setRenaming(true)}
+					/>
+				)}
+				{moveTargets && onMove && (
+					<MenuSubmenu
+						id={`${getItemMenuId(id)}-move-to`}
+						label={msg(messages.moveTo)}
+						holdFocus={renaming}
+					>
+						<MenuTargetItems targets={moveTargets} onSelect={onMove} />
+					</MenuSubmenu>
+				)}
+				{copyTargets && onCopy && (
+					<MenuSubmenu
+						id={`${getItemMenuId(id)}-copy-to`}
+						label={msg(messages.copyTo)}
+						holdFocus={renaming}
+					>
+						<MenuTargetItems targets={copyTargets} onSelect={onCopy} />
+					</MenuSubmenu>
+				)}
+				{onDelete && (
+					<MenuItem label={msg(messages.delete)} danger holdFocus={renaming} onClick={onDelete} />
+				)}
+			</TldrawUiDropdownMenuGroup>
+		</>
+	)
+}
+
+/**
+ * The menu closes on Escape from a capture listener on the document, which runs before the input's
+ * own handler. Marking the event handled on the window first lets Escape cancel the rename and leave
+ * the menu open.
+ */
+function useKeepMenuOpenOnEscape(active: boolean) {
+	const container = useContainer()
+	useEffect(() => {
+		const win = container.ownerDocument.defaultView
+		if (!active || !win) return undefined
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') e.preventDefault()
+		}
+		win.addEventListener('keydown', onKeyDown, true)
+		return () => win.removeEventListener('keydown', onKeyDown, true)
+	}, [active, container])
+}

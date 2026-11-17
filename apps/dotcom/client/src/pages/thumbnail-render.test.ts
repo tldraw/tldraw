@@ -1,6 +1,12 @@
 import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
 import {
+	AssetRecordType,
 	Editor,
+	TLArrowShape,
+	TLAsset,
+	TLShapeId,
+	b64Vecs,
+	createBindingId,
 	createShapeId,
 	createTLStore,
 	defaultBindingUtils,
@@ -8,10 +14,14 @@ import {
 	defaultTldrawOptions,
 } from 'tldraw'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { measureArrow, measureDimensions } from '../utils/boardCapture'
 import {
 	SHAPES_NOT_ON_PAGE,
+	acquireThumbnailRenderData,
 	exportThumbnailImage,
 	prepareLiveCapture,
+	preloadImageAssets,
+	renderAssetStore,
 	setThumbnailError,
 	signalThumbnailReady,
 } from './thumbnail-render'
@@ -44,20 +54,24 @@ beforeEach(() => {
 	delete document.documentElement.dataset.thumbnailReady
 })
 
-// Two pages with one shape each, left on the first — which stands in for the page a job named. The
-// shape on the second page is the one a live snapshot moved away after the token was minted.
-function setupTwoPageEditor() {
+function setupEditor() {
 	const store = createTLStore({
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 	})
-	const editor = new Editor({
+	return new Editor({
 		store,
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 		tools: [],
 		getContainer: () => document.createElement('div'),
 	})
+}
+
+// Two pages with one shape each, left on the first — which stands in for the page a job named. The
+// shape on the second page is the one a live snapshot moved away after the token was minted.
+function setupTwoPageEditor() {
+	const editor = setupEditor()
 	const renderedPageId = editor.getCurrentPageId()
 	const renderedId = createShapeId('rendered')
 	editor.createShape({ id: renderedId, type: 'geo', x: 0, y: 0 })
@@ -101,6 +115,285 @@ describe('prepareLiveCapture', () => {
 	})
 })
 
+describe('measureArrow', () => {
+	// The record of a bound arrow is a stub at its origin; only the editor knows where it runs.
+	it('reports a bound arrow where it is drawn, between the shapes it is bound to', () => {
+		const editor = setupEditor()
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } },
+			},
+		])
+		const bind = (toId: typeof a, terminal: 'start' | 'end') => ({
+			id: createBindingId(),
+			type: 'arrow' as const,
+			fromId: arrowId,
+			toId,
+			props: { terminal, normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false },
+		})
+		editor.createBindings([bind(a, 'start'), bind(b, 'end')])
+
+		const measured = measureArrow(editor, editor.getShape<TLArrowShape>(arrowId)!)!
+		// Clipped to each box's edge, along the line between their centres.
+		expect(measured.start.x).toBeGreaterThanOrEqual(100)
+		expect(measured.start.x).toBeLessThan(150)
+		expect(measured.end.x).toBeGreaterThan(350)
+		expect(measured.end.x).toBeLessThanOrEqual(400)
+		expect(measured.start.y).toBeCloseTo(50)
+		expect(measured.end.y).toBeCloseTo(50)
+		editor.dispose()
+	})
+
+	it('reports a free arrow inside a frame in page space', () => {
+		const editor = setupEditor()
+		const frame = createShapeId('frame')
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 1000, y: 500, props: { w: 400, h: 300 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				parentId: frame,
+				x: 10,
+				y: 20,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+
+		expect(measureArrow(editor, editor.getShape<TLArrowShape>(arrowId)!)).toEqual({
+			start: { x: 1010, y: 520 },
+			end: { x: 1110, y: 520 },
+		})
+		editor.dispose()
+	})
+})
+
+describe('measureDimensions', () => {
+	// The group's own size, not the larger axis-aligned page box a rotation gives it.
+	it('reports a rotated group at the unrotated size of its children', () => {
+		const editor = setupEditor()
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 300, y: 50, props: { w: 100, h: 100 } },
+		])
+		editor.groupShapes([a, b])
+		const groupId = editor.getShape(a)!.parentId as TLShapeId
+		editor.updateShape({ id: groupId, type: 'group', rotation: Math.PI / 4 })
+		expect(editor.getShapePageBounds(groupId)!.h).toBeGreaterThan(150)
+		expect(measureDimensions(editor, editor.getShape(groupId)!)).toEqual({ w: 400, h: 150 })
+		editor.dispose()
+	})
+
+	it('reports a freehand stroke at the size it is drawn', () => {
+		const editor = setupEditor()
+		const id = createShapeId('scribble')
+		editor.createShape({
+			id,
+			type: 'draw',
+			x: 0,
+			y: 0,
+			props: {
+				segments: [
+					{
+						type: 'free',
+						path: b64Vecs.encodePoints(
+							[0, 50, 100, 150].map((x) => ({ x, y: x % 100 ? 40 : 0, z: 0.5 })),
+							2
+						),
+						dim: 2,
+					},
+				],
+				isComplete: true,
+			},
+		})
+		const dimensions = measureDimensions(editor, editor.getShape(id)!)!
+		expect(dimensions.w).toBeGreaterThanOrEqual(150)
+		expect(dimensions.h).toBeGreaterThanOrEqual(40)
+		editor.dispose()
+	})
+
+	it('leaves out shapes whose size is on the record or is not a w and h', () => {
+		const editor = setupEditor()
+		const geo = createShapeId('geo')
+		const note = createShapeId('note')
+		const arrow = createShapeId('arrow')
+		editor.createShapes([
+			{ id: geo, type: 'geo', x: 0, y: 0 },
+			{ id: note, type: 'note', x: 0, y: 0 },
+			{ id: arrow, type: 'arrow', x: 0, y: 0, props: { end: { x: 100, y: 0 } } },
+		])
+		expect(measureDimensions(editor, editor.getShape(geo)!)).toBeUndefined()
+		expect(measureDimensions(editor, editor.getShape(note)!)).toBeUndefined()
+		expect(measureDimensions(editor, editor.getShape(arrow)!)).toBeUndefined()
+		editor.dispose()
+	})
+})
+
+describe('renderAssetStore', () => {
+	// At the 1/32 zoom floor a 1x request would be a 1/32 width the app never asks for; at 2x it is
+	// the 1/16 width the app's most zoomed-out view on a 2x screen already uses.
+	it('resizes at a pixel ratio of 2, matching the variants the app requests', async () => {
+		const asset = {
+			type: 'image',
+			props: {
+				src: 'https://tldrawusercontent.com/photo.png',
+				w: 4000,
+				h: 3000,
+				mimeType: 'image/png',
+				isAnimated: false,
+			},
+		} as TLAsset
+		const url = await renderAssetStore.resolve!(asset, {
+			screenScale: 0.001,
+			steppedScreenScale: 1 / 1024,
+			dpr: 1,
+			networkEffectiveType: '4g',
+			shouldResolveToOriginal: false,
+		})
+		expect(url).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=250,format=auto/photo.png')
+	})
+
+	// The export draws only an animated image's first frame, so the original's other frames are
+	// bytes the capture downloads for nothing.
+	it('resizes an animated image to a still of its first frame', async () => {
+		const asset = {
+			type: 'image',
+			props: {
+				src: 'https://tldrawusercontent.com/party.gif',
+				w: 480,
+				h: 480,
+				mimeType: 'image/gif',
+				isAnimated: true,
+			},
+		} as TLAsset
+		const url = await renderAssetStore.resolve!(asset, {
+			screenScale: 0.125,
+			steppedScreenScale: 0.125,
+			dpr: 1,
+			networkEffectiveType: '4g',
+			shouldResolveToOriginal: false,
+		})
+		expect(url).toBe(
+			'https://tldrawusercontent.com/cdn-cgi/image/w=120,anim=false,format=auto/party.gif'
+		)
+	})
+})
+
+describe('preloadImageAssets', () => {
+	// Warming the original would fetch the full-size bytes the render page's asset store exists to
+	// avoid, on exactly the image-heavy boards that were failing.
+	it('warms the URL the asset store resolves, not the original upload', async () => {
+		const store = createTLStore({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			assets: {
+				upload: async () => ({ src: '' }),
+				resolve: (asset, ctx) => `${asset.props.src}?w=${ctx.steppedScreenScale}`,
+			},
+		})
+		const editor = new Editor({
+			store,
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [],
+			getContainer: () => document.createElement('div'),
+		})
+		const assetId = AssetRecordType.createId('photo')
+		editor.createAssets([
+			{
+				id: assetId,
+				typeName: 'asset',
+				type: 'image',
+				props: {
+					src: 'https://example.com/photo.png',
+					w: 4000,
+					h: 3000,
+					name: 'photo.png',
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+				meta: {},
+			},
+		])
+		editor.createShape({ type: 'image', x: 0, y: 0, props: { assetId, w: 400, h: 300 } })
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		const srcs: string[] = []
+		vi.spyOn(HTMLImageElement.prototype, 'src', 'set').mockImplementation((src) => {
+			srcs.push(src)
+		})
+
+		await preloadImageAssets(editor, Date.now())
+
+		// 0.5 zoom of a shape drawn at a tenth of the asset's width: 0.05, stepped up to 1/16.
+		expect(srcs).toEqual(['https://example.com/photo.png?w=0.0625'])
+		vi.restoreAllMocks()
+		editor.dispose()
+	})
+	// The SDK caches an image's export per asset, from whichever shape resolves it first, so a smaller
+	// shape of a shared asset must not leave the larger one drawing its variant.
+	it('resolves every shape of a shared asset at the largest size any of them needs', async () => {
+		const store = createTLStore({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			assets: renderAssetStore,
+		})
+		const editor = new Editor({
+			store,
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [],
+			getContainer: () => document.createElement('div'),
+		})
+		const assetId = AssetRecordType.createId('shared')
+		editor.createAssets([
+			{
+				id: assetId,
+				typeName: 'asset',
+				type: 'image',
+				props: {
+					src: 'https://tldrawusercontent.com/shared.png',
+					w: 4000,
+					h: 4000,
+					name: 'shared.png',
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+				meta: {},
+			},
+		])
+		editor.createShapes([
+			{ type: 'image', x: 0, y: 0, props: { assetId, w: 250, h: 250 } },
+			{ type: 'image', x: 300, y: 0, props: { assetId, w: 1000, h: 1000 } },
+		])
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		const srcs: string[] = []
+		vi.spyOn(HTMLImageElement.prototype, 'src', 'set').mockImplementation((src) => {
+			srcs.push(src)
+		})
+
+		await preloadImageAssets(editor, Date.now())
+		// What the export asks for the smaller shape: 0.5 zoom of a sixteenth of the asset's width.
+		const small = await editor.resolveAssetUrl(assetId, { screenScale: 0.5 / 16, dpr: 1 })
+
+		// The larger shape needs 0.5 zoom of a quarter: 1/8 of 4000 at a pixel ratio of 2.
+		const large = 'https://tldrawusercontent.com/cdn-cgi/image/w=1000,format=auto/shared.png'
+		expect({ srcs, small }).toEqual({ srcs: [large], small: large })
+		vi.restoreAllMocks()
+		editor.dispose()
+	})
+})
+
 describe('exportThumbnailImage', () => {
 	// The export path resolves the requested ids the same way the live path does, so a job whose
 	// shapes moved pages has to fail there too. Without the refusal it falls through to
@@ -134,6 +427,65 @@ describe('signalThumbnailReady', () => {
 		expect(document.body.dataset.thumbnailReady).toBeUndefined()
 		expect(document.documentElement.dataset.thumbnailReady).toBeUndefined()
 		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
+	})
+})
+
+describe('acquireThumbnailRenderData', () => {
+	const pushed = {
+		error: false as const,
+		records: [],
+		schema: { schemaVersion: 2, sequences: {} },
+		renderParams: { x: 0, y: 0, z: 1, width: 1200, height: 630, theme: 'light' as const },
+	}
+	const renderUrl = (params: string) =>
+		new URL(`https://www.tldraw.com/__thumbnail-render?token=t${params}`)
+
+	let fetchMock: ReturnType<typeof vi.fn>
+	beforeEach(() => {
+		fetchMock = vi.fn(async () => Response.json({ ...pushed, records: [{ id: 'fetched' }] }))
+		vi.stubGlobal('fetch', fetchMock)
+	})
+	afterEach(() => {
+		vi.useRealTimers()
+		vi.unstubAllGlobals()
+		delete (window as any).__TLDRAW_RENDER__
+	})
+
+	it('takes records pushed after the page started waiting, without fetching', async () => {
+		const acquiring = acquireThumbnailRenderData(renderUrl('&push=1'))
+		;(window as any).__TLDRAW_RENDER__ = pushed
+
+		expect(await acquiring).toEqual({
+			ok: true,
+			token: 't',
+			records: [],
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		})
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('waits for an announced push rather than fetching', async () => {
+		vi.useFakeTimers()
+		let settled = false
+		const acquiring = acquireThumbnailRenderData(renderUrl('&push=1')).then((data) => {
+			settled = true
+			return data
+		})
+		await vi.advanceTimersByTimeAsync(30_000)
+		expect(settled).toBe(false)
+		expect(fetchMock).not.toHaveBeenCalled()
+
+		;(window as any).__TLDRAW_RENDER__ = pushed
+		expect(await acquiring).toMatchObject({ ok: true, records: [] })
+	})
+
+	it('fetches straight away when no push was announced', async () => {
+		expect(await acquireThumbnailRenderData(renderUrl(''))).toMatchObject({
+			ok: true,
+			records: [{ id: 'fetched' }],
+		})
+		expect(fetchMock).toHaveBeenCalledTimes(1)
 	})
 })
 

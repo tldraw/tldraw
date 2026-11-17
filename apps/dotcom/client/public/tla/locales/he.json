@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "שלח משוב"
   },
+  "0e4a10d921": {
+    "translation": "סמן את כל ההתראות כנקראו"
+  },
   "1063e38cb5": {
     "translation": "להסיר"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "אפשרויות התראות"
   },
+  "15bf4fead9": {
+    "translation": "החלפת סביבת עבודה"
+  },
   "181b90f889": {
     "translation": "יצירת קובץ"
+  },
+  "1a7222b4e5": {
+    "translation": "העבר אל"
   },
   "1da2e8106b": {
     "translation": "אירעה שגיאה בלתי צפויה."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "אודות tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> הגיב בלוח שלך"
-  },
   "28b2464e1f": {
     "translation": "לא ניתן היה לשלוח משוב"
+  },
+  "2944edaa8d": {
+    "translation": "בשם {name}"
   },
   "299cb00a7a": {
     "translation": "ההעלאה נכשלה"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "חזרה ל-tldraw"
   },
+  "32811caa8c": {
+    "translation": "קובץ משוכפל"
+  },
   "335defdafe": {
     "translation": "אנא נסו לרענן את הדף."
+  },
+  "34082694d2": {
+    "translation": "שם הקובץ"
   },
   "344a7f427f": {
     "translation": "עורך"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "הסר חבר"
+  },
+  "398f51738e": {
+    "translation": "היכנס כדי לקבל הזמנה זו."
   },
   "3bc7d6ea2f": {
     "translation": "המשך עם הדוא\"ל"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "תודה שעזרת לנו לשפר את tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "העבר קובץ אל"
+  },
   "46de2de6bb": {
     "translation": "קבל את תנאי השימוש"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "שם"
+  },
+  "4a8165368a": {
+    "translation": "העתקת קישור שפורסם"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> הגיב"
   },
   "4d0d3ddec9": {
     "translation": "אתר זה משתמש בקובצי Cookie כדי שהאפליקציה תפעל ולאסוף נתונים אנליטיים."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "צור סביבת עבודה"
   },
+  "5653ebed2e": {
+    "translation": "עבור לקובץ"
+  },
   "5677e381d2": {
     "translation": "אנו משתמשים בקובצי Cookie של ניתוח נתונים כדי לשפר את tldraw."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "סביבת העבודה שלי"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> הגיב לתגובה שלך"
   },
   "5d04a002ea": {
     "translation": "לא ניתן להתחבר"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "מאוחר יותר"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {מישהו הגיב לתגובה שלך} two {# אנשים הגיבו לתגובה שלך} many {# אנשים הגיבו לתגובה שלך} other {# אנשים הגיבו לתגובה שלך}}"
-  },
   "625fd29749": {
     "translation": "ישן יותר"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "גרסה חדשה של tldraw זמינה. אנא טען מחדש את הדף כדי להמשיך."
   },
+  "67ed6ddb7d": {
+    "translation": "עָרוּך"
+  },
   "681e10aecb": {
     "translation": "קובץ חדש"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> ו-{count, plural, one {# other} other {# others}} הגיבו"
   },
   "6832ac5936": {
     "translation": "הזן את כתובת הדוא\"ל שלך"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "מחיקת סביבת עבודה"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {מישהו הגיב} two {} many {} other {# אנשים הגיבו}}"
+  },
   "6a26f54883": {
     "translation": "עזרה"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "אין לך את ההרשאות הדרושות לביצוע פעולה זו."
   },
   "6dfc62f621": {
     "translation": "כדי לייבא את התוכן באופן ידני יש לבצע את השלבים הבאים:"
+  },
+  "6ea5359e01": {
+    "translation": "בַּד"
   },
   "70a6facb9d": {
     "translation": "השבוע"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "יש לטעון מחדש את הדף"
+  },
+  "747ee44424": {
+    "translation": "שמרו את התוכן כקובץ .tldr: בחרו 'שמור עותק' בתפריט השמאלי העליון."
   },
   "74ff4bad28": {
     "translation": "לא נמצאו קבצים"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "צ'אט איתנו בדיסקורד"
+  },
+  "76ec4e4ed9": {
+    "translation": "העתקת קישור לקובץ"
   },
   "777f9e90cf": {
     "translation": "בקשה לא חוקית."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "אתה כבר חבר בסביבת עבודה זו"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> ו-{count, plural, one {# other} other {# others}} הגיבו"
+  },
   "88bf6ab42c": {
     "translation": "פג תוקף קישור ההזמנה הזה"
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "משותף איתך"
+  },
+  "8f7f4c1ce7": {
+    "translation": "אוֹדוֹת"
   },
   "8ff3d0a705": {
     "translation": "שיעור מוגבל"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "האם אתה בטוח שברצונך למחוק את <strong>{workspaceName}</strong>? לא ניתן לבטל פעולה זו."
   },
+  "91f3a2c0e4": {
+    "translation": "קבצים"
+  },
+  "930390d222": {
+    "translation": "קישור ההזמנה הועתק"
+  },
   "95aacd4d4a": {
     "translation": "התחברות עם גוגל"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "החודש הזה"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> הגיב"
   },
   "985a4b720f": {
     "translation": "תנאי שימוש"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# לא נקרא} two {# לא נקראו} many {# לא נקראו} other {# לא נקראו}}"
   },
-  "a0da245992": {
-    "translation": "ייצוא התוכן כקובץ .tldr: בחר 'הורדה' בתפריט השמאלי העליון."
-  },
   "a104439641": {
     "translation": "ריווח פנימי"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "מדיניות קובצי Cookie"
+  },
+  "a4bef6414b": {
+    "translation": "הפעל/הפעל את סרגל הצד של התגובות"
   },
   "a4d3b161ce": {
     "translation": "להגיש"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "הגעת למגבלת הקבצים"
   },
+  "ac863f346e": {
+    "translation": "אפליקציה"
+  },
+  "aeb428554a": {
+    "translation": "ספריות"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "פורסם לאחרונה <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "הקובץ מלא"
+  },
+  "b3205c1e45": {
+    "translation": "פתיחת לוח ההתראות"
   },
   "b357b524e7": {
     "translation": "כתובת דוא\"ל"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "משותף על ידי {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "הקובץ הנוכחי"
+  },
   "c17466812d": {
     "translation": "ניהול סביבת עבודה"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "סגור"
   },
+  "cb5feb1b73": {
+    "translation": "צֶבַע"
+  },
+  "cce99c598c": {
+    "translation": "פּרוֹפִיל"
+  },
   "cceaefbc20": {
     "translation": "לשתף את הקובץ הזה"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "למידע נוסף על פרסום."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> ו-{count, plural, one {# נוסף} two {# נוספים} other {# נוספים}} הגיבו לתגובה שלך"
+  "d0834fcec6": {
+    "translation": "העדפות"
+  },
+  "d28d6bbc42": {
+    "translation": "ביטול פרסום הקובץ"
   },
   "d3d2e61733": {
     "translation": "סגירה"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "החלפת סרגל הצד"
+  },
+  "d5e92609cf": {
+    "translation": "סביבות עבודה"
   },
   "d638a3344b": {
     "translation": "לפני שתתחיל, אנא קבל את <tos>תנאי השימוש</tos> ואת <privacy>מדיניות הפרטיות</privacy> שלנו."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "עזוב את סביבת העבודה"
   },
-  "dfdb78a4e4": {
-    "translation": "דגלי ניפוי באגים באפליקציה"
-  },
   "e0aa021e21": {
     "translation": "בסדר"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "תנאי שירות"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> ו-<name>{b}</name> הגיבו לתגובה שלך"
-  },
   "e81c4e4f2b": {
     "translation": "או"
+  },
+  "ea13ecec38": {
+    "translation": "היסטוריית קבצים"
   },
   "ea4788705e": {
     "translation": "ביטול"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "מחיקה"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ו-{count, plural, one {# נוסף} two {# נוספים} other {# נוספים}} הגיבו לתגובה שלך"
+  "f408fa5fbd": {
+    "translation": "קישור ההזמנה הזה אינו תקין או שפג תוקפו."
   },
   "f4f70727dc": {
     "translation": "הגדרות"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "צור חשבון חינמי כדי לשמור את הקבצים שלך ולצייר עם חבריך לקבוצה."
+  },
+  "ffad261a48": {
+    "translation": "שגיאה בקבלת ההזמנה"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> ו-<name>{b}</name> הגיבו"
   },
   "ffcd73e997": {
     "translation": "ייבוא קובץ…"

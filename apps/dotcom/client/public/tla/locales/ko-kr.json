@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "피드백 보내기"
   },
+  "0e4a10d921": {
+    "translation": "모든 알림을 읽음으로 표시하세요"
+  },
   "1063e38cb5": {
     "translation": "제거"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "알림 옵션"
   },
+  "15bf4fead9": {
+    "translation": "작업 공간 전환"
+  },
   "181b90f889": {
     "translation": "파일 생성"
+  },
+  "1a7222b4e5": {
+    "translation": "이동하다"
   },
   "1da2e8106b": {
     "translation": "예기치 못한 오류가 발생했습니다."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "tldraw에 대하여"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> 님이 당신의 게시판에 댓글을 남겼습니다."
-  },
   "28b2464e1f": {
     "translation": "피드백을 제출할 수 없습니다."
+  },
+  "2944edaa8d": {
+    "translation": "{name} 님을 대신하여"
   },
   "299cb00a7a": {
     "translation": "업로드 실패"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "tldraw로 돌아가기"
   },
+  "32811caa8c": {
+    "translation": "중복 파일"
+  },
   "335defdafe": {
     "translation": "페이지를 새로 고침해 주세요."
+  },
+  "34082694d2": {
+    "translation": "파일 이름"
   },
   "344a7f427f": {
     "translation": "편집기"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "멤버를 삭제합니다"
+  },
+  "398f51738e": {
+    "translation": "이 초대장을 수락하려면 로그인하세요."
   },
   "3bc7d6ea2f": {
     "translation": "이메일로 계속하기"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "tldraw 개선에 도움을 주셔서 감사합니다!"
   },
+  "4630b65bb2": {
+    "translation": "파일을 다음 위치로 이동"
+  },
   "46de2de6bb": {
     "translation": "이용약관에 동의합니다"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "이름"
+  },
+  "4a8165368a": {
+    "translation": "게시된 링크 복사"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name>님이 댓글을 남겼습니다."
   },
   "4d0d3ddec9": {
     "translation": "이 사이트에서는 앱을 작동시키고 분석 정보를 수집하기 위해 쿠키를 사용합니다."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "워크스페이스 만들기"
   },
+  "5653ebed2e": {
+    "translation": "파일로 이동"
+  },
   "5677e381d2": {
     "translation": "tldraw를 개선하기 위해 분석 쿠키를 사용합니다."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "내 작업 공간"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name>님이 귀하의 댓글에 반응을 남겼습니다."
   },
   "5d04a002ea": {
     "translation": "연결할 수 없습니다"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "이후"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, other {#명이 당신의 댓글에 반응했습니다}}"
-  },
   "625fd29749": {
     "translation": "이전"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "tldraw의 새 버전이 출시되었습니다. 계속하려면 페이지를 다시 로드하세요."
   },
+  "67ed6ddb7d": {
+    "translation": "편집됨"
+  },
   "681e10aecb": {
     "translation": "새 파일"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> 및 {count, plural, one {# other} other {# others}}가 반응했습니다."
   },
   "6832ac5936": {
     "translation": "이메일 주소를 입력하세요"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "작업 공간 삭제"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, other {# 사람들이 반응했습니다}}"
+  },
   "6a26f54883": {
     "translation": "도움말"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "이 작업을 수행할 필수 권한이 없습니다."
   },
   "6dfc62f621": {
     "translation": "수동으로 콘텐츠를 가져오려면 다음 단계를 따르세요."
+  },
+  "6ea5359e01": {
+    "translation": "캔버스"
   },
   "70a6facb9d": {
     "translation": "이번 주"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "페이지를 다시 로드해 주세요"
+  },
+  "747ee44424": {
+    "translation": "내용을 .tldr 파일로 저장하려면 왼쪽 상단 메뉴에서 '사본 저장'을 선택하세요."
   },
   "74ff4bad28": {
     "translation": "파일을 찾을 수 없습니다."
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Discord에서 우리와 채팅하세요"
+  },
+  "76ec4e4ed9": {
+    "translation": "파일 링크 복사"
   },
   "777f9e90cf": {
     "translation": "유효하지 않은 요청입니다."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "이미 이 워크스페이스의 멤버입니다."
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> 및 {count, plural, one {# other} other {# others}}명이 반응했습니다."
+  },
   "88bf6ab42c": {
     "translation": "이 초대 링크는 만료되었습니다."
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "나와 공유됨"
+  },
+  "8f7f4c1ce7": {
+    "translation": "에 대한"
   },
   "8ff3d0a705": {
     "translation": "비율 제한됨"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong>을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
   },
+  "91f3a2c0e4": {
+    "translation": "파일"
+  },
+  "930390d222": {
+    "translation": "초대 링크를 복사했습니다"
+  },
   "95aacd4d4a": {
     "translation": "Google로 로그인"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "이번 달"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name>님이 반응했습니다"
   },
   "985a4b720f": {
     "translation": "이용 약관"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, other {# 읽지 않음}}"
   },
-  "a0da245992": {
-    "translation": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '다운로드'를 선택하세요."
-  },
   "a104439641": {
     "translation": "여백"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "쿠키 정책"
+  },
+  "a4bef6414b": {
+    "translation": "댓글 사이드바 토글"
   },
   "a4d3b161ce": {
     "translation": "제출하다"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "파일 제한에 도달했습니다"
   },
+  "ac863f346e": {
+    "translation": "앱"
+  },
+  "aeb428554a": {
+    "translation": "도서관"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "마지막 게시: <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "파일이 가득 찼습니다"
+  },
+  "b3205c1e45": {
+    "translation": "알림 패널 열기"
   },
   "b357b524e7": {
     "translation": "이메일 주소"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "{ownerName} 님이 공유함"
   },
+  "bd8aac2696": {
+    "translation": "현재 파일"
+  },
   "c17466812d": {
     "translation": "워크스페이스 관리"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "닫기"
   },
+  "cb5feb1b73": {
+    "translation": "색상"
+  },
+  "cce99c598c": {
+    "translation": "윤곽"
+  },
   "cceaefbc20": {
     "translation": "이 파일 공유"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "게시에 대해 자세히 알아보세요."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name>님 외 {count, plural, other {# 명}}이 회원님의 댓글에 반응했습니다."
+  "d0834fcec6": {
+    "translation": "환경설정"
+  },
+  "d28d6bbc42": {
+    "translation": "게시 취소 파일"
   },
   "d3d2e61733": {
     "translation": "닫기"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "사이드바 전환"
+  },
+  "d5e92609cf": {
+    "translation": "작업 공간"
   },
   "d638a3344b": {
     "translation": "시작하기에 앞서, <tos>이용약관</tos> 및 <privacy>개인정보처리방침</privacy>에 동의해 주시기 바랍니다."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "작업 공간 나가기"
   },
-  "dfdb78a4e4": {
-    "translation": "앱 디버그 신고"
-  },
   "e0aa021e21": {
     "translation": "좋아요"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "서비스 약관"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name>님과 <name>{b}</name>님이 댓글에 반응을 남겼습니다."
-  },
   "e81c4e4f2b": {
     "translation": "또는"
+  },
+  "ea13ecec38": {
+    "translation": "파일 기록"
   },
   "ea4788705e": {
     "translation": "취소"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "삭제"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>님, <name>{b}</name>님 외 {count, plural, other {# 명}}이 회원님의 댓글에 반응했습니다."
+  "f408fa5fbd": {
+    "translation": "이 초대 링크는 유효하지 않거나 만료되었습니다."
   },
   "f4f70727dc": {
     "translation": "설정"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "무료 계정을 만들어 파일을 저장하고 팀원들과 함께 그림을 그려보세요."
+  },
+  "ffad261a48": {
+    "translation": "초대 수락 오류"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name>와 <name>{b}</name>가 반응했습니다."
   },
   "ffcd73e997": {
     "translation": "파일 가져오기…"

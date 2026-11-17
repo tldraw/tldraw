@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Kirimkan masukan"
   },
+  "0e4a10d921": {
+    "translation": "Tandai semua notifikasi sebagai sudah dibaca."
+  },
   "1063e38cb5": {
     "translation": "Menghapus"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "Opsi pemberitahuan"
   },
+  "15bf4fead9": {
+    "translation": "Beralih ruang kerja"
+  },
   "181b90f889": {
     "translation": "Buat file"
+  },
+  "1a7222b4e5": {
+    "translation": "Pindah ke"
   },
   "1da2e8106b": {
     "translation": "Terjadi kesalahan tak terduga."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "Tentang tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> berkomentar di papan Anda"
-  },
   "28b2464e1f": {
     "translation": "Tidak dapat mengirimkan umpan balik."
+  },
+  "2944edaa8d": {
+    "translation": "Atas nama {name}"
   },
   "299cb00a7a": {
     "translation": "Pengunggahan gagal"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "Kembali ke tldraw"
   },
+  "32811caa8c": {
+    "translation": "Berkas duplikat"
+  },
   "335defdafe": {
     "translation": "Coba muat ulang halaman."
+  },
+  "34082694d2": {
+    "translation": "Nama file"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "Hapus anggota"
+  },
+  "398f51738e": {
+    "translation": "Masuk untuk menerima undangan ini."
   },
   "3bc7d6ea2f": {
     "translation": "Lanjutkan dengan email"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "Terima kasih telah membantu kami meningkatkan tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Pindahkan file ke"
+  },
   "46de2de6bb": {
     "translation": "Setuju dengan ketentuan penggunaan"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Nama"
+  },
+  "4a8165368a": {
+    "translation": "Salin tautan yang dipublikasikan"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> berkomentar"
   },
   "4d0d3ddec9": {
     "translation": "Situs ini menggunakan cookie untuk membuat aplikasi berfungsi dan mengumpulkan analitik."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "Buat ruang kerja"
   },
+  "5653ebed2e": {
+    "translation": "Buka file"
+  },
   "5677e381d2": {
     "translation": "Kami menggunakan cookie analitis untuk membuat tldraw lebih baik."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Ruang kerja saya"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> bereaksi terhadap komentar Anda"
   },
   "5d04a002ea": {
     "translation": "Tidak dapat terhubung"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "Nanti"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, other {# orang-orang bereaksi terhadap komentar Anda}}"
-  },
   "625fd29749": {
     "translation": "Lebih lama"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "Versi baru tldraw telah tersedia. Silakan muat ulang halaman untuk melanjutkan."
   },
+  "67ed6ddb7d": {
+    "translation": "Diedit"
+  },
   "681e10aecb": {
     "translation": "Berkas baru"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, one {# other} other {# others}} bereaksi"
   },
   "6832ac5936": {
     "translation": "Masukkan alamat email Anda"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Hapus ruang kerja"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, other {# orang-orang bereaksi}}"
+  },
   "6a26f54883": {
     "translation": "Bantuan"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Anda tidak memiliki izin yang diperlukan untuk melakukan tindakan ini."
   },
   "6dfc62f621": {
     "translation": "Ikuti langkah berikut untuk mengimpor konten secara manual:"
+  },
+  "6ea5359e01": {
+    "translation": "Kanvas"
   },
   "70a6facb9d": {
     "translation": "Minggu ini"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "Muat ulang halaman"
+  },
+  "747ee44424": {
+    "translation": "Simpan konten sebagai file .tldr: pilih 'Simpan salinan' di menu kiri atas."
   },
   "74ff4bad28": {
     "translation": "Tidak ada berkas yang ditemukan."
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Ngobrol dengan kami di Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "Salin tautan file"
   },
   "777f9e90cf": {
     "translation": "Permintaan tidak valid."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Anda sudah menjadi anggota ruang kerja ini."
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> dan {count, plural, one {# other} other {# others}} bereaksi"
+  },
   "88bf6ab42c": {
     "translation": "Tautan undangan ini telah kedaluwarsa."
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Dibagikan kepada Anda"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Tentang"
   },
   "8ff3d0a705": {
     "translation": "Laju dibatasi"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "Apakah Anda yakin ingin menghapus <strong>{workspaceName}</strong>? Tindakan ini tidak dapat dibatalkan."
   },
+  "91f3a2c0e4": {
+    "translation": "Berkas"
+  },
+  "930390d222": {
+    "translation": "Tautan undangan disalin"
+  },
   "95aacd4d4a": {
     "translation": "Masuk dengan Google"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Bulan ini"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> bereaksi"
   },
   "985a4b720f": {
     "translation": "Ketentuan Penggunaan"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, other {# belum dibaca}}"
   },
-  "a0da245992": {
-    "translation": "Ekspor konten sebagai file .tldr: Pilih 'Unduh' di menu kiri atas."
-  },
   "a104439641": {
     "translation": "Alas"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "Kebijakan cookie"
+  },
+  "a4bef6414b": {
+    "translation": "Alihkan tampilan kolom komentar"
   },
   "a4d3b161ce": {
     "translation": "Kirim"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Batas berkas tercapai"
   },
+  "ac863f346e": {
+    "translation": "Aplikasi"
+  },
+  "aeb428554a": {
+    "translation": "Perpustakaan"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Terakhir diterbitkan <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "File sudah penuh"
+  },
+  "b3205c1e45": {
+    "translation": "Buka panel notifikasi"
   },
   "b357b524e7": {
     "translation": "Alamat email"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Dibagikan oleh {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Berkas saat ini"
+  },
   "c17466812d": {
     "translation": "Kelola ruang kerja"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Tutup"
   },
+  "cb5feb1b73": {
+    "translation": "Warna"
+  },
+  "cce99c598c": {
+    "translation": "Profil"
+  },
   "cceaefbc20": {
     "translation": "Bagikan file ini"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "Pelajari lebih lanjut tentang penerbitan."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> dan {count, plural, other {# lainnya}} bereaksi terhadap komentar Anda"
+  "d0834fcec6": {
+    "translation": "Preferensi"
+  },
+  "d28d6bbc42": {
+    "translation": "Batalkan publikasi file"
   },
   "d3d2e61733": {
     "translation": "Tutup"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Alihkan bilah samping"
+  },
+  "d5e92609cf": {
+    "translation": "Ruang kerja"
   },
   "d638a3344b": {
     "translation": "Sebelum memulai, harap terima <tos>persyaratan penggunaan</tos> dan <privacy>kebijakan privasi</privacy> kami."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Tinggalkan ruang kerja"
   },
-  "dfdb78a4e4": {
-    "translation": "Bendera debug aplikasi"
-  },
   "e0aa021e21": {
     "translation": "OKE"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "Ketentuan Layanan"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> dan <name>{b}</name> bereaksi terhadap komentar Anda"
-  },
   "e81c4e4f2b": {
     "translation": "atau"
+  },
+  "ea13ecec38": {
+    "translation": "Riwayat berkas"
   },
   "ea4788705e": {
     "translation": "Batal"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "Hapus"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, other {# lainnya}} bereaksi terhadap komentar Anda"
+  "f408fa5fbd": {
+    "translation": "Tautan undangan ini tidak valid atau telah kedaluwarsa."
   },
   "f4f70727dc": {
     "translation": "Pengaturan"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "Buat akun gratis untuk menyimpan file Anda dan menggambar bersama rekan tim Anda."
+  },
+  "ffad261a48": {
+    "translation": "Terjadi kesalahan saat menerima undangan."
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> dan <name>{b}</name> bereaksi"
   },
   "ffcd73e997": {
     "translation": "Impor berkas…"
