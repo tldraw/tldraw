@@ -259,6 +259,22 @@
 	border-bottom: none;
 }
 
+.tlui-libraries-section[data-drop-target] {
+	position: relative;
+	background: var(--tl-color-muted-2);
+}
+
+/* Over the sticky header, which paints above the section's own outline. */
+.tlui-libraries-section[data-drop-target]::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+	pointer-events: none;
+}
+
 /* The whole name row folds the section, with the chevron straight after the name. */
 .tlui-libraries-panel__toggle {
 	align-items: center;

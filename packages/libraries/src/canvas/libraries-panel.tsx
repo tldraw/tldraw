@@ -22,6 +22,7 @@ import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useCreateLibrary } from './use-create-library'
 import { useItemDrag } from './use-item-drag'
+import { useLibraryDrop } from './use-library-drop'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
@@ -54,7 +55,8 @@ export interface LibrariesPanelProps {
  * two or more owners shows a tab per owner, and "New library" in the header creates one for the
  * active tab's owner. Setting {@link activeLibraryId} switches to the tab holding that library.
  * Clicking an item places a copy of it in the middle of the viewport; dragging one out drops it
- * under the pointer.
+ * under the pointer. Dragging shapes from the canvas onto a library's section saves a copy of them
+ * there.
  * @public @react
  */
 export function LibrariesPanel({
@@ -84,6 +86,8 @@ export function LibrariesPanel({
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 	const createLibrary = useCreateLibrary(source)
+	const [panel, setPanel] = useState<HTMLElement | null>(null)
+	const dropTarget = useLibraryDrop(source, panel, prepareItemContent)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()
 	const tab =
@@ -133,6 +137,7 @@ export function LibrariesPanel({
 					library={library}
 					getItemProps={getItemProps}
 					prepareItemContent={prepareItemContent}
+					isDropTarget={library.id === dropTarget}
 				/>
 			))
 		)
@@ -140,6 +145,7 @@ export function LibrariesPanel({
 	return (
 		<EditorPortal>
 			<section
+				ref={setPanel}
 				className="tlui-libraries-panel"
 				data-side={side}
 				aria-label={msg(messages.title)}

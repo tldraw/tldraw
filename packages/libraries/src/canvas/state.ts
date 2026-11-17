@@ -25,3 +25,6 @@ export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLib
 
 /** The libraries folded shut in the panel, kept while the panel is closed. */
 export const collapsedLibraryIds = new EditorAtom<TLLibraryId[]>('collapsedLibraryIds', () => [])
+
+/** Whether an item dragged out of the panel is following the pointer on the canvas. */
+export const draggingLibraryItem = new EditorAtom<boolean>('draggingLibraryItem', () => false)

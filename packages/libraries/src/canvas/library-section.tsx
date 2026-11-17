@@ -13,11 +13,13 @@ export function LibrarySection({
 	library,
 	getItemProps,
 	prepareItemContent,
+	isDropTarget,
 }: {
 	source: LibrarySource
 	library: TLLibrary
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	prepareItemContent?: PrepareItemContent
+	isDropTarget: boolean
 }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLElement | null>(null)
@@ -57,7 +59,12 @@ export function LibrarySection({
 	const ordering = itemOrderings.find((o) => o.id === choice.orderingId) ?? itemOrderings[0]
 
 	return (
-		<section ref={setRef} className="tlui-libraries-section">
+		<section
+			ref={setRef}
+			className="tlui-libraries-section"
+			data-library-id={libraryId}
+			data-drop-target={isDropTarget || undefined}
+		>
 			<LibrarySectionHeader
 				source={source}
 				library={library}
