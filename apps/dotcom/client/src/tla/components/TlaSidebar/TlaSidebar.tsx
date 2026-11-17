@@ -78,10 +78,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					<div style={{ display: 'flex', alignItems: 'center' }}>
-						<TlaSidebarNotificationsButton />
-						<TlaSidebarCreateFileButton />
-					</div>
+					<TlaSidebarCreateFileButton />
 				</div>
 				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
 				<TlaSidebarWorkspaceSwitcher />
@@ -97,6 +94,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<div className={styles.sidebarDivider} />
 					<div className={styles.sidebarBottomRow}>
 						<TlaSidebarUserSettingsButton />
+						<TlaSidebarNotificationsButton />
 					</div>
 				</div>
 			</div>

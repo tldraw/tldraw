@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect } from 'react'
@@ -5,10 +6,14 @@ import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
 	TLDRAW_FILE_EXTENSION,
+	TLUiEventSource,
 	TldrawUiIcon,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useDialogs,
+	useCommandPaletteActiveItemId,
 	useDirection,
 	useTranslation,
 	useValue,
@@ -17,7 +22,8 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { useSignOut } from '../../hooks/useSignOut'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import {
@@ -41,9 +47,29 @@ const messages = defineMessages({
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About tldraw' },
 	submitFeedback: { defaultMessage: 'Send feedback' },
+	signOut: { defaultMessage: 'Sign out' },
 	// color theme
 	colorTheme: { defaultMessage: 'Color theme' },
 })
+
+export function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
+	const msg = useTranslation()
+	const auth = useAuth()
+	const signOut = useSignOut(source)
+
+	if (!auth.isSignedIn) return
+	return (
+		<TldrawUiMenuGroup id="account-actions">
+			<TldrawUiMenuItem
+				id="sign-out"
+				data-testid="tla-user-sign-out"
+				onSelect={signOut}
+				label={msg(messages.signOut)}
+				readonlyOk
+			/>
+		</TldrawUiMenuGroup>
+	)
+}
 
 function UIThemeMenuCheckboxItem({
 	checked,
@@ -85,6 +111,38 @@ function UIThemeMenuCheckboxItem({
 	)
 }
 
+// Highlighting a color theme previews it, like hovering one in the menu. Closing the palette
+// without choosing unmounts this and drops the preview.
+function UIThemeCommandPalettePreview({ themeIds }: { themeIds: string[] }) {
+	const activeId = useCommandPaletteActiveItemId()
+	const themeId = themeIds.find((id) => activeId === `ui-theme-${id}`) ?? null
+	useEffect(() => setColorThemePreview(themeId), [themeId])
+	useEffect(() => () => setColorThemePreview(null), [])
+	return null
+}
+
+export function UIThemeCommandPaletteSubmenu() {
+	const msg = useTranslation()
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const options = useColorThemeOptions()
+	const selectColorTheme = useSelectColorTheme('command-palette')
+	return (
+		<TldrawUiMenuSubmenu id="tla-color-theme" label={msg(messages.colorTheme)}>
+			<UIThemeCommandPalettePreview themeIds={options.map((option) => option.value)} />
+			{options.map(({ value, label }) => (
+				<TldrawUiMenuCheckboxItem
+					key={value}
+					id={`ui-theme-${value}`}
+					label={label}
+					checked={colorTheme === value}
+					readonlyOk
+					onSelect={() => selectColorTheme(value)}
+				/>
+			))}
+		</TldrawUiMenuSubmenu>
+	)
+}
+
 export function UIThemeSubmenu() {
 	const msg = useTranslation()
 
@@ -99,7 +157,7 @@ function UIThemeMenuGroup() {
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
 	const options = useColorThemeOptions()
-	const selectColorTheme = useSelectColorTheme()
+	const selectColorTheme = useSelectColorTheme('user-preferences')
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
 
@@ -137,9 +195,9 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem() {
+export function UserManualMenuItem({ source = 'main-menu' }: { source?: TLUiEventSource } = {}) {
 	const msg = useTranslation()
-	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	const openAndTrack = useOpenUrlAndTrack(source)
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
@@ -184,7 +242,9 @@ export function LegalSummaryMenuItem() {
 	)
 }
 
-export function ImportFileActionItem() {
+export function ImportFileActionItem({
+	source = 'file-menu',
+}: { source?: TLAppUiEventSource } = {}) {
 	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
@@ -203,7 +263,7 @@ export function ImportFileActionItem() {
 				if (!editor) return
 				if (!app) return
 
-				trackEvent('import-tldr-file', { source: 'file-menu' })
+				trackEvent('import-tldr-file', { source })
 
 				try {
 					// tldraw offline files are selectable so that we can explain why we can't open them
@@ -218,7 +278,7 @@ export function ImportFileActionItem() {
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, {
-						source: 'file-menu',
+						source,
 						onFirstFileUploaded: (fileId) => {
 							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 						},

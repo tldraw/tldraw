@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { defineMessages, useTranslation } from 'tldraw'
 import { UI_THEMES } from '../themes/ui-themes'
-import { useTldrawAppUiEvents } from '../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../utils/app-ui-events'
 import { setColorThemePreview, updateLocalSessionState } from '../utils/local-session-state'
 
 const messages = defineMessages({
@@ -16,14 +16,14 @@ export function useColorThemeOptions() {
 	]
 }
 
-export function useSelectColorTheme() {
+export function useSelectColorTheme(source: TLAppUiEventSource) {
 	const trackEvent = useTldrawAppUiEvents()
 	return useCallback(
 		(id: string) => {
 			updateLocalSessionState(() => ({ colorTheme: id }))
 			setColorThemePreview(null)
-			trackEvent('set-color-theme', { source: 'user-preferences', theme: id })
+			trackEvent('set-color-theme', { source, theme: id })
 		},
-		[trackEvent]
+		[trackEvent, source]
 	)
 }

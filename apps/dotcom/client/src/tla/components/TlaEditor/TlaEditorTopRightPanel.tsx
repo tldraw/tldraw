@@ -35,6 +35,7 @@ import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/desig
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { FILE_HEADER_SHARE_SOURCE } from '../TlaFileShareMenu/openShareMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
@@ -106,7 +107,7 @@ export function TlaEditorTopRightPanel({
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
 					fileId={fileId!}
-					source="file-header"
+					source={FILE_HEADER_SHARE_SOURCE}
 					context={context}
 					onOpenChange={closeSidebarOnShareOpen}
 				>

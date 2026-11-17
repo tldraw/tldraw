@@ -4,117 +4,67 @@ import {
 	formatFullDateTime,
 	formatRelativeTime,
 	isOpenInNewTabClick,
-	Reactions,
-	richTextToPlaintext,
-	summarizeReactions,
 } from '@tldraw/commenting'
-import { ReactNode, useCallback, useState } from 'react'
+import classNames from 'classnames'
+import { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
-	createDeepLinkString,
 	defineMessages,
 	F,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiTooltip,
-	TLRichText,
 	useTranslation,
 } from 'tldraw'
-import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { CommentNotificationReason, summarizeForeignReactors } from './commentNotifications'
-import { useCommentNotifications } from './useCommentNotifications'
+import { commentLink, reactionBylineMessage } from './commentNotifications'
+import {
+	EnrichedCommentNotification,
+	useCommentNotifications,
+	useEnrichedNotifications,
+} from './useCommentNotifications'
 import styles from './notifications.module.css'
 
 const messages = defineMessages({
 	title: { defaultMessage: 'Notifications' },
 	moreOptions: { defaultMessage: 'Notification options' },
-	close: { defaultMessage: 'Close' },
 	filterAll: { defaultMessage: 'All' },
 	filterUnread: { defaultMessage: 'Unread' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
 	empty: { defaultMessage: 'You’re all caught up.' },
-	unknownAuthor: { defaultMessage: 'Someone' },
 })
 
 type NotificationFilter = 'all' | 'unread'
 
 /** Byline for a notification row, phrased by why it's there. `<name>` wraps the author's name. */
 function ReasonByline({
-	reason,
-	author,
-	reactors,
+	notification: n,
 	nameClassName,
 }: {
-	reason: CommentNotificationReason
-	author: string
-	/** Who reacted, for the `reaction` phrasing — see {@link summarizeForeignReactors}. */
-	reactors: { names: string[]; others: number; total: number }
+	notification: EnrichedCommentNotification
 	nameClassName: string
 }) {
 	const name = (chunks: ReactNode) => <span className={nameClassName}>{chunks}</span>
-	switch (reason) {
+	const author = n.authorName
+	switch (n.primaryReason) {
 		case 'mention':
 			return <F defaultMessage="<name>{author}</name> mentioned you" values={{ author, name }} />
 		case 'reply':
 			return <F defaultMessage="<name>{author}</name> replied" values={{ author, name }} />
 		case 'owned-board':
-			return (
-				<F
-					defaultMessage="<name>{author}</name> commented on your board"
-					values={{ author, name }}
-				/>
-			)
+			return <F defaultMessage="<name>{author}</name> commented" values={{ author, name }} />
 		case 'reaction': {
-			const { names, others, total } = reactors
-			const [a, b] = names
-			if (names.length === 0) {
-				return (
-					<F
-						defaultMessage="{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
-						values={{ count: total }}
-					/>
-				)
-			}
-			if (names.length === 1 && others === 0) {
-				return (
-					<F
-						defaultMessage="<name>{author}</name> reacted to your comment"
-						values={{ author: a, name }}
-					/>
-				)
-			}
-			if (names.length === 2 && others === 0) {
-				return (
-					<F
-						defaultMessage="<name>{a}</name> and <name>{b}</name> reacted to your comment"
-						values={{ a, b, name }}
-					/>
-				)
-			}
-			if (names.length === 1) {
-				return (
-					<F
-						defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
-						values={{ author: a, count: others, name }}
-					/>
-				)
-			}
-			return (
-				<F
-					defaultMessage="<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
-					values={{ a, b, count: others, name }}
-				/>
-			)
+			const { message, values } = reactionBylineMessage(n.reactors!)
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return <F {...message} values={{ ...values, name }} />
 		}
 	}
 }
@@ -140,12 +90,12 @@ function NotificationsOverflowMenu({
 					<TldrawUiButton
 						type="icon"
 						title={msg(messages.moreOptions)}
-						className="tlui-cmt-header-btn"
+						className="tlui-cmt-icon-btn"
 					>
-						<TlaIcon icon="dots-vertical-strong" />
+						<TldrawUiIcon icon="dots-vertical" label={msg(messages.moreOptions)} small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
@@ -177,18 +127,10 @@ function NotificationsOverflowMenu({
 	)
 }
 
-/** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */
-function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
-	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
-	if (!shapeId) return base
-	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })
-	return `${base}&d=${d}`
-}
-
 /**
  * Notifications popover contents. Reuses the comments sidebar's list shell (header, scroll, empty)
  * but renders each row person-first — an author-coloured pin and a name-led byline (who, and why
- * you're being notified), the comment preview and any reaction pills beneath, and an unread dot.
+ * you're being notified), the comment preview beneath, and an unread dot.
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const msg = useTranslation()
@@ -197,29 +139,21 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const [filter, setFilter] = useState<NotificationFilter>('all')
 	const { locale } = useIntl()
 
-	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications
+	const visibleRows = useMemo(
+		() => (filter === 'unread' ? notifications.filter((n) => n.unread) : notifications),
+		[filter, notifications]
+	)
+	const visible = useEnrichedNotifications(visibleRows)
 
 	const items: CommentListItemProps[] = visible.map((n) => {
 		const c = n.comment
 		return {
 			id: c.id,
-			author: {
-				// never fall back to the raw id: an opaque uuid as a byline reads as a bug, and the rest
-				// of the commenting UI says "Someone" for an unresolvable author
-				name: c.authorName || msg(messages.unknownAuthor),
-				color: c.authorColor || undefined,
-			},
-			preview: richTextToPlaintext(c.body as TLRichText),
+			author: { name: n.authorName, color: c.authorColor || undefined },
+			preview: n.preview,
 			// the notified-about event: a reaction entry dates from its newest foreign reaction,
 			// not from the (older) comment it decorates
 			date: new Date(n.timestamp).toISOString(),
-			// inert pills: no toggling from the panel, emoji + count with the user's own
-			// reactions highlighted
-			reactions: summarizeReactions(
-				c.reactions ?? [],
-				app?.userId,
-				(id) => c.reactions?.find((r) => r.userId === id)?.userName || undefined
-			),
 			// a real link target, so browser affordances (ctrl/cmd-click, middle-click) open a new tab
 			href: commentLink(c.fileId, c.thread?.shapeId, c.id),
 		}
@@ -261,14 +195,6 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							onMarkAllRead={markAllRead}
 							hasUnread={unreadCount > 0}
 						/>
-						<TldrawUiButton
-							type="icon"
-							title={msg(messages.close)}
-							className="tlui-cmt-header-btn"
-							onClick={onClose}
-						>
-							<TlaIcon icon="close" style={{ width: 12, height: 12 }} />
-						</TldrawUiButton>
 					</div>
 				}
 				empty={msg(messages.empty)}
@@ -283,29 +209,23 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							// middle-click opens the tab natively without firing onClick; still mark it read
 							onAuxClick={(e) => e.button === 1 && handleSelect(item.id, true)}
 						>
-							<span
-								className={styles.pin}
-								style={{ backgroundColor: item.author.color }}
-								aria-hidden="true"
-							/>
 							<div className="tlui-cmt-list__item-body">
-								<div className={styles.head}>
+								<div className={classNames('tlui-cmt-head', styles.head)}>
+									<span
+										className={styles.pin}
+										style={{ backgroundColor: item.author.color }}
+										aria-hidden="true"
+									/>
 									<span className={styles.byline}>
-										<ReasonByline
-											reason={n?.primaryReason ?? 'owned-board'}
-											author={item.author.name}
-											reactors={summarizeForeignReactors(n?.comment.reactions, app?.userId)}
-											nameClassName={styles.author}
-										/>
+										{n && <ReasonByline notification={n} nameClassName={styles.author} />}
 									</span>
 									<TldrawUiTooltip content={formatFullDateTime(item.date, locale)}>
 										<span className={styles.time}>{formatRelativeTime(item.date)}</span>
 									</TldrawUiTooltip>
 								</div>
-								<div className={styles.preview}>{item.preview}</div>
-								{item.reactions && (
-									<Reactions reactions={item.reactions} canReact={false} enableHoverList={false} />
-								)}
+								<div className="tlui-cmt-body">
+									<div className="tlui-cmt-list__item-preview">{item.preview}</div>
+								</div>
 							</div>
 							{n?.unread && <span className={styles.unreadDot} aria-hidden="true" />}
 						</Link>

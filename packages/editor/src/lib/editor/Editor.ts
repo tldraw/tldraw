@@ -2359,7 +2359,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * can't be tabbed to. Use this for the children of a frame or group, which
 	 * {@link Editor.getCurrentPageShapesInReadingOrder} leaves out.
 	 *
-	 * @public
+	 * @internal
 	 */
 	getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
 		const SHALLOW_ANGLE = 20
@@ -9321,7 +9321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
-		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
+		return { type: 'shared', value: this.getOpacityForNextShape() }
 	}
 
 	/**
@@ -9338,6 +9338,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this {
 		this.updateInstanceState({ opacityForNextShape: opacity }, historyOptions)
 		return this
+	}
+
+	@computed private getOpacityForNextShape(): number {
+		return this.getInstanceState().opacityForNextShape
 	}
 
 	/**

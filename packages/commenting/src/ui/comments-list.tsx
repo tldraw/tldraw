@@ -1,4 +1,4 @@
-import { Avatar, type CommentAuthor } from '@tldraw/mentions'
+import { type CommentAuthor } from '@tldraw/mentions'
 import { Fragment, MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
@@ -146,23 +146,26 @@ export function CommentListItem({
 			data-resolved={resolved || undefined}
 			onClick={handleClick}
 		>
-			{renderAvatar ? renderAvatar(author) : <Avatar author={author} />}
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author} date={date} />
-				<div className="tlui-cmt-list__item-preview">{preview}</div>
-				{reactions && <Reactions reactions={reactions} canReact={false} enableHoverList={false} />}
-				{(resolved || page !== undefined || replies) && (
-					<div className="tlui-cmt-list__item-meta">
-						{resolved && (
-							<span className="tlui-cmt-list__item-resolved">
-								<CheckIcon />
-								{resolvedLabel}
-							</span>
-						)}
-						{page !== undefined && <span className="tlui-cmt-list__item-page">{page}</span>}
-						{replies && <span className="tlui-cmt-list__item-replies">{replies}</span>}
-					</div>
-				)}
+				<Byline author={author} date={date} renderAvatar={renderAvatar} />
+				<div className="tlui-cmt-body">
+					<div className="tlui-cmt-list__item-preview">{preview}</div>
+					{reactions && (
+						<Reactions reactions={reactions} canReact={false} enableHoverList={false} />
+					)}
+					{(resolved || page !== undefined || replies) && (
+						<div className="tlui-cmt-list__item-meta">
+							{resolved && (
+								<span className="tlui-cmt-list__item-resolved">
+									<CheckIcon />
+									{resolvedLabel}
+								</span>
+							)}
+							{page !== undefined && <span className="tlui-cmt-list__item-page">{page}</span>}
+							{replies && <span className="tlui-cmt-list__item-replies">{replies}</span>}
+						</div>
+					)}
+				</div>
 			</div>
 		</Tag>
 	)

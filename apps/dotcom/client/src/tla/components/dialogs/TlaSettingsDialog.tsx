@@ -285,7 +285,7 @@ function PreferencesPanel() {
 	const { addDialog } = useDialogs()
 	const trackUiEvent = useUiEvents()
 	const colorThemeOptions = useColorThemeOptions()
-	const selectColorTheme = useSelectColorTheme()
+	const selectColorTheme = useSelectColorTheme('user-preferences')
 
 	// The user record stores this as a plain string, so narrow it to a scheme we offer.
 	const colorScheme = useValue(
