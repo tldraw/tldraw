@@ -27,6 +27,7 @@ import {
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLLibraryThumbnail,
+	type TLLibraryItemPartial,
 	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
@@ -425,9 +426,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return items
 	}
 
-	async renameItem(itemId: TLLibraryItemId, name: string) {
+	async updateItem(itemId: TLLibraryItemId, { name, meta }: TLLibraryItemPartial) {
 		const id = await this.getItemRowId(itemId)
-		await this.apply(this.app.z.mutate.library_item.rename({ id, name }))
+		await this.apply(this.app.z.mutate.library_item.update({ id, name, meta }))
 	}
 
 	async deleteItem(itemId: TLLibraryItemId) {

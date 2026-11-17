@@ -377,12 +377,20 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 		},
 
 		library_item: {
-			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+			/** Changes an item's name or meta. Meta is merged key by key, as the editor merges a shape's. */
+			update: async (
+				tx: Tx,
+				{ id, name, meta }: { id: string; name?: string; meta?: JsonObject }
+			) => {
 				await assertLibrariesEnabled(tx, options)
-				await assertCanManageLibraryItem(tx, userId, id)
+				const item = await assertCanManageLibraryItem(tx, userId, id)
+				if (meta !== undefined) assertValidLibraryMeta(meta)
+				const merged = meta === undefined ? undefined : { ...item.meta, ...meta }
+				if (merged) assertValidLibraryMeta(merged)
 				await tx.mutate.library_item.update({
 					id,
-					name: libraryName(name),
+					...(name === undefined ? {} : { name: libraryName(name) }),
+					...(merged === undefined ? {} : { meta: merged }),
 					updatedAt: Date.now(),
 				})
 			},

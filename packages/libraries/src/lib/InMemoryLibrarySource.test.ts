@@ -124,15 +124,38 @@ describe('InMemoryLibrarySource', () => {
 		const library = await source.createLibrary('Wireframes')
 		const item = await added(source.addItem(library.id, { name: 'Card', content: content() }))
 
-		await source.renameItem(item.id, 'Header')
+		await source.updateItem(item.id, { name: 'Header' })
 		expect(source.getItems(library.id)).toEqual([{ ...item, name: 'Header' }])
-		await expect(source.renameItem(item.id, '  ')).rejects.toThrow()
+		await expect(source.updateItem(item.id, { name: '  ' })).rejects.toThrow()
 		expect(source.getItems(library.id)).toEqual([{ ...item, name: 'Header' }])
+	})
+
+	it('merges meta into an item’s meta key by key, leaving its name', async () => {
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Wireframes')
+		const item = await added(
+			source.addItem(library.id, {
+				name: 'Card',
+				content: content(),
+				meta: { category: 'Cards', tags: ['a'] },
+			})
+		)
+
+		await source.updateItem(item.id, { meta: { tags: ['b'], starred: true } })
+		expect(source.getItems(library.id)).toEqual([
+			{ ...item, meta: { category: 'Cards', tags: ['b'], starred: true } },
+		])
+		await source.updateItem(item.id, { name: 'Header', meta: { category: null } })
+		expect(source.getItems(library.id)).toEqual([
+			{ ...item, name: 'Header', meta: { category: null, tags: ['b'], starred: true } },
+		])
 	})
 
 	it('reports a missing item as not found, not as forbidden', async () => {
 		const source = new InMemoryLibrarySource({ can: () => false })
-		await expect(source.renameItem(missingItem, 'Name')).rejects.toThrow(LibraryNotFoundError)
+		await expect(source.updateItem(missingItem, { name: 'Name' })).rejects.toThrow(
+			LibraryNotFoundError
+		)
 		await expect(source.deleteItem(missingItem)).rejects.toThrow(LibraryNotFoundError)
 	})
 
@@ -434,7 +457,9 @@ describe('InMemoryLibrarySource', () => {
 		expect(source.can('addItem', pack)).toBe(false)
 		await expect(source.createLibrary('New')).rejects.toThrow(LibraryPermissionError)
 		await expect(source.deleteItem(card)).rejects.toThrow(LibraryPermissionError)
-		await expect(source.renameItem(card, 'New')).rejects.toThrow(LibraryPermissionError)
+		await expect(source.updateItem(card, { meta: { x: 1 } })).rejects.toThrow(
+			LibraryPermissionError
+		)
 		await expect(source.deleteLibrary(pack)).rejects.toThrow(LibraryPermissionError)
 		expect(await source.getItemContent(card)).toEqual(content())
 	})
