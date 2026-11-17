@@ -162,8 +162,8 @@ spec:
             queryOptions: {}
             transformations: []
         description: Client family, normalized from the User-Agent header into a bounded set
-          (codex-plugin, claude, codex, openai, cursor, python, node, curl, browser, other,
-          none). codex-plugin is our own proxy worker; codex is a Codex client connected to
+          (codex-plugin, claude, codex, openai, cursor, python, node, curl, browser, opencode,
+          other, none). codex-plugin is our own proxy worker; codex is a Codex client connected to
           this server directly. `none` means the caller sent no User-Agent.
         id: 10
         links: []

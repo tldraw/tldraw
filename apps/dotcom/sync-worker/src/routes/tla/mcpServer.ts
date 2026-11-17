@@ -254,7 +254,7 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 // and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
 // unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
 // truncated raw name for spotting families worth adding here. Order matters where strings overlap —
-// a Claude UA also says Mozilla, so `mozilla` sits last, and the codex plugin's UA also says codex.
+// a Claude UA also says Mozilla, so `mozilla` sits below it, and the codex plugin's UA also says codex.
 //
 // `codex-plugin` is the codex plugin's proxy worker, which forwards a few board tools for every
 // Codex user and names itself in its User-Agent. A Worker's fetch sends no User-Agent of its own, so
@@ -274,6 +274,7 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['undici', 'node'],
 	['curl', 'curl'],
 	['mozilla', 'browser'],
+	['opencode', 'opencode'],
 ]
 
 // The name an agent goes by on a board when write_comment isn't told one: its client's family, which

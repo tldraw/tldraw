@@ -2575,6 +2575,7 @@ describe('protocol telemetry', () => {
 		// Our own proxy says codex too, and has to stay apart from a Codex client calling directly.
 		expect(normalizeMcpClient('tldraw-codex-plugin')).toBe('codex-plugin')
 		expect(normalizeMcpClient('codex-mcp-client')).toBe('codex')
+		expect(normalizeMcpClient('OpenCode/1.0')).toBe('opencode')
 		expect(normalizeMcpClient('python-httpx/0.27.0')).toBe('python')
 		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh)')).toBe('browser')
 		// Unrecognized agents collapse to one value rather than becoming a new dimension each.
