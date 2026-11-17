@@ -1,11 +1,10 @@
 import { createShapeId, librarySchemaRecords } from '@tldraw/tlschema'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { createTLSchema, createTLStore, Editor, LibraryRecordType, Tldraw, useEditor } from 'tldraw'
+import { createTLSchema, createTLStore, Editor, Tldraw, useEditor } from 'tldraw'
 import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { TLLibraryItemContent } from '../lib/schema'
-import type { LibraryBrowseGroup } from './browse-libraries-dialog'
 import { LibrariesPanel } from './libraries-panel'
 import { librariesPanelOpen } from './state'
 
@@ -46,17 +45,14 @@ afterEach(() => {
 	container = null
 })
 
-async function renderPanel(
-	source = new InMemoryLibrarySource(),
-	getBrowseGroups?: () => LibraryBrowseGroup[]
-) {
+async function renderPanel(source = new InMemoryLibrarySource()) {
 	container = document.createElement('div')
 	document.body.appendChild(container)
 	let mounted: Editor | undefined
 	const store = createTLStore({ schema: createTLSchema({ records: librarySchemaRecords }) })
 	const Panel = () => {
 		useEditor()
-		return <LibrariesPanel source={source} getBrowseGroups={getBrowseGroups} />
+		return <LibrariesPanel source={source} />
 	}
 	root = createRoot(container)
 	act(() => {
@@ -81,16 +77,19 @@ const press = (element: Element, key: string) =>
 		element.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
 	})
 
-it('keeps the name of a new library ready to edit once the header button is done', async () => {
+it('keeps the name of a library created from Add more ready to edit once the menu closes', async () => {
 	const container = await renderPanel()
-	const newLibrary = container.querySelector<HTMLButtonElement>(
-		'.tlui-libraries-panel__header button[aria-label="New library"]'
-	)!
-	newLibrary.focus()
-	press(newLibrary, 'Enter')
-	act(() => newLibrary.click())
-	const owner = document.querySelector<HTMLButtonElement>('.tlui-libraries-menu__item')
-	if (owner) act(() => owner.click())
+	const addMore = container.querySelector<HTMLButtonElement>('.tlui-libraries-panel__add-more')!
+	addMore.focus()
+	press(addMore, 'Enter')
+	const create = await vi.waitFor(() => {
+		const item = [...document.querySelectorAll('.tlui-libraries-menu__item')].find(
+			(el) => el.textContent === 'Create library'
+		)
+		expect(item).toBeDefined()
+		return item as HTMLButtonElement
+	})
+	act(() => create.click())
 
 	const input = await vi.waitFor(() => {
 		const el = container.querySelector<HTMLInputElement>('input.tlui-libraries-panel__rename')
@@ -166,77 +165,4 @@ it("scopes the search to a library from its menu, until the scope's chip is remo
 	)
 	await vi.waitFor(() => expect(resultGroups(container)).toEqual(['Shapes', 'Wireframes']))
 	expect(container.querySelector('.tlui-libraries-search__scope')).toBeNull()
-})
-
-const browseCard = (name: string) =>
-	[...document.querySelectorAll('.tlui-libraries-browse__card')].find(
-		(el) => el.querySelector('.tlui-libraries-browse__name')!.textContent === name
-	)!
-
-const buttonsOf = (card: Element) =>
-	[...card.querySelectorAll<HTMLButtonElement>('.tlui-libraries-browse__footer button')].map(
-		(button) => `${button.textContent}${button.disabled ? ' (disabled)' : ''}`
-	)
-
-it('removes an added library from the file in Browse, where the user may, so it can be added again', async () => {
-	const icons = LibraryRecordType.create({ name: 'Icons', ownerId: 'home' })
-	const pinned = LibraryRecordType.create({ name: 'Pinned', ownerId: 'home' })
-	const source = new InMemoryLibrarySource({
-		owners: [{ id: 'home', name: 'Home' }],
-		defaultOwnerId: 'home',
-		initial: { libraries: [icons, pinned], items: [], contents: {} },
-		shownInDocument: [{ libraryId: pinned.id, placement: 'added' }],
-		can: (action, target) => !(action === 'removeLibraryFromDocument' && target === pinned.id),
-	})
-	const container = await renderPanel(source)
-	act(() => container.querySelector<HTMLButtonElement>('.tlui-libraries-panel__add-more')!.click())
-	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
-	expect(buttonsOf(browseCard('Pinned'))).toEqual(['Added (disabled)'])
-	expect(buttonsOf(browseCard('Icons'))).toEqual(['Add to file'])
-
-	act(() =>
-		browseCard('Icons')
-			.querySelector<HTMLButtonElement>('.tlui-libraries-browse__footer button')!
-			.click()
-	)
-	await vi.waitFor(() => expect(buttonsOf(browseCard('Icons'))).toEqual(['Remove']))
-	expect(browseCard('Icons').querySelector('.tlui-libraries-browse__added')!.textContent).toBe(
-		'Added'
-	)
-
-	act(() =>
-		browseCard('Icons')
-			.querySelector<HTMLButtonElement>('.tlui-libraries-browse__footer button')!
-			.click()
-	)
-	await vi.waitFor(() => expect(buttonsOf(browseCard('Icons'))).toEqual(['Add to file']))
-	expect(source.getLibraries().map((library) => library.id)).not.toContain(icons.id)
-})
-
-it("offers Remove for a host's added entry only where it gives a way to remove it", async () => {
-	const remove = vi.fn(async () => {})
-	const entry = (name: string, removable: boolean) => ({
-		id: name,
-		name,
-		itemCount: 0,
-		previews: [],
-		added: true,
-		canAdd: true,
-		add: async () => LibraryRecordType.createId(name),
-		remove: removable ? remove : undefined,
-	})
-	const groups = [
-		{ id: 'packs', label: 'Packs', entries: [entry('Kept', false), entry('Doodles', true)] },
-	]
-	const container = await renderPanel(new InMemoryLibrarySource(), () => groups)
-	act(() => container.querySelector<HTMLButtonElement>('.tlui-libraries-panel__add-more')!.click())
-	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
-	expect(buttonsOf(browseCard('Kept'))).toEqual(['Added (disabled)'])
-	expect(buttonsOf(browseCard('Doodles'))).toEqual(['Remove'])
-	act(() =>
-		browseCard('Doodles')
-			.querySelector<HTMLButtonElement>('.tlui-libraries-browse__footer button')!
-			.click()
-	)
-	expect(remove).toHaveBeenCalledOnce()
 })

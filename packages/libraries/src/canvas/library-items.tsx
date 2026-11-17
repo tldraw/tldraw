@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
+import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useMemo } from 'react'
 import {
 	defineMessages,
 	useDialogs,
@@ -10,6 +10,7 @@ import {
 	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import type { TLLibraryItem } from '../lib/schema'
 import { ItemGrid, ItemGridTile } from '../ui/item-grid'
 import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
@@ -26,6 +27,7 @@ import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
 const messages = defineMessages({
+	noResults: { id: 'libraries.search.no-results', defaultMessage: 'No items found' },
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
 })
 
@@ -38,6 +40,8 @@ export interface LibraryItemsProps {
 	placeItem(itemId: TLLibraryItemId): void
 	ordering: TLLibraryItemOrdering
 	reversed: boolean
+	/** Shows only the items it accepts, without the tile for adding the selection, as search does. */
+	itemFilter?(item: TLLibraryItem): boolean
 	prepareItemContent?: PrepareItemContent
 }
 
@@ -49,6 +53,7 @@ export function LibraryItems({
 	placeItem,
 	ordering,
 	reversed,
+	itemFilter,
 	prepareItemContent,
 }: LibraryItemsProps) {
 	const editor = useEditor()
@@ -62,10 +67,14 @@ export function LibraryItems({
 		AddSelectionTile = DefaultAddSelectionTile,
 	} = overrides
 	const libraryId = library.id
-	const items = useLibraryItems(source, libraryId, { ordering, reversed })
+	const listed = useLibraryItems(source, libraryId, { ordering, reversed })
+	const items = useMemo(
+		() => (itemFilter ? listed.filter(itemFilter) : listed),
+		[listed, itemFilter]
+	)
 	const thumbnailUrls = useLibraryThumbnailUrls(source, items, { container })
 	const canRename = useLibraryCan(source, 'updateItem', libraryId)
-	const canAdd = useLibraryCan(source, 'addItem', libraryId)
+	const canAdd = useLibraryCan(source, 'addItem', libraryId) && !itemFilter
 	const canDelete = useLibraryCan(source, 'deleteItem', libraryId)
 	const { rename, move, copy, requestDelete, moveTargets, copyTargets } = useLibraryItemActions(
 		source,
@@ -97,6 +106,7 @@ export function LibraryItems({
 	])
 
 	if (items.length === 0 && !canAdd) {
+		if (itemFilter) return <p className="tlui-libraries-panel__empty">{msg(messages.noResults)}</p>
 		return EmptyLibrary && <EmptyLibrary library={library} />
 	}
 

@@ -13,7 +13,12 @@ import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getContentTooNewToast } from './content-too-new-toast'
 import { getOwnerChoices } from './owner-choices'
-import { activeLibraryId, renamingLibraryId } from './state'
+import {
+	activeLibraryId,
+	collapsedLibraryIds,
+	librariesSearchScope,
+	renamingLibraryId,
+} from './state'
 
 const messages = defineMessages({
 	deleteTitle: {
@@ -67,15 +72,15 @@ export interface LibraryActions {
 	 */
 	menuActions: Pick<
 		LibraryMenuProps,
-		'onRename' | 'onDelete' | 'onRemoveFromDocument' | 'move' | 'copy'
+		'onRename' | 'onDelete' | 'onRemoveFromDocument' | 'search' | 'move' | 'copy'
 	>
 }
 
 /**
- * A library's rename, delete, removal from the document, move and copy, as the source allows
- * them, for its header and its menu, as each section of the {@link LibrariesPanel} uses them.
- * Renaming starts from the menu, or when the library is new, and ends with the header's input.
- * Failures show a toast.
+ * A library's rename, delete, removal from the document, search, move and copy, as the source
+ * allows them, for its header and its menu, as each section of the {@link LibrariesPanel} uses
+ * them. Renaming starts from the menu, or when the library is new, and ends with the header's
+ * input. Failures show a toast.
  * @public
  */
 export function useLibraryActions(source: LibrarySource, library: TLLibrary): LibraryActions {
@@ -90,6 +95,15 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 		[editor, libraryId]
 	)
 	const stopRenaming = () => renamingLibraryId.set(editor, null)
+	const isSearchScope = useValue(
+		'library is search scope',
+		() => librariesSearchScope.get(editor) === libraryId,
+		[editor, libraryId]
+	)
+	const searchInLibrary = () => {
+		collapsedLibraryIds.update(editor, (ids) => ids.filter((id) => id !== libraryId))
+		librariesSearchScope.set(editor, libraryId)
+	}
 
 	const can = useValue(
 		'library permissions',
@@ -198,11 +212,12 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 
 	const menuActions: Pick<
 		LibraryMenuProps,
-		'onRename' | 'onDelete' | 'onRemoveFromDocument' | 'move' | 'copy'
+		'onRename' | 'onDelete' | 'onRemoveFromDocument' | 'search' | 'move' | 'copy'
 	> = {
 		onRename: can.rename ? () => renamingLibraryId.set(editor, libraryId) : undefined,
 		onDelete: can.delete ? deleteLibrary : undefined,
 		onRemoveFromDocument: can.removeFromDocument ? removeFromDocument : undefined,
+		search: isSearchScope ? undefined : { libraryName: library.name, onSelect: searchInLibrary },
 		move:
 			source.moveLibrary && can.canManage && ownerChoices.move.length > 0
 				? { owners: ownerChoices.move, value: library.ownerId, onValueChange: moveLibrary }

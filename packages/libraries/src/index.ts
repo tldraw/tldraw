@@ -77,6 +77,7 @@ export {
 	type LibraryMenuCopy,
 	type LibraryMenuMove,
 	type LibraryMenuProps,
+	type LibraryMenuSearch,
 	type LibraryMenuSort,
 } from './ui/library-menu'
 export {

@@ -29,3 +29,12 @@ export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLib
  * @public
  */
 export const collapsedLibraryIds = new EditorAtom<TLLibraryId[]>('collapsedLibraryIds', () => [])
+
+/** What the panel's search field holds, kept while the panel is closed. */
+export const librariesSearchQuery = new EditorAtom<string>('librariesSearchQuery', () => '')
+
+/** The one library the panel's search covers, or null for all the panel's libraries. */
+export const librariesSearchScope = new EditorAtom<TLLibraryId | null>(
+	'librariesSearchScope',
+	() => null
+)

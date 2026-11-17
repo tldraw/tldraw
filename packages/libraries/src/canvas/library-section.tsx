@@ -2,15 +2,14 @@ import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } f
 import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryMenu as DefaultLibraryMenu } from '../ui/library-menu'
-import { getItemOrdering, itemOrderings } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
 import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-section-header'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
+import { useItemOrdering } from './use-item-ordering'
 import { useLibraryActions } from './use-library-actions'
 import { useLibraryCollapsed } from './use-library-collapsed'
-import { useLibraryItemOrder } from './use-library-item-order'
 
 /** Unfolds and scrolls into view when it becomes the active library, e.g. from a toast's "Open". */
 export function LibrarySection({
@@ -54,14 +53,7 @@ export function LibrarySection({
 		activeLibraryId.set(editor, null)
 	}, [editor, isActive, libraryId])
 
-	const order = useLibraryItemOrder(source, libraryId)
-	const sort = {
-		options: itemOrderings.map(({ id, label }) => ({ id, label })),
-		value: order.ordering,
-		onValueChange: (orderingId: string) => order.setOrdering(getItemOrdering(orderingId).id),
-		reversed: order.reversed,
-		onReversedChange: order.setReversed,
-	}
+	const { ordering, reversed, sort } = useItemOrdering(source, libraryId)
 
 	return (
 		<section ref={setRef} className="tlui-libraries-section">
@@ -96,8 +88,8 @@ export function LibrarySection({
 					container={element}
 					getItemProps={getItemProps}
 					placeItem={placeItem}
-					ordering={order.ordering}
-					reversed={order.reversed}
+					ordering={ordering}
+					reversed={reversed}
 					prepareItemContent={prepareItemContent}
 				/>
 			)}

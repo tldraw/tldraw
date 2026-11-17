@@ -16,6 +16,7 @@ const messages = defineMessages({
 	moreOptions: { id: 'libraries.library-menu.title', defaultMessage: 'Library options' },
 	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
+	search: { id: 'libraries.library-menu.search', defaultMessage: 'Search in {name}' },
 	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
 	removeFromDocument: {
 		id: 'libraries.library-menu.remove-from-document',
@@ -35,6 +36,13 @@ export interface LibraryMenuSort {
 	onValueChange(id: string): void
 	reversed: boolean
 	onReversedChange(reversed: boolean): void
+}
+
+/** @public */
+export interface LibraryMenuSearch {
+	/** The library's name, for the item's label. */
+	libraryName: string
+	onSelect(): void
 }
 
 /** @public */
@@ -66,6 +74,8 @@ export interface LibraryMenuProps {
 	onDelete?(): void
 	/** Stops showing the library in the document, without deleting it. */
 	onRemoveFromDocument?(): void
+	/** A "Search in" item, for searching only this library. Leave out to hide it. */
+	search?: LibraryMenuSearch
 	/** A "Sort items by" submenu. Leave out to hide it. */
 	sort?: LibraryMenuSort
 	/** A "Move to" submenu of owners. Leave out to hide it. */
@@ -89,6 +99,7 @@ export function LibraryMenu({
 	onRename: rename,
 	onDelete: remove,
 	onRemoveFromDocument: removeFromDocument,
+	search,
 	sort,
 	move: moveTo,
 	copy: copyTo,
@@ -100,6 +111,7 @@ export function LibraryMenu({
 		!rename &&
 		!remove &&
 		!removeFromDocument &&
+		!search &&
 		!sort &&
 		!moveTo &&
 		!copyTo &&
@@ -129,6 +141,12 @@ export function LibraryMenu({
 				<TldrawUiDropdownMenuGroup>
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
 					{children}
+					{search && (
+						<MenuItem
+							label={msg(messages.search, { name: search.libraryName })}
+							onClick={search.onSelect}
+						/>
+					)}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
 						<MenuSubmenu id={`${id}-sort`} label={msg(messages.sort)}>
