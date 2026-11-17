@@ -362,7 +362,8 @@
 			:has(.tlui-libraries-tile__menu-button:hover, [aria-disabled='true'])
 		)
 		.tlui-libraries-tile__thumbnail {
-		background: var(--tl-color-muted-2);
+		outline: 1.5px solid var(--tl-color-muted-1);
+		outline-offset: -1.5px;
 	}
 
 	.tlui-libraries-tile__menu-button:hover {
@@ -377,7 +378,7 @@
 
 .tlui-libraries-tile:has(.tlui-libraries-tile__menu-button[data-state='open'])
 	.tlui-libraries-tile__thumbnail {
-	background: var(--tl-color-background);
+	outline: none;
 }
 
 .tlui-libraries-tile__thumbnail > img {
