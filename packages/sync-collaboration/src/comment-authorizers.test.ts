@@ -928,6 +928,7 @@ describe('createCommentAuthorize', () => {
 	const { write } = createCommentAuthorize<any>()
 	const ctx = (userId: string | null) => ({
 		userId,
+		can: () => true,
 		before: { get: () => undefined },
 		after: { get: () => undefined },
 	})
@@ -969,7 +970,7 @@ describe('createCommentAuthorize', () => {
 			createdBy: 'alice',
 		})
 		const write2 = (changes: any[], before: any, after: any, userId: string | null = 'bob') =>
-			write!(changes, { userId, before, after })
+			write!(changes, { userId, can: () => true, before, after })
 
 		it("lets anyone move another user's thread with its shape to another page", () => {
 			const next = { ...anchored, pageId: page2 }
@@ -988,6 +989,7 @@ describe('createCommentAuthorize', () => {
 			expect(
 				strict.write!([{ type: 'update', id: anchored.id, prev: anchored, next }], {
 					userId: 'guest',
+					can: () => true,
 					before: reader(shapeOn(pageId)),
 					after: reader(),
 				})
