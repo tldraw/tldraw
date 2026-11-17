@@ -43,6 +43,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
+import { getMyUploads } from './routes/tla/getMyUploads'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
@@ -201,6 +202,7 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.get('/app/my-uploads', getMyUploads)
 	.post('/app/libraries/:libraryId/items', addLibraryItems)
 	.post('/app/libraries/:libraryId/copy', copyLibrary)
 	.get('/app/library-items/:itemId/content', getLibraryItemContent)
@@ -411,8 +413,19 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	// Queues the DB association after a successful R2 upload.
-	async confirmUpload(objectName: string, fileId: string, userId: string | null): Promise<void> {
-		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
+	async confirmUpload(
+		objectName: string,
+		fileId: string,
+		userId: string | null,
+		{ isLibraryThumbnail = false }: { isLibraryThumbnail?: boolean } = {}
+	): Promise<void> {
+		await this.env.QUEUE.send({
+			type: 'asset-upload',
+			objectName,
+			fileId,
+			userId,
+			isLibraryThumbnail,
+		})
 	}
 
 	// Both branches of the queue loop swallow their errors so one bad message cannot abort the
@@ -475,12 +488,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 						}
 						break
 					case 'asset-upload': {
-						const { objectName, fileId, userId } = message.body
+						const { objectName, fileId, userId, isLibraryThumbnail = false } = message.body
 						try {
 							db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
 							await db
 								.insertInto('asset')
-								.values({ objectName, fileId, userId })
+								.values({ objectName, fileId, userId, isLibraryThumbnail })
 								.onConflict((oc) => oc.column('objectName').doNothing())
 								.execute()
 							message.ack()

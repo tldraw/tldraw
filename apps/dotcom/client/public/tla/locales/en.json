@@ -53,6 +53,9 @@
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
+  "0f3113590c": {
+    "translation": "Uploads"
+  },
   "1063e38cb5": {
     "translation": "Remove"
   },
@@ -800,5 +803,8 @@
   },
   "ffcd73e997": {
     "translation": "Import file…"
+  },
+  "fff0d600f8": {
+    "translation": "Images"
   }
 }

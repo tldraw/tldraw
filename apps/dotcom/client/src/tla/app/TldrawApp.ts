@@ -73,6 +73,7 @@ import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TldrawAppLibrariesSource } from '../components/TlaLibraries/librariesSource'
+import { TldrawAppUploadsSource } from '../components/TlaLibraries/uploadsSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -212,6 +213,8 @@ export class TldrawApp {
 	readonly isUiV3Enabled: boolean
 	/** Null when the `libraries` flag is off for this user. */
 	readonly libraries: LibrarySource | null
+	/** The images the user uploaded, as a library. Null when the `libraries` flag is off. */
+	readonly uploads: TldrawAppUploadsSource | null
 	/** Empty until {@link startLibraries}. */
 	private readonly libraryRows$: Atom<QueryResultType<typeof queries.libraries>>
 
@@ -309,8 +312,10 @@ export class TldrawApp {
 			const libraries: TldrawAppLibrariesSource = new TldrawAppLibrariesSource(this, getToken)
 			this.libraries = libraries
 			this.disposables.push(() => libraries.dispose())
+			this.uploads = new TldrawAppUploadsSource(this, getToken)
 		} else {
 			this.libraries = null
+			this.uploads = null
 		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
@@ -460,11 +465,13 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Subscribe the libraries of the user's workspaces, when the `libraries` flag is on. Like
+	 * Subscribe the libraries of the user's workspaces, and list the images they uploaded, when the
+	 * `libraries` flag is on. Like
 	 * {@link startNotificationFeeds}, once {@link preload} has resolved.
 	 */
 	startLibraries() {
 		if (!this.libraries) return
+		this.uploads?.refresh().catch((error) => console.error("Couldn't list the uploads", error))
 		this.bindQuery(
 			this.libraryRows$,
 			this.materializeQuery<QueryResultType<typeof queries.libraries>>(queries.libraries())

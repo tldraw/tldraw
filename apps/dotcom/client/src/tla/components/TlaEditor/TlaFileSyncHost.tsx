@@ -29,6 +29,7 @@ import {
 } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 import { answerTabRender } from '../../utils/tabRender'
+import { isBoardLibraryThumbnail } from '../TlaLibraries/boardLibraryThumbnails'
 import { FileSyncStoreContext, FileLoadContext, FileEditorRefContext } from './fileSyncHostContext'
 
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
@@ -66,11 +67,24 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
+	const editorRef = useRef<Editor | null>(null)
 	const assets = useMemo(() => {
-		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
+		return multiplayerAssetStore({
+			getFileId: () => fileSlug,
+			getToken: getUserToken,
+			isLibraryThumbnail: (asset) => {
+				const editor = editorRef.current
+				return editor ? isBoardLibraryThumbnail(editor, asset.id) : false
+			},
+			// The upload's asset row is written after the upload returns, so it's listed here rather
+			// than by listing the uploads again.
+			onUpload: (upload) => {
+				const uploads = currentApp$.get()?.uploads
+				if (uploads) uploads.noteUpload(upload)
+			},
+		})
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
-	const editorRef = useRef<Editor | null>(null)
 
 	const store = useSync({
 		uri: useCallback(async () => {

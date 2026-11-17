@@ -1,4 +1,4 @@
-import { TLAssetStore, fetch, uniqueId } from 'tldraw'
+import { TLAsset, TLAssetStore, fetch, uniqueId } from 'tldraw'
 import { loadLocalFile } from '../tla/utils/slurping'
 import { USER_CONTENT_URL } from './config'
 import { resolveUserContentImageUrl } from './resolveUserContentImageUrl'
@@ -7,8 +7,9 @@ const MAX_R2_OBJECT_NAME_BYTES = 1024
 
 // Assets are uploaded to and served from a separate tldrawusercontent worker (USER_CONTENT_URL).
 // Same R2 bucket as before — the worker just adds auth gating and Cloudflare Image Transformations.
-// For app files, a fileId query param triggers server-side write-access validation and DB association.
-async function getUrl(file: File, fileId: string | undefined) {
+// For app files, a fileId query param triggers server-side write-access validation and DB association,
+// and libraryThumbnail=true marks the association as a library item's thumbnail.
+async function getUrl(file: File, fileId: string | undefined, isLibraryThumbnail: boolean) {
 	const id = uniqueId()
 
 	const namePrefix = `${id}-`
@@ -16,8 +17,10 @@ async function getUrl(file: File, fileId: string | undefined) {
 	const objectName = namePrefix + file.name.replace(/\W/g, '-').slice(0, maxFileNameLength)
 	const url = `${USER_CONTENT_URL}/${objectName}`
 	if (fileId) {
+		const params = new URLSearchParams({ fileId })
+		if (isLibraryThumbnail) params.set('libraryThumbnail', 'true')
 		return {
-			fetchUrl: `${url}?${new URLSearchParams({ fileId }).toString()}`,
+			fetchUrl: `${url}?${params.toString()}`,
 			src: url,
 		}
 	}
@@ -27,12 +30,20 @@ async function getUrl(file: File, fileId: string | undefined) {
 export function multiplayerAssetStore(opts?: {
 	getFileId?(): string
 	getToken?(): Promise<string | undefined>
+	/** Whether an asset being uploaded to the file is the thumbnail of a library item. */
+	isLibraryThumbnail?(asset: TLAsset): boolean
+	/**
+	 * Called after an upload to the file succeeds, with the upload's src and the file. Not for library
+	 * thumbnails.
+	 */
+	onUpload?(upload: { src: string; fileId: string }): void
 }) {
-	const { getFileId, getToken } = opts ?? {}
+	const { getFileId, getToken, isLibraryThumbnail, onUpload } = opts ?? {}
 	return {
-		upload: async (_asset, file, abortSignal?) => {
+		upload: async (asset, file, abortSignal?) => {
 			const fileId = getFileId?.()
-			const { fetchUrl, src } = await getUrl(file, fileId)
+			const libraryThumbnail = !!fileId && !!isLibraryThumbnail?.(asset)
+			const { fetchUrl, src } = await getUrl(file, fileId, libraryThumbnail)
 			const headers: Record<string, string> = {}
 			if (fileId && getToken) {
 				const token = await getToken()
@@ -53,6 +64,7 @@ export function multiplayerAssetStore(opts?: {
 
 			if (fileId) {
 				const meta = { fileId }
+				if (!libraryThumbnail) onUpload?.({ src, fileId })
 				return { src, meta }
 			}
 			return { src }
