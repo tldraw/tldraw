@@ -59,8 +59,8 @@ export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. Defaults to `'bottom'`, which sits just above the toolbar at its width
-	 * when the toolbar is horizontal, and otherwise opens lower than `'center'`. `'top'` sits near the
+	 * Where the palette opens. Defaults to `'bottom'`, which sits just above the horizontal toolbar
+	 * at its width (at least 320px), and otherwise opens lower than `'center'`. `'top'` sits near the
 	 * top edge. On touch devices every position opens near the top edge.
 	 */
 	position?: TLUiCommandPalettePosition
@@ -312,18 +312,39 @@ export function CommandPaletteShell({
 	useEffect(() => {
 		if (!editor) return
 		const win = editor.getContainerWindow()
+		let pendingPointerId: number | null = null
+		let disposed = false
 		const onPointerDown = (e: PointerEvent) => {
+			pendingPointerId = null
 			const target = e.target as Node
 			if (rPalette.current?.contains(target)) return
-			// Like Figma, it stays open while you work on the selection on the canvas, and closes for
-			// any other click: on the canvas with nothing selected, or on other UI. The click goes
-			// through either way.
 			const canvas = editor.getContainer().querySelector('.tl-canvas')
-			if (canvas?.contains(target) && editor.getSelectedShapeIds().length > 0) return
+			if (canvas?.contains(target)) {
+				if (editor.getSelectedShapeIds().length === 0) pendingPointerId = e.pointerId
+				return
+			}
 			rDismiss.current()
 		}
+		const onPointerUp = (e: PointerEvent) => {
+			if (pendingPointerId === null || pendingPointerId !== e.pointerId) return
+			pendingPointerId = null
+			// Selection can change on pointer up; let the editor finish handling the click first.
+			queueMicrotask(() => {
+				if (!disposed && editor.getSelectedShapeIds().length === 0) rDismiss.current()
+			})
+		}
+		const onPointerCancel = () => {
+			pendingPointerId = null
+		}
 		win.addEventListener('pointerdown', onPointerDown, true)
-		return () => win.removeEventListener('pointerdown', onPointerDown, true)
+		win.addEventListener('pointerup', onPointerUp, true)
+		win.addEventListener('pointercancel', onPointerCancel, true)
+		return () => {
+			disposed = true
+			win.removeEventListener('pointerdown', onPointerDown, true)
+			win.removeEventListener('pointerup', onPointerUp, true)
+			win.removeEventListener('pointercancel', onPointerCancel, true)
+		}
 	}, [editor])
 
 	const runRow = useCallback(

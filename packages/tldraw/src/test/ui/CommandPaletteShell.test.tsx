@@ -285,7 +285,7 @@ describe('CommandPaletteShell', () => {
 			)
 			await rendered.findByTestId('command-palette.item.alpha')
 			expect(rendered.container.querySelector(`.tlui-main-toolbar--${orientation}`)).not.toBeNull()
-			return { editor, palette: rendered.getByTestId('command-palette') }
+			return { editor, palette: rendered.getByTestId('command-palette'), toolbarBox }
 		}
 
 		afterEach(() => {
@@ -294,7 +294,50 @@ describe('CommandPaletteShell', () => {
 
 		it('sits above a horizontal toolbar at its width', async () => {
 			const { palette } = await renderWithToolbar('horizontal')
-			await waitFor(() => expect(palette.style.width).toBe('500px'))
+			await waitFor(() => expect(palette.style.top).toBe('932px'))
+			expect(palette.style.width).toBe('500px')
+		})
+
+		it('updates its position and width when the toolbar or container resizes', async () => {
+			const observers = new Map<Element, Set<() => void>>()
+			vi.stubGlobal(
+				'ResizeObserver',
+				class {
+					private targets = new Set<Element>()
+					constructor(private callback: () => void) {}
+					observe(target: Element) {
+						this.targets.add(target)
+						if (!observers.has(target)) observers.set(target, new Set())
+						observers.get(target)!.add(this.callback)
+					}
+					unobserve(target: Element) {
+						observers.get(target)?.delete(this.callback)
+						this.targets.delete(target)
+					}
+					disconnect() {
+						for (const target of this.targets) this.unobserve(target)
+					}
+				}
+			)
+			onTestFinished(() => {
+				vi.unstubAllGlobals()
+			})
+			const { editor, palette, toolbarBox } = await renderWithToolbar('horizontal')
+			const container = editor.getContainer()
+			const toolbar = container.querySelector('.tlui-main-toolbar__inner')!
+			await waitFor(() => expect(palette.style.top).toBe('932px'))
+
+			toolbarBox.top = 900
+			toolbarBox.width = 600
+			act(() => observers.get(toolbar)?.forEach((callback) => callback()))
+			expect(palette.style.top).toBe('892px')
+			expect(palette.style.width).toBe('600px')
+
+			toolbarBox.top = 800
+			toolbarBox.width = 250
+			act(() => observers.get(container)?.forEach((callback) => callback()))
+			expect(palette.style.top).toBe('792px')
+			expect(palette.style.width).toBe('320px')
 		})
 
 		it('caps a submenu at the browsing height so it stays above the toolbar', async () => {
@@ -323,10 +366,11 @@ describe('CommandPaletteShell', () => {
 
 		it('leaves the toolbar for the top on touch devices', async () => {
 			const { editor, palette } = await renderWithToolbar('horizontal')
-			await waitFor(() => expect(palette.style.width).toBe('500px'))
+			await waitFor(() => expect(palette.style.top).toBe('932px'))
+			expect(palette.style.width).toBe('500px')
 			act(() => editor.updateInstanceState({ isCoarsePointer: true }))
-			await waitFor(() => expect(palette.style.width).toBe(''))
-			expect(palette.style.top).toBe('')
+			await waitFor(() => expect(palette.style.top).toBe(''))
+			expect(palette.style.width).toBe('')
 		})
 
 		it('ignores a vertical toolbar', async () => {
@@ -816,6 +860,7 @@ describe('CommandPaletteShell', () => {
 		expect(onClose).not.toHaveBeenCalled()
 		act(() => editor.selectNone())
 		fireEvent.pointerDown(canvas)
+		await act(async () => fireEvent.pointerUp(canvas))
 		expect(onClose).toHaveBeenCalledTimes(1)
 		// Other UI, such as the toolbar, closes it even with a selection.
 		act(() => editor.selectAll())
@@ -824,6 +869,33 @@ describe('CommandPaletteShell', () => {
 		// The click goes through every time.
 		expect(reached).toHaveBeenCalledTimes(2)
 	})
+
+	it.each([
+		[false, false, true],
+		[false, true, false],
+		[true, false, false],
+		[true, true, false],
+	])(
+		'canvas click with selection before=%s and after=%s closes=%s',
+		async (selectedBefore, selectedAfter, shouldClose) => {
+			const onClose = vi.fn()
+			const { editor } = await renderShell(item('alpha', 'Alpha'), onClose)
+			const canvas = editor.getContainer().querySelector('.tl-canvas')!
+			act(() => {
+				editor.createShape({ type: 'geo' })
+				if (selectedBefore) editor.selectAll()
+			})
+			fireEvent.pointerDown(canvas)
+			expect(onClose).not.toHaveBeenCalled()
+			const updateSelection = () => {
+				if (selectedAfter) editor.selectAll()
+				else editor.selectNone()
+			}
+			canvas.addEventListener('pointerup', updateSelection, { once: true })
+			await act(async () => fireEvent.pointerUp(canvas))
+			expect(onClose).toHaveBeenCalledTimes(shouldClose ? 1 : 0)
+		}
+	)
 
 	it('does not record items run from an on-demand submenu', async () => {
 		const onSelect = vi.fn()

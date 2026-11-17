@@ -626,6 +626,19 @@
 	margin-inline-start: var(--tl-space-4);
 }
 
+.tlui-button__menu .tlui-kbd,
+.tlui-command-palette__item .tlui-kbd {
+	color: var(--tl-color-text-3);
+}
+
+@media (hover: hover) {
+	.tlui-button__menu:not(:disabled, [data-disabled]):hover .tlui-kbd,
+	.tlui-command-palette__item:not([aria-disabled='true']):hover .tlui-kbd,
+	.tlui-command-palette__back:hover .tlui-kbd {
+		color: var(--tl-color-text-1);
+	}
+}
+
 .tlui-kbd > span {
 	width: 100%;
 	text-align: center;
@@ -2376,17 +2389,17 @@ tldraw? probably.
 	--tlui-command-palette-row: 40px;
 	position: absolute;
 	/* The top sits 130px above the anchor and stays put as the list shrinks; short screens raise it
-	   to 324px above the bottom, but no higher than 8px. max-height keeps the 332px full palette at
+	   to 252px above the bottom, but no higher than 8px. max-height keeps the 260px full palette at
 	   most 60% tall and ending at least 8px above the bottom edge. */
 	--tlui-command-palette-anchor: 65%;
-	top: max(8px, min(calc(var(--tlui-command-palette-anchor) - 130px), calc(100% - 324px)));
+	top: max(8px, min(calc(var(--tlui-command-palette-anchor) - 130px), calc(100% - 252px)));
 	left: 50%;
 	transform: translateX(-50%);
 	/* Room for group headings next to longer labels. */
 	width: min(360px, calc(100% - 16px));
-	/* Fixed, so the palette doesn't resize as results come and go: the search row plus 8 rows. The
+	/* Fixed, so the palette doesn't resize as results come and go: the search row plus 6 rows. The
 	   max-heights below still shrink it on short screens. */
-	height: calc(var(--tlui-command-palette-row) + 8 * (var(--tlui-command-palette-row) - 4px) + 4px);
+	height: calc(var(--tlui-command-palette-row) + 6 * (var(--tlui-command-palette-row) - 4px) + 4px);
 	max-height: min(60%, calc(100% - var(--tlui-command-palette-anchor) + 122px));
 	display: flex;
 	flex-direction: column;
@@ -2398,9 +2411,9 @@ tldraw? probably.
 	font-size: 12px;
 }
 
-/* Centers the full 332px palette; shorter lists keep the same top, so the input never moves. */
+/* Centers the full 260px palette; shorter lists keep the same top, so the input never moves. */
 .tlui-command-palette[data-position='center'] {
-	top: max(8px, calc(50% - 166px));
+	top: max(8px, calc(50% - 130px));
 	max-height: 60%;
 }
 
@@ -2531,7 +2544,8 @@ tldraw? probably.
 }
 
 /* Greyed like a disabled .tlui-button, shortcut included. */
-.tlui-command-palette__item[aria-disabled='true'] {
+.tlui-command-palette__item[aria-disabled='true'],
+.tlui-command-palette__item[aria-disabled='true'] .tlui-kbd {
 	color: var(--tl-color-text-disabled);
 	cursor: default;
 }
