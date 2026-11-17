@@ -1,6 +1,8 @@
 import {
+	getPermissionPlaces,
 	isChangePermitted as isChangePermittedByList,
 	isPermitted as isPermittedByList,
+	TLPermissionPlace,
 } from '@tldraw/permissions'
 import {
 	Atom,
@@ -46,7 +48,6 @@ import {
 	TLInstancePageState,
 	TLInstancePresence,
 	TLPage,
-	TLPermission,
 	TLPermissionGrant,
 	TLRecordChange,
 	TLPageId,
@@ -301,19 +302,15 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
-	 * Whether the UI should offer a change to a record: tools, handles and menu items ask
-	 * {@link Editor.isChangePermitted}, which asks this after readonly and locks. Return `false` to
-	 * hide or disable that affordance. Advisory only: editor methods still try the change, and the
-	 * store's write rule (`authorize`), or the server, decides whether it's saved. The UI may offer
-	 * something the rule then refuses, for example when permissions changed or a dependent record is
-	 * protected.
+	 * Narrows which changes to a record the UI offers: tools, handles and menu items ask
+	 * {@link Editor.isChangePermitted}, which asks this after readonly, locks and the session's
+	 * grants. Return `false` to hide or disable that affordance; it can't turn on what the grants
+	 * don't allow. Advisory only: editor methods still try the change, and the store's write rule
+	 * (`authorize`), or the server, decides whether it's saved.
 	 *
 	 * It gets the change as a write rule sees one: `type` is `'create'`, `'update'` or `'delete'`,
 	 * `prev` and `next` the record before and after. Reactive: read store state or signals inside it
-	 * and the answer follows. Unset, the editor answers from the session's permissions
-	 * (`editor.getPermissions()`) when the app uses them, and allows everything otherwise.
-	 * `createPermissionPolicy` from `@tldraw/permissions` builds this and `isPermitted` for your own
-	 * record types.
+	 * and the answer follows. Use it for what grants can't say, like who owns a record.
 	 *
 	 * @example
 	 * ```ts
@@ -329,20 +326,23 @@ export interface TLEditorOptions {
 	): boolean
 
 	/**
-	 * Whether the UI should offer a kind of canvas action, for controls with no record to ask
-	 * `isChangePermitted` about: a missing `tl:page:create` disables the new page button, a missing
-	 * `tl:shape:create` the shape tools. Asked by {@link Editor.isPermitted}, after readonly. Unset, the
-	 * session's permissions decide when the app uses them, and nothing is restricted otherwise. Advisory, like `isChangePermitted`. Selecting is never restricted.
+	 * Narrows which actions the UI offers, for controls with no record to ask `isChangePermitted`
+	 * about: `tl:page:create` for the new page button, `tl:shape:create:geo` for the geo tool. Asked
+	 * by {@link Editor.isPermitted}, after readonly and the session's grants, so it can't turn on an
+	 * action the grants don't allow. Shape actions come typed: match the parent with `startsWith`.
+	 * Advisory, like `isChangePermitted`. Selecting is never restricted.
 	 *
 	 * @example
 	 * ```ts
-	 * isPermitted={(permission) => permission !== 'tl:page:create'}
+	 * isPermitted={(action) => action !== 'tl:page:create'}
 	 * ```
 	 *
-	 * @param permission - The permission's name.
+	 * @param action - The action's name.
 	 * @param editor - The editor instance.
+	 * @param place - Where it's asked about: the page or shape passed to `editor.isPermitted`, or the
+	 * current page.
 	 */
-	isPermitted?(permission: TLPermission, editor: Editor): boolean
+	isPermitted?(action: string, editor: Editor, place: TLPageId | TLShapeId): boolean
 	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
@@ -1076,9 +1076,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the UI should offer a change to a record: not on a readonly document, not an update
-	 * or delete of a locked shape (or one under a locked ancestor), and not denied by the
-	 * `isChangePermitted` option. Advisory: it doesn't stop editor methods, and it never asks the
-	 * store's write rule, which judges whole operations rather than one record. Reactive.
+	 * or delete of a locked shape (or one under a locked ancestor), permitted by the session's
+	 * grants where the record is (`isChangePermitted` from `@tldraw/permissions`, with the store's
+	 * `authorize.requires` and `types`), and not denied by the `isChangePermitted` option.
+	 * Advisory: it doesn't stop editor methods, and it never asks the store's write rule, which
+	 * judges whole operations rather than one record. Reactive.
 	 *
 	 * @example
 	 * ```ts
@@ -1102,59 +1104,82 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return !this._isDeniedByHost(change)
 	}
 
-	/**
-	 * The host's `isChangePermitted` alone, without readonly or locks. Without one, the session's
-	 * permissions with the built-in mapping, when the app uses them.
-	 */
+	/** The grants, then the host's `isChangePermitted`, without readonly or locks. */
 	private _isDeniedByHost(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>) {
 		const { isChangePermitted } = this._hostPermissions.get()
-		const permissions = isChangePermitted ? null : this.getPermissions()
+		const permissions = this.getPermissions()
 		// checked only when something applies: an unlicensed check warns
 		if (!isChangePermitted && permissions === null) return false
 		if (!this._arePermissionsLicensed()) return false
-		if (isChangePermitted) return !isChangePermitted(change, this)
-		return !isChangePermittedByList(permissions, change)
+		if (permissions !== null) {
+			const { requires, types } = this.store.props.authorize ?? {}
+			const get = (id: string) => this.store.get(id as TLRecord['id'])
+			const opts = { requires, types, before: get, after: get }
+			if (!isChangePermittedByList(permissions, change, opts)) return true
+		}
+		return !!isChangePermitted && !isChangePermitted(change, this)
 	}
 
 	/**
-	 * Whether the UI should offer a kind of canvas action: not on a readonly document, and not
-	 * denied by the `isPermitted` option. For controls with no record to ask {@link Editor.isChangePermitted}
-	 * about, such as a button that creates a page. Only knows tldraw's canvas permissions; an app's
-	 * own names belong to its own policy. Advisory and reactive, like `isChangePermitted`.
+	 * Whether the UI should offer an action at a place: permitted by the session's grants (with the
+	 * store's `authorize.requires`), and not denied by the `isPermitted` option. Any name works,
+	 * tldraw's or your own; a readonly document turns off the `tl:` ones. For controls with no
+	 * record to ask {@link Editor.isChangePermitted} about, such as a tool or the new page button.
+	 * Shape actions end in the shape's type (`tl:shape:create:geo`); ask the untyped parent only
+	 * when the type isn't known, which needs every type granted.
+	 *
+	 * `place` is a page or shape: a grant placed on it or on any of its ancestors counts. Without
+	 * one it's the current page, and a grant placed on any shape of that page counts too: there is
+	 * somewhere here you can do this. With no grants (`getPermissions()` is `null`) everything is
+	 * permitted, and only the `isPermitted` option narrows. Advisory and reactive, like
+	 * `isChangePermitted`.
 	 *
 	 * @example
 	 * ```ts
 	 * editor.isPermitted('tl:page:create')
+	 * editor.isPermitted('tl:shape:update:geo', shape.id)
 	 * ```
 	 *
-	 * @param permission - The permission's name.
+	 * @param action - The action's name.
+	 * @param place - The page or shape it's asked about. Defaults to the current page.
 	 *
 	 * @public
 	 */
-	isPermitted(permission: TLPermission): boolean {
-		if (this.getIsReadonly()) return false
-		return !this._isPermissionDeniedByHost(permission)
+	isPermitted(action: string, place?: TLPageId | TLShapeId): boolean {
+		if (action.startsWith('tl:') && this.getIsReadonly()) return false
+		return !this._isPermissionDeniedByHost(action, place)
 	}
 
-	/**
-	 * The host's `isPermitted` alone, without readonly: `force` writes still get its answer. Without one,
-	 * the session's permissions, when the app uses them.
-	 */
-	private _isPermissionDeniedByHost(permission: TLPermission) {
+	/** The grants, then the host's `isPermitted`, without readonly: `force` writes still get their answer. */
+	private _isPermissionDeniedByHost(action: string, place?: TLPageId | TLShapeId) {
 		const { isPermitted } = this._hostPermissions.get()
-		const permissions = isPermitted ? null : this.getPermissions()
+		const permissions = this.getPermissions()
 		if (!isPermitted && permissions === null) return false
 		if (!this._arePermissionsLicensed()) return false
-		if (isPermitted) return !isPermitted(permission, this)
-		return !isPermittedByList(permissions, permission)
+		if (permissions !== null) {
+			const requires = this.store.props.authorize?.requires
+			const at = this._getPermissionPlace(place)
+			if (!isPermittedByList(permissions, action, { requires, at })) return true
+		}
+		return !!isPermitted && !isPermitted(action, this, place ?? this.getCurrentPageId())
+	}
+
+	private _getPermissionPlace(place?: TLPageId | TLShapeId): TLPermissionPlace {
+		if (place) {
+			const record = this.store.get(place)
+			const get = (id: string) => this.store.get(id as TLRecord['id'])
+			return record ? getPermissionPlaces(get, record) : [place]
+		}
+		const pageId = this.getCurrentPageId()
+		return (id) => id === pageId || (isShapeId(id) && this.getAncestorPageId(id) === pageId)
 	}
 
 	/**
 	 * The named permissions this session was granted: by the sync server, kept current as it
 	 * changes them, or without sync by the store's `authorize.getSession`. `null` when the app
-	 * doesn't use named permissions, or there's no session yet. Reactive. Without `isPermitted` and
-	 * `isChangePermitted` options, the editor answers both from this list with the built-in
-	 * mapping (`getRequiredPermission` from `@tldraw/permissions`); with `null`, it allows everything.
+	 * doesn't use named permissions, or there's no session yet. Reactive. {@link Editor.isPermitted}
+	 * and {@link Editor.isChangePermitted} check this list first, and the host's options narrow
+	 * from there; with `null`, the grants allow everything.
 	 *
 	 * @example
 	 * ```ts
@@ -3039,7 +3064,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
 		if (
-			this._isPermissionDeniedByHost('tl:shape:update') ||
+			this._isPermissionDeniedByHost(`tl:shape:update:${_shape.type}`, _shape.id) ||
 			this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })
 		) {
 			return false // the host says the user can't change it
@@ -3303,7 +3328,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!util.canCrop(_shape)) return false
 		if (this.getIsReadonly()) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
-		if (this._isPermissionDeniedByHost('tl:shape:update')) return false
+		if (this._isPermissionDeniedByHost(`tl:shape:update:${_shape.type}`, _shape.id)) return false
 		if (this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })) return false
 		return true
 	}

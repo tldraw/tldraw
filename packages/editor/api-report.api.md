@@ -78,7 +78,6 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
-import { TLPermission } from '@tldraw/tlschema';
 import { TLPermissionGrant } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
@@ -1500,7 +1499,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
-    isPermitted(permission: TLPermission): boolean;
+    isPermitted(action: string, place?: TLPageId | TLShapeId): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;
@@ -3835,7 +3834,7 @@ export interface TldrawEditorBaseProps {
     initialState?: string;
     initialTheme?: TLThemeId;
     isChangePermitted?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
-    isPermitted?(permission: TLPermission, editor: Editor): boolean;
+    isPermitted?(action: string, editor: Editor, place: TLPageId | TLShapeId): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -4043,7 +4042,7 @@ export interface TLEditorOptions {
     initialState?: string;
     initialTheme?: TLThemeId;
     isChangePermitted?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
-    isPermitted?(permission: TLPermission, editor: Editor): boolean;
+    isPermitted?(action: string, editor: Editor, place: TLPageId | TLShapeId): boolean;
     // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;

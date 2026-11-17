@@ -3,9 +3,10 @@ import {
 	TLAsset,
 	TLBinding,
 	TLPage,
-	TLPermission,
+	TLPageId,
 	TLRecordChange,
 	TLShape,
+	TLShapeId,
 	TLStore,
 	TLStoreSnapshot,
 	TLTheme,
@@ -257,19 +258,15 @@ export interface TldrawEditorBaseProps {
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
-	 * Whether the UI should offer a change to a record: tools, handles and menu items ask
-	 * {@link Editor.isChangePermitted}, which asks this after readonly and locks. Return `false` to
-	 * hide or disable that affordance. Advisory only: editor methods still try the change, and the
-	 * store's write rule (`authorize`), or the server, decides whether it's saved. The UI may offer
-	 * something the rule then refuses, for example when permissions changed or a dependent record is
-	 * protected.
+	 * Narrows which changes to a record the UI offers: tools, handles and menu items ask
+	 * {@link Editor.isChangePermitted}, which asks this after readonly, locks and the session's
+	 * grants. Return `false` to hide or disable that affordance; it can't turn on what the grants
+	 * don't allow. Advisory only: editor methods still try the change, and the store's write rule
+	 * (`authorize`), or the server, decides whether it's saved.
 	 *
 	 * It gets the change as a write rule sees one: `type` is `'create'`, `'update'` or `'delete'`,
 	 * `prev` and `next` the record before and after. Reactive: read store state or signals inside it
-	 * and the answer follows. Unset, the editor answers from the session's permissions
-	 * (`editor.getPermissions()`) when the app uses them, and allows everything otherwise.
-	 * `createPermissionPolicy` from `@tldraw/permissions` builds this and `isPermitted` for your own
-	 * record types.
+	 * and the answer follows. Use it for what grants can't say, like who owns a record.
 	 *
 	 * @example
 	 * ```ts
@@ -285,20 +282,23 @@ export interface TldrawEditorBaseProps {
 	): boolean
 
 	/**
-	 * Whether the UI should offer a kind of canvas action, for controls with no record to ask
-	 * `isChangePermitted` about: a missing `tl:page:create` disables the new page button, a missing
-	 * `tl:shape:create` the shape tools. Asked by {@link Editor.isPermitted}, after readonly. Unset, the
-	 * session's permissions decide when the app uses them, and nothing is restricted otherwise. Advisory, like `isChangePermitted`. Selecting is never restricted.
+	 * Narrows which actions the UI offers, for controls with no record to ask `isChangePermitted`
+	 * about: `tl:page:create` for the new page button, `tl:shape:create:geo` for the geo tool. Asked
+	 * by {@link Editor.isPermitted}, after readonly and the session's grants, so it can't turn on an
+	 * action the grants don't allow. Shape actions come typed: match the parent with `startsWith`.
+	 * Advisory, like `isChangePermitted`. Selecting is never restricted.
 	 *
 	 * @example
 	 * ```ts
-	 * isPermitted={(permission) => permission !== 'tl:page:create'}
+	 * isPermitted={(action) => action !== 'tl:page:create'}
 	 * ```
 	 *
-	 * @param permission - The permission's name.
+	 * @param action - The action's name.
 	 * @param editor - The editor instance.
+	 * @param place - Where it's asked about: the page or shape passed to `editor.isPermitted`, or the
+	 * current page.
 	 */
-	isPermitted?(permission: TLPermission, editor: Editor): boolean
+	isPermitted?(action: string, editor: Editor, place: TLPageId | TLShapeId): boolean
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -491,6 +491,12 @@ function TldrawEditorWithOwnStore(
 						},
 						get objectTypes() {
 							return authorizeRef.current!.objectTypes
+						},
+						get requires() {
+							return authorizeRef.current!.requires
+						},
+						get types() {
+							return authorizeRef.current!.types
 						},
 					}
 				: undefined,

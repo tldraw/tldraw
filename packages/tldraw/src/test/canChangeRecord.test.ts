@@ -1,4 +1,5 @@
 import { atom, computed, createShapeId, TLShape } from '@tldraw/editor'
+import { isPermitted } from '@tldraw/permissions'
 import { fakeLicense } from './fakeLicense'
 import { TestEditor } from './TestEditor'
 
@@ -101,7 +102,7 @@ describe('isPermitted', () => {
 
 	it("asks the host's isPermitted, reactively", () => {
 		const granted = atom('granted', ['tl:shape:create'])
-		const editor = setup({ isPermitted: (permission) => granted.get().includes(permission) })
+		const editor = setup({ isPermitted: (permission) => isPermitted(granted.get(), permission) })
 		const answer = computed('answer', () => editor.isPermitted('tl:page:create'))
 		expect(answer.get()).toBe(false)
 		granted.set(['tl:page:create'])
@@ -180,9 +181,67 @@ describe('permissions without host callbacks', () => {
 		expect(editor.isChangePermitted(update(editor.getShape(box)!))).toBe(false)
 	})
 
-	it("give way to the host's own callbacks", () => {
-		const editor = withPermissions([], { isPermitted: () => true, isChangePermitted: () => true })
-		expect(editor.isPermitted('tl:page:create')).toBe(true)
-		expect(editor.isChangePermitted(newPage(editor))).toBe(true)
+	it("are only narrowed by the host's own callbacks, never widened", () => {
+		const none = withPermissions([], { isPermitted: () => true, isChangePermitted: () => true })
+		expect(none.isPermitted('tl:page:create')).toBe(false)
+		expect(none.isChangePermitted(newPage(none))).toBe(false)
+		const all = withPermissions(['tl:*'], {
+			isPermitted: (action: string) => action !== 'tl:page:create',
+			isChangePermitted: () => false,
+		})
+		expect(all.isPermitted('tl:page:create')).toBe(false)
+		expect(all.isPermitted('tl:page:delete')).toBe(true)
+		expect(all.isChangePermitted(newPage(all))).toBe(false)
+	})
+
+	it("answer the app's own names, and readonly only turns off the tl: ones", () => {
+		const editor = withPermissions(['tl:shape:*', 'classroom:manage'])
+		expect(editor.isPermitted('classroom:manage')).toBe(true)
+		expect(editor.isPermitted('classroom:grade')).toBe(false)
+		editor.updateInstanceState({ isReadonly: true })
+		expect(editor.isPermitted('classroom:manage')).toBe(true)
+		expect(editor.isPermitted('tl:shape:create:geo')).toBe(false)
+	})
+})
+
+describe('isPermitted at a place', () => {
+	const frame = createShapeId('frame')
+	const inFrame = createShapeId('inFrame')
+
+	function withGrants(list: readonly string[]) {
+		const editor = setup({}, { collaboration: { status: null, permissions: atom('p', list) } })
+		const pageA = editor.getCurrentPageId()
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 200, y: 0, props: { w: 200, h: 200 } },
+			{ id: inFrame, type: 'geo', parentId: frame, x: 10, y: 10 },
+		])
+		editor.createPage({ name: 'B' })
+		const pageB = editor.getPages()[1].id
+		return { editor, pageA, pageB }
+	}
+
+	it('walks a shape up through its parents to its page', () => {
+		const { editor, pageA, pageB } = withGrants([`tl:shape:update@${frame}`])
+		expect(editor.isPermitted('tl:shape:update:geo', inFrame)).toBe(true)
+		expect(editor.isPermitted('tl:shape:update:geo', box)).toBe(false)
+		expect(editor.isPermitted('tl:shape:update:geo', pageA)).toBe(false)
+		expect(editor.isPermitted('tl:shape:update:geo', pageB)).toBe(false)
+	})
+
+	it('defaults to the current page, where a grant on one of its shapes counts', () => {
+		const { editor, pageB } = withGrants([`tl:shape:create@${frame}`])
+		expect(editor.isPermitted('tl:shape:create:geo')).toBe(true)
+		editor.setCurrentPage(pageB)
+		expect(editor.isPermitted('tl:shape:create:geo')).toBe(false)
+	})
+
+	it('passes the place to the host callback', () => {
+		const places: string[] = []
+		const editor = setup({
+			isPermitted: (_action, _editor, place) => (places.push(place), true),
+		})
+		editor.isPermitted('tl:shape:update:geo', box)
+		editor.isPermitted('tl:page:create')
+		expect(places).toEqual([box, editor.getCurrentPageId()])
 	})
 })
