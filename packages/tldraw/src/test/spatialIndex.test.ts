@@ -184,6 +184,42 @@ describe('SpatialIndexManager - bounds epoch', () => {
 	})
 })
 
+describe('SpatialIndexManager - orphaned shapes', () => {
+	it('drops a child when its frame is removed without it', () => {
+		const frame = createShapeId('frame')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: frame, type: 'frame', props: { w: 200, h: 200 } },
+			{ id: child, type: 'geo', parentId: frame, props: { w: 100, h: 100 } },
+		])
+		const bounds = new Box(-1, -1, 202, 202)
+		expect(editor.getShapeIdsInsideBounds(bounds)).toEqual(new Set([frame, child]))
+
+		editor.store.remove([frame])
+
+		expect(editor.store.has(child)).toBe(true)
+		expect(editor.getShapeIdsInsideBounds(bounds)).toEqual(new Set())
+	})
+})
+
+describe('SpatialIndexManager - theme changes', () => {
+	it('follows a theme font-size change that resizes text', () => {
+		const text = createShapeId('text')
+		editor.createShape({ id: text, type: 'text', x: 0, y: 0, props: { autoSize: true } })
+		const before = editor.getShapePageBounds(text)!.clone()
+		const justBelow = new Box(before.minX, before.maxY + 1, before.w, 1)
+		expect(editor.getShapeIdsInsideBounds(justBelow).has(text)).toBe(false)
+
+		const tracker = trackSpatialIndexInvalidations(editor, justBelow)
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 64 })
+
+		expect(editor.getShapePageBounds(text)!.h).toBeGreaterThan(before.h + 1)
+		expect(editor.getShapeIdsInsideBounds(justBelow).has(text)).toBe(true)
+		expect(tracker.delta).toBe(1)
+		tracker.stop()
+	})
+})
+
 describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 	it('refreshes arrow bounds when a bound geo shape changes outline without changing axis-aligned bounds', () => {
 		// Regression: rectangle→ellipse keeps axis-aligned bounds the
