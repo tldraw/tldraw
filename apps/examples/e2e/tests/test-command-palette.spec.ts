@@ -30,30 +30,40 @@ test.describe('command palette', () => {
 
 	test('stays open for canvas clicks with a selection, closes otherwise, and lets the camera move', async ({
 		page,
+		isMobile,
 	}) => {
-		await page.evaluate(() => {
-			editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
-			editor.selectAll()
-		})
 		await page.keyboard.press('ControlOrMeta+k')
 		const palette = page.getByTestId('command-palette')
 		const input = page.getByTestId('command-palette.input')
 		await expect(input).toBeFocused()
-		const [shapePoint, emptyPoint] = await page.evaluate(() =>
-			[editor.pageToScreen({ x: 150, y: 150 }), editor.pageToScreen({ x: 400, y: 150 })].map(
-				({ x, y }) => ({ x, y })
-			)
-		)
+		// The palette opens at the top on touch devices, so place the shape in a band it doesn't cover,
+		// inside a phone-width viewport.
+		const box = (await palette.boundingBox())!
+		const bandY = box.y > 250 ? 150 : box.y + box.height + 80
+		const [shapePoint, emptyPoint] = await page.evaluate((y) => {
+			const center = editor.screenToPage({ x: 100, y })
+			editor.createShapes([
+				{ type: 'geo', x: center.x - 50, y: center.y - 50, props: { w: 100, h: 100 } },
+			])
+			editor.selectAll()
+			return [
+				{ x: 100, y },
+				{ x: 250, y },
+			]
+		}, bandY)
 		// Clicking a selected shape would start editing its label, which keeps focus.
 		await page.mouse.click(emptyPoint.x, emptyPoint.y)
 		await expect(palette).toBeVisible()
 		await expect(input).toBeFocused()
-		const before = await page.evaluate(() => editor.getCamera().y)
-		await page.mouse.move(emptyPoint.x, emptyPoint.y)
-		await page.mouse.wheel(0, 100)
-		await expect.poll(() => page.evaluate(() => editor.getCamera().y)).not.toBe(before)
-		await expect(palette).toBeVisible()
-		await page.mouse.wheel(0, -100)
+		// Touch emulation has no wheel.
+		if (!isMobile) {
+			const before = await page.evaluate(() => editor.getCamera().y)
+			await page.mouse.move(emptyPoint.x, emptyPoint.y)
+			await page.mouse.wheel(0, 100)
+			await expect.poll(() => page.evaluate(() => editor.getCamera().y)).not.toBe(before)
+			await expect(palette).toBeVisible()
+			await page.mouse.wheel(0, -100)
+		}
 		// That click on empty canvas cleared the selection, so the next canvas click closes it.
 		await page.mouse.click(shapePoint.x, shapePoint.y)
 		await expect(palette).toBeHidden()
