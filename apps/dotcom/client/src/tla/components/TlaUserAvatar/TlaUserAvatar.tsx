@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { getFirstCharacter } from 'tldraw'
 import styles from './user-avatar.module.css'
 
 /** The user's initial on their presence color. Callers size it through `className`. */
@@ -15,7 +16,7 @@ export function TlaUserAvatar({
 			style={{ backgroundColor: user.color }}
 			aria-hidden
 		>
-			{(user.name || user.email).charAt(0).toUpperCase()}
+			{getFirstCharacter(user.name || user.email).toUpperCase()}
 		</div>
 	)
 }
