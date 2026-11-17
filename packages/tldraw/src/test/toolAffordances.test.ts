@@ -1,4 +1,5 @@
 import { createShapeId, TLGeoShape, TLPermission, TLRecordChange, TLShape } from '@tldraw/editor'
+import { isPermitted } from '@tldraw/permissions'
 import { fakeLicense } from './fakeLicense'
 import { TestEditor } from './TestEditor'
 
@@ -84,7 +85,7 @@ describe('tools and the advisory isChangePermitted', () => {
 
 describe('gestures that create shapes, and the advisory can', () => {
 	function withGrants(...granted: TLPermission[]) {
-		const editor = new TestEditor({ isPermitted: (permission) => granted.includes(permission) })
+		const editor = new TestEditor({ isPermitted: (permission) => isPermitted(granted, permission) })
 		fakeLicense(editor)
 		return editor
 	}
@@ -120,7 +121,7 @@ describe('gestures that create shapes, and the advisory can', () => {
 
 describe('a host that answers only can', () => {
 	function onlyCan(...granted: TLPermission[]) {
-		const editor = new TestEditor({ isPermitted: (permission) => granted.includes(permission) })
+		const editor = new TestEditor({ isPermitted: (permission) => isPermitted(granted, permission) })
 		fakeLicense(editor)
 		editor.createShapes([
 			{ id: mine, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },

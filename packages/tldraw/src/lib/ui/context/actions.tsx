@@ -27,6 +27,7 @@ import {
 import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
+import { canDeleteShape, canUpdateShape } from '../../tools/SelectTool/selectHelpers'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
@@ -60,6 +61,7 @@ import {
 	hasLockedShapesOnPage,
 	hasShapesOnPage,
 	hasThreeStackableShapes,
+	getUnlockedSelectedShapes,
 	hasUnlockedSelection,
 	isContentOffscreen,
 	isGroupAllowed,
@@ -399,8 +401,10 @@ function getSelectedOrAllShapeIds(editor: Editor) {
 	return ids.length > 0 ? ids : Array.from(editor.getCurrentPageShapeIds())
 }
 
-const canCreateAndUpdate = (editor: Editor) =>
-	editor.isPermitted('tl:shape:create') && editor.isPermitted('tl:shape:update')
+// wrapping the selection creates the container and reparents every selected shape into it
+const canWrapSelection = (editor: Editor, type: string) =>
+	editor.isPermitted(`tl:shape:create:${type}`) &&
+	getUnlockedSelectedShapes(editor).every((shape) => canUpdateShape(editor, shape))
 
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
@@ -557,7 +561,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-embed',
-				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
+				isEnabled: (editor) => editor.isPermitted('tl:shape:create:embed'),
 				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
@@ -578,7 +582,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-media',
-				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
+				isEnabled: (editor) =>
+					editor.isPermitted('tl:shape:create:image') ||
+					editor.isPermitted('tl:shape:create:video'),
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
@@ -941,7 +947,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'group',
 				// creates the group and reparents the selection into it
 				isEnabled: (editor) =>
-					editor.isIn('select') && isGroupAllowed(editor) && canCreateAndUpdate(editor),
+					editor.isIn('select') && isGroupAllowed(editor) && canWrapSelection(editor, 'group'),
 				label: messages.actionGroup.id,
 				icon: 'group',
 				onSelect: groupSelectedShapes,
@@ -963,7 +969,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.isIn('select') &&
 					hasUnlockedSelection(editor, 1) &&
 					canFrameSelection(editor) &&
-					canCreateAndUpdate(editor),
+					canWrapSelection(editor, 'frame'),
 				label: messages.actionFrameSelection.id,
 				onSelect: frameSelectedShapes,
 			},
@@ -973,7 +979,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.isIn('select') &&
 					hasUnlockedSelection(editor, 1) &&
 					areAllSelectedFrameLike(editor) &&
-					editor.isPermitted('tl:shape:delete'),
+					editor.getSelectedShapes().every((shape) => canDeleteShape(editor, shape)),
 				label: messages.actionRemoveFrame.id,
 				kbd: 'cmd+alt+shift+g,ctrl+alt+shift+g',
 				onSelect: removeSelectedFrames,
@@ -1807,7 +1813,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-lock',
 				// not hasUnlockedSelection: a locked shape has to stay unlockable
-				isEnabled: (editor) => canApplySelection(editor) && editor.isPermitted('tl:shape:update'),
+				isEnabled: (editor) =>
+					canApplySelection(editor) &&
+					editor
+						.getSelectedShapes()
+						.every((shape) => editor.isPermitted(`tl:shape:update:${shape.type}`, shape.id)),
 				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
 				onSelect(source) {

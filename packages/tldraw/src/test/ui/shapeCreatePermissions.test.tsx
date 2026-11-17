@@ -1,5 +1,6 @@
 import { act, screen } from '@testing-library/react'
 import { Editor, TLPermission, atom, createShapeId } from '@tldraw/editor'
+import { isPermitted } from '@tldraw/permissions'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
@@ -36,7 +37,10 @@ beforeEach(async () => {
 	granted.set(ALL)
 	const result = await renderTldrawComponentWithEditor(
 		(onMount) => (
-			<Tldraw onMount={onMount} isPermitted={(permission) => granted.get().includes(permission)}>
+			<Tldraw
+				onMount={onMount}
+				isPermitted={(permission) => isPermitted(granted.get(), permission)}
+			>
 				<Capturer />
 			</Tldraw>
 		),

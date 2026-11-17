@@ -715,7 +715,10 @@ export class Idle extends StateNode {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getIsReadonly()) return
 		// typing into it is an update
-		if (!this.editor.isPermitted('tl:shape:create') || !this.editor.isPermitted('tl:shape:update'))
+		if (
+			!this.editor.isPermitted('tl:shape:create:text') ||
+			!this.editor.isPermitted('tl:shape:update:text')
+		)
 			return
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return

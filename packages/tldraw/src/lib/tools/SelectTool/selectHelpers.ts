@@ -79,15 +79,15 @@ export function startEditingShape(
 }
 
 /**
- * Whether the user may update a shape, as far as the UI can tell: readonly, locks, and both of the
- * host's answers (`isPermitted('tl:shape:update')` and `isChangePermitted` for this shape). Advisory: a
- * gesture it allows can still be refused by the write rule.
+ * Whether the user may update a shape, as far as the UI can tell: readonly, locks, the grants for
+ * its type where it is, and both of the host's answers (`isPermitted` and `isChangePermitted` for
+ * this shape). Advisory: a gesture it allows can still be refused by the write rule.
  *
  * @internal
  */
 export function canUpdateShape(editor: Editor, shape: TLShape) {
 	return (
-		editor.isPermitted('tl:shape:update') &&
+		editor.isPermitted(`tl:shape:update:${shape.type}`, shape.id) &&
 		editor.isChangePermitted({ type: 'update', prev: shape, next: shape })
 	)
 }
@@ -99,7 +99,7 @@ export function canUpdateShape(editor: Editor, shape: TLShape) {
  */
 export function canDeleteShape(editor: Editor, shape: TLShape) {
 	return (
-		editor.isPermitted('tl:shape:delete') &&
+		editor.isPermitted(`tl:shape:delete:${shape.type}`, shape.id) &&
 		editor.isChangePermitted({ type: 'delete', prev: shape, next: null })
 	)
 }

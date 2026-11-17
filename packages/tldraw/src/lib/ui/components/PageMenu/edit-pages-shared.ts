@@ -47,8 +47,8 @@ export function onMovePage(
 	}
 }
 
-// Each of these asks about the permission by name and about the page itself, so a rule that
-// only covers some pages still gets a say.
+// Each of these asks about the action at the page and about the page itself, so a grant or a
+// callback that only covers some pages still gets a say.
 
 export function canCreatePage(editor: Editor) {
 	return editor.isPermitted('tl:page:create')
@@ -56,7 +56,7 @@ export function canCreatePage(editor: Editor) {
 
 export function canUpdatePage(editor: Editor, page: TLPage) {
 	return (
-		editor.isPermitted('tl:page:update') &&
+		editor.isPermitted('tl:page:update', page.id) &&
 		editor.isChangePermitted({ type: 'update', prev: page, next: page })
 	)
 }
@@ -69,7 +69,7 @@ export function canDuplicatePage(editor: Editor, page: TLPage) {
 
 // Deleting a page deletes the shapes on it.
 export function canDeletePage(editor: Editor, page: TLPage) {
-	if (!editor.isPermitted('tl:page:delete')) return false
+	if (!editor.isPermitted('tl:page:delete', page.id)) return false
 	if (!editor.isChangePermitted({ type: 'delete', prev: page, next: null })) return false
-	return editor.getPageShapeIds(page).size === 0 || editor.isPermitted('tl:shape:delete')
+	return editor.getPageShapeIds(page).size === 0 || editor.isPermitted('tl:shape:delete', page.id)
 }

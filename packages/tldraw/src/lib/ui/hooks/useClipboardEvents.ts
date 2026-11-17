@@ -744,7 +744,13 @@ async function copyOrCutSelection(
 	operation: 'copy' | 'cut',
 	source: TLClipboardWriteInfo['source']
 ) {
-	if (operation === 'cut' && !editor.isPermitted('tl:shape:delete')) return false
+	if (
+		operation === 'cut' &&
+		!editor
+			.getSelectedShapes()
+			.every((shape) => editor.isPermitted(`tl:shape:delete:${shape.type}`, shape.id))
+	)
+		return false
 	const didCopy = await handleNativeOrMenuCopy(editor, { operation, source })
 	if (didCopy && operation === 'cut') {
 		editor.markHistoryStoppingPoint('cut')

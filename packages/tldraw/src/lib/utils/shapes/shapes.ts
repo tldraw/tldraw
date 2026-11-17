@@ -33,7 +33,7 @@ export function getSelectedLinkShape(editor: Editor): TLShapeWithLink | undefine
 	const shape = editor.getOnlySelectedShape()
 	if (
 		!isShapeWithLink(shape) ||
-		!editor.isPermitted('tl:shape:update') ||
+		!editor.isPermitted(`tl:shape:update:${shape.type}`, shape.id) ||
 		!editor.isChangePermitted({ type: 'update', prev: shape, next: shape })
 	)
 		return undefined

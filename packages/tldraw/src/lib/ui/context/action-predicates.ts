@@ -45,22 +45,23 @@ export function canApplyToUnlockedSelection(editor: Editor, min: number) {
  */
 export function canDeleteSelection(editor: Editor) {
 	return (
-		editor.isIn('select') &&
-		editor.isPermitted('tl:shape:delete') &&
-		editor.getSelectedShapes().some((shape) => canDelete(editor, shape))
+		editor.isIn('select') && editor.getSelectedShapes().some((shape) => canDelete(editor, shape))
 	)
 }
 
 /**
- * A copy is a new shape, so the original only has to be unlocked, not updatable.
+ * A copy is a new shape next to the original, so the original only has to be unlocked, not
+ * updatable. Asks about the selected shapes' own types; what's inside a frame or group is copied
+ * along unasked.
  *
  * @internal
  */
 export function canDuplicateSelection(editor: Editor) {
+	if (!editor.isIn('select')) return false
+	const unlocked = editor.getSelectedShapes().filter((s) => !editor.isShapeOrAncestorLocked(s))
 	return (
-		editor.isIn('select') &&
-		editor.isPermitted('tl:shape:create') &&
-		editor.getSelectedShapes().some((shape) => !editor.isShapeOrAncestorLocked(shape))
+		unlocked.length > 0 &&
+		unlocked.every((s) => editor.isPermitted(`tl:shape:create:${s.type}`, s.parentId))
 	)
 }
 
@@ -74,7 +75,6 @@ export function canReplaceSelection(editor: Editor) {
 	return (
 		editor.isIn('select') &&
 		editor.isPermitted('tl:shape:create') &&
-		editor.isPermitted('tl:shape:delete') &&
 		editor.getSelectedShapes().some((shape) => canDelete(editor, shape))
 	)
 }
@@ -115,11 +115,15 @@ export function isUngroupAllowed(editor: Editor) {
  * @internal
  */
 export function canUngroupSelection(editor: Editor) {
-	return (
-		editor.isIn('select') &&
-		isUngroupAllowed(editor) &&
-		editor.isPermitted('tl:shape:delete') &&
-		editor.isPermitted('tl:shape:update')
+	if (!editor.isIn('select')) return false
+	const groups = getUnlockedSelectedShapes(editor).filter((s) => editor.isShapeOfType(s, 'group'))
+	return groups.some(
+		(group) =>
+			canDelete(editor, group) &&
+			editor.getSortedChildIdsForParent(group).every((id) => {
+				const child = editor.getShape(id)
+				return !!child && canUpdate(editor, child)
+			})
 	)
 }
 

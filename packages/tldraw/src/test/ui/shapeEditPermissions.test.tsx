@@ -1,5 +1,6 @@
 import { act, screen } from '@testing-library/react'
 import { Editor, TLPermission, TLShapeId, atom, createShapeId } from '@tldraw/editor'
+import { isPermitted as isGranted } from '@tldraw/permissions'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
@@ -16,7 +17,7 @@ const ALL: TLPermission[] = [
 const granted = atom<TLPermission[]>('granted', ALL)
 const grant = (...permissions: TLPermission[]) => act(() => granted.set(permissions))
 const without = (...permissions: TLPermission[]) => ALL.filter((p) => !permissions.includes(p))
-const isPermitted = (permission: TLPermission) => granted.get().includes(permission)
+const isPermitted = (action: string) => isGranted(granted.get(), action)
 
 let editor: Editor
 let actions: TLUiActionsContextType

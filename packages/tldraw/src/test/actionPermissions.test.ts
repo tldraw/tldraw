@@ -1,4 +1,5 @@
 import { atom, createShapeId, TLPermission } from '@tldraw/editor'
+import { isPermitted } from '@tldraw/permissions'
 import {
 	canDeleteSelection,
 	canUngroupSelection,
@@ -14,7 +15,9 @@ const granted = atom<TLPermission[]>('granted', [])
 
 function setup() {
 	granted.set(['tl:shape:create', 'tl:shape:update', 'tl:shape:delete'])
-	const editor = new TestEditor({ isPermitted: (permission) => granted.get().includes(permission) })
+	const editor = new TestEditor({
+		isPermitted: (permission) => isPermitted(granted.get(), permission),
+	})
 	fakeLicense(editor)
 	const a = createShapeId('a')
 	const b = createShapeId('b')

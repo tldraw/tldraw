@@ -101,9 +101,13 @@ export type TLUiToolsContextType = Record<string, TLUiToolItem>
 
 // Drawing creates a shape and then updates it on every drag frame (or as you type), so a drawing
 // tool needs both; with create alone it would leave dots.
-const canDraw = (editor: Editor) =>
-	editor.isPermitted('tl:shape:create') && editor.isPermitted('tl:shape:update')
-const canCreateShapes = (editor: Editor) => editor.isPermitted('tl:shape:create')
+const canDraw = (type: string) => (editor: Editor) =>
+	editor.isPermitted(`tl:shape:create:${type}`) && editor.isPermitted(`tl:shape:update:${type}`)
+const canCreate = (type: string) => (editor: Editor) =>
+	editor.isPermitted(`tl:shape:create:${type}`)
+// the media picker makes an image or a video; the eraser deletes whatever it touches
+const canInsertMedia = (editor: Editor) =>
+	editor.isPermitted('tl:shape:create:image') || editor.isPermitted('tl:shape:create:video')
 const canDeleteShapes = (editor: Editor) => editor.isPermitted('tl:shape:delete')
 
 /** @internal */
@@ -189,7 +193,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'draw',
-				isEnabled: canDraw,
+				isEnabled: canDraw('draw'),
 				label: messages.toolDraw.id,
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
@@ -200,7 +204,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			...[...GeoShapeGeoStyle.values].map((geo) => ({
 				id: geo,
-				isEnabled: canDraw,
+				isEnabled: canDraw('geo'),
 				// A geo type added through GeoShapeUtil.configure() is in GeoShapeGeoStyle.values with
 				// no message declared here. Dereferencing the missing one threw while the toolbar
 				// built, taking the whole editor down; the composed key lets an app translate it.
@@ -232,7 +236,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			})),
 			{
 				id: 'arrow',
-				isEnabled: canDraw,
+				isEnabled: canDraw('arrow'),
 				label: messages.toolArrow.id,
 				icon: 'tool-arrow',
 				kbd: 'a',
@@ -255,7 +259,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'line',
-				isEnabled: canDraw,
+				isEnabled: canDraw('line'),
 				label: messages.toolLine.id,
 				icon: 'tool-line',
 				kbd: 'l',
@@ -286,7 +290,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'frame',
-				isEnabled: canDraw,
+				isEnabled: canDraw('frame'),
 				label: messages.toolFrame.id,
 				icon: 'tool-frame',
 				kbd: 'f',
@@ -309,7 +313,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'text',
-				isEnabled: canDraw,
+				isEnabled: canDraw('text'),
 				label: messages.toolText.id,
 				icon: 'tool-text',
 				kbd: 't',
@@ -335,7 +339,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'asset',
-				isEnabled: canCreateShapes,
+				isEnabled: canInsertMedia,
 				label: messages.toolMedia.id,
 				icon: 'tool-media',
 				kbd: 'cmd+u,ctrl+u',
@@ -346,7 +350,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'note',
-				isEnabled: canDraw,
+				isEnabled: canDraw('note'),
 				label: messages.toolNote.id,
 				icon: 'tool-note',
 				kbd: 'n',
@@ -378,7 +382,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'embed',
-				isEnabled: canCreateShapes,
+				isEnabled: canCreate('embed'),
 				label: messages.toolEmbed.id,
 				icon: 'dot',
 				onSelect(source) {
@@ -388,7 +392,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'highlight',
-				isEnabled: canDraw,
+				isEnabled: canDraw('highlight'),
 				label: messages.toolHighlight.id,
 				icon: 'tool-highlight',
 				// TODO: pick a better shortcut
