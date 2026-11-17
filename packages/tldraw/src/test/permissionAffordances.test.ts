@@ -23,7 +23,7 @@ const ALL: TLPermission[] = [
 ]
 
 const granted = atom('granted', new Set<string>(ALL))
-const authorize: TLAuthorize = { can: (_session, permission) => granted.get().has(permission) }
+const authorize: TLAuthorize = { can: (permission) => granted.get().has(permission) }
 const grant = (...permissions: TLPermission[]) => granted.set(new Set(permissions))
 
 const ids = { box: createShapeId('box') }
