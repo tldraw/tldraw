@@ -2,13 +2,13 @@ import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
 import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import { copyItem } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '../lib/schema'
+import type { TLLibraryId, TLLibraryItemId } from '../lib/schema'
 import { ItemGrid, ItemGridItems, ItemGridTile } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { type ItemOrdering, sortItems } from './item-order'
-import { groupLibraryList, type LibraryGrouping, useLibraryGrouping } from './library-groups'
+import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useThumbnailUrls } from './use-thumbnail-urls'
@@ -48,17 +48,6 @@ const messages = defineMessages({
 		defaultMessage: 'You may not be allowed to change this library, or the item no longer exists.',
 	},
 })
-
-/** Libraries as menu targets, in their owners' order and named with their owners when grouped. */
-function toMenuTargets(libraries: TLLibrary[], grouping: LibraryGrouping | undefined) {
-	return groupLibraryList(libraries, grouping).flatMap(({ key, label, icon, libraries: list }) =>
-		list.map(({ id, name }) => ({
-			id,
-			name,
-			owner: key === undefined || label === undefined ? undefined : { id: key, name: label, icon },
-		}))
-	)
-}
 
 export interface LibraryItemsProps {
 	source: LibrarySource

@@ -1895,9 +1895,16 @@ export interface TLThemeDefaultColors {
 
 // @public
 export interface TLThemeFont {
+    checkbox?: TLThemeFontCheckbox;
     faces?: TLFontFace[];
     fontFamily: string;
     icon?: unknown;
+}
+
+// @public
+export interface TLThemeFontCheckbox {
+    boxes?: string[];
+    tick?: string;
 }
 
 // @public

@@ -23,6 +23,7 @@ import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } fro
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -150,8 +151,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
 	const editor = useEditor()
-	const showControls =
-		editor.getShapeGeometry(shape).bounds.w * editor.getEfficientZoomLevel() >= 110
+	const showControls = !useEfficientZoomThreshold(110 / shape.props.w)
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
