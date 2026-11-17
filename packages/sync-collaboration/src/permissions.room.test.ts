@@ -258,7 +258,7 @@ describe('permissions from the server', () => {
 		const before = frame('before-grant', 'page:a')
 		push(room, 'b', { [before.id]: [RecordOpType.Put, before] })
 		expect(room.getRecord(before.id)).toBeUndefined()
-		expect(pushResult(socket)).toMatchObject({ refused: { reason: 'Needs tl:shape:create' } })
+		expect(pushResult(socket)).toMatchObject({ refused: { reason: 'Needs tl:shape:create:frame' } })
 
 		room.updateSessionPermissions('b', ['tl:shape:*'])
 		const sent = socket.send.mock.calls.map((c) => JSON.parse(c[0]))

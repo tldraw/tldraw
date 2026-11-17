@@ -1700,6 +1700,14 @@ export type TLPermission = 'tl:page:create' | 'tl:page:delete' | 'tl:page:update
 export type TLPermissionGrant = (string & {}) | TLPermission;
 
 // @public
+export type TLPermissionRequirement = {
+    readonly anyOf: readonly string[];
+} | readonly string[];
+
+// @public
+export type TLPermissionRequirements = Readonly<Record<string, TLPermissionRequirement>>;
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1754,6 +1762,9 @@ export type TLRecordChange<R extends UnknownRecord = UnknownRecord> = {
     prev: R;
     type: 'update';
 };
+
+// @public
+export type TLRecordTypePermissions = Readonly<Record<string, TLPermissionGrant>>;
 
 // @public
 export interface TLRefusal extends TLWriteRefusal {
@@ -1824,11 +1835,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public
-export interface TLStoreAuthorize<Meta = unknown> {
+export interface TLStoreAuthorize<Meta = unknown> extends TLWritePolicy<TLRecord, Meta> {
     getSession?(): null | TLWriteRuleSession<Meta>;
     objectTypes?: readonly string[];
-    // (undocumented)
-    rule: TLWriteRule<TLRecord, Meta>;
 }
 
 // @public
@@ -2036,6 +2045,13 @@ export interface TLVideoShapeProps {
     url: string;
     // (undocumented)
     w: number;
+}
+
+// @public
+export interface TLWritePolicy<R extends UnknownRecord = UnknownRecord, Meta = unknown> {
+    requires?: TLPermissionRequirements;
+    rule: TLWriteRule<R, Meta>;
+    types?: TLRecordTypePermissions;
 }
 
 // @public

@@ -378,6 +378,10 @@ export {
 export {
 	type TLRecordChange,
 	type TLSessionAccess,
+	type TLPermissionRequirement,
+	type TLPermissionRequirements,
+	type TLRecordTypePermissions,
+	type TLWritePolicy,
 	type TLWriteRefusal,
 	type TLWriteRule,
 	type TLWriteRuleArgs,

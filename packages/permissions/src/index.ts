@@ -9,17 +9,28 @@ export {
 	type TLOwningPage,
 } from './ownership'
 export {
-	createPermissionPolicy,
+	createGrantsPolicy,
+	defaultGrantsPolicy,
+	getPermissionPlaces,
 	getRequiredPermission,
 	isPermitted,
 	isChangePermitted,
 	TL_PERMISSIONS,
+	type TLGrantsPolicy,
+	type TLGrantsPolicyOptions,
+	type TLIsChangePermittedOptions,
+	type TLIsPermittedOptions,
 	type TLPermissionChange,
-	type TLPermissionPolicy,
-	type TLPermissionSource,
-	type TLRecordTypePermissions,
+	type TLPermissionPlace,
+	type TLRequiredPermissionOptions,
 } from './permissions'
-export type { TLPermissionGrant } from '@tldraw/tlschema'
+export type {
+	TLPermissionGrant,
+	TLPermissionRequirement,
+	TLPermissionRequirements,
+	TLRecordTypePermissions,
+	TLWritePolicy,
+} from '@tldraw/tlschema'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

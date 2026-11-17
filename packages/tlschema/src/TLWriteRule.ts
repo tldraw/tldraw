@@ -80,3 +80,59 @@ export interface TLWriteRefusal {
 export type TLWriteRule<R extends UnknownRecord = UnknownRecord, Meta = unknown> = (
 	args: TLWriteRuleArgs<R, Meta>
 ) => TLWriteRefusal | null
+
+/**
+ * What an action needs to be granted: a list of names (all of them), or `{ anyOf }` (one is
+ * enough). Each name is a grant name, checked at the same place as the action.
+ *
+ * @public
+ */
+export type TLPermissionRequirement = readonly string[] | { readonly anyOf: readonly string[] }
+
+/**
+ * What each action needs, keyed by action. An action without an entry uses its nearest parent's
+ * (`tl:shape:create:geo` uses `tl:shape:create`), and needs itself when no parent has one either.
+ * Where an entry names its own key, an action that inherits it needs its own full name instead, so
+ * a type grant (`tl:shape:create:note`) still decides which types pass. Entries aren't expanded
+ * through each other.
+ *
+ * @example
+ * ```ts
+ * // creating any shape also needs page:edit at the same place
+ * const requires = { 'tl:shape:create': ['tl:shape:create', 'page:edit'] }
+ * ```
+ *
+ * @public
+ */
+export type TLPermissionRequirements = Readonly<Record<string, TLPermissionRequirement>>
+
+/**
+ * The permission a write to each of your own record types needs, keyed by `typeName`. A record type
+ * with no entry, and that tldraw doesn't know, isn't judged at all: give every type a rule has to
+ * protect an entry.
+ *
+ * @example
+ * ```ts
+ * const types = { sticker: 'stickers:edit' }
+ * ```
+ *
+ * @public
+ */
+export type TLRecordTypePermissions = Readonly<Record<string, TLPermissionGrant>>
+
+/**
+ * A write rule together with what the editor needs to answer its UI questions the same way: the
+ * `requires` table and the permissions for your own record types. `createGrantsPolicy` from
+ * `@tldraw/permissions` builds one. A sync room's `authorize`, a store's `authorize` and `useSync`'s
+ * `authorize` all accept it.
+ *
+ * @public
+ */
+export interface TLWritePolicy<R extends UnknownRecord = UnknownRecord, Meta = unknown> {
+	/** The write rule, judging every change in one unit of work. */
+	rule: TLWriteRule<R, Meta>
+	/** What each action needs. The editor's `isPermitted` and `isChangePermitted` follow it. */
+	requires?: TLPermissionRequirements
+	/** The permission each of your own record types needs. */
+	types?: TLRecordTypePermissions
+}

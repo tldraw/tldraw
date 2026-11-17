@@ -7,15 +7,18 @@
 import type { TLPage } from '@tldraw/tlschema';
 import type { TLPermission } from '@tldraw/tlschema';
 import { TLPermissionGrant } from '@tldraw/tlschema';
+import { TLPermissionRequirement } from '@tldraw/tlschema';
+import { TLPermissionRequirements } from '@tldraw/tlschema';
+import { TLRecordTypePermissions } from '@tldraw/tlschema';
+import { TLWritePolicy } from '@tldraw/tlschema';
+import type { TLWriteRule } from '@tldraw/tlschema';
 import type { UnknownRecord } from '@tldraw/store';
 
 // @public
 export function composeRules<Args, Refusal>(...rules: ReadonlyArray<(args: Args) => null | Refusal>): (args: Args) => null | Refusal;
 
 // @public
-export function createPermissionPolicy(getGranted?: (editor?: TLPermissionSource) => null | readonly TLPermissionGrant[], opts?: {
-    types?: TLRecordTypePermissions;
-}): TLPermissionPolicy;
+export function createGrantsPolicy<R extends UnknownRecord = UnknownRecord, Meta = unknown>(opts?: TLGrantsPolicyOptions<R, Meta>): TLGrantsPolicy<R, Meta>;
 
 // @public
 export function createStructureRule(): (args: TLStructureRuleArgs) => {
@@ -24,22 +27,55 @@ export function createStructureRule(): (args: TLStructureRuleArgs) => {
 } | null;
 
 // @public
+export const defaultGrantsPolicy: TLGrantsPolicy;
+
+// @public
 export function getOwningAncestor<T extends UnknownRecord = UnknownRecord>(get: (id: string) => undefined | UnknownRecord, record: UnknownRecord, isOwner: (record: UnknownRecord) => boolean): TLOwningAncestor<T>;
 
 // @public
 export function getOwningPage(get: (id: string) => undefined | UnknownRecord, record: UnknownRecord): TLOwningPage;
 
 // @public
-export function getRequiredPermission(change: TLPermissionChange, types?: TLRecordTypePermissions): null | TLPermissionGrant;
+export function getPermissionPlaces(get: (id: string) => undefined | UnknownRecord, record: UnknownRecord): string[];
 
 // @public
-export function isChangePermitted(granted: null | readonly TLPermissionGrant[], change: TLPermissionChange, types?: TLRecordTypePermissions): boolean;
+export function getRequiredPermission(change: TLPermissionChange, opts?: TLRequiredPermissionOptions): null | TLPermissionGrant;
 
 // @public
-export function isPermitted(granted: null | readonly TLPermissionGrant[], needed: string): boolean;
+export function isChangePermitted(granted: null | readonly TLPermissionGrant[], change: TLPermissionChange, opts?: TLIsChangePermittedOptions): boolean;
+
+// @public
+export function isPermitted(granted: null | readonly TLPermissionGrant[], action: string, opts?: TLIsPermittedOptions): boolean;
 
 // @public
 export const TL_PERMISSIONS: readonly TLPermission[];
+
+// @public
+export interface TLGrantsPolicy<R extends UnknownRecord = UnknownRecord, Meta = unknown> extends TLWritePolicy<R, Meta> {
+    requires: TLPermissionRequirements;
+    types: TLRecordTypePermissions;
+}
+
+// @public
+export interface TLGrantsPolicyOptions<R extends UnknownRecord, Meta> {
+    requires?: TLPermissionRequirements;
+    rules?: ReadonlyArray<TLWriteRule<R, Meta>>;
+    types?: TLRecordTypePermissions;
+}
+
+// @public
+export interface TLIsChangePermittedOptions {
+    after?(id: string): undefined | UnknownRecord;
+    before?(id: string): undefined | UnknownRecord;
+    requires?: TLPermissionRequirements;
+    types?: TLRecordTypePermissions;
+}
+
+// @public
+export interface TLIsPermittedOptions {
+    at?: TLPermissionPlace;
+    requires?: TLPermissionRequirements;
+}
 
 // @public
 export type TLOwningAncestor<T extends UnknownRecord = UnknownRecord> = {
@@ -62,33 +98,29 @@ export type TLOwningPage = {
 // @public
 export interface TLPermissionChange {
     // (undocumented)
-    next: {
-        typeName: string;
-    } | null;
+    next: null | UnknownRecord;
     // (undocumented)
-    prev: {
-        typeName: string;
-    } | null;
+    prev: null | UnknownRecord;
     // (undocumented)
     type: 'create' | 'delete' | 'update';
 }
 
 export { TLPermissionGrant }
 
-// @public (undocumented)
-export interface TLPermissionPolicy {
-    isChangePermitted(change: TLPermissionChange, editor?: TLPermissionSource): boolean;
-    isPermitted(permission: TLPermissionGrant, editor?: TLPermissionSource): boolean;
-}
+// @public
+export type TLPermissionPlace = ((place: string) => boolean) | readonly string[];
+
+export { TLPermissionRequirement }
+
+export { TLPermissionRequirements }
+
+export { TLRecordTypePermissions }
 
 // @public
-export interface TLPermissionSource {
-    // (undocumented)
-    getPermissions(): null | readonly TLPermissionGrant[];
+export interface TLRequiredPermissionOptions {
+    get?(id: string): undefined | UnknownRecord;
+    types?: TLRecordTypePermissions;
 }
-
-// @public
-export type TLRecordTypePermissions = Readonly<Record<string, TLPermissionGrant>>;
 
 // @public
 export interface TLStructureRuleArgs {
@@ -101,6 +133,8 @@ export interface TLStructureRuleArgs {
         type: 'create' | 'delete' | 'update';
     }>;
 }
+
+export { TLWritePolicy }
 
 // (No @packageDocumentation comment for this package)
 

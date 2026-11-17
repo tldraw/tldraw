@@ -17,7 +17,7 @@ import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TL
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
 import { TLUser } from './records/TLUser'
-import type { TLWriteRefusal, TLWriteRule, TLWriteRuleSession } from './TLWriteRule'
+import type { TLWritePolicy, TLWriteRefusal, TLWriteRuleSession } from './TLWriteRule'
 
 /**
  * Redacts the source of an asset record for error reporting.
@@ -312,12 +312,12 @@ export interface TLRefusal extends TLWriteRefusal {
 /**
  * A write rule for this user's changes to a store. The editor enforces it while it is attached
  * to the store: each operation is judged once its side effects have settled, and refused ones are
- * reverted whole.
+ * reverted whole. Its `requires` and `types` also drive the editor's `isPermitted` and
+ * `isChangePermitted`, so spread a policy from `createGrantsPolicy` in and add `getSession`.
  *
  * @public
  */
-export interface TLStoreAuthorize<Meta = unknown> {
-	rule: TLWriteRule<TLRecord, Meta>
+export interface TLStoreAuthorize<Meta = unknown> extends TLWritePolicy<TLRecord, Meta> {
 	/**
 	 * Who is editing, read on every judged operation. `null` while that isn't known yet: every
 	 * change is refused until it is.
