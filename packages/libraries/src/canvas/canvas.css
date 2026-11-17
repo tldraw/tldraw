@@ -564,6 +564,13 @@
 	background: var(--tl-color-panel);
 }
 
+@media (hover: hover) {
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__toggle:hover {
+		background: linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2))
+			var(--tl-color-panel);
+	}
+}
+
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-button::before {
 	content: '';
 	position: absolute;
