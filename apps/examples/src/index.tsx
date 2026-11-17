@@ -68,6 +68,13 @@ const router = createBrowserRouter([
 		},
 	},
 	{
+		path: 'libraries-nested',
+		lazy: async () => {
+			const { default: LibrariesNested } = await import('./misc/libraries-nested')
+			return { element: <LibrariesNested /> }
+		},
+	},
+	{
 		path: 'libraries-board',
 		lazy: async () => {
 			const { default: LibrariesBoard } = await import('./misc/libraries-board')

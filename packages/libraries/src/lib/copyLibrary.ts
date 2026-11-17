@@ -1,6 +1,12 @@
 import type { TLLibrary, TLLibraryId, TLLibraryThumbnail } from '@tldraw/tlschema'
 import { addItemsToLibrary } from './addItemsToLibrary'
-import { LibraryNotFoundError, type LibrarySource, type TLNewLibraryItem } from './LibrarySource'
+import {
+	LibraryNotFoundError,
+	type LibrarySource,
+	type TLLibraryDestination,
+	type TLNewLibraryItem,
+} from './LibrarySource'
+import { getLibrarySubtree, type TLLibraryTreeNode } from './libraryTree'
 import { mapConcurrently } from './mapConcurrently'
 import type { TLLibraryItem } from './schema'
 import { whenItemsStored } from './whenItemsStored'
@@ -8,8 +14,9 @@ import { whenItemsStored } from './whenItemsStored'
 const LOAD_CONCURRENCY = 6
 
 /**
- * Copies a library and its items to an owner, as a new library with the same name. The
- * original is left as it is, so this works for read-only libraries too. A source that has its
+ * Copies a library, with its items and the libraries inside it and theirs, to `to`, as a new
+ * library with the same name. The original is left as it is, so this works for read-only libraries
+ * too. A source that has its
  * own {@link LibrarySource.copyLibrary} makes the copy; otherwise the items' content and
  * thumbnails are loaded a few at a time, thumbnails being fetched from their URLs and one that can't
  * be fetched left out, and the copies are added together (see `addItemsToLibrary`). Resolves once
@@ -21,10 +28,10 @@ const LOAD_CONCURRENCY = 6
 export async function copyLibrary(
 	source: LibrarySource,
 	libraryId: TLLibraryId,
-	ownerId: string
+	to: TLLibraryDestination
 ): Promise<TLLibrary> {
-	if (source.copyLibrary) return source.copyLibrary(libraryId, ownerId)
-	const { copied } = await copyLibraryItems(source, libraryId, ownerId)
+	if (source.copyLibrary) return source.copyLibrary(libraryId, to)
+	const { copied } = await copyLibraryItems(source, libraryId, to)
 	return copied
 }
 
@@ -38,22 +45,26 @@ export interface ListedCopy<T> {
 }
 
 /**
- * {@link copyLibrary} for a source without its own: the items are loaded and added again. If
- * saving them fails, the copy is deleted before `stored` rejects.
+ * {@link copyLibrary} for a source without its own: the libraries are created again, each parent
+ * before the libraries inside it, and their items loaded and added again. The tree is read before
+ * anything is copied, so copying a library into one inside it copies what was there, once. If
+ * saving any item fails, the whole copy is deleted before `stored` rejects. A source whose own
+ * `copyLibrary` can't make some copies, e.g. of a library with libraries inside it, can fall back
+ * to this.
+ * @public
  */
 export async function copyLibraryItems(
 	source: LibrarySource,
 	libraryId: TLLibraryId,
-	ownerId: string
+	to: TLLibraryDestination
 ): Promise<ListedCopy<TLLibrary>> {
-	const library = source.getLibraries().find((c) => c.id === libraryId)
-	if (!library) throw new LibraryNotFoundError(libraryId)
-	const items = source.getItems(libraryId)
-	const copy = await source.createLibrary(library.name, { ownerId })
+	const tree = getLibrarySubtree(source.getLibraries(), libraryId)
+	if (!tree) throw new LibraryNotFoundError(libraryId)
+	const copy = await source.createLibrary(tree.library.name, to)
 	const deleteCopy = () => source.deleteLibrary(copy.id).catch(() => {})
 	let itemsStored: Promise<void>
 	try {
-		itemsStored = (await copyItems(source, items, source, copy.id)).stored
+		itemsStored = (await copyTree(source, tree, copy.id)).stored
 	} catch (error) {
 		await deleteCopy()
 		throw error
@@ -64,6 +75,24 @@ export async function copyLibraryItems(
 	})
 	stored.catch(() => {})
 	return { copied: copy, stored }
+}
+
+// Copies `node`'s items into `copyId`, then each library inside it into a new one inside the copy.
+// Resolves once all of it is listed.
+async function copyTree(
+	source: LibrarySource,
+	node: TLLibraryTreeNode,
+	copyId: TLLibraryId
+): Promise<{ stored: Promise<void> }> {
+	const items = source.getItems(node.library.id)
+	const stored = [(await copyItems(source, items, source, copyId)).stored]
+	for (const child of node.children) {
+		const childCopy = await source.createLibrary(child.library.name, { parentId: copyId })
+		stored.push((await copyTree(source, child, childCopy.id)).stored)
+	}
+	const all = Promise.all(stored).then(() => {})
+	all.catch(() => {})
+	return { stored: all }
 }
 
 /**
@@ -77,6 +106,7 @@ export async function copyItems(
 	to: LibrarySource,
 	toLibraryId: TLLibraryId
 ): Promise<ListedCopy<TLLibraryItem[]>> {
+	if (items.length === 0) return { copied: [], stored: Promise.resolve() }
 	const newItems = await mapConcurrently(items, LOAD_CONCURRENCY, (item) => loadCopy(from, item))
 	const added = await addItemsToLibrary(to, toLibraryId, newItems)
 	return { copied: added, stored: whenStored(added) }

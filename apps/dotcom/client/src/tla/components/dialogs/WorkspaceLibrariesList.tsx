@@ -106,7 +106,7 @@ export function WorkspaceLibrariesList({
 	const moveLibrary = (library: TLLibrary, ownerId: string) => {
 		if (!source.moveLibrary) return
 		const owner = workspaceOwners.find((o) => o.id === ownerId)
-		source.moveLibrary(library.id, ownerId).then(() => {
+		source.moveLibrary(library.id, { ownerId }).then(() => {
 			if (owner) addToast({ title: msg(messages.moved, { name: owner.name }) })
 		}, showError)
 	}

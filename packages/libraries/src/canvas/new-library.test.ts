@@ -26,6 +26,6 @@ it('asks about the source as a whole when it has no default owner', () => {
 
 it('creates for the owner it is given rather than the default owner', async () => {
 	const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'me' })
-	expect((await createNewLibrary(source, 'Icons', 'pack')).ownerId).toBe('pack')
+	expect((await createNewLibrary(source, 'Icons', { ownerId: 'pack' })).ownerId).toBe('pack')
 	expect((await createNewLibrary(source, 'Shapes')).ownerId).toBe('me')
 })

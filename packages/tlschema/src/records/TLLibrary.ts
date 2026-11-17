@@ -33,6 +33,12 @@ export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
 	 * sources that don't track owners.
 	 */
 	ownerId?: string
+	/**
+	 * The library this one is inside, which holds it alongside its own items. Left out for a
+	 * library at the top level. A library and everything inside it share one owner, and a library
+	 * is never inside itself.
+	 */
+	parentId?: TLLibraryId
 	meta: JsonObject
 }
 
@@ -113,6 +119,7 @@ export const libraryValidator: T.Validator<TLLibrary> = T.object({
 	typeName: T.literal('library'),
 	name: nonEmptyString,
 	ownerId: nonEmptyString.optional(),
+	parentId: idValidator<TLLibraryId>('library').optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
@@ -156,12 +163,15 @@ export const libraryItemContentValidator: T.Validator<TLLibraryItemContentRecord
  * `down`, so a session whose schema predates the library types is rejected with CLIENT_TOO_OLD
  * instead of being sent records its store can't represent.
  */
-function createLibraryGuardMigrations(typeName: TLLibraryRecord['typeName']) {
+function createLibraryGuardMigrations(
+	typeName: TLLibraryRecord['typeName'],
+	extra: Parameters<typeof createRecordMigrationSequence>[0]['sequence'] = []
+) {
 	return createRecordMigrationSequence({
 		sequenceId: `com.tldraw.${typeName}`,
 		recordType: typeName,
 		retroactive: true,
-		sequence: [{ id: `com.tldraw.${typeName}/1`, up: (record) => record }],
+		sequence: [{ id: `com.tldraw.${typeName}/1`, up: (record) => record }, ...extra],
 	})
 }
 
@@ -187,7 +197,18 @@ export const librarySchemaRecords = {
 	library: {
 		scope: 'document',
 		validator: libraryValidator,
-		migrations: createLibraryGuardMigrations('library'),
+		migrations: createLibraryGuardMigrations('library', [
+			{
+				// Libraries gained an optional parent. Sent to a schema from before, a nested library
+				// arrives at the top level.
+				id: 'com.tldraw.library/2',
+				up: (record) => record,
+				down: (record) => {
+					const { parentId: _parentId, ...rest } = record as TLLibrary
+					return rest
+				},
+			},
+		]),
 		createDefaultProperties: () => ({ meta: {} }),
 	},
 	'library-item': {

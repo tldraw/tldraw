@@ -9,12 +9,14 @@ import {
 } from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getLibraryDescendants } from '../lib/libraryTree'
 import { ChevronDownStrongIcon } from '../ui/chevron-down-strong-icon'
 import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { getOwnerChoices } from './owner-choices'
-import { activeLibraryId, renamingLibraryId } from './state'
+import { getLibraryDestinations, type LibraryDestinationChoice } from './library-destinations'
+import { activeLibraryId, collapsedLibraryIds, renamingLibraryId } from './state'
+import { useCreateLibrary } from './use-create-library'
 
 const messages = defineMessages({
 	deleteTitle: {
@@ -26,6 +28,12 @@ const messages = defineMessages({
 		defaultMessage:
 			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
 	},
+	deleteNestedBody: {
+		id: 'libraries.delete-nested-library-dialog.body',
+		defaultMessage:
+			'Delete “{name}”, the {libraries, plural, one {# library} other {# libraries}} inside it, and their {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
+	},
+	topLevel: { id: 'libraries.library-menu.top-level', defaultMessage: 'Top level' },
 	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
 	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
 	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
@@ -71,14 +79,24 @@ export function LibrarySectionHeader({
 		() => ({
 			rename: source.can('renameLibrary', libraryId),
 			delete: source.can('deleteLibrary', libraryId),
+			createInside: source.can('createLibrary', libraryId),
 		}),
 		[source, libraryId]
 	)
-	const ownerChoices = useValue(
-		'library owner choices',
-		() => getOwnerChoices(source, library.ownerId),
-		[source, library.ownerId]
+	const createLibrary = useCreateLibrary(source)
+	const destinations = useValue(
+		'library destinations',
+		() => ({
+			move:
+				source.moveLibrary && source.can('deleteLibrary', libraryId)
+					? getLibraryDestinations(source, library, 'move')
+					: [],
+			copy: getLibraryDestinations(source, library, 'copy'),
+		}),
+		[source, library, libraryId]
 	)
+	const destinationName = (choice: LibraryDestinationChoice) =>
+		choice.label ?? msg(messages.topLevel)
 
 	const showError = () =>
 		addToast({
@@ -96,12 +114,21 @@ export function LibrarySectionHeader({
 	}
 
 	const deleteLibrary = () => {
-		const count = source.getItems(libraryId).length
+		const inside = getLibraryDescendants(source.getLibraries(), libraryId)
+		const count = [library, ...inside].reduce((sum, c) => sum + source.getItems(c.id).length, 0)
 		addDialog({
 			component: ({ onClose }) => (
 				<ConfirmDeleteDialog
 					title={msg(messages.deleteTitle)}
-					body={msg(messages.deleteBody, { name: library.name, count })}
+					body={
+						inside.length > 0
+							? msg(messages.deleteNestedBody, {
+									name: library.name,
+									libraries: inside.length,
+									count,
+								})
+							: msg(messages.deleteBody, { name: library.name, count })
+					}
 					onClose={onClose}
 					onConfirm={() => source.deleteLibrary(libraryId).catch(showError)}
 				/>
@@ -109,27 +136,37 @@ export function LibrarySectionHeader({
 		})
 	}
 
-	const moveLibrary = (ownerId: string) => {
-		if (!source.moveLibrary) return
-		const owner = ownerChoices.move.find((o) => o.id === ownerId)
-		source.moveLibrary(libraryId, ownerId).then((moved) => {
+	const moveLibrary = (key: string) => {
+		const choice = destinations.move.find((c) => c.key === key)
+		if (!source.moveLibrary || !choice) return
+		source.moveLibrary(libraryId, choice.destination).then((moved) => {
 			activeLibraryId.set(editor, moved.id)
 			addToast({
 				title: msg(messages.movedTitle),
-				description: owner && msg(messages.movedDescription, { name: owner.name }),
+				description: msg(messages.movedDescription, { name: destinationName(choice) }),
 			})
 		}, showError)
 	}
 
-	const copyToOwner = (ownerId: string) => {
-		const owner = ownerChoices.copy.find((o) => o.id === ownerId)
-		copyLibrary(source, libraryId, ownerId).then((copy) => {
+	const copyTo = (key: string) => {
+		const choice = destinations.copy.find((c) => c.key === key)
+		if (!choice) return
+		copyLibrary(source, libraryId, choice.destination).then((copy) => {
 			activeLibraryId.set(editor, copy.id)
 			addToast({
 				title: msg(messages.copiedTitle),
-				description: owner && msg(messages.copiedDescription, { name: owner.name }),
+				description: msg(messages.copiedDescription, { name: destinationName(choice) }),
 			})
 		}, showError)
+	}
+
+	// Waits for the menu to close: it hands focus back to its trigger, which would blur the new
+	// library's name input straight away.
+	const createInside = () => {
+		collapsedLibraryIds.update(editor, (ids) => ids.filter((id) => id !== libraryId))
+		editor.timers.requestAnimationFrame(() =>
+			editor.timers.requestAnimationFrame(() => createLibrary({ parentId: libraryId }))
+		)
 	}
 
 	return (
@@ -158,21 +195,18 @@ export function LibrarySectionHeader({
 				{!renaming && (
 					<LibraryMenu
 						id={`libraries-library-menu-${libraryId}`}
+						onCreateInside={can.createInside ? createInside : undefined}
 						onRename={can.rename ? () => renamingLibraryId.set(editor, libraryId) : undefined}
 						onDelete={can.delete ? deleteLibrary : undefined}
 						sort={sort}
 						move={
-							source.moveLibrary && can.delete && ownerChoices.move.length > 0
-								? {
-										owners: ownerChoices.move,
-										value: library.ownerId,
-										onValueChange: moveLibrary,
-									}
+							destinations.move.length > 0
+								? { destinations: destinations.move, onSelect: moveLibrary }
 								: undefined
 						}
 						copy={
-							ownerChoices.copy.length > 0
-								? { owners: ownerChoices.copy, onSelect: copyToOwner }
+							destinations.copy.length > 0
+								? { destinations: destinations.copy, onSelect: copyTo }
 								: undefined
 						}
 					/>

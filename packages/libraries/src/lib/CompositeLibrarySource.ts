@@ -7,11 +7,13 @@ import {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryDestination,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { resolveLibraryDestination } from './libraryTree'
 
 /** @public */
 export interface CompositeLibrarySourcePart {
@@ -142,6 +144,13 @@ export class CompositeLibrarySource implements LibrarySource {
 	}
 
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
+		const meta = options.meta === undefined ? {} : { meta: options.meta }
+		if (options.parentId !== undefined) {
+			resolveLibraryDestination(this.getLibraries(), options)
+			const part = this.getLibraryPart(options.parentId)
+			const library = await part.source.createLibrary(name, { parentId: options.parentId, ...meta })
+			return part.owner ? { ...library, ownerId: part.owner.id } : library
+		}
 		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
 		if (ownerId === undefined) throw new LibraryPermissionError('createLibrary')
 		const part = this.getOwnerPart(ownerId)
@@ -178,35 +187,53 @@ export class CompositeLibrarySource implements LibrarySource {
 		return this.getItemPart(itemId).part.source.deleteItem(itemId)
 	}
 
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
+	/**
+	 * Within a part, the part moves it, and a part with a fixed owner keeps it at the top level
+	 * unless it can move libraries itself. Across parts, it is copied with everything inside it, and
+	 * the original deleted once the copy is saved.
+	 */
+	async moveLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
+		const libraries = this.getLibraries()
+		const place = resolveLibraryDestination(libraries, to, libraryId)
 		const from = this.getLibraryPart(libraryId)
-		const to = this.getOwnerPart(ownerId)
-		if (from === to) {
-			if (from.owner) return this.getListedLibrary(from, libraryId)
+		const toPart =
+			place.parentId !== undefined
+				? this.getLibraryPart(place.parentId)
+				: place.ownerId !== undefined
+					? this.getOwnerPart(place.ownerId)
+					: from
+		if (from === toPart) {
+			const library = this.getListedLibrary(from, libraryId)
+			if (from.owner && library.parentId === place.parentId) return library
 			if (!from.source.moveLibrary) {
 				throw new Error(`Source ${from.source.id} can't move libraries`)
 			}
-			return from.source.moveLibrary(libraryId, ownerId)
+			const moved = await from.source.moveLibrary(libraryId, toPartDestination(from, place))
+			return from.owner ? { ...moved, ownerId: from.owner.id } : moved
 		}
 		if (!from.source.can('deleteLibrary', libraryId)) {
 			throw new LibraryPermissionError('deleteLibrary', libraryId)
 		}
-		const { copied, stored } = await copyLibraryItems(this, libraryId, ownerId)
+		const { copied, stored } = await copyLibraryItems(this, libraryId, place)
 		deleteOnceStored(stored, () => from.source.deleteLibrary(libraryId))
 		return copied
 	}
 
 	/**
 	 * Within a part whose source can copy libraries itself, that source makes the copy; anywhere
-	 * else, each item is loaded and added to the new library.
+	 * else, each library is created again and each item loaded and added to it.
 	 */
-	async copyLibrary(libraryId: TLLibraryId, ownerId: string) {
+	async copyLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
+		const place = resolveLibraryDestination(this.getLibraries(), to)
 		const from = this.getLibraryPart(libraryId)
-		const to = this.getOwnerPart(ownerId)
-		if (from === to && !from.owner && from.source.copyLibrary) {
-			return from.source.copyLibrary(libraryId, ownerId)
+		const toPart =
+			place.parentId !== undefined
+				? this.getLibraryPart(place.parentId)
+				: this.getOwnerPart(place.ownerId ?? this.getDefaultOwnerId() ?? '')
+		if (from === toPart && !from.owner && from.source.copyLibrary) {
+			return from.source.copyLibrary(libraryId, place)
 		}
-		const { copied } = await copyLibraryItems(this, libraryId, ownerId)
+		const { copied } = await copyLibraryItems(this, libraryId, place)
 		return copied
 	}
 
@@ -261,6 +288,15 @@ export class CompositeLibrarySource implements LibrarySource {
 		}
 		throw new LibraryNotFoundError(itemId)
 	}
+}
+
+// A part with a fixed owner holds libraries of no owner of its own, so only the parent is passed on.
+function toPartDestination(
+	part: CompositeLibrarySourcePart,
+	place: { ownerId?: string; parentId?: TLLibraryId }
+): TLLibraryDestination {
+	if (place.parentId !== undefined) return { parentId: place.parentId }
+	return part.owner || place.ownerId === undefined ? {} : { ownerId: place.ownerId }
 }
 
 function ownersOf(part: CompositeLibrarySourcePart): TLLibraryOwner[] {

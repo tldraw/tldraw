@@ -17,6 +17,7 @@ export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,
 	type LibraryMenuCopy,
+	type LibraryMenuDestination,
 	type LibraryMenuMove,
 	type LibraryMenuProps,
 	type LibraryMenuSort,
@@ -40,10 +41,12 @@ export {
 } from './ui/menu-items'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'
 export {
+	LibraryNestingError,
 	LibraryNotFoundError,
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryDestination,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,
@@ -51,6 +54,7 @@ export {
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
 export { addItemsToLibrary } from './lib/addItemsToLibrary'
+export { getLibraryTree, type TLLibraryTreeNode } from './lib/libraryTree'
 export { saveErrorMessages } from './lib/saveErrorMessages'
 export { trackItemsStoring, whenItemsStored } from './lib/whenItemsStored'
 export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
@@ -59,8 +63,8 @@ export {
 	type CompositeLibrarySourceOptions,
 	type CompositeLibrarySourcePart,
 } from './lib/CompositeLibrarySource'
-export type { LibraryPack, LibraryPackItem } from './lib/LibraryPack'
-export { copyLibrary } from './lib/copyLibrary'
+export type { LibraryPack, LibraryPackItem, LibraryPackLibrary } from './lib/LibraryPack'
+export { copyLibrary, copyLibraryItems } from './lib/copyLibrary'
 export { copyPack } from './lib/copyPack'
 export {
 	InMemoryLibrarySource,

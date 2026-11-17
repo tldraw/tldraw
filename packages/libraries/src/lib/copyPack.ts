@@ -1,8 +1,8 @@
 import { getIncrementedName } from '@tldraw/editor'
-import type { TLLibrary } from '@tldraw/tlschema'
+import type { TLLibrary, TLLibraryId } from '@tldraw/tlschema'
 import { addItemsToLibrary } from './addItemsToLibrary'
 import { fetchThumbnail } from './copyLibrary'
-import type { LibraryPack } from './LibraryPack'
+import type { LibraryPack, LibraryPackItem, LibraryPackLibrary } from './LibraryPack'
 import type { LibrarySource, TLNewLibraryOptions } from './LibrarySource'
 import { mapConcurrently } from './mapConcurrently'
 import { whenItemsStored } from './whenItemsStored'
@@ -11,12 +11,13 @@ const FETCH_CONCURRENCY = 6
 
 /**
  * Copies a pack into a source as an ordinary library the owner can change like any other, with
- * the pack's items, their thumbnails and their `meta`. The copy takes the pack's name, numbered if
- * the source already has a library by that name. The copy's `meta` records the pack's `packId` and
- * `packVersion`, alongside any `meta` passed in. The items' thumbnails are fetched a few at a time,
- * and the items added together (see `addItemsToLibrary`). Resolves once the copy is listed, while
- * the source may go on saving its items. If an item can't be added, or saving fails, the partial
- * copy is deleted, and the error rethrown or, once resolved, reported by the source.
+ * the pack's items, their thumbnails and their `meta`, and the libraries inside it, each created
+ * inside the one it is in. The copy takes the pack's name, numbered if a library beside it already
+ * has that name. The copy's `meta` records the pack's `packId` and `packVersion`, alongside any
+ * `meta` passed in. The items' thumbnails are fetched a few at a time, and the items added together
+ * (see `addItemsToLibrary`). Resolves once the copy is listed, while the source may go on saving its
+ * items. If an item can't be added, or saving fails, the partial copy is deleted, and the error
+ * rethrown or, once resolved, reported by the source.
  * @public
  */
 export async function copyPack(
@@ -24,9 +25,18 @@ export async function copyPack(
 	pack: LibraryPack,
 	options: TLNewLibraryOptions = {}
 ): Promise<TLLibrary> {
+	// Numbered only against the libraries it will sit beside.
+	const siblings = source
+		.getLibraries()
+		.filter((library) =>
+			options.parentId !== undefined
+				? library.parentId === options.parentId
+				: library.parentId === undefined &&
+					(options.ownerId === undefined || library.ownerId === options.ownerId)
+		)
 	const name = getIncrementedName(
 		pack.name,
-		source.getLibraries().map((library) => library.name)
+		siblings.map((library) => library.name)
 	)
 	const copy = await source.createLibrary(name, {
 		...options,
@@ -34,21 +44,46 @@ export async function copyPack(
 	})
 	const deleteCopy = () => source.deleteLibrary(copy.id).catch(() => {})
 	try {
-		const newItems = await mapConcurrently(pack.items, FETCH_CONCURRENCY, async (item) => {
-			const thumbnail =
-				item.thumbnail === undefined ? undefined : await fetchThumbnail(item.thumbnail)
-			return {
-				...(item.name === undefined ? {} : { name: item.name }),
-				content: item.content,
-				...(thumbnail === undefined ? {} : { thumbnail }),
-				...(item.meta === undefined ? {} : { meta: item.meta }),
-			}
-		})
-		const added = await addItemsToLibrary(source, copy.id, newItems)
-		whenItemsStored(added.map((item) => item.id)).catch(deleteCopy)
+		const itemIds = await copyPackLibrary(source, pack, copy.id)
+		whenItemsStored(itemIds).catch(deleteCopy)
 	} catch (error) {
 		await deleteCopy()
 		throw error
 	}
 	return copy
+}
+
+// Adds `library`'s items to `copyId`, then copies each library inside it into a new one inside the
+// copy. Resolves with the ids of every item added, once they are listed.
+async function copyPackLibrary(
+	source: LibrarySource,
+	library: { items: LibraryPackItem[]; libraries?: LibraryPackLibrary[] },
+	copyId: TLLibraryId
+) {
+	const itemIds = await addPackItems(source, library.items, copyId)
+	for (const child of library.libraries ?? []) {
+		const childCopy = await source.createLibrary(child.name, { parentId: copyId })
+		itemIds.push(...(await copyPackLibrary(source, child, childCopy.id)))
+	}
+	return itemIds
+}
+
+async function addPackItems(
+	source: LibrarySource,
+	items: LibraryPackItem[],
+	libraryId: TLLibraryId
+) {
+	if (items.length === 0) return []
+	const newItems = await mapConcurrently(items, FETCH_CONCURRENCY, async (item) => {
+		const thumbnail =
+			item.thumbnail === undefined ? undefined : await fetchThumbnail(item.thumbnail)
+		return {
+			...(item.name === undefined ? {} : { name: item.name }),
+			content: item.content,
+			...(thumbnail === undefined ? {} : { thumbnail }),
+			...(item.meta === undefined ? {} : { meta: item.meta }),
+		}
+	})
+	const added = await addItemsToLibrary(source, libraryId, newItems)
+	return added.map((item) => item.id)
 }

@@ -16,6 +16,11 @@ import { MenuCheckboxItem, MenuItem, MenuSubmenu } from './menu-items'
 const messages = defineMessages({
 	moreOptions: { id: 'libraries.library-menu.title', defaultMessage: 'Library options' },
 	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
+	createInside: {
+		id: 'libraries.library-menu.create-inside',
+		defaultMessage: 'New library inside',
+	},
+	topLevel: { id: 'libraries.library-menu.top-level', defaultMessage: 'Top level' },
 	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
 	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
 	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort items by' },
@@ -34,20 +39,34 @@ export interface LibraryMenuSort {
 	onReversedChange(reversed: boolean): void
 }
 
+/**
+ * A place a library can be moved or copied to: an owner's top level, or a library to go inside.
+ * @public
+ */
+export interface LibraryMenuDestination {
+	/** Unique in the list, and passed back when it is picked. */
+	key: string
+	/** Left out for the top level of a source without owners, labelled "Top level". */
+	label?: string
+	icon?: TLLibraryOwner['icon']
+	/** How far in to indent it: 0 for an owner's top level, 1 for a library at it, and so on. */
+	depth: number
+	/** Where the library is now, checked in "Move to". */
+	current?: boolean
+}
+
 /** @public */
 export interface LibraryMenuMove {
-	/** Who the library can move to, in the order to list them. */
-	owners: TLLibraryOwner[]
-	/** The library's current owner, checked in the list. */
-	value?: string
-	onValueChange(ownerId: string): void
+	/** Where the library can move to, as a tree under each owner, in the order to list them. */
+	destinations: LibraryMenuDestination[]
+	onSelect(key: string): void
 }
 
 /** @public */
 export interface LibraryMenuCopy {
-	/** Who the library can be copied to, in the order to list them. */
-	owners: TLLibraryOwner[]
-	onSelect(ownerId: string): void
+	/** Where the library can be copied to, as for {@link LibraryMenuMove}. */
+	destinations: LibraryMenuDestination[]
+	onSelect(key: string): void
 }
 
 /** @public */
@@ -59,6 +78,8 @@ export interface LibraryMenuProps {
 	id: string
 	/** Leave out any action the source doesn't allow; the menu hides it. */
 	onCreate?(): void
+	/** "New library inside" this one. */
+	onCreateInside?(): void
 	onRename?(): void
 	onDelete?(): void
 	/** A "Sort items by" submenu. Leave out to hide it. */
@@ -81,6 +102,7 @@ export interface LibraryMenuProps {
 export function LibraryMenu({
 	id,
 	onCreate,
+	onCreateInside,
 	onRename,
 	onDelete,
 	sort,
@@ -91,11 +113,15 @@ export function LibraryMenu({
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
 	const create = isReadonly ? undefined : onCreate
+	const createInside = isReadonly ? undefined : onCreateInside
 	const rename = isReadonly ? undefined : onRename
 	const remove = isReadonly ? undefined : onDelete
 	const moveTo = isReadonly ? undefined : move
 	const copyTo = isReadonly ? undefined : copy
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
+	if (!create && !createInside && !rename && !remove && !sort && !moveTo && !copyTo && !children) {
+		return null
+	}
+	const label = (destination: LibraryMenuDestination) => destination.label ?? msg(messages.topLevel)
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -117,6 +143,7 @@ export function LibraryMenu({
 			>
 				<TldrawUiDropdownMenuGroup>
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
+					{createInside && <MenuItem label={msg(messages.createInside)} onClick={createInside} />}
 					{children}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
@@ -138,13 +165,14 @@ export function LibraryMenu({
 					)}
 					{moveTo && (
 						<MenuSubmenu id={`${id}-move`} label={msg(messages.move)}>
-							{moveTo.owners.map((owner) => (
+							{moveTo.destinations.map((destination) => (
 								<MenuCheckboxItem
-									key={owner.id}
-									label={owner.name}
-									checked={owner.id === moveTo.value}
+									key={destination.key}
+									label={label(destination)}
+									depth={destination.depth}
+									checked={!!destination.current}
 									onSelect={() => {
-										if (owner.id !== moveTo.value) moveTo.onValueChange(owner.id)
+										if (!destination.current) moveTo.onSelect(destination.key)
 									}}
 								/>
 							))}
@@ -152,11 +180,13 @@ export function LibraryMenu({
 					)}
 					{copyTo && (
 						<MenuSubmenu id={`${id}-copy`} label={msg(messages.copy)}>
-							{copyTo.owners.map((owner) => (
+							{copyTo.destinations.map((destination) => (
 								<MenuItem
-									key={owner.id}
-									label={owner.name}
-									onClick={() => copyTo.onSelect(owner.id)}
+									key={destination.key}
+									label={label(destination)}
+									icon={destination.icon}
+									depth={destination.depth}
+									onClick={() => copyTo.onSelect(destination.key)}
 								/>
 							))}
 						</MenuSubmenu>

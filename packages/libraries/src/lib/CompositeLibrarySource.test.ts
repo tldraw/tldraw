@@ -14,6 +14,7 @@ import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
 	type LibrarySource,
+	type TLLibraryDestination,
 	type TLNewLibraryItem,
 } from './LibrarySource'
 import { LibraryItemRecordType, type TLLibraryItem, type TLLibraryItemContent } from './schema'
@@ -230,14 +231,16 @@ describe('CompositeLibrarySource', () => {
 
 	it("won't move a library out of a read-only part, and copies nothing", async () => {
 		const { source, mine, kits } = setUp()
-		await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
+		await expect(source.moveLibrary(wireframing, { ownerId: 'home' })).rejects.toThrow(
+			LibraryPermissionError
+		)
 		expect(mine.getLibraries()).toEqual([])
 		expect(kits.getLibraries()).toHaveLength(1)
 	})
 
 	it("copies a read-only part's library into a writable part, leaving the original", async () => {
 		const { source, mine, kits } = setUp()
-		await copyLibrary(source, wireframing, 'home')
+		await copyLibrary(source, wireframing, { ownerId: 'home' })
 		const [copy] = mine.getLibraries()
 		expect(copy.name).toBe('Wireframing')
 		expect(mine.getItems(copy.id).map((item) => item.name)).toEqual(['Button', 'Card'])
@@ -255,7 +258,7 @@ describe('CompositeLibrarySource', () => {
 		const { source, mine, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
 		await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
-		const copy = await source.moveLibrary(kit.id, 'acme')
+		const copy = await source.moveLibrary(kit.id, { ownerId: 'acme' })
 		expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
 		expect(copy.id).not.toBe(kit.id)
 		expect(source.getLibraries().find((c) => c.id === copy.id)).toEqual(copy)
@@ -358,11 +361,11 @@ describe('CompositeLibrarySource', () => {
 			const { source, mine, team } = setUpFailing()
 			const kit = await source.createLibrary('Kit', { ownerId: 'home' })
 			await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
-			const copy = await copyLibrary(source, kit.id, 'acme')
+			const copy = await copyLibrary(source, kit.id, { ownerId: 'acme' })
 			expect(team.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
 			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
 
-			await source.moveLibrary(kit.id, 'acme')
+			await source.moveLibrary(kit.id, { ownerId: 'acme' })
 			expect(team.getLibraries()).toHaveLength(1)
 			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
 			await new Promise((resolve) => setTimeout(resolve, 5))
@@ -394,20 +397,22 @@ describe('CompositeLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBe('acme')
 			const kit = await source.createLibrary('Kit')
 			expect(kit.ownerId).toBe('acme')
-			const moved = await source.moveLibrary(kit.id, 'home')
+			const moved = await source.moveLibrary(kit.id, { ownerId: 'home' })
 			expect(moved).toEqual({ ...kit, ownerId: 'home' })
 			expect(mine.getLibraries()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
 		})
 
 		it("won't move a read-only part's library to one of its owners", async () => {
 			const { source, mine } = setUpOwned()
-			await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
+			await expect(source.moveLibrary(wireframing, { ownerId: 'home' })).rejects.toThrow(
+				LibraryPermissionError
+			)
 			expect(mine.getLibraries()).toEqual([])
 		})
 
 		it("copies a read-only part's library to one of its owners", async () => {
 			const { source, mine } = setUpOwned()
-			await copyLibrary(source, wireframing, 'home')
+			await copyLibrary(source, wireframing, { ownerId: 'home' })
 			expect(mine.getLibraries()).toMatchObject([{ name: 'Wireframing', ownerId: 'home' }])
 		})
 	})
@@ -449,10 +454,12 @@ describe('CompositeLibrarySource', () => {
 			expect(source.can('deleteLibrary', wireframing)).toBe(false)
 			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
 			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id])
-			const copy = await copyLibrary(source, wireframing, 'acme')
+			const copy = await copyLibrary(source, wireframing, { ownerId: 'acme' })
 			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id, copy.id])
 			expect(generated.getLibraries()).toHaveLength(1)
-			await expect(source.moveLibrary(wireframing, 'acme')).rejects.toThrow(LibraryPermissionError)
+			await expect(source.moveLibrary(wireframing, { ownerId: 'acme' })).rejects.toThrow(
+				LibraryPermissionError
+			)
 		})
 	})
 
@@ -472,9 +479,9 @@ describe('copyLibrary', () => {
 	function setUpWithCopyingPart() {
 		const copies: [string, string][] = []
 		class CopyingSource extends InMemoryLibrarySource {
-			async copyLibrary(libraryId: TLLibraryId, ownerId: string) {
-				copies.push([libraryId, ownerId])
-				return this.createLibrary('Server copy', { ownerId })
+			async copyLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
+				copies.push([libraryId, to.ownerId ?? ''])
+				return this.createLibrary('Server copy', to)
 			}
 		}
 		const workspaces = new CopyingSource({ id: 'workspaces', owners: [personal, acme] })
@@ -487,14 +494,14 @@ describe('copyLibrary', () => {
 	it("lets a part's own copyLibrary copy within that part", async () => {
 		const { source, copies } = setUpWithCopyingPart()
 		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
-		const copy = await copyLibrary(source, kit.id, 'acme')
+		const copy = await copyLibrary(source, kit.id, { ownerId: 'acme' })
 		expect(copies).toEqual([[kit.id, 'acme']])
 		expect(copy.name).toBe('Server copy')
 	})
 
 	it('copies the items from another part', async () => {
 		const { source, workspaces, copies } = setUpWithCopyingPart()
-		const copy = await copyLibrary(source, wireframing, 'home')
+		const copy = await copyLibrary(source, wireframing, { ownerId: 'home' })
 		expect(copies).toEqual([])
 		expect(workspaces.getItems(copy.id).map((item) => item.name)).toEqual(['Button', 'Card'])
 	})

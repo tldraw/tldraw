@@ -8,9 +8,11 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
+	LibraryNestingError,
 	LibraryNotFoundError,
 	LibraryPermissionError,
 	LibraryRecordType,
+	copyLibraryItems,
 	getThumbnailForColorMode,
 	mapThumbnail,
 	saveErrorMessages,
@@ -18,6 +20,7 @@ import {
 	type LibrarySource,
 	type TLLibrary,
 	type TLLibraryAction,
+	type TLLibraryDestination,
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
@@ -89,6 +92,7 @@ const toLibrary = (row: TlaLibrary): TLLibrary =>
 		id: LibraryRecordType.createId(row.id),
 		name: row.name,
 		ownerId: row.owningGroupId,
+		...(row.parentLibraryId ? { parentId: LibraryRecordType.createId(row.parentLibraryId) } : {}),
 		meta: row.meta ?? {},
 	})
 
@@ -257,12 +261,24 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
+		const parent =
+			options.parentId === undefined ? undefined : this.getListedLibrary(options.parentId)
+		const ownerId = parent?.ownerId ?? options.ownerId ?? this.getDefaultOwnerId()
+		if (parent && options.ownerId !== undefined && options.ownerId !== ownerId) {
+			throw new LibraryNestingError(`Library ${parent.id} doesn't belong to ${options.ownerId}`)
+		}
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const id = uniqueId()
 		const meta = options.meta ?? {}
+		const parentLibraryId = parent ? await this.getLibraryRowId(parent.id) : undefined
 		const { confirmed } = await this.apply(
-			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta })
+			this.app.z.mutate.library.create({
+				id,
+				name,
+				owningGroupId: ownerId,
+				...(parentLibraryId ? { parentLibraryId } : {}),
+				meta,
+			})
 		)
 		this.unconfirmedLibraries.set(
 			id,
@@ -275,6 +291,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			id: LibraryRecordType.createId(id),
 			name: name.trim(),
 			ownerId,
+			...(parent ? { parentId: parent.id } : {}),
 			meta,
 		})
 	}
@@ -289,17 +306,39 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		await this.apply(this.app.z.mutate.library.delete({ id }))
 	}
 
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
-		const library = this.getLibraries().find((c) => c.id === libraryId)
-		if (!library) throw new LibraryNotFoundError(libraryId)
+	/**
+	 * Moves it in one mutation, with everything inside it, which the mutator gives the new
+	 * workspace too.
+	 */
+	async moveLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
+		const library = this.getListedLibrary(libraryId)
+		const parent = to.parentId === undefined ? undefined : this.getListedLibrary(to.parentId)
+		const ownerId = parent?.ownerId ?? to.ownerId ?? library.ownerId ?? this.getDefaultOwnerId()
 		const id = await this.getLibraryRowId(libraryId)
-		await this.apply(this.app.z.mutate.library.move({ id, owningGroupId: ownerId }))
-		return { ...library, ownerId }
+		const parentLibraryId = parent ? await this.getLibraryRowId(parent.id) : undefined
+		await this.apply(
+			this.app.z.mutate.library.move({
+				id,
+				owningGroupId: ownerId,
+				...(parentLibraryId ? { parentLibraryId } : {}),
+			})
+		)
+		const { parentId: _parentId, ...rest } = library
+		return { ...rest, ownerId, ...(parent ? { parentId: parent.id } : {}) }
 	}
 
-	async copyLibrary(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary> {
+	/**
+	 * The worker copies one library at a time, so a copy into another library, or of a library with
+	 * libraries inside it, is made here instead: every item is loaded and added again.
+	 */
+	async copyLibrary(libraryId: TLLibraryId, to: TLLibraryDestination): Promise<TLLibrary> {
 		const source = this.getLibraries().find((c) => c.id === libraryId)
 		if (!source) throw new LibraryNotFoundError(libraryId)
+		const hasChildren = this.getLibraries().some((c) => c.parentId === libraryId)
+		if (to.parentId !== undefined || hasChildren) {
+			return (await copyLibraryItems(this, libraryId, to)).copied
+		}
+		const ownerId = to.ownerId ?? this.getDefaultOwnerId()
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const sourceItems = this.getItems(libraryId)
 
@@ -575,6 +614,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	// The mutators need the library's row in the local store, which a copy doesn't have yet.
+	private getListedLibrary(libraryId: TLLibraryId) {
+		const library = this.getLibraries().find((c) => c.id === libraryId)
+		if (!library) throw new LibraryNotFoundError(libraryId)
+		return library
+	}
+
 	private async getLibraryRowId(libraryId: TLLibraryId) {
 		const pending = this.pendingLibraries.get().find((p) => p.library.id === libraryId)
 		if (pending && !(await pending.arrived)) throw new LibraryNotFoundError(libraryId)

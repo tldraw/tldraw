@@ -319,7 +319,7 @@ describe('InMemoryLibrarySource', () => {
 			const stop = react('owner', () => {
 				seen.push(source.getLibraries()[0].ownerId)
 			})
-			const moved = await source.moveLibrary(library.id, 'acme')
+			const moved = await source.moveLibrary(library.id, { ownerId: 'acme' })
 			stop()
 			expect(moved).toEqual({ ...library, ownerId: 'acme' })
 			expect(seen).toEqual(['home', 'acme'])
@@ -331,8 +331,12 @@ describe('InMemoryLibrarySource', () => {
 		it('refuses a missing library or owner', async () => {
 			const source = new InMemoryLibrarySource({ owners })
 			const library = await source.createLibrary('Wireframes')
-			await expect(source.moveLibrary(missingLibrary, 'acme')).rejects.toThrow(LibraryNotFoundError)
-			await expect(source.moveLibrary(library.id, 'nobody')).rejects.toThrow(LibraryNotFoundError)
+			await expect(source.moveLibrary(missingLibrary, { ownerId: 'acme' })).rejects.toThrow(
+				LibraryNotFoundError
+			)
+			await expect(source.moveLibrary(library.id, { ownerId: 'nobody' })).rejects.toThrow(
+				LibraryNotFoundError
+			)
 			expect(source.getLibraries()[0].ownerId).toBe('home')
 		})
 

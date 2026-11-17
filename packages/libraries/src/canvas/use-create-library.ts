@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { defineMessages, getIncrementedName, useEditor, useToasts, useTranslation } from 'tldraw'
-import type { LibrarySource } from '../lib/LibrarySource'
+import type { LibrarySource, TLLibraryDestination } from '../lib/LibrarySource'
 import { createNewLibrary } from './new-library'
 import { activeLibraryId, renamingLibraryId } from './state'
 
@@ -18,19 +18,19 @@ const messages = defineMessages({
 
 /**
  * Creates a library with the next free "New library" name, then brings it into view with its name
- * ready to edit. Left without an `ownerId`, it goes to the source's default owner.
+ * ready to edit. Left without a parent or an owner, it goes to the source's default owner.
  */
 export function useCreateLibrary(source: LibrarySource) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	return useCallback(
-		(ownerId?: string) => {
+		(to: TLLibraryDestination = {}) => {
 			const name = getIncrementedName(
 				msg(messages.newLibraryName),
 				source.getLibraries().map((library) => library.name)
 			)
-			createNewLibrary(source, name, ownerId).then(
+			createNewLibrary(source, name, to).then(
 				(library) => {
 					activeLibraryId.set(editor, library.id)
 					renamingLibraryId.set(editor, library.id)

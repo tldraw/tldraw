@@ -224,6 +224,46 @@ async function assertCanManageLibraryItem(tx: Tx, userId: string, itemId: string
 	return item
 }
 
+/** The ids of every library inside `libraryId`, at any depth, each before those inside it. */
+async function getLibraryDescendantIds(tx: Tx, libraryId: string): Promise<string[]> {
+	const ids: string[] = []
+	for (let level = [libraryId]; level.length > 0; ) {
+		const next: string[] = []
+		for (const id of level) {
+			const children = await tx.run(zql.library.where('parentLibraryId', '=', id))
+			next.push(...children.map((child) => child.id))
+		}
+		ids.push(...next)
+		level = next
+	}
+	return ids
+}
+
+/**
+ * Resolve a library to put another inside: the user may change it, it is in `owningGroupId`, and
+ * it isn't `movingId` or inside it.
+ */
+async function assertCanNestIn(
+	tx: Tx,
+	userId: string,
+	parentLibraryId: string,
+	owningGroupId: string,
+	movingId?: string
+) {
+	const parent = await assertCanManageLibrary(tx, userId, parentLibraryId)
+	assert(parent.owningGroupId === owningGroupId, ZErrorCode.bad_request)
+	for (
+		let ancestor: { id: string; parentLibraryId?: string | null } | undefined = parent;
+		ancestor;
+		ancestor = ancestor.parentLibraryId
+			? await tx.run(zql.library.where('id', '=', ancestor.parentLibraryId).one())
+			: undefined
+	) {
+		assert(ancestor.id !== movingId, ZErrorCode.bad_request)
+	}
+	return parent
+}
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -301,13 +341,22 @@ export function createMutators(userId: string) {
 					id,
 					name,
 					owningGroupId,
+					parentLibraryId,
 					meta = {},
-				}: { id: string; name: string; owningGroupId: string; meta?: JsonObject }
+				}: {
+					id: string
+					name: string
+					owningGroupId: string
+					/** The library to create it inside, in the same workspace. */
+					parentLibraryId?: string
+					meta?: JsonObject
+				}
 			) => {
 				assertValidId(id)
 				assertValidLibraryMeta(meta)
 				const role = await getRole(tx, userId, owningGroupId)
 				assert(can(role, 'manageLibraries'), ZErrorCode.forbidden)
+				if (parentLibraryId) await assertCanNestIn(tx, userId, parentLibraryId, owningGroupId)
 				// The server's insert ignores a conflicting id, which would report success for nothing.
 				const existing = await tx.run(zql.library.where('id', '=', id).one())
 				assert(!existing, ZErrorCode.bad_request)
@@ -316,6 +365,7 @@ export function createMutators(userId: string) {
 					id,
 					name: libraryName(name),
 					owningGroupId,
+					...(parentLibraryId ? { parentLibraryId } : {}),
 					createdBy: userId,
 					createdAt: now,
 					updatedAt: now,
@@ -326,21 +376,59 @@ export function createMutators(userId: string) {
 				await assertCanManageLibrary(tx, userId, id)
 				await tx.mutate.library.update({ id, name: libraryName(name), updatedAt: Date.now() })
 			},
+			/** Deletes a library with the libraries inside it and all of their items. */
 			delete: async (tx: Tx, { id }: { id: string }) => {
 				await assertCanManageLibrary(tx, userId, id)
-				// The foreign key cascades in Postgres, but a client's local store has no cascade.
-				const items = await tx.run(zql.library_item.where('libraryId', '=', id))
-				for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
-				await tx.mutate.library.delete({ id })
+				// The foreign keys cascade in Postgres, but a client's local store has no cascade.
+				const libraryIds = [id, ...(await getLibraryDescendantIds(tx, id))]
+				for (const libraryId of libraryIds.reverse()) {
+					const items = await tx.run(zql.library_item.where('libraryId', '=', libraryId))
+					for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+					await tx.mutate.library.delete({ id: libraryId })
+				}
 			},
-			/** Gives a library, with its items, to another workspace the user is a member of. */
-			move: async (tx: Tx, { id, owningGroupId }: { id: string; owningGroupId: string }) => {
+			/**
+			 * Moves a library, with its items and the libraries inside it, into another library or to
+			 * the top level of a workspace the user is a member of. Everything inside it goes to that
+			 * workspace too.
+			 */
+			move: async (
+				tx: Tx,
+				{
+					id,
+					owningGroupId,
+					parentLibraryId,
+				}: {
+					id: string
+					owningGroupId: string
+					/** The library to move it inside, in `owningGroupId`; left out for the top level. */
+					parentLibraryId?: string
+				}
+			) => {
 				assert(owningGroupId, ZErrorCode.bad_request)
 				const library = await assertCanManageLibrary(tx, userId, id)
-				if (library.owningGroupId === owningGroupId) return
+				const fromGroupId = library.owningGroupId
+				const toParent = parentLibraryId ?? null
+				if (
+					library.owningGroupId === owningGroupId &&
+					(library.parentLibraryId ?? null) === toParent
+				) {
+					return
+				}
 				const toRole = await getRole(tx, userId, owningGroupId)
 				assert(can(toRole, 'manageLibraries'), ZErrorCode.forbidden)
-				await tx.mutate.library.update({ id, owningGroupId, updatedAt: Date.now() })
+				if (parentLibraryId) await assertCanNestIn(tx, userId, parentLibraryId, owningGroupId, id)
+				const now = Date.now()
+				await tx.mutate.library.update({
+					id,
+					owningGroupId,
+					parentLibraryId: toParent,
+					updatedAt: now,
+				})
+				if (fromGroupId === owningGroupId) return
+				for (const descendantId of await getLibraryDescendantIds(tx, id)) {
+					await tx.mutate.library.update({ id: descendantId, owningGroupId, updatedAt: now })
+				}
 			},
 		},
 

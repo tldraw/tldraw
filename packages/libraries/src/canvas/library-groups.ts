@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useValue } from 'tldraw'
 import type { TLLibrary } from 'tldraw'
 import type { LibrarySource, TLLibraryOwner } from '../lib/LibrarySource'
+import { flattenLibraryTree, getLibraryTree } from '../lib/libraryTree'
 
 export interface LibraryGroup {
 	/** The owner's id. Libraries without a known owner go in a group with none. */
@@ -75,5 +76,28 @@ export function toMenuTargets(libraries: TLLibrary[], grouping: LibraryGrouping 
 			name,
 			owner: key === undefined || label === undefined ? undefined : { id: key, name: label, icon },
 		}))
+	)
+}
+
+/**
+ * Libraries as menu targets, in their owners' order and named with their owners when grouped, each
+ * owner's as a tree. Libraries that can't be targets still head the ones inside them that can: a
+ * nested library has its root's permissions, so this is rare.
+ */
+export function toMenuTargetTree(
+	libraries: TLLibrary[],
+	grouping: LibraryGrouping | undefined,
+	isTarget: (library: TLLibrary) => boolean
+) {
+	return groupLibraryList(libraries, grouping).flatMap(({ key, label, icon, libraries: list }) =>
+		flattenLibraryTree(getLibraryTree(list))
+			.filter((node) => isTarget(node.library))
+			.map(({ library: { id, name }, depth }) => ({
+				id,
+				name,
+				depth,
+				owner:
+					key === undefined || label === undefined ? undefined : { id: key, name: label, icon },
+			}))
 	)
 }

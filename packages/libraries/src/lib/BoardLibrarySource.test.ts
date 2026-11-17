@@ -23,7 +23,7 @@ import { BoardLibrarySource } from './BoardLibrarySource'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
+import { LibraryNestingError, LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
 import {
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	LibraryItemRecordType,
@@ -313,6 +313,35 @@ describe('BoardLibrarySource', () => {
 		expect(allOfType(editor, 'library-item-content')).toEqual([])
 		expect(allOfType(editor, 'asset')).toHaveLength(1)
 		await expect(source.getItemContent(first.id)).rejects.toThrow(LibraryNotFoundError)
+	})
+
+	it('nests libraries, deleting and moving each with everything inside it', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor)
+		const imageId = addImage(editor)
+		const kit = await source.createLibrary('Kit')
+		const forms = await source.createLibrary('Forms', { parentId: kit.id })
+		const inputs = await source.createLibrary('Inputs', { parentId: forms.id })
+		const other = await source.createLibrary('Other')
+		const field = await added(source.addItem(inputs.id, { content: contentOf(editor, [imageId]) }))
+		expect(inputs.parentId).toBe(forms.id)
+
+		await expect(source.moveLibrary(kit.id, { parentId: inputs.id })).rejects.toThrow(
+			LibraryNestingError
+		)
+		await expect(source.moveLibrary(kit.id, { ownerId: 'acme' })).rejects.toThrow(
+			LibraryNotFoundError
+		)
+		await source.moveLibrary(forms.id, { parentId: other.id })
+		expect(source.getLibraries().find((c) => c.id === forms.id)?.parentId).toBe(other.id)
+		await source.moveLibrary(forms.id, {})
+		expect(source.getLibraries().find((c) => c.id === forms.id)?.parentId).toBeUndefined()
+
+		await source.deleteLibrary(forms.id)
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['Kit', 'Other'])
+		expect(allOfType(editor, 'library-item')).toEqual([])
+		expect(allOfType(editor, 'library-item-content')).toEqual([])
+		await expect(source.getItemContent(field.id)).rejects.toThrow(LibraryNotFoundError)
 	})
 
 	describe('thumbnails', () => {
@@ -658,7 +687,7 @@ describe('BoardLibrarySource', () => {
 						uploads.push(() => resolve({ src: `https://uploads.example/${asset.id}` }))
 					)
 			)
-			const copy = await copyLibrary(source, kit.id, 'board')
+			const copy = await copyLibrary(source, kit.id, { ownerId: 'board' })
 			const [item] = board.getItems(copy.id)
 			expect(item.name).toBe('Star')
 			expect(uploads).toHaveLength(1)
@@ -671,7 +700,7 @@ describe('BoardLibrarySource', () => {
 			const { source, board, kit, toasts } = setUpCopy(async () => {
 				throw new Error('upload failed')
 			})
-			const copy = await copyLibrary(source, kit.id, 'board')
+			const copy = await copyLibrary(source, kit.id, { ownerId: 'board' })
 			expect(board.getLibraries().map((library) => library.id)).toEqual([copy.id])
 
 			await vi.waitFor(() => expect(board.getLibraries()).toEqual([]))

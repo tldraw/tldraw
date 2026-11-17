@@ -19,9 +19,20 @@ export type TLLibraryAction =
 
 /**
  * What {@link LibrarySource.can} answers for: a library, by its id, or an owner, by
- * `{ ownerId }`, e.g. whether a library may be created for that owner.
+ * `{ ownerId }`, e.g. whether a library may be created for that owner. A library inside another
+ * has its root library's permissions: there are none of its own. With a library id,
+ * `'createLibrary'` asks whether a library may be created, or moved, inside it.
  */
 export type TLLibraryTarget = TLLibraryId | { ownerId: string }
+
+/**
+ * Where a library goes when it is created, moved or copied: inside another library, which it then
+ * belongs to the owner of, or at the top level of an owner. With neither, at the top level: a moved
+ * library keeps its owner, and a new or copied one goes to the source's default.
+ */
+export type TLLibraryDestination =
+	| { parentId: TLLibraryId; ownerId?: string }
+	| { parentId?: undefined; ownerId?: string }
 
 /** Something a library can belong to, such as a user or a workspace. */
 export interface TLLibraryOwner {
@@ -31,10 +42,11 @@ export interface TLLibraryOwner {
 	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
 }
 
-/** Choices for a new library. */
-export interface TLNewLibraryOptions {
-	/** Who it belongs to. Left out, the source decides, e.g. its default owner. */
-	ownerId?: string
+/**
+ * Choices for a new library: where it goes (see {@link TLLibraryDestination}; left out, the source
+ * decides, e.g. its default owner's top level), and its `meta`.
+ */
+export type TLNewLibraryOptions = TLLibraryDestination & {
 	/** Stored on the library as its `meta`, e.g. the pack it was copied from. */
 	meta?: JsonObject
 }
@@ -107,6 +119,7 @@ export interface LibrarySource {
 
 	createLibrary(name: string, options?: TLNewLibraryOptions): Promise<TLLibrary>
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
+	/** Deletes a library with everything inside it: its items, and the libraries in it and theirs. */
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
 	/**
@@ -145,19 +158,22 @@ export interface LibrarySource {
 	 */
 	getDefaultOwnerId?(): string | undefined
 	/**
-	 * Gives a library to another owner. Its items stay in it. Resolves with the library at its new
-	 * owner once it is listed there: usually the same library, but a source that moves it by copying
-	 * gives the copy, with its own id. Optional: sources that don't track owners, or can't move
-	 * libraries between them, leave it out.
+	 * Moves a library, with everything inside it, into another library or to an owner's top level,
+	 * giving it and everything inside it to that owner. Needs `deleteLibrary` on the library and
+	 * `createLibrary` where it goes. A library can't go inside itself: that throws a
+	 * {@link LibraryNestingError}. Resolves with the library at its new place once it is listed
+	 * there: usually the same library, but a source that moves it by copying gives the copy, with
+	 * its own id. Optional: sources that can't move libraries leave it out.
 	 */
-	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
+	moveLibrary?(libraryId: TLLibraryId, to: TLLibraryDestination): Promise<TLLibrary>
 	/**
-	 * Copies a library and its items to an owner, as a new library with the same name, and
-	 * returns the copy. Optional: for sources that can copy without the caller loading and adding
-	 * every item again, e.g. on a server. Without it, `copyLibrary` loads each item's content through
-	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
+	 * Copies a library, with its items and the libraries inside it and theirs, to `to`, as a new
+	 * library with the same name, and returns the copy. Optional: for sources that can copy without
+	 * the caller loading and adding every item again, e.g. on a server. Without it, `copyLibrary`
+	 * loads each item's content through {@link LibrarySource.getItemContent} and adds the copies
+	 * together (see `addItemsToLibrary`).
 	 */
-	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
+	copyLibrary?(libraryId: TLLibraryId, to: TLLibraryDestination): Promise<TLLibrary>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */
@@ -179,4 +195,12 @@ export class LibraryNotFoundError extends Error {
 	constructor(readonly id: string) {
 		super(`No library, item or owner with id ${id}`)
 	}
+}
+
+/**
+ * Thrown by a source when a library can't go where it was asked to: inside itself, or inside a
+ * library of another owner than the one named.
+ */
+export class LibraryNestingError extends Error {
+	override name = 'LibraryNestingError'
 }

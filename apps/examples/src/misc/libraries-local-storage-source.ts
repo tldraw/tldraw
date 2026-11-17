@@ -67,7 +67,15 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		const library = LibraryRecordType.create({ name, meta: options.meta ?? {} })
+		const { parentId } = options
+		if (parentId !== undefined && !this.getLibraries().some((c) => c.id === parentId)) {
+			throw new LibraryNotFoundError(parentId)
+		}
+		const library = LibraryRecordType.create({
+			name,
+			meta: options.meta ?? {},
+			...(parentId === undefined ? {} : { parentId }),
+		})
 		await this.write((s) => ({ ...s, libraries: [...s.libraries, library] }))
 		return library
 	}
@@ -79,15 +87,26 @@ export class LocalStorageLibrarySource implements LibrarySource {
 		}))
 	}
 
+	// Deletes the libraries inside it too, at any depth.
 	async deleteLibrary(libraryId: TLLibraryId) {
 		await this.write((s) => {
+			const deleted = new Set<TLLibraryId>([libraryId])
+			for (let grew = true; grew; ) {
+				grew = false
+				for (const c of s.libraries) {
+					if (c.parentId && deleted.has(c.parentId) && !deleted.has(c.id)) {
+						deleted.add(c.id)
+						grew = true
+					}
+				}
+			}
 			const contents = { ...s.contents }
 			for (const item of s.items) {
-				if (item.libraryId === libraryId) delete contents[item.id]
+				if (deleted.has(item.libraryId)) delete contents[item.id]
 			}
 			return {
-				libraries: s.libraries.filter((c) => c.id !== libraryId),
-				items: s.items.filter((item) => item.libraryId !== libraryId),
+				libraries: s.libraries.filter((c) => !deleted.has(c.id)),
+				items: s.items.filter((item) => !deleted.has(item.libraryId)),
 				contents,
 			}
 		})
