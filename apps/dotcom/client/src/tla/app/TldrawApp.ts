@@ -23,6 +23,8 @@ import {
 	ZeroContext,
 	can,
 	createMutators,
+	getFileAccess,
+	getFilePermissions,
 	parseFlags,
 	queries,
 	schema as zeroSchema,
@@ -61,6 +63,7 @@ import {
 	TLI18nAdapter,
 	TLI18nMessage,
 	TLI18nValues,
+	TLPermission,
 	TLUiToastsContextType,
 	TLUserPreferences,
 	transact,
@@ -1120,6 +1123,24 @@ export class TldrawApp {
 		return null
 	}
 
+	/**
+	 * What the current user may do in a file, from the same rule the room uses
+	 * (`getFilePermissions`). The editor's authorize hooks read this.
+	 */
+	getFilePermissions(fileId: string): TLPermission[] {
+		const file = this.getFile(fileId)
+		// Not in any of our workspaces' lists: we reached it by a link, but we don't have its row, so
+		// we can't tell an edit link from a view link here. The room connects a view link read-only,
+		// which turns off every permission in the editor.
+		if (!file) return getFilePermissions('editor', true)
+		const role = file.owningGroupId ? this.getWorkspaceMembership(file.owningGroupId)?.role : null
+		return getFilePermissions(getFileAccess(file, role), true)
+	}
+
+	canFile(fileId: string, permission: TLPermission): boolean {
+		return this.getFilePermissions(fileId).includes(permission)
+	}
+
 	canUpdateFile(fileId: string): boolean {
 		const file = this.getFile(fileId)
 		if (!file) return false
@@ -1136,7 +1157,7 @@ export class TldrawApp {
 
 	unpublishFile(fileId: string) {
 		const file = this.requireFile(fileId)
-		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
+		if (!this.canFile(fileId, 'file:publish')) throw Error('user cannot publish that file')
 
 		if (!file.published) return
 
@@ -1168,7 +1189,7 @@ export class TldrawApp {
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
-		if (!this.canUpdateFile(fileId)) throw Error('user cannot edit that file')
+		if (!this.canFile(fileId, 'file:share')) throw Error('user cannot share that file')
 
 		if (sharedLinkType === 'no-access') {
 			this.z.mutate.file.update({ id: fileId, shared: false })

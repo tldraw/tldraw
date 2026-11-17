@@ -47,7 +47,6 @@ import {
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
-import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
@@ -220,11 +219,17 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useHasFileAdminRights(fileSlug)
-
 	const app = useApp()
 	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
 	const fileId = useCurrentFileId()
+	const canRename = useValue(
+		'canRename',
+		() => {
+			const file = app.getFile(fileId ?? fileSlug)
+			return !!file && editor.can('file:rename', { file })
+		},
+		[app, editor, fileId, fileSlug]
+	)
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -241,7 +246,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			if (!isOwner || !fileId) return
+			if (!canRename || !fileId) return
 			setIsRenaming(false)
 			// only actually update the name if name is a value, otherwise keep the previous name
 			if (name) {
@@ -250,7 +255,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 				editor.updateDocumentSettings({ name })
 			}
 		},
-		[app, editor, fileId, isOwner]
+		[app, editor, fileId, canRename]
 	)
 
 	const handleRenameAction = () => {
@@ -273,7 +278,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 				source="file-header"
 				isRenaming={isRenaming}
 				fileName={fileName}
-				onChange={isOwner ? handleFileNameChange : undefined}
+				onChange={canRename ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>

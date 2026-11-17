@@ -1,3 +1,4 @@
+import { createPermissions } from '@tldraw/permissions'
 import {
 	createComment,
 	createCommentThread,
@@ -44,6 +45,7 @@ async function harness(saved = new Map<string, unknown>()) {
 		},
 		getStorage: async () => ({}),
 		maybeAssociateFileAssets: vi.fn(),
+		permissions: createPermissions(),
 	})
 	const auth = (await object.getRoom()).options.authorizeRecord as typeof authorizeFileRecord
 	points.length = 0
