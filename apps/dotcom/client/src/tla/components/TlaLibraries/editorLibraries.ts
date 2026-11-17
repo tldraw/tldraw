@@ -37,11 +37,11 @@ export function getEditorLibraries(
 		id: userLibraries.id,
 		defaultOwnerId: app.getHomeWorkspaceId(),
 		parts: [
+			{ source: userLibraries },
 			{
 				owner: { id: fileId, name: app.msg(messages.thisBoard), icon: createElement(BoardIcon) },
 				source: new BoardLibrarySource(editor, { id: `board:${fileId}`, ...reporting }),
 			},
-			{ source: userLibraries },
 		],
 	})
 	sources.set(editor, { fileId, source })
