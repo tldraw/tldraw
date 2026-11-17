@@ -929,6 +929,9 @@ importers:
       '@tldraw/mermaid':
         specifier: workspace:*
         version: link:../../packages/mermaid
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
       '@tldraw/state':
         specifier: workspace:*
         version: link:../../packages/state
@@ -1935,6 +1938,9 @@ importers:
       '@tldraw/editor':
         specifier: workspace:*
         version: link:../editor
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../permissions
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.7
@@ -2044,6 +2050,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.0.0
         version: 16.3.0(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(@types/react@19.2.7)(react@19.2.1))(react@19.2.1)
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../permissions
       '@types/classnames':
         specifier: ^2.3.4
         version: 2.3.4

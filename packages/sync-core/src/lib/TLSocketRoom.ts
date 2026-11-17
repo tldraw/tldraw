@@ -4,6 +4,7 @@ import {
 	TLInstancePresence,
 	TLPermissionGrant,
 	TLStoreSnapshot,
+	TLWritePolicy,
 } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
@@ -170,10 +171,11 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
 	 * The room's one write rule, judging every client push the session's `access` allows, with
-	 * read access to the transaction. Replaces `authorizeRecord` when set. See
+	 * read access to the transaction, or a policy carrying it (`{ rule }`): pass the same
+	 * `createGrantsPolicy` object the client gets. Replaces `authorizeRecord` when set. See
 	 * {@link TLSyncRule}.
 	 */
-	authorize?: TLSyncRule<R, SessionMeta>
+	authorize?: TLSyncRule<R, SessionMeta> | TLWritePolicy<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.

@@ -10,6 +10,7 @@ import type {
 	TLPermissionGrant,
 	TLRecordChange,
 	TLSessionAccess,
+	TLWritePolicy,
 	TLWriteRule,
 	TLWriteRuleArgs,
 	TLWriteRuleSession,
@@ -517,10 +518,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 		/**
-		 * The room's one write rule, run on every push `session.access` allows. When set, it
-		 * replaces `authorizeRecord`. See {@link TLSyncRule}.
+		 * The room's one write rule, run on every push `session.access` allows, or a policy carrying
+		 * it (`{ rule }`, as `createGrantsPolicy` builds). When set, it replaces `authorizeRecord`.
+		 * See {@link TLSyncRule}.
 		 */
-		authorize?: TLSyncRule<R, SessionMeta>
+		authorize?: TLSyncRule<R, SessionMeta> | TLWritePolicy<R, SessionMeta>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -530,7 +532,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onCommittedChanges = opts.onCommittedChanges
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.authorizeRecord = opts.authorizeRecord
-		this.authorize = opts.authorize
+		const authorize = opts.authorize
+		this.authorize = typeof authorize === 'object' ? (args) => authorize.rule(args) : authorize
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 

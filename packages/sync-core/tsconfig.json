@@ -5,6 +5,7 @@
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
 		{ "path": "../editor" },
+		{ "path": "../permissions" },
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../tldraw" },

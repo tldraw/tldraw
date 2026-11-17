@@ -24,6 +24,7 @@ import { TLRecord } from '@tldraw/tlschema';
 import type { TLRecordChange } from '@tldraw/tlschema';
 import type { TLSessionAccess } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import { TLWritePolicy } from '@tldraw/tlschema';
 import type { TLWriteRefusal } from '@tldraw/tlschema';
 import type { TLWriteRule } from '@tldraw/tlschema';
 import type { TLWriteRuleArgs } from '@tldraw/tlschema';
@@ -575,7 +576,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
-    authorize?: TLSyncRule<R, SessionMeta>;
+    authorize?: TLSyncRule<R, SessionMeta> | TLWritePolicy<R, SessionMeta>;
     // @deprecated
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
@@ -777,7 +778,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
-        authorize?: TLSyncRule<R, SessionMeta>;
+        authorize?: TLSyncRule<R, SessionMeta> | TLWritePolicy<R, SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;

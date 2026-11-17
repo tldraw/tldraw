@@ -10,6 +10,7 @@
 	"references": [
 		{ "path": "../driver" },
 		{ "path": "../editor" },
+		{ "path": "../permissions" },
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../tlschema" }

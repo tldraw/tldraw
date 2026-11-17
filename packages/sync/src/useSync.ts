@@ -29,6 +29,7 @@ import {
 	TLThemes,
 	TLUser,
 	TLUserStore,
+	TLWritePolicy,
 	TLWriteRule,
 	UserRecordType,
 	computed,
@@ -334,6 +335,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		const authorize: TLStoreAuthorize<undefined> | undefined = hasAuthorize
 			? {
 					rule: (args) => authorizeRef.current?.rule(args) ?? null,
+					get requires() {
+						return authorizeRef.current?.requires
+					},
+					get types() {
+						return authorizeRef.current?.types
+					},
 					getSession: () => {
 						const session = granted.get()
 						if (!session) return null
@@ -595,9 +602,12 @@ export interface UseSyncOptionsBase {
 	 * here as on the server. The server stays the authority: whatever this lets through, the room
 	 * judges again.
 	 *
+	 * Pass the policy object the room gets (`createGrantsPolicy` from `@tldraw/permissions`): its
+	 * `requires` and `types` also drive the editor's `isPermitted` and `isChangePermitted`.
+	 *
 	 * @example
 	 * ```ts
-	 * authorize: { rule: classroomRule }
+	 * authorize: policy
 	 * ```
 	 */
 	authorize?: UseSyncAuthorize
@@ -649,7 +659,7 @@ export interface UseSyncOptionsBase {
  *
  * @public
  */
-export interface UseSyncAuthorize {
+export interface UseSyncAuthorize extends TLWritePolicy<TLRecord, undefined> {
 	/**
 	 * The same rule the room was given as `authorize`. The session's `meta` is undefined here: the
 	 * room keeps it on the server.

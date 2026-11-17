@@ -18,6 +18,7 @@ import { TLSyncRefusal } from '@tldraw/sync-core';
 import { TLThemes } from 'tldraw';
 import { TLUser } from 'tldraw';
 import { TLUserStore } from 'tldraw';
+import { TLWritePolicy } from 'tldraw';
 import { TLWriteRule } from 'tldraw';
 
 // @public
@@ -38,7 +39,7 @@ export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public
-export interface UseSyncAuthorize {
+export interface UseSyncAuthorize extends TLWritePolicy<TLRecord, undefined> {
     // @deprecated
     objectTypes?: readonly string[];
     rule: TLWriteRule<TLRecord, undefined>;
