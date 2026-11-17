@@ -178,7 +178,8 @@ export interface CommentingOptions {
 	// Permissions
 	/**
 	 * Whether the viewer may participate in commenting: composing, editing, deleting, resolving, and
-	 * moving pins. When false, {@link CommentingComponents.ComposerFallback} renders in the
+	 * moving pins. `editor.can('tl:comment:create')` is asked first, and a `false` there wins. When
+	 * false, {@link CommentingComponents.ComposerFallback} renders in the
 	 * composer's place and action affordances are hidden. Unset, participation is allowed exactly
 	 * when `currentUserId` is set.
 	 *
@@ -197,6 +198,11 @@ export interface CommentingOptions {
 	 * you started. Override it to widen that (a workspace admin or moderator who may remove
 	 * anyone's comment) or to narrow it (no edits after an hour). Where it returns false the
 	 * affordance isn't rendered.
+	 *
+	 * Checked after `editor.can` with the matching permission (`tl:comment:edit`,
+	 * `tl:comment:delete`, or `tl:comment-thread:delete`), and a `false` there wins. So a permission
+	 * grants no affordance on its own: an admin with `tl:comment:delete` still needs this to say yes
+	 * for someone else's comment.
 	 *
 	 * Checked after {@link CommentingOptions.canComment}, which gates commenting as a whole: a
 	 * viewer who may not participate gets no action affordances at all, whatever this returns.
@@ -300,6 +306,7 @@ function permits(option: string, check: () => boolean): boolean {
  * @public
  */
 export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
+	if (!editor.can('tl:comment:create')) return false
 	const { canComment } = getCommentingOptions(editor)
 	if (!canComment) return currentUserId != null
 	return permits('canComment', () => canComment({ editor, currentUserId: currentUserId ?? null }))
@@ -355,6 +362,7 @@ export function getCanModifyComment(
 	currentUserId: string | null | undefined,
 	modification: CommentModification
 ): boolean {
+	if (!canModification(editor, modification)) return false
 	const { canModifyComment } = getCommentingOptions(editor)
 	const ctx: CommentModificationContext = {
 		editor,
@@ -363,6 +371,17 @@ export function getCanModifyComment(
 	}
 	if (!canModifyComment) return defaultCanModifyComment(ctx)
 	return permits('canModifyComment', () => canModifyComment(ctx))
+}
+
+function canModification(editor: Editor, modification: CommentModification): boolean {
+	switch (modification.action) {
+		case 'edit-comment':
+			return editor.can('tl:comment:edit', { comment: modification.comment })
+		case 'delete-comment':
+			return editor.can('tl:comment:delete', { comment: modification.comment })
+		case 'delete-thread':
+			return editor.can('tl:comment-thread:delete', { thread: modification.thread })
+	}
 }
 
 /**
