@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Obróć kształt zgodnie z ruchem wskazówek zegara (dokładnie)",
 	"a11y.select-shape": "Wybierz następny kształt",
 	"a11y.select-shape-direction": "Wybierz kształt w kierunku",
+	"a11y.shape-group": "Grupa",
 	"a11y.shape-image": "Obraz",
 	"a11y.shape-index": "{num} z {total}",
 	"a11y.shape-video": "Wideo",

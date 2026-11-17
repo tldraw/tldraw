@@ -1412,6 +1412,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean;
         margin?: number;
     }): TLShape[];
+    // @internal
+    getShapesInReadingOrder(shapes: TLShape[]): TLShape[];
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
     // @internal (undocumented)
     getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined;
@@ -2153,6 +2155,8 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
     getIndicatorPath(shape: TLGroupShape): Path2D;
+    // (undocumented)
+    getShapeName(): string;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLGroupShape): boolean;
     // (undocumented)

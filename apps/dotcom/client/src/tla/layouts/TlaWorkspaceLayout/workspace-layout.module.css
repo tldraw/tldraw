@@ -82,6 +82,11 @@
 	font-size: 13px;
 	font-weight: 600;
 }
+.accountAvatar {
+	width: 32px;
+	height: 32px;
+	font-size: 13px;
+}
 .main {
 	flex: 1 0 auto;
 	width: min(1320px, 86%);

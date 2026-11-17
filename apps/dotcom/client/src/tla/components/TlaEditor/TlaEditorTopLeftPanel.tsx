@@ -1,4 +1,5 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
+import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
@@ -6,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
+	CommandPaletteMenuItem,
 	DefaultPageMenu,
 	defineMessages,
 	EditSubmenu,
@@ -14,7 +16,6 @@ import {
 	InputModeMenu,
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
-	PreferencesGroup,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
@@ -32,7 +33,6 @@ import {
 	ToggleGridItem,
 	TogglePasteAtCursorItem,
 	ToggleSnapModeItem,
-	ToggleToolLockItem,
 	ToggleWrapModeItem,
 	useDialogs,
 	useEditor,
@@ -47,9 +47,10 @@ import { routes } from '../../../routeDefs'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
+import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -65,16 +66,15 @@ import {
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
-import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
-import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
-/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
- *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
- *  into. */
+/** tldraw's default View submenu plus the per-file display toggles and a "Comments" show/hide
+ *  toggle (its own group, signed-in only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed
+ *  component with no slot to inject into. */
 function TlaViewSubmenu() {
-	const commentingEnabled = useIsCommentingEnabled()
+	const commentingEnabled = useIsCommentingEnabledForUser()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
@@ -83,6 +83,11 @@ function TlaViewSubmenu() {
 				<ZoomTo100MenuItem />
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="view-toggles">
+				<ToggleGridItem />
+				<ToggleFocusModeItem />
+				<ToggleDebugModeItem />
 			</TldrawUiMenuGroup>
 			{commentingEnabled && (
 				<TldrawUiMenuGroup id="view-comments">
@@ -97,6 +102,7 @@ const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	home: { defaultMessage: 'Home' },
+	libraries: { defaultMessage: 'Libraries' },
 })
 
 const SEPARATOR = '/'
@@ -285,6 +291,9 @@ function TlaEditorTopLeftPanelSignedIn() {
 			/>
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 			<DefaultPageMenu />
+			{/* Only file editors mount the libraries panel (see TlaEditor); on legacy routes there is
+			    no file and the button would toggle state nothing reads. */}
+			{fileId && <LibrariesPanelButton />}
 			<TlaFileMenu
 				fileId={fileId ?? ''}
 				workspaceId={null}
@@ -319,9 +328,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="preferences">
-					<PreferencesGroup />
-				</TldrawUiMenuGroup>
+				{/* Preferences, language and keyboard shortcuts live in the settings dialog for signed-in users. */}
 			</TlaFileMenu>
 		</>
 	)
@@ -341,6 +348,30 @@ function TlaEditorHomeButton() {
 			data-testid="tla-editor-home-button"
 		>
 			<TlaIcon icon="tldraw" />
+		</TldrawUiButton>
+	)
+}
+
+function LibrariesPanelButton() {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const hasLibraries = !!useMaybeApp()?.libraries
+	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+	const label = msg(messages.libraries)
+
+	if (!hasLibraries) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topLeftMainMenuTrigger}
+			data-testid="tla-libraries-button"
+			aria-pressed={open}
+			tooltip={label}
+			title={label}
+			onClick={() => toggleLibrariesPanel(editor)}
+		>
+			<TlaIcon icon="library" />
 		</TldrawUiButton>
 	)
 }
@@ -496,20 +527,18 @@ function SignInMenuItem() {
 	)
 }
 
+/** The anonymous menu keeps the account-wide preferences: without an account there is no settings
+ *  dialog to hold them. */
 function TlaPreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
-					<ToggleToolLockItem />
-					<ToggleGridItem />
 					<ToggleWrapModeItem />
-					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
-					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />
@@ -520,6 +549,7 @@ function TlaPreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

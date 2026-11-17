@@ -8,11 +8,11 @@ import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnCanvas'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
-import { components } from '../components/TlaEditor/TlaEditor'
+import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
+import { useAnonCommentToolOverrides } from '../components/TlaEditor/useAnonCommentToolOverrides'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { hasNotAcceptedLegal } from '../utils/auth'
@@ -20,7 +20,7 @@ import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { getCurrentFlags } from '../utils/featureFlags'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
-import { clearRedirectOnSignIn, OPEN_SIGN_IN } from '../utils/redirect'
+import { clearRedirectOnSignIn, isClerkFrontendApiUrl, OPEN_SIGN_IN } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -63,6 +63,11 @@ export function Component() {
 				clearRedirectOnSignIn()
 				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
+					return
+				}
+				// /sign-in stores Clerk's OAuth authorize URL, which lives on Clerk's own origin.
+				if (isClerkFrontendApiUrl(redirectTo)) {
+					window.location.replace(redirectTo)
 					return
 				}
 			}

@@ -149,6 +149,12 @@
       "value": "Board menu"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Mark all notifications as read"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -183,6 +189,12 @@
     {
       "type": 0,
       "value": "Notification options"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Switch workspace"
     }
   ],
   "181b90f889": [
@@ -253,26 +265,20 @@
       "value": "About tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " commented on your board"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Could not submit feedback"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "On behalf of "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -335,10 +341,22 @@
       "value": "Back to tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Duplicate file"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Please try refreshing the page."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "File name"
     }
   ],
   "344a7f427f": [
@@ -445,6 +463,12 @@
       "value": "Thanks for helping us improve tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Move file to"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -467,6 +491,28 @@
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Copy published link"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented"
     }
   ],
   "4d0d3ddec9": [
@@ -557,6 +603,12 @@
       "value": "Create a workspace"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Go to file"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -591,22 +643,6 @@
     {
       "type": 0,
       "value": "My workspace"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
     }
   ],
   "5d04a002ea": [
@@ -651,35 +687,6 @@
       "value": "Later"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Someone reacted to your comment"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " people reacted to your comment"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -710,10 +717,80 @@
       "value": "A new version of tldraw is available. Please reload the page to continue."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Edited"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "New file"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "6832ac5936": [
@@ -728,10 +805,49 @@
       "value": "Delete workspace"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Someone reacted"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " people reacted"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Help"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -744,6 +860,12 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Canvas"
     }
   ],
   "70a6facb9d": [
@@ -822,6 +944,12 @@
     {
       "type": 0,
       "value": "Please reload"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Copy file link"
     }
   ],
   "777f9e90cf": [
@@ -964,6 +1092,56 @@
       "value": "You are already a member of this workspace"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -986,6 +1164,12 @@
     {
       "type": 0,
       "value": "Shared with you"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "About"
     }
   ],
   "8ff3d0a705": [
@@ -1036,6 +1220,12 @@
       "value": "name"
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Files"
+    }
+  ],
   "92e36cb6cf": [
     {
       "type": 0,
@@ -1064,6 +1254,22 @@
     {
       "type": 0,
       "value": "This month"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "985a4b720f": [
@@ -1228,6 +1434,12 @@
       "value": "Cookie policy"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Toggle comments sidebar"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1276,12 +1488,6 @@
       "value": "Background"
     }
   ],
-  "a9fc91939a": [
-    {
-      "type": 0,
-      "value": "Collections"
-    }
-  ],
   "aac449eef6": [
     {
       "type": 0,
@@ -1300,10 +1506,22 @@
       "value": "File limit reached"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "App"
+    }
+  ],
   "acf84eea1e": [
     {
       "type": 0,
       "value": "Link copied"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Libraries"
     }
   ],
   "af3dc88931": [
@@ -1356,6 +1574,12 @@
     {
       "type": 0,
       "value": "File is full"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Open notifications panel"
     }
   ],
   "b357b524e7": [
@@ -1484,6 +1708,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Current file"
     }
   ],
   "bea4c2c8eb": [
@@ -1634,6 +1864,18 @@
       "value": "You"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Color"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profile"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1658,54 +1900,16 @@
       "value": "Learn more about publishing."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " and "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " others"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Preferences"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " reacted to your comment"
+      "value": "Unpublish file"
     }
   ],
   "d3d2e61733": [
@@ -1820,12 +2024,6 @@
       "value": "Anyone with this link can join this workspace."
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "App debug flags"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1848,36 +2046,6 @@
     {
       "type": 0,
       "value": "Terms of service"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
     }
   ],
   "e727b00944": [
@@ -2020,70 +2188,6 @@
       "value": "This invite link is invalid or has expired."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " others"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -2178,6 +2282,36 @@
     {
       "type": 0,
       "value": "Error accepting invite"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "ffcd73e997": [

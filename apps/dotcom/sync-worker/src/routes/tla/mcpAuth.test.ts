@@ -324,7 +324,7 @@ describe('authenticateMcpRequest', () => {
 	it('accepts a valid token and returns its subject', async () => {
 		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
 
-		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(result).toEqual({ ok: true, userId: 'user_123', clientId: null })
 	})
 
 	// The signing keys are the accepting instance's own, fetched from Clerk's Backend API with the
@@ -409,7 +409,7 @@ describe('authenticateMcpRequest', () => {
 			makeEnv()
 		)
 
-		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(result).toEqual({ ok: true, userId: 'user_123', clientId: null })
 	})
 
 	// Only the SDK's reason and message are logged. The token itself, or a decoded payload, would put
@@ -466,7 +466,7 @@ describe('authenticateMcpRequest', () => {
 				makeRequest({ authorization: `  bearer   ${token}  ` }),
 				makeEnv()
 			)
-		).toEqual({ ok: true, userId: 'user_123' })
+		).toEqual({ ok: true, userId: 'user_123', clientId: null })
 	})
 
 	// Anything that is not a bearer token is treated as no token at all, so the client is told where to

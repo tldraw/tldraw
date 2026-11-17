@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
-import { getResponseError, StructuredDataDisplay, useTransientMessage } from './shared'
+import { getResponseError, useTransientMessage } from './shared'
+import { StructuredDataDisplay } from './StructuredDataDisplay'
 import styles from './admin.module.css'
 
 // Helper component for user data summary. deletedFileCount comes from the dedicated endpoint —

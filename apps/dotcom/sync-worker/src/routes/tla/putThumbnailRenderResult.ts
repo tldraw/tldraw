@@ -12,8 +12,7 @@ import { RenderPageError, reportThumbnailError } from './thumbnailShared'
 
 // The render page's beacons: phase timings on success, its own error on failure. A signed token
 // proves the POST comes from a render we asked for. Telemetry only — nothing downstream waits on
-// either, so both are accepted for any valid token, screenshot or measure. Measure results come back
-// in the page's HTML instead (see measurePageShapes).
+// either, so both are accepted for any valid token, screenshot or measure.
 //
 // Signed and unexpired, but deliberately *not* minted-checked, unlike the snapshot route. An MCP
 // record is keyed per capture and deleted the moment the session returns (see

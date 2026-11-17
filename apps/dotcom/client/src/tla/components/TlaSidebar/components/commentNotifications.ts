@@ -1,4 +1,7 @@
 import { extractMentionIds } from '@tldraw/dotcom-shared'
+import type { IntlShape } from 'react-intl'
+import { createDeepLinkString, defineMessages } from 'tldraw'
+import { routes } from '../../../../routeDefs'
 
 /**
  * Why a comment shows up in a user's notifications feed:
@@ -46,8 +49,8 @@ export interface CommentNotificationInput {
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
 	/** Every reaction to the comment, the caller's own included. Categorization only reads who and
-	 *  when; `emoji` rides along for the row's reaction pills; `userName` is the reactor's display
-	 *  name, denormalized from `user.name` onto reaction rows by Postgres triggers. */
+	 *  when; `userName` is the reactor's display name for the byline, denormalized from
+	 *  `user.name` onto reaction rows by Postgres triggers. */
 	reactions?:
 		| readonly { userId: string; userName?: string; emoji: string; createdAt: number }[]
 		| null
@@ -130,6 +133,12 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 	return joinedAt
 }
 
+export interface ForeignReactors {
+	names: string[]
+	others: number
+	total: number
+}
+
 /**
  * The reactor summary a "reacted to your comment" byline is phrased from: up to two distinct
  * reactor names (newest reaction first, blank or missing names skipped but still counted), how
@@ -139,7 +148,7 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 export function summarizeForeignReactors(
 	reactions: CommentNotificationInput['reactions'],
 	userId: string | undefined | null
-): { names: string[]; others: number; total: number } {
+): ForeignReactors {
 	// distinct foreign reactors, newest reaction first
 	const byId = new Map<string, { name?: string; newest: number }>()
 	for (const r of reactions ?? []) {
@@ -157,6 +166,43 @@ export function summarizeForeignReactors(
 	return { names, others: ordered.length - names.length, total: ordered.length }
 }
 
+// `<name>` wraps each reactor name: the panel styles it, plain-string callers unwrap it.
+const reactionBylineMessages = defineMessages({
+	anonymous: {
+		defaultMessage: '{count, plural, one {Someone reacted} other {# people reacted}}',
+	},
+	one: { defaultMessage: '<name>{author}</name> reacted' },
+	two: { defaultMessage: '<name>{a}</name> and <name>{b}</name> reacted' },
+	oneAndOthers: {
+		defaultMessage:
+			'<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted',
+	},
+	twoAndOthers: {
+		defaultMessage:
+			'<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted',
+	},
+})
+
+/** The "reacted to your comment" message for a reactor summary, with its values minus `name`. */
+export function reactionBylineMessage({ names, others, total }: ForeignReactors) {
+	const [a, b] = names
+	const m = reactionBylineMessages
+	if (names.length === 0) return { message: m.anonymous, values: { count: total } }
+	if (names.length === 1 && others === 0) return { message: m.one, values: { author: a } }
+	if (names.length === 2 && others === 0) return { message: m.two, values: { a, b } }
+	if (names.length === 1) return { message: m.oneAndOthers, values: { author: a, count: others } }
+	return { message: m.twoAndOthers, values: { a, b, count: others } }
+}
+
+/** {@link reactionBylineMessage} as a plain string, for labels that can't hold markup. */
+export function formatReactionByline(
+	intl: Pick<IntlShape, 'formatMessage'>,
+	reactors: ForeignReactors
+): string {
+	const { message, values } = reactionBylineMessage(reactors)
+	return intl.formatMessage(message, { ...values, name: (chunks: string[]) => chunks.join('') })
+}
+
 /** Newest `createdAt` among `reactions` from someone other than `userId`; `undefined` if none. */
 export function latestForeignReactionAt(
 	reactions: CommentNotificationInput['reactions'],
@@ -172,8 +218,8 @@ export function latestForeignReactionAt(
 /**
  * Turns the reactions feed — the caller's own comments that someone else has reacted to — into one
  * {@link CommentNotification} per comment. Each entry is dated and marked unread by the newest
- * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline and
- * pills (strict >: a receipt from the same instant counts as read).
+ * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline
+ * (strict >: a receipt from the same instant counts as read).
  *
  * The feed rows are comments rather than reactions because the query is rooted at `comment`; see
  * `queries.reactions` for why that rooting is load-bearing.
@@ -223,4 +269,12 @@ export function mergeNotifications<T extends CommentNotificationInput>(
 	...feeds: readonly CommentNotification<T>[][]
 ): CommentNotification<T>[] {
 	return feeds.flat().sort((a, b) => b.timestamp - a.timestamp)
+}
+
+/** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */
+export function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
+	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
+	if (!shapeId) return base
+	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })
+	return `${base}&d=${d}`
 }

@@ -54,10 +54,17 @@ const router = createBrowserRouter([
 		lazy: async () => ({ element: <EndToEnd /> }),
 	},
 	{
-		path: 'collections',
+		path: 'libraries',
 		lazy: async () => {
-			const { default: Collections } = await import('./misc/collections')
-			return { element: <Collections /> }
+			const { default: Libraries } = await import('./misc/libraries')
+			return { element: <Libraries /> }
+		},
+	},
+	{
+		path: 'libraries-stress',
+		lazy: async () => {
+			const { default: LibrariesStress } = await import('./misc/libraries-stress')
+			return { element: <LibrariesStress /> }
 		},
 	},
 	...examples.flatMap((exampleArray) =>

@@ -181,6 +181,12 @@
       "value": "Samee fayl"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "U guur"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -335,6 +341,12 @@
     {
       "type": 0,
       "value": "Ka saar xubinta"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Soo gal si aad u aqbasho martiqaadkan."
     }
   ],
   "3bc7d6ea2f": [
@@ -730,6 +742,12 @@
       "value": "Fadlan dib u soo deji bogga"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Keydi macluumaadka sida fayl .tldr ah: dooro 'Keydso nuqul' liiska bidix ee sare."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -990,6 +1008,12 @@
       "value": "? Ficilkan lama celin karo."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Xiriirinta casuumaadda la koobiyay"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1132,12 +1156,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "U dhoofi waxa ku jira sidii faylka .tldr: Dooro 'Download' menu-ka sare ee bidix."
     }
   ],
   "a104439641": [
@@ -1698,6 +1716,12 @@
       "value": "ama"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Taariikhda faylka"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1790,6 +1814,12 @@
     {
       "type": 0,
       "value": "Tirtir"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Xiriiriyahan martiqaadku waa mid aan sax ahayn ama wuu dhacay."
     }
   ],
   "f476ba8646": [
@@ -1928,6 +1958,12 @@
     {
       "type": 0,
       "value": "Samee akoon bilaash ah si aad u kaydiso faylashaada oo aad ula wadaagto asxaabtaada."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Khalad ayaa ka jira aqbalidda martiqaadka"
     }
   ],
   "ffcd73e997": [

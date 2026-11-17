@@ -5,17 +5,51 @@ author: tldraw
 date: 10/28/2026
 order: 0
 status: published
-last_version: v5.6.0
+last_version: v5.6.1
 ---
 
-So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, improves crop mode, and runs agent starter kit actions through tool calls. It also includes bug fixes across media asset handling, frame hit testing, text shape bounds, cursor chat, and the comment composer.
+So far this release adds a command palette (Cmd/Ctrl+K), task lists in rich text with font-matched checkboxes, lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across text and note shape re-renders, video controls on zoom, arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
+
+## What's new
+
+### Command palette
+
+Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first. Actions, including your custom ones, are listed automatically; set `commandPalette: false` on internal or shortcut-only actions to leave them out. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
+
+### Task lists in rich text ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+
+You can now write task lists in rich text shapes (text, notes, and shapes with labels). Type `[ ] ` or `[x] ` at the start of a line to create an interactive task item with a checkbox that can be toggled with a click or Cmd+Enter. Checkboxes are styled to match the active font: hand-drawn checkboxes in the draw font that cycle through sketched outlines, and standard boxes in sans, serif, and mono. Custom font checkbox styles can also be configured via `TLThemeFont.checkbox`.
 
 ## API changes
 
+- 💥 Remove the `val_town` entry from `DEFAULT_EMBED_DEFINITIONS`. Pasting a Val Town link now creates a bookmark instead of an embed shape. ([#11535](https://github.com/tldraw/tldraw/pull/11535))
+- 💥 Remove `embedIcons.val_town` from `@tldraw/assets`. ([#11535](https://github.com/tldraw/tldraw/pull/11535))
 - 💥 Add `ShapeUtil.canFlip(shape)`, which decides whether the flip menu items and shift+H / shift+V act on a single selected shape. It defaults to `false`, so a lone custom shape no longer gets the flip menu items or shortcuts. If your shape changes when flipped (for example it handles negative scale in `onResize`), add `override canFlip() { return true }` to its util. Multi-shape flips are unchanged. ([#11041](https://github.com/tldraw/tldraw/pull/11041))
-- 💥 Move the Cmd+G and Cmd+Alt+G shortcuts from the `group` and `frame-selection` actions to new `toggle-group` and `toggle-frame` actions, which pick `group` or `ungroup`, and `frame-selection` or `remove-frame`, from the selection. `group` and `frame-selection` no longer have a `kbd`, so menus no longer show a shortcut next to them. To rebind or disable these shortcuts, override `actions['toggle-group']` or `actions['toggle-frame']` instead, for example `actions['toggle-group'].kbd = 'cmd+k,ctrl+k'` or `delete actions['toggle-group']`; setting `kbd` on `group` or `frame-selection` now registers a separate shortcut that only groups or frames. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+- Add the `CommandPalette` component slot with `DefaultCommandPalette`, `DefaultCommandPaletteContent`, `CommandPaletteShell`, the `CommandPalette*Group` components, `CommandPaletteMenuItem`, `useCommandPaletteQuery` and `getCommandPaletteMatchScore`. The new `open-command-palette` action opens it. The slot is mounted only while the palette is open, and gets an `onClose` prop to close it. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add `CommandPaletteStylesGroup`, which sets the style panel's styles from the palette, and `CommandPaletteImageGroup`, with the image toolbar's commands. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add the `toggle-minimap` and `crop-image` actions. The minimap's open state is now shared between the navigation panel and the action. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- 💥 Add `'command-palette'` to `TLUiMenuContextType` and `TLUiEventSource`. Exhaustive switches over either type need a case for it. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- 💥 Cmd/Ctrl+K now opens the command palette, so an app action bound to `cmd+k` no longer fires. To keep your own binding, remove the palette with `components={{ CommandPalette: null }}`, remove its action with `delete actions['open-command-palette']`, or set `actions['open-command-palette'].kbd` to another chord. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- `CommandPaletteShell` also works without an editor, inside `TldrawUiContextProvider`, with the app owning its open state and shortcut. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add a `position` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'bottom'` (the default, just above a horizontal toolbar), `'center'` or `'top'`. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add a `suggestions` prop to `DefaultCommandPalette` and `CommandPaletteShell`: `'recent'` (the default) lists recent commands while the query is empty, `'none'` leaves them out. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add `commandPalette` to `TLUiActionItem`, and `CommandPaletteActionGroup`, which lists the actions placed in a group, or every action not opted out when given no group. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- Add `CommandPalettePinned`, `CommandPaletteOnDemand`, `CommandPalettePromptItem` and a `detail` prop on `TldrawUiMenuItem`, to shape how items appear in the command palette. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
+- `ColorSchemeMenu`, `InputModeMenu` and `LanguageMenu` now report their real menu as the `onUiEvent` source (for example `'main-menu'` or `'help-menu'`) instead of `'menu'`. ([#11156](https://github.com/tldraw/tldraw/pull/11156))
+- 💥 Move the Cmd+G and Cmd+Alt+G shortcuts from the `group` and `frame-selection` actions to new `toggle-group` and `toggle-frame` actions, which pick `group` or `ungroup`, and `frame-selection` or `remove-frame`, from the selection. `group` and `frame-selection` no longer have a `kbd`, so menus no longer show a shortcut next to them. To rebind or disable these shortcuts, override `actions['toggle-group']` or `actions['toggle-frame']` instead, for example `actions['toggle-group'].kbd = 'cmd+m,ctrl+m'` or `delete actions['toggle-group']`; setting `kbd` on `group` or `frame-selection` now registers a separate shortcut that only groups or frames. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - 💥 Remove unused `help-menu.discord`, `help-menu.github`, and `help-menu.twitter` keys from `TLUiTranslationKey`. ([#11258](https://github.com/tldraw/tldraw/pull/11258))
+- 💥 Remove `comments.dismiss` from `TLUiTranslationKey`. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
 - Actions don't run when `isAvailable` or `isEnabled` returns false, or when the editor is readonly and the action isn't `readonlyOk`, whether they're triggered from a menu, a keyboard shortcut or an `onSelect` call on an action from `useActions()`. The copy, cut and paste shortcuts still come from native clipboard events and aren't gated. If your app calls a custom action directly in readonly mode, set `readonlyOk: true` on it. An override that replaces a built-in's `onSelect`, in place or by spreading it, keeps the built-in's `isEnabled`, so the action no longer runs from a shortcut or `useActions()` when that returns false; override `isEnabled` too if your `onSelect` handles that case. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+- Add `CommentByline` and `Avatar` component slots to `@tldraw/commenting`, so you can change how comment authors and their avatars are shown. ([#11447](https://github.com/tldraw/tldraw/pull/11447))
+- `CommentingComponents.ThreadRow` in `@tldraw/commenting` now also receives `comments: TLComment[]`, containing the thread's comments in chronological order. ([#11465](https://github.com/tldraw/tldraw/pull/11465))
+- Add `comments.close`, `comments.see-more`, and `comments.see-less` to `TLUiTranslationKey`. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
+- Add the `--tl-muted-gradient-to-bottom`, `--tl-muted-gradient-to-top`, `--tl-muted-gradient-to-right`, and `--tl-muted-gradient-to-left` theme CSS variables for open menu triggers. ([#11492](https://github.com/tldraw/tldraw/pull/11492))
+- Add `TaskItemToggleExtension` to default rich text extensions. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `taskList` to rich text toolbar operations, a `taskList` icon, and the `rich-text.task-list` translation key. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `TLThemeFont.checkbox` and the `TLThemeFontCheckbox` type for font-specific checkbox mask images. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `getFontCheckboxStyle(theme, font)` to convert theme font checkbox definitions to CSS custom properties. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add an optional `checkboxStyle` prop to `RichTextLabel` and `RichTextSVG`. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `checkboxStyle` to `TextShapeUtilDisplayValues`, and `labelCheckboxStyle` to `GeoShapeUtilDisplayValues`, `NoteShapeUtilDisplayValues`, and `ArrowShapeUtilDisplayValues`. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
 
 ## Improvements
 
@@ -23,14 +57,36 @@ So far this release lets shapes decide whether they can flip, gates action execu
 - Add Cmd+Alt+Shift+G as an explicit Remove frame shortcut. Cmd+G and Cmd+Alt+G continue to toggle grouping and framing when the selection allows the corresponding action. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Cursor chat opens with `/` in any tool, and its menu item shows in any tool. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Exit crop mode when clicking any shape other than the one being cropped, instead of moving the crop to the clicked image. ([#10832](https://github.com/tldraw/tldraw/pull/10832))
+- Stay in the comment tool after placing a comment, allowing multiple comments to be placed in sequence. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
+- Step Escape back one level at a time while commenting: clear active draft or reply text, then close the composer or thread, then return to the select tool. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
+- Align `@tldraw/commenting` menus, buttons, drags, and list rows with the rest of tldraw: drag an unposted comment by its pin, keep drags under the pointer when the camera scrolls, and collapse comments longer than 10 lines behind a "See more" toggle. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
+- Match the mention picker in `@tldraw/mentions` to other tldraw menus, using standard menu item styling and 20px avatars. ([#11493](https://github.com/tldraw/tldraw/pull/11493))
+- Cap the page menu trigger's width so long page names truncate. ([#11492](https://github.com/tldraw/tldraw/pull/11492))
+- Restyle the error screen in `@tldraw/editor` to match tldraw dialogs, with text buttons, a primary Refresh button, a red Reset button, and an icon copy button on hover for the stack trace. ([#11491](https://github.com/tldraw/tldraw/pull/11491))
 - Run agent starter kit actions through tool calls rather than plain JSON text output, with streaming partial updates and follow-up turns, and let actions provide their own results via `AgentActionUtil.getResult`. ([#11147](https://github.com/tldraw/tldraw/pull/11147))
 - Add OpenRouter support to the agent and branching-chat starter kits via `OPENROUTER_API_KEY`. ([#11103](https://github.com/tldraw/tldraw/pull/11103))
+- Use Node's built-in `node:sqlite` instead of `better-sqlite3` in the Node and socket.io sync server starter templates, removing the need for a native module dependency. ([#11175](https://github.com/tldraw/tldraw/pull/11175))
+- Add task lists to rich text with interactive checkboxes, markdown `[ ]` shortcuts, and checkboxes styled to match the active font. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- In `@tldraw/commenting`, comment card actions show on keyboard focus (`:focus-visible`) and leaving an edit via keyboard returns focus to the card's action menu button. ([#11465](https://github.com/tldraw/tldraw/pull/11465))
 
 ## Bug fixes
 
+- Fix arrows binding to shapes in locked groups, which could lock the new arrow or leave it stuck while drawing. ([#11201](https://github.com/tldraw/tldraw/pull/11201))
+- Fix an unhandled promise rejection when UI translations fail to load. ([#10922](https://github.com/tldraw/tldraw/pull/10922))
+- Fix `TldrawUiIcon` throwing outside an `AssetUrlsProvider` by falling back to the default icon URLs. ([#11485](https://github.com/tldraw/tldraw/pull/11485))
+- Fix `.tldr` files dropping assets that custom records refer to; assets named by any record in the file are now preserved. ([#11406](https://github.com/tldraw/tldraw/pull/11406))
+- Fix pressing Escape while dragging a note's clone handle leaving the new note behind and switching to the note tool. ([#10460](https://github.com/tldraw/tldraw/pull/10460))
+- Fix the Delete, Duplicate, and Group shortcuts acting on children of locked frames and groups, matching the menu behavior. ([#10479](https://github.com/tldraw/tldraw/pull/10479))
+- Fix screen-reader announcements for groups and for nested shapes inside frames or groups. ([#10505](https://github.com/tldraw/tldraw/pull/10505))
+- Fix the follow button tooltip saying "Following" before following anyone. ([#10511](https://github.com/tldraw/tldraw/pull/10511))
+- Fix Windows and Linux shortcut labels showing `⇧` instead of `Shift`. ([#10511](https://github.com/tldraw/tldraw/pull/10511))
+- Fix the Delete key not working when the keyboard shortcuts preference is disabled, matching Enter, Tab, and the arrows. ([#10511](https://github.com/tldraw/tldraw/pull/10511))
 - Fix a crash when dropping an audio-only video file (for example `.webm`) or a file with no size on the canvas. ([#11220](https://github.com/tldraw/tldraw/pull/11220))
 - Fix replacing an image or video when the upload fails: the shape now keeps its previous media and an error toast shows. ([#11220](https://github.com/tldraw/tldraw/pull/11220))
 - Fix clicks in the empty space above a frame selecting the frame when zoomed out. ([#11253](https://github.com/tldraw/tldraw/pull/11253))
 - Fix cursor chat closing immediately when opened from the context menu. ([#11054](https://github.com/tldraw/tldraw/pull/11054))
 - Fix the comment composer's text jumping up when a comment wraps onto a second line. ([#11255](https://github.com/tldraw/tldraw/pull/11255))
 - Fix the selection box of a text shape shrinking when an empty heading is created. ([#11219](https://github.com/tldraw/tldraw/pull/11219))
+- Remove an unused `data-iseditinganything` attribute from `.tlui-layout`, along with the editing-state reactor that set it on iOS and Android. ([#10502](https://github.com/tldraw/tldraw/pull/10502))
+- Fix text and note shapes re-rendering on every selection change, even when their own selected state has not changed. ([#11526](https://github.com/tldraw/tldraw/pull/11526))
+- Fix video controls not appearing or hiding when zooming. ([#11526](https://github.com/tldraw/tldraw/pull/11526))

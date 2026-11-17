@@ -1,15 +1,16 @@
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { defineMessages, F, useDialogs, useTranslation } from 'tldraw'
+import { defineMessages, F, TldrawUiButton, useDialogs, useTranslation, useValue } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { SubmitFeedbackDialog } from '../../components/dialogs/SubmitFeedbackDialog'
+import { TlaSettingsDialog } from '../../components/dialogs/TlaSettingsDialog'
 import { TlaIcon } from '../../components/TlaIcon/TlaIcon'
 import { TlaLogo } from '../../components/TlaLogo/TlaLogo'
 import { TlaSidebarDotDevLink } from '../../components/TlaSidebar/components/TlaSidebarDotDevLink'
-import { TlaUserSettingsMenu } from '../../components/TlaSidebar/components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceSwitcher } from '../../components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher'
+import { TlaUserAvatar } from '../../components/TlaUserAvatar/TlaUserAvatar'
 import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import sidebarStyles from '../../components/TlaSidebar/sidebar.module.css'
@@ -18,6 +19,7 @@ import styles from './workspace-layout.module.css'
 const messages = defineMessages({
 	help: { defaultMessage: 'Get help' },
 	workspaces: { defaultMessage: 'Workspaces' },
+	userSettings: { defaultMessage: 'User settings' },
 })
 
 export function TlaWorkspaceLayout({ children }: { children: ReactNode }) {
@@ -26,6 +28,7 @@ export function TlaWorkspaceLayout({ children }: { children: ReactNode }) {
 	const { addDialog } = useDialogs()
 	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
+	const user = useValue('auth', () => app.getUser(), [app])
 
 	return (
 		<div className={styles.layout} data-testid="tla-workspace-layout">
@@ -54,7 +57,16 @@ export function TlaWorkspaceLayout({ children }: { children: ReactNode }) {
 					>
 						<TlaIcon icon="help-circle" />
 					</button>
-					<TlaUserSettingsMenu compact className={styles.account} />
+					<TldrawUiButton
+						type="icon"
+						className={styles.account}
+						tooltip={msg(messages.userSettings)}
+						title={msg(messages.userSettings)}
+						data-testid="tla-sidebar-user-settings-trigger"
+						onClick={() => addDialog({ component: () => <TlaSettingsDialog /> })}
+					>
+						<TlaUserAvatar user={user} className={styles.accountAvatar} />
+					</TldrawUiButton>
 				</div>
 			</header>
 			<main className={styles.main}>{children}</main>

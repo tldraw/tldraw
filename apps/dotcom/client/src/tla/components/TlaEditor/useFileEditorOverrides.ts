@@ -13,8 +13,8 @@ import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { editorMessages as messages } from './editor-messages'
-import { useRoomInfo } from './TlaEditorTopRightPanel'
 
 /** Triggers a GET to the app file download endpoint; browser shows download immediately with progress. */
 export function downloadAppFile(fileId: string) {
@@ -75,6 +75,7 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: 'cmd+s,ctrl+s',
+					commandPalette: false,
 					onSelect() {
 						trackEvent('save-project-no-action', { source: 'kbd' })
 					},
@@ -83,6 +84,9 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'save-file-copy',
 					label: intl.formatMessage(messages.downloadFile),
 					readonlyOk: true,
+					// Signed in on a file, TlaCommandPalette's file commands already download it. Every
+					// other palette must list this action, or download has no palette entry.
+					commandPalette: app && fileSlug ? false : undefined,
 					async onSelect() {
 						trackEvent('download-file', { source: '' })
 						if (app && fileSlug) {
@@ -99,6 +103,8 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 					id: 'copy-to-my-files',
 					label: intl.formatMessage(messages.copyToMyfiles),
 					readonlyOk: true,
+					// Copying needs an account and a legacy or published room to copy from.
+					isAvailable: () => !!app && !!copySource,
 					async onSelect() {
 						if (!copySource) return
 						const defaultName = getEditorFileName(app, fileSlug, editor, untitledProject)

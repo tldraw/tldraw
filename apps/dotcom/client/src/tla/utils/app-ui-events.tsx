@@ -25,6 +25,7 @@ export type TLAppUiEventSource =
 	| 'dialog'
 	| 'workspace-settings'
 	| 'workspace-home'
+	| 'command-palette'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -69,6 +70,7 @@ export interface TLAppUiEventMap {
 	'import-tldr-file': null
 	'change-user-name': null
 	'open-share-menu': null
+	'open-workspace-settings': null
 	'change-share-menu-tab': { tab: TldrawAppSessionState['shareMenuActiveTab'] }
 	'copy-share-link': null
 	'open-share-link': null

@@ -11,6 +11,7 @@ export type TLUiMenuContextType =
 	| 'helper-buttons'
 	| 'toolbar'
 	| 'toolbar-overflow'
+	| 'command-palette'
 
 const menuContext = createContext<{
 	type: TLUiMenuContextType

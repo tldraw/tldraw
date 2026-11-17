@@ -102,7 +102,7 @@
 	left: 0px;
 	right: 0px;
 	bottom: 2px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	background-color: var(--tl-color-muted-0);
 	z-index: 0;
 	pointer-events: none;
@@ -155,11 +155,11 @@
 	left: 4px;
 	right: 4px;
 	bottom: 4px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tl-color-muted-0);
+	background-color: var(--tl-color-muted-2);
 }
 
 .sidebarToggle:focus-visible {
@@ -271,11 +271,10 @@
 	left: 2px;
 	right: 2px;
 	bottom: 2px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarCreateFileButton:focus-visible {
@@ -314,42 +313,7 @@
 	flex: 0 0 auto;
 }
 
-/* ----------------- Link button ---------------- */
-
-.sidebarLinkButton {
-	position: relative;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	gap: 6px;
-	height: 36px;
-	flex: 0 0 auto;
-	background: none;
-	border: none;
-	cursor: pointer;
-	color: var(--tl-color-text-0);
-	padding: 0px 8px;
-	text-align: left;
-	text-decoration: none;
-}
-
-.sidebarLinkButton > span[role='img'] {
-	flex-shrink: 0;
-}
-
-.sidebarLinkButtonLabel {
-	flex: 0 1 auto;
-	min-width: 0;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.sidebarLinkButton:focus-visible {
-	outline-offset: -2px;
-}
-
-/* User settings menu */
+/* User settings button */
 
 .userSettingsPopover {
 	overflow: visible;
@@ -396,10 +360,12 @@
 	inset: 2px 0px;
 }
 
-.sidebarUserSettingsAvatarIcon {
-	flex: 0 0 auto;
-	color: var(--tl-color-text-0);
-	margin-inline-end: 6px;
+/* 20px circle on the 15px icon column: the start margin keeps its centre in line with the icons above. */
+.sidebarUserSettingsAvatar {
+	width: 20px;
+	height: 20px;
+	font-size: 11px;
+	margin-inline: -2.5px 8px;
 }
 
 .sidebarUserSettingsName {
@@ -410,34 +376,10 @@
 	color: var(--tl-color-text-0);
 }
 
-.sidebarUserSettingsIcon {
-	width: 36px;
-	height: 36px;
-	min-width: 0;
-	margin-inline-end: -6px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex: 0 0 auto;
-	color: var(--tl-color-text-3);
-}
-
 @media (hover: hover) {
 	.sidebarUserSettingsTrigger:hover {
 		color: var(--tl-color-text-0);
 	}
-
-	.sidebarUserSettingsIcon {
-		color: var(--tl-color-text-3);
-	}
-
-	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
-		color: var(--tl-color-text-0);
-	}
-}
-
-.sidebarUserSettingsTrigger[data-state='open']::after {
-	visibility: visible;
 }
 
 /* ---------------- File link section --------------- */
@@ -627,7 +569,7 @@
 	inset: 4px 6px;
 	opacity: 0;
 	pointer-events: none;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 }
 
 .sidebarWorkspaceSwitcherItem[data-highlighted]::after {
@@ -749,7 +691,7 @@
 	content: '';
 	position: absolute;
 	inset: 2px 0px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	border: 1px solid transparent;
 	pointer-events: none;
 }
@@ -877,7 +819,7 @@
 }
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	outline: 2px solid var(--tl-color-text-0);
 	outline-offset: -2px;
 }
@@ -932,7 +874,7 @@
 	position: absolute;
 	bottom: 0px;
 	inset: 2px 0px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	border: 1px solid var(--tl-color-primary);
 }
 
@@ -975,7 +917,7 @@
 }
 
 .sidebarFileListItemButton:focus-visible {
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	outline-offset: 0px;
 }
 
@@ -1032,8 +974,12 @@
 	}
 
 	.sidebarFileListItemMenuTrigger:hover {
-		color: var(--tl-color-text-0);
+		color: var(--tl-color-text-1);
 	}
+}
+
+.sidebarFileListItemMenuTrigger[data-state='open'] {
+	color: var(--tl-color-text-1);
 }
 
 /* Guest badge */

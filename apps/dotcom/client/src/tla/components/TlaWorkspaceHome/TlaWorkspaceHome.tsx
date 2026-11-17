@@ -20,8 +20,10 @@ import { useWorkspaceName } from '../../hooks/useWorkspaceName'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { useHandleSidebarCreateFile } from '../TlaSidebar/components/TlaSidebarCreateFileButton'
-import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import {
+	messages as sidebarMessages,
+	useHandleSidebarCreateFile,
+} from '../TlaSidebar/components/sidebar-shared'
 import styles from './workspace-home.module.css'
 
 const messages = defineMessages({
@@ -214,7 +216,7 @@ function TlaWorkspaceHomeHeader({
 			<TlaButton
 				className={styles.createButton}
 				icon="plus-strong"
-				onClick={handleCreateFile}
+				onClick={() => handleCreateFile({ source: 'workspace-home' })}
 				data-testid="tla-workspace-new-board"
 			>
 				{msg(messages.newBoard)}

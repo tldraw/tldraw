@@ -25,7 +25,8 @@ export function TldrawUiMenuActionItem({
 	if (!available) {
 		// The shortcuts dialog lists what a key does, even where the menu item wouldn't show.
 		if (menuType !== 'keyboard-shortcuts') return null
-	} else if ((disabled || !enabled) && whenDisabled === 'hide') {
+	} else if ((disabled || !enabled) && whenDisabled === 'hide' && menuType !== 'command-palette') {
+		// The palette shows disabled items in search, so they register there either way.
 		return null
 	}
 	return (

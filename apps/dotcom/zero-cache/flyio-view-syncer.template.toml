@@ -41,6 +41,8 @@ ZERO_CHANGE_STREAMER_URI = "__REPLICATION_MANAGER_URI"
 ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
 ZERO_QUERY_URL = "__ZERO_QUERY_URL"
 ZERO_ENABLE_CRUD_MUTATIONS = "false"
+# Refuse /query and /mutate responses without a server-validated userID. Needs the sync-worker that returns it.
+ZERO_AUTH_REQUIRE_SERVER_USER_ID = "true"
 ZERO_UPSTREAM_MAX_CONNS = "__VS_UPSTREAM_MAX_CONNS"
 ZERO_CVR_MAX_CONNS = "__VS_CVR_MAX_CONNS"
 ZERO_LOG_LEVEL = "warn"

@@ -5,6 +5,21 @@
 	overflow-y: auto;
 }
 
+/* The sign-in flow is black and white, matching the OAuth consent page it hands off to, apart from
+   the blue "Sign in with Google" button. Swapping the accent tokens here covers TlaCtaButton too
+   without forking its styles. */
+.authContainer,
+.legalContainer {
+	--tl-color-selected: var(--tl-color-text-0);
+	--tl-color-focus: var(--tl-color-text-0);
+}
+
+.legalContainer {
+	--tl-color-primary: var(--tl-color-text-0);
+	--tla-color-primary-hover: var(--tl-color-text-1);
+	--tl-color-selected-contrast: var(--tl-color-background);
+}
+
 .authDialogBody {
 	padding: 0;
 }
@@ -57,7 +72,7 @@
 /* Description Text */
 .authDescription {
 	text-align: center;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 	font-size: 12px;
 	margin: 0;
 	line-height: 1.5;
@@ -78,18 +93,18 @@
 
 .legalDescription a {
 	color: var(--tl-color-selected);
+	/* The selected colour is the text colour here, so colour alone no longer marks a link. */
+	text-decoration: underline;
 }
 
 /* Cta button */
 .authCtaButton {
 	height: 36px;
 	width: 100%;
+	/* TlaCtaButton's 2px left margin would push a full-width button past the form's right edge. */
+	margin-left: 0;
 	font-size: 12px;
 	font-weight: 500;
-}
-
-.legalCtaButton {
-	margin-left: 0;
 }
 
 /* The google logo in the cta button on the sign in dialog */
@@ -210,6 +225,7 @@
 
 .authCheckboxLabel a {
 	color: var(--tl-color-selected);
+	text-decoration: underline;
 }
 
 .authCheckbox {

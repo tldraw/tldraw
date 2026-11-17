@@ -1,6 +1,5 @@
 import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
-import type { CollectionSource } from '@tldraw/collections'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
@@ -28,6 +27,7 @@ import {
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
+import type { LibrarySource } from '@tldraw/libraries'
 import {
 	Result,
 	compact,
@@ -71,7 +71,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { createCollectionsSource } from '../components/TlaCollections/collectionsSource'
+import { createLibrariesSource } from '../components/TlaLibraries/librariesSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -208,10 +208,9 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
-	/** Fixed for the app's lifetime: flags are read once per page load. */
 	readonly isUiV3Enabled: boolean
-	/** Null when the `collections` flag is off for this user. */
-	readonly collections: CollectionSource | null
+	/** Null when the `libraries` flag is off for this user. */
+	readonly libraries: LibrarySource | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -301,12 +300,12 @@ export class TldrawApp {
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
-		if (flags.collections?.enabled) {
-			const collections = createCollectionsSource(userId)
-			this.collections = collections
-			this.disposables.push(() => collections.dispose())
+		if (flags.libraries?.enabled) {
+			const libraries = createLibrariesSource(userId)
+			this.libraries = libraries
+			this.disposables.push(() => libraries.dispose())
 		} else {
-			this.collections = null
+			this.libraries = null
 		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
@@ -1112,13 +1111,35 @@ export class TldrawApp {
 		})
 	}
 
+	@computed
+	getFilesById(): Map<string, TlaFile | null> {
+		const files = new Map<string, TlaFile | null>()
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!files.has(groupFile.fileId)) files.set(groupFile.fileId, groupFile.file ?? null)
+			}
+		}
+		return files
+	}
+
+	@computed({ isEqual })
+	getSearchableFiles(): Array<{ fileId: string; workspaceId: string }> {
+		const seen = new Set<string>()
+		const files: Array<{ fileId: string; workspaceId: string }> = []
+		for (const membership of this.getWorkspaceMemberships()) {
+			for (const groupFile of membership.groupFiles) {
+				if (!groupFile.file || seen.has(groupFile.fileId)) continue
+				if (!this.isFileListedInWorkspace(membership.groupId, groupFile.file)) continue
+				seen.add(groupFile.fileId)
+				files.push({ fileId: groupFile.fileId, workspaceId: membership.groupId })
+			}
+		}
+		return files
+	}
+
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		for (const membership of this.getWorkspaceMemberships()) {
-			const groupFile = membership.groupFiles.find((gf) => gf.fileId === fileId)
-			if (groupFile) return groupFile.file ?? null
-		}
-		return null
+		return this.getFilesById().get(fileId) ?? null
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -1515,14 +1536,33 @@ export class TldrawApp {
 		searchQuery: '',
 	})
 
-	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
-	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+	private getCopyableInviteSecret(workspaceId: string) {
 		// The home workspace can't be invited to.
-		if (workspaceId === this.getHomeWorkspaceId()) return false
+		if (workspaceId === this.getHomeWorkspaceId()) return undefined
 		const group = this.getWorkspaceMembership(workspaceId)?.group
-		if (!group?.inviteSecret) return false
+		// A new workspace has no invite secret until the server confirms it.
+		if (!group?.inviteSecret) return undefined
+		// Missing column on older cached rows means enabled.
+		if (!(group.inviteLinkEnabled ?? true)) return undefined
+		return group.inviteSecret
+	}
 
-		copyTextToClipboard(routes.tlaInvite(group.inviteSecret, { asUrl: true }))
+	canCopyWorkspaceInvite(workspaceId: string) {
+		return !!this.getCopyableInviteSecret(workspaceId)
+	}
+
+	/** Returns false when there is no invite link to copy (none yet, or disabled). */
+	copyWorkspaceInvite(
+		workspaceId: string,
+		{
+			showToast = true,
+			source = 'sidebar',
+		}: { showToast?: boolean; source?: TLAppUiEventSource } = {}
+	): boolean {
+		const inviteSecret = this.getCopyableInviteSecret(workspaceId)
+		if (!inviteSecret) return false
+
+		copyTextToClipboard(routes.tlaInvite(inviteSecret, { asUrl: true }))
 
 		if (showToast) {
 			this.toasts?.addToast({
@@ -1531,7 +1571,7 @@ export class TldrawApp {
 			})
 		}
 
-		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		this.trackEvent('copy-share-link', { source })
 		return true
 	}
 

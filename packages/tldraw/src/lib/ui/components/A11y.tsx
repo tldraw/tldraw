@@ -1,7 +1,9 @@
 import {
+	compact,
 	debugFlags,
 	defineMessages,
 	Editor,
+	isPageId,
 	TLShapeId,
 	unsafe__withoutCapture,
 	useContainer,
@@ -127,9 +129,14 @@ export function generateShapeAnnouncementMessage(args: {
 	// two media shapes and bookmark gets its name.
 	const shapeType = shapeUtil.getShapeName(shape) ?? msg(`tool.${shape.type}`)
 
-	// A selected shape outside the page's reading order (a container's child, or canTabTo
-	// false) has no position to announce, and "0 of N" would be wrong
-	const readingOrderShapes = editor.getCurrentPageShapesInReadingOrder()
+	// A shape inside a frame or group is announced by its position among its siblings, since it
+	// isn't in the page-level order. One that can't be tabbed to has no position to announce, and
+	// "0 of N" would be wrong
+	const readingOrderShapes = isPageId(shape.parentId)
+		? editor.getCurrentPageShapesInReadingOrder()
+		: editor.getShapesInReadingOrder(
+				compact(editor.getSortedChildIdsForParent(shape.parentId).map((id) => editor.getShape(id)))
+			)
 	const indexInReadingOrder = readingOrderShapes.findIndex((s) => s.id === shapeId)
 	const shapeIndex =
 		indexInReadingOrder === -1

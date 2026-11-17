@@ -1,14 +1,15 @@
-import { defineMessages, usePassThroughWheelEvents } from '@tldraw/editor'
-import { memo, useCallback, useRef } from 'react'
+import { defineMessages, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
-import { useLocalStorageState } from '../../hooks/useLocalStorageState'
+import { useUiEvents } from '../../context/events'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+import { isMinimapCollapsed, toggleMinimap } from './minimapCollapsed'
 
 const messages = defineMessages({
 	navigationZoneTitle: { id: 'navigation-zone.title', defaultMessage: 'Navigation' },
@@ -24,15 +25,12 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const msg = useTranslation()
 	const dir = useDirection()
 	const breakpoint = useBreakpoint()
+	const trackEvent = useUiEvents()
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	const [collapsed, setCollapsed] = useLocalStorageState('minimap', true)
-
-	const toggleMinimap = useCallback(() => {
-		setCollapsed((s) => !s)
-	}, [setCollapsed])
+	const collapsed = useValue('minimap collapsed', () => isMinimapCollapsed(), [])
 
 	const { ZoomMenu, Minimap } = useTldrawUiComponents()
 
@@ -46,7 +44,10 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 			type="icon"
 			data-testid="minimap.toggle-button"
 			title={msg(messages.navigationZoneToggleMinimap)}
-			onClick={toggleMinimap}
+			onClick={() => {
+				trackEvent('toggle-minimap', { source: 'navigation-zone' })
+				toggleMinimap()
+			}}
 		>
 			<TldrawUiButtonIcon small icon={collapsed !== isRtl ? 'chevron-right' : 'chevron-left'} />
 		</TldrawUiToolbarButton>

@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Opprett fil"
   },
+  "1a7222b4e5": {
+    "translation": "Flytt til"
+  },
   "1da2e8106b": {
     "translation": "Det oppstod en uventet feil."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Fjern medlem"
+  },
+  "398f51738e": {
+    "translation": "Logg inn for å godta denne invitasjonen."
   },
   "3bc7d6ea2f": {
     "translation": "Fortsett med e-post"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Last inn siden på nytt"
   },
+  "747ee44424": {
+    "translation": "Lagre innholdet som en .tldr-fil: velg «Lagre en kopi» i menyen øverst til venstre."
+  },
   "74ff4bad28": {
     "translation": "Ingen filer funnet"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "Er du sikker på at du vil slette <strong>{workspaceName}</strong>? Denne handlingen kan ikke angres."
   },
+  "930390d222": {
+    "translation": "Kopierte invitasjonslenken"
+  },
   "95aacd4d4a": {
     "translation": "Logg inn med Google"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, one {# ulest} other {# ulest}}"
-  },
-  "a0da245992": {
-    "translation": "Eksporter innholdet som en .tldr-fil: Velg «Last ned» i menyen øverst til venstre."
   },
   "a104439641": {
     "translation": "Polstring"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "eller"
   },
+  "ea13ecec38": {
+    "translation": "Filhistorikk"
+  },
   "ea4788705e": {
     "translation": "Kansellere"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Slett"
   },
+  "f408fa5fbd": {
+    "translation": "Denne invitasjonslenken er ugyldig eller har utløpt."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# annen} other {# andre}} reagerte på kommentaren din"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Opprett en gratis konto for å lagre filene dine og tegne med lagkameratene dine."
+  },
+  "ffad261a48": {
+    "translation": "Feil ved godtok invitasjonen"
   },
   "ffcd73e997": {
     "translation": "Importer fil…"

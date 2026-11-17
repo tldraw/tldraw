@@ -4,7 +4,7 @@ import { defineMessages, useDialogs, useTranslation } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { useHandleSidebarCreateFile } from './TlaSidebarCreateFileButton'
+import { useHandleSidebarCreateFile } from './sidebar-shared'
 import { TlaSidebarSearch } from './TlaSidebarSearch'
 import styles from '../sidebar.module.css'
 
@@ -31,7 +31,7 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
 			),
 		})
-		trackEvent('open-share-menu', { source: 'sidebar' })
+		trackEvent('open-workspace-settings', { source: 'sidebar' })
 	}, [addDialog, workspaceId, trackEvent])
 
 	return (
@@ -40,7 +40,7 @@ export function TlaSidebarWorkspaceActions({ workspaceId }: { workspaceId: strin
 			<TlaSidebarActionButton
 				icon="edit"
 				label={msg(messages.newFile)}
-				onClick={handleCreateFile}
+				onClick={() => handleCreateFile()}
 				testId="tla-sidebar-new-board"
 			/>
 			<TlaSidebarActionButton
