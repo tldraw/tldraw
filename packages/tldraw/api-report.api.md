@@ -952,18 +952,6 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly embedOnPaste: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
-    readonly hostnames: readonly ["val.town"];
-    readonly minHeight: 100;
-    readonly minWidth: 260;
-    readonly title: 'Val Town';
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly type: 'val_town';
-    readonly width: 720;
-}, {
-    readonly doesResize: true;
-    readonly embedOnPaste: true;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    readonly height: 500;
     readonly hostnames: readonly ["codesandbox.io"];
     readonly minHeight: 300;
     readonly minWidth: 300;

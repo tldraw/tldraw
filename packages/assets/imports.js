@@ -17,7 +17,6 @@ import embedIconsReplitPng from './embed-icons/replit.png'
 import embedIconsScratchPng from './embed-icons/scratch.png'
 import embedIconsSpotifyPng from './embed-icons/spotify.png'
 import embedIconsTldrawPng from './embed-icons/tldraw.png'
-import embedIconsValTownPng from './embed-icons/val_town.png'
 import embedIconsVimeoPng from './embed-icons/vimeo.png'
 import embedIconsYoutubePng from './embed-icons/youtube.png'
 import fontsIBMPlexMonoBoldWoff2 from './fonts/IBMPlexMono-Bold.woff2'
@@ -357,7 +356,6 @@ export function getAssetUrlsByImport(opts) {
 			scratch: formatAssetUrl(embedIconsScratchPng, opts),
 			spotify: formatAssetUrl(embedIconsSpotifyPng, opts),
 			tldraw: formatAssetUrl(embedIconsTldrawPng, opts),
-			val_town: formatAssetUrl(embedIconsValTownPng, opts),
 			vimeo: formatAssetUrl(embedIconsVimeoPng, opts),
 			youtube: formatAssetUrl(embedIconsYoutubePng, opts),
 		},
