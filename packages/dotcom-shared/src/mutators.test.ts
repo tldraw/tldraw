@@ -2246,6 +2246,58 @@ describe('libraries', () => {
 			expect(store.file_library.map((r) => r.fileId)).toEqual([fileShared])
 		})
 
+		describe('removing with deleteIfEmpty', () => {
+			const remove = (
+				mutators: ReturnType<typeof createMutators>,
+				tx: Transaction<TlaSchema>,
+				id: string
+			) => mutators.file_library.remove(tx, { fileId: fileW, libraryId: id, deleteIfEmpty: true })
+
+			it('deletes the library when it has no items', async () => {
+				const { store, tx, mutations, mutators } = setupFiles({
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryX])
+				expect(mutations).toContainEqual({
+					op: 'delete',
+					table: 'library',
+					data: { id: libraryId },
+				})
+			})
+
+			it('only removes it from the file when it has an item', async () => {
+				const { store, tx, mutators } = setupFiles({
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+					library_item: [makeItem('item_1111222233334444', libraryId)],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId, libraryX])
+				expect(store.library_item).toHaveLength(1)
+			})
+
+			it('only removes my default library from the file', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [makeLibrary({ id: libraryId, owningGroupId: me, isDefault: true })],
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library).toHaveLength(1)
+			})
+
+			it("only removes a library from a workspace I'm not in from the file", async () => {
+				const { store, tx, mutators } = setupFiles({
+					file_library: [{ fileId: fileW, libraryId: libraryX, addedBy: other, addedAt: 1 }],
+				})
+				await remove(mutators, tx, libraryX)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId, libraryX])
+			})
+		})
+
 		it("can't remove a library from a file I can only view, or can't access", async () => {
 			const { store, tx, mutators } = setupFiles({
 				file_library: [{ fileId: fileShared, libraryId: libraryX, addedBy: other, addedAt: 1 }],

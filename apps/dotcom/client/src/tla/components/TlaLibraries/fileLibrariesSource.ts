@@ -89,7 +89,12 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 	constructor(
 		private readonly app: Pick<
 			TldrawApp,
-			'z' | 'getHomeWorkspaceId' | 'getFile' | 'canUpdateFile' | 'watchFileLibraries'
+			| 'z'
+			| 'getHomeWorkspaceId'
+			| 'getFile'
+			| 'canUpdateFile'
+			| 'watchFileLibraries'
+			| 'areLibrariesLoaded'
 		>,
 		private readonly libraries: TldrawAppLibrariesSource,
 		private readonly fileId: string
@@ -172,13 +177,32 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 		await this.add(libraryId)
 	}
 
+	/**
+	 * Whether removing the library from the file asks to delete it too: it looks empty, so nothing
+	 * is lost, and the user may delete it. Never the user's default, which can't be deleted. Only
+	 * once the libraries have synced, since until then a library's items may not have arrived. The
+	 * server checks again, and keeps the library if an item has been added since.
+	 */
+	deletesOnRemove(libraryId: TLLibraryId) {
+		return (
+			this.app.areLibrariesLoaded() &&
+			this.getItems(libraryId).length === 0 &&
+			this.can('deleteLibrary', libraryId)
+		)
+	}
+
 	async removeLibraryFromDocument(libraryId: TLLibraryId) {
 		if (!this.can('removeLibraryFromDocument', libraryId)) {
 			throw new LibraryPermissionError('removeLibraryFromDocument', libraryId)
 		}
+		const deleteIfEmpty = this.deletesOnRemove(libraryId)
 		await this.libraries.apply(
-			this.app.z.mutate.file_library.remove({ fileId: this.fileId, libraryId: rowId(libraryId) }),
-			'remove-library-from-file'
+			this.app.z.mutate.file_library.remove({
+				fileId: this.fileId,
+				libraryId: rowId(libraryId),
+				deleteIfEmpty,
+			}),
+			deleteIfEmpty ? 'delete-library' : 'remove-library-from-file'
 		)
 	}
 

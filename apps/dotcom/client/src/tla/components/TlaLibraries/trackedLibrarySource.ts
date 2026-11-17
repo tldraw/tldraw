@@ -52,9 +52,12 @@ export class TrackedLibrarySource implements LibrarySource {
 		{
 			fileId,
 			eventSource = 'libraries',
+			deletesOnRemove,
 		}: {
 			/** The board whose libraries the source holds, if any. */
 			fileId?: string
+			/** Whether removing a library from the document deletes it, so it's reported as deleted. */
+			deletesOnRemove?(libraryId: TLLibraryId): boolean
 			/** Where in the app the changes are made, reported with each event. */
 			eventSource?: TLAppUiEventSource
 		} = {}
@@ -128,11 +131,9 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.removeLibraryFromDocument) {
 			const removeLibraryFromDocument = source.removeLibraryFromDocument.bind(source)
 			this.removeLibraryFromDocument = async (libraryId) => {
-				await this.watch(
-					{ action: 'remove-library-from-file' },
-					removeLibraryFromDocument(libraryId)
-				)
-				this.track('remove-library-from-file')
+				const action = deletesOnRemove?.(libraryId) ? 'delete-library' : 'remove-library-from-file'
+				await this.watch({ action }, removeLibraryFromDocument(libraryId))
+				this.track(action)
 			}
 		}
 	}

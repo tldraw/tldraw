@@ -8,6 +8,31 @@ const rowId = (library: TLLibrary) => library.id.slice('library:'.length)
 
 const names = (libraries: TLLibrary[]) => libraries.map((library) => library.name)
 
+function addStoredItem(backend: ReturnType<typeof createFakeLibrariesBackend>, library: TLLibrary) {
+	backend.rows.update((all) =>
+		all.map((row) =>
+			row.id === rowId(library)
+				? {
+						...row,
+						items: [
+							...row.items,
+							{
+								id: `item-${row.items.length}`,
+								libraryId: row.id,
+								name: 'Star',
+								thumbnail: null,
+								createdBy: 'user_me',
+								createdAt: 0,
+								updatedAt: 0,
+								meta: {},
+							},
+						],
+					}
+				: row
+		)
+	)
+}
+
 function setUp({ workspaces = ['acme'] }: { workspaces?: string[] } = {}) {
 	const backend = createFakeLibrariesBackend({
 		workspaces: workspaces.map((id) => ({ id, name: id[0].toUpperCase() + id.slice(1) })),
@@ -60,8 +85,9 @@ describe('TldrawAppFileLibrariesSource', () => {
 	})
 
 	it('adds libraries to the file and removes them again', async () => {
-		const { libraries, source } = setUp()
+		const { backend, libraries, source } = setUp()
 		const kit = await libraries.createLibrary('Kit', { ownerId: 'acme' })
+		addStoredItem(backend, kit)
 		expect(source.can('addLibraryToDocument', kit.id)).toBe(true)
 		expect(source.can('removeLibraryFromDocument', kit.id)).toBe(false)
 		await source.addLibraryToDocument(kit.id)
@@ -73,10 +99,56 @@ describe('TldrawAppFileLibrariesSource', () => {
 		expect(names(source.getAvailableLibraries())).toEqual(['Kit'])
 	})
 
+	it('deletes an empty library instead of removing it from the file', async () => {
+		const { backend, libraries, source } = setUp()
+		const kit = await libraries.createLibrary('Kit', { ownerId: 'acme' })
+		await source.addLibraryToDocument(kit.id)
+		expect(source.deletesOnRemove(kit.id)).toBe(true)
+		await source.removeLibraryFromDocument(kit.id)
+		expect(source.getLibraries()).toEqual([])
+		expect(source.getAvailableLibraries()).toEqual([])
+		expect(backend.rows.get()).toEqual([])
+		expect(backend.fileLibraries.get()).toEqual([])
+	})
+
+	it("removes an empty library it can't delete, or before the libraries have synced", async () => {
+		const { backend, libraries, source } = setUp()
+		const kit = await libraries.createLibrary('Kit', { ownerId: 'acme' })
+		await source.addLibraryToDocument(kit.id)
+		backend.librariesLoaded.set(false)
+		expect(source.deletesOnRemove(kit.id)).toBe(false)
+		await source.removeLibraryFromDocument(kit.id)
+		expect(names(source.getAvailableLibraries())).toEqual(['Kit'])
+
+		backend.librariesLoaded.set(true)
+		backend.otherRows.set([
+			{
+				id: 'theirs',
+				name: 'Their kit',
+				owningGroupId: 'elsewhere',
+				meta: {},
+				isDefault: false,
+				createdBy: 'someone',
+				createdAt: 0,
+				updatedAt: 0,
+				items: [],
+			},
+		])
+		backend.fileLibraries.set([
+			{ fileId: 'file-a', libraryId: 'theirs', addedBy: 'someone', addedAt: 0 },
+		])
+		const theirs = LibraryRecordType.createId('theirs')
+		expect(source.deletesOnRemove(theirs)).toBe(false)
+		await source.removeLibraryFromDocument(theirs)
+		expect(backend.fileLibraries.get()).toEqual([])
+		expect(backend.otherRows.get()).toHaveLength(1)
+	})
+
 	it("doesn't remove the user's default", async () => {
 		const { libraries, source } = setUp()
 		libraries.ensureDefaultLibrary()
 		const [mine] = source.getLibraries()
+		expect(source.deletesOnRemove(mine.id)).toBe(false)
 		expect(source.can('removeLibraryFromDocument', mine.id)).toBe(false)
 		await expect(source.removeLibraryFromDocument(mine.id)).rejects.toThrow(LibraryPermissionError)
 	})

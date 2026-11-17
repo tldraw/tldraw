@@ -49,7 +49,12 @@ export function LibrarySection({
 	useEffect(() => {
 		if (!isActive) return
 		collapsedLibraryIds.update(editor, (ids) => ids.filter((id) => id !== libraryId))
-		if (ref.current) ref.current.scrollIntoView({ block: 'nearest' })
+		if (ref.current) {
+			ref.current.scrollIntoView({
+				block: 'nearest',
+				behavior: editor.user.getAnimationSpeed() > 0 ? 'smooth' : 'auto',
+			})
+		}
 		activeLibraryId.set(editor, null)
 	}, [editor, isActive, libraryId])
 

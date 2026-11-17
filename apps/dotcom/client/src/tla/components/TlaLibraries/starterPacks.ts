@@ -34,7 +34,7 @@ const starterPackSummariesValidator: T.Validator<StarterPackSummary[]> = T.array
 	})
 )
 
-export const STARTER_PACK_PREVIEW_COUNT = 4
+export const STARTER_PACK_PREVIEW_COUNT = 6
 
 // Each pack is its own chunk, fetched when it's added. starterPackManifest.json is generated from
 // these by starterPacks.test.ts, in this order; run that test with `-u` after changing a pack.

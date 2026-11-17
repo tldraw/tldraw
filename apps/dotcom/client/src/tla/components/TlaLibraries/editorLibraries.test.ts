@@ -198,6 +198,13 @@ describe('getEditorLibraries', () => {
 		expect(source.getLibraryPlacement!(id)).toBe('added')
 		expect(entry().added).toBe(true)
 
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'geo' })
+		await added(
+			source.addItem(id, {
+				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([shapeId])! },
+			})
+		)
 		await source.removeLibraryFromDocument!(id)
 		expect(entry().added).toBe(false)
 		expect(await entry().add()).toBe(id)

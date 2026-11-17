@@ -32,7 +32,7 @@ import { getBrowseSections } from './browse-groups'
 import { activeLibraryId } from './state'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 
-const PREVIEW_COUNT = 4
+const PREVIEW_COUNT = 6
 
 const messages = defineMessages({
 	title: { id: 'libraries.browse.title', defaultMessage: 'Browse libraries' },
@@ -241,7 +241,7 @@ function BrowseGroup({ label, children }: { label: string; children: ReactNode }
 	)
 }
 
-function useAdd(add: () => Promise<TLLibraryId>) {
+export function useAdd(add: () => Promise<TLLibraryId>) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()

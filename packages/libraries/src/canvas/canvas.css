@@ -115,11 +115,12 @@
 }
 
 .tlui-libraries-panel__add-more {
+	flex-shrink: 0;
 	margin: 0;
+	border-top: 1px solid var(--tl-color-divider);
 	border-radius: 0;
 }
 
-/* Labelled like the tldraw.com sidebar's file sections, in line with the libraries' names. */
 .tlui-libraries-panel__group-label {
 	margin: 0;
 	padding: 0 14px;
@@ -127,6 +128,10 @@
 	font-size: 12px;
 	font-weight: 500;
 	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-panel__group > .tlui-libraries-panel__group-label {
+	padding-top: 6px;
 }
 
 .tlui-libraries-menu-heading {
@@ -460,8 +465,7 @@
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-input__wrapper {
 	height: 32px;
-	margin-left: 4px;
-	margin-right: 44px;
+	margin: 0 8px 0 12px;
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-libraries-panel__rename {
@@ -521,13 +525,15 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--tl-space-4);
-	width: 440px;
+	flex-basis: auto;
+	width: 560px;
 	max-width: 100%;
-	max-height: 560px;
+	height: min(560px, 70vh);
 }
 
 .tlui-libraries-browse .tlui-libraries-panel__group-label {
 	padding: 0 var(--tl-space-2);
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-browse .tlui-libraries-browse__cards {
@@ -549,7 +555,7 @@
 
 .tlui-libraries-browse__thumbnails {
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: var(--tl-space-3);
 }
 
@@ -558,20 +564,44 @@
 	border-radius: var(--tl-radius-3);
 }
 
-.tlui-libraries-browse__footer {
-	display: flex;
-	align-items: center;
-	gap: var(--tl-space-4);
-	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
+.tlui-dialog__header.tlui-libraries-browse__header {
+	flex-shrink: 0;
+	border-bottom: 1px solid var(--tl-color-divider);
 }
 
-.tlui-libraries-browse__footer > .tlui-button {
+.tlui-dialog__header.tlui-libraries-browse__header:has(> .tlui-libraries-browse__back) {
+	padding-inline-start: 0;
+}
+
+/* .tlui-dialog__body's `overflow-wrap: anywhere` would let the action's label wrap mid-word. */
+.tlui-libraries-browse__footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tl-space-2) var(--tl-space-4);
+	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
+	overflow-wrap: normal;
+}
+
+.tlui-libraries-browse__actions {
+	display: flex;
 	flex: none;
+	align-items: center;
+	gap: var(--tl-space-4);
+	margin-inline-start: auto;
+}
+
+.tlui-libraries-browse__added {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+	font-size: 12px;
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-browse__text {
 	display: flex;
-	flex: 1 1 auto;
+	flex: 1 1 160px;
 	flex-direction: column;
 	min-width: 0;
 }
@@ -715,7 +745,7 @@
 	all: unset;
 	box-sizing: border-box;
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: var(--tl-space-3);
 	border-radius: var(--tl-radius-3);
 	cursor: pointer;
@@ -732,14 +762,10 @@
 	}
 }
 
-.tlui-libraries-browse__back {
-	margin-inline-end: calc(-1 * var(--tl-space-3));
-}
-
 .tlui-libraries-browse .tlui-libraries-browse__items {
 	flex-shrink: 0;
 	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+	grid-template-columns: repeat(6, minmax(0, 1fr));
 	gap: var(--tl-space-4) var(--tl-space-3);
 	min-height: 80px;
 	margin: 0;
@@ -770,7 +796,7 @@
 .tlui-libraries-this-file-empty {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 16px;
 	padding: 0 10px 12px;
 }
 
@@ -783,56 +809,75 @@
 .tlui-libraries-offers {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 8px;
+}
+
+.tlui-libraries-offers__heading {
+	margin: 0;
+	padding: 0 4px;
+	font-size: inherit;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-offers__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
-/* A small version of a Browse libraries card: a preview, the name and count, and Add to file. */
 .tlui-libraries-offer {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 4px 0 4px 4px;
+	gap: 12px;
+	padding: 8px 10px 8px 8px;
 	border-radius: var(--tl-radius-3);
 	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
 }
 
-.tlui-libraries-offer__thumbnail {
+.tlui-libraries-offer__icon {
+	display: flex;
 	flex-shrink: 0;
-	width: 32px;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
 	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
 }
 
 .tlui-libraries-offer__text {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
+	gap: 2px;
 	min-width: 0;
-}
-
-.tlui-libraries-offer__name,
-.tlui-libraries-offer__detail {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .tlui-libraries-offer__name {
 	font-weight: 500;
+	color: var(--tl-color-text-1);
 }
 
 .tlui-libraries-offer__detail {
 	color: var(--tl-color-text-3);
 }
 
-.tlui-libraries-offer > .tlui-button {
+.tlui-button.tlui-libraries-offer__add {
 	flex-shrink: 0;
 	height: 32px;
+	padding: 0 12px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-primary);
 }
 
-.tlui-button.tlui-libraries-this-file-empty__browse {
-	align-self: flex-start;
-	height: 32px;
+.tlui-button.tlui-libraries-offer__add::after {
+	inset: 0;
+	border-radius: inherit;
 }

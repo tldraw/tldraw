@@ -23,8 +23,9 @@ const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
  * workspace, and are added to the file.
  *
  * Made once per editor, so the panel and the context menu share it, with a view of the file's
- * libraries that lasts as long as the editor. Changes made through it are tracked. `reporting` is
- * where the board's source reports a thumbnail that fails to upload.
+ * libraries that lasts as long as the editor. Changes made through it are tracked, and removing an
+ * empty library from the file, which deletes it, as a delete. `reporting` is where the board's
+ * source reports a thumbnail that fails to upload.
  */
 export function getEditorLibraries(
 	app: Pick<
@@ -36,6 +37,7 @@ export function getEditorLibraries(
 		| 'z'
 		| 'canUpdateFile'
 		| 'watchFileLibraries'
+		| 'areLibrariesLoaded'
 	>,
 	userLibraries: TldrawAppLibrariesSource,
 	editor: Editor,
@@ -58,7 +60,10 @@ export function getEditorLibraries(
 			},
 		],
 	})
-	const source = new TrackedLibrarySource(composite, app, { fileId })
+	const source = new TrackedLibrarySource(composite, app, {
+		fileId,
+		deletesOnRemove: (libraryId) => fileLibraries.deletesOnRemove(libraryId),
+	})
 	sources.set(editor, { fileId, source })
 	return source
 }

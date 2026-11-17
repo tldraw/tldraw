@@ -27,7 +27,8 @@ function createHold() {
  * behind `fetch`. Rows change at once, as Zero applies a mutation locally. Stored content is kept
  * in a map, and thumbnails at made-up public URLs. `otherRows` are libraries of workspaces the user
  * isn't in, seen only when added to a file; the user can edit every file but `readOnlyFiles`. Files
- * are in the first workspace unless `fileWorkspaces` says otherwise.
+ * are in the first workspace unless `fileWorkspaces` says otherwise. The libraries query has synced
+ * unless `librariesLoaded` is set false.
  *
  * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
  * mutations back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
@@ -41,6 +42,7 @@ export function createFakeLibrariesBackend({
 	const otherRows = atom<Row[]>('fake library rows of other workspaces', [])
 	const fileLibraries = atom<TlaFileLibrary[]>('fake file libraries', [])
 	const readOnlyFiles = new Set<string>()
+	const librariesLoaded = atom('fake libraries loaded', true)
 	// The workspace each file is in: the first of `workspaces` unless set.
 	const fileWorkspaces = atom('fake file workspaces', new Map<string, string>())
 	const contents = new Map<string, string>()
@@ -168,13 +170,21 @@ export function createFakeLibrariesBackend({
 					])
 				)
 			},
-			remove: ({ fileId, libraryId }: any) => {
+			remove: ({ fileId, libraryId, deleteIfEmpty }: any) => {
 				if (readOnlyFiles.has(fileId)) return rejected()
-				return change(() =>
+				const row = rows.get().find((r) => r.id === libraryId)
+				const deletes =
+					deleteIfEmpty &&
+					row &&
+					!row.isDefault &&
+					isMember(row.owningGroupId) &&
+					row.items.length === 0
+				return change(() => {
 					fileLibraries.update((all) =>
 						all.filter((fl) => !(fl.fileId === fileId && fl.libraryId === libraryId))
 					)
-				)
+					if (deletes) rows.update((all) => all.filter((r) => r.id !== libraryId))
+				})
 			},
 		},
 		library_item: {
@@ -319,6 +329,7 @@ export function createFakeLibrariesBackend({
 		getWorkspaceMemberships: () => memberships,
 		getWorkspaceMembership: (id: string) => memberships.find((m) => m.groupId === id),
 		getLibraryRows: () => rows.get(),
+		areLibrariesLoaded: () => librariesLoaded.get(),
 		watchFileLibraries,
 		canUpdateFile: (fileId: string) => !readOnlyFiles.has(fileId),
 		getFile: (fileId: string) => ({
@@ -336,6 +347,7 @@ export function createFakeLibrariesBackend({
 		otherRows,
 		fileLibraries,
 		readOnlyFiles,
+		librariesLoaded,
 		fileWorkspaces,
 		watchFileLibraries,
 		contents,

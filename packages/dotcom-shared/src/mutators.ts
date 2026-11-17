@@ -242,6 +242,22 @@ async function deleteLibrary(tx: Tx, id: string) {
 }
 
 /**
+ * Whether the user may delete the library and it has no items, so deleting it loses nothing. On
+ * the server the library's row is locked first: an item added concurrently either commits before
+ * the check, which then sees it, or waits for the delete and fails its foreign key. Without the
+ * lock the delete's cascade would take an item committed after the check.
+ */
+async function canDeleteEmptyLibrary(tx: Tx, userId: string, libraryId: string) {
+	if (tx.location === 'server') {
+		await tx.dbTransaction.query(`select 1 from "library" where "id" = $1 for update`, [libraryId])
+	}
+	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+	if (!library || library.isDefault) return false
+	if (!can(await getRole(tx, userId, library.owningGroupId), 'manageLibraries')) return false
+	return !(await tx.run(zql.library_item.where('libraryId', '=', libraryId).one()))
+}
+
+/**
  * Refuses on the server unless the `libraries` flag is on for the user. The client skips it: its UI
  * is behind the same flag.
  */
@@ -463,11 +479,25 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					addedAt: Date.now(),
 				})
 			},
-			remove: async (tx: Tx, { fileId, libraryId }: { fileId: string; libraryId: string }) => {
+			/**
+			 * Removes a library from a file. With `deleteIfEmpty`, also deletes the library if it has
+			 * no items and the user may delete it; otherwise only the link goes.
+			 */
+			remove: async (
+				tx: Tx,
+				{
+					fileId,
+					libraryId,
+					deleteIfEmpty = false,
+				}: { fileId: string; libraryId: string; deleteIfEmpty?: boolean }
+			) => {
 				await assertLibrariesEnabled(tx, options)
 				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				await assertUserCanUpdateFile(tx, userId, file!)
 				await tx.mutate.file_library.delete({ fileId, libraryId })
+				if (deleteIfEmpty && (await canDeleteEmptyLibrary(tx, userId, libraryId))) {
+					await deleteLibrary(tx, libraryId)
+				}
 			},
 		},
 

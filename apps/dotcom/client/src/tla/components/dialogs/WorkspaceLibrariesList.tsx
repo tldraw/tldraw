@@ -1,4 +1,5 @@
 import {
+	getThumbnailForColorMode,
 	RenameInput,
 	type LibrarySource,
 	type TLLibrary,
@@ -24,8 +25,10 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { rowId } from '../TlaLibraries/librariesSource'
 import { TrackedLibrarySource } from '../TlaLibraries/trackedLibrarySource'
 import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
@@ -46,6 +49,8 @@ const messages = defineMessages({
 // Must match the submenu content id the stylesheet raises above the dialog (see dialogs.module.css).
 const MOVE_SUBMENU_ID = 'move-library'
 
+const PREVIEW_COUNT = 4
+
 export function WorkspaceLibrariesList({
 	source: userLibraries,
 	workspaceId,
@@ -62,20 +67,34 @@ export function WorkspaceLibrariesList({
 	const { addDialog } = useDialogs()
 	const { addToast } = useToasts()
 	const [renamingId, setRenamingId] = useState<TLLibraryId>()
+	const colorMode = useValue('color mode', () => getLocalSessionState().theme, [])
 
 	const rows = useValue(
 		'workspace libraries',
-		() =>
-			source
+		() => {
+			const defaultIds = new Set(
+				app
+					.getLibraryRows()
+					.filter((row) => row.isDefault)
+					.map((row) => row.id)
+			)
+			return source
 				.getLibraries()
-				.filter((library) => library.ownerId === workspaceId)
-				.map((library) => ({
-					library,
-					itemCount: source.getItems(library.id).length,
-					canRename: source.can('renameLibrary', library.id),
-					canDelete: source.can('deleteLibrary', library.id),
-				})),
-		[source, workspaceId]
+				.filter((library) => library.ownerId === workspaceId && !defaultIds.has(rowId(library.id)))
+				.map((library) => {
+					const items = source.getItems(library.id)
+					return {
+						library,
+						itemCount: items.length,
+						thumbnailUrls: items
+							.slice(0, PREVIEW_COUNT)
+							.map((item) => item.thumbnail && getThumbnailForColorMode(item.thumbnail, colorMode)),
+						canRename: source.can('renameLibrary', library.id),
+						canDelete: source.can('deleteLibrary', library.id),
+					}
+				})
+		},
+		[source, app, workspaceId, colorMode]
 	)
 
 	const workspaceOwners = useValue(
@@ -151,32 +170,43 @@ export function WorkspaceLibrariesList({
 
 	return (
 		<div className={styles.librariesList}>
-			{rows.map(({ library, itemCount, canRename, canDelete }) => (
+			{rows.map(({ library, itemCount, thumbnailUrls, canRename, canDelete }) => (
 				<div key={library.id} className={styles.libraryItem}>
-					{renamingId === library.id ? (
-						<RenameInput
-							className={styles.dialogInput}
-							defaultValue={library.name}
-							onComplete={(name) => renameLibrary(library, name)}
-							onCancel={() => setRenamingId(undefined)}
+					<div className={styles.libraryThumbnails} aria-hidden>
+						{Array.from({ length: PREVIEW_COUNT }, (_, i) => (
+							<span key={i} className={styles.libraryThumbnail}>
+								{thumbnailUrls[i] && <img src={thumbnailUrls[i]} alt="" draggable={false} />}
+							</span>
+						))}
+					</div>
+					<div className={styles.libraryFooter}>
+						<div className={styles.libraryText}>
+							{renamingId === library.id ? (
+								<RenameInput
+									className={styles.dialogInput}
+									defaultValue={library.name}
+									onComplete={(name) => renameLibrary(library, name)}
+									onCancel={() => setRenamingId(undefined)}
+								/>
+							) : (
+								<span className={styles.libraryName}>{library.name}</span>
+							)}
+							<span className={styles.libraryCount}>
+								{msg(messages.itemCount, { count: itemCount })}
+							</span>
+						</div>
+						<LibraryRowMenu
+							library={library}
+							onRename={canRename ? () => setRenamingId(library.id) : undefined}
+							onDelete={canDelete ? () => openDeleteConfirmDialog(library, itemCount) : undefined}
+							moveTargets={
+								source.moveLibrary && canDelete && workspaceOwners.length > 1
+									? workspaceOwners
+									: undefined
+							}
+							onMove={(ownerId) => moveLibrary(library, ownerId)}
 						/>
-					) : (
-						<span className={styles.libraryName}>{library.name}</span>
-					)}
-					<span className={styles.libraryCount}>
-						{msg(messages.itemCount, { count: itemCount })}
-					</span>
-					<LibraryRowMenu
-						library={library}
-						onRename={canRename ? () => setRenamingId(library.id) : undefined}
-						onDelete={canDelete ? () => openDeleteConfirmDialog(library, itemCount) : undefined}
-						moveTargets={
-							source.moveLibrary && canDelete && workspaceOwners.length > 1
-								? workspaceOwners
-								: undefined
-						}
-						onMove={(ownerId) => moveLibrary(library, ownerId)}
-					/>
+					</div>
 				</div>
 			))}
 		</div>

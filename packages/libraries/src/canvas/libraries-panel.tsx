@@ -10,7 +10,7 @@ import {
 	type TLLibrary,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { AddMoreMenu } from './add-more-menu'
+import { AddMoreButton } from './add-more-button'
 import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
 import { EmptyThisFile } from './empty-this-file'
 import {
@@ -29,12 +29,7 @@ import { getEmptyThisFileOffers, getPanelSections } from './panel-sections'
 import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { SearchResults } from './search-results'
-import {
-	librariesPanelOpen,
-	librariesSearchQuery,
-	librariesSearchScope,
-	renamingLibraryId,
-} from './state'
+import { librariesPanelOpen, librariesSearchQuery, librariesSearchScope } from './state'
 import { useCreateLibrary } from './use-create-library'
 import { useLibraryItemDrag, usePlaceLibraryItem } from './use-item-drag'
 import { useLibraries } from './use-libraries'
@@ -140,7 +135,6 @@ function LibrariesPanelContent({
 		editor,
 	])
 	const { scope, searched } = getSearchScope(libraries, scopeId)
-	const renamingId = useValue('renaming library', () => renamingLibraryId.get(editor), [editor])
 	const getItemProps = useLibraryItemDrag(source, { placeItem })
 	const placeItemOnClick = usePlaceLibraryItem(source, placeItem)
 	const createLibrary = useCreateLibrary(source)
@@ -192,34 +186,24 @@ function LibrariesPanelContent({
 			)
 		}
 		if (scope) return renderSections([scope])
-		return (
+		return sections ? (
 			<>
-				{sections ? (
-					<>
-						<div
-							role="group"
-							className="tlui-libraries-panel__group"
-							aria-label={msg(messages.thisFile)}
-						>
-							<h3 className="tlui-libraries-panel__group-label">{msg(messages.thisFile)}</h3>
-							{sections.thisFile.length > 0 ? (
-								renderSections(sections.thisFile)
-							) : (
-								<EmptyThisFile offers={offers} onBrowse={canBrowse ? browse : undefined} />
-							)}
-						</div>
-						{renderSections(sections.defaults)}
-					</>
-				) : (
-					renderSections(libraries)
-				)}
-				{renamingId === null && (
-					<AddMoreMenu
-						create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
-						onBrowse={canBrowse ? browse : undefined}
-					/>
-				)}
+				{renderSections(sections.defaults)}
+				<div
+					role="group"
+					className="tlui-libraries-panel__group"
+					aria-label={msg(messages.thisFile)}
+				>
+					<h3 className="tlui-libraries-panel__group-label">{msg(messages.thisFile)}</h3>
+					{sections.thisFile.length > 0 ? (
+						renderSections(sections.thisFile)
+					) : (
+						<EmptyThisFile offers={offers} />
+					)}
+				</div>
 			</>
+		) : (
+			renderSections(libraries)
 		)
 	}
 
@@ -231,14 +215,20 @@ function LibrariesPanelContent({
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				{LibrariesPanelHeader && <LibrariesPanelHeader menuItems={menuItems} />}
+				{LibrariesPanelHeader && (
+					<LibrariesPanelHeader
+						menuItems={menuItems}
+						create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
+					/>
+				)}
 				{libraries.length > 0 && (
 					<LibrariesSearch placeholder={msg(messages.search)} scope={scope} />
 				)}
-				<div className="tlui-libraries-sections">
+				<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
 					{libraries.length === 0 && NoLibraries && <NoLibraries />}
 					{renderLists()}
 				</div>
+				{!searching && !scope && canBrowse && <AddMoreButton onBrowse={browse} />}
 			</section>
 		</EditorPortal>
 	)

@@ -110,57 +110,59 @@ export function LibraryItems({
 		return EmptyLibrary && <EmptyLibrary library={library} />
 	}
 
+	const addSelectionTile = canAdd && AddSelectionTile && (
+		<AddSelectionTile
+			library={library}
+			hasSelection={hasSelection}
+			onAddSelection={() => saveSelection(libraryId)}
+		/>
+	)
+
 	return (
-		<ItemGrid>
-			{ItemTile &&
-				items.map((item) => (
-					<ItemGridTile key={item.id}>
-						<ItemTile
-							item={item}
-							name={item.name}
-							accessibleLabel={item.name ?? msg(messages.unnamedItem)}
-							thumbnailUrl={thumbnailUrls[item.id]}
-							buttonProps={getTileProps(item.id)}
-							menu={
-								ItemMenu && (
-									<ItemMenu
-										item={item}
-										id={item.id}
-										name={item.name}
-										onShowDetails={() =>
-											addDialog({
-												component: ({ onClose }) => (
-													<ItemDetailsDialog
-														source={source}
-														item={item}
-														library={library}
-														onPlace={() => placeItem(item.id)}
-														onClose={onClose}
-													/>
-												),
-											})
-										}
-										onRename={canRename ? (name) => rename(item.id, name) : undefined}
-										moveTargets={moveTargets}
-										onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
-										copyTargets={copyTargets}
-										onCopy={(toLibraryId) => copy(item.id, toLibraryId as TLLibraryId)}
-										onDelete={canDelete ? () => requestDelete(item.id) : undefined}
-									/>
-								)
-							}
-						/>
-					</ItemGridTile>
-				))}
-			{canAdd && AddSelectionTile && (
-				<ItemGridTile>
-					<AddSelectionTile
-						library={library}
-						hasSelection={hasSelection}
-						onAddSelection={() => saveSelection(libraryId)}
-					/>
-				</ItemGridTile>
-			)}
-		</ItemGrid>
+		<>
+			<ItemGrid>
+				{ItemTile &&
+					items.map((item) => (
+						<ItemGridTile key={item.id}>
+							<ItemTile
+								item={item}
+								name={item.name}
+								accessibleLabel={item.name ?? msg(messages.unnamedItem)}
+								thumbnailUrl={thumbnailUrls[item.id]}
+								buttonProps={getTileProps(item.id)}
+								menu={
+									ItemMenu && (
+										<ItemMenu
+											item={item}
+											id={item.id}
+											name={item.name}
+											onShowDetails={() =>
+												addDialog({
+													component: ({ onClose }) => (
+														<ItemDetailsDialog
+															source={source}
+															item={item}
+															library={library}
+															onPlace={() => placeItem(item.id)}
+															onClose={onClose}
+														/>
+													),
+												})
+											}
+											onRename={canRename ? (name) => rename(item.id, name) : undefined}
+											moveTargets={moveTargets}
+											onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
+											copyTargets={copyTargets}
+											onCopy={(toLibraryId) => copy(item.id, toLibraryId as TLLibraryId)}
+											onDelete={canDelete ? () => requestDelete(item.id) : undefined}
+										/>
+									)
+								}
+							/>
+						</ItemGridTile>
+					))}
+				{addSelectionTile && <ItemGridTile>{addSelectionTile}</ItemGridTile>}
+			</ItemGrid>
+		</>
 	)
 }
