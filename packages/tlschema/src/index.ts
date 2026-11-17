@@ -32,6 +32,7 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export {
+	composeAuthorize,
 	type TLAuthorize,
 	type TLAuthorizeCan,
 	type TLAuthorizeRead,

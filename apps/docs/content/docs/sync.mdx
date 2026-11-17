@@ -427,6 +427,8 @@ const store = useSync({ uri, assets, authorize, sessionMeta: { userId }, onPushR
 
 `authorize.read` decides which presence records each session gets, for example to show cursors only to a teacher. Document records go to every session in the room. `authorize.can` answers permission checks for the editor, through `editor.can(permission, data)`.
 
+To use several sets of hooks together, for example your permissions and the comment rules, combine them with `composeAuthorize(a, b)`. `write` returns the first refusal, and `read` and `can` allow only when every hook allows.
+
 The default UI asks `editor.can` so it doesn't offer what `authorize.write` would refuse. Controls are disabled, not hidden. Editor methods don't check it: they try, and `authorize.write` decides.
 
 | Without           | What's off                                                                                                        |
