@@ -11,12 +11,11 @@ import {
 } from 'tldraw'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import { NOTIFICATIONS_MENU_ID } from './openNotificationsPanel'
 import { TlaSidebarNotificationsPanel } from './TlaSidebarNotificationsPanel'
 import { useCommentNotifications } from './useCommentNotifications'
 import styles from '../sidebar.module.css'
 import notifications from './notifications.module.css'
-
-const NOTIFICATIONS_MENU_ID = 'sidebar-notifications'
 
 const messages = defineMessages({
 	notifications: { defaultMessage: 'Notifications' },

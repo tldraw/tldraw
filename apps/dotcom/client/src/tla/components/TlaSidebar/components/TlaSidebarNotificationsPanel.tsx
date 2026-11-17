@@ -4,14 +4,12 @@ import {
 	formatFullDateTime,
 	formatRelativeTime,
 	isOpenInNewTabClick,
-	richTextToPlaintext,
 } from '@tldraw/commenting'
 import classNames from 'classnames'
-import { ReactNode, useCallback, useState } from 'react'
+import { ReactNode, useCallback, useMemo, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
 import {
-	createDeepLinkString,
 	defineMessages,
 	F,
 	TldrawUiButton,
@@ -24,13 +22,15 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiTooltip,
-	TLRichText,
 	useTranslation,
 } from 'tldraw'
-import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { CommentNotificationReason, summarizeForeignReactors } from './commentNotifications'
-import { useCommentNotifications } from './useCommentNotifications'
+import { commentLink, reactionBylineMessage } from './commentNotifications'
+import {
+	EnrichedCommentNotification,
+	useCommentNotifications,
+	useEnrichedNotifications,
+} from './useCommentNotifications'
 import styles from './notifications.module.css'
 
 const messages = defineMessages({
@@ -40,26 +40,21 @@ const messages = defineMessages({
 	filterUnread: { defaultMessage: 'Unread' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
 	empty: { defaultMessage: 'You’re all caught up.' },
-	unknownAuthor: { defaultMessage: 'Someone' },
 })
 
 type NotificationFilter = 'all' | 'unread'
 
 /** Byline for a notification row, phrased by why it's there. `<name>` wraps the author's name. */
 function ReasonByline({
-	reason,
-	author,
-	reactors,
+	notification: n,
 	nameClassName,
 }: {
-	reason: CommentNotificationReason
-	author: string
-	/** Who reacted, for the `reaction` phrasing — see {@link summarizeForeignReactors}. */
-	reactors: { names: string[]; others: number; total: number }
+	notification: EnrichedCommentNotification
 	nameClassName: string
 }) {
 	const name = (chunks: ReactNode) => <span className={nameClassName}>{chunks}</span>
-	switch (reason) {
+	const author = n.authorName
+	switch (n.primaryReason) {
 		case 'mention':
 			return <F defaultMessage="<name>{author}</name> mentioned you" values={{ author, name }} />
 		case 'reply':
@@ -67,41 +62,9 @@ function ReasonByline({
 		case 'owned-board':
 			return <F defaultMessage="<name>{author}</name> commented" values={{ author, name }} />
 		case 'reaction': {
-			const { names, others, total } = reactors
-			const [a, b] = names
-			if (names.length === 0) {
-				return (
-					<F
-						defaultMessage="{count, plural, one {Someone reacted} other {# people reacted}}"
-						values={{ count: total }}
-					/>
-				)
-			}
-			if (names.length === 1 && others === 0) {
-				return <F defaultMessage="<name>{author}</name> reacted" values={{ author: a, name }} />
-			}
-			if (names.length === 2 && others === 0) {
-				return (
-					<F
-						defaultMessage="<name>{a}</name> and <name>{b}</name> reacted"
-						values={{ a, b, name }}
-					/>
-				)
-			}
-			if (names.length === 1) {
-				return (
-					<F
-						defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted"
-						values={{ author: a, count: others, name }}
-					/>
-				)
-			}
-			return (
-				<F
-					defaultMessage="<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted"
-					values={{ a, b, count: others, name }}
-				/>
-			)
+			const { message, values } = reactionBylineMessage(n.reactors!)
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return <F {...message} values={{ ...values, name }} />
 		}
 	}
 }
@@ -164,14 +127,6 @@ function NotificationsOverflowMenu({
 	)
 }
 
-/** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */
-function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
-	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
-	if (!shapeId) return base
-	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })
-	return `${base}&d=${d}`
-}
-
 /**
  * Notifications popover contents. Reuses the comments sidebar's list shell (header, scroll, empty)
  * but renders each row person-first — an author-coloured pin and a name-led byline (who, and why
@@ -184,19 +139,18 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const [filter, setFilter] = useState<NotificationFilter>('all')
 	const { locale } = useIntl()
 
-	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications
+	const visibleRows = useMemo(
+		() => (filter === 'unread' ? notifications.filter((n) => n.unread) : notifications),
+		[filter, notifications]
+	)
+	const visible = useEnrichedNotifications(visibleRows)
 
 	const items: CommentListItemProps[] = visible.map((n) => {
 		const c = n.comment
 		return {
 			id: c.id,
-			author: {
-				// never fall back to the raw id: an opaque uuid as a byline reads as a bug, and the rest
-				// of the commenting UI says "Someone" for an unresolvable author
-				name: c.authorName || msg(messages.unknownAuthor),
-				color: c.authorColor || undefined,
-			},
-			preview: richTextToPlaintext(c.body as TLRichText),
+			author: { name: n.authorName, color: c.authorColor || undefined },
+			preview: n.preview,
 			// the notified-about event: a reaction entry dates from its newest foreign reaction,
 			// not from the (older) comment it decorates
 			date: new Date(n.timestamp).toISOString(),
@@ -263,12 +217,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 										aria-hidden="true"
 									/>
 									<span className={styles.byline}>
-										<ReasonByline
-											reason={n?.primaryReason ?? 'owned-board'}
-											author={item.author.name}
-											reactors={summarizeForeignReactors(n?.comment.reactions, app?.userId)}
-											nameClassName={styles.author}
-										/>
+										{n && <ReasonByline notification={n} nameClassName={styles.author} />}
 									</span>
 									<TldrawUiTooltip content={formatFullDateTime(item.date, locale)}>
 										<span className={styles.time}>{formatRelativeTime(item.date)}</span>
