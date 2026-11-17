@@ -4,11 +4,9 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	useEditor,
-	useReadonly,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { NewLibraryIcon } from '../ui/library-icon'
 import { LibraryMenu } from '../ui/library-menu'
 import { renamingLibraryId } from './state'
 
@@ -44,7 +42,6 @@ export interface LibrariesPanelHeaderProps {
 export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const isReadonly = useReadonly()
 	const renaming = useValue('renaming library', () => renamingLibraryId.get(editor) !== null, [
 		editor,
 	])
@@ -53,14 +50,14 @@ export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHe
 		<header className="tlui-libraries-panel__header">
 			<span className="tlui-libraries-panel__title">{msg(messages.title)}</span>
 			<div className="tlui-libraries-panel__header-actions">
-				{newLibrary && !isReadonly && (
+				{newLibrary && (
 					<TldrawUiButton
 						type="icon"
 						tooltip={newLibrary.label}
 						title={newLibrary.label}
 						onClick={newLibrary.onCreate}
 					>
-						<TldrawUiButtonIcon icon={<NewLibraryIcon />} />
+						<TldrawUiButtonIcon icon="plus" small />
 					</TldrawUiButton>
 				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur

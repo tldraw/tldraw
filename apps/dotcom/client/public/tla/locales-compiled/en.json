@@ -239,12 +239,6 @@
       "value": "Workspace name"
     }
   ],
-  "2361431171": [
-    {
-      "type": 0,
-      "value": "Private to you"
-    }
-  ],
   "23dcace54a": [
     {
       "type": 0,
@@ -513,6 +507,12 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "47f9082fc3": [
+    {
+      "type": 0,
+      "value": "Private"
     }
   ],
   "4970317944": [

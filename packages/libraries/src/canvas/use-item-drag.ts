@@ -8,6 +8,7 @@ import {
 import {
 	defineMessages,
 	getPointerInfo,
+	hideAllTooltips,
 	react,
 	TLLibraryItemId,
 	TLContent,
@@ -54,7 +55,14 @@ export interface LibraryItemDragOptions {
 
 type DragState =
 	| { name: 'idle' }
-	| { name: 'pointing'; itemId: TLLibraryItemId; screenSpaceStart: VecModel; regionRect: DOMRect }
+	| {
+			name: 'pointing'
+			itemId: TLLibraryItemId
+			screenSpaceStart: VecModel
+			region: Element
+			regionRect: DOMRect
+			lastMove?: PointerEvent
+	  }
 	| { name: 'dragging' }
 
 /**
@@ -123,15 +131,23 @@ export function useLibraryItemDrag(
 		// Items are never replaced, only deleted and re-added, so loaded content stays valid.
 		const contents = new Map<TLLibraryItemId, TLContent>()
 
-		const hasLeftRegion = (e: PointerEvent, screenSpaceStart: VecModel, regionRect: DOMRect) => {
-			const { left, top, right, bottom } = regionRect
-			const { clientX: x, clientY: y } = e
-			if (x >= left && x <= right && y >= top && y <= bottom) return false
+		const isPastDragDistance = (e: PointerEvent, screenSpaceStart: VecModel) => {
 			const minDistanceSq =
 				e.pointerType === 'mouse'
 					? editor.options.uiDragDistanceSquared
 					: editor.options.uiCoarseDragDistanceSquared
-			return Vec.Dist2(screenSpaceStart, { x, y }) > minDistanceSq
+			return Vec.Dist2(screenSpaceStart, { x: e.clientX, y: e.clientY }) > minDistanceSq
+		}
+
+		const hasLeftRegion = (e: PointerEvent, screenSpaceStart: VecModel, regionRect: DOMRect) => {
+			const { left, top, right, bottom } = regionRect
+			const { clientX: x, clientY: y } = e
+			if (x >= left && x <= right && y >= top && y <= bottom) return false
+			return isPastDragDistance(e, screenSpaceStart)
+		}
+
+		const stopPointing = () => {
+			if (state.name === 'pointing') state.region.classList.remove('tlui-libraries-dragging')
 		}
 
 		const startDrag = (
@@ -192,6 +208,7 @@ export function useLibraryItemDrag(
 					name: 'pointer_move',
 					...getPointerInfo(editor, e),
 				})
+				hideAllTooltips()
 				editor.getContainer().focus()
 			})
 		}
@@ -209,37 +226,59 @@ export function useLibraryItemDrag(
 			})
 		}
 
+		const tryStartDrag = (itemId: TLLibraryItemId) => {
+			if (state.name !== 'pointing' || state.itemId !== itemId || !state.lastMove) return
+			const content = contents.get(itemId)
+			const { lastMove, screenSpaceStart, regionRect } = state
+			if (!content || !hasLeftRegion(lastMove, screenSpaceStart, regionRect)) return
+			stopPointing()
+			state = { name: 'dragging' }
+			startDrag(lastMove, screenSpaceStart, itemId, content)
+			showMoveCursorWhileTranslating()
+		}
+
+		const load = (itemId: TLLibraryItemId) => {
+			if (contents.has(itemId)) return
+			source.getItemContent(itemId).then(
+				({ content }) => {
+					contents.set(itemId, content)
+					tryStartDrag(itemId)
+				},
+				// A failed load surfaces through onPlace if the press ends as a click.
+				() => {}
+			)
+		}
+
 		return (itemId: TLLibraryItemId) => ({
+			onPointerEnter() {
+				load(itemId)
+			},
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
 				if (e.button !== 0) return
+				const region = getDragRegion(e.currentTarget)
 				state = {
 					name: 'pointing',
 					itemId,
 					screenSpaceStart: { x: e.clientX, y: e.clientY },
-					regionRect: getDragRegion(e.currentTarget).getBoundingClientRect(),
+					region,
+					regionRect: region.getBoundingClientRect(),
 				}
 				e.currentTarget.setPointerCapture(e.pointerId)
-				if (!contents.has(itemId)) {
-					source.getItemContent(itemId).then(
-						({ content }) => contents.set(itemId, content),
-						// A failed load surfaces through onPlace if the press ends as a click.
-						() => {}
-					)
-				}
+				load(itemId)
 			},
 			onPointerMove(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
 				if (state.name !== 'pointing' || state.itemId !== itemId) return
-				const content = contents.get(itemId)
-				if (!content || !hasLeftRegion(e, state.screenSpaceStart, state.regionRect)) return
-				const { screenSpaceStart } = state
-				state = { name: 'dragging' }
-				startDrag(e, screenSpaceStart, itemId, content)
-				showMoveCursorWhileTranslating()
+				if (isPastDragDistance(e, state.screenSpaceStart)) {
+					state.region.classList.add('tlui-libraries-dragging')
+				}
+				state.lastMove = e
+				tryStartDrag(itemId)
 			},
 			onPointerUp(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
 				e.currentTarget.releasePointerCapture(e.pointerId)
+				stopPointing()
 				if (state.name !== 'dragging') return
 				editor.dispatch({
 					type: 'pointer',
@@ -249,6 +288,7 @@ export function useLibraryItemDrag(
 				})
 			},
 			onPointerCancel() {
+				stopPointing()
 				if (state.name === 'dragging') editor.cancel()
 				state = { name: 'idle' }
 			},

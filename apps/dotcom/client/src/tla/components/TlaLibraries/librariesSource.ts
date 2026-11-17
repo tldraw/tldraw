@@ -33,7 +33,6 @@ import {
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import { structuredClone } from '@tldraw/utils'
-import { createElement } from 'react'
 import { atom, computed, defineMessages, fetch, react, transact, uniqueId } from 'tldraw'
 import {
 	getNetworkCompensation,
@@ -41,10 +40,9 @@ import {
 } from '../../../utils/resolveUserContentImageUrl'
 import type { TldrawApp } from '../../app/TldrawApp'
 import type { TLAppLibraryAction } from '../../utils/app-ui-events'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
-	privateToYou: { defaultMessage: 'Private to you' },
+	private: { defaultMessage: 'Private' },
 })
 
 interface StoredItem {
@@ -178,20 +176,16 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		new Set()
 	)
 
+	// What's stored under an item's id never changes, so one load serves every later use.
+	private readonly itemContents = new Map<TLLibraryItemId, Promise<TLLibraryItemContent>>()
+
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
-		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
 		return [
-			{
-				id: homeId,
-				name: homeName ?? this.app.msg(messages.privateToYou),
-				icon: createElement(TlaIcon, { icon: 'home' }),
-			},
+			{ id: homeId, name: this.app.msg(messages.private) },
 			...memberships.flatMap((m) =>
-				m.groupId !== homeId && m.group
-					? [{ id: m.groupId, name: m.group.name, icon: createElement(TlaIcon, { icon: 'group' }) }]
-					: []
+				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
 			),
 		]
 	})
@@ -252,6 +246,16 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const pending = this.findPendingItem(itemId)
 		if (pending) return pending.loadContent()
+		let loading = this.itemContents.get(itemId)
+		if (!loading) {
+			loading = this.loadItemContent(itemId)
+			this.itemContents.set(itemId, loading)
+			loading.catch(() => this.itemContents.delete(itemId))
+		}
+		return loading
+	}
+
+	private async loadItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const response = await this.request(`/api/app/library-items/${rowId(itemId)}/content`)
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)

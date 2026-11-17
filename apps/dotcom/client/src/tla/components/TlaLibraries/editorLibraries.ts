@@ -1,11 +1,9 @@
 import {
-	BoardIcon,
 	BoardLibrarySource,
 	CompositeLibrarySource,
 	type BoardLibrarySourceOptions,
 	type LibrarySource,
 } from '@tldraw/libraries'
-import { createElement } from 'react'
 import { defineMessages, type Editor } from 'tldraw'
 import type { TldrawApp } from '../../app/TldrawApp'
 import { TrackedLibrarySource } from './trackedLibrarySource'
@@ -38,11 +36,11 @@ export function getEditorLibraries(
 		id: userLibraries.id,
 		defaultOwnerId: app.getHomeWorkspaceId(),
 		parts: [
+			{ source: userLibraries },
 			{
-				owner: { id: fileId, name: app.msg(messages.thisBoard), icon: createElement(BoardIcon) },
+				owner: { id: fileId, name: app.msg(messages.thisBoard) },
 				source: new BoardLibrarySource(editor, { id: `board:${fileId}`, ...reporting }),
 			},
-			{ source: userLibraries },
 		],
 	})
 	const source = new TrackedLibrarySource(composite, app, { fileId })
