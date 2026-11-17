@@ -7,6 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
+import type { TLWriteRefusal } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -461,6 +462,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	private readonly onPushRefused?: (refusal: TLWriteRefusal) => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -502,8 +505,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
 		): void
 		didCancel?(): boolean
+		/**
+		 * Called when the room's `authorize.write` refused one of this client's pushes. The client
+		 * has already rolled the push back to the server's state.
+		 */
+		onPushRefused?(refusal: TLWriteRefusal): void
 	}) {
 		this.didCancel = config.didCancel
+		this.onPushRefused = config.onPushRefused
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
 
@@ -974,6 +983,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+		const refusals: TLWriteRefusal[] = []
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -997,6 +1007,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
+						if (diff.refused) refusals.push(diff.refused)
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1027,6 +1038,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
+			for (const refusal of refusals) this.onPushRefused?.(refusal)
 		} catch (e) {
 			console.error(e)
 			this.store.ensureStoreIsUsable()

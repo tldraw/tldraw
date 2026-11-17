@@ -17,10 +17,12 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
 import { ThrottledFunction } from '@tldraw/utils';
+import { TLAuthorize } from '@tldraw/tlschema';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import type { TLWriteRefusal } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -547,6 +549,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    authorize?: TLAuthorize<R, SessionMeta>;
+    // @deprecated
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
@@ -592,6 +596,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 
 // @internal
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
+    refused?: TLWriteRefusal;
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
     };
@@ -651,6 +656,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
+        onPushRefused?(refusal: TLWriteRefusal): void;
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
@@ -722,6 +728,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
+        authorize?: TLAuthorize<R, SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;

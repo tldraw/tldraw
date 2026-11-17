@@ -31,6 +31,19 @@
  */
 
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
+export {
+	type TLAuthorize,
+	type TLAuthorizeCan,
+	type TLAuthorizeRead,
+	type TLAuthorizeWrite,
+	type TLPermission,
+	type TLPermissionDataMap,
+	type TLRecordChange,
+	type TLRecordGetter,
+	type TLSession,
+	type TLWriteContext,
+	type TLWriteRefusal,
+} from './authorize'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export {
 	bookmarkAssetMigrations,

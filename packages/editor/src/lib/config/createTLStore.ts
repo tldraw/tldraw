@@ -5,6 +5,7 @@ import {
 	SchemaPropsInfo,
 	TLAssetStore,
 	TLRecord,
+	TLAuthorize,
 	TLStore,
 	TLStoreProps,
 	TLStoreSnapshot,
@@ -53,6 +54,16 @@ export interface TLStoreBaseOptions {
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
+
+	/**
+	 * The authorize hooks. The editor runs `authorize.write` on each of this user's operations and
+	 * reverts the ones it refuses, and asks `authorize.can` in {@link @tldraw/editor#Editor.can}. Pass
+	 * the same object to the sync room. Keep it stable: a new object makes a new store.
+	 */
+	authorize?: TLAuthorize
+
+	/** The session meta that `authorize.write` gets as `ctx.session.meta`, the same meta the room gets. */
+	sessionMeta?: unknown
 }
 
 /** @public */
@@ -151,6 +162,8 @@ export function createTLStore({
 	users = defaultUserStore,
 	onMount,
 	collaboration,
+	authorize,
+	sessionMeta,
 	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
@@ -184,6 +197,8 @@ export function createTLStore({
 				return onMount?.(editor)
 			},
 			collaboration,
+			authorize,
+			sessionMeta,
 		},
 	})
 

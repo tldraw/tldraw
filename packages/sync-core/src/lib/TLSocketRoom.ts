@@ -1,5 +1,5 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
+import { createTLSchema, TLAuthorize, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -148,8 +148,29 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
 	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 *
+	 * @deprecated Use `authorize.write`, which judges the whole push. It still runs, before
+	 * `authorize.write`.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * The authorize hooks. `write` judges each client push as a whole: a refusal stores none of
+	 * it, and the client gets the reason. `read` decides which presence records each session gets.
+	 * The room doesn't use `can`, so the app can pass the same object it gives the client.
+	 *
+	 * @example
+	 * ```ts
+	 * new TLSocketRoom({
+	 * 	authorize: {
+	 * 		write: (changes, { session }) =>
+	 * 			changes.some((c) => c.prev && c.prev.meta.ownerId !== session.meta.userId)
+	 * 				? { reason: 'not-yours' }
+	 * 				: null,
+	 * 	},
+	 * })
+	 * ```
+	 */
+	authorize?: TLAuthorize<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -280,7 +301,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			authorizeRecord: opts.authorizeRecord,
+			authorize: opts.authorize,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

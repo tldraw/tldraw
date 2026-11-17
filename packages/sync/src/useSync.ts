@@ -16,6 +16,7 @@ import {
 	Editor,
 	TAB_ID,
 	TLAssetStore,
+	TLAuthorize,
 	TLPresenceStateInfo,
 	TLRecord,
 	TLStore,
@@ -24,6 +25,7 @@ import {
 	TLThemes,
 	TLUser,
 	TLUserStore,
+	TLWriteRefusal,
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
@@ -37,6 +39,7 @@ import {
 	defaultUserStore,
 	getDefaultUserPresence,
 	getUserPreferences,
+	noop,
 	uniqueId,
 	useEvent,
 	useReactiveEvent,
@@ -211,6 +214,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		onPushRefused: _onPushRefused,
+		authorize,
+		sessionMeta,
 		themes,
 		...schemaOpts
 	} = opts
@@ -229,6 +235,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	const onPushRefused = useEvent(_onPushRefused ?? noop)
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -318,6 +325,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: collaborationStatusSignal,
 				mode: syncMode,
 			},
+			authorize,
+			sessionMeta,
 		})
 
 		const presence = createPresenceStateDerivation(currentUser, {
@@ -376,6 +385,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onPushRefused,
 			presence,
 			presenceMode,
 		})
@@ -398,6 +408,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		onPushRefused,
+		authorize,
+		sessionMeta,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -506,6 +519,27 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	onCustomMessageReceived?(data: any): void
+
+	/**
+	 * The authorize hooks, the same object the room gets. The editor runs `authorize.write` on
+	 * each of this user's operations and asks `authorize.can` in {@link tldraw#Editor.can}. Keep
+	 * it stable: a new object reconnects.
+	 */
+	authorize?: TLAuthorize
+
+	/** The session meta the hooks get on this client, the same meta the room gets for it. */
+	sessionMeta?: unknown
+
+	/**
+	 * Called when the room's `authorize.write` refused a push. The changes in it are already
+	 * rolled back.
+	 *
+	 * @example
+	 * ```ts
+	 * onPushRefused: ({ reason }) => toast(reason)
+	 * ```
+	 */
+	onPushRefused?(refusal: TLWriteRefusal): void
 
 	/** @internal */
 	onMount?(editor: Editor): void

@@ -401,6 +401,32 @@ mirror committed records into your own database. That callback only fires for cl
 may edit a comment", pass authorizers to the room's `authorizeRecord` option (see [TLRecordAuthorizers](?)).
 See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
+### Authorize hooks
+
+The `authorize` option holds hooks that allow or refuse changes. Pass the same object to the room and to the client, so both sides give the same answer.
+
+```ts
+import { TLAuthorize } from 'tldraw'
+
+const authorize: TLAuthorize = {
+	write: (changes, { session }) =>
+		changes.some((c) => c.prev && c.prev.meta.ownerId !== session.meta.userId)
+			? { reason: 'not-yours' }
+			: null,
+}
+
+// on the server
+const room = new TLSocketRoom({ authorize })
+room.handleSocketConnect({ sessionId, socket, meta: { userId } })
+
+// on the client
+const store = useSync({ uri, assets, authorize, sessionMeta: { userId }, onPushRefused })
+```
+
+`authorize.write` gets every document record change in a client push, with `before` and `after` readers for other records, for example a shape's parent. It returns `null` to allow, or `{ reason }` to refuse. The room refuses the whole push and stores none of it, and the client gets the reason in `onPushRefused`. In the editor, the same hook judges each operation once its side effects have settled. A refused operation is reverted before history or any listener sees it, and the editor emits `'refused'`. Hooks must be synchronous and pure.
+
+`authorize.read` decides which presence records each session gets, for example to show cursors only to a teacher. Document records go to every session in the room. `authorize.can` answers permission checks for the editor, through `editor.can(permission, data)`.
+
 ### Deployment concerns
 
 <Callout type="warning">

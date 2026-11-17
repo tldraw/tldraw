@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { BoxModel, TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
+import { BoxModel, TLPageId, TLRecord, TLShapeId, TLWriteRefusal } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -24,6 +24,8 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
+	/** The store's `authorize.write` refused one of this user's operations. It is already reverted. */
+	refused: [TLWriteRefusal]
 	dispose: []
 }
 

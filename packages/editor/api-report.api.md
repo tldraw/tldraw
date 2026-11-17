@@ -52,6 +52,7 @@ import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/tlschema';
+import { TLAuthorize } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
@@ -78,6 +79,8 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPermission } from '@tldraw/tlschema';
+import { TLPermissionDataMap } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
@@ -101,6 +104,7 @@ import { TLUser } from '@tldraw/tlschema';
 import { TLUserId } from '@tldraw/tlschema';
 import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
+import { TLWriteRefusal } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
@@ -588,7 +592,7 @@ export function createTLCurrentUser(opts?: {
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, themes, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, authorize, sessionMeta, themes, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -907,6 +911,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    can<P extends TLPermission>(permission: P, data?: TLPermissionDataMap[P]): boolean;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
         binding: {
@@ -2247,7 +2252,7 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     undo(): this;
     // (undocumented)
-    _undo({ pushToRedoStack, toMark }: {
+    _undo(opts: {
         pushToRedoStack: boolean;
         toMark?: string;
     }): this;
@@ -4207,6 +4212,7 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    refused: [TLWriteRefusal];
     // (undocumented)
     resize: [BoxModel];
     // (undocumented)
@@ -4847,9 +4853,11 @@ export interface TLStateNodeConstructor {
 // @public (undocumented)
 export interface TLStoreBaseOptions {
     assets?: TLAssetStore;
+    authorize?: TLAuthorize;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
+    sessionMeta?: unknown;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
     themes?: Partial<TLThemes>;
     users?: TLUserStore;

@@ -7,6 +7,7 @@ import {
 	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
+import { TLAuthorize } from './authorize'
 import { TLAsset, TLAssetId } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -337,6 +338,13 @@ export interface TLStoreProps {
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
 	}
+	/**
+	 * The authorize hooks the editor enforces on this user's changes. Pass the same hooks to the
+	 * sync room. See {@link TLAuthorize}.
+	 */
+	authorize?: TLAuthorize
+	/** The session meta the editor passes to `authorize.write`, the same meta the room gets. */
+	sessionMeta?: unknown
 }
 
 /**
