@@ -121,6 +121,7 @@ export const group_user = table('group_user')
 		role: enumeration<Role>(),
 		userName: string(),
 		userColor: string(),
+		userAvatar: string(),
 		index: string<IndexKey>(),
 	})
 	.primaryKey('userId', 'groupId')

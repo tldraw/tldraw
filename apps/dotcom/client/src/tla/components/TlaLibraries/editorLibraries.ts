@@ -17,14 +17,15 @@ const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
 /**
  * The libraries an open file's editor offers: the board's own, kept as records in the file's
  * document so they are saved, synced and duplicated with it, then the user's own libraries under
- * the workspaces they belong to, then the images they uploaded, which can be placed and copied but
- * not changed. New libraries go to the user's home workspace.
+ * the workspaces they belong to, each with a library of its members, then the images they
+ * uploaded. Members and uploads can be placed and copied but not changed. New libraries go to the
+ * user's home workspace.
  *
  * Made once per editor, so the panel and the context menu share it. `reporting` is where the
  * board's source reports a thumbnail that fails to upload.
  */
 export function getEditorLibraries(
-	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg' | 'uploads'>,
+	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg' | 'members' | 'uploads'>,
 	userLibraries: LibrarySource,
 	editor: Editor,
 	fileId: string,
@@ -38,6 +39,8 @@ export function getEditorLibraries(
 		defaultOwnerId: app.getHomeWorkspaceId(),
 		parts: [
 			{ source: userLibraries },
+			// After the workspaces' own libraries, so writes for a workspace go to them.
+			...(app.members ? [{ source: app.members }] : []),
 			{
 				owner: { id: fileId, name: app.msg(messages.thisBoard) },
 				source: new BoardLibrarySource(editor, { id: `board:${fileId}`, ...reporting }),

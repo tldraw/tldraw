@@ -95,6 +95,7 @@ function makeGroupUser(
 		role: 'member',
 		userName: 'Test',
 		userColor: '#000',
+		userAvatar: '',
 		index: 'a1' as IndexKey,
 		...overrides,
 	}

@@ -94,6 +94,7 @@ export const testRoutes = createRouter<Environment>()
 						index: 'a1' as IndexKey,
 						userColor: '',
 						userName: '',
+						userAvatar: '',
 					})
 					.onConflict((oc) => oc.doNothing())
 					.execute()

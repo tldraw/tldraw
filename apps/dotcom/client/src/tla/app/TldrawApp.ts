@@ -73,6 +73,7 @@ import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TldrawAppLibrariesSource } from '../components/TlaLibraries/librariesSource'
+import { TldrawAppMembersSource } from '../components/TlaLibraries/membersSource'
 import { TldrawAppUploadsSource } from '../components/TlaLibraries/uploadsSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
@@ -215,6 +216,8 @@ export class TldrawApp {
 	readonly libraries: LibrarySource | null
 	/** The images the user uploaded, as a library. Null when the `libraries` flag is off. */
 	readonly uploads: TldrawAppUploadsSource | null
+	/** The members of the user's workspaces, as libraries. Null when the `libraries` flag is off. */
+	readonly members: TldrawAppMembersSource | null
 	/** Empty until {@link startLibraries}. */
 	private readonly libraryRows$: Atom<QueryResultType<typeof queries.libraries>>
 
@@ -313,9 +316,11 @@ export class TldrawApp {
 			this.libraries = libraries
 			this.disposables.push(() => libraries.dispose())
 			this.uploads = new TldrawAppUploadsSource(this, getToken)
+			this.members = new TldrawAppMembersSource(this)
 		} else {
 			this.libraries = null
 			this.uploads = null
+			this.members = null
 		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
