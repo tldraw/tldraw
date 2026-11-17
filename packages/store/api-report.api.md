@@ -391,6 +391,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         schema: StoreSchema<R, Props>;
         initialData?: SerializedStore<R>;
     });
+    // @internal
+    addCommitCheck(check: (changes: RecordsDiff<R>) => null | TLStoreCommitRefusal): () => void;
     // @internal (undocumented)
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
     allRecords(): R[];
@@ -401,6 +403,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
+    // @internal
+    checkAsOneOperation<T>(fn: () => T): T;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;
@@ -423,6 +427,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     readonly id: string;
+    // @internal
+    isInCheckedOperation(): boolean;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
@@ -431,10 +437,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges(fn: () => void): void;
     migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R>;
+    // @internal
+    onCheckedOperationSettled(listener: (outcome: TLStoreOperationOutcome) => void): () => void;
     readonly props: Props;
     put(records: R[], phaseOverride?: 'initialize'): void;
     readonly query: StoreQueries<R>;
     remove(ids: IdOf<R>[]): void;
+    // @internal
+    runUnchecked<T>(fn: () => T): T;
     readonly schema: StoreSchema<R, Props>;
     readonly scopedTypes: {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
@@ -698,6 +708,14 @@ export interface SynchronousStorage<R extends UnknownRecord> extends Synchronous
     // (undocumented)
     setSchema(schema: SerializedSchema): void;
 }
+
+// @internal
+export interface TLStoreCommitRefusal {
+    afterRevert?(): void;
+}
+
+// @internal
+export type TLStoreOperationOutcome = 'aborted' | 'accepted' | 'refused';
 
 // @public
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;

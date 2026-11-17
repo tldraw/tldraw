@@ -50,6 +50,8 @@ export {
 	type StoreSnapshot,
 	type StoreValidator,
 	type StoreValidators,
+	type TLStoreCommitRefusal,
+	type TLStoreOperationOutcome,
 } from './lib/Store'
 export { StoreQueries, type RSIndex, type RSIndexDiff, type RSIndexMap } from './lib/StoreQueries'
 export { StoreSchema, type StoreValidationFailure } from './lib/StoreSchema'

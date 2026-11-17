@@ -2247,7 +2247,7 @@ export class HistoryManager<R extends UnknownRecord> {
     // (undocumented)
     undo(): this;
     // (undocumented)
-    _undo({ pushToRedoStack, toMark }: {
+    _undo(opts: {
         pushToRedoStack: boolean;
         toMark?: string;
     }): this;

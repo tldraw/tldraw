@@ -1420,6 +1420,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					!session ||
 					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
 
+				// The push is written to a buffer over the transaction, and the buffer is committed at the
+				// end, so the whole push can be judged before any of it reaches storage.
+				const pending = new PendingWrites<R>(txn)
+				const docs: MinimalDocStore<R> = pending
+
 				// what authorizers see of the pushing session, shared by every authorized op in this push
 				const authSession = session
 					? { sessionId: session.sessionId, isReadonly: session.isReadonly, meta: session.meta }
@@ -1455,7 +1460,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// against the stored one, so a swap would consult the wrong authorizer (or
 								// none). Skip it like a veto; the client self-corrects.
 								// `undefined` (no session) means the guard didn't fetch, so addDocument will.
-								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
+								const prevRecord = session ? ((docs.get(id) as R | undefined) ?? null) : undefined
 								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
 									this.log?.warn?.(
 										'skipping put that changes typeName',
@@ -1494,11 +1499,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									}
 								}
 								// The guard above already fetched this, so don't hit storage again.
-								addDocument(txn, docChanges, id, record, authorize, prevRecord)
+								addDocument(docs, docChanges, id, record, authorize, prevRecord)
 								break
 							}
 							case RecordOpType.Patch: {
-								const doc = txn.get(id) as R | undefined
+								const doc = docs.get(id) as R | undefined
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
@@ -1527,11 +1532,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
 								// already fetched the record, so pass it through.
-								patchDocument(txn, docChanges, id, op[1], authorize, doc)
+								patchDocument(docs, docChanges, id, op[1], authorize, doc)
 								break
 							}
 							case RecordOpType.Remove: {
-								const doc = txn.get(id) as R | undefined
+								const doc = docs.get(id) as R | undefined
 								if (!doc) {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
@@ -1556,7 +1561,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 								// Delete the document and propagate the delete op
 								// delete automatically creates tombstones
-								txn.delete(id)
+								docs.delete(id)
 								propagateOp(docChanges, id, op, doc, undefined)
 								break
 							}
@@ -1564,6 +1569,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 				}
 
+				pending.commit()
 				return { docChanges, presenceChanges }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
@@ -1679,6 +1685,36 @@ export interface MinimalDocStore<R extends UnknownRecord> {
 	get(id: string): UnknownRecord | undefined
 	set(id: string, record: R): void
 	delete(id: string): void
+}
+
+/**
+ * Buffers a push's writes over a storage transaction, so the push can be judged before any of it
+ * reaches storage. Reads see the buffered writes.
+ */
+class PendingWrites<R extends UnknownRecord> implements MinimalDocStore<R> {
+	private readonly writes = new Map<string, R | null>()
+	constructor(private readonly txn: TLSyncStorageTransaction<R>) {}
+
+	get(id: string): R | undefined {
+		const write = this.writes.get(id)
+		if (write !== undefined) return write ?? undefined
+		return this.txn.get(id) as R | undefined
+	}
+
+	set(id: string, record: R) {
+		this.writes.set(id, record)
+	}
+
+	delete(id: string) {
+		this.writes.set(id, null)
+	}
+
+	commit() {
+		for (const [id, record] of this.writes) {
+			if (record) this.txn.set(id, record)
+			else this.txn.delete(id)
+		}
+	}
 }
 
 /** @internal */
