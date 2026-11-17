@@ -172,12 +172,24 @@ THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 # Staging pushes every board's records into the render page (see THUMBNAIL_RENDER_PUSH in
 # types.ts). Production leaves it unset: thumbnail_render_push decides there.
 THUMBNAIL_RENDER_PUSH = "true"
+# Staging runs the headless-editor measure comparison on every MCP page read (see HEADLESS_SHADOW in
+# types.ts and headlessShadow.ts), so the HEADLESS_WORKER binding below is exercised continuously.
+# Production leaves it unset: the headless_shadow flag decides there, and production has no binding yet.
+HEADLESS_SHADOW = "true"
 
 # The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
 # worker serves every environment's host, and it must exist before this one deploys.
 [[env.staging.services]]
 binding = "MCP_WEB"
 service = "mcp-web"
+
+# The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
+# Deployed from the separate tldraw-headless repo, so it must already exist before this one deploys.
+# Staging only: there is no dev or production headless worker, and binding a service that does not
+# exist fails the deploy — so dev, production and previews leave HEADLESS_WORKER unbound (inert).
+[[env.staging.services]]
+binding = "HEADLESS_WORKER"
+service = "staging-tldraw-headless-worker"
 
 # production gets the proper name
 [env.production]

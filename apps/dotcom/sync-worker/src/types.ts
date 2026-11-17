@@ -146,6 +146,10 @@ export interface Environment {
 	// the page fetching them back from the snapshot route, for every board. Where it is unset
 	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
 	THUMBNAIL_RENDER_PUSH: string | undefined
+	// 'true' runs the headless measure shadow on every MCP page read, whatever the `headless_shadow`
+	// flag says — the deployment-level force-on that staging sets (see headlessShadow.ts). Where it is
+	// unset (production), the flag decides per user; it does nothing anywhere HEADLESS_WORKER is unbound.
+	HEADLESS_SHADOW: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
