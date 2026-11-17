@@ -631,14 +631,6 @@
 	color: var(--tl-color-text-3);
 }
 
-@media (hover: hover) {
-	.tlui-button__menu:not(:disabled, [data-disabled]):hover .tlui-kbd,
-	.tlui-command-palette__item:not([aria-disabled='true']):hover .tlui-kbd,
-	.tlui-command-palette__back:hover .tlui-kbd {
-		color: var(--tl-color-text-1);
-	}
-}
-
 .tlui-kbd > span {
 	width: 100%;
 	text-align: center;
@@ -2543,7 +2535,6 @@ tldraw? probably.
 	opacity: 1;
 }
 
-/* Greyed like a disabled .tlui-button, shortcut included. */
 .tlui-command-palette__item[aria-disabled='true'],
 .tlui-command-palette__item[aria-disabled='true'] .tlui-kbd {
 	color: var(--tl-color-text-disabled);
