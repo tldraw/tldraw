@@ -1321,12 +1321,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	private judgeWrite(
 		write: NonNullable<TLAuthorize<R>['write']>,
-		session: RoomSession<R, SessionMeta>,
+		userId: string | null,
 		pending: PendingWrites<R>
 	): TLWriteRefusal | null {
 		const changes = pending.getChanges()
 		if (changes.length === 0) return null
-		const ctx = { userId: session.userId }
+		const ctx = { userId }
 		try {
 			return write(changes, {
 				...ctx,
@@ -1338,6 +1338,32 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.log?.error?.('authorize.write threw; refusing the push', e)
 			return { reason: 'error' }
 		}
+	}
+
+	/**
+	 * Runs a storage transaction as a user: `authorize.write` judges its writes as a whole, and a
+	 * refusal stores none of them. See `transaction` on {@link TLSocketRoom}.
+	 */
+	transaction(
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void,
+		opts: { userId: string | null }
+	): TLWriteRefusal | null {
+		return this.storage.transaction((txn) => {
+			const write = this.authorize?.write
+			if (!write) {
+				callback(txn)
+				return null
+			}
+			const pending = new PendingWrites<R>(txn)
+			callback(pending)
+			const refusal = this.judgeWrite(write, opts.userId, pending)
+			if (refusal) {
+				this.log?.warn?.('authorize.write refused server write', refusal.reason, opts.userId)
+				return refusal
+			}
+			pending.commit()
+			return null
+		}).result
 	}
 
 	private handlePushRequest(
@@ -1689,7 +1715,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 
 				if (pending && authorizeWrite && session) {
-					const refusal = this.judgeWrite(authorizeWrite, session, pending)
+					const refusal = this.judgeWrite(authorizeWrite, session.userId, pending)
 					if (refusal) {
 						this.log?.warn?.(
 							'authorize.write refused push',

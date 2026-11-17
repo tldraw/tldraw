@@ -22,7 +22,7 @@ import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
-import type { TLWriteRefusal } from '@tldraw/tlschema';
+import { TLWriteRefusal } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -547,6 +547,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
+    transaction(callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void, opts: {
+        userId: null | string;
+    }): null | TLWriteRefusal;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
@@ -796,6 +799,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+    transaction(callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void, opts: {
+        userId: null | string;
+    }): null | TLWriteRefusal;
 }
 
 // @public

@@ -1,5 +1,11 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLAuthorize, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
+import {
+	createTLSchema,
+	TLAuthorize,
+	TLInstancePresence,
+	TLStoreSnapshot,
+	TLWriteRefusal,
+} from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -13,6 +19,7 @@ import {
 	loadSnapshotIntoStorage,
 	TLSyncForwardDiff,
 	TLSyncStorage,
+	TLSyncStorageTransaction,
 } from './TLSyncStorage'
 
 /**
@@ -952,6 +959,31 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				txn.delete(id)
 			}
 		})
+	}
+
+	/**
+	 * Writes to the room as a user, for server code that acts for someone, such as an agent.
+	 * `authorize.write` judges the writes as a whole as that user, and a refusal stores none of
+	 * them. Writes through `storage.transaction` skip the hook. The callback must be synchronous.
+	 *
+	 * @example
+	 * ```ts
+	 * const refusal = room.transaction((txn) => txn.set(shape.id, shape), { userId })
+	 * if (refusal) return new Response(refusal.reason, { status: 403 })
+	 * ```
+	 *
+	 * @param callback - Reads and writes records. Reads see the callback's own writes.
+	 * @param opts - `userId` is the user the hook gets as `ctx.userId`, or null for a guest.
+	 * @returns The refusal, or null when the writes were stored.
+	 */
+	transaction(
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void,
+		opts: { userId: string | null }
+	): TLWriteRefusal | null {
+		if (this.isClosed()) {
+			throw new Error('Cannot write to a closed room')
+		}
+		return this.room.transaction(callback, opts)
 	}
 
 	/**
