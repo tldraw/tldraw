@@ -91,7 +91,8 @@ export interface TLPermissionsResult<S extends TLPermissionSource> {
 
 /**
  * Create the default permissions: a permission store and the authorize hooks that check the
- * SDK's permissions against it. Pass `authorize` to the room and to the client.
+ * SDK's permissions against it. Pass `authorize` to the room and to the client. Pass the whole
+ * object: its `write` asks `ctx.can`, which allows everything when there is no `can` hook.
  *
  * @example
  * ```ts
@@ -120,12 +121,13 @@ export function createPermissions(
 		return source.get(userId).get()?.has(permission) ?? false
 	}
 
+	// Asks ctx.can, not the source, so a rule the app adds to `can` (for example with
+	// composeAuthorize) applies to writes too.
 	const write: TLAuthorizeWrite<TLRecord> = (changes, ctx) => {
-		const { userId } = ctx
 		for (const change of changes) {
 			const required = getRequiredPermission(change, changes, ctx)
 			if (!required) continue
-			if (!userId || !can(userId, required.permission, required.data as any)) {
+			if (!ctx.can(required.permission, required.data as any)) {
 				return { reason: required.permission }
 			}
 		}

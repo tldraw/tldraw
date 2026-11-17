@@ -7,7 +7,10 @@ import {
 	TLRecord,
 	TLRecordChange,
 	TLShape,
+	TLAuthorize,
 	TLWriteContext,
+	bindAuthorizeCan,
+	composeAuthorize,
 	createBindingId,
 	createShapeId,
 } from '@tldraw/tlschema'
@@ -67,9 +70,19 @@ const remove = (prev: TLRecord): TLRecordChange => ({
 	next: null,
 })
 
-function ctx(userId: string | null, records: TLRecord[] = []): TLWriteContext {
+// the context the room gives the write hook: ctx.can is the room's authorize.can
+function ctx(
+	authorize: TLAuthorize,
+	userId: string | null,
+	records: TLRecord[] = []
+): TLWriteContext {
 	const get = (id: string) => records.find((r) => r.id === id) as any
-	return { userId, before: { get }, after: { get } }
+	return {
+		userId,
+		can: bindAuthorizeCan(authorize.can, { userId }),
+		before: { get },
+		after: { get },
+	}
 }
 
 describe('createPermissionStore', () => {
@@ -121,20 +134,38 @@ describe('createPermissions', () => {
 		permissions.set('alice', ['tl:shape:create'])
 		const a = shape('a')
 
-		expect(write([create(a)], ctx('alice'))).toBeNull()
-		expect(write([update(a)], ctx('alice'))).toEqual({ reason: 'tl:shape:edit' })
-		expect(write([remove(a)], ctx('alice'))).toEqual({ reason: 'tl:shape:delete' })
-		expect(write([create(page)], ctx('alice'))).toEqual({ reason: 'tl:page:create' })
-		expect(write([create(a)], ctx(null))).toEqual({ reason: 'tl:shape:create' })
+		expect(write([create(a)], ctx(authorize, 'alice'))).toBeNull()
+		expect(write([update(a)], ctx(authorize, 'alice'))).toEqual({ reason: 'tl:shape:edit' })
+		expect(write([remove(a)], ctx(authorize, 'alice'))).toEqual({ reason: 'tl:shape:delete' })
+		expect(write([create(page)], ctx(authorize, 'alice'))).toEqual({ reason: 'tl:page:create' })
+		expect(write([create(a)], ctx(authorize, null))).toEqual({ reason: 'tl:shape:create' })
+	})
+
+	it('authorize.write asks ctx.can, so a rule added to can applies to writes too', () => {
+		const { permissions, authorize: base } = createPermissions()
+		permissions.set('alice', ['tl:shape:create', 'tl:shape:edit'])
+		// the app adds a rule: no one edits note shapes
+		const authorize = composeAuthorize(base, {
+			can: (permission, data) =>
+				!(permission === 'tl:shape:edit' && data && 'shape' in data && data.shape.type === 'note'),
+		})
+		const geo = shape('a')
+		const note = { ...shape('b'), type: 'note' } as TLShape
+		expect(authorize.write!([update(geo)], ctx(authorize, 'alice'))).toBeNull()
+		expect(authorize.write!([update(note)], ctx(authorize, 'alice'))).toEqual({
+			reason: 'tl:shape:edit',
+		})
 	})
 
 	it('maps pages and the document to page permissions', () => {
 		const { permissions, authorize } = createPermissions()
 		permissions.set('alice', ['tl:page:edit'])
 		const doc = { id: TLDOCUMENT_ID, typeName: 'document', name: '', gridSize: 10, meta: {} } as any
-		expect(authorize.write!([update(page as TLPage)], ctx('alice'))).toBeNull()
-		expect(authorize.write!([update(doc)], ctx('alice'))).toBeNull()
-		expect(authorize.write!([remove(page)], ctx('alice'))).toEqual({ reason: 'tl:page:delete' })
+		expect(authorize.write!([update(page as TLPage)], ctx(authorize, 'alice'))).toBeNull()
+		expect(authorize.write!([update(doc)], ctx(authorize, 'alice'))).toBeNull()
+		expect(authorize.write!([remove(page)], ctx(authorize, 'alice'))).toEqual({
+			reason: 'tl:page:delete',
+		})
 	})
 
 	it('judges a binding as an edit of the shape it starts from, unless that shape is created or deleted too', () => {
@@ -145,21 +176,25 @@ describe('createPermissions', () => {
 
 		permissions.set('alice', ['tl:shape:create'])
 		// a new arrow and its binding: only the create is judged
-		expect(authorize.write!([create(from), create(b)], ctx('alice', [from, to]))).toBeNull()
+		expect(
+			authorize.write!([create(from), create(b)], ctx(authorize, 'alice', [from, to]))
+		).toBeNull()
 		// binding an existing shape is an edit
-		expect(authorize.write!([create(b)], ctx('alice', [from, to]))).toEqual({
+		expect(authorize.write!([create(b)], ctx(authorize, 'alice', [from, to]))).toEqual({
 			reason: 'tl:shape:edit',
 		})
 
 		permissions.set('alice', ['tl:shape:delete'])
 		// deleting the arrow removes its binding as part of the delete
-		expect(authorize.write!([remove(from), remove(b)], ctx('alice', [from, to]))).toBeNull()
+		expect(
+			authorize.write!([remove(from), remove(b)], ctx(authorize, 'alice', [from, to]))
+		).toBeNull()
 	})
 
 	it('leaves records it does not govern to other hooks', () => {
 		const { authorize } = createPermissions()
 		const comment = { id: 'comment:1', typeName: 'comment', meta: {} } as unknown as TLRecord
-		expect(authorize.write!([create(comment)], ctx('alice'))).toBeNull()
+		expect(authorize.write!([create(comment)], ctx(authorize, 'alice'))).toBeNull()
 	})
 
 	it('takes its own source', () => {
