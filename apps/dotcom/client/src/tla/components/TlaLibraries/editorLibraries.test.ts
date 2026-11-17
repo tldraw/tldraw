@@ -76,7 +76,7 @@ describe('getEditorLibraries', () => {
 	it("lists the board last and keeps libraries made there in the file's document", async () => {
 		const { editor, source } = setUp()
 		expect(source.getLibraryOwners?.()?.map(({ id, name }) => ({ id, name }))).toEqual([
-			{ id: 'home', name: 'Home' },
+			{ id: 'home', name: 'Private' },
 			{ id: 'acme', name: 'Acme' },
 			{ id: 'file-a', name: 'This board' },
 		])

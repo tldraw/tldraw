@@ -29,13 +29,11 @@ import {
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import { structuredClone } from '@tldraw/utils'
-import { createElement } from 'react'
 import { atom, computed, defineMessages, fetch, react, uniqueId } from 'tldraw'
 import type { TldrawApp } from '../../app/TldrawApp'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
-	privateToYou: { defaultMessage: 'Private to you' },
+	private: { defaultMessage: 'Private' },
 })
 
 interface StoredItem {
@@ -163,17 +161,10 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
-		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
 		return [
-			{
-				id: homeId,
-				name: homeName ?? this.app.msg(messages.privateToYou),
-				icon: createElement(TlaIcon, { icon: 'home' }),
-			},
+			{ id: homeId, name: this.app.msg(messages.private) },
 			...memberships.flatMap((m) =>
-				m.groupId !== homeId && m.group
-					? [{ id: m.groupId, name: m.group.name, icon: createElement(TlaIcon, { icon: 'group' }) }]
-					: []
+				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
 			),
 		]
 	})
