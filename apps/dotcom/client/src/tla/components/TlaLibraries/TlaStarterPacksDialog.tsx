@@ -5,7 +5,7 @@ import {
 	librariesPanelOpen,
 	getThumbnailForColorMode,
 } from '@tldraw/libraries'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	defineMessages,
 	F,
@@ -25,9 +25,10 @@ import {
 import {
 	addStarterPack,
 	canAddStarterPack,
+	getStarterPackSummaries,
 	isStarterPackAdded,
 	loadStarterPack,
-	STARTER_PACKS,
+	loadStarterPackSummaries,
 	type StarterPackSummary,
 } from './starterPacks'
 import styles from './TlaStarterPacksDialog.module.css'
@@ -43,6 +44,7 @@ const messages = defineMessages({
 	addErrorDescription: {
 		defaultMessage: 'You may not be allowed to create libraries, or copying failed.',
 	},
+	loadError: { defaultMessage: "Couldn't load starter packs" },
 })
 
 export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySource }) {
@@ -61,6 +63,17 @@ export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySourc
 }
 
 function TlaStarterPacksDialog({ source }: { source: LibrarySource }) {
+	const msg = useTranslation()
+	const { addToast } = useToasts()
+	const packs = useValue('starter pack summaries', getStarterPackSummaries, [])
+
+	useEffect(() => {
+		if (packs) return
+		loadStarterPackSummaries().catch(() =>
+			addToast({ title: msg(messages.loadError), severity: 'error' })
+		)
+	}, [packs, addToast, msg])
+
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -71,7 +84,7 @@ function TlaStarterPacksDialog({ source }: { source: LibrarySource }) {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.body}>
 				<ul className={styles.packs}>
-					{STARTER_PACKS.map((pack) => (
+					{packs?.map((pack) => (
 						<StarterPack key={pack.id} source={source} pack={pack} />
 					))}
 				</ul>
