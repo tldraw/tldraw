@@ -1,17 +1,40 @@
-import { copyPack, type LibraryPack, type LibrarySource, type TLLibrary } from '@tldraw/libraries'
-import diagramming from './starterPackDiagramming.json'
-import doodles from './starterPackDoodles.json'
-import floorPlan from './starterPackFloorPlan.json'
-import tldrawCharacters from './starterPackTldrawCharacters.json'
-import wireframing from './starterPackWireframing.json'
+import {
+	copyPack,
+	type LibraryPack,
+	type LibraryPackItem,
+	type LibrarySource,
+	type TLLibrary,
+} from '@tldraw/libraries'
+import manifest from './starterPackManifest.json'
 
-export const STARTER_PACKS = [
-	wireframing,
-	diagramming,
-	floorPlan,
-	tldrawCharacters,
-	doodles,
-] as unknown as LibraryPack[]
+/** What the starter packs dialog shows of a pack, without loading its items. */
+export interface StarterPackSummary {
+	id: string
+	name: string
+	version: number
+	itemCount: number
+	previews: Pick<LibraryPackItem, 'id' | 'thumbnail'>[]
+}
+
+export const STARTER_PACK_PREVIEW_COUNT = 4
+
+// Each pack is its own chunk, fetched when it's added. starterPackManifest.json is generated from
+// these by starterPacks.test.ts, in this order; run that test with `-u` after changing a pack.
+export const STARTER_PACK_LOADERS: Record<string, () => Promise<{ default: unknown }>> = {
+	wireframing: () => import('./starterPackWireframing.json'),
+	diagramming: () => import('./starterPackDiagramming.json'),
+	'floor-plan': () => import('./starterPackFloorPlan.json'),
+	'tldraw-characters': () => import('./starterPackTldrawCharacters.json'),
+	doodles: () => import('./starterPackDoodles.json'),
+}
+
+export const STARTER_PACKS = manifest as StarterPackSummary[]
+
+export async function loadStarterPack(id: string): Promise<LibraryPack> {
+	const load = Object.hasOwn(STARTER_PACK_LOADERS, id) ? STARTER_PACK_LOADERS[id] : undefined
+	if (!load) throw new Error(`No starter pack with id ${id}`)
+	return (await load()).default as LibraryPack
+}
 
 function getDefaultOwnerId(source: LibrarySource) {
 	return source.getDefaultOwnerId ? source.getDefaultOwnerId() : undefined
