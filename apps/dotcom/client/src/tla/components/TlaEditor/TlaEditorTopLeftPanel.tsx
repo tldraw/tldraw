@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
+	CommandPaletteMenuItem,
 	DefaultPageMenu,
 	defineMessages,
 	EditSubmenu,
@@ -522,6 +523,7 @@ function TlaPreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

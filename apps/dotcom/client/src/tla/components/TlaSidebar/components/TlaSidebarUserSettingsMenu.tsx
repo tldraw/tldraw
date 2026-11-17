@@ -68,9 +68,6 @@ export function TlaUserSettingsMenu() {
 						>
 							{user?.name || <F defaultMessage="Account" />}
 						</div>
-						<div className={styles.sidebarUserSettingsIcon}>
-							<TlaIcon icon="help-circle" />
-						</div>
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				{/* Hang ~8px over the sidebar's right edge (see TlaFileMenu) rather than inset. */}
@@ -78,7 +75,7 @@ export function TlaUserSettingsMenu() {
 					side="bottom"
 					align="end"
 					{...TLA_MENU_POSITION}
-					alignOffset={-18}
+					alignOffset={-6}
 				>
 					{user && (
 						<>

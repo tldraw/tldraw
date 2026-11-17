@@ -17,7 +17,6 @@ import embedIconsReplitPng from './embed-icons/replit.png'
 import embedIconsScratchPng from './embed-icons/scratch.png'
 import embedIconsSpotifyPng from './embed-icons/spotify.png'
 import embedIconsTldrawPng from './embed-icons/tldraw.png'
-import embedIconsValTownPng from './embed-icons/val_town.png'
 import embedIconsVimeoPng from './embed-icons/vimeo.png'
 import embedIconsYoutubePng from './embed-icons/youtube.png'
 import fontsIBMPlexMonoBoldWoff2 from './fonts/IBMPlexMono-Bold.woff2'
@@ -131,6 +130,7 @@ export function getAssetUrlsByImport(opts) {
 			'arrow-cycle': iconsIcon0MergedSvg2 + '#arrow-cycle',
 			'arrow-elbow': iconsIcon0MergedSvg2 + '#arrow-elbow',
 			'arrow-left': iconsIcon0MergedSvg2 + '#arrow-left',
+			'arrow-right': iconsIcon0MergedSvg2 + '#arrow-right',
 			'arrowhead-arrow': iconsIcon0MergedSvg2 + '#arrowhead-arrow',
 			'arrowhead-bar': iconsIcon0MergedSvg2 + '#arrowhead-bar',
 			'arrowhead-diamond': iconsIcon0MergedSvg2 + '#arrowhead-diamond',
@@ -238,6 +238,7 @@ export function getAssetUrlsByImport(opts) {
 			'reset-zoom': iconsIcon0MergedSvg2 + '#reset-zoom',
 			'rotate-ccw': iconsIcon0MergedSvg2 + '#rotate-ccw',
 			'rotate-cw': iconsIcon0MergedSvg2 + '#rotate-cw',
+			search: iconsIcon0MergedSvg2 + '#search',
 			'send-backward': iconsIcon0MergedSvg2 + '#send-backward',
 			'send-to-back': iconsIcon0MergedSvg2 + '#send-to-back',
 			'share-1': iconsIcon0MergedSvg2 + '#share-1',
@@ -357,7 +358,6 @@ export function getAssetUrlsByImport(opts) {
 			scratch: formatAssetUrl(embedIconsScratchPng, opts),
 			spotify: formatAssetUrl(embedIconsSpotifyPng, opts),
 			tldraw: formatAssetUrl(embedIconsTldrawPng, opts),
-			val_town: formatAssetUrl(embedIconsValTownPng, opts),
 			vimeo: formatAssetUrl(embedIconsVimeoPng, opts),
 			youtube: formatAssetUrl(embedIconsYoutubePng, opts),
 		},

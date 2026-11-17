@@ -9321,7 +9321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
-		return { type: 'shared', value: this.getInstanceState().opacityForNextShape }
+		return { type: 'shared', value: this.getOpacityForNextShape() }
 	}
 
 	/**
@@ -9338,6 +9338,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this {
 		this.updateInstanceState({ opacityForNextShape: opacity }, historyOptions)
 		return this
+	}
+
+	@computed private getOpacityForNextShape(): number {
+		return this.getInstanceState().opacityForNextShape
 	}
 
 	/**

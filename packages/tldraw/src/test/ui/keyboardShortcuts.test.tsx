@@ -821,7 +821,7 @@ describe('frame selection shortcut', () => {
 	it('moves the shortcut when toggle-frame gets a new kbd', async () => {
 		const { editor } = await setupFocusedEditor({
 			actions(_editor, actions) {
-				actions['toggle-frame'] = { ...actions['toggle-frame'], kbd: 'cmd+k,ctrl+k' }
+				actions['toggle-frame'] = { ...actions['toggle-frame'], kbd: 'cmd+m,ctrl+m' }
 				return actions
 			},
 		})
@@ -834,7 +834,7 @@ describe('frame selection shortcut', () => {
 		keydown(editor, { key: 'g', code: 'KeyG', altKey: true, metaKey: true })
 		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(false)
 
-		keydown(editor, { key: 'k', code: 'KeyK', metaKey: true })
+		keydown(editor, { key: 'm', code: 'KeyM', metaKey: true })
 		expect(editor.getCurrentPageShapes().some((s) => editor.isShapeOfType(s, 'frame'))).toBe(true)
 	})
 

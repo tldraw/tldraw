@@ -12,7 +12,7 @@ export function TlaSidebarCreateFileButton() {
 		<TldrawUiButton
 			type="icon"
 			className={styles.sidebarCreateFileButton}
-			onClick={handleSidebarCreate}
+			onClick={() => handleSidebarCreate()}
 			data-testid="tla-create-file"
 			tooltip={createTitle}
 			title={createTitle}
