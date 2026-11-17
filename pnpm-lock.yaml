@@ -1753,6 +1753,21 @@ importers:
         specifier: ^19.2.1
         version: 19.2.1(@types/react@19.2.7)(react@19.2.1)
 
+  packages/permissions:
+    dependencies:
+      '@tldraw/state':
+        specifier: workspace:*
+        version: link:../state
+      '@tldraw/store':
+        specifier: workspace:*
+        version: link:../store
+      '@tldraw/tlschema':
+        specifier: workspace:*
+        version: link:../tlschema
+      '@tldraw/utils':
+        specifier: workspace:*
+        version: link:../utils
+
   packages/state:
     dependencies:
       '@tldraw/utils':
