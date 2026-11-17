@@ -36,7 +36,7 @@ function createHiddenShapeIds(editor: Editor) {
 				return hidden
 			}
 
-			// Copied only if a shape's answer changes, which keeps the value (and so the paths)
+			// Copied only if a shape's answer changes, which keeps the value
 			// stable while hidden shapes are merely moved or restyled.
 			let next: Set<TLShapeId> | undefined
 			const setHidden = (id: TLShapeId, hidden: boolean) => {

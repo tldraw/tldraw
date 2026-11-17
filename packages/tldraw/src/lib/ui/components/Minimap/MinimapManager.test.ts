@@ -64,7 +64,7 @@ function expectToDraw(shapeIds: TLShapeId[]) {
 }
 
 describe('shapes that hide themselves from the minimap', () => {
-	it('leaves out arrows and lines from the start', () => {
+	it('leaves out arrows from the start', () => {
 		expectToDraw([ids.box, ids.other])
 	})
 
