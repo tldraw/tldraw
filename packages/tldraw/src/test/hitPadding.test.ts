@@ -388,6 +388,16 @@ describe('overlapping shapes', () => {
 		}
 	})
 
+	// An xl line along a frame's top edge, behind it: only outside the edge may its ink win
+	it.each([
+		['inside', 102, ids.b],
+		['outside', 98, ids.a],
+	])("keeps the frame body over ink below it, from just %s the frame's edge", (_, y, id) => {
+		line(ids.a, 100, 'xl')
+		editor.createShape({ id: ids.b, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } })
+		expect(hit(200, y)).toBe(id)
+	})
+
 	it('does not reach ink through a filled shape that contains the pointer', () => {
 		zoomTo400()
 		geo(ids.a, {})

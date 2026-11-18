@@ -6023,6 +6023,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// If the hit is within the frame's outer margin, then select the frame
 				const distance = geometry.distanceToPoint(pointInShapeSpace, hitFrameInside)
+				// Without hitFrameInside the distance is positive on both sides of the edge
+				const isInFrame = geometry.hitTestPoint(pointInShapeSpace, 0, true)
 				if (
 					hitFrameInside
 						? (distance > 0 && distance <= outerMargin) ||
@@ -6030,12 +6032,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 						: distance > 0 && distance <= outerMargin
 				) {
 					// Inside the frame, its body occludes what's below
-					if (distance <= 0) return slackHit ?? inMarginClosestToEdgeHit ?? shape
+					if (isInFrame) return slackHit ?? inMarginClosestToEdgeHit ?? shape
 					slackHit ??= inMarginClosestToEdgeHit ?? shape
 					continue
 				}
 
-				if (geometry.hitTestPoint(pointInShapeSpace, 0, true)) {
+				if (isInFrame) {
 					// Once we've hit a frame, we want to end the search. If we have hit a shape
 					// already, then this would either be above the frame or a child of the frame,
 					// so we want to return that. Otherwise, the point is in the empty space of the
