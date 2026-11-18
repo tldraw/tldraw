@@ -25,10 +25,10 @@ export class Point2d extends Geometry2d {
 	override hitTestLineSegment(
 		A: VecLike,
 		B: VecLike,
-		margin: number,
+		margin = 0,
 		filters?: Geometry2dFilters
 	): boolean {
-		return Vec.DistanceToLineSegment(A, B, this._point) < getHitReach(this, margin, filters)
+		return Vec.DistanceToLineSegment(A, B, this._point) <= getHitReach(this, margin, filters)
 	}
 
 	getSvgPathData() {

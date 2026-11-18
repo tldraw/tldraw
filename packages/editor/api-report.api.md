@@ -2824,7 +2824,7 @@ export class Point2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, margin: number, filters?: Geometry2dFilters): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, margin?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(): Vec;
 }

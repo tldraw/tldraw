@@ -1075,7 +1075,9 @@ describe('hitPadding', () => {
 		expect(circle.hitTestPoint(new Vec(50, -5.5), 1)).toBe(false)
 
 		const point = new Point2d({ point: new Vec(0, 0), margin: 0, hitPadding: 5 })
-		expect(point.hitTestLineSegment(new Vec(-10, 4.9), new Vec(10, 4.9), 1)).toBe(true)
+		// tangent exactly at the reach, and with no margin given
+		expect(point.hitTestLineSegment(new Vec(-10, 5), new Vec(10, 5), 1)).toBe(true)
+		expect(point.hitTestLineSegment(new Vec(-10, 5), new Vec(10, 5))).toBe(true)
 		expect(point.hitTestLineSegment(new Vec(-10, 5.5), new Vec(10, 5.5), 1)).toBe(false)
 	})
 
