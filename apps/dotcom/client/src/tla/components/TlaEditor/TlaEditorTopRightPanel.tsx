@@ -32,6 +32,7 @@ import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
+import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -50,6 +51,10 @@ const ctaMessages = defineMessages({
 
 const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
+})
+
+const settingsMessages = defineMessages({
+	settings: { defaultMessage: 'Settings' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -84,6 +89,7 @@ export function TlaEditorTopRightPanel({
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<DesignSwitchesMenu />
+				<SettingsButton />
 				{isUiV3 ? (
 					// v3 has one Share button, as signed in. Its menu asks for sign-in where one is needed.
 					<TlaFileShareMenu fileId={fileId} context={context} source="anon">
@@ -126,6 +132,7 @@ export function TlaEditorTopRightPanel({
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
 			{/* Only where v3 hides the sidebar, which has this button everywhere else. */}
 			{context === 'file' && <NewFileShortcutButton />}
+			<SettingsButton />
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -178,6 +185,32 @@ function CommentsSidebarButton() {
 			}}
 		>
 			<TlaIcon icon="comment" />
+		</TldrawUiButton>
+	)
+}
+
+/**
+ * The settingsIcon design switch: the settings dialog from the top bar. The main menu drops its
+ * Settings item while this shows (see `TlaSettingsGroup`).
+ */
+function SettingsButton() {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const isOn = useDesignSwitch('settingsIcon')
+	const label = msg(settingsMessages.settings)
+
+	if (!isOn) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topRightIconButton}
+			data-testid="tla-settings-button"
+			tooltip={label}
+			title={label}
+			onClick={() => addDialog({ component: () => <TlaSettingsDialog /> })}
+		>
+			<TlaIcon icon="settings" />
 		</TldrawUiButton>
 	)
 }

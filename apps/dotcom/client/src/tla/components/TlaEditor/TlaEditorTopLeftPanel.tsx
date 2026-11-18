@@ -713,21 +713,25 @@ function TlaUnsavedFileMenu() {
 
 /**
  * In v3 the settings dialog holds preferences, language and help, signed in or out. The v3 canvas
- * has no sidebar, so without this entry the dialog is only reachable from the workspace page.
+ * has no sidebar, so without this entry the dialog is only reachable from the workspace page. The
+ * settingsIcon design switch moves the entry to the top right panel.
  */
 function TlaSettingsGroup() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
+	const hasSettingsIcon = useDesignSwitch('settingsIcon')
 	return (
 		<TldrawUiMenuGroup id="settings">
-			<TldrawUiMenuItem
-				id="settings"
-				label={msg(messages.settings)}
-				readonlyOk
-				onSelect={() => {
-					addDialog({ component: () => <TlaSettingsDialog /> })
-				}}
-			/>
+			{!hasSettingsIcon && (
+				<TldrawUiMenuItem
+					id="settings"
+					label={msg(messages.settings)}
+					readonlyOk
+					onSelect={() => {
+						addDialog({ component: () => <TlaSettingsDialog /> })
+					}}
+				/>
+			)}
 			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
