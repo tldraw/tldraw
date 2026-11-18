@@ -5881,6 +5881,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * {@link TldrawOptions.coarseHitTestMargin} when using a coarse pointer) divided by the current
 	 * zoom level, so it stays a constant distance in screen space.
 	 *
+	 * This is a minimum reach: hit tests reach `max(margin, hitPadding)`, so a stroke whose ink is
+	 * wider than the margin is hittable up to its visible edge and no further. See
+	 * {@link Geometry2dOptions.hitPadding}.
+	 *
 	 * @returns The hit-test margin in page space.
 	 *
 	 * @public
@@ -5951,6 +5955,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
+		// A pointer on a shape's ink beats any shape that only reaches it through the margin, wherever
+		// it is in z-order (#11567). So where the margin rules below would end the search, their
+		// result waits here instead while the scan looks further down for an ink hit.
+		let slackHit: TLShape | undefined
+
+		// Reach is max(margin, padding), never the sum. Where the padding is within the margin the
+		// margin rules already cover the ink, so it only counts as an ink hit (with its own winner
+		// rules) where the ink reaches further than the margin. Thin strokes pick exactly as without
+		// padding.
+		const hitTestMargin = this.getHitTestMargin()
+		const isOnInk = (isClosed: boolean, distance: number, pad: number) =>
+			pad > (isClosed ? (distance > 0 ? outerMargin : innerMargin) : hitTestMargin) &&
+			Math.abs(distance) <= pad
+
 		// Use larger margin for spatial search to account for edge distance checks
 		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
@@ -5984,6 +6002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapeUtil = this.getShapeUtil(shape)
 			const isShapeFrameLike = this.isShapeFrameLike(shape)
 			if (
+				!slackHit &&
 				isGroup &&
 				(isShapeFrameLike ||
 					((this.isShapeOfType(shape, 'note') ||
@@ -6010,7 +6029,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							(distance <= 0 && distance > -innerMargin)
 						: distance > 0 && distance <= outerMargin
 				) {
-					return inMarginClosestToEdgeHit || shape
+					// Inside the frame, its body occludes what's below
+					if (distance <= 0) return slackHit ?? inMarginClosestToEdgeHit ?? shape
+					slackHit ??= inMarginClosestToEdgeHit ?? shape
+					continue
 				}
 
 				if (geometry.hitTestPoint(pointInShapeSpace, 0, true)) {
@@ -6021,15 +6043,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
 					return (
-						inMarginClosestToEdgeHit ||
-						inHollowSmallestAreaHit ||
+						slackHit ??
+						inMarginClosestToEdgeHit ??
+						inHollowSmallestAreaHit ??
 						(hitFrameInside ? shape : undefined)
 					)
 				}
 				continue
 			}
 
+			// The margin rules below run on the raw distance, exactly as without padding
 			let distance: number
+			let onInk = false
 
 			if (isGroup) {
 				let minDistance = Infinity
@@ -6041,25 +6066,59 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (tDistance < minDistance) {
 						minDistance = tDistance
 					}
+					if (!onInk && isOnInk(geometry.isClosed, tDistance, childGeometry.hitPadding)) {
+						onInk = true
+					}
 				}
 
 				distance = minDistance
 			} else {
+				const pad = geometry.hitPadding
 				// If the margin is zero and the geometry has a very small width or height,
 				// then check the actual distance. This is to prevent a bug where straight
 				// lines would never pass the broad phase (point-in-bounds) check.
 				if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
 					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+					onInk = isOnInk(geometry.isClosed, distance, pad)
 				} else {
 					// Broad phase
-					if (geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)) {
+					if (geometry.bounds.containsPoint(pointInShapeSpace, Math.max(outerMargin, pad))) {
 						// Narrow phase (actual distance)
 						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+						onInk = isOnInk(geometry.isClosed, distance, pad)
+						// Points only the padded broad phase lets through count for ink, not margin
+						if (
+							pad > outerMargin &&
+							!geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)
+						) {
+							distance = Infinity
+						}
 					} else {
 						// Failed the broad phase, geddafugaotta'ere!
 						distance = Infinity
 					}
 				}
+			}
+
+			const isFilled = geometry.isFilled || (isGroup && geometry.children[0].isFilled)
+
+			if (onInk) {
+				// Topmost ink hit so far, and any slack hit above it is beaten
+				if (isFilled && geometry.ignoreHit(pointInShapeSpace)) continue
+				return shape
+			}
+
+			if (slackHit) {
+				// Only an ink hit can still win, and not through a filled shape that contains the point
+				if (
+					geometry.isClosed &&
+					isFilled &&
+					distance <= 0 &&
+					!geometry.ignoreHit(pointInShapeSpace)
+				) {
+					return slackHit
+				}
+				continue
 			}
 
 			if (geometry.isClosed) {
@@ -6069,7 +6128,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Are we close to the shape's edge?
 				if (distance <= outerMargin || (hitInside && distance <= 0 && distance > -innerMargin)) {
-					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
+					if (isFilled) {
 						// If the geometry rejects this hit (e.g. transparent image pixel),
 						// skip this shape and check shapes behind it.
 						if (geometry.ignoreHit(pointInShapeSpace)) {
@@ -6078,7 +6137,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
-						return inMarginClosestToEdgeHit || shape
+						if (distance <= 0) return inMarginClosestToEdgeHit || shape
+						// Only in the margin outside the shape: shapes below can still win on ink
+						slackHit = inMarginClosestToEdgeHit || shape
+						continue
 					} else {
 						// If we're close to the edge of the shape, and if it's the closest edge among
 						// all the edges that we've gotten close to so far, then we will want to hit the
@@ -6121,13 +6183,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
-				if (distance < this.getHitTestMargin()) {
+				if (distance < hitTestMargin) {
 					// An edge we already hit (above this shape) that is at least as close still wins,
 					// matching the closest-edge rule used for hollow shapes
-					if (inMarginClosestToEdgeHit && inMarginClosestToEdgeDistance <= distance) {
-						return inMarginClosestToEdgeHit
-					}
-					return shape
+					slackHit =
+						inMarginClosestToEdgeHit && inMarginClosestToEdgeDistance <= distance
+							? inMarginClosestToEdgeHit
+							: shape
 				}
 			}
 		}
@@ -6137,7 +6199,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// had the shortest distance between the point and the shape edge),
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
-		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
+		return slackHit ?? inMarginClosestToEdgeHit ?? inHollowSmallestAreaHit ?? undefined
 	}
 
 	/**
@@ -6180,8 +6242,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get shape IDs within the given bounds.
 	 *
-	 * Note: Uses shape page bounds only. Frames with labels outside their bounds
-	 * may not be included even if the label is within the search bounds.
+	 * Note: Uses shape page bounds, expanded by each shape's stroke padding
+	 * ({@link Geometry2d.hitPadding}) so a stroke whose ink is in the bounds is included. Frames
+	 * with labels outside their bounds may not be included even if the label is within the search
+	 * bounds.
 	 *
 	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
 	 * ```ts
@@ -6200,7 +6264,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Test whether a point (in the current page space) will will a shape. This method takes into account masks,
-	 * such as when a shape is the child of a frame and is partially clipped by the frame.
+	 * such as when a shape is the child of a frame and is partially clipped by the frame. The test
+	 * includes the shape's visible stroke: it reaches `max(margin, hitPadding)` from the geometry
+	 * (see {@link Geometry2dOptions.hitPadding}).
 	 *
 	 * @example
 	 * ```ts

@@ -99,6 +99,14 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 					ctx.save()
 					ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f)
 
+					// Hit padding band
+					ctx.save()
+					ctx.strokeStyle = 'rgba(255, 0, 0, 0.15)'
+					ctx.lineJoin = 'round'
+					ctx.lineCap = 'round'
+					drawHitPaddingBand(ctx, geometry)
+					ctx.restore()
+
 					// Outline
 					ctx.strokeStyle = geometry.debugColor ?? 'red'
 					ctx.lineWidth = 2 / zoom
@@ -177,6 +185,16 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 
 	return <canvas ref={canvasRef} className="tl-canvas-overlays" />
 })
+
+function drawHitPaddingBand(ctx: CanvasRenderingContext2D, geometry: Geometry2d) {
+	if (geometry instanceof Group2d) {
+		for (const child of geometry.children) drawHitPaddingBand(ctx, child)
+		return
+	}
+	if (geometry.hitPadding <= 0) return
+	ctx.lineWidth = geometry.hitPadding * 2
+	drawGeometryStroke(ctx, geometry)
+}
 
 function drawGeometryStroke(ctx: CanvasRenderingContext2D, geometry: Geometry2d) {
 	if (geometry instanceof Group2d) {

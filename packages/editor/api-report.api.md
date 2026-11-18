@@ -3922,7 +3922,6 @@ export interface TldrawOptions {
     }[];
     // (undocumented)
     readonly handleRadius: number;
-    // (undocumented)
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;
