@@ -86,7 +86,7 @@ function geo(id: TLShapeId, props: Partial<TLGeoShape['props']>, x = 100, y = 10
 	})
 }
 
-function line(id: TLShapeId, y: number, size: 's' | 'm' | 'xl') {
+function line(id: TLShapeId, y: number, size: 's' | 'm' | 'xl', rise = 0) {
 	editor.createShape({
 		id,
 		type: 'line',
@@ -96,7 +96,7 @@ function line(id: TLShapeId, y: number, size: 's' | 'm' | 'xl') {
 			size,
 			points: {
 				a1: { id: 'a1', index: 'a1' as any, x: 0, y: 0 },
-				a2: { id: 'a2', index: 'a2' as any, x: 200, y: 0 },
+				a2: { id: 'a2', index: 'a2' as any, x: 200, y: rise },
 			},
 		},
 	})
@@ -669,5 +669,12 @@ describe('review follow-ups', () => {
 		// no options: outerMargin 0, but a flat line still hits within the hit test margin
 		expect(editor.getShapeAtPoint({ x: 200, y: 97 })?.id).toBe(ids.a)
 		expect(editor.getShapeAtPoint({ x: 200, y: 94 })?.id).toBe(undefined)
+	})
+
+	it('picks a stroke anywhere on its ink with default options', () => {
+		line(ids.a, 100, 'm', 200)
+		// on the round cap, outside the line's bounds
+		expect(editor.isPointInShape(ids.a, { x: 99, y: 99 })).toBe(true)
+		expect(editor.getShapeAtPoint({ x: 99, y: 99 })?.id).toBe(ids.a)
 	})
 })

@@ -5959,6 +5959,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// it is in z-order (#11567). So where the margin rules below would end the search, their
 		// result waits here instead while the scan looks further down for an ink hit.
 		let slackHit: TLShape | undefined
+		// The topmost shape whose visible ink is under the pointer: the answer when the margin rules
+		// find nothing, so a stroke is pickable anywhere on its ink.
+		let inkHit: TLShape | undefined
 
 		// Reach is max(margin, padding), never the sum. Where the padding is within the margin the
 		// margin rules already cover the ink, so it only counts as an ink hit (with its own winner
@@ -6048,7 +6051,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						slackHit ??
 						inMarginClosestToEdgeHit ??
 						inHollowSmallestAreaHit ??
-						(hitFrameInside ? shape : undefined)
+						(hitFrameInside ? shape : inkHit)
 					)
 				}
 				continue
@@ -6056,7 +6059,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// The margin rules below run on the raw distance, exactly as without padding
 			let distance: number
+			// On ink that outreaches the margin, which gives it priority over margin hits
 			let onInk = false
+			// On visible ink at all, which makes the shape eligible
+			let onVisibleInk = false
 
 			if (isGroup) {
 				let minDistance = Infinity
@@ -6068,9 +6074,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (tDistance < minDistance) {
 						minDistance = tDistance
 					}
-					if (!onInk && isOnInk(geometry.isClosed, tDistance, childGeometry.hitPadding)) {
-						onInk = true
-					}
+					const pad = childGeometry.hitPadding
+					if (pad > 0 && Math.abs(tDistance) <= pad) onVisibleInk = true
+					if (!onInk && isOnInk(geometry.isClosed, tDistance, pad)) onInk = true
 				}
 
 				distance = minDistance
@@ -6082,12 +6088,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (outerMargin === 0 && (geometry.bounds.w < 1 || geometry.bounds.h < 1)) {
 					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 					onInk = isOnInk(geometry.isClosed, distance, pad)
+					onVisibleInk = pad > 0 && Math.abs(distance) <= pad
 				} else {
 					// Broad phase
 					if (geometry.bounds.containsPoint(pointInShapeSpace, Math.max(outerMargin, pad))) {
 						// Narrow phase (actual distance)
 						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 						onInk = isOnInk(geometry.isClosed, distance, pad)
+						onVisibleInk = pad > 0 && Math.abs(distance) <= pad
 						// Points only the padded broad phase lets through count for ink, not margin
 						if (
 							pad > outerMargin &&
@@ -6104,10 +6112,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const isFilled = geometry.isFilled || (isGroup && geometry.children[0].isFilled)
 
-			if (onInk) {
-				// Topmost ink hit so far, and any slack hit above it is beaten
+			if (onVisibleInk) {
 				if (isFilled && geometry.ignoreHit(pointInShapeSpace)) continue
-				return shape
+				inkHit ??= shape
+				// Topmost ink hit so far, and any slack hit above it is beaten
+				if (onInk) return shape
 			}
 
 			if (slackHit) {
@@ -6201,7 +6210,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// had the shortest distance between the point and the shape edge),
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
-		return slackHit ?? inMarginClosestToEdgeHit ?? inHollowSmallestAreaHit ?? undefined
+		return slackHit ?? inMarginClosestToEdgeHit ?? inHollowSmallestAreaHit ?? inkHit
 	}
 
 	/**
