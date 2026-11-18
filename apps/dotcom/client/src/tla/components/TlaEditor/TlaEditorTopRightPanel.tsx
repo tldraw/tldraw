@@ -73,7 +73,7 @@ export function TlaEditorTopRightPanel({
 	const trackEvent = useTldrawAppUiEvents()
 	const { addDialog } = useDialogs()
 	const editor = useEditor()
-	const isUiV3 = useIsUiV3()
+	const hasSignedOutShare = useDesignSwitch('signedOutShare')
 	// Share and the comments sidebar are mutually exclusive: opening share closes the sidebar.
 	// (The reverse is automatic — clicking the sidebar button dismisses the share popover as an
 	// outside interaction.)
@@ -90,8 +90,8 @@ export function TlaEditorTopRightPanel({
 				<PeopleMenu />
 				<DesignSwitchesMenu />
 				<SettingsButton />
-				{isUiV3 ? (
-					// v3 has one Share button, as signed in. Its menu asks for sign-in where one is needed.
+				{hasSignedOutShare ? (
+					// One Share button, as signed in. Its menu asks for sign-in where one is needed.
 					<TlaFileShareMenu fileId={fileId} context={context} source="anon">
 						<TlaCtaButton
 							canvas

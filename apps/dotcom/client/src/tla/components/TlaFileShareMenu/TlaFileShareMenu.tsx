@@ -8,8 +8,8 @@ import {
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
-import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { useDesignSwitch } from '../../utils/designSwitches'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import {
 	TlaMenuTabsPage,
@@ -63,10 +63,11 @@ export function TlaFileShareMenu({
 
 	let tabToShowAsActive = shareMenuActiveTab
 
-	// In v3 a signed-out visitor sees the tabs a signed-in owner does, with sign-in standing in for
-	// the two that need an account. Published and legacy rooms have no such tabs to stand in for.
-	const isUiV3 = useIsUiV3()
-	const needsSignIn = isUiV3 && !app && (context === 'file' || context === 'scratch')
+	// The signedOutShare design switch: a signed-out visitor sees the tabs a signed-in owner does,
+	// with sign-in standing in for the two that need an account. Published and legacy rooms have no
+	// such tabs to stand in for.
+	const hasSignedOutShare = useDesignSwitch('signedOutShare')
+	const needsSignIn = hasSignedOutShare && !app && (context === 'file' || context === 'scratch')
 
 	const okTabs = {
 		// If the context is a guest file or published file, show the anon share file

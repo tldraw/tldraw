@@ -10,8 +10,9 @@ const messages = defineMessages({
 })
 
 /**
- * What a signed-out visitor gets in the v3 share menu's Invite and Publish tabs, which need an
- * account. `children` is for what still works without one, such as copying a shared file's link.
+ * What a signed-out visitor gets in the share menu's Invite and Publish tabs, which need an
+ * account, with the signedOutShare design switch on. `children` is for what still works without
+ * one, such as copying a shared file's link.
  */
 export function TlaSignInTab({ children }: { children?: ReactNode }) {
 	const msg = useTranslation()

@@ -36,6 +36,9 @@ export const designSwitches = {
 	// File header: the file name opens the workspace's files, as the page name opens the pages,
 	// instead of renaming in place.
 	fileSwitcher: designSwitch('file-switcher', 'Breadcrumb file switcher'),
+	// Signed out: the one Share button signed-in users have, in place of a share icon beside
+	// "Sign in to share", with sign-in moved into its menu's Invite and Publish tabs.
+	signedOutShare: designSwitch('signed-out-share', 'Signed-out Share button'),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>
