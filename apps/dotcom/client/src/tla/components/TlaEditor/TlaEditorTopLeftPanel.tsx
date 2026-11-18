@@ -109,6 +109,8 @@ function TlaViewSubmenu() {
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
+	signInToSave: { defaultMessage: 'Sign in to save' },
+	unsavedFile: { defaultMessage: 'Unsaved file' },
 	settings: { defaultMessage: 'Settings' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	home: { defaultMessage: 'Home' },
@@ -164,6 +166,8 @@ function TlaEditorTopLeftPanelAnonymous() {
 
 	const hasLogoMenu = useDesignSwitch('logoMenu')
 	const menuLbl = msg('menu.title')
+	// The scratch board at the root, which is neither a file nor a legacy or published room.
+	const isUnsavedFile = isUiV3 && !app && !fileId && !roomInfo
 
 	// This is used in three places
 	// - root, ie tldraw.com
@@ -244,7 +248,15 @@ function TlaEditorTopLeftPanelAnonymous() {
 					<TlaLogo data-testid="tla-top-left-logo-icon" />
 				</ExternalLink>
 			)}
-			{anonFileName && (
+			{isUnsavedFile && (
+				<>
+					<span className={styles.topLeftPanelSeparator} style={{ marginRight: 0 }}>
+						{SEPARATOR}
+					</span>
+					<TlaUnsavedFileMenu />
+				</>
+			)}
+			{anonFileName && !isUnsavedFile && (
 				<>
 					<span
 						className={styles.topLeftPanelSeparator}
@@ -642,21 +654,60 @@ function TlaFileNameEditorInput({
 	)
 }
 
-function SignInMenuItem() {
+function SignInMenuItem({
+	label,
+	testId = 'tla-sign-in-menu-button',
+}: {
+	label?: string
+	testId?: string
+}) {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 
 	return (
 		<TldrawUiButton
 			type="menu"
-			data-testid="tla-sign-in-menu-button"
+			data-testid={testId}
 			onClick={() => {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{msg(messages.signIn)}</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{label ?? msg(messages.signIn)}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
+	)
+}
+
+/**
+ * Where a file's name would be on the signed-out scratch board. That board is one local document
+ * per browser, and signing in at the root is what saves it, as a new file in the home workspace
+ * (see `slurpFile`), so sign-in is the only thing this menu offers.
+ */
+function TlaUnsavedFileMenu() {
+	const msg = useTranslation()
+	return (
+		<div className={classNames(styles.topLeftInputWrapper, styles.topLeftInputWrapperEditable)}>
+			<TldrawUiDropdownMenuRoot id="unsaved-file">
+				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+					<TldrawUiDropdownMenuTrigger>
+						<button
+							className={classNames(styles.topLeftInputNameWidthSetter, styles.topLeftUnsavedFile)}
+							data-testid="tla-file-name"
+						>
+							{msg(messages.unsavedFile).replace(/ /g, '\u00a0')}
+						</button>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						<TldrawUiMenuGroup id="signin">
+							<SignInMenuItem
+								label={msg(messages.signInToSave)}
+								testId="tla-sign-in-to-save-button"
+							/>
+						</TldrawUiMenuGroup>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuRoot>
+		</div>
 	)
 }
 

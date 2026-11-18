@@ -329,6 +329,9 @@
   "694f82ed9d": {
     "translation": "Delete workspace"
   },
+  "697c59072d": {
+    "translation": "Sign in to save"
+  },
   "69ce6a28fb": {
     "translation": "{count, plural, one {Someone reacted} other {# people reacted}}"
   },
@@ -508,6 +511,9 @@
   },
   "9983381c21": {
     "translation": "Clear search"
+  },
+  "9ac3b80777": {
+    "translation": "Unsaved file"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."

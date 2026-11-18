@@ -85,12 +85,14 @@ span.topLeftWorkspace {
 	}
 }
 
+/* Beside the signed-out wordmark there is no room for a file name on a phone. */
 @media (max-width: 550px) {
-	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftInputWrapper {
+	.topLeftPanelButtons:has(.topLeftOfflineLogo, .topLeftLogoButton) .topLeftInputWrapper {
 		display: none;
 	}
 
-	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftPanelSeparator:has(+ .topLeftInputWrapper) {
+	.topLeftPanelButtons:has(.topLeftOfflineLogo, .topLeftLogoButton)
+		.topLeftPanelSeparator:has(+ .topLeftInputWrapper) {
 		display: none;
 	}
 }
@@ -114,6 +116,11 @@ span.topLeftWorkspace {
 	padding: 0px 12px;
 	font-weight: 800;
 	flex-shrink: 0;
+}
+
+/* The signed-out scratch board, which only this browser holds until it is signed in. */
+button.topLeftInputNameWidthSetter.topLeftUnsavedFile {
+	color: var(--tl-color-warning);
 }
 
 .topLeftInputNameWidthSetter:focus-visible {
