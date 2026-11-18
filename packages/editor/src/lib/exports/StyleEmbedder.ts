@@ -76,10 +76,9 @@ export class StyleEmbedder {
 		this.styles.set(element, info)
 	}
 
-	// `computedStyleMap().keys()` is most of the cost of reading styles: it lists every property,
-	// including the hundred-plus custom properties a tldraw container defines, which we then throw
-	// away. Its non-custom entries are the same list in the same order for every element, so we
-	// read that list once and look each property up by name after that.
+	// `computedStyleMap().keys()` costs more than reading every value: it also lists the 100+
+	// custom properties on a tldraw container, which we drop. Its other entries are the same, in
+	// the same order, for every element, so we list them once per export.
 	private computedStyleProperties: string[] | undefined
 
 	private styleFromElement(element: Element, opts: ReadStyleOpts) {
