@@ -1,11 +1,11 @@
 import { QueryResultType } from '@rocicorp/zero'
 import { MENTIONABLE_VISITORS_LIMIT, queries } from '@tldraw/dotcom-shared'
+import classNames from 'classnames'
 import { useEffect, useMemo, useState } from 'react'
-import { useValue } from 'tldraw'
+import { getFirstCharacter, useValue } from 'tldraw'
 import { getFileVisitDate } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useBoardPresentUserIds } from '../../hooks/useBoardPresence'
-import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import styles from './workspace-home.module.css'
 
 type FileVisitors = QueryResultType<typeof queries.fileVisitors>
@@ -37,30 +37,32 @@ export function TlaBoardVisitors({ fileId }: { fileId: string }) {
 	const overflowLabel =
 		others.length >= MENTIONABLE_VISITORS_LIMIT ? `+${overflow.length}+` : `+${overflow.length}`
 
+	// The markup and classes of the editor's people menu facepile (DefaultPeopleMenuFacePile), which
+	// can't be mounted here: its avatars read presence from an editor, and the gallery has none.
 	return (
-		<div className={styles.visitors} data-testid="tla-board-visitors">
+		<div className={classNames('tlui-people-menu__avatars', styles.visitors)}>
 			{shown.map((visitor) => (
 				<div
 					key={visitor.userId}
-					className={styles.visitor}
+					className={classNames('tlui-people-menu__avatar', styles.visitor)}
+					style={{ backgroundColor: visitor.userColor || undefined }}
 					data-present={!!present?.has(visitor.userId)}
 					title={visitor.userName}
 				>
-					<TlaUserAvatar
-						user={{ name: visitor.userName, email: '', color: visitor.userColor }}
-						className={styles.visitorAvatar}
-					/>
+					{getFirstCharacter(visitor.userName)}
 				</div>
 			))}
 			{overflow.length > 0 && (
 				<div
-					className={styles.visitor}
+					className={classNames(
+						'tlui-people-menu__avatar',
+						'tlui-people-menu__more',
+						styles.visitor
+					)}
 					data-present={overflow.some((v) => present?.has(v.userId))}
 					title={overflow.map((v) => v.userName).join(', ')}
 				>
-					<div className={styles.visitorOverflow} aria-hidden>
-						{overflowLabel}
-					</div>
+					{overflowLabel}
 				</div>
 			)}
 		</div>

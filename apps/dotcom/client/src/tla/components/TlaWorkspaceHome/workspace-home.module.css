@@ -386,20 +386,16 @@
 
 /* ---------------------- Visitors --------------------- */
 
+/* Sizes and overlap come from the editor's people menu facepile (tlui-people-menu__*). */
 .visitors {
-	display: flex;
-	flex-shrink: 0;
-	align-items: center;
-	padding-left: 6px;
-}
-
-/* Overlapping, with a ring in the card's color so each edge reads against the next. */
-.visitor {
 	position: relative;
 	z-index: 2;
-	margin-left: -6px;
-	border-radius: 11px;
-	box-shadow: 0 0 0 2px var(--tl-color-panel);
+	flex-shrink: 0;
+}
+
+.visitor {
+	/* The facepile's ring is the canvas color; on a card it has to match the card. */
+	border-color: var(--tl-color-panel);
 	/* Has opened the board; full opacity is reserved for whoever is on it now. */
 	opacity: 0.45;
 	transition: opacity 200ms ease;
@@ -409,35 +405,9 @@
 	opacity: 1;
 }
 
-.visitorAvatar,
-.visitorOverflow {
-	height: 22px;
-	font-size: 10px;
-}
-
-.visitorAvatar {
-	width: 22px;
-	/* A visitor row stamped before the user picked a color has none. */
-	background-color: var(--tl-color-text-3);
-}
-
-.visitorOverflow {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	/* A pill rather than a circle, so "+12" fits. */
-	min-width: 22px;
-	padding: 0 5px;
-	border-radius: 11px;
-	background-color: var(--tl-color-muted-2);
-	color: var(--tl-color-text-1);
-	font-weight: 600;
-	letter-spacing: -0.02em;
-}
-
 @media (hover: hover) {
 	.row:hover .visitor {
-		box-shadow: 0 0 0 2px var(--tl-color-muted-2);
+		border-color: var(--tl-color-muted-2);
 	}
 }
 
