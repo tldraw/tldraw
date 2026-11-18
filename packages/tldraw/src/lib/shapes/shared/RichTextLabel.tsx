@@ -5,7 +5,6 @@ import {
 	TLRichText,
 	TLShapeId,
 	isAccelKey,
-	openWindow,
 	preventDefault,
 	resolveLineHeightPx,
 	useEditor,
@@ -14,6 +13,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
+import { openLink } from '../../utils/openLink'
 import {
 	renderHtmlFromRichText,
 	richTextHasTaskList,
@@ -135,7 +135,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				if (e.name !== 'pointer_up' || !link) return
 
 				if (!isDragging.current) {
-					openWindow(link, '_blank', false)
+					openLink(editor, link)
 				}
 				editor.off('event', handlePointerUp)
 			}

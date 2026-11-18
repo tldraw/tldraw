@@ -8,6 +8,7 @@ export interface TLEventMap {
 	mount: []
 	unmount: []
 	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
+	'confirm-open-link': [{ url: string }]
 	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]

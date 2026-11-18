@@ -1881,6 +1881,8 @@ function parseUrl(str: string) {
 // A block list rather than an allow list: every client and the sync server validate shapes with
 // this, so a scheme accepted by one version and rejected by another breaks shared boards. Blocking
 // a scheme later has the same problem, so only add one here with a migration that blanks it.
+// Whether an accepted link opens without asking is decided when it's clicked, by tldraw's
+// `getLinkOpenPolicy`, which can change freely.
 const blockedLinkProtocols = new Set([
 	// Run script or render arbitrary content in the page's origin
 	'javascript:',
