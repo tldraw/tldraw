@@ -1,5 +1,5 @@
 import { intersectLineSegmentCircle } from '../intersect'
-import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
+import { PI2, getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
 import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
@@ -75,27 +75,43 @@ export class Arc2d extends Geometry2d {
 		distance = 0,
 		filters?: Geometry2dFilters
 	): boolean {
-		const {
-			_center,
-			_radius: radius,
-			_measure: measure,
-			_angleStart: angleStart,
-			_angleEnd: angleEnd,
-		} = this
-		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
+		// Exact band test: points within `reach` of the arc are those near either end, plus the
+		// annulus [radius - reach, radius + reach] at angles the arc spans. Measuring against the
+		// sampled vertices instead misses tangent drags between samples and hits inside the hollow.
+		const { _center, _radius: radius, _start, _end } = this
+		const reach = getHitReach(this, distance, filters)
 		if (
-			intersection?.some((p) => {
-				const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
-				return result >= 0 && result <= 1
-			})
+			Vec.DistanceToLineSegment(A, B, _start) <= reach ||
+			Vec.DistanceToLineSegment(A, B, _end) <= reach ||
+			this.isInBand(A, reach) ||
+			this.isInBand(B, reach) ||
+			// a tangent touch, which the circle intersections below don't report
+			this.isInBand(Vec.NearestPointOnLineSegment(A, B, _center, true), reach)
 		) {
 			return true
 		}
+		// Otherwise AB can only enter the band across one of its arcs: its radial sides lie within
+		// reach of the ends
+		for (const r of [radius + reach, radius - reach]) {
+			if (r <= 0) continue
+			if (intersectLineSegmentCircle(A, B, _center, r)?.some((p) => this.spansAngleOf(p))) {
+				return true
+			}
+		}
+		return false
+	}
 
-		// Near misses: measure against the arc's vertices
-		const reach = getHitReach(this, distance, filters)
-		if (reach <= 0) return false
-		return this.distanceToLineSegment(A, B) <= reach
+	private spansAngleOf(point: VecLike) {
+		// Not getPointInArcT: it clamps angles outside the arc to its ends
+		const { _measure: measure } = this
+		const a = (this._center.angle(point) - this._angleStart) * Math.sign(measure)
+		return ((a % PI2) + PI2) % PI2 <= Math.abs(measure)
+	}
+
+	private isInBand(point: VecLike, reach: number) {
+		return (
+			Math.abs(Vec.Dist(this._center, point) - this._radius) <= reach && this.spansAngleOf(point)
+		)
 	}
 
 	getVertices(): Vec[] {

@@ -1081,20 +1081,31 @@ describe('hitPadding', () => {
 		expect(point.hitTestLineSegment(new Vec(-10, 5.5), new Vec(10, 5.5), 1)).toBe(false)
 	})
 
-	it('pads arcs, ellipses and stadiums in segment tests', () => {
-		const arc = new Arc2d({
-			center: new Vec(0, 0),
-			start: new Vec(-50, 0),
-			end: new Vec(50, 0),
-			sweepFlag: 1,
-			largeArcFlag: 0,
-			hitPadding: 5,
-		})
-		const top = arc.nearestPoint(new Vec(0, -100)).y
-		// tangent to the arc's outer ink, never crossing its circle
-		expect(arc.hitTestLineSegment(new Vec(-10, top - 4.5), new Vec(10, top - 4.5), 1)).toBe(true)
-		expect(arc.hitTestLineSegment(new Vec(-10, top - 6), new Vec(10, top - 6), 1)).toBe(false)
+	// A radius 50 arc over the top from (-50, 0) to (50, 0), sampled every 22.5°
+	const arc = new Arc2d({
+		center: new Vec(0, 0),
+		start: new Vec(-50, 0),
+		end: new Vec(50, 0),
+		sweepFlag: 1,
+		largeArcFlag: 0,
+		hitPadding: 5,
+	})
+	// A short drag tangent to the circle of radius r, halfway between two samples
+	const tangentAt = (r: number) => {
+		const u = Vec.FromAngle((-78.75 * Math.PI) / 180)
+		const p = Vec.Mul(u, r)
+		return [Vec.Add(p, Vec.Per(u).mul(2)), Vec.Sub(p, Vec.Per(u).mul(2))] as const
+	}
+	it.each([
+		['tangent to the outer ink', ...tangentAt(54.8), true],
+		['in the hollow past the inner ink', ...tangentAt(44.4), false],
+		['within reach of an end', new Vec(45, 4.5), new Vec(55, 4.5), true],
+		['just beyond an end cap', new Vec(45, 5.5), new Vec(55, 5.5), false],
+	])('band-tests arc segment hits: %s', (_, A, B, expected) => {
+		expect(arc.hitTestLineSegment(A, B, 1)).toBe(expected)
+	})
 
+	it('pads ellipses and stadiums in segment tests', () => {
 		const ellipse = new Ellipse2d({ width: 100, height: 100, isFilled: false, hitPadding: 5 })
 		expect(ellipse.hitTestLineSegment(new Vec(40, -4.5), new Vec(60, -4.5), 1)).toBe(true)
 		expect(ellipse.hitTestLineSegment(new Vec(40, -6), new Vec(60, -6), 1)).toBe(false)
