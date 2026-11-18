@@ -69,11 +69,29 @@ export class StyleEmbedder {
 		}
 
 		const info: ElementStyleInfo = {
-			self: styleFromElement(element, { defaultStyles, parentStyles }),
+			self: this.styleFromElement(element, { defaultStyles, parentStyles }),
 			before: styleFromPseudoElement(element, '::before'),
 			after: styleFromPseudoElement(element, '::after'),
 		}
 		this.styles.set(element, info)
+	}
+
+	// `computedStyleMap().keys()` is most of the cost of reading styles: it lists every property,
+	// including the hundred-plus custom properties a tldraw container defines, which we then throw
+	// away. Its non-custom entries are the same list in the same order for every element, so we
+	// read that list once and look each property up by name after that.
+	private computedStyleProperties: string[] | undefined
+
+	private styleFromElement(element: Element, opts: ReadStyleOpts) {
+		// `computedStyleMap` produces a more accurate representation of the styles, but it's not
+		// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if
+		// it's not available.
+		if (element.computedStyleMap) {
+			const style = element.computedStyleMap()
+			this.computedStyleProperties ??= Array.from(style.keys()).filter(shouldIncludeCssProperty)
+			return styleFromComputedStyleMap(style, opts, this.computedStyleProperties)
+		}
+		return styleFromComputedStyle(getComputedStyle(element), opts)
 	}
 
 	fetchResources() {
@@ -215,16 +233,6 @@ interface ReadStyleOpts {
 	parentStyles: ReadonlyStyles
 }
 
-function styleFromElement(element: Element, { defaultStyles, parentStyles }: ReadStyleOpts) {
-	// `computedStyleMap` produces a more accurate representation of the styles, but it's not
-	// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if it's
-	// not available.
-	if (element.computedStyleMap) {
-		return styleFromComputedStyleMap(element.computedStyleMap(), { defaultStyles, parentStyles })
-	}
-	return styleFromComputedStyle(getComputedStyle(element), { defaultStyles, parentStyles })
-}
-
 function styleFromPseudoElement(element: Element, pseudo: string) {
 	// the equivalent of `computedStyleMap` for pseudo-elements isn't even fully specced out yet, so
 	// for those we have to use `getComputedStyle` in all browsers.
@@ -240,7 +248,8 @@ function styleFromPseudoElement(element: Element, pseudo: string) {
 
 function styleFromComputedStyleMap(
 	style: StylePropertyMapReadOnly,
-	{ defaultStyles, parentStyles }: ReadStyleOpts
+	{ defaultStyles, parentStyles }: ReadStyleOpts,
+	properties: Iterable<string> = style.keys()
 ) {
 	const styles: Record<string, string> = {}
 	const currentColor = style.get('color')?.toString() || ''
@@ -250,10 +259,12 @@ function styleFromComputedStyleMap(
 		defaultStyles,
 		getStyle: (property: string) => style.get(property)?.toString() ?? '',
 	}
-	for (const property of style.keys()) {
+	for (const property of properties) {
 		if (!shouldIncludeCssProperty(property)) continue
 
-		const value = style.get(property)!.toString()
+		const cssValue = style.get(property)
+		if (!cssValue) continue
+		const value = cssValue.toString()
 
 		if (defaultStyles[property] === value) continue
 
