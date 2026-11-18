@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLRecordAuthorizers, TLRoomUser, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -952,6 +952,41 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				txn.delete(id)
 			}
 		})
+	}
+
+	/**
+	 * The room as one user, for server code that acts for someone, such as an agent's tools. Pass
+	 * the result to that code in place of the room: it can read, and it can write only through
+	 * `authorize.write`, so it cannot reach `storage` and skip the hook.
+	 *
+	 * `authorize.write` judges the writes of one `write` call as a whole as that user, and a
+	 * refusal stores none of them. The callbacks must be synchronous.
+	 *
+	 * @example
+	 * ```ts
+	 * const board = room.as(userId)
+	 * const refusal = board.write((txn) => txn.set(shape.id, shape))
+	 * if (refusal) return new Response(refusal.reason, { status: 403 })
+	 * ```
+	 *
+	 * @param userId - The user the hooks get as `ctx.userId`, or null for a guest.
+	 */
+	as(userId: string | null): TLRoomUser<R> {
+		const user = this.room.as(userId)
+		const assertOpen = () => {
+			if (this.isClosed()) throw new Error('Cannot use a closed room')
+		}
+		return {
+			userId,
+			read: (callback) => {
+				assertOpen()
+				return user.read(callback)
+			},
+			write: (callback) => {
+				assertOpen()
+				return user.write(callback)
+			},
+		}
 	}
 
 	/**

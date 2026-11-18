@@ -22,7 +22,7 @@ import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
-import type { TLWriteRefusal } from '@tldraw/tlschema';
+import { TLWriteRefusal } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -494,12 +494,20 @@ export interface TLRoomSocket<R extends UnknownRecord> {
     sendMessage(msg: TLSocketServerSentEvent<R>): void;
 }
 
+// @public
+export interface TLRoomUser<R extends UnknownRecord = UnknownRecord> {
+    read<T>(callback: (txn: Pick<TLSyncStorageTransaction<R>, 'entries' | 'get' | 'keys' | 'values'>) => T): T;
+    readonly userId: null | string;
+    write(callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void): null | TLWriteRefusal;
+}
+
 // @internal
 export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest | TLPingRequest | TLPushRequest<R>;
 
 // @public
 export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
     constructor(opts: TLSocketRoomOptions<R, SessionMeta>);
+    as(userId: null | string): TLRoomUser<R>;
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
@@ -741,6 +749,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         schema: StoreSchema<R, any>;
         storage: TLSyncStorage<R>;
     });
+    as(userId: null | string): TLRoomUser<R>;
     close(): void;
     // (undocumented)
     readonly documentTypes: Set<string>;

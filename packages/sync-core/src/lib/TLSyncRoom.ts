@@ -1321,12 +1321,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	private judgeWrite(
 		write: NonNullable<TLAuthorize<R>['write']>,
-		session: RoomSession<R, SessionMeta>,
+		userId: string | null,
 		pending: PendingWrites<R>
 	): TLWriteRefusal | null {
 		const changes = pending.getChanges()
 		if (changes.length === 0) return null
-		const ctx = { userId: session.userId }
+		const ctx = { userId }
 		try {
 			return write(changes, {
 				...ctx,
@@ -1337,6 +1337,74 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		} catch (e) {
 			this.log?.error?.('authorize.write threw; refusing the push', e)
 			return { reason: 'error' }
+		}
+	}
+
+	/**
+	 * Runs a storage transaction as a user: `authorize.write` judges its writes as a whole, and a
+	 * refusal stores none of them.
+	 */
+	private writeAs(
+		userId: string | null,
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void
+	): TLWriteRefusal | null {
+		return this.storage.transaction((txn) => {
+			const write = this.authorize?.write
+			const pending = write ? new PendingWrites<R>(txn) : null
+			const target = pending ?? txn
+			let isOpen = true
+			const assertOpen = () => {
+				if (!isOpen) throw new Error('Cannot write after the write callback has returned')
+			}
+			try {
+				// a plain object, otherwise the callback could reach the transaction and skip the hook
+				callback({
+					get: (id) => target.get(id) as R | undefined,
+					set: (id, record) => {
+						assertOpen()
+						target.set(id, record)
+					},
+					delete: (id) => {
+						assertOpen()
+						target.delete(id)
+					},
+				})
+			} finally {
+				isOpen = false
+			}
+			if (!write || !pending) return null
+			const refusal = this.judgeWrite(write, userId, pending)
+			if (refusal) {
+				this.log?.warn?.('authorize.write refused server write', refusal.reason, userId)
+				return refusal
+			}
+			pending.commit()
+			return null
+		}).result
+	}
+
+	/** See `as` on {@link TLSocketRoom}. */
+	as(userId: string | null): TLRoomUser<R> {
+		return {
+			userId,
+			read: <T>(
+				callback: (
+					txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'keys' | 'values' | 'entries'>
+				) => T
+			): T => {
+				let result!: T
+				this.storage.transaction((txn) => {
+					// a plain object, otherwise the callback could write through the transaction
+					result = callback({
+						get: (id) => txn.get(id),
+						keys: () => txn.keys(),
+						values: () => txn.values(),
+						entries: () => txn.entries(),
+					})
+				})
+				return result
+			},
+			write: (callback) => this.writeAs(userId, callback),
 		}
 	}
 
@@ -1689,7 +1757,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 
 				if (pending && authorizeWrite && session) {
-					const refusal = this.judgeWrite(authorizeWrite, session, pending)
+					const refusal = this.judgeWrite(authorizeWrite, session.userId, pending)
 					if (refusal) {
 						this.log?.warn?.(
 							'authorize.write refused push',
@@ -1818,6 +1886,33 @@ export interface MinimalDocStore<R extends UnknownRecord> {
 	get(id: string): UnknownRecord | undefined
 	set(id: string, record: R): void
 	delete(id: string): void
+}
+
+/**
+ * A room as one user sees it, for server code that acts for that user, such as an agent's tools.
+ * It has no way to write that skips `authorize.write`, so pass it to that code in place of the
+ * room. Get one from `as` on {@link TLSocketRoom}.
+ *
+ * @public
+ */
+export interface TLRoomUser<R extends UnknownRecord = UnknownRecord> {
+	/** The user the hooks get as `ctx.userId`, or null for a guest. */
+	readonly userId: string | null
+	/**
+	 * Reads document records. The callback must be synchronous, and must finish reading before it
+	 * returns. Every user in a room can read every document record, as a connected client can.
+	 */
+	read<T>(
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'keys' | 'values' | 'entries'>) => T
+	): T
+	/**
+	 * Writes as the user. `authorize.write` judges the writes as a whole, and a refusal stores
+	 * none of them. Returns the refusal, or null when the writes were stored. The callback must be
+	 * synchronous, and its reads see its own writes.
+	 */
+	write(
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void
+	): TLWriteRefusal | null
 }
 
 /**

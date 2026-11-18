@@ -280,3 +280,147 @@ describe('authorize.read in the room', () => {
 		expect(names(bob)).toEqual([])
 	})
 })
+
+describe('authorize.write for server writes', () => {
+	const ownerOnly: TLAuthorize<R> = {
+		write: (changes, { userId }) =>
+			changes.some((c) => ((c.prev ?? c.next) as Doc).owner !== userId)
+				? { reason: 'not-yours' }
+				: null,
+	}
+	const storedIds = (server: TestServer<R>) =>
+		server.storage.getSnapshot().documents.map((d) => d.state.id)
+
+	it('refuses a transaction as a user and stores none of it', () => {
+		const bobs = DocType.create({ id: docId('bobs'), owner: 'bob', parentId: null })
+		const server = makeRoom(ownerOnly, [bobs])
+
+		const refusal = server.room.as('alice').write((txn) => {
+			txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
+			txn.delete(bobs.id)
+		})
+
+		expect(refusal).toEqual({ reason: 'not-yours' })
+		expect(storedIds(server)).toEqual([bobs.id])
+	})
+
+	it('stores an allowed transaction and sends it to connected clients', async () => {
+		const server = makeRoom(ownerOnly)
+		const bob = connectClient(server, 'bob')
+		flush(server, bob.socketPair)
+
+		const doc = DocType.create({ id: docId('a'), owner: 'alice', parentId: null })
+		const refusal = server.room.as('alice').write((txn) => {
+			txn.set(doc.id, doc)
+			// reads see the transaction's own writes
+			expect(txn.get(doc.id)).toEqual(doc)
+		})
+		await Promise.resolve() // storage notifies the room on a microtask
+		flush(server, bob.socketPair)
+
+		expect(refusal).toBeNull()
+		expect(storedIds(server)).toEqual([doc.id])
+		expect(bob.store.get(doc.id)).toEqual(doc)
+	})
+
+	it('judges a null user id as a guest', () => {
+		const write = vi.fn<NonNullable<TLAuthorize<R>['write']>>(() => ({ reason: 'sign-in' }))
+		const server = makeRoom({ write })
+
+		const refusal = server.room
+			.as(null)
+			.write((txn) =>
+				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
+			)
+
+		expect(refusal).toEqual({ reason: 'sign-in' })
+		expect(write.mock.calls[0][1].userId).toBeNull()
+	})
+
+	it('refuses the transaction when the hook throws', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const server = makeRoom({
+			write: () => {
+				throw new Error('rule bug')
+			},
+		})
+
+		const refusal = server.room
+			.as('alice')
+			.write((txn) =>
+				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
+			)
+		error.mockRestore()
+
+		expect(refusal).toEqual({ reason: 'error' })
+		expect(storedIds(server)).toEqual([])
+	})
+
+	it('stores the transaction when the room has no write hook', () => {
+		const server = makeRoom({})
+
+		const refusal = server.room
+			.as('alice')
+			.write((txn) =>
+				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
+			)
+
+		expect(refusal).toBeNull()
+		expect(storedIds(server)).toEqual([docId('a')])
+	})
+
+	it('leaves storage.transaction unchecked', () => {
+		const server = makeRoom({ write: () => ({ reason: 'no' }) })
+
+		server.storage.transaction((txn) =>
+			txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
+		)
+
+		expect(storedIds(server)).toEqual([docId('a')])
+	})
+})
+
+describe('the room as a user', () => {
+	const ownerOnly: TLAuthorize<R> = {
+		write: (changes, { userId }) =>
+			changes.some((c) => ((c.prev ?? c.next) as Doc).owner !== userId)
+				? { reason: 'not-yours' }
+				: null,
+	}
+	const bobs = DocType.create({ id: docId('bobs'), owner: 'bob', parentId: null })
+	const storedIds = (server: TestServer<R>) =>
+		server.storage.getSnapshot().documents.map((d) => d.state.id)
+
+	it('reads every document record', () => {
+		const server = makeRoom(ownerOnly, [bobs])
+		const alice = server.room.as('alice')
+
+		expect(alice.read((txn) => txn.get(bobs.id))).toEqual(bobs)
+		expect(alice.read((txn) => [...txn.keys()])).toEqual([bobs.id])
+	})
+
+	it('gives the callbacks nothing that writes past the hook', () => {
+		for (const authorize of [ownerOnly, {}]) {
+			const server = makeRoom(authorize, [bobs])
+			const alice = server.room.as('alice')
+
+			expect(Object.keys(alice).sort()).toEqual(['read', 'userId', 'write'])
+			alice.read((txn) =>
+				expect(Object.keys(txn).sort()).toEqual(['entries', 'get', 'keys', 'values'])
+			)
+			alice.write((txn) => expect(Object.keys(txn).sort()).toEqual(['delete', 'get', 'set']))
+		}
+	})
+
+	it('refuses writes made after the write callback has returned', () => {
+		const server = makeRoom(ownerOnly, [bobs])
+		let kept: { delete(id: string): void } | undefined
+
+		server.room.as('alice').write((txn) => {
+			kept = txn
+		})
+
+		expect(() => kept!.delete(bobs.id)).toThrow()
+		expect(storedIds(server)).toEqual([bobs.id])
+	})
+})

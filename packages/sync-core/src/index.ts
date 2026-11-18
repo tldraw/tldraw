@@ -73,6 +73,7 @@ export {
 	type TLRecordAuthorizer,
 	type TLRecordAuthorizers,
 	type TLRoomSocket,
+	type TLRoomUser,
 } from './lib/TLSyncRoom'
 export {
 	loadSnapshotIntoStorage,
