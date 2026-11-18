@@ -1,5 +1,6 @@
 import _posthog from 'posthog-js'
 import { POSTHOG_API_HOST, POSTHOG_TOKEN, POSTHOG_UI_HOST } from '../constants'
+import type { CookieConsent } from '../types'
 import { copyEventMetadata, isProspectId, type CopyCodeEvent } from '../utils/copy-event'
 import { AnalyticsService } from './analytics-service'
 
@@ -24,14 +25,20 @@ class PosthogAnalyticsService extends AnalyticsService {
 		this.isEnabled = true
 	}
 
-	override disable() {
-		if (!this.isEnabled) return
-		_posthog.setPersonProperties({ analytics_consent: false })
+	override disable(consent: CookieConsent = 'opted-out') {
+		if (consent === 'unknown') {
+			_posthog.clear_opt_in_out_capturing()
+			this.isEnabled = false
+			return
+		}
+		if (this.isEnabled) _posthog.setPersonProperties({ analytics_consent: false })
+		// A first-visit rejection must activate on_reject cookieless capture too.
 		_posthog.opt_out_capturing()
 		this.isEnabled = false
 	}
 
 	override identify(userId: string, properties?: { [key: string]: any }) {
+		if (!this.isEnabled) return
 		_posthog.identify(userId, {
 			...properties,
 			analytics_consent: true,

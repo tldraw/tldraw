@@ -6,6 +6,7 @@ vi.mock('posthog-js', () => ({
 		init: vi.fn(),
 		opt_in_capturing: vi.fn(),
 		opt_out_capturing: vi.fn(),
+		clear_opt_in_out_capturing: vi.fn(),
 		setPersonProperties: vi.fn(),
 		identify: vi.fn(),
 		capture: vi.fn(),
@@ -23,6 +24,25 @@ const submission = {
 afterEach(() => {
 	posthogService.disable()
 	vi.resetAllMocks()
+})
+
+describe('PostHog consent transitions', () => {
+	test('starts cookieless capture when a new visitor rejects cookies', () => {
+		posthogService.disable('opted-out')
+		expect(posthog.opt_out_capturing).toHaveBeenCalledOnce()
+		expect(posthog.setPersonProperties).not.toHaveBeenCalled()
+	})
+
+	test('keeps unanswered consent pending rather than treating it as a rejection', () => {
+		posthogService.disable('unknown')
+		expect(posthog.clear_opt_in_out_capturing).toHaveBeenCalledOnce()
+		expect(posthog.opt_out_capturing).not.toHaveBeenCalled()
+	})
+
+	test('does not identify a visitor without consent', () => {
+		posthogService.identify('account-123', { email: 'jane@example.com' })
+		expect(posthog.identify).not.toHaveBeenCalled()
+	})
 })
 
 describe('posthogService.trackFormSubmission', () => {
