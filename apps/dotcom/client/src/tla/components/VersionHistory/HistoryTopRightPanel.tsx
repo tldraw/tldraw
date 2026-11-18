@@ -7,28 +7,27 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { versionHistoryMessages as messages } from './version-history-messages'
 import styles from '../TlaEditor/top.module.css'
 
-/** The history toggle, pressed, in the spot it occupies in the live editor; clicking it closes. */
+/** Leaves history for the live file. */
 export function HistoryTopRightPanel() {
 	const msg = useTranslation()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const navigate = useNavigate()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
-	const label = msg(messages.title)
+	const label = msg(messages.close)
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<TldrawUiButton
 				type="icon"
-				className={styles.commentsSidebarButton}
-				data-testid="tla-version-history-button"
-				aria-pressed
+				className={styles.topRightIconButton}
+				data-testid="tla-version-history-close"
 				tooltip={label}
 				title={label}
 				onClick={() => fileSlug && navigate(routes.tlaFile(fileSlug))}
 			>
-				<TlaIcon icon="clock" />
+				<TlaIcon icon="close" />
 			</TldrawUiButton>
-			{/* Holds Share's width so the toggle doesn't move. Share itself would act on the
+			{/* Holds Share's width so the button sits where Share was. Share itself would act on the
 			    preview editor (e.g. publish the old version), so it isn't rendered here. */}
 			<TlaCtaButton canvas aria-hidden tabIndex={-1} style={{ visibility: 'hidden' }}>
 				<F defaultMessage="Share" />
