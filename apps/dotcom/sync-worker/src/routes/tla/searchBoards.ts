@@ -235,8 +235,8 @@ async function searchWorkspaceBoards(
  *
  * Files whose owning workspace the caller already belongs to are excluded, and that exclusion is not
  * an edge case — without it this read returns every board the caller owns. `createFile` writes a
- * `group_file` row into the owning workspace, which for a personal board *is* the home group, and it
- * sets `shared: true`; so both predicates below match a caller's own boards exactly as well as their
+ * `group_file` row into the owning workspace, which for a personal board *is* the home group, and by
+ * default it sets `shared: true`; so both predicates below match a caller's own boards exactly as well as their
  * guest links, and every one of them would come back here as well as from `searchWorkspaceBoards`,
  * twice on one page. The mislinked case it also covers — a guest file whose workspace the caller
  * later joined — is the rarer half of its job. `getWorkspaceFilesSorted` in the client guards the

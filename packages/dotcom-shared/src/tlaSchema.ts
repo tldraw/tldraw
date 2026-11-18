@@ -109,8 +109,8 @@ export const group = table('group')
 		// the same link (cf. a file's `shared` flag). Optional so older cached rows
 		// without the column read as enabled (defaulted true) until they refetch.
 		inviteLinkEnabled: boolean().optional(),
-		// Sharing state of files created in this workspace. Optional so cached rows from
-		// before the column read as 'shared'.
+		// Initial `shared` value for new files. Optional so cached rows from before the
+		// column read as 'shared'.
 		defaultFileSharing: string<DefaultFileSharing>().optional(),
 		isDeleted: boolean(),
 		createdAt: number(),

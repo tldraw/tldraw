@@ -350,8 +350,7 @@ export function createMutators(userId: string) {
 			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 
-			// Every creation path (new, duplicate, import, slurp, MCP) lands here, so the
-			// workspace's default sharing is enforced in one place.
+			// All file creation goes through here, so this is the one place the default is applied.
 			const workspace = await tx.run(zql.group.where('id', '=', workspaceId).one())
 			const shared = workspace?.defaultFileSharing !== 'private'
 

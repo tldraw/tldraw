@@ -5,6 +5,7 @@ import { createMutators, parseFlags, userHasFlag } from './mutators'
 import type { Role } from './roles'
 import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
+	DefaultFileSharing,
 	TlaComment,
 	TlaCommentRead,
 	TlaFile,
@@ -15,7 +16,6 @@ import {
 	TlaSchema,
 	TlaUser,
 } from './tlaSchema'
-import type { DefaultFileSharing } from './tlaSchema'
 import { ZErrorCode } from './types'
 
 // ---- helpers ----
@@ -1342,7 +1342,10 @@ describe('setWorkspaceDefaultFileSharing', () => {
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
 		await expectBadRequest(() =>
-			m.setWorkspaceDefaultFileSharing(tx, { id: groupId, defaultFileSharing: 'public' as any })
+			m.setWorkspaceDefaultFileSharing(tx, {
+				id: groupId,
+				defaultFileSharing: 'public' as DefaultFileSharing,
+			})
 		)
 	})
 
@@ -1362,7 +1365,7 @@ describe('createFile sharing default', () => {
 	const newFileId = 'file_new12345678901a'
 
 	async function create(
-		defaultFileSharing: DefaultFileSharing,
+		defaultFileSharing: DefaultFileSharing | undefined,
 		createSource: string | null = null
 	) {
 		const s = makeStore({
@@ -1386,8 +1389,28 @@ describe('createFile sharing default', () => {
 		expect(await create('shared')).toMatchObject({ shared: true, sharedLinkType: 'edit' })
 	})
 
+	it('shares new files when the workspace row predates the column', async () => {
+		expect(await create(undefined)).toMatchObject({ shared: true })
+	})
+
 	it('creates unshared files when the workspace is private by default', async () => {
 		expect(await create('private')).toMatchObject({ shared: false, sharedLinkType: 'edit' })
+	})
+
+	it('creates unshared files in a private-by-default home workspace', async () => {
+		const s = makeStore({
+			user: [makeUser({ id: userId })],
+			group: [makeGroup({ id: userId, defaultFileSharing: 'private' })],
+		})
+		const { tx } = createMockTx(s, { location: 'server' })
+		await createMutators(userId).createFile(tx, {
+			fileId: newFileId,
+			workspaceId: userId,
+			name: 'New',
+			time: Date.now(),
+			createSource: null,
+		})
+		expect(s.file.find((f) => f.id === newFileId)).toMatchObject({ shared: false })
 	})
 
 	it('makes a duplicate of a shared file unshared when the workspace is private by default', async () => {
