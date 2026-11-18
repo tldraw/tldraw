@@ -13,7 +13,7 @@ import {
 	TLSyncErrorCloseEventReason,
 	TLSyncRefusal,
 } from '@tldraw/sync-core'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
 import {
 	Editor,
 	TAB_ID,
@@ -238,8 +238,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 	const onPushRefused = useEvent((refusal: TLSyncRefusal) => _onPushRefused?.(refusal))
 	// a new `authorize` object every render must not mean a new client every render
-	const authorizeRef = useRef(_authorize)
-	authorizeRef.current = _authorize
+	const getAuthorize = useReactiveEvent(useCallback(() => _authorize, [_authorize]))
 	const hasAuthorize = !!_authorize
 
 	useEffect(() => {
@@ -333,7 +332,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		const roomObjectTypes = atom<readonly string[] | undefined>('sync object types', undefined)
 		const authorize: TLStoreAuthorize<undefined> | undefined = hasAuthorize
 			? {
-					rule: (args) => authorizeRef.current?.rule(args) ?? null,
+					rule: (args) => getAuthorize()?.rule(args) ?? null,
 					getSession: () => {
 						const session = granted.get()
 						if (!session) return null
@@ -341,7 +340,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					},
 					get objectTypes() {
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
-						return roomObjectTypes.get() ?? authorizeRef.current?.objectTypes
+						return roomObjectTypes.get() ?? getAuthorize()?.objectTypes
 					},
 				}
 			: undefined
@@ -461,6 +460,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		onCustomMessageReceived,
 		onPushRefused,
 		hasAuthorize,
+		getAuthorize,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
