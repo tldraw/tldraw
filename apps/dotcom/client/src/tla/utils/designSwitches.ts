@@ -21,8 +21,8 @@ function designSwitch(id: string, label: string, initialValue = false): DesignSw
 }
 
 export const designSwitches = {
-	// Settings dialog: tabs in a column beside the page instead of a strip above it.
-	settingsVerticalTabs: designSwitch('settings-vertical-tabs', 'Vertical settings tabs'),
+	// Settings dialog: tabs in a strip above the page instead of a column beside it.
+	settingsHorizontalTabs: designSwitch('settings-horizontal-tabs', 'Horizontal settings tabs'),
 	// Lists these switches on a Labs tab in the settings dialog instead of in the beaker menu.
 	settingsLabsTab: designSwitch('settings-labs-tab', 'Labs tab in settings'),
 	// Gallery and list: avatars of who has opened each board, full opacity for whoever is on it now.

@@ -77,7 +77,7 @@ type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'lab
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
-	const hasVerticalTabs = useDesignSwitch('settingsVerticalTabs')
+	const hasVerticalTabs = !useDesignSwitch('settingsHorizontalTabs')
 	const hasLabsTab = useDesignSwitch('settingsLabsTab')
 
 	const tabs: { id: SettingsTab; label: string }[] = [
