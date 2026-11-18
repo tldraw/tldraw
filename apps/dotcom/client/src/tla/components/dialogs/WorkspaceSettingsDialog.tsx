@@ -402,6 +402,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					/>
 				</div>
 
+				{newFilesPrivateControl}
+
 				{/* The home workspace is private and can't be shared, so show a disabled invite
 				    control with a note pointing the user to creating a shared workspace instead. */}
 				{isHomeWorkspace && (
@@ -417,7 +419,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						</p>
 					</div>
 				)}
-				{isHomeWorkspace && newFilesPrivateControl}
 
 				{/* Invite link, members, and settings apply only to shared workspaces. */}
 				{!isHomeWorkspace && (
@@ -442,8 +443,6 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 								</TlaButton>
 							)}
 						</div>
-
-						{newFilesPrivateControl}
 
 						<TlaMenuTabsRoot activeTab={activeTab} onTabChange={setActiveTab}>
 							{/* The shared tabs inset their labels by the tab padding; pull the strip out
