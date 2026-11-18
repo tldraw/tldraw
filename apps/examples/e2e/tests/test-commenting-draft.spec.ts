@@ -7,6 +7,27 @@ test.describe('commenting draft composer', () => {
 		await page.waitForSelector('.tl-canvas')
 	})
 
+	test('Escape leaves the comment tool when no comment is open', async ({ page }) => {
+		await page.getByTestId('quick-actions.comment').click()
+		await expect(page.getByTestId('quick-actions.comment')).toHaveAttribute('aria-pressed', 'true')
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	test('Escape leaves the comment tool after posting a comment', async ({ page, isMobile }) => {
+		if (isMobile) test.skip()
+		await page.getByTestId('quick-actions.comment').click()
+		await page.mouse.click(400, 300)
+		const input = page.locator('.tlui-cmt-canvas-composer [contenteditable="true"].tlui-cmt-input')
+		await expect(input).toBeFocused()
+		await page.keyboard.type('A comment')
+		await page.keyboard.press('Enter')
+		await expect(page.locator('.tlui-cmt-canvas-composer')).toHaveCount(0)
+		await expect(page.locator('.tlui-cmt-canvas-pin__marker')).toHaveCount(1)
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
+
 	test('dragging the draft pin moves the comment before it is posted', async ({
 		page,
 		isMobile,
@@ -98,21 +119,21 @@ test.describe('commenting draft composer', () => {
 		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
 		await expect(page.locator('.tlui-cmt-canvas-pin__marker')).toHaveCount(0)
 
-		// Escape steps back one level at a time: clear the text, close the draft, leave the tool.
 		const input = page.locator('.tlui-cmt-canvas-composer [contenteditable="true"].tlui-cmt-input')
 		await expect(input).toBeFocused()
 		await page.keyboard.type('half a thought')
-		await page.keyboard.press('Escape')
-		await expect(composer).toBeVisible()
-		await expect(input).toHaveText('')
 		await page.keyboard.press('Escape')
 		await expect(composer).toHaveCount(0)
 		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
 		await page.keyboard.press('Escape')
 		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+		await commentTool.click()
+		await page.mouse.click(400, 300)
+		await expect(input).toBeFocused()
+		await expect(input).toHaveText('')
 	})
 
-	test('Escape in a reply clears it, then closes the thread, then leaves the tool', async ({
+	test('Escape in a reply clears it and closes the thread, then leaves the tool', async ({
 		page,
 		isMobile,
 	}) => {
@@ -132,13 +153,13 @@ test.describe('commenting draft composer', () => {
 		await reply.click()
 		await page.keyboard.type('a reply')
 		await page.keyboard.press('Escape')
-		await expect(thread).toBeVisible()
-		await expect(reply).toHaveText('')
-		await page.keyboard.press('Escape')
 		await expect(thread).toHaveCount(0)
 		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
 		await page.keyboard.press('Escape')
 		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+		await pin.click()
+		await expect(thread).toBeVisible()
+		await expect(reply).toHaveText('')
 	})
 
 	test('panning the camera with the middle button keeps the draft open', async ({
