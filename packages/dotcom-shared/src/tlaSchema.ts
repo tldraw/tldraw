@@ -44,6 +44,8 @@ export const user = table('user')
 		enhancedA11yMode: boolean().optional(),
 		isZoomDirectionInverted: boolean().optional(),
 		allowAnalyticsCookie: boolean().optional(),
+		whatsNewSeenAt: number().optional(),
+		whatsNewAutoOpen: boolean().optional(),
 	})
 	.primaryKey('id')
 

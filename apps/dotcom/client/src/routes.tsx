@@ -125,6 +125,11 @@ export function createAppRouter({
 					<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 					<Route path={ROUTES.tlaImport} lazy={() => import('./tla/pages/import')} />
 					<Route
+						path={ROUTES.tlaWhatsNew}
+						lazy={() => import('./tla/pages/whats-new')}
+						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
+					/>
+					<Route
 						path={ROUTES.tlaSignIn}
 						lazy={() => import('./tla/pages/sign-in')}
 						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}

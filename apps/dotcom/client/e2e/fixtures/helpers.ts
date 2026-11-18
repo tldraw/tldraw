@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { Browser, BrowserContext, Page, test } from '@playwright/test'
+import { WHATS_NEW_E2E_DISABLE_AUTO_OPEN_KEY } from '../../src/tla/utils/whatsNewE2e'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
 import { HomePage } from './HomePage'
@@ -10,6 +11,16 @@ import { WorkspaceInviteDialog } from './WorkspaceInviteDialog'
 
 export type UserName = 'huppy' | 'suppy'
 type UserProps = { user: UserName; index: number } | undefined
+
+export async function disableWhatsNewAutoOpen(context: BrowserContext) {
+	await context.addInitScript((key) => {
+		try {
+			window.localStorage.setItem(key, '1')
+		} catch {
+			// Opaque origins (about:blank) have no storage.
+		}
+	}, WHATS_NEW_E2E_DISABLE_AUTO_OPEN_KEY)
+}
 
 export function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -30,6 +41,7 @@ export async function openNewTab(
 			newContext = await browser.newContext({ storageState })
 		}
 
+		await disableWhatsNewAutoOpen(newContext)
 		if (allowClipboard) {
 			await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
 		}

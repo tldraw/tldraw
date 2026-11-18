@@ -6,6 +6,7 @@ import { FilesSection } from './FilesSection'
 import { FlagsSection } from './FlagsSection'
 import { SystemSection } from './SystemSection'
 import { UsersSection } from './UsersSection'
+import { WhatsNewSection } from './WhatsNewSection'
 import { WorkspacesSection } from './WorkspacesSection'
 import styles from './admin.module.css'
 
@@ -14,6 +15,7 @@ const SECTIONS = [
 	{ id: 'workspaces', label: 'Workspaces' },
 	{ id: 'files', label: 'Files & boards' },
 	{ id: 'flags', label: 'Feature flags' },
+	{ id: 'whats-new', label: "What's new" },
 	{ id: 'effects', label: 'Effect outbox' },
 	{ id: 'system', label: 'System' },
 ] as const
@@ -53,6 +55,7 @@ export function Component() {
 				{section === 'users' && <UsersSection />}
 				{section === 'flags' && <FlagsSection />}
 				{section === 'workspaces' && <WorkspacesSection />}
+				{section === 'whats-new' && <WhatsNewSection />}
 				{section === 'files' && <FilesSection fileId={fileId} />}
 				{section === 'effects' && <EffectsSection />}
 				{section === 'system' && <SystemSection />}

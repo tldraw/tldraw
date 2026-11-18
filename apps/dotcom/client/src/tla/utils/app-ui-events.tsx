@@ -24,6 +24,7 @@ export type TLAppUiEventSource =
 	| 'cookie-settings'
 	| 'dialog'
 	| 'workspace-settings'
+	| 'whats-new'
 	| 'command-palette'
 
 /** @public */
@@ -116,6 +117,9 @@ export interface TLAppUiEventMap {
 		filter: 'onlyCurrentPage' | 'onlyMine' | 'onlyUnread' | 'showResolved'
 		value: boolean
 	}
+	'whats-new-open': { trigger: 'auto' | 'menu' }
+	'whats-new-open-page': null
+	'whats-new-auto-open-disabled': null
 }
 
 /** @public */

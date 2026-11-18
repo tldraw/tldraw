@@ -57,6 +57,9 @@ export const testRoutes = createRouter<Environment>()
 						exportPadding: true,
 						exportFormat: 'png',
 						inputMode: null,
+						// Only Updates published during the test count as Unread.
+						whatsNewSeenAt: Date.now(),
+						whatsNewAutoOpen: null,
 					} satisfies Omit<TlaUserPartial, 'id'>)
 					.where('id', '=', userId)
 					.execute()

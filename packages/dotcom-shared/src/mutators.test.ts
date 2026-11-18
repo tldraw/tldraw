@@ -44,6 +44,8 @@ function makeUser(overrides: Partial<TlaUser> & { id: string }): TlaUser {
 		enhancedA11yMode: null,
 		isZoomDirectionInverted: null,
 		allowAnalyticsCookie: null,
+		whatsNewSeenAt: null,
+		whatsNewAutoOpen: null,
 		...overrides,
 	}
 }
@@ -364,6 +366,18 @@ describe('user mutations', () => {
 		const m = createMutators(userId)
 		// flags is NOT in immutableColumns.user, so this should succeed
 		await expectValid(() => m.user.update(tx, { id: userId, flags: 'example_flag' }))
+	})
+
+	it("user can record their own what's new read state and auto-open choice", async () => {
+		const { tx } = createMockTx(
+			makeStore({
+				user: [makeUser({ id: userId })],
+			})
+		)
+		const m = createMutators(userId)
+		await expectValid(() =>
+			m.user.update(tx, { id: userId, whatsNewSeenAt: 1000, whatsNewAutoOpen: false })
+		)
 	})
 })
 

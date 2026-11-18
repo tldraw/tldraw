@@ -25,6 +25,12 @@ import {
 } from '../../menu-items/menu-items'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import {
+	TlaWhatsNewDot,
+	useHasUnreadWhatsNew,
+	WhatsNewMenuItem,
+} from '../../WhatsNew/TlaWhatsNewAutoOpen'
+import whatsNewStyles from '../../WhatsNew/whats-new.module.css'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
@@ -38,6 +44,7 @@ export function TlaUserSettingsMenu() {
 	const app = useApp()
 	const userMenuLbl = msg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
+	const hasUnreadWhatsNew = useHasUnreadWhatsNew(app)
 
 	// The dropdown's open state is keyed globally by its id, so we can reuse the
 	// same hook to open the menu when the user right-clicks the row.
@@ -68,6 +75,7 @@ export function TlaUserSettingsMenu() {
 						>
 							{user?.name || <F defaultMessage="Account" />}
 						</div>
+						{hasUnreadWhatsNew && <TlaWhatsNewDot className={whatsNewStyles.triggerDot} />}
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				{/* Hang ~8px over the sidebar's right edge (see TlaFileMenu) rather than inset. */}
@@ -87,6 +95,7 @@ export function TlaUserSettingsMenu() {
 						</>
 					)}
 					<TldrawUiMenuGroup id="legal">
+						<WhatsNewMenuItem />
 						<UserManualMenuItem icon={false} />
 						<LegalSummaryMenuItem />
 						<CookieConsentMenuItem />
