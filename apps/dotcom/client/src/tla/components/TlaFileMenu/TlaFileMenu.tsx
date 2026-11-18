@@ -331,7 +331,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
-				{workspaceId && !isArchived && (
+				{workspaceId && !(canArchive && isArchived) && (
 					<TldrawUiMenuItem
 						label={msg(isPinned ? messages.unpin : messages.pin)}
 						id={`${idPrefix}pin-unpin`}

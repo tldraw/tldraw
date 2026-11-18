@@ -1152,7 +1152,7 @@ describe('file operations across workspaces', () => {
 		})
 	}
 
-	it('archiving a pinned file unpins it in that workspace only, and unarchiving restores it', async () => {
+	it('archiving a pinned file unpins it in that workspace only, and unarchiving clears archivedAt', async () => {
 		const s = archiveState()
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1167,6 +1167,17 @@ describe('file operations across workspaces', () => {
 
 		await m.unarchiveFile(tx, { fileId, workspaceId: groupA })
 		expect(inA()?.archivedAt).toBe(null)
+	})
+
+	it('pinning an archived file unarchives it', async () => {
+		const s = archiveState()
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await m.archiveFile(tx, { fileId, workspaceId: groupA })
+		await m.pinFile(tx, { fileId, workspaceId: groupA })
+		const row = s.group_file.find((gf) => gf.groupId === groupA)
+		expect(row?.archivedAt).toBe(null)
+		expect(row?.index).toBeTruthy()
 	})
 
 	it('archiving and unarchiving are forbidden outside the workspace', async () => {

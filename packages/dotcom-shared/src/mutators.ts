@@ -405,10 +405,13 @@ export function createMutators(userId: string) {
 				indexToUse = getIndexBelow(otherPinnedFiles[0]?.index)
 			}
 
+			// Pinning unarchives (see archiveFile): MCP and the v2 sidebar can pin an archived
+			// board, and the Archive tab offers no Unpin.
 			await tx.mutate.group_file.update({
 				fileId,
 				groupId: workspaceId,
 				index: indexToUse,
+				archivedAt: null,
 			})
 		},
 
