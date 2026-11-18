@@ -42,7 +42,8 @@ export const designSwitches = {
 	// Signed out: "Unsaved file" in the header in a warning colour instead of the text colour.
 	unsavedFileColor: designSwitch('unsaved-file-color', 'Warning colour on "Unsaved file"'),
 	// Main menu experiments. So far: signed out, a File submenu holding Download, where it is
-	// signed in, instead of Download at the top level.
+	// signed in, instead of Download at the top level, with "Sign in to save" above it on the
+	// scratch board.
 	andysMainMenu: designSwitch('andys-main-menu', "Andy's main menu"),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),

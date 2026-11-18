@@ -215,6 +215,15 @@ function TlaEditorTopLeftPanelAnonymous() {
 						{/* The andysMainMenu design switch: under File, where the signed-in menu has them. */}
 						{hasAndysMainMenu && (
 							<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
+								{/* Only the scratch board is unsaved: a guest's edits to a shared file already are. */}
+								{isUnsavedFile && (
+									<TldrawUiMenuGroup id="file-signin">
+										<SignInMenuItem
+											label={msg(messages.signInToSave)}
+											testId="tla-file-sign-in-to-save-button"
+										/>
+									</TldrawUiMenuGroup>
+								)}
 								<TldrawUiMenuGroup id="file-actions">{fileActions}</TldrawUiMenuGroup>
 							</TldrawUiMenuSubmenu>
 						)}
