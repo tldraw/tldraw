@@ -78,6 +78,7 @@ export function TlaEditorTopRightPanel({
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
+				<DesignSwitchesMenu />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
 					canvas
@@ -159,7 +160,7 @@ function CommentsSidebarButton() {
 	)
 }
 
-/** The beaker: v3 design switches, for `ui_v3` users only. See `designSwitches`. */
+/** The beaker: v3 design switches, wherever the v3 UI shows. See `designSwitches`. */
 function DesignSwitchesMenu() {
 	const isUiV3 = useIsUiV3()
 	// With this switch on, the settings dialog's Labs tab lists the switches instead.

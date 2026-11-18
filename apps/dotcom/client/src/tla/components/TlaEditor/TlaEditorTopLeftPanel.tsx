@@ -26,6 +26,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
@@ -55,6 +56,7 @@ import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
+import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -105,6 +107,7 @@ function TlaViewSubmenu() {
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
+	settings: { defaultMessage: 'Settings' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	home: { defaultMessage: 'Home' },
 	libraries: { defaultMessage: 'Libraries' },
@@ -137,13 +140,25 @@ function TlaEditorTopLeftPanelAnonymous() {
 	const roomInfo = useRoomInfo()
 
 	const canCopyToApp = app && roomInfo?.prefix
+	const isUiV3 = useIsUiV3()
+	const intl = useIntl()
+	const fileId = useCurrentFileId()
 
 	const editor = useEditor()
-	const anonFileName = useValue('fileName', () => editor.getDocumentSettings().name || undefined, [
-		editor,
-	])
+	const anonFileName = useValue(
+		'fileName',
+		() =>
+			editor.getDocumentSettings().name ||
+			// v3 names an unnamed file as the signed-in header does. The scratch board is not a file.
+			(isUiV3 && fileId ? intl.formatMessage(editorMessages.untitledProject) : undefined),
+		[editor, isUiV3, fileId, intl]
+	)
 
-	const hasPages = useValue('hasPages', () => editor.getPages().length > 1, [editor])
+	// v3 always shows the page menu, as the signed-in header does.
+	const hasPageMenu = useValue('hasPageMenu', () => isUiV3 || editor.getPages().length > 1, [
+		editor,
+		isUiV3,
+	])
 
 	// This is used in three places
 	// - root, ie tldraw.com
@@ -176,7 +191,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					</div>
 				</>
 			)}
-			{hasPages && (
+			{hasPageMenu && (
 				<>
 					<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 					<DefaultPageMenu />
@@ -204,13 +219,19 @@ function TlaEditorTopLeftPanelAnonymous() {
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
-						<TlaPreferencesGroup />
-						<TldrawUiMenuGroup id="misc">
-							<UserManualMenuItem />
-							<GiveUsFeedbackMenuItem />
-							<LegalSummaryMenuItem />
-							<CookieConsentMenuItem />
-						</TldrawUiMenuGroup>
+						{isUiV3 ? (
+							<TlaSettingsGroup />
+						) : (
+							<>
+								<TlaPreferencesGroup />
+								<TldrawUiMenuGroup id="misc">
+									<UserManualMenuItem />
+									<GiveUsFeedbackMenuItem />
+									<LegalSummaryMenuItem />
+									<CookieConsentMenuItem />
+								</TldrawUiMenuGroup>
+							</>
+						)}
 						{!app && (
 							<TldrawUiMenuGroup id="signin">
 								<SignInMenuItem />
@@ -333,8 +354,9 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				{/* In `ui_v3`, preferences, language and keyboard shortcuts live in the settings dialog. */}
-				{!isUiV3 && (
+				{isUiV3 ? (
+					<TlaSettingsGroup />
+				) : (
 					<TldrawUiMenuGroup id="preferences">
 						<PreferencesGroup />
 					</TldrawUiMenuGroup>
@@ -537,24 +559,43 @@ function SignInMenuItem() {
 	)
 }
 
-/** The anonymous menu keeps the account-wide preferences: without an account there is no settings
- *  dialog to hold them. */
+/**
+ * In v3 the settings dialog holds preferences, language and help, signed in or out. The v3 canvas
+ * has no sidebar, so without this entry the dialog is only reachable from the workspace page.
+ */
+function TlaSettingsGroup() {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	return (
+		<TldrawUiMenuGroup id="settings">
+			<TldrawUiMenuItem
+				id="settings"
+				label={msg(messages.settings)}
+				readonlyOk
+				onSelect={() => {
+					addDialog({ component: () => <TlaSettingsDialog /> })
+				}}
+			/>
+			<CommandPaletteMenuItem />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** Outside v3 the anonymous menu holds the account-wide preferences itself. */
 function TlaPreferencesGroup() {
-	// In `ui_v3` these are under View (see TlaViewSubmenu), and tool lock is left to the toolbar.
-	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
-					{!isUiV3 && <ToggleToolLockItem />}
-					{!isUiV3 && <ToggleGridItem />}
+					<ToggleToolLockItem />
+					<ToggleGridItem />
 					<ToggleWrapModeItem />
-					{!isUiV3 && <ToggleFocusModeItem />}
+					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
-					{!isUiV3 && <ToggleDebugModeItem />}
+					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />

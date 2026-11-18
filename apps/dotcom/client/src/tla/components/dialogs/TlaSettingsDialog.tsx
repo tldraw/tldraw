@@ -1,10 +1,12 @@
 import classNames from 'classnames'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	defaultUserPreferences,
 	defineMessages,
 	F,
+	getUserPreferences,
 	LANGUAGES,
+	setUserPreferences,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
@@ -21,8 +23,7 @@ import {
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
-import { TldrawApp } from '../../app/TldrawApp'
-import { useApp } from '../../hooks/useAppState'
+import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
 import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -68,20 +69,41 @@ const LEGAL_SUMMARY_URL = '/legal.html'
 const DOT_DEV_URL =
 	'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link'
 
-function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
-	app.tlUser.setUserPreferences({ id: app.userId, ...prefs })
+/**
+ * The preferences the dialog edits: the account's when signed in, otherwise tldraw's per-browser
+ * ones, which are what a signed-out editor runs on.
+ */
+function useSettingsPreferences() {
+	const app = useMaybeApp()
+	return useMemo(
+		() =>
+			app
+				? {
+						get: () => app.getUser(),
+						set: (prefs: Partial<TLUserPreferences>) =>
+							app.tlUser.setUserPreferences({ id: app.userId, ...prefs }),
+					}
+				: {
+						get: () => getUserPreferences(),
+						set: (prefs: Partial<TLUserPreferences>) =>
+							setUserPreferences({ ...getUserPreferences(), ...prefs }),
+					},
+		[app]
+	)
 }
 
 type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'labs' | 'about'
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
-	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
+	// Profile is the account: signed out there is none, and the dialog opens on Preferences.
+	const isSignedIn = !!useMaybeApp()
+	const [activeTab, setActiveTab] = useState<SettingsTab>(isSignedIn ? 'profile' : 'preferences')
 	const hasVerticalTabs = !useDesignSwitch('settingsHorizontalTabs')
 	const hasLabsTab = useDesignSwitch('settingsLabsTab')
 
 	const tabs: { id: SettingsTab; label: string }[] = [
-		{ id: 'profile', label: msg(messages.profile) },
+		...(isSignedIn ? [{ id: 'profile' as const, label: msg(messages.profile) }] : []),
 		{ id: 'preferences', label: msg(messages.preferences) },
 		{ id: 'canvas', label: msg(messages.canvas) },
 		{ id: 'accessibility', label: msg('menu.accessibility') },
@@ -90,7 +112,7 @@ export function TlaSettingsDialog() {
 		{ id: 'about', label: msg(messages.about) },
 	]
 	// Turning the Labs tab off from inside it removes the tab that's open.
-	const visibleTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'profile'
+	const visibleTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : tabs[0].id
 
 	const pages = tabs.map(({ id }) => (
 		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
@@ -141,7 +163,7 @@ export function TlaSettingsDialog() {
 									</button>
 								))}
 							</div>
-							<SignOutButton layout="nav" />
+							{isSignedIn && <SignOutButton layout="nav" />}
 						</div>
 						{pages}
 					</div>
@@ -182,7 +204,7 @@ function NameInput() {
 		const newName = draft.trim() || currentName
 		if (rInput.current) rInput.current.value = newName
 		if (newName === currentName) return
-		setPreferences(app, { name: newName })
+		app.tlUser.setUserPreferences({ id: app.userId, name: newName })
 		trackAppEvent('change-user-name', { source: 'user-preferences' })
 	}, [app, trackAppEvent])
 
@@ -269,7 +291,7 @@ function ProfilePanel({ hasSignOut }: { hasSignOut: boolean }) {
 								style={{ backgroundColor: color }}
 								onClick={() => {
 									if (user.color === color) return
-									setPreferences(app, { color })
+									app.tlUser.setUserPreferences({ id: app.userId, color })
 									trackUiEvent('set-color', { source: 'dialog' })
 								}}
 							/>
@@ -299,7 +321,7 @@ const COLOR_SCHEMES: {
 
 function PreferencesPanel() {
 	const msg = useTranslation()
-	const app = useApp()
+	const preferences = useSettingsPreferences()
 	const { addDialog } = useDialogs()
 	const trackUiEvent = useUiEvents()
 	const colorThemeOptions = useColorThemeOptions()
@@ -309,16 +331,18 @@ function PreferencesPanel() {
 	const colorScheme = useValue(
 		'colorScheme',
 		() => {
-			const value = app.getUser().colorScheme
+			const value = preferences.get().colorScheme
 			return (
 				COLOR_SCHEMES.find((o) => o.value === value)?.value ?? defaultUserPreferences.colorScheme
 			)
 		},
-		[app]
+		[preferences]
 	)
-	const locale = useValue('locale', () => app.getUser().locale ?? defaultUserPreferences.locale, [
-		app,
-	])
+	const locale = useValue(
+		'locale',
+		() => preferences.get().locale ?? defaultUserPreferences.locale,
+		[preferences]
+	)
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 
 	useEffect(() => () => setColorThemePreview(null), [])
@@ -341,7 +365,7 @@ function PreferencesPanel() {
 						value={colorScheme}
 						options={colorSchemeOptions}
 						onChange={(value) => {
-							setPreferences(app, { colorScheme: value })
+							preferences.set({ colorScheme: value })
 							trackUiEvent('color-scheme', { source: 'dialog', value })
 						}}
 					/>
@@ -371,7 +395,7 @@ function PreferencesPanel() {
 						value={locale}
 						options={languageOptions}
 						onChange={(locale) => {
-							setPreferences(app, { locale })
+							preferences.set({ locale })
 							trackUiEvent('change-language', { source: 'dialog', locale })
 						}}
 					/>
@@ -396,11 +420,11 @@ function PreferencesPanel() {
 
 /** The editor preferences the switches read, with tldraw's defaults for any the user hasn't set. */
 function usePreferences() {
-	const app = useApp()
+	const preferences = useSettingsPreferences()
 	return useValue(
 		'preferences',
 		() => {
-			const user = app.getUser()
+			const user = preferences.get()
 			return {
 				isSnapMode: user.isSnapMode ?? defaultUserPreferences.isSnapMode,
 				isWrapMode: user.isWrapMode ?? defaultUserPreferences.isWrapMode,
@@ -416,7 +440,7 @@ function usePreferences() {
 					user.isZoomDirectionInverted ?? defaultUserPreferences.isZoomDirectionInverted,
 			}
 		},
-		[app]
+		[preferences]
 	)
 }
 
@@ -506,7 +530,7 @@ const INPUT_DEVICE_TOGGLES: PreferenceToggle[] = [
 
 function PreferenceSwitches({ toggles }: { toggles: PreferenceToggle[] }) {
 	const msg = useTranslation()
-	const app = useApp()
+	const settingsPreferences = useSettingsPreferences()
 	const trackUiEvent = useUiEvents()
 	const preferences = usePreferences()
 
@@ -523,7 +547,7 @@ function PreferenceSwitches({ toggles }: { toggles: PreferenceToggle[] }) {
 							checked={toggle.isChecked(preferences)}
 							disabled={toggle.isDisabled?.(preferences) ?? false}
 							onChange={(checked) => {
-								setPreferences(app, toggle.getUpdate(checked))
+								settingsPreferences.set(toggle.getUpdate(checked))
 								trackUiEvent(toggle.id, { source: 'dialog' })
 							}}
 						/>
@@ -568,7 +592,7 @@ const AUTO_INPUT_MODE_LABELS: Record<'none' | 'pan' | 'zoom', TLUiTranslationKey
 
 function InputDeviceControl() {
 	const msg = useTranslation()
-	const app = useApp()
+	const settingsPreferences = useSettingsPreferences()
 	const trackUiEvent = useUiEvents()
 	const { inputMode } = usePreferences()
 	// What "auto" resolves to comes from the open file's camera, so without an editor it has no suffix.
@@ -597,7 +621,7 @@ function InputDeviceControl() {
 				value={value}
 				options={options}
 				onChange={(mode) => {
-					setPreferences(app, { inputMode: mode === 'auto' ? null : mode })
+					settingsPreferences.set({ inputMode: mode === 'auto' ? null : mode })
 					trackUiEvent('input-mode', { source: 'dialog', value: mode })
 				}}
 			/>
