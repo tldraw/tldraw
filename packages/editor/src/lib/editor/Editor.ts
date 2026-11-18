@@ -5959,8 +5959,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// it is in z-order (#11567). So where the margin rules below would end the search, their
 		// result waits here instead while the scan looks further down for an ink hit.
 		let slackHit: TLShape | undefined
-		// The topmost shape whose visible ink is under the pointer: the answer when the margin rules
-		// find nothing, so a stroke is pickable anywhere on its ink.
+		// The topmost shape whose visible ink is under the pointer. It beats ink hits below it, and is
+		// the answer when the margin rules find nothing, so a stroke is pickable anywhere on its ink.
 		let inkHit: TLShape | undefined
 
 		// Reach is max(margin, padding), never the sum. Where the padding is within the margin the
@@ -6115,8 +6115,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (onVisibleInk) {
 				if (isFilled && geometry.ignoreHit(pointInShapeSpace)) continue
 				inkHit ??= shape
-				// Topmost ink hit so far, and any slack hit above it is beaten
-				if (onInk) return shape
+				// Ink beats margin hits; where the pointer is on several inks, the topmost wins
+				if (onInk) return inkHit
 			}
 
 			if (slackHit) {

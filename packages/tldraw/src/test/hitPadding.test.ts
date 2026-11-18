@@ -372,6 +372,19 @@ describe('overlapping shapes', () => {
 		}
 	})
 
+	// thin ink 99..101 (s) or 98.25..101.75 (m), thick ink 99..109; the pointer is on both
+	it.each([
+		['s', true],
+		['s', false],
+		['m', true],
+		['m', false],
+	] as const)('picks the top line on an %s and an xl ink, thin on top: %s', (size, thinOnTop) => {
+		const lines = [() => line(ids.b, 104, 'xl'), () => line(ids.a, 100, size)]
+		if (!thinOnTop) lines.reverse()
+		lines.forEach((create) => create())
+		expect(hit(200, 100.5)).toBe(thinOnTop ? ids.a : ids.b)
+	})
+
 	it('picks the closest edge among thin strokes at 100%, as without padding', () => {
 		// 2 from s's edge (1 past its ink) and 3 from l's edge (0.5 past its ink): the raw distance
 		// picks s, a distance-to-ink ranking would pick l
