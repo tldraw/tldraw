@@ -55,6 +55,7 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { useDesignSwitch } from '../../utils/designSwitches'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -161,21 +162,86 @@ function TlaEditorTopLeftPanelAnonymous() {
 		isUiV3,
 	])
 
+	const hasLogoMenu = useDesignSwitch('logoMenu')
+	const menuLbl = msg('menu.title')
+
 	// This is used in three places
 	// - root, ie tldraw.com
 	// - being an anonymous guest on someone else's file
 	// - being a logged out viewer of a published file
 
+	const mainMenu = (
+		<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
+			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+				<TldrawUiDropdownMenuTrigger>
+					{hasLogoMenu ? (
+						<TldrawUiButton
+							type="icon"
+							className={styles.topLeftLogoMenuTrigger}
+							tooltip={menuLbl}
+							title={menuLbl}
+							data-testid="tla-main-menu"
+						>
+							<TlaLogo data-testid="tla-top-left-logo-icon" />
+						</TldrawUiButton>
+					) : (
+						<TldrawUiButton
+							type="icon"
+							className={styles.topLeftMainMenuTrigger}
+							tooltip={pageMenuLbl}
+							title={pageMenuLbl}
+							data-testid="tla-main-menu"
+						>
+							<TlaIcon icon="dots-vertical-strong" />
+						</TldrawUiButton>
+					)}
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+					<TldrawUiMenuGroup id="basic">
+						<EditSubmenu />
+						<TlaViewSubmenu />
+						<ExportFileContentSubMenu />
+						<ExtrasGroup />
+						<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+						{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
+					</TldrawUiMenuGroup>
+					{isUiV3 ? (
+						<TlaSettingsGroup />
+					) : (
+						<>
+							<TlaPreferencesGroup />
+							<TldrawUiMenuGroup id="misc">
+								<UserManualMenuItem />
+								<GiveUsFeedbackMenuItem />
+								<LegalSummaryMenuItem />
+								<CookieConsentMenuItem />
+							</TldrawUiMenuGroup>
+						</>
+					)}
+					{!app && (
+						<TldrawUiMenuGroup id="signin">
+							<SignInMenuItem />
+						</TldrawUiMenuGroup>
+					)}
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
+	)
+
 	return (
 		<>
-			<ExternalLink
-				to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
-				eventName="top-left-logo-clicked"
-				aria-label="tldraw.dev"
-				className={styles.topLeftOfflineLogo}
-			>
-				<TlaLogo data-testid="tla-top-left-logo-icon" />
-			</ExternalLink>
+			{hasLogoMenu ? (
+				mainMenu
+			) : (
+				<ExternalLink
+					to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
+					eventName="top-left-logo-clicked"
+					aria-label="tldraw.dev"
+					className={styles.topLeftOfflineLogo}
+				>
+					<TlaLogo data-testid="tla-top-left-logo-icon" />
+				</ExternalLink>
+			)}
 			{anonFileName && (
 				<>
 					<span
@@ -198,49 +264,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					<DefaultPageMenu />
 				</>
 			)}
-			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton
-							type="icon"
-							className={styles.topLeftMainMenuTrigger}
-							tooltip={pageMenuLbl}
-							title={pageMenuLbl}
-							data-testid="tla-main-menu"
-						>
-							<TlaIcon icon="dots-vertical-strong" />
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-						<TldrawUiMenuGroup id="basic">
-							<EditSubmenu />
-							<TlaViewSubmenu />
-							<ExportFileContentSubMenu />
-							<ExtrasGroup />
-							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
-							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
-						</TldrawUiMenuGroup>
-						{isUiV3 ? (
-							<TlaSettingsGroup />
-						) : (
-							<>
-								<TlaPreferencesGroup />
-								<TldrawUiMenuGroup id="misc">
-									<UserManualMenuItem />
-									<GiveUsFeedbackMenuItem />
-									<LegalSummaryMenuItem />
-									<CookieConsentMenuItem />
-								</TldrawUiMenuGroup>
-							</>
-						)}
-						{!app && (
-							<TldrawUiMenuGroup id="signin">
-								<SignInMenuItem />
-							</TldrawUiMenuGroup>
-						)}
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
+			{!hasLogoMenu && mainMenu}
 		</>
 	)
 }
@@ -301,9 +325,73 @@ function TlaEditorTopLeftPanelSignedIn() {
 	}
 	const handleRenameEnd = () => setIsRenaming(false)
 
+	// An embed has no logo to hang the menu on.
+	const hasLogoMenu = useDesignSwitch('logoMenu') && !isEmbed
+	const menuLbl = msg('menu.title')
+
+	const mainMenu = (
+		<TlaFileMenu
+			fileId={fileId ?? ''}
+			workspaceId={null}
+			source="file-header"
+			onRenameAction={handleRenameAction}
+			align={hasLogoMenu ? 'start' : undefined}
+			trigger={
+				hasLogoMenu ? (
+					<TldrawUiButton type="icon" tooltip={menuLbl} title={menuLbl} data-testid="tla-main-menu">
+						<TlaIcon icon="tldraw" />
+					</TldrawUiButton>
+				) : (
+					<TldrawUiButton
+						type="icon"
+						className={styles.topLeftMainMenuTrigger}
+						tooltip={pageMenuLbl}
+						title={pageMenuLbl}
+						data-testid="tla-main-menu"
+					>
+						<TlaIcon icon="dots-vertical-strong" />
+					</TldrawUiButton>
+				)
+			}
+		>
+			{/* The logo no longer goes home, so the menu does. */}
+			{hasLogoMenu && (
+				<TldrawUiMenuGroup id="home">
+					<HomeMenuItem />
+				</TldrawUiMenuGroup>
+			)}
+			<TldrawUiMenuGroup id="regular-stuff">
+				{fileId && (
+					<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
+						<FileItems
+							source="file-header"
+							fileId={fileId}
+							onRenameAction={handleRenameAction}
+							workspaceId={null}
+						/>
+						<ImportFileActionItem />
+					</TldrawUiMenuSubmenu>
+				)}
+				<EditSubmenu />
+				<TlaViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
+			{isUiV3 ? (
+				<TlaSettingsGroup />
+			) : (
+				<TldrawUiMenuGroup id="preferences">
+					<PreferencesGroup />
+				</TldrawUiMenuGroup>
+			)}
+		</TlaFileMenu>
+	)
+
 	return (
 		<>
-			{isEmbed ? null : isUiV3 ? (
+			{isEmbed ? null : hasLogoMenu ? (
+				mainMenu
+			) : isUiV3 ? (
 				<TlaEditorHomeButton />
 			) : (
 				// spacer for the sidebar toggle button
@@ -330,48 +418,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 			{/* Only file editors mount the libraries panel (see TlaEditor); on legacy routes there is
 			    no file and the button would toggle state nothing reads. */}
 			{fileId && <LibrariesPanelButton />}
-			<TlaFileMenu
-				fileId={fileId ?? ''}
-				workspaceId={null}
-				source="file-header"
-				onRenameAction={handleRenameAction}
-				trigger={
-					<TldrawUiButton
-						type="icon"
-						className={styles.topLeftMainMenuTrigger}
-						tooltip={pageMenuLbl}
-						title={pageMenuLbl}
-						data-testid="tla-main-menu"
-					>
-						<TlaIcon icon="dots-vertical-strong" />
-					</TldrawUiButton>
-				}
-			>
-				<TldrawUiMenuGroup id="regular-stuff">
-					{fileId && (
-						<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
-							<FileItems
-								source="file-header"
-								fileId={fileId}
-								onRenameAction={handleRenameAction}
-								workspaceId={null}
-							/>
-							<ImportFileActionItem />
-						</TldrawUiMenuSubmenu>
-					)}
-					<EditSubmenu />
-					<TlaViewSubmenu />
-					<ExportFileContentSubMenu />
-					<ExtrasGroup />
-				</TldrawUiMenuGroup>
-				{isUiV3 ? (
-					<TlaSettingsGroup />
-				) : (
-					<TldrawUiMenuGroup id="preferences">
-						<PreferencesGroup />
-					</TldrawUiMenuGroup>
-				)}
-			</TlaFileMenu>
+			{!hasLogoMenu && mainMenu}
 		</>
 	)
 }
@@ -391,6 +438,22 @@ function TlaEditorHomeButton() {
 		>
 			<TlaIcon icon="tldraw" />
 		</TldrawUiButton>
+	)
+}
+
+function HomeMenuItem() {
+	const msg = useTranslation()
+	const navigate = useNavigate()
+	const workspaceId = useActiveWorkspaceId()
+	return (
+		<TldrawUiMenuItem
+			id="home"
+			label={msg(messages.home)}
+			readonlyOk
+			onSelect={() => {
+				navigate(routes.tlaWorkspace(workspaceId))
+			}}
+		/>
 	)
 }
 

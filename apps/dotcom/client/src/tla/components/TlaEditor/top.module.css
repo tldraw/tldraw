@@ -9,6 +9,14 @@
 	align-items: center;
 }
 
+/* The logoMenu design switch: the signed-out wordmark as the main menu's button. */
+button.topLeftLogoMenuTrigger {
+	width: auto;
+	height: 40px;
+	padding: 0px 8px 0px 10px;
+	color: var(--tl-color-text-0);
+}
+
 .topLeftPanel {
 	flex: 0 0 auto;
 	border-top: 4px solid var(--tl-color-background);

@@ -27,6 +27,8 @@ export const designSwitches = {
 	settingsLabsTab: designSwitch('settings-labs-tab', 'Labs tab in settings'),
 	// Gallery and list: avatars of who has opened each board, full opacity for whoever is on it now.
 	boardVisitors: designSwitch('board-visitors', 'Board visitor avatars', true),
+	// File header: the logo opens the main menu, which loses its own ⋮ button.
+	logoMenu: designSwitch('logo-menu', 'Menu on the logo'),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>

@@ -75,6 +75,7 @@ export function TlaFileMenu({
 	workspaceId,
 	onRenameAction,
 	trigger,
+	align,
 }: {
 	children?: ReactNode
 	source: TLAppUiEventSource
@@ -82,6 +83,8 @@ export function TlaFileMenu({
 	workspaceId: string | null
 	onRenameAction(): void
 	trigger: ReactNode
+	/** Which edge of the trigger the menu lines up with. Defaults to hanging off its end. */
+	align?: 'start'
 }) {
 	const id = useId()
 	const fileItemsWhenNoChildren = (
@@ -101,9 +104,9 @@ export function TlaFileMenu({
 				    share/select menus, which would leave these looking inset). */}
 				<TldrawUiDropdownMenuContent
 					side="bottom"
-					align="end"
+					align={align ?? 'end'}
 					{...TLA_MENU_POSITION}
-					alignOffset={-16}
+					alignOffset={align === 'start' ? 0 : -16}
 				>
 					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
