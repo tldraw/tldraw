@@ -311,6 +311,16 @@
       "value": "Regenerate invite link"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (you)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -381,6 +391,12 @@
     {
       "type": 0,
       "value": "Unable to publish the changes."
+    }
+  ],
+  "3bf4ed96b1": [
+    {
+      "type": 0,
+      "value": "Recently viewed"
     }
   ],
   "3c5e891bff": [
@@ -469,6 +485,16 @@
       "value": "Pin file"
     }
   ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Edited "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "49ee308734": [
     {
       "type": 0,
@@ -531,6 +557,12 @@
     {
       "type": 0,
       "value": "Page menu"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "No files here yet."
     }
   ],
   "53770fd374": [
@@ -601,6 +633,12 @@
     {
       "type": 0,
       "value": "Privacy policy"
+    }
+  ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Archived files will appear here."
     }
   ],
   "5a95a425f7": [
@@ -946,6 +984,12 @@
       "value": "Submit an issue on GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· On this board now"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -1078,6 +1122,12 @@
       "value": "Rename file"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Untitled workspace"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1144,6 +1194,12 @@
     {
       "type": 0,
       "value": "Check your email for a verification code."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Home"
     }
   ],
   "8eb2c00e96": [
@@ -1540,6 +1596,12 @@
       "value": "Email address"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Grid view"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1638,6 +1700,12 @@
     {
       "type": 0,
       "value": "Current file"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Search…"
     }
   ],
   "c17466812d": [
@@ -1900,6 +1968,12 @@
       "value": "Terms of service"
     }
   ],
+  "e727b00944": [
+    {
+      "type": 0,
+      "value": "Archive"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1940,6 +2014,12 @@
     {
       "type": 0,
       "value": "Account menu"
+    }
+  ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "No files match your search."
     }
   ],
   "ed75712b0e": [
@@ -1986,6 +2066,12 @@
       "value": "selected"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Shared with me"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1996,6 +2082,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "List view"
     }
   ],
   "f2569594b2": [
