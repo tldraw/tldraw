@@ -243,6 +243,27 @@
 	opacity: 0.08;
 }
 
+/* The list view's small thumbnail; holds the same image and placeholder as .cardPreview. */
+.rowPreview {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 32px;
+	margin-right: 8px;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 4px;
+	overflow: hidden;
+	background-color: var(--tl-color-background);
+}
+
+.rowPreview .cardPreviewPlaceholder {
+	width: 16px;
+	height: 16px;
+}
+
 .cardFooter {
 	display: flex;
 	align-items: center;
@@ -370,6 +391,55 @@
 	.cardMenuTrigger {
 		opacity: 1;
 	}
+}
+
+/* ---------------------- Visitors --------------------- */
+
+/* Sizes and overlap come from the editor's people menu facepile (tlui-people-menu__*). */
+.visitors {
+	position: relative;
+	z-index: 2;
+	flex-shrink: 0;
+	text-decoration: none;
+}
+
+.visitor {
+	/*
+	 * A solid backdrop in the card's color under each face, and the ring in the same color. The face
+	 * is what dims, so a past visitor fades into the card rather than showing the overlapped avatar
+	 * beneath it through itself.
+	 */
+	background-color: var(--tl-color-panel);
+	border-color: var(--tl-color-panel);
+}
+
+.visitorFace {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: inherit;
+	background-color: var(--tl-color-low);
+	/* Has opened the board; full opacity is reserved for whoever is on it now. */
+	opacity: 0.45;
+	transition: opacity 200ms ease;
+}
+
+.visitor[data-present='true'] .visitorFace {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.row:hover .visitor {
+		background-color: var(--tl-color-muted-2);
+		border-color: var(--tl-color-muted-2);
+	}
+}
+
+.visitorTooltipHere {
+	margin-inline-start: 4px;
+	opacity: 0.7;
 }
 
 @media (max-width: 767px) {
