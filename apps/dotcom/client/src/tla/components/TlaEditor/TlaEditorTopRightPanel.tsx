@@ -38,6 +38,10 @@ import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { FILE_HEADER_SHARE_SOURCE } from '../TlaFileShareMenu/openShareMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import {
+	messages as sidebarMessages,
+	useHandleSidebarCreateFile,
+} from '../TlaSidebar/components/sidebar-shared'
 import styles from './top.module.css'
 
 const ctaMessages = defineMessages({
@@ -120,6 +124,8 @@ export function TlaEditorTopRightPanel({
 			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
 			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
+			{/* Only where v3 hides the sidebar, which has this button everywhere else. */}
+			{context === 'file' && <NewFileShortcutButton />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -172,6 +178,29 @@ function CommentsSidebarButton() {
 			}}
 		>
 			<TlaIcon icon="comment" />
+		</TldrawUiButton>
+	)
+}
+
+/** The newFileShortcut design switch: the sidebar's create-file button, for a canvas without one. */
+function NewFileShortcutButton() {
+	const msg = useTranslation()
+	const isOn = useDesignSwitch('newFileShortcut')
+	const handleCreateFile = useHandleSidebarCreateFile()
+	const label = msg(sidebarMessages.create)
+
+	if (!isOn) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topRightIconButton}
+			data-testid="tla-create-file"
+			tooltip={label}
+			title={label}
+			onClick={() => handleCreateFile({ source: 'top-bar' })}
+		>
+			<TlaIcon icon="edit-strong" />
 		</TldrawUiButton>
 	)
 }

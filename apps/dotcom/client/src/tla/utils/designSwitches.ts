@@ -29,6 +29,8 @@ export const designSwitches = {
 	boardVisitors: designSwitch('board-visitors', 'Board visitor avatars', true),
 	// File header: the logo opens the main menu, which loses its own ⋮ button.
 	logoMenu: designSwitch('logo-menu', 'Menu on the logo'),
+	// File header: the sidebar's create-file button, among the icons beside Share.
+	newFileShortcut: designSwitch('new-file-shortcut', 'New file shortcut'),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>
