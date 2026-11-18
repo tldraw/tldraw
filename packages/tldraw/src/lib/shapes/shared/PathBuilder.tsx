@@ -595,7 +595,13 @@ export class PathBuilder {
 		return new Path2D(this.toD({ onlyFilled: opts.onlyFilled }))
 	}
 
-	toGeometry(): PathBuilderGeometry2d | Group2d {
+	/**
+	 * Build a geometry with one child per sub-path.
+	 *
+	 * @param opts - `hitPadding` is passed to each sub-path's geometry, usually half the rendered
+	 * stroke width. A sub-path's own `geometry` options override it.
+	 */
+	toGeometry(opts?: { hitPadding?: number }): PathBuilderGeometry2d | Group2d {
 		const geometries = []
 
 		let current: null | {
@@ -611,6 +617,7 @@ export class PathBuilder {
 				if (current && current.opts?.geometry !== false) {
 					geometries.push(
 						new PathBuilderGeometry2d(this, current.startIdx, i, {
+							hitPadding: opts?.hitPadding,
 							...current.opts?.geometry,
 							isFilled: current.opts?.geometry?.isFilled ?? false,
 							isClosed: current.moveCommand.closeIdx !== null,
@@ -629,6 +636,7 @@ export class PathBuilder {
 		if (current && current.opts?.geometry !== false) {
 			geometries.push(
 				new PathBuilderGeometry2d(this, current.startIdx, this.commands.length, {
+					hitPadding: opts?.hitPadding,
 					...current.opts?.geometry,
 					isFilled: current.opts?.geometry?.isFilled ?? false,
 					isClosed: current.moveCommand.closeIdx !== null,

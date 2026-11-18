@@ -3178,8 +3178,9 @@ export class PathBuilder {
     toD(opts?: PathBuilderToDOpts): string;
     // (undocumented)
     toDrawD(opts: DrawPathBuilderDOpts): string;
-    // (undocumented)
-    toGeometry(): Group2d | PathBuilderGeometry2d;
+    toGeometry(opts?: {
+        hitPadding?: number;
+    }): Group2d | PathBuilderGeometry2d;
     // (undocumented)
     toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)

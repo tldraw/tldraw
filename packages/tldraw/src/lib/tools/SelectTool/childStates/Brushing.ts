@@ -204,15 +204,20 @@ export class Brushing extends StateNode {
 			}
 
 			// If the brush collides the page bounds, then do hit tests against
-			// each of the brush's four sides.
-			if (brush.collides(pageBounds)) {
+			// each of the brush's four sides. The bounds grow by the stroke padding the
+			// hit test below reaches, or only the inner half of a thick stroke would select.
+			const geometry = editor.getShapeGeometry(shape)
+			if (
+				brush.collides(
+					geometry.hitPadding > 0 ? pageBounds.clone().expandBy(geometry.hitPadding) : pageBounds
+				)
+			) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
 				pageTransform = editor.getShapePageTransform(shape)
 				if (!pageTransform) continue testAllShapes
 				localCorners = pageTransform.clone().invert().applyToPoints(corners)
 				// See if any of the edges intersect the shape's geometry
-				const geometry = editor.getShapeGeometry(shape)
 				hitTestBrushEdges: for (let i = 0; i < 4; i++) {
 					A = localCorners[i]
 					B = localCorners[(i + 1) % 4]

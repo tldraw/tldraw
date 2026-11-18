@@ -96,7 +96,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	getGeometry(shape: TLLineShape) {
 		// todo: should we have min size?
-		const geometry = getPathForLineShape(shape).toGeometry()
+		const hitPadding = (getDisplayValues(this, shape).strokeWidth * shape.props.scale) / 2
+		const geometry = getPathForLineShape(shape).toGeometry({ hitPadding })
 		assert(geometry instanceof PathBuilderGeometry2d)
 		return geometry
 	}

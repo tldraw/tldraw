@@ -147,8 +147,16 @@ function updateBindingAnchorIfOutsideShape(
 	// The anchor's current position in the bound shape's local geometry space.
 	const anchorPoint = Vec.Add(point, Vec.MulV(binding.props.normalizedAnchor, size))
 
-	// If the anchor still lands on or inside the shape, there's nothing to do.
-	if (geometry.hitTestPoint(anchorPoint, 0, true)) return
+	// If the anchor still lands on or inside the shape, there's nothing to do. Outline only: an
+	// anchor on the stroke but outside the outline still needs re-snapping.
+	if (
+		geometry.hitTestPoint(anchorPoint, 0, true, {
+			...Geometry2dFilters.EXCLUDE_LABELS,
+			includeHitPadding: false,
+		})
+	) {
+		return
+	}
 
 	// Otherwise re-snap it to the closest point on the new outline and store it back as a normalized
 	// anchor.

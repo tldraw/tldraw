@@ -1681,7 +1681,8 @@ describe('shift brushes to add to the selection', () => {
 	it('does not select when brushing into margin', () => {
 		editor.pointerMove(-50, -50)
 		editor.pointerDown()
-		editor.pointerMove(-1, -1)
+		// clear of box1's stroke, which reaches 1.75 past its edge
+		editor.pointerMove(-2, -2)
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 
@@ -1762,7 +1763,8 @@ describe('scribble brushes to add to the selection', () => {
 		editor.pointerMove(-50, -50)
 		editor.keyDown('Alt')
 		editor.pointerDown()
-		editor.pointerMove(-1, -1)
+		// clear of box1's stroke, which reaches 1.75 past its edge
+		editor.pointerMove(-2, -2)
 		editor.expectToBeIn('select.scribble_brushing')
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
