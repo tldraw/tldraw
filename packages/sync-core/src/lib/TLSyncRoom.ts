@@ -1342,9 +1342,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/**
 	 * Runs a storage transaction as a user: `authorize.write` judges its writes as a whole, and a
-	 * refusal stores none of them. See `writeAs` on {@link TLSocketRoom}.
+	 * refusal stores none of them.
 	 */
-	writeAs(
+	private writeAs(
 		userId: string | null,
 		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void
 	): TLWriteRefusal | null {
@@ -1354,7 +1354,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const target = pending ?? txn
 			let isOpen = true
 			const assertOpen = () => {
-				if (!isOpen) throw new Error('Cannot write after the writeAs callback has returned')
+				if (!isOpen) throw new Error('Cannot write after the write callback has returned')
 			}
 			try {
 				// a plain object, otherwise the callback could reach the transaction and skip the hook
@@ -1907,7 +1907,8 @@ export interface TLRoomUser<R extends UnknownRecord = UnknownRecord> {
 	): T
 	/**
 	 * Writes as the user. `authorize.write` judges the writes as a whole, and a refusal stores
-	 * none of them. Returns the refusal, or null when the writes were stored.
+	 * none of them. Returns the refusal, or null when the writes were stored. The callback must be
+	 * synchronous, and its reads see its own writes.
 	 */
 	write(
 		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void

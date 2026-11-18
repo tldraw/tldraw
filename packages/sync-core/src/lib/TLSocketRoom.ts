@@ -1,11 +1,5 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import {
-	createTLSchema,
-	TLAuthorize,
-	TLInstancePresence,
-	TLStoreSnapshot,
-	TLWriteRefusal,
-} from '@tldraw/tlschema'
+import { createTLSchema, TLAuthorize, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -19,7 +13,6 @@ import {
 	loadSnapshotIntoStorage,
 	TLSyncForwardDiff,
 	TLSyncStorage,
-	TLSyncStorageTransaction,
 } from './TLSyncStorage'
 
 /**
@@ -962,54 +955,37 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Writes to the room as a user, for server code that acts for someone, such as an agent.
-	 * `authorize.write` judges the writes as a whole as that user, and a refusal stores none of
-	 * them. Writes through `storage.transaction` skip the hook. The callback must be synchronous.
-	 *
-	 * @example
-	 * ```ts
-	 * const refusal = room.writeAs(userId, (txn) => txn.set(shape.id, shape))
-	 * if (refusal) return new Response(refusal.reason, { status: 403 })
-	 * ```
-	 *
-	 * @param userId - The user the hook gets as `ctx.userId`, or null for a guest.
-	 * @param callback - Reads and writes records. Reads see the callback's own writes.
-	 * @returns The refusal, or null when the writes were stored.
-	 */
-	writeAs(
-		userId: string | null,
-		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void
-	): TLWriteRefusal | null {
-		if (this.isClosed()) {
-			throw new Error('Cannot write to a closed room')
-		}
-		return this.room.writeAs(userId, callback)
-	}
-
-	/**
 	 * The room as one user, for server code that acts for someone, such as an agent's tools. Pass
 	 * the result to that code in place of the room: it can read, and it can write only through
 	 * `authorize.write`, so it cannot reach `storage` and skip the hook.
+	 *
+	 * `authorize.write` judges the writes of one `write` call as a whole as that user, and a
+	 * refusal stores none of them. The callbacks must be synchronous.
 	 *
 	 * @example
 	 * ```ts
 	 * const board = room.as(userId)
 	 * const refusal = board.write((txn) => txn.set(shape.id, shape))
+	 * if (refusal) return new Response(refusal.reason, { status: 403 })
 	 * ```
 	 *
 	 * @param userId - The user the hooks get as `ctx.userId`, or null for a guest.
 	 */
 	as(userId: string | null): TLRoomUser<R> {
 		const user = this.room.as(userId)
+		const assertOpen = () => {
+			if (this.isClosed()) throw new Error('Cannot use a closed room')
+		}
 		return {
 			userId,
 			read: (callback) => {
-				if (this.isClosed()) {
-					throw new Error('Cannot read from a closed room')
-				}
+				assertOpen()
 				return user.read(callback)
 			},
-			write: (callback) => this.writeAs(userId, callback),
+			write: (callback) => {
+				assertOpen()
+				return user.write(callback)
+			},
 		}
 	}
 
