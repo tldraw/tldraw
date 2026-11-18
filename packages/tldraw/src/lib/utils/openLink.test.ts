@@ -15,7 +15,7 @@ describe('getLinkOpenPolicy', () => {
 		expect(getLinkOpenPolicy(url)).toBe('open')
 	})
 
-	it.each(['chatgpt://chat/123', 'tel:5551234', 'some-new-app://thing'])(
+	it.each(['chatgpt://chat/123', 'ChatGPT://chat/123', 'tel:5551234', 'some-new-app://thing'])(
 		'asks before opening an unknown app link: %j',
 		(url) => {
 			expect(getLinkOpenPolicy(url)).toBe('confirm')
@@ -66,8 +66,11 @@ describe('openLink', () => {
 	})
 
 	it('does not open an unknown app link when nothing can confirm it', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 		openLink(editor, 'chatgpt://chat/123')
 		expect(open).not.toHaveBeenCalled()
+		expect(warn).toHaveBeenCalled()
+		warn.mockRestore()
 	})
 
 	it('never opens a blocked link', () => {

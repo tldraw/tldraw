@@ -42,6 +42,15 @@ describe('opening a shape link', () => {
 		expect(getDialogFrame()).toBeNull()
 	})
 
+	it('checks a middle click too, and ignores a right click', async () => {
+		await renderWithLink('chatgpt://chat/123')
+		fireEvent(getHyperlinkButton(), new MouseEvent('auxclick', { bubbles: true, button: 2 }))
+		expect(getDialogFrame()).toBeNull()
+		fireEvent(getHyperlinkButton(), new MouseEvent('auxclick', { bubbles: true, button: 1 }))
+		await waitFor(() => expect(getDialogFrame()).not.toBeNull())
+		expect(open).not.toHaveBeenCalled()
+	})
+
 	it('asks before opening an unknown app link, and opens it on confirm', async () => {
 		await renderWithLink('chatgpt://chat/123')
 		fireEvent.click(getHyperlinkButton())

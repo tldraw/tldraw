@@ -44,7 +44,7 @@ const trustedLinkProtocols = new Set([
 export function getLinkOpenPolicy(url: string): TLLinkOpenPolicy {
 	if (!url || !T.linkUrl.isValid(url)) return 'block'
 	if (url.startsWith('/') || url.startsWith('./')) return 'open'
-	return trustedLinkProtocols.has(new URL(url).protocol.toLowerCase()) ? 'open' : 'confirm'
+	return trustedLinkProtocols.has(new URL(url).protocol) ? 'open' : 'confirm'
 }
 
 /**
@@ -62,6 +62,8 @@ export function openLink(editor: Editor, url: string) {
 		case 'confirm':
 			if (editor.listenerCount('confirm-open-link') > 0) {
 				editor.emit('confirm-open-link', { url })
+			} else {
+				console.warn(`Not opening ${url}: nothing is listening for confirm-open-link`)
 			}
 			return
 		case 'block':

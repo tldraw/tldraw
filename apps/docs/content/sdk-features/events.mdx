@@ -222,14 +222,15 @@ editor.on('crash', ({ error }) => {
 
 ### UI and camera events
 
-| Event                   | Payload                   | Description                            |
-| ----------------------- | ------------------------- | -------------------------------------- |
-| `resize`                | `BoxModel`                | Viewport dimensions changed            |
-| `stop-camera-animation` | None                      | Camera animation interrupted           |
-| `stop-following`        | None                      | Stopped following another user         |
-| `select-all-text`       | `{ shapeId: TLShapeId }`  | Editing started with all text selected |
-| `place-caret`           | `{ shapeId, point }`      | Text caret positioned                  |
-| `max-shapes`            | `{ name, pageId, count }` | Page reached shape limit               |
+| Event                   | Payload                   | Description                                                         |
+| ----------------------- | ------------------------- | ------------------------------------------------------------------- |
+| `resize`                | `BoxModel`                | Viewport dimensions changed                                         |
+| `stop-camera-animation` | None                      | Camera animation interrupted                                        |
+| `stop-following`        | None                      | Stopped following another user                                      |
+| `select-all-text`       | `{ shapeId: TLShapeId }`  | Editing started with all text selected                              |
+| `place-caret`           | `{ shapeId, point }`      | Text caret positioned                                               |
+| `max-shapes`            | `{ name, pageId, count }` | Page reached shape limit                                            |
+| `confirm-open-link`     | `{ url: string }`         | Unknown app link needs confirming; it won't open without a listener |
 
 ```tsx
 editor.on('resize', (bounds) => {
