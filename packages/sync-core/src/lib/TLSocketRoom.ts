@@ -13,7 +13,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLRecordAuthorizers, TLRoomUser, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -984,6 +984,33 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			throw new Error('Cannot write to a closed room')
 		}
 		return this.room.writeAs(userId, callback)
+	}
+
+	/**
+	 * The room as one user, for server code that acts for someone, such as an agent's tools. Pass
+	 * the result to that code in place of the room: it can read, and it can write only through
+	 * `authorize.write`, so it cannot reach `storage` and skip the hook.
+	 *
+	 * @example
+	 * ```ts
+	 * const board = room.as(userId)
+	 * const refusal = board.write((txn) => txn.set(shape.id, shape))
+	 * ```
+	 *
+	 * @param userId - The user the hooks get as `ctx.userId`, or null for a guest.
+	 */
+	as(userId: string | null): TLRoomUser<R> {
+		const user = this.room.as(userId)
+		return {
+			userId,
+			read: (callback) => {
+				if (this.isClosed()) {
+					throw new Error('Cannot read from a closed room')
+				}
+				return user.read(callback)
+			},
+			write: (callback) => this.writeAs(userId, callback),
+		}
 	}
 
 	/**

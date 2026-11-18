@@ -373,3 +373,58 @@ describe('authorize.write for server writes', () => {
 		expect(storedIds(server)).toEqual([docId('a')])
 	})
 })
+
+describe('the room as a user', () => {
+	const ownerOnly: TLAuthorize<R> = {
+		write: (changes, { userId }) =>
+			changes.some((c) => ((c.prev ?? c.next) as Doc).owner !== userId)
+				? { reason: 'not-yours' }
+				: null,
+	}
+	const bobs = DocType.create({ id: docId('bobs'), owner: 'bob', parentId: null })
+	const alices = DocType.create({ id: docId('a'), owner: 'alice', parentId: null })
+	const storedIds = (server: TestServer<R>) =>
+		server.storage.getSnapshot().documents.map((d) => d.state.id)
+
+	it('writes through authorize.write as that user', () => {
+		const server = makeRoom(ownerOnly, [bobs])
+		const alice = server.room.as('alice')
+
+		expect(alice.write((txn) => txn.delete(bobs.id))).toEqual({ reason: 'not-yours' })
+		expect(alice.write((txn) => txn.set(alices.id, alices))).toBeNull()
+		expect(storedIds(server).sort()).toEqual([alices.id, bobs.id].sort())
+	})
+
+	it('reads every document record', () => {
+		const server = makeRoom(ownerOnly, [bobs])
+		const alice = server.room.as('alice')
+
+		expect(alice.read((txn) => txn.get(bobs.id))).toEqual(bobs)
+		expect(alice.read((txn) => [...txn.keys()])).toEqual([bobs.id])
+	})
+
+	it('gives the callbacks nothing that writes past the hook', () => {
+		for (const authorize of [ownerOnly, {}]) {
+			const server = makeRoom(authorize, [bobs])
+			const alice = server.room.as('alice')
+
+			expect(Object.keys(alice).sort()).toEqual(['read', 'userId', 'write'])
+			alice.read((txn) =>
+				expect(Object.keys(txn).sort()).toEqual(['entries', 'get', 'keys', 'values'])
+			)
+			alice.write((txn) => expect(Object.keys(txn).sort()).toEqual(['delete', 'get', 'set']))
+		}
+	})
+
+	it('refuses writes made after the write callback has returned', () => {
+		const server = makeRoom(ownerOnly, [bobs])
+		let kept: { delete(id: string): void } | undefined
+
+		server.room.as('alice').write((txn) => {
+			kept = txn
+		})
+
+		expect(() => kept!.delete(bobs.id)).toThrow()
+		expect(storedIds(server)).toEqual([bobs.id])
+	})
+})
