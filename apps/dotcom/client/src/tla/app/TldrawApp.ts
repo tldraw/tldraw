@@ -935,10 +935,13 @@ export class TldrawApp {
 		return this.getWorkspaceFilesSorted(workspaceId).some((f) => f.fileId === fileId && f.isPinned)
 	}
 
+	/** The file's group_file row in this workspace, or undefined if it isn't linked there. */
+	getWorkspaceGroupFile(fileId: string, workspaceId: string) {
+		return this.getWorkspaceMembership(workspaceId)?.groupFiles.find((gf) => gf.fileId === fileId)
+	}
+
 	isArchived(fileId: string, workspaceId: string) {
-		return this.getWorkspaceFilesSorted(workspaceId).some(
-			(f) => f.fileId === fileId && f.isArchived
-		)
+		return this.getWorkspaceGroupFile(fileId, workspaceId)?.archivedAt != null
 	}
 
 	// A workspace's welcome file is seeded once, when the workspace is created. Its

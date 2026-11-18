@@ -185,6 +185,19 @@ export const USER_PREFERENCE_KEYS = Object.keys(
 ) as readonly TlaUserPreferenceKey[]
 
 export function createMutators(userId: string) {
+	async function assertCanArchive(tx: Tx, fileId: string, workspaceId: string) {
+		assert(fileId, ZErrorCode.bad_request)
+		assert(workspaceId, ZErrorCode.bad_request)
+		// See pinFile.
+		assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
+		// group_file.update on a missing row matches nothing, so without this a caller passing
+		// the wrong workspace (e.g. the palette's active one) would see success and no change.
+		const groupFile = await tx.run(
+			zql.group_file.where('fileId', '=', fileId).where('groupId', '=', workspaceId).one()
+		)
+		assert(groupFile, ZErrorCode.bad_request)
+	}
+
 	const mutators = {
 		user: {
 			update: async (tx: Tx, user: TlaUserPartial) => {
@@ -432,10 +445,7 @@ export function createMutators(userId: string) {
 			tx: Tx,
 			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
 		) => {
-			assert(fileId, ZErrorCode.bad_request)
-			assert(workspaceId, ZErrorCode.bad_request)
-			// See pinFile.
-			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
+			await assertCanArchive(tx, fileId, workspaceId)
 
 			// Also unpins, so an archived board doesn't keep a place at the top of pinned lists.
 			await tx.mutate.group_file.update({
@@ -450,10 +460,7 @@ export function createMutators(userId: string) {
 			tx: Tx,
 			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
 		) => {
-			assert(fileId, ZErrorCode.bad_request)
-			assert(workspaceId, ZErrorCode.bad_request)
-			// See pinFile.
-			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
+			await assertCanArchive(tx, fileId, workspaceId)
 
 			await tx.mutate.group_file.update({
 				fileId,

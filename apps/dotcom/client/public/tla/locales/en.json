@@ -80,6 +80,9 @@
   "1a7222b4e5": {
     "translation": "Move to"
   },
+  "1cdc076b28": {
+    "translation": "Undo"
+  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -635,6 +638,9 @@
   },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "b7e6f111b9": {
+    "translation": "File archived"
   },
   "ba0318cb81": {
     "translation": "Sign in to share"

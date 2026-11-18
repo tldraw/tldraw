@@ -1180,6 +1180,15 @@ describe('file operations across workspaces', () => {
 		expect(row?.index).toBeTruthy()
 	})
 
+	it('archiving a file that is not linked to the workspace is rejected, not a silent no-op', async () => {
+		const s = archiveState()
+		s.group_file = s.group_file.filter((gf) => gf.groupId !== groupA)
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectBadRequest(() => m.archiveFile(tx, { fileId, workspaceId: groupA }))
+		await expectBadRequest(() => m.unarchiveFile(tx, { fileId, workspaceId: groupA }))
+	})
+
 	it('archiving and unarchiving are forbidden outside the workspace', async () => {
 		const s = archiveState()
 		const { tx } = createMockTx(s)

@@ -203,6 +203,12 @@
       "value": "Move to"
     }
   ],
+  "1cdc076b28": [
+    {
+      "type": 0,
+      "value": "Undo"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -1636,6 +1642,12 @@
     {
       "type": 0,
       "value": "Copy link"
+    }
+  ],
+  "b7e6f111b9": [
+    {
+      "type": 0,
+      "value": "File archived"
     }
   ],
   "ba0318cb81": [

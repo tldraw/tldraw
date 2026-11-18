@@ -68,6 +68,13 @@ test.describe('archived boards', () => {
 			await expect(boardCard(owner, fileName)).toHaveCount(0)
 		})
 
+		await test.step('undo from the toast restores the board and its pin', async () => {
+			await owner.page.getByRole('button', { name: 'Undo', exact: true }).click()
+			await expect(boardCard(owner, fileName)).toHaveAttribute('data-is-pinned', 'true')
+			await chooseFromCardMenu(owner, fileName, 'Archive file')
+			await expect(boardCard(owner, fileName)).toHaveCount(0)
+		})
+
 		await test.step('the board shows under archive, unpinned, for both users', async () => {
 			await expect(boardCard(member, fileName)).toBeVisible()
 			await selectTab(owner, 'archive')

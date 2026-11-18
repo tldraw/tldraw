@@ -25,7 +25,7 @@ import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../hooks/useAppState'
-import { useIsFileArchived } from '../../hooks/useIsFileArchived'
+import { useFileArchiveState } from '../../hooks/useFileArchiveState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
@@ -50,6 +50,8 @@ const messages = defineMessages({
 	unpin: { defaultMessage: 'Unpin file' },
 	archive: { defaultMessage: 'Archive file' },
 	unarchive: { defaultMessage: 'Unarchive file' },
+	archived: { defaultMessage: 'File archived' },
+	undo: { defaultMessage: 'Undo' },
 	myWorkspace: { defaultMessage: 'My workspace' },
 	moveTo: { defaultMessage: 'Move to' },
 	newWorkspace: { defaultMessage: 'New workspace' },
@@ -144,9 +146,10 @@ export function FileItems({
 	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId)
-	const isArchived = useIsFileArchived(fileId, workspaceId)
+	const archiveState = useFileArchiveState(fileId, workspaceId)
+	const isArchived = archiveState === 'archived'
 	// Only the v3 gallery hides archived files, so elsewhere archiving would do nothing visible.
-	const canArchive = useIsUiV3() && !!workspaceId
+	const canArchive = useIsUiV3() && archiveState !== null
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
@@ -217,14 +220,36 @@ export function FileItems({
 
 	const handleArchiveUnarchiveClick = useCallback(() => {
 		if (!workspaceId) return
-		if (app.isArchived(fileId, workspaceId)) {
+		const groupFile = app.getWorkspaceGroupFile(fileId, workspaceId)
+		if (!groupFile) return
+		if (groupFile.archivedAt != null) {
 			app.z.mutate.unarchiveFile({ fileId, workspaceId })
 			trackEvent('unarchive-file', { source })
-		} else {
-			app.z.mutate.archiveFile({ fileId, workspaceId })
-			trackEvent('archive-file', { source })
+			return
 		}
-	}, [app, fileId, workspaceId, trackEvent, source])
+		// Archiving clears the pin, so undo has to put it back where it was.
+		const pinnedIndex = groupFile.index
+		app.z.mutate.archiveFile({ fileId, workspaceId })
+		trackEvent('archive-file', { source })
+		addToast({
+			id: `archived-${fileId}`,
+			title: msg(messages.archived),
+			actions: [
+				{
+					type: 'normal',
+					label: msg(messages.undo),
+					onClick: () => {
+						if (pinnedIndex) {
+							app.z.mutate.pinFile({ fileId, workspaceId, index: pinnedIndex })
+						} else {
+							app.z.mutate.unarchiveFile({ fileId, workspaceId })
+						}
+						trackEvent('unarchive-file', { source })
+					},
+				},
+			],
+		})
+	}, [app, fileId, workspaceId, trackEvent, source, addToast, msg])
 
 	const handleDuplicateClick = useCallback(async () => {
 		// The sidebar passes the workspace the file is listed under; the file header doesn't, so
