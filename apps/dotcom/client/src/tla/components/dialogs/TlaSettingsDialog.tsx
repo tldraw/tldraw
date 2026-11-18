@@ -42,14 +42,17 @@ import {
 	TlaMenuTabsTab,
 	TlaMenuTabsTabs,
 } from '../tla-menu/tla-menu'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import { SubmitFeedbackDialog } from './SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
+import { TlaSignInDialog } from './TlaSignInDialog'
 import styles from './TlaSettingsDialog.module.css'
 
 const messages = defineMessages({
 	profile: { defaultMessage: 'Profile' },
+	signInToEditProfile: { defaultMessage: 'Sign in to edit profile settings' },
 	preferences: { defaultMessage: 'Preferences' },
 	about: { defaultMessage: 'About' },
 	name: { defaultMessage: 'Name' },
@@ -96,14 +99,15 @@ type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'lab
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
-	// Profile is the account: signed out there is none, and the dialog opens on Preferences.
+	// Signed out, Profile only offers sign-in, so the dialog opens on Preferences, the first tab with
+	// something to change.
 	const isSignedIn = !!useMaybeApp()
 	const [activeTab, setActiveTab] = useState<SettingsTab>(isSignedIn ? 'profile' : 'preferences')
 	const hasVerticalTabs = !useDesignSwitch('settingsHorizontalTabs')
 	const hasLabsTab = useDesignSwitch('settingsLabsTab')
 
 	const tabs: { id: SettingsTab; label: string }[] = [
-		...(isSignedIn ? [{ id: 'profile' as const, label: msg(messages.profile) }] : []),
+		{ id: 'profile', label: msg(messages.profile) },
 		{ id: 'preferences', label: msg(messages.preferences) },
 		{ id: 'canvas', label: msg(messages.canvas) },
 		{ id: 'accessibility', label: msg('menu.accessibility') },
@@ -116,10 +120,13 @@ export function TlaSettingsDialog() {
 
 	const pages = tabs.map(({ id }) => (
 		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
-			{id === 'profile' && (
-				// With vertical tabs, Sign out sits at the bottom of the tab column instead.
-				<ProfilePanel hasSignOut={!hasVerticalTabs} />
-			)}
+			{id === 'profile' &&
+				(isSignedIn ? (
+					// With vertical tabs, Sign out sits at the bottom of the tab column instead.
+					<ProfilePanel hasSignOut={!hasVerticalTabs} />
+				) : (
+					<SignedOutProfilePanel />
+				))}
 			{id === 'preferences' && <PreferencesPanel />}
 			{id === 'canvas' && <CanvasPanel />}
 			{id === 'accessibility' && <AccessibilityPanel />}
@@ -251,6 +258,28 @@ function SignOutButton({ layout }: { layout: 'nav' | 'row' }) {
 			{layout === 'nav' ? icon : label}
 			{layout === 'nav' ? label : icon}
 		</button>
+	)
+}
+
+/** Profile is the account, which a signed-out visitor has none of, so the tab offers sign-in. */
+function SignedOutProfilePanel() {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
+	const label = msg(messages.signInToEditProfile)
+	return (
+		<TlaMenuSection>
+			<TlaButton
+				variant="primary"
+				data-testid="tla-settings-sign-in"
+				onClick={() => {
+					trackEvent('sign-up-clicked', { source: 'user-preferences', ctaMessage: label })
+					addDialog({ component: TlaSignInDialog })
+				}}
+			>
+				{label}
+			</TlaButton>
+		</TlaMenuSection>
 	)
 }
 
