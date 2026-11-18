@@ -1013,7 +1013,7 @@ export class TLFileDurableObject extends DurableObject {
 			// After the slow R2 reads and before _isRestoring blocks persists, so the state being
 			// replaced (edits made during the reads included) becomes the version an undo restores.
 			await this.persistToDatabase({ throwOnFailure: true })
-			this.ensureVersionIndex()
+			await this.recordCurrentVersion(roomKey)
 			const preRestoreTs = tagLatestAsPreRestore(this.ctx.storage.sql, restoreId)
 			const restoredFromName = readVersionName(this.ctx.storage.sql, timestamp)
 			this._isRestoring = true
@@ -2614,6 +2614,37 @@ export class TLFileDurableObject extends DurableObject {
 		return indexed
 	}
 
+	/**
+	 * Makes the current document the newest indexed version, which is what a restore's undo goes
+	 * back to. A persist reports success even when its version write failed (see
+	 * _uploadSnapshotToR2), so the chain head is checked rather than trusted. Throws if the version
+	 * can't be written; a restore calls this before changing anything, so failing then is safe.
+	 */
+	private async recordCurrentVersion(roomKey: string) {
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		await this.executionQueue.push(async () => {
+			const snapshot = storage.getSnapshot()
+			const chain = await this.getVersionChain()
+			if (chain && isChainHead(chain, snapshot)) return
+			const mode = resolveVersionChainMode(await this.versionChainRollout(), roomKey)
+			const window = this.getVersionWindow().take()
+			let indexed = false
+			try {
+				indexed = await this._writeVersionChainEntry(
+					snapshot,
+					roomKey,
+					new Date().toISOString(),
+					mode === 'off',
+					{ window }
+				)
+			} finally {
+				if (!indexed) this.getVersionWindow().restore(window)
+			}
+		})
+		await this.reconcileVersionIndexWithChain(roomKey)
+	}
+
 	private versionIndexReady = false
 	private ensureVersionIndex() {
 		if (this.versionIndexReady) return
@@ -3726,6 +3757,12 @@ export class TLFileDurableObject extends DurableObject {
 			this._versionIndexBackfill = null
 		})
 		await this._versionIndexBackfill
+		await this.reconcileVersionIndexWithChain(roomKey)
+	}
+
+	/** Adds index rows the chain has but the index lost, e.g. to a failed row insert. */
+	private async reconcileVersionIndexWithChain(roomKey: string) {
+		this.ensureVersionIndex()
 		const chain = await this.getVersionChain()
 		// The open segment's key names its first delta; the in-memory buffer knows the newest.
 		const chainHeadTs = chain
@@ -3733,7 +3770,12 @@ export class TLFileDurableObject extends DurableObject {
 				parseVersionKey(chain.openSegment?.key ?? chain.keyframeKey)?.timestamp ??
 				null)
 			: null
-		await reconcileVersionIndex({ sql, chainBucket: this.r2.versionChain, roomKey, chainHeadTs })
+		await reconcileVersionIndex({
+			sql: this.ctx.storage.sql,
+			chainBucket: this.r2.versionChain,
+			roomKey,
+			chainHeadTs,
+		})
 	}
 
 	private async resolveHistoryUsers(
