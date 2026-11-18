@@ -3,7 +3,7 @@ import { PI, pointInPolygon } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { Arc2d } from './Arc2d'
 import { Edge2d } from './Edge2d'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class Stadium2d extends Geometry2d {
@@ -96,9 +96,15 @@ export class Stadium2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
 		const { _a: a, _b: b, _c: c, _d: d } = this
-		return [a, b, c, d].some((edge) => edge.hitTestLineSegment(A, B))
+		const reach = getHitReach(this, distance, filters)
+		return [a, b, c, d].some((edge) => edge.hitTestLineSegment(A, B, reach))
 	}
 
 	getVertices() {

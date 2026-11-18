@@ -1,9 +1,8 @@
 import { Box } from '../Box'
-import { intersectLineSegmentCircle } from '../intersect'
 import { PI2, getPointOnCircle } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class Circle2d extends Geometry2d {
@@ -70,7 +69,13 @@ export class Circle2d extends Geometry2d {
 		return Math.abs(distToEdge)
 	}
 
-	override hitTestPoint(point: VecLike, margin = 0, hitInside = false): boolean {
+	override hitTestPoint(
+		point: VecLike,
+		margin = 0,
+		hitInside = false,
+		filters?: Geometry2dFilters
+	): boolean {
+		const reach = getHitReach(this, margin, filters)
 		// Equivalent to: dist = Vec.Dist(point, _center); return dist within [radius - margin, radius + margin]
 		// Uses squared distances throughout to avoid any sqrt calls.
 		const { _center, _radius: radius } = this
@@ -80,16 +85,28 @@ export class Circle2d extends Geometry2d {
 		if ((this.isFilled || hitInside) && dist2 <= radius * radius) {
 			return true
 		}
-		const outerR = radius + margin
+		const outerR = radius + reach
 		if (dist2 > outerR * outerR) return false
-		const innerR = radius - margin
+		const innerR = radius - reach
 		if (innerR <= 0) return true
 		return dist2 >= innerR * innerR
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
+		// Test against the band [radius - reach, radius + reach], not a crossing of the outer circle:
+		// a short drag lying wholly inside a thick stroke never crosses either edge.
+		const reach = getHitReach(this, distance, filters)
 		const { _center, _radius: radius } = this
-		return intersectLineSegmentCircle(A, B, _center, radius + distance) !== null
+		if (Vec.DistanceToLineSegment(A, B, _center) > radius + reach) return false
+		if (this.isFilled) return true
+		const innerR = radius - reach
+		if (innerR <= 0) return true
+		return Math.max(Vec.Dist2(A, _center), Vec.Dist2(B, _center)) >= innerR * innerR
 	}
 
 	getSvgPathData(): string {

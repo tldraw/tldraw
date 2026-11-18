@@ -2,7 +2,7 @@ import { intersectLineSegmentCircle } from '../intersect'
 import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -69,7 +69,12 @@ export class Arc2d extends Geometry2d {
 		return new Vec(_center.x + dx * scale, _center.y + dy * scale)
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
 		const {
 			_center,
 			_radius: radius,
@@ -78,12 +83,19 @@ export class Arc2d extends Geometry2d {
 			_angleEnd: angleEnd,
 		} = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
-		if (intersection === null) return false
+		if (
+			intersection?.some((p) => {
+				const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
+				return result >= 0 && result <= 1
+			})
+		) {
+			return true
+		}
 
-		return intersection.some((p) => {
-			const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
-			return result >= 0 && result <= 1
-		})
+		// Near misses: measure against the arc's vertices
+		const reach = getHitReach(this, distance, filters)
+		if (reach <= 0) return false
+		return this.distanceToLineSegment(A, B) <= reach
 	}
 
 	getVertices(): Vec[] {

@@ -1,6 +1,6 @@
 import { assert, invLerp, lerp } from '@tldraw/utils'
 import { Box } from '../Box'
-import { MatModel } from '../Mat'
+import { Mat, MatModel } from '../Mat'
 import { Vec, VecLike } from '../Vec'
 import {
 	Geometry2d,
@@ -13,6 +13,7 @@ import {
 export class Group2d extends Geometry2d {
 	children: Geometry2d[] = []
 	ignoredChildren: Geometry2d[] = []
+	private readonly explicitHitPadding: number
 
 	constructor(
 		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
@@ -36,6 +37,14 @@ export class Group2d extends Geometry2d {
 		addChildren(config.children)
 
 		if (this.children.length === 0) throw Error('Group2d must have at least one child')
+
+		// Children pad themselves in hit tests. The group's value is for the broad phase and the
+		// spatial index, so it must cover every hittable child or they'd cull the group before the
+		// child's outer ink is tested.
+		this.explicitHitPadding = config.hitPadding ?? 0
+		for (const child of this.children) {
+			if (!child.isLabel && child.hitPadding > this.hitPadding) this.hitPadding = child.hitPadding
+		}
 	}
 
 	override getVertices(filters: Geometry2dFilters): Vec[] {
@@ -96,7 +105,7 @@ export class Group2d extends Geometry2d {
 	): boolean {
 		for (const child of this.children) {
 			if (child.isExcludedByFilter(filters)) continue
-			if (child.hitTestPoint(point, margin, hitInside)) return true
+			if (child.hitTestPoint(point, margin, hitInside, filters)) return true
 		}
 		return false
 	}
@@ -109,7 +118,7 @@ export class Group2d extends Geometry2d {
 	): boolean {
 		for (const child of this.children) {
 			if (child.isExcludedByFilter(filters)) continue
-			if (child.hitTestLineSegment(A, B, zoom)) return true
+			if (child.hitTestLineSegment(A, B, zoom, filters)) return true
 		}
 		return false
 	}
@@ -243,6 +252,9 @@ export class Group2d extends Geometry2d {
 			debugColor: opts?.debugColor ?? this.debugColor,
 			ignore: opts?.ignore ?? this.ignore,
 			excludeFromShapeBounds: this.excludeFromShapeBounds,
+			hitPadding: this.explicitHitPadding
+				? this.explicitHitPadding * Math.abs(Mat.Decompose(transform).scaleX)
+				: 0,
 		})
 	}
 
