@@ -13,6 +13,11 @@ import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
 
+// Page bounds come from sampled vertices, which cut inside a curve by up to the sagitta between
+// samples: under 2 units for arcs sampled every 20 (getVerticesCountForArcLength). Without this, ink
+// at a curve's extremum that hit tests reach falls outside the index.
+const CURVE_SAMPLING_SLACK = 2
+
 /**
  * Manages spatial indexing for efficient shape location queries.
  *
@@ -298,7 +303,7 @@ export class SpatialIndexManager {
 		const bounds = this.editor.getShapePageBounds(id)
 		if (!bounds) return bounds
 		const pad = this.editor.getShapeGeometry(id).hitPadding
-		return pad > 0 ? bounds.clone().expandBy(pad) : bounds
+		return pad > 0 ? bounds.clone().expandBy(pad + CURVE_SAMPLING_SLACK) : bounds
 	}
 
 	private areBoundsEqualToSpatialElement(

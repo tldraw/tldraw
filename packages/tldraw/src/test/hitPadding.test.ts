@@ -111,7 +111,7 @@ function arcProbe(id: TLShapeId) {
 	const dir = Vec.Sub(info.middle, center).uni()
 	const page = (r: number, turn = 0) =>
 		Vec.Add({ x: 100, y: 100 }, Vec.Add(center, Vec.Rot(dir, turn).mul(r)))
-	return { page, radius }
+	return { page, radius, center }
 }
 
 describe('xl arrow shaft at 400% (#11567, #10855)', () => {
@@ -414,7 +414,25 @@ describe('candidate lookup', () => {
 		expect(geometry).toBeInstanceOf(Group2d)
 		expect(geometry.hitPadding).toBe(5)
 		expect(editor.getShapeIdsInsideBounds(new Box(95.1, 200, 0.5, 0.5)).has(ids.a)).toBe(true)
-		expect(editor.getShapeIdsInsideBounds(new Box(94.4, 200, 0.5, 0.5)).has(ids.a)).toBe(false)
+		expect(editor.getShapeIdsInsideBounds(new Box(92.4, 200, 0.5, 0.5)).has(ids.a)).toBe(false)
+	})
+
+	it('indexes the outer ink at the extremum of a rotated curved arrow', () => {
+		editor.createShape({
+			id: ids.a,
+			type: 'arrow',
+			x: 100,
+			y: 100,
+			rotation: Math.PI / 6,
+			props: { size: 'xl', start: { x: 0, y: 0 }, end: { x: 200, y: 0 }, bend: 60 },
+		})
+		const { center, radius } = arcProbe(ids.a)
+		const bottom = Vec.Add(editor.getShapePageTransform(ids.a).applyToPoint(center), {
+			x: 0,
+			y: radius + 4.9,
+		})
+		expect(editor.isPointInShape(ids.a, bottom)).toBe(true)
+		expect(editor.getShapesAtPoint(bottom).map((s) => s.id)).toEqual([ids.a])
 	})
 
 	// xl lines are 20 wide (ink 10 either side) after either change
