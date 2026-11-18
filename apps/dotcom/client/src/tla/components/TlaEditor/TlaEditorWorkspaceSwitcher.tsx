@@ -100,7 +100,7 @@ export function TlaEditorWorkspaceSwitcher({ className }: { className?: string }
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={0}>
 				<div className="tlui-page-menu__wrapper">
-					<div className={classNames('tlui-page-menu__list', styles.workspaceSwitcherList)}>
+					<div className={classNames('tlui-page-menu__list', styles.switcherList)}>
 						<div
 							className="tlui-page-menu__list__content"
 							style={{ height: workspaceIds.length * ITEM_HEIGHT }}
@@ -121,7 +121,7 @@ export function TlaEditorWorkspaceSwitcher({ className }: { className?: string }
 							))}
 						</div>
 					</div>
-					<div className={styles.workspaceSwitcherDivider} />
+					<div className={styles.switcherDivider} />
 					<TldrawUiButton
 						type="menu"
 						className="tlui-page-menu__create-button"

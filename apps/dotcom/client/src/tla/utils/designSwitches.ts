@@ -33,6 +33,9 @@ export const designSwitches = {
 	newFileShortcut: designSwitch('new-file-shortcut', 'New file shortcut'),
 	// File header: settings as an icon beside Share instead of an item in the main menu.
 	settingsIcon: designSwitch('settings-icon', 'Top-level settings icon'),
+	// File header: the file name opens the workspace's files, as the page name opens the pages,
+	// instead of renaming in place.
+	fileSwitcher: designSwitch('file-switcher', 'Breadcrumb file switcher'),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>

@@ -180,14 +180,14 @@ button.topLeftInputNameWidthSetter {
 	}
 }
 
-/* ---------------- Workspace switcher -------------- */
+/* ---------- Workspace and file switchers ---------- */
 
 /* Seven rows, then it scrolls. */
-.workspaceSwitcherList {
+.switcherList {
 	max-height: 280px;
 }
 
-.workspaceSwitcherDivider {
+.switcherDivider {
 	flex: 0 0 auto;
 	height: 1px;
 	background: var(--tl-color-divider);

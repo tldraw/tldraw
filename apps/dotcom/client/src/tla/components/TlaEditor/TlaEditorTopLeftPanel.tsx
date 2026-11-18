@@ -73,6 +73,7 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
+import { TlaEditorFileSwitcher } from './TlaEditorFileSwitcher'
 import { TlaEditorWorkspaceSwitcher } from './TlaEditorWorkspaceSwitcher'
 import styles from './top.module.css'
 
@@ -341,6 +342,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 
 	// An embed has no logo to hang the menu on.
 	const hasLogoMenu = useDesignSwitch('logoMenu') && !isEmbed
+	const hasFileSwitcher = useDesignSwitch('fileSwitcher') && !isEmbed
 	const menuLbl = msg('menu.title')
 
 	const mainMenu = (
@@ -420,13 +422,18 @@ function TlaEditorTopLeftPanelSignedIn() {
 					</span>
 				</>
 			)}
-			<TlaFileNameEditor
-				source="file-header"
-				isRenaming={isRenaming}
-				fileName={fileName}
-				onChange={isOwner ? handleFileNameChange : undefined}
-				onEnd={handleRenameEnd}
-			/>
+			{/* The main menu's Rename still edits the name in place, so the switcher steps aside for it. */}
+			{hasFileSwitcher && fileId && !isRenaming ? (
+				<TlaEditorFileSwitcher fileId={fileId} fileName={fileName} />
+			) : (
+				<TlaFileNameEditor
+					source="file-header"
+					isRenaming={isRenaming}
+					fileName={fileName}
+					onChange={isOwner ? handleFileNameChange : undefined}
+					onEnd={handleRenameEnd}
+				/>
+			)}
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 			<DefaultPageMenu />
 			{/* Only file editors mount the libraries panel (see TlaEditor); on legacy routes there is
