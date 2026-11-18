@@ -39,6 +39,8 @@ export const designSwitches = {
 	// Signed out: the one Share button signed-in users have, in place of a share icon beside
 	// "Sign in to share", with sign-in moved into its menu's Invite and Publish tabs.
 	signedOutShare: designSwitch('signed-out-share', 'Signed-out Share button'),
+	// Signed out: "Unsaved file" in the header in a warning colour instead of the text colour.
+	unsavedFileColor: designSwitch('unsaved-file-color', 'Warning colour on "Unsaved file"'),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>

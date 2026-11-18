@@ -692,13 +692,17 @@ function SignInMenuItem({
  */
 function TlaUnsavedFileMenu() {
 	const msg = useTranslation()
+	const hasWarningColor = useDesignSwitch('unsavedFileColor')
 	return (
 		<div className={classNames(styles.topLeftInputWrapper, styles.topLeftInputWrapperEditable)}>
 			<TldrawUiDropdownMenuRoot id="unsaved-file">
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
 						<button
-							className={classNames(styles.topLeftInputNameWidthSetter, styles.topLeftUnsavedFile)}
+							className={classNames(
+								styles.topLeftInputNameWidthSetter,
+								hasWarningColor && styles.topLeftUnsavedFileWarning
+							)}
 							data-testid="tla-file-name"
 						>
 							{msg(messages.unsavedFile).replace(/ /g, '\u00a0')}

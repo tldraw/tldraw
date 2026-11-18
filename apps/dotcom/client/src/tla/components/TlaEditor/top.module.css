@@ -119,10 +119,10 @@ span.topLeftWorkspace {
 }
 
 /*
- * The signed-out scratch board, which only this browser holds until it is signed in. Warning
- * orange alone is too pale to read as text on the light theme, so it leans on the danger red.
+ * The unsavedFileColor design switch, for the signed-out scratch board's name. Warning orange
+ * alone is too pale to read as text on the light theme, so it leans on the danger red.
  */
-button.topLeftInputNameWidthSetter.topLeftUnsavedFile {
+button.topLeftInputNameWidthSetter.topLeftUnsavedFileWarning {
 	color: color-mix(in srgb, var(--tl-color-warning) 40%, var(--tl-color-danger));
 }
 
