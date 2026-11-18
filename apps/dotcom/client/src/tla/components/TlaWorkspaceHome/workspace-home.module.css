@@ -353,8 +353,15 @@
 }
 
 .row .cardMeta {
-	flex: 0 0 auto;
+	flex: 0 0 200px;
 	font-size: 12px;
+}
+
+/* Wide enough for the facepile at its fullest: three overlapped avatars and the overflow count. */
+.rowVisitors {
+	display: flex;
+	justify-content: flex-end;
+	flex: 0 0 80px;
 }
 
 .cardMetaText {
@@ -431,10 +438,16 @@
 }
 
 @media (hover: hover) {
+	/* The hover tint is translucent: alone, it would let the overlapped avatar show through. */
 	.row:hover .visitor {
-		background-color: var(--tl-color-muted-2);
-		border-color: var(--tl-color-muted-2);
+		background:
+			linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2)), var(--tl-color-panel);
+		border-color: transparent;
 	}
+}
+
+.visitorTooltipLine {
+	text-align: start;
 }
 
 .visitorTooltipHere {
@@ -459,5 +472,9 @@
 
 	.grid {
 		gap: 16px;
+	}
+
+	.row .cardMeta {
+		flex-basis: 140px;
 	}
 }

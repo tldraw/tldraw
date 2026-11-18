@@ -358,6 +358,14 @@ function TlaBoardCard({
 
 	const isDragEnabled = !isCoarsePointer
 
+	const visitors = showVisitors && (
+		<TlaBoardVisitors
+			fileId={board.fileId}
+			href={href}
+			onClick={() => trackEvent('click-file-link', { source: 'workspace-home' })}
+		/>
+	)
+
 	return (
 		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
 			<_ContextMenu.Trigger asChild>
@@ -431,14 +439,12 @@ function TlaBoardCard({
 									{board.ownerName ? `${board.ownerName} • ${edited}` : edited}
 								</span>
 							</div>
+							{viewMode === 'list' && showVisitors && (
+								// Always rendered, even when empty, so the columns line up across rows.
+								<div className={styles.rowVisitors}>{visitors}</div>
+							)}
 						</div>
-						{showVisitors && (
-							<TlaBoardVisitors
-								fileId={board.fileId}
-								href={href}
-								onClick={() => trackEvent('click-file-link', { source: 'workspace-home' })}
-							/>
-						)}
+						{viewMode === 'grid' && visitors}
 						<TlaFileMenu
 							fileId={board.fileId}
 							workspaceId={workspaceId}
