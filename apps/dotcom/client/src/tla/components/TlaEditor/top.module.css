@@ -251,22 +251,24 @@ button.topLeftInputNameWidthSetter {
 
 /* Sit the panel toggles on a canvas-coloured chip like the other top-right canvas buttons, so
    they read as part of the same row rather than floating bare over the canvas. */
+/* Narrower than the 40px they are tall, so a row of them reads as one group beside Share. */
 .topRightIconButton {
 	background-color: var(--tl-color-background);
 	border-radius: 8px;
 	height: 40px;
-	width: 40px;
-	min-width: 40px;
+	width: 32px;
+	min-width: 32px;
 	color: var(--tl-color-text-1);
 }
 
-.topRightIconButton + .topRightIconButton {
-	margin-inline-start: 4px;
+/* The hover and pressed square, which the default inset would leave taller than it is wide. */
+.topRightIconButton::after {
+	inset: 6px 2px;
 }
 
-/* The beaker is a temporary dev affordance; keep it snug against the comments button. */
-.topRightDesignSwitchesButton {
-	margin-inline-end: -8px;
+/* Sets the row a little apart from the Share button, about as far as the icons are from each other. */
+.topRightIconButton:last-of-type {
+	margin-inline-end: 4px;
 }
 
 .topRightIconButton[aria-pressed='true']::after {

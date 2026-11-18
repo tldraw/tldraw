@@ -210,7 +210,7 @@ function SettingsButton() {
 			title={label}
 			onClick={() => addDialog({ component: () => <TlaSettingsDialog /> })}
 		>
-			<TlaIcon icon="settings" />
+			<TlaIcon icon="gear" />
 		</TldrawUiButton>
 	)
 }
@@ -233,7 +233,7 @@ function NewFileShortcutButton() {
 			title={label}
 			onClick={() => handleCreateFile({ source: 'top-bar' })}
 		>
-			<TlaIcon icon="edit-strong" />
+			<TlaIcon icon="new-file" />
 		</TldrawUiButton>
 	)
 }
@@ -251,7 +251,7 @@ function DesignSwitchesMenu() {
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
 						type="icon"
-						className={classNames(styles.topRightIconButton, styles.topRightDesignSwitchesButton)}
+						className={styles.topRightIconButton}
 						data-testid="tla-design-switches-button"
 						tooltip="Design switches"
 						title="Design switches"
