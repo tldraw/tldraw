@@ -166,6 +166,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 	])
 
 	const hasLogoMenu = useDesignSwitch('logoMenu')
+	const hasAndysMainMenu = useDesignSwitch('andysMainMenu')
 	const menuLbl = msg('menu.title')
 	// The scratch board at the root, which is neither a file nor a legacy or published room.
 	const isUnsavedFile = isUiV3 && !app && !fileId && !roomInfo
@@ -174,6 +175,14 @@ function TlaEditorTopLeftPanelAnonymous() {
 	// - root, ie tldraw.com
 	// - being an anonymous guest on someone else's file
 	// - being a logged out viewer of a published file
+
+	// What this menu can do to the file itself without an account.
+	const fileActions = (
+		<>
+			<TldrawUiMenuActionItem actionId={'save-file-copy'} />
+			{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
+		</>
+	)
 
 	const mainMenu = (
 		<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
@@ -203,12 +212,17 @@ function TlaEditorTopLeftPanelAnonymous() {
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="basic">
+						{/* The andysMainMenu design switch: under File, where the signed-in menu has them. */}
+						{hasAndysMainMenu && (
+							<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
+								<TldrawUiMenuGroup id="file-actions">{fileActions}</TldrawUiMenuGroup>
+							</TldrawUiMenuSubmenu>
+						)}
 						<EditSubmenu />
 						<TlaViewSubmenu />
 						<ExportFileContentSubMenu />
 						<ExtrasGroup />
-						<TldrawUiMenuActionItem actionId={'save-file-copy'} />
-						{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
+						{!hasAndysMainMenu && fileActions}
 					</TldrawUiMenuGroup>
 					{isUiV3 ? (
 						<TlaSettingsGroup />

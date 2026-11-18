@@ -41,6 +41,9 @@ export const designSwitches = {
 	signedOutShare: designSwitch('signed-out-share', 'Signed-out Share button'),
 	// Signed out: "Unsaved file" in the header in a warning colour instead of the text colour.
 	unsavedFileColor: designSwitch('unsaved-file-color', 'Warning colour on "Unsaved file"'),
+	// Main menu experiments. So far: signed out, a File submenu holding Download, where it is
+	// signed in, instead of Download at the top level.
+	andysMainMenu: designSwitch('andys-main-menu', "Andy's main menu"),
 	// List view: a small thumbnail to the left of each board's name.
 	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>
