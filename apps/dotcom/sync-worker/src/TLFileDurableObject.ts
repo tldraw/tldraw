@@ -24,7 +24,6 @@ import {
 	type FeatureFlagValue,
 	type HistoryAuthor,
 	type HistoryListResponse,
-	type HistoryPointsResponse,
 	type HistoryRawResponse,
 	type HistoryUser,
 	type McpAgentClient,
@@ -197,14 +196,12 @@ import {
 	ensureVersionIndexTables,
 	insertVersionIndexRow,
 	readNewestVersionTs,
-	readVersionIndexRange,
 	readVersionName,
 	setVersionName,
 	tagLatestAsPreRestore,
 	VersionIndexRow,
 } from './versionIndexStorage'
 import { buildVersionIndexRow, VersionWindowSnapshot } from './versionIndexWrite'
-import { samplePoints } from './versionSessions'
 import { VersionWindow } from './versionWindow'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
@@ -3744,25 +3741,21 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/** Saves the current state as a version (if it changed) and names it. */
-	async saveNamedVersion(opts: { fileId: string; name: string }): Promise<{ ts: string }> {
+	async saveNamedVersion(opts: {
+		fileId: string
+		name: string
+	}): Promise<{ ts: string; existingName?: string }> {
 		await this.prepareVersionIndex(opts.fileId)
 		await this.getRoom()
 		await this.persistToDatabase({ throwOnFailure: true })
 		const sql = this.ctx.storage.sql
 		const ts = readNewestVersionTs(sql)
 		if (!ts) throw new StatusError(409, 'Nothing to save yet')
+		// Nothing changed since the last named save: renaming would silently drop that name.
+		const existingName = readVersionName(sql, ts)
+		if (existingName) return { ts, existingName }
 		setVersionName(sql, ts, opts.name)
 		return { ts }
-	}
-
-	async getVersionPoints(opts: {
-		fileId: string
-		from: string
-		to: string
-	}): Promise<HistoryPointsResponse> {
-		await this.prepareVersionIndex(opts.fileId)
-		const points = samplePoints(readVersionIndexRange(this.ctx.storage.sql, opts.from, opts.to))
-		return { points, users: await this.resolveHistoryUsers(points.map((p) => p.authors)) }
 	}
 
 	async requestTabRender(

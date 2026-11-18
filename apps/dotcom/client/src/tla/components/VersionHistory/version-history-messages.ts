@@ -18,6 +18,7 @@ export const versionHistoryMessages = defineMessages({
 	saveVersion: { defaultMessage: 'Save version' },
 	versionNamePlaceholder: { defaultMessage: 'Before the client review' },
 	versionSaved: { defaultMessage: 'Version saved' },
+	versionAlreadySaved: { defaultMessage: 'Nothing changed since “{name}”' },
 	saveFailed: { defaultMessage: 'Could not save this version' },
 	you: { defaultMessage: 'You' },
 	authors: {

@@ -1,18 +1,13 @@
 import { IRequest } from 'itty-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-	getFileVersionHistory,
-	getFileVersionPoints,
-	saveFileNamedVersion,
-} from './getFileVersionHistory'
+import { getFileVersionHistory, saveFileNamedVersion } from './getFileVersionHistory'
 
 const getVersionHistory = vi.fn(async () => ({ sessions: [], users: {}, nextCursor: null }))
-const getVersionPoints = vi.fn(async () => ({ points: [], users: {} }))
 const saveNamedVersion = vi.fn(async () => ({ ts: 't9' }))
 const requireHistoryAccess = vi.fn(async () => {})
 
 vi.mock('../utils/durableObjects', () => ({
-	getRoomDurableObject: () => ({ getVersionHistory, getVersionPoints, saveNamedVersion }),
+	getRoomDurableObject: () => ({ getVersionHistory, saveNamedVersion }),
 }))
 vi.mock('../utils/tla/requireHistoryAccess', () => ({
 	requireHistoryAccess: (...args: any[]) => (requireHistoryAccess as any)(...args),
@@ -39,13 +34,14 @@ describe('getFileVersionHistory', () => {
 		})
 	})
 
-	it('points route forwards the range', async () => {
-		await getFileVersionPoints(request({ from: 'a', to: 'b' }), env)
-		expect(getVersionPoints).toHaveBeenCalledWith({ fileId: 'f1', from: 'a', to: 'b' })
+	it.each(['0', '-1', '1.5', 'abc', '501'])('rejects limit=%s', async (limit) => {
+		const res = await getFileVersionHistory(request({ limit }), env)
+		expect(res.status).toBe(400)
+		expect(getVersionHistory).not.toHaveBeenCalled()
 	})
 
-	it('points route needs a range', async () => {
-		expect((await getFileVersionPoints(request({}), env)).status).toBe(400)
+	it('accepts limit=500', async () => {
+		expect((await getFileVersionHistory(request({ limit: '500' }), env)).status).toBe(200)
 	})
 })
 

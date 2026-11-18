@@ -72,11 +72,6 @@ export interface HistoryRawResponse {
 	nextCursor: string | null
 }
 
-export interface HistoryPointsResponse {
-	points: HistoryCheckpoint[]
-	users: Record<string, HistoryUser>
-}
-
 /* ----------------------- App ---------------------- */
 
 export interface CreateFilesRequestBody {

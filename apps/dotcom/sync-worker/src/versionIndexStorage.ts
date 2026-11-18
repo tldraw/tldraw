@@ -122,17 +122,6 @@ export function readVersionIndexRows(
 	return rows.map(fromDb)
 }
 
-export function readVersionIndexRange(sql: DoSql, from: string, to: string): VersionIndexRow[] {
-	const rows = sql
-		.exec(
-			"SELECT * FROM version_index WHERE ts >= ? AND ts <= ? AND kind != 'system' ORDER BY ts ASC",
-			from,
-			to
-		)
-		.toArray() as DbRow[]
-	return rows.map(fromDb)
-}
-
 export function readVersionName(sql: DoSql, ts: string): string | null {
 	const rows = sql.exec('SELECT name FROM version_index WHERE ts = ?', ts).toArray() as {
 		name: string | null

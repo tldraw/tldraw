@@ -10,33 +10,26 @@ function queryString(request: IRequest, key: string): string | undefined {
 	return typeof value === 'string' && value ? value : undefined
 }
 
+const MAX_PAGE_LIMIT = 500
+
 export async function getFileVersionHistory(request: IRequest, env: Environment) {
 	const fileId = request.params.roomId
 	if (!fileId) return notFound()
 	if (isRoomIdTooLong(fileId)) return roomIdIsTooLong()
 	const raw = queryString(request, 'raw') === '1'
+	const limitParam = queryString(request, 'limit')
+	const limit = limitParam === undefined ? undefined : Number(limitParam)
+	if (limit !== undefined && !(Number.isInteger(limit) && limit >= 1 && limit <= MAX_PAGE_LIMIT)) {
+		return new Response(`limit must be an integer from 1 to ${MAX_PAGE_LIMIT}`, { status: 400 })
+	}
 	await requireHistoryAccess(request, env, fileId, true, { raw })
-	const limit = queryString(request, 'limit')
 	const result = await getRoomDurableObject(env, fileId).getVersionHistory({
 		fileId,
 		before: queryString(request, 'before'),
-		limit: limit ? Math.min(Number(limit), 500) : undefined,
+		limit,
 		raw,
 	})
 	return Response.json(result)
-}
-
-export async function getFileVersionPoints(request: IRequest, env: Environment) {
-	const fileId = request.params.roomId
-	if (!fileId) return notFound()
-	if (isRoomIdTooLong(fileId)) return roomIdIsTooLong()
-	const from = queryString(request, 'from')
-	const to = queryString(request, 'to')
-	if (!from || !to) return new Response('from and to are required', { status: 400 })
-	await requireHistoryAccess(request, env, fileId, true)
-	return Response.json(
-		await getRoomDurableObject(env, fileId).getVersionPoints({ fileId, from, to })
-	)
 }
 
 const MAX_VERSION_NAME_LENGTH = 100

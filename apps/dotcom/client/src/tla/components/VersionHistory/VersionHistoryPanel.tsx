@@ -128,10 +128,15 @@ export function VersionHistoryPanel({
 					onClose={onClose}
 					onSave={async (name) => {
 						try {
-							const { ts } = await saveNamedVersion(fileId, name)
+							const { ts, existingName } = await saveNamedVersion(fileId, name)
 							await load(undefined, true)
 							onSelect(ts)
-							addToast({ id: 'version-saved', title: intl.formatMessage(messages.versionSaved) })
+							addToast({
+								id: 'version-saved',
+								title: existingName
+									? intl.formatMessage(messages.versionAlreadySaved, { name: existingName })
+									: intl.formatMessage(messages.versionSaved),
+							})
 						} catch {
 							addToast({
 								id: 'version-save-failed',

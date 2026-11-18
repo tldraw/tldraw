@@ -6,7 +6,6 @@ import {
 	ensureVersionIndexTables,
 	getVersionIndexMeta,
 	insertVersionIndexRow,
-	readVersionIndexRange,
 	readVersionIndexRows,
 	readVersionName,
 	setVersionIndexMeta,
@@ -70,12 +69,6 @@ describe('versionIndexStorage', () => {
 		expect(readVersionIndexRows(sql, { limit: 10, includeSystem: false }).map((r) => r.ts)).toEqual(
 			['a1']
 		)
-	})
-
-	it('range is inclusive and oldest first', () => {
-		for (const ts of ['a1', 'a2', 'a3', 'a4']) insertVersionIndexRow(sql, row(ts))
-		insertVersionIndexRow(sql, row('a25', { kind: 'system' }))
-		expect(readVersionIndexRange(sql, 'a2', 'a3').map((r) => r.ts)).toEqual(['a2', 'a3'])
 	})
 
 	it('tagLatestAsPreRestore tags only the newest row', () => {

@@ -78,7 +78,8 @@ export function groupSessions(
 		current = []
 	}
 	for (const row of rowsNewestFirst) {
-		if (row.kind === 'system') continue
+		// A name makes a system version the user's own, so it must show up.
+		if (row.kind === 'system' && !row.name) continue
 		const newer = current[current.length - 1]
 		if (
 			newer &&
@@ -106,7 +107,7 @@ export function groupSessions(
 export function samplePoints(rowsOldestFirst: VersionIndexRow[]): HistoryCheckpoint[] {
 	const windows = new Map<number, VersionIndexRow[]>()
 	for (const row of rowsOldestFirst) {
-		if (row.kind === 'system') continue
+		if (row.kind === 'system' && !row.name) continue
 		const key = Math.floor(ms(row.ts) / POINT_MS)
 		const rows = windows.get(key) ?? []
 		rows.push(row)

@@ -40,6 +40,17 @@ describe('groupSessions', () => {
 		expect(sessions).toHaveLength(2)
 	})
 
+	it('a named system row is listed as its own session', () => {
+		const { sessions } = groupSessions(
+			desc([row(0), row(5), row(10, { kind: 'system', name: 'Final' })]),
+			{ exhausted: true }
+		)
+		expect(sessions.map((s) => ({ start: s.start, name: s.name }))).toEqual([
+			{ start: at(10), name: 'Final' },
+			{ start: at(0), name: undefined },
+		])
+	})
+
 	it('restore row is its own session with restore info', () => {
 		const { sessions } = groupSessions(
 			desc([

@@ -104,6 +104,9 @@
   "1ffd709937": {
     "translation": "A workspace must keep at least one owner. Make someone else an owner first."
   },
+  "2006aed2f3": {
+    "translation": "Nothing changed since “{name}”"
+  },
   "21f66c9c00": {
     "translation": "Workspace name"
   },

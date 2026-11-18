@@ -1,9 +1,4 @@
-import {
-	FILE_PREFIX,
-	HistoryListResponse,
-	HistoryPointsResponse,
-	HistoryRawResponse,
-} from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, HistoryListResponse, HistoryRawResponse } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { fetch, TLStoreSnapshot } from 'tldraw'
 
@@ -22,15 +17,6 @@ export async function fetchHistoryPage(
 	if (opts.before) params.set('before', opts.before)
 	if (opts.raw) params.set('raw', '1')
 	return json(await fetch(`${base(fileId)}/history?${params}`))
-}
-
-export async function fetchHistoryPoints(
-	fileId: string,
-	from: string,
-	to: string
-): Promise<HistoryPointsResponse> {
-	const params = new URLSearchParams({ from, to })
-	return json(await fetch(`${base(fileId)}/history/points?${params}`))
 }
 
 export async function fetchVersionSnapshot(fileId: string, ts: string): Promise<TLStoreSnapshot> {
@@ -54,7 +40,10 @@ export async function restoreVersion(
 	)
 }
 
-export async function saveNamedVersion(fileId: string, name: string): Promise<{ ts: string }> {
+export async function saveNamedVersion(
+	fileId: string,
+	name: string
+): Promise<{ ts: string; existingName?: string }> {
 	return json(
 		await fetch(`${base(fileId)}/history/name`, {
 			method: 'POST',

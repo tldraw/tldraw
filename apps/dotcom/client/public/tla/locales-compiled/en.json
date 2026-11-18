@@ -303,6 +303,20 @@
       "value": "A workspace must keep at least one owner. Make someone else an owner first."
     }
   ],
+  "2006aed2f3": [
+    {
+      "type": 0,
+      "value": "Nothing changed since “"
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "”"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
