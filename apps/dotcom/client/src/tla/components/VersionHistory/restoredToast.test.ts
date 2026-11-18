@@ -27,4 +27,9 @@ describe('buildRestoredToast', () => {
 		)
 		expect(toast.actions).toBeUndefined()
 	})
+
+	it('no undo action for someone who cannot restore', () => {
+		const toast = buildRestoredToast(event, { title: 'T', undoLabel: 'Undo' })
+		expect(toast).toMatchObject({ keepOpen: false, actions: undefined })
+	})
 })

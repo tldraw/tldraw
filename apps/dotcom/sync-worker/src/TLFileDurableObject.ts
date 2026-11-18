@@ -194,9 +194,11 @@ import { readRawPage, readSessionsPage } from './versionHistoryQuery'
 import { backfillVersionIndex, reconcileVersionIndex } from './versionIndexBackfill'
 import {
 	ensureVersionIndexTables,
+	getVersionIndexMeta,
 	insertVersionIndexRow,
 	readNewestVersionTs,
 	readVersionName,
+	setVersionIndexMeta,
 	setVersionName,
 	tagLatestAsPreRestore,
 	VersionIndexRow,
@@ -325,6 +327,9 @@ interface VersionIndexInput {
 function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
 }
+
+/** The restore an undo toast may still undo; see onRestore. */
+const LATEST_RESTORE_KEY = 'latest_restore'
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -941,6 +946,12 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		this._restoreInFlight = true
 		try {
+			// Only the newest restore can be undone. Every connected session gets the undo toast, so a
+			// second click, or an old toast after a newer restore, would otherwise stack another restore.
+			this.ensureVersionIndex()
+			if (undoes && getVersionIndexMeta(this.ctx.storage.sql, LATEST_RESTORE_KEY) !== undoes) {
+				return new Response('This restore was already undone or replaced', { status: 409 })
+			}
 			// A hibernated room has no _room: the pre-restore persist and the broadcast need one.
 			await this.getRoom()
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
@@ -1052,6 +1063,7 @@ export class TLFileDurableObject extends DurableObject {
 					loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
 					for (const record of plan.toReinsert) txn.set(record.id, record as TLRecord)
 				})
+				setVersionIndexMeta(sql, LATEST_RESTORE_KEY, restoreId)
 				this.ensureCommentOutbox()
 				for (const id of plan.outboxIds) {
 					sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)

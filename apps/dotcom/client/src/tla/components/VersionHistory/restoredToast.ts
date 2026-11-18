@@ -8,20 +8,23 @@ export function buildRestoredToast(
 	opts: {
 		title: string
 		undoLabel: string
-		onUndo(body: { timestamp: string; undoes: string }): void
+		/** Left out for viewers who can't restore: the toast then only reports the restore. */
+		onUndo?(body: { timestamp: string; undoes: string }): void
 	}
 ): TLUiToast {
 	const { preRestoreTs } = event
+	const { onUndo } = opts
+	const canUndo = !!preRestoreTs && !!onUndo
 	return {
 		id: `file-restored-${event.restoreId}`,
 		title: opts.title,
-		keepOpen: !!preRestoreTs,
-		actions: preRestoreTs
+		keepOpen: canUndo,
+		actions: canUndo
 			? [
 					{
 						type: 'primary',
 						label: opts.undoLabel,
-						onClick: () => opts.onUndo({ timestamp: preRestoreTs, undoes: event.restoreId }),
+						onClick: () => onUndo({ timestamp: preRestoreTs, undoes: event.restoreId }),
 					},
 				]
 			: undefined,

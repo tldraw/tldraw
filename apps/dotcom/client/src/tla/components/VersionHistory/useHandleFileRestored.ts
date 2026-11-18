@@ -3,6 +3,8 @@ import { useCallback } from 'react'
 import { useIntl } from 'react-intl'
 import { useToasts } from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
+import { useCanEditFile } from '../../hooks/useCanEditFile'
+import { useVersionHistoryEnabled } from '../../hooks/useVersionHistoryEnabled'
 import { restoreVersion } from '../../utils/versionHistoryApi'
 import { buildRestoredToast } from './restoredToast'
 import { versionHistoryMessages as messages } from './version-history-messages'
@@ -12,6 +14,10 @@ import { formatVersionTime } from './versionHistoryFormat'
 export function useHandleFileRestored(fileId: string) {
 	const intl = useIntl()
 	const { addToast } = useToasts()
+	// Everyone in the file hears about a restore; only those who could restore get an undo.
+	const signedIn = useVersionHistoryEnabled()
+	const canEdit = useCanEditFile(fileId)
+	const canUndo = signedIn && canEdit
 	return useCallback(
 		(event: Extract<TLCustomServerEvent, { type: 'file_restored' }>) => {
 			const restoredAt = Date.now()
@@ -28,21 +34,23 @@ export function useHandleFileRestored(fileId: string) {
 								time: formatVersionTime(event.restoredFrom).time,
 							}),
 					undoLabel: intl.formatMessage(messages.undo),
-					onUndo: (body) => {
-						trackEvent('undo-restore-version', {
-							secondsAfterRestore: Math.round((Date.now() - restoredAt) / 1000),
-						})
-						restoreVersion(fileId, body).catch(() =>
-							addToast({
-								id: 'restore-failed',
-								title: intl.formatMessage(messages.restoreFailed),
-								severity: 'error',
-							})
-						)
-					},
+					onUndo: canUndo
+						? (body) => {
+								trackEvent('undo-restore-version', {
+									secondsAfterRestore: Math.round((Date.now() - restoredAt) / 1000),
+								})
+								restoreVersion(fileId, body).catch(() =>
+									addToast({
+										id: 'restore-failed',
+										title: intl.formatMessage(messages.restoreFailed),
+										severity: 'error',
+									})
+								)
+							}
+						: undefined,
 				})
 			)
 		},
-		[addToast, intl, fileId]
+		[addToast, intl, fileId, canUndo]
 	)
 }
