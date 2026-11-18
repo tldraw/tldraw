@@ -1,7 +1,7 @@
 ---
 title: Geometry
 created_at: 12/26/2025
-updated_at: 12/29/2025
+updated_at: 11/18/2026
 keywords:
   - geometry
   - hit testing
@@ -476,6 +476,23 @@ const label = new Rectangle2d({
 	excludeFromShapeBounds: true, // label won't affect shape bounds
 })
 ```
+
+### hitPadding
+
+How far your shape's visible stroke reaches past its geometry, in the geometry's own units. Set it to half the rendered stroke width so the whole stroke is hittable, not just its centre line. It defaults to 0.
+
+```typescript
+override getGeometry(shape: MyShape) {
+	return new Rectangle2d({
+		width: shape.props.w,
+		height: shape.props.h,
+		isFilled: false,
+		hitPadding: (strokeWidth * shape.props.scale) / 2,
+	})
+}
+```
+
+Hit tests reach the larger of the margin and the padding, never their sum: a thin stroke keeps the usual pointer margin, and a thick one is hittable up to its visible edge. Where the pointer is on a shape's ink beyond the margin, that shape wins over shapes that only reach the pointer through the margin. Pass `{ includeHitPadding: false }` in the filters to a hit test that needs the exact outline. Custom geometry classes that override `hitTestPoint` or `hitTestLineSegment` need to apply `hitPadding` themselves.
 
 ### ignore
 
