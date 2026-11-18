@@ -26,11 +26,19 @@ export function saveTombstones(sql: DoSql, restoreId: string, records: UnknownRe
 	}
 }
 
-export function takeTombstones(sql: DoSql, restoreId: string): UnknownRecord[] {
+export function readTombstones(sql: DoSql, restoreId: string): UnknownRecord[] {
 	ensure(sql)
 	const rows = sql
 		.exec('SELECT record FROM restore_tombstone WHERE restore_id = ?', restoreId)
 		.toArray() as { record: string }[]
-	sql.exec('DELETE FROM restore_tombstone WHERE restore_id = ?', restoreId)
 	return rows.map((r) => JSON.parse(r.record))
+}
+
+/**
+ * Drops every restore's tombstones except `restoreId`'s. Only the newest restore can be undone, so
+ * the rest can never be read again.
+ */
+export function pruneTombstones(sql: DoSql, keepRestoreId: string) {
+	ensure(sql)
+	sql.exec('DELETE FROM restore_tombstone WHERE restore_id != ?', keepRestoreId)
 }

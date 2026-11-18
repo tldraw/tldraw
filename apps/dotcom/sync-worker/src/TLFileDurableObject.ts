@@ -115,7 +115,7 @@ import {
 	R2ReadScheduler,
 } from './r2'
 import { planRestoreComments } from './restorePlan'
-import { saveTombstones, takeTombstones } from './restoreTombstones'
+import { pruneTombstones, readTombstones, saveTombstones } from './restoreTombstones'
 import {
 	BootStage,
 	clearSupersededSessionSnapshots,
@@ -1056,14 +1056,17 @@ export class TLFileDurableObject extends DurableObject {
 					.filter((record) => isCommentRecordId(record.id))
 				const plan = planRestoreComments({
 					liveCommentRecords,
-					undoTombstones: undoes ? takeTombstones(sql, undoes) : null,
+					undoTombstones: undoes ? readTombstones(sql, undoes) : null,
 				})
-				if (plan.toTombstone.length) saveTombstones(sql, restoreId, plan.toTombstone)
 				storage.transaction((txn) => {
 					loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
 					for (const record of plan.toReinsert) txn.set(record.id, record as TLRecord)
 				})
+				// Only once the document is replaced: if the transaction throws, the undone restore's
+				// tombstones must still be there for a retry.
+				if (plan.toTombstone.length) saveTombstones(sql, restoreId, plan.toTombstone)
 				setVersionIndexMeta(sql, LATEST_RESTORE_KEY, restoreId)
+				pruneTombstones(sql, restoreId)
 				this.ensureCommentOutbox()
 				for (const id of plan.outboxIds) {
 					sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)

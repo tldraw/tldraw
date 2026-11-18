@@ -1,33 +1,42 @@
 import { describe, expect, it } from 'vitest'
-import { saveTombstones, takeTombstones } from './restoreTombstones'
+import { pruneTombstones, readTombstones, saveTombstones } from './restoreTombstones'
 import { makeTestSql } from './test/testSql'
 
 const thread = { id: 'commentThread:a', typeName: 'commentThread' } as any
 const comment = { id: 'comment:b', typeName: 'comment' } as any
 
 describe('restoreTombstones', () => {
-	it('save then take returns records', () => {
+	it('save then read returns records', () => {
 		const sql = makeTestSql()
 		saveTombstones(sql, 'r1', [thread, comment])
-		expect(takeTombstones(sql, 'r1')).toEqual(expect.arrayContaining([thread, comment]))
+		expect(readTombstones(sql, 'r1')).toEqual(expect.arrayContaining([thread, comment]))
 	})
 
-	it('take deletes them', () => {
+	it('read leaves them in place, so a failed undo can be retried', () => {
 		const sql = makeTestSql()
 		saveTombstones(sql, 'r1', [thread])
-		takeTombstones(sql, 'r1')
-		expect(takeTombstones(sql, 'r1')).toEqual([])
+		readTombstones(sql, 'r1')
+		expect(readTombstones(sql, 'r1')).toEqual([thread])
 	})
 
-	it('take of unknown id is empty', () => {
-		expect(takeTombstones(makeTestSql(), 'nope')).toEqual([])
+	it('read of unknown id is empty', () => {
+		expect(readTombstones(makeTestSql(), 'nope')).toEqual([])
 	})
 
 	it('separate restores are isolated', () => {
 		const sql = makeTestSql()
 		saveTombstones(sql, 'r1', [thread])
 		saveTombstones(sql, 'r2', [comment])
-		expect(takeTombstones(sql, 'r2')).toEqual([comment])
-		expect(takeTombstones(sql, 'r1')).toEqual([thread])
+		expect(readTombstones(sql, 'r2')).toEqual([comment])
+		expect(readTombstones(sql, 'r1')).toEqual([thread])
+	})
+
+	it('prune keeps only the given restore', () => {
+		const sql = makeTestSql()
+		saveTombstones(sql, 'r1', [thread])
+		saveTombstones(sql, 'r2', [comment])
+		pruneTombstones(sql, 'r2')
+		expect(readTombstones(sql, 'r1')).toEqual([])
+		expect(readTombstones(sql, 'r2')).toEqual([comment])
 	})
 })
