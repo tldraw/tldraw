@@ -691,7 +691,7 @@ function convertTerminalToPoint(terminal: ElbowArrowTerminal): ElbowArrowTermina
  * Make sure the first path segments goes fully into the target, and doesn't just point to its
  * bounding box. This modifies the route in-place.
  */
-// Routing needs the target's outline; a point on its ink outside the outline isn't inside it
+// Routing needs the exact outline, not the stroke
 const EXACT_OUTLINE_FILTERS: Geometry2dFilters = {
 	...Geometry2dFilters.EXCLUDE_NON_STANDARD,
 	includeHitPadding: false,

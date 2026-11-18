@@ -204,8 +204,8 @@ export class Brushing extends StateNode {
 			}
 
 			// If the brush collides the page bounds, then do hit tests against
-			// each of the brush's four sides. The bounds grow by the stroke padding the
-			// hit test below reaches, or only the inner half of a thick stroke would select.
+			// each of the brush's four sides. Grow the bounds by the stroke padding, or
+			// only the inner half of a thick stroke would select.
 			const geometry = editor.getShapeGeometry(shape)
 			if (
 				brush.collides(

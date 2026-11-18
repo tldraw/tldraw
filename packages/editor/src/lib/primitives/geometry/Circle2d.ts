@@ -98,8 +98,7 @@ export class Circle2d extends Geometry2d {
 		distance = 0,
 		filters?: Geometry2dFilters
 	): boolean {
-		// Test against the band [radius - reach, radius + reach], not a crossing of the outer circle:
-		// a short drag lying wholly inside a thick stroke never crosses either edge.
+		// Band test, not a crossing test. A short drag inside a thick stroke crosses neither edge.
 		const reach = getHitReach(this, distance, filters)
 		const { _center, _radius: radius } = this
 		if (Vec.DistanceToLineSegment(A, B, _center) > radius + reach) return false

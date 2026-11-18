@@ -13,9 +13,8 @@ import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
 
-// Page bounds come from sampled vertices, which cut inside a curve by up to the sagitta between
-// samples: under 2 units for arcs sampled every 20 (getVerticesCountForArcLength). Without this, ink
-// at a curve's extremum that hit tests reach falls outside the index.
+// Sampled curves cut inside their true outline by up to ~2 units (arcs sample every 20 units),
+// so padded shapes get this much extra room in the index.
 const CURVE_SAMPLING_SLACK = 2
 
 /**
@@ -74,11 +73,9 @@ export class SpatialIndexManager {
 		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
-			// These reads are the computed's only tracked dependencies: shape and
-			// binding record changes, font loads (measured text resizes when its
-			// font swaps in), and the theme and color mode (display values such as
-			// font size and stroke width resize shapes and their stroke padding
-			// without a record diff).
+			// Tracked dependencies: shape and binding changes, font loads, and the
+			// theme and color mode, which resize shapes and their stroke padding
+			// without a record diff.
 			// The rebuild/update paths below run without capture to avoid
 			// registering a dependency per checked shape on every update (and
 			// ~page-size dependencies on every rebuild).
@@ -98,7 +95,7 @@ export class SpatialIndexManager {
 				// every shape, so rebuild; loads are rare and bounded by the
 				// number of distinct fonts.
 				this.lastFontLoadEpoch !== fontLoadEpoch ||
-				// Same for theme changes, which are rarer still
+				// Theme and color mode changes are rare too
 				this.lastTheme !== theme ||
 				this.lastColorMode !== colorMode
 			) {
@@ -295,10 +292,7 @@ export class SpatialIndexManager {
 		return true
 	}
 
-	/**
-	 * Page bounds grown by the geometry's stroke padding, so candidate queries keep shapes whose
-	 * visible ink reaches past their geometry.
-	 */
+	/** Page bounds grown by stroke padding, so shapes are found where their ink is. */
 	private getIndexedBounds(id: TLShapeId): Box | undefined {
 		const bounds = this.editor.getShapePageBounds(id)
 		if (!bounds) return bounds

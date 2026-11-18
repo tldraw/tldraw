@@ -598,8 +598,8 @@ export class PathBuilder {
 	/**
 	 * Build a geometry with one child per sub-path.
 	 *
-	 * @param opts - `hitPadding` is passed to each sub-path's geometry, usually half the rendered
-	 * stroke width. A sub-path's own `geometry` options override it.
+	 * @param opts - `hitPadding` for each sub-path, usually half the stroke width. A sub-path's own
+	 * `geometry` options win.
 	 */
 	toGeometry(opts?: { hitPadding?: number }): PathBuilderGeometry2d | Group2d {
 		const geometries = []

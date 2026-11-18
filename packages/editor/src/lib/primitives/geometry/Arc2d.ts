@@ -75,9 +75,8 @@ export class Arc2d extends Geometry2d {
 		distance = 0,
 		filters?: Geometry2dFilters
 	): boolean {
-		// Exact band test: points within `reach` of the arc are those near either end, plus the
-		// annulus [radius - reach, radius + reach] at angles the arc spans. Measuring against the
-		// sampled vertices instead misses tangent drags between samples and hits inside the hollow.
+		// Hit if AB comes within reach of either end, or enters [radius - reach, radius + reach] at
+		// an angle the arc spans. Sampled vertices would miss tangent drags between samples.
 		const { _center, _radius: radius, _start, _end } = this
 		const reach = getHitReach(this, distance, filters)
 		if (

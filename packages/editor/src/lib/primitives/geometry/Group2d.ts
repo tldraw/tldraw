@@ -38,9 +38,7 @@ export class Group2d extends Geometry2d {
 
 		if (this.children.length === 0) throw Error('Group2d must have at least one child')
 
-		// Children pad themselves in hit tests. The group's value is for the broad phase and the
-		// spatial index, so it must cover every hittable child or they'd cull the group before the
-		// child's outer ink is tested.
+		// Must cover every hittable child, or the broad phase and index drop the group early
 		this.explicitHitPadding = config.hitPadding ?? 0
 		for (const child of this.children) {
 			if (!child.isLabel && child.hitPadding > this.hitPadding) this.hitPadding = child.hitPadding

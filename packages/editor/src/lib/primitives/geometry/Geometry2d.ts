@@ -26,9 +26,8 @@ export interface Geometry2dFilters {
 	readonly includeLabels?: boolean
 	readonly includeInternal?: boolean
 	/**
-	 * Whether hit tests reach out to the geometry's {@link Geometry2d.hitPadding}. Padding applies
-	 * unless this is `false`. Pass `false` for exact-outline questions, such as whether a point is
-	 * inside a shape's outline, that must not grow with the stroke.
+	 * Whether hit tests include {@link Geometry2d.hitPadding}. Defaults to true. Pass `false` for
+	 * exact outline checks, like whether a point is inside a shape.
 	 */
 	readonly includeHitPadding?: boolean
 }
@@ -64,16 +63,14 @@ export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean
 	/**
-	 * How far the visible ink reaches past the geometry, in the geometry's own units. For a stroked
-	 * shape this is half the rendered stroke width. Hit tests reach `max(margin, hitPadding)`, so
-	 * thick strokes are hittable up to their visible edge. Defaults to 0.
+	 * How far the visible stroke reaches past the geometry, in its own units. Usually half the
+	 * stroke width. Hit tests reach `max(margin, hitPadding)`. Defaults to 0.
 	 */
 	hitPadding?: number
 }
 
 /**
- * How far a hit test reaches: the caller's margin, or the geometry's ink if that reaches further.
- * Never the sum, so thick strokes stop at their visible edge.
+ * Hit test reach: the margin, or the padding if it's larger. Never the sum.
  *
  * @internal
  */
@@ -506,8 +503,7 @@ export class TransformedGeometry2d extends Geometry2d {
 		super(geometry)
 		this.inverse = Mat.Inverse(matrix)
 		this.decomposed = Mat.Decompose(matrix)
-		// Read-only, for callers working in the transformed space: hit tests delegate to the wrapped
-		// geometry, which pads in its own units
+		// For callers in transformed space. Hit tests delegate to the wrapped geometry.
 		this.hitPadding = geometry.hitPadding * Math.abs(this.decomposed.scaleX)
 
 		if (opts) {

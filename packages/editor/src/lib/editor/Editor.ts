@@ -5881,9 +5881,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * {@link TldrawOptions.coarseHitTestMargin} when using a coarse pointer) divided by the current
 	 * zoom level, so it stays a constant distance in screen space.
 	 *
-	 * This is a minimum reach: hit tests reach `max(margin, hitPadding)`, so a stroke whose ink is
-	 * wider than the margin is hittable up to its visible edge and no further. See
-	 * {@link Geometry2dOptions.hitPadding}.
+	 * This is a minimum. Strokes wider than it are hittable up to their visible edge (see
+	 * {@link Geometry2dOptions.hitPadding}).
 	 *
 	 * @returns The hit-test margin in page space.
 	 *
@@ -5955,18 +5954,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		// A pointer on a shape's ink beats any shape that only reaches it through the margin, wherever
-		// it is in z-order (#11567). So where the margin rules below would end the search, their
-		// result waits here instead while the scan looks further down for an ink hit.
+		// A pointer on a shape's ink beats shapes that only reach it through the margin (#11567).
+		// Margin hits wait here while the scan looks further down for one.
 		let slackHit: TLShape | undefined
-		// The topmost shape whose visible ink is under the pointer. It beats ink hits below it, and is
-		// the answer when the margin rules find nothing, so a stroke is pickable anywhere on its ink.
+		// Topmost shape with ink under the pointer. Also the fallback when the margin rules find nothing.
 		let inkHit: TLShape | undefined
 
-		// Reach is max(margin, padding), never the sum. Where the padding is within the margin the
-		// margin rules already cover the ink, so it only counts as an ink hit (with its own winner
-		// rules) where the ink reaches further than the margin. Thin strokes pick exactly as without
-		// padding.
+		// Ink only gets priority where it reaches past the margin, so thin strokes pick as before
 		const hitTestMargin = this.getHitTestMargin()
 		const isOnInk = (isClosed: boolean, distance: number, pad: number) =>
 			pad > (isClosed ? (distance > 0 ? outerMargin : innerMargin) : hitTestMargin) &&
@@ -6057,11 +6051,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				continue
 			}
 
-			// The margin rules below run on the raw distance, exactly as without padding
+			// Margin rules use the raw distance, as before
 			let distance: number
-			// On ink that outreaches the margin, which gives it priority over margin hits
+			// On ink that reaches past the margin
 			let onInk = false
-			// On visible ink at all, which makes the shape eligible
+			// On visible ink at all
 			let onVisibleInk = false
 
 			if (isGroup) {
@@ -6096,7 +6090,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 						onInk = isOnInk(geometry.isClosed, distance, pad)
 						onVisibleInk = pad > 0 && Math.abs(distance) <= pad
-						// Points only the padded broad phase lets through count for ink, not margin
+						// Only the padded broad phase lets this point in, so it can only count as ink
 						if (
 							pad > outerMargin &&
 							!geometry.bounds.containsPoint(pointInShapeSpace, outerMargin)
@@ -6115,7 +6109,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (onVisibleInk) {
 				if (isFilled && geometry.ignoreHit(pointInShapeSpace)) continue
 				inkHit ??= shape
-				// Ink beats margin hits; where the pointer is on several inks, the topmost wins
+				// Ink beats margin hits. On several inks the topmost wins
 				if (onInk) return inkHit
 			}
 
@@ -6149,7 +6143,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.
 						if (distance <= 0) return inMarginClosestToEdgeHit || shape
-						// Only in the margin outside the shape: shapes below can still win on ink
+						// Outside the shape, so a stroke below can still win on its ink
 						slackHit = inMarginClosestToEdgeHit || shape
 						continue
 					} else {
@@ -6253,8 +6247,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get shape IDs within the given bounds.
 	 *
-	 * Note: Uses shape page bounds, expanded by each shape's stroke padding
-	 * ({@link Geometry2d.hitPadding}) so a stroke whose ink is in the bounds is included. Frames
+	 * Note: Uses shape page bounds, grown by each shape's {@link Geometry2d.hitPadding}. Frames
 	 * with labels outside their bounds may not be included even if the label is within the search
 	 * bounds.
 	 *
@@ -6275,9 +6268,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Test whether a point (in the current page space) will will a shape. This method takes into account masks,
-	 * such as when a shape is the child of a frame and is partially clipped by the frame. The test
-	 * includes the shape's visible stroke: it reaches `max(margin, hitPadding)` from the geometry
-	 * (see {@link Geometry2dOptions.hitPadding}).
+	 * such as when a shape is the child of a frame and is partially clipped by the frame. Includes
+	 * the shape's visible stroke (see {@link Geometry2dOptions.hitPadding}).
 	 *
 	 * @example
 	 * ```ts

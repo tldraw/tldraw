@@ -86,9 +86,8 @@ export interface TldrawOptions {
 	readonly collaboratorCheckIntervalMs: number
 	readonly cameraMovingTimeoutMs: number
 	/**
-	 * The minimum distance, in screen pixels, within which the pointer counts as touching a shape.
-	 * Strokes thicker than this reach their visible ink edge instead (see
-	 * {@link Geometry2dOptions.hitPadding}).
+	 * The minimum hit distance in screen pixels. Strokes thicker than this are hittable up to their
+	 * visible edge (see {@link Geometry2dOptions.hitPadding}).
 	 */
 	readonly hitTestMargin: number
 	readonly coarseHitTestMargin: number

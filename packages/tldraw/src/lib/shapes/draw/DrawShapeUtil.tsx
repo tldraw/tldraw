@@ -143,8 +143,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			getFreehandOptions(shape.props, sw, shape.props.isPen, true)
 		).map((p) => p.point)
 
-		// Half the nominal rendered width. Freehand width varies along the stroke (pressure, simulated
-		// thinning), so this misses its widest parts and grabs a little space beside the thinnest.
+		// Half the nominal width. Freehand width varies along the stroke, so this is approximate.
 		const hitPadding =
 			shape.props.dash === 'none'
 				? 0
