@@ -3,6 +3,7 @@ import {
 	TLAsset,
 	TLBinding,
 	TLPage,
+	TLPageId,
 	TLPermission,
 	TLRecordChange,
 	TLShape,
@@ -51,7 +52,7 @@ import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
 import { EditorProvider, useEditor } from './hooks/useEditor'
 import { EditorComponentsProvider } from './hooks/useEditorComponents'
-import { useEvent } from './hooks/useEvent'
+import { useEvent, useReactiveEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
@@ -276,13 +277,15 @@ export interface TldrawEditorBaseProps {
 	 * isChangePermitted={(change) => change.type !== 'delete'}
 	 * ```
 	 *
-	 * @param change - The change: `{ type, prev, next }`.
-	 * @param editor - The editor instance.
+	 * Set to `'write-rule'` to query the configured rule with one change and the current store as
+	 * both readers. Opt in only for rules that can judge records independently. This does not
+	 * simulate side effects or predict which edits a no-op update permits. Missing rules or
+	 * sessions and thrown rules answer false. Without sync, an omitted getSession uses the same
+	 * default local session as enforcement. Rules must be synchronous and must not mutate state.
 	 */
-	isChangePermitted?(
-		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
-		editor: Editor
-	): boolean
+	isChangePermitted?:
+		| 'write-rule'
+		| ((change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>, editor: Editor) => boolean)
 
 	/**
 	 * Whether the UI should offer a kind of canvas action, for controls with no record to ask
@@ -297,9 +300,9 @@ export interface TldrawEditorBaseProps {
 	 *
 	 * @param permission - The permission's name.
 	 * @param editor - The editor instance.
+	 * @param context - The target page, defaulting to the current page. Other context is available on the editor.
 	 */
-	isPermitted?(permission: TLPermission, editor: Editor): boolean
-
+	isPermitted?(permission: TLPermission, editor: Editor, context: { pageId: TLPageId }): boolean
 	/**
 	 * The URLs for the fonts to use in the editor.
 	 */
@@ -476,25 +479,24 @@ function TldrawEditorWithOwnStore(
 	} = props
 
 	// a new `authorize` object every render must not mean a new store every render
-	const authorizeRef = useRef(authorize)
-	authorizeRef.current = authorize
+	const getAuthorize = useReactiveEvent(useCallback(() => authorize, [authorize]))
 	const hasAuthorize = !!authorize
 	const stableAuthorize = useMemo<TLStoreAuthorize<any> | undefined>(
 		() =>
 			hasAuthorize
 				? {
-						rule: (args) => authorizeRef.current!.rule(args),
+						rule: (args) => getAuthorize()!.rule(args),
 						// a getter, not a wrapper: an omitted getSession must stay omitted for the default session
 						get getSession() {
-							const current = authorizeRef.current!
+							const current = getAuthorize()!
 							return current.getSession?.bind(current)
 						},
 						get objectTypes() {
-							return authorizeRef.current!.objectTypes
+							return getAuthorize()!.objectTypes
 						},
 					}
 				: undefined,
-		[hasAuthorize]
+		[hasAuthorize, getAuthorize]
 	)
 
 	const syncedStore = useLocalStore({

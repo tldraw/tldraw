@@ -1,3 +1,4 @@
+import { computed } from '@tldraw/state'
 import { TLSyncClient } from '@tldraw/sync-core'
 import { act, createElement } from 'react'
 import { createRoot, Root } from 'react-dom/client'
@@ -222,12 +223,17 @@ describe('useSync', () => {
 			expect(authorize.objectTypes).toEqual(['note'])
 		})
 
-		it('uses the latest rule and objectTypes without a new client', () => {
+		it('invalidates reactive rule and objectTypes queries without a new client', () => {
 			const ruleB = vi.fn(() => ({ reason: 'b' }))
 			const socket = makeSocket()
 			const connectFn = () => socket as any
 			render({ connect: connectFn, assets, authorize: { rule } })
 			connect(Mock.instances[0], null, 'write')
+			const authorize = Mock.instances[0].store.props.authorize
+			const answer = computed('rule answer', () => authorize.rule({} as any))
+			const objectTypes = computed('object types', () => authorize.objectTypes)
+			expect(answer.get()).toBeNull()
+			expect(objectTypes.get()).toBeUndefined()
 			render({
 				connect: connectFn,
 				assets,
@@ -236,9 +242,8 @@ describe('useSync', () => {
 			})
 			expect(Mock.instances).toHaveLength(1)
 
-			const authorize = Mock.instances[0].store.props.authorize
-			expect(authorize.objectTypes).toEqual(['comment'])
-			expect(authorize.rule({} as any)).toEqual({ reason: 'b' })
+			expect(objectTypes.get()).toEqual(['comment'])
+			expect(answer.get()).toEqual({ reason: 'b' })
 		})
 
 		it('gives the store no rule when none is passed', () => {

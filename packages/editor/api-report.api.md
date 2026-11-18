@@ -1500,7 +1500,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
-    isPermitted(permission: TLPermission): boolean;
+    isPermitted(permission: TLPermission, context?: {
+        pageId: TLPageId;
+    }): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;
@@ -3834,8 +3836,10 @@ export interface TldrawEditorBaseProps {
     i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
-    isChangePermitted?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
-    isPermitted?(permission: TLPermission, editor: Editor): boolean;
+    isChangePermitted?: 'write-rule' | ((change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor) => boolean);
+    isPermitted?(permission: TLPermission, editor: Editor, context: {
+        pageId: TLPageId;
+    }): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -4042,8 +4046,10 @@ export interface TLEditorOptions {
     i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
-    isChangePermitted?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
-    isPermitted?(permission: TLPermission, editor: Editor): boolean;
+    isChangePermitted?: 'write-rule' | ((change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor) => boolean);
+    isPermitted?(permission: TLPermission, editor: Editor, context: {
+        pageId: TLPageId;
+    }): boolean;
     // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;

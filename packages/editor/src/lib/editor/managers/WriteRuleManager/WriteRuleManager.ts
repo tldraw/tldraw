@@ -109,3 +109,27 @@ export function judgeOperation(
 		return { reason: 'something went wrong', ids }
 	}
 }
+
+/** A UI query, not a simulated operation: both readers expose the current document. */
+export function isChangeAllowedByWriteRule(
+	store: TLStore,
+	change: TLRecordChange<TLRecord>
+): boolean {
+	const authorize = store.props.authorize
+	if (!authorize) return false
+	try {
+		const session = authorize.getSession ? authorize.getSession() : DEFAULT_LOCAL_SESSION
+		if (!session) return false
+		const record = change.next ?? change.prev
+		const lane = authorize.objectTypes?.includes(record.typeName) ? 'objects' : 'document'
+		if (session.access[lane] !== 'write') return false
+		const read = (id: string) => {
+			const record = store.get(id as TLRecord['id'])
+			return record && store.scopedTypes.document.has(record.typeName) ? record : undefined
+		}
+		return authorize.rule({ session, changes: [change], before: read, after: read }) === null
+	} catch (error) {
+		console.error('write rule threw during a UI query', error)
+		return false
+	}
+}

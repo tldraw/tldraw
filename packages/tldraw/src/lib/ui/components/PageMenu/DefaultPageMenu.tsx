@@ -124,9 +124,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const isReadonlyMode = useReadonly()
 	const canCreate = useValue('canCreatePage', () => canCreatePage(editor), [editor])
-	const canReorder = useValue('canReorderPages', () => editor.isPermitted('tl:page:update'), [
-		editor,
-	])
+	const canReorder = useValue(
+		'canReorderPages',
+		() => editor.getPages().some((page) => canUpdatePage(editor, page)),
+		[editor]
+	)
 
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
