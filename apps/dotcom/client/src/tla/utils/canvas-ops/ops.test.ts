@@ -479,6 +479,37 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		})
 	})
 
+	it('untangle separates overlapping frames, carrying their contents, and leaves a clear one alone', () => {
+		const frame = (s: string, x: number, y: number) =>
+			editor.createShape({ id: id(s), type: 'frame', x, y, props: { w: 300, h: 200 } })
+		frame('f1', 0, 0)
+		frame('f2', 200, 50)
+		frame('f3', 0, 600)
+		for (const [child, parent] of [
+			['c1', 'f1'],
+			['c2', 'f2'],
+			['c3', 'f3'],
+		]) {
+			editor.createShape<TLGeoShape>({
+				id: id(child),
+				type: 'geo',
+				parentId: id(parent),
+				x: 20,
+				y: 20,
+				props: { w: 80, h: 60 },
+			})
+		}
+		const before = { f3: rect('f3'), c3: rect('c3') }
+		const result = applyOps(editor, [{ op: 'untangle', targets: ['f1', 'f2', 'f3'] }])
+		expect(result.errors).toEqual([])
+		expect(overlap(rect('f1'), rect('f2'))).toBe(false)
+		expect(rect('c1').x - rect('f1').x).toBeCloseTo(20)
+		expect(rect('c2').x - rect('f2').x).toBeCloseTo(20)
+		expect({ f3: rect('f3'), c3: rect('c3') }).toEqual(before)
+		expect(result.results[0].message).toBe('moved 1 of 3 shape(s) apart')
+		expect(result.results[0].adjusted).toBeUndefined()
+	})
+
 	it('untangle still moves a box dropped over a smaller one', () => {
 		seed([
 			{ type: 'create_shape', id: 'small', geo: 'rectangle', x: 50, y: 50, w: 60, h: 40 },
@@ -571,6 +602,44 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(result.errors).toEqual([])
 		expect(rect('zig').w).toBeCloseTo(before.w, 0)
 		expect(rect('zig').h).toBeCloseTo(before.h / 2, 0)
+	})
+
+	it('scales a path rotated off the page axes evenly, in place', () => {
+		applyOps(editor, [
+			{
+				op: 'path',
+				id: 'zig',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 50 },
+					{ x: 200, y: 0 },
+				],
+			},
+		])
+		editor.rotateShapesBy([id('zig')], Math.PI / 4)
+		const before = rect('zig')
+		const grown = applyOps(editor, [{ op: 'resize', target: 'zig', w: before.w * 2 }])
+		expect(grown.errors).toEqual([])
+		expect(grown.results[0].adjusted).toBe('scaled evenly, since it is rotated')
+		const after = rect('zig')
+		expect(after.w).toBeCloseTo(before.w * 2, 0)
+		expect(after.h).toBeCloseTo(before.h * 2, 0)
+		expect(after.x).toBeCloseTo(before.x, 0)
+		expect(after.y).toBeCloseTo(before.y, 0)
+
+		const stretched = applyOps(editor, [
+			{ op: 'resize', target: 'zig', w: after.w * 2, h: after.h },
+		])
+		expect(stretched.errors[0]).toMatch(/rotated, so it can only be scaled evenly/)
+		expect(rect('zig')).toEqual(after)
+
+		const centred = applyOps(editor, [
+			{ op: 'resize', target: 'zig', scale: 0.5, anchor: 'center' },
+		])
+		expect(centred.errors).toEqual([])
+		expect(rect('zig').w).toBeCloseTo(after.w / 2, 0)
+		expect(rect('zig').center.x).toBeCloseTo(after.center.x, 0)
+		expect(rect('zig').center.y).toBeCloseTo(after.center.y, 0)
 	})
 })
 

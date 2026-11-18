@@ -1,5 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import {
+	areAnglesCompatible,
 	createBindingId,
 	createShapeId,
 	DefaultFontFamilies,
@@ -363,11 +364,26 @@ function applyAction(
 			) {
 				const ratio = (target: number | undefined, actual: number) =>
 					target === undefined || actual < 1 ? 1 : Math.max(1, target) / actual
+				// Off the page axes, a stretch along them would skew the shape, and resizeShape instead
+				// scales it by the smaller ratio and slides it: growing one side moved it at its old size.
+				const even = isRotatedOffPageAxes(editor, id)
+				if (even && action.w !== undefined && action.h !== undefined) {
+					const bounds = editor.getShapePageBounds(id)!
+					const [x, y] = [ratio(action.w, bounds.w), ratio(action.h, bounds.h)]
+					if (Math.abs(x - y) > 0.02 * Math.max(x, y)) {
+						throw new Error(
+							`Shape "${action.shapeId}" is rotated, so it can only be scaled evenly: give w or h alone, or both in its current proportions (${Math.round(bounds.w)}x${Math.round(bounds.h)})`
+						)
+					}
+				}
 				const scaleTowards = () => {
 					const bounds = editor.getShapePageBounds(id)!
+					const x = ratio(action.w, bounds.w)
+					const y = ratio(action.h, bounds.h)
+					const k = action.w !== undefined ? x : y
 					editor.resizeShape(
 						id,
-						{ x: ratio(action.w, bounds.w), y: ratio(action.h, bounds.h) },
+						even ? { x: k, y: k } : { x, y },
 						// The ratios are in page axes, which a rotated shape's own axes are not.
 						{ scaleOrigin: { x: bounds.x, y: bounds.y }, scaleAxisRotation: 0 }
 					)
@@ -392,6 +408,11 @@ function applyAction(
 			return
 		}
 	}
+}
+
+/** Whether a shape's page rotation is off the page axes (not a multiple of 90°). */
+export function isRotatedOffPageAxes(editor: Editor, id: TLShapeId) {
+	return !areAnglesCompatible(editor.getShapePageTransform(id).rotation(), 0)
 }
 
 // The editor skips locked shapes without a word, which would report an edit that never happened.

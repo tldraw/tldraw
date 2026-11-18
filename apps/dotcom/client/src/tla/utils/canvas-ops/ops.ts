@@ -2,6 +2,7 @@ import { Editor, type TLShapeId } from 'tldraw'
 import {
 	describeShapes,
 	fromShapeId,
+	isRotatedOffPageAxes,
 	LABEL_PADDING,
 	measureLabel,
 	runBatch,
@@ -77,18 +78,16 @@ function isPath(type: string) {
 }
 
 /**
- * An empty, unfilled box or a frame with other shapes inside: an outline round a group, which
- * untangle can't separate from its contents. A filled or labelled box on top of a smaller one is an
- * overlap like any other.
+ * An empty, unfilled box with other shapes inside: an outline round a group, which untangle can't
+ * separate from its contents. A filled or labelled box on top of a smaller one is an overlap like any
+ * other. A frame is neither: its contents are its children and move with it.
  */
 function isOutlineAroundShapes(editor: Editor, id: TLShapeId) {
 	const shape = editor.getShape(id)
-	if (!shape) return false
+	if (shape?.type !== 'geo') return false
 	const empty =
-		shape.type === 'frame' ||
-		(shape.type === 'geo' &&
-			(shape.props as { fill?: string }).fill === 'none' &&
-			!editor.getShapeUtil(shape).getText(shape)?.trim())
+		(shape.props as { fill?: string }).fill === 'none' &&
+		!editor.getShapeUtil(shape).getText(shape)?.trim()
 	if (!empty) return false
 	const rect = rectOf(editor, id)
 	return obstacles(editor, new Set([id])).some((o) => contains(rect, o.rect))
@@ -1214,7 +1213,8 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				if (arrows.has(id) || outlines.has(id)) continue
 				const rect = rectOf(editor, id)
 				const anchorRect = anchors?.[i] ? rectOf(editor, anchors[i]) : rect
-				const obs = obstacles(editor, new Set([id]))
+				// A frame's children move with it, so they are never in its way.
+				const obs = obstacles(editor, editor.getShapeAndDescendantIds([id]))
 				if (!collides(rect, obs, 2)) continue
 				const ac = center(anchorRect)
 				let placed = false
@@ -1287,6 +1287,13 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				w: uniform ? (geometry.w / currentScale) * (currentScale * uniformScale) : w,
 				h: uniform ? (geometry.h / currentScale) * (currentScale * uniformScale) : h,
 			}
+			// A rotated path scales evenly from the one side it was given, so the side it wasn't given
+			// must not be pinned to its current length.
+			const evenPath = scaledPath && op.scale === undefined && isRotatedOffPageAxes(editor, id)
+			if (evenPath) {
+				update.w = op.w
+				update.h = op.h
+			}
 			if (op.anchor === 'center' && !uniform && !scaledPath) {
 				// rect is page space and update_shape writes parent space: move by the delta.
 				update.x = shape.x - (w - rect.w) / 2
@@ -1309,7 +1316,11 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			return ok(
 				[id],
 				`${fromShapeId(id)} resized to ${Math.round(actual.w)}x${Math.round(actual.h)}`,
-				scaledPath ? undefined : crowding(editor, id, rect)
+				scaledPath
+					? evenPath && (op.w === undefined || op.h === undefined)
+						? 'scaled evenly, since it is rotated'
+						: undefined
+					: crowding(editor, id, rect)
 			)
 		}
 	}
