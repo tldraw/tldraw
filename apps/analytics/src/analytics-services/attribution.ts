@@ -1,3 +1,4 @@
+import { listenForDotDevLinks } from '../utils/app-origin-link'
 import {
 	Attribution,
 	PageView,
@@ -20,11 +21,19 @@ class AttributionService extends AnalyticsService {
 	private landing: PageView | undefined
 	private lastPageKey: string | undefined
 	private navigationPoll: ReturnType<typeof setInterval> | undefined
+	private stopListeningForDotDevLinks: (() => void) | undefined
 
 	override initialize() {
 		// Kept in memory so the source survives client-side navigation while the consent banner is
 		// still open. Nothing is written until enable().
 		this.landing = { url: window.location.href, referrer: document.referrer, time: new Date() }
+		// getAttribution() is null until consent, so links are left alone until then.
+		this.stopListeningForDotDevLinks ??= listenForDotDevLinks(() => this.getAttribution())
+	}
+
+	override dispose() {
+		this.stopListeningForDotDevLinks?.()
+		this.stopListeningForDotDevLinks = undefined
 	}
 
 	override enable() {

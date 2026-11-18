@@ -3,6 +3,9 @@ import Cookies from 'js-cookie'
 // Read by tldraw.dev's forms to tell HubSpot where a visitor came from; keep the shape stable.
 export const ATTRIBUTION_COOKIE_NAME = 'tl_attribution'
 const ATTRIBUTION_COOKIE_MAX_AGE_SECONDS = 15552000 // 180 days
+// Params are visitor-controlled; keep a hostile value from filling the cookie or a HubSpot field.
+// Matches the cap the CRM worker applies when it reads the cookie.
+const MAX_PARAM_VALUE_LENGTH = 500
 
 // Visitors moving between our own sites are not a new source. Product subdomains such as
 // computer.tldraw.com are deliberately left out, so traffic from them is kept.
@@ -18,6 +21,12 @@ export interface AttributionTouch {
 	r?: string // external referrer: origin and path, no query string
 	l: string // landing page: origin, path and only its utm_* params
 	t: string // ISO 8601 time of the page view
+	// How the visitor found the tldraw app that linked here (tldraw.com, Flash, …): that app's own
+	// first touch, carried on the link as tl_os, tl_om, tl_oc and tl_or. See app-origin-link.ts.
+	os?: string // the app's first utm_source
+	om?: string // the app's first utm_medium
+	oc?: string // the app's first utm_campaign
+	or?: string // hostname of the app's first external referrer
 }
 
 export interface Attribution {
@@ -30,6 +39,10 @@ export interface PageView {
 	url: string
 	referrer: string
 	time: Date
+}
+
+export function cleanParamValue(value: string | null | undefined): string | undefined {
+	return value?.trim().slice(0, MAX_PARAM_VALUE_LENGTH) || undefined
 }
 
 function getExternalReferrer(referrer: string, siteHostname: string): string | undefined {
@@ -68,13 +81,17 @@ export function getAttributionTouch({ url, referrer, time }: PageView): Attribut
 	const utm = new URLSearchParams(utmParams)
 	const landingQuery = utm.toString()
 	const touch: AttributionTouch = {
-		s: utm.get('utm_source') ?? undefined,
-		m: utm.get('utm_medium') ?? undefined,
-		c: utm.get('utm_campaign') ?? undefined,
-		ct: utm.get('utm_content') ?? undefined,
+		s: cleanParamValue(utm.get('utm_source')),
+		m: cleanParamValue(utm.get('utm_medium')),
+		c: cleanParamValue(utm.get('utm_campaign')),
+		ct: cleanParamValue(utm.get('utm_content')),
 		r: externalReferrer,
 		l: `${page.origin}${page.pathname}${landingQuery ? `?${landingQuery}` : ''}`,
 		t: time.toISOString(),
+		os: cleanParamValue(page.searchParams.get('tl_os')),
+		om: cleanParamValue(page.searchParams.get('tl_om')),
+		oc: cleanParamValue(page.searchParams.get('tl_oc')),
+		or: cleanParamValue(page.searchParams.get('tl_or')),
 	}
 	return Object.fromEntries(Object.entries(touch).filter(([, value]) => value)) as AttributionTouch
 }
