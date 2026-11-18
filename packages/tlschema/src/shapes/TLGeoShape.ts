@@ -205,6 +205,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddRichTextAttrs: 11,
 	AddFlipProps: 12,
 	AllowAppLinkUrls: 13,
+	BlockMoreLinkProtocols: 14,
 })
 
 /**
@@ -349,6 +350,17 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 				if (!isPreAppLinkUrl(props.url)) {
 					props.url = ''
 				}
+			},
+		},
+		{
+			id: geoShapeVersions.BlockMoreLinkProtocols,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
+				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
 	],
