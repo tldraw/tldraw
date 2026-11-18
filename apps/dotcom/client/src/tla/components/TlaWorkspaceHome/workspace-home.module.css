@@ -243,6 +243,26 @@
 	opacity: 0.08;
 }
 
+/* The list view's small thumbnail; holds the same image and placeholder as .cardPreview. */
+.rowPreview {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 32px;
+	margin-right: 8px;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 4px;
+	overflow: hidden;
+	background-color: var(--tl-color-background);
+}
+
+.rowPreview .cardPreviewPlaceholder {
+	width: 8px;
+}
+
 .cardFooter {
 	display: flex;
 	align-items: center;
@@ -361,6 +381,63 @@
 @media (hover: none) {
 	.cardMenuTrigger {
 		opacity: 1;
+	}
+}
+
+/* ---------------------- Visitors --------------------- */
+
+.visitors {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	padding-left: 6px;
+}
+
+/* Overlapping, with a ring in the card's color so each edge reads against the next. */
+.visitor {
+	position: relative;
+	z-index: 2;
+	margin-left: -6px;
+	border-radius: 11px;
+	box-shadow: 0 0 0 2px var(--tl-color-panel);
+	/* Has opened the board; full opacity is reserved for whoever is on it now. */
+	opacity: 0.45;
+	transition: opacity 200ms ease;
+}
+
+.visitor[data-present='true'] {
+	opacity: 1;
+}
+
+.visitorAvatar,
+.visitorOverflow {
+	height: 22px;
+	font-size: 10px;
+}
+
+.visitorAvatar {
+	width: 22px;
+	/* A visitor row stamped before the user picked a color has none. */
+	background-color: var(--tl-color-text-3);
+}
+
+.visitorOverflow {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* A pill rather than a circle, so "+12" fits. */
+	min-width: 22px;
+	padding: 0 5px;
+	border-radius: 11px;
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+
+@media (hover: hover) {
+	.row:hover .visitor {
+		box-shadow: 0 0 0 2px var(--tl-color-muted-2);
 	}
 }
 

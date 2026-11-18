@@ -28,8 +28,10 @@ import {
 import { routes } from '../../../routeDefs'
 import { getFileRecencyDate } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
+import { BoardPresenceProvider, useBoardPresence } from '../../hooks/useBoardPresence'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { useDesignSwitch } from '../../utils/designSwitches'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -38,6 +40,7 @@ import {
 	messages as sidebarMessages,
 	useHandleSidebarCreateFile,
 } from '../TlaSidebar/components/sidebar-shared'
+import { TlaBoardVisitors } from './TlaBoardVisitors'
 import styles from './workspace-home.module.css'
 
 const messages = defineMessages({
@@ -76,6 +79,11 @@ export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
 	}, [])
 
 	const boards = useWorkspaceBoards(workspaceId, tab, query)
+	const showVisitors = useDesignSwitch('boardVisitors')
+	const presence = useBoardPresence(
+		boards.map((b) => b.fileId),
+		showVisitors
+	)
 
 	return (
 		<div className={styles.home} data-testid="tla-workspace-home">
@@ -98,20 +106,23 @@ export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
 					)}
 				</div>
 			) : (
-				<div
-					className={viewMode === 'grid' ? styles.grid : styles.list}
-					role="list"
-					data-testid="tla-workspace-boards"
-				>
-					{boards.map((board) => (
-						<TlaBoardCard
-							key={board.fileId}
-							board={board}
-							workspaceId={workspaceId}
-							viewMode={viewMode}
-						/>
-					))}
-				</div>
+				<BoardPresenceProvider value={presence}>
+					<div
+						className={viewMode === 'grid' ? styles.grid : styles.list}
+						role="list"
+						data-testid="tla-workspace-boards"
+					>
+						{boards.map((board) => (
+							<TlaBoardCard
+								key={board.fileId}
+								board={board}
+								workspaceId={workspaceId}
+								viewMode={viewMode}
+								showVisitors={showVisitors}
+							/>
+						))}
+					</div>
+				</BoardPresenceProvider>
 			)}
 		</div>
 	)
@@ -296,10 +307,12 @@ function TlaBoardCard({
 	board,
 	workspaceId,
 	viewMode,
+	showVisitors,
 }: {
 	board: BoardItem
 	workspaceId: string
 	viewMode: ViewMode
+	showVisitors: boolean
 }) {
 	const app = useApp()
 	const msg = useTranslation()
@@ -313,6 +326,7 @@ function TlaBoardCard({
 	const href = routes.tlaFile(board.fileId)
 	const fileMenuLbl = msg(sidebarMessages.fileMenu)
 	const navigate = useNavigate()
+	const showListThumbnail = useDesignSwitch('listThumbnails')
 
 	// A renamable name opens the board on a single click and renames on a double click, so
 	// the single click waits out the double-click window before navigating.
@@ -390,6 +404,9 @@ function TlaBoardCard({
 					)}
 					{viewMode === 'grid' && <TlaBoardThumbnail fileId={board.fileId} />}
 					<div className={styles.cardFooter}>
+						{viewMode === 'list' && showListThumbnail && (
+							<TlaBoardThumbnail fileId={board.fileId} small />
+						)}
 						<div className={styles.cardText}>
 							{isRenaming ? (
 								<TlaBoardRenameInput
@@ -427,6 +444,7 @@ function TlaBoardCard({
 								</span>
 							</div>
 						</div>
+						{showVisitors && <TlaBoardVisitors fileId={board.fileId} />}
 						<TlaFileMenu
 							fileId={board.fileId}
 							workspaceId={workspaceId}
@@ -501,11 +519,11 @@ function TlaBoardRenameInput({
 	)
 }
 
-function TlaBoardThumbnail({ fileId }: { fileId: string }) {
+function TlaBoardThumbnail({ fileId, small }: { fileId: string; small?: boolean }) {
 	// A board nobody has edited since thumbnails shipped has none yet; the endpoint 404s.
 	const [failed, setFailed] = useState(false)
 	return (
-		<div className={styles.cardPreview}>
+		<div className={small ? styles.rowPreview : styles.cardPreview}>
 			{failed ? (
 				<TlaSemicolon className={styles.cardPreviewPlaceholder} />
 			) : (
