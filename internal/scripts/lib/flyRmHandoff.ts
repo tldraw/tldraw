@@ -32,6 +32,7 @@ import { nicelog } from './nicelog'
 // timeout for the rest of the deploy.
 const NEW_MACHINE_TIMEOUT_MS = 30 * 60 * 1000
 const POLL_INTERVAL_MS = 2000
+const VOLUME_GONE_TIMEOUT_MS = 60 * 1000
 
 interface FlyMachineConfig {
 	image?: string
@@ -167,6 +168,19 @@ export async function listMachines(appName: string) {
 
 async function listVolumes(appName: string) {
 	return (await flyJson<FlyVolume[] | null>(['volumes', 'list', '-a', appName])) ?? []
+}
+
+// `volumes list` still returns a volume for a moment after `volumes destroy`, so wait for the one
+// just destroyed to drop out; if it never does, it really is left over.
+async function listUnattachedVolumes(appName: string, destroyedVolumeId?: string) {
+	const deadline = Date.now() + VOLUME_GONE_TIMEOUT_MS
+	for (;;) {
+		const unattached = (await listVolumes(appName)).filter((v) => !v.attached_machine_id)
+		if (!unattached.some((v) => v.id === destroyedVolumeId) || Date.now() > deadline) {
+			return unattached
+		}
+		await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+	}
 }
 
 async function destroyMachineAndVolume(appName: string, machineId: string, volumeId?: string) {
@@ -323,11 +337,7 @@ export async function handOffReplicationManager({
 	nicelog(`${appName}: ${newMachine.id} is healthy, stopping ${old.id} so it drains to it`)
 	await stopAndDestroy(appName, old)
 
-	// `volumes list` still returns the old RM's volume right after it is destroyed.
-	const oldVolumeId = old.config.mounts?.[0]?.volume
-	const leftover = (await listVolumes(appName)).filter(
-		(v) => !v.attached_machine_id && v.id !== oldVolumeId
-	)
+	const leftover = await listUnattachedVolumes(appName, old.config.mounts?.[0]?.volume)
 	if (leftover.length > 0) {
 		nicelog(`${appName}: unattached volumes left over: ${leftover.map((v) => v.id).join(', ')}`)
 	}
