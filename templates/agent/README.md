@@ -6,23 +6,13 @@ A chat panel on the right side of the screen lets users communicate with the age
 
 ## Environment setup
 
-Create a `.dev.vars` file in the root directory and add a key for each model provider you want to use. You need at least one. Each model in the model picker works only if its provider has a key.
+The agent uses Gemini 4 Hydrogen. Add a [Google AI Studio](https://aistudio.google.com/apikey) key to `.dev.vars` in the project root.
 
 ```
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
 GOOGLE_API_KEY=your_google_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-Get the keys from the [Anthropic console](https://console.anthropic.com/settings/keys), [Google AI Studio](https://aistudio.google.com/apikey) and the [OpenAI dashboard](https://platform.openai.com/api-keys). We recommend Anthropic for best results.
-
-To use every model with one key, use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
-
-```
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-```
-
-When `OPENROUTER_API_KEY` is set, every request goes through OpenRouter and the provider keys are not used.
+To route requests through [OpenRouter](https://openrouter.ai/settings/keys), set `OPENROUTER_API_KEY` in the same file. It takes precedence over `GOOGLE_API_KEY`.
 
 ## Local development
 
@@ -601,10 +591,10 @@ npm run build
 npx wrangler deploy
 ```
 
-The deployed worker does not read `.dev.vars`. Add the same keys to it as secrets, one command per key:
+Set the API key as a secret on the deployed worker. For Google, run
 
 ```bash
-npx wrangler secret put ANTHROPIC_API_KEY
+npx wrangler secret put GOOGLE_API_KEY
 ```
 
 ## Limit usage before you deploy
@@ -619,19 +609,9 @@ The system prompt is rebuilt for each step in the agentic loop depending on whic
 
 Each action the agent can take in its current mode is sent to the model as a tool, named after the action's `_type`, with the action's schema as its parameters.
 
-## Change to a different model
-
-Set an agent's model using the `setModelName` method on the `modelName` manager.
-
-```ts
-agent.modelName.setModelName('gemini-3.8-flash')
-```
-
-To change the logic for deciding which model to use for a request, you can edit `ModelNamePartUtil`.
-
 ## Support a different model
 
-Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
+Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts` and set `DEFAULT_MODEL_NAME` to its name.
 
 ```ts
 'claude-sonnet-5': {
