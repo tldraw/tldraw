@@ -811,9 +811,26 @@ export class TldrawApp {
 		this.lastWorkspaceFileOrderings.set(workspaceId, nextOrdering)
 
 		// Return the actual file objects in the stable order
+		// Archived files stay in the list: only the v3 gallery hides them, so the sidebar and
+		// most-recent fallbacks behave as before.
+		const archivedFileIds = new Set(
+			groupFiles.filter((f) => f.archivedAt != null).map((f) => f.fileId)
+		)
 		return pinned
-			.map((f) => ({ fileId: f.fileId, isPinned: f.index !== null, date: f.file.updatedAt }))
-			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
+			.map((f) => ({
+				fileId: f.fileId,
+				isPinned: f.index !== null,
+				isArchived: archivedFileIds.has(f.fileId),
+				date: f.file.updatedAt,
+			}))
+			.concat(
+				nextOrdering.map((f) => ({
+					fileId: f.fileId,
+					isPinned: false,
+					isArchived: archivedFileIds.has(f.fileId),
+					date: f.date,
+				}))
+			)
 	}
 
 	tlUser = createTLCurrentUser({
@@ -916,6 +933,12 @@ export class TldrawApp {
 
 	isPinned(fileId: string, workspaceId: string) {
 		return this.getWorkspaceFilesSorted(workspaceId).some((f) => f.fileId === fileId && f.isPinned)
+	}
+
+	isArchived(fileId: string, workspaceId: string) {
+		return this.getWorkspaceFilesSorted(workspaceId).some(
+			(f) => f.fileId === fileId && f.isArchived
+		)
 	}
 
 	// A workspace's welcome file is seeded once, when the workspace is created. Its

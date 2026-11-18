@@ -92,6 +92,9 @@
   "21f66c9c00": {
     "translation": "Workspace name"
   },
+  "2250ec73cd": {
+    "translation": "Archive file"
+  },
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
@@ -695,6 +698,9 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
+  },
+  "cfc28518b6": {
+    "translation": "Unarchive file"
   },
   "d0834fcec6": {
     "translation": "Preferences"

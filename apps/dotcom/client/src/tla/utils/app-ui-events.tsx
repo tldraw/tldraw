@@ -75,6 +75,8 @@ export interface TLAppUiEventMap {
 	'copy-share-link': null
 	'open-share-link': null
 	'copy-file-link': null
+	'archive-file': null
+	'unarchive-file': null
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
 	'toggle-export-padding': { padding: boolean }

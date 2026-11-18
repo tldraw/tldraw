@@ -105,6 +105,7 @@ function makeGroupFile(
 		createdAt: 1,
 		updatedAt: 1,
 		index: null,
+		archivedAt: null,
 		...overrides,
 	}
 }
@@ -1136,6 +1137,44 @@ describe('file operations across workspaces', () => {
 		expect(pinned?.index).toBeTruthy()
 		// new pin goes above the workspace's existing pinned sibling
 		expect(pinned!.index! < sibling!.index!).toBe(true)
+	})
+
+	function archiveState() {
+		return makeStore({
+			user: [makeUser({ id: userId })],
+			file: [makeFile({ id: fileId, owningGroupId: groupA })],
+			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
+			group_user: [makeGroupUser({ userId, groupId: groupA })],
+			group_file: [
+				makeGroupFile({ fileId, groupId: groupA, index: 'a1' as IndexKey }),
+				makeGroupFile({ fileId, groupId: groupB, index: 'a1' as IndexKey }),
+			],
+		})
+	}
+
+	it('archiving a pinned file unpins it in that workspace only, and unarchiving restores it', async () => {
+		const s = archiveState()
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+
+		await m.archiveFile(tx, { fileId, workspaceId: groupA })
+		const inA = () => s.group_file.find((gf) => gf.groupId === groupA)
+		const inB = () => s.group_file.find((gf) => gf.groupId === groupB)
+		expect(inA()?.archivedAt).toEqual(expect.any(Number))
+		expect(inA()?.index).toBe(null)
+		expect(inB()?.archivedAt ?? null).toBe(null)
+		expect(inB()?.index).toBe('a1')
+
+		await m.unarchiveFile(tx, { fileId, workspaceId: groupA })
+		expect(inA()?.archivedAt).toBe(null)
+	})
+
+	it('archiving and unarchiving are forbidden outside the workspace', async () => {
+		const s = archiveState()
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() => m.archiveFile(tx, { fileId, workspaceId: groupB }))
+		await expectForbidden(() => m.unarchiveFile(tx, { fileId, workspaceId: groupB }))
 	})
 })
 

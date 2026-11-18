@@ -425,6 +425,40 @@ export function createMutators(userId: string) {
 			})
 		},
 
+		archiveFile: async (
+			tx: Tx,
+			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
+		) => {
+			assert(fileId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
+			// See pinFile.
+			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
+
+			// Also unpins, so an archived board doesn't keep a place at the top of pinned lists.
+			await tx.mutate.group_file.update({
+				fileId,
+				groupId: workspaceId,
+				archivedAt: Date.now(),
+				index: null,
+			})
+		},
+
+		unarchiveFile: async (
+			tx: Tx,
+			{ fileId, workspaceId }: { fileId: string; workspaceId: string }
+		) => {
+			assert(fileId, ZErrorCode.bad_request)
+			assert(workspaceId, ZErrorCode.bad_request)
+			// See pinFile.
+			assert(can(await getRole(tx, userId, workspaceId), 'accessFiles'), ZErrorCode.forbidden)
+
+			await tx.mutate.group_file.update({
+				fileId,
+				groupId: workspaceId,
+				archivedAt: null,
+			})
+		},
+
 		removeFileFromWorkspace: async (
 			tx: Tx,
 			{ fileId, workspaceId }: { fileId: string; workspaceId: string }

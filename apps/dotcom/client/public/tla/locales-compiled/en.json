@@ -227,6 +227,12 @@
       "value": "Workspace name"
     }
   ],
+  "2250ec73cd": [
+    {
+      "type": 0,
+      "value": "Archive file"
+    }
+  ],
   "23dcace54a": [
     {
       "type": 0,
@@ -1830,6 +1836,12 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
+    }
+  ],
+  "cfc28518b6": [
+    {
+      "type": 0,
+      "value": "Unarchive file"
     }
   ],
   "d0834fcec6": [

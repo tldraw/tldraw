@@ -127,12 +127,10 @@ function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): Board
 	return useValue(
 		'workspace boards',
 		() => {
-			// TODO: files have no archived state yet.
-			if (tab === 'archive') return []
-
 			const boards: BoardItem[] = []
 			// Same order as the sidebar: pinned first, then most recent.
-			for (const { fileId, isPinned } of app.getWorkspaceFilesSorted(workspaceId)) {
+			for (const { fileId, isPinned, isArchived } of app.getWorkspaceFilesSorted(workspaceId)) {
+				if (isArchived !== (tab === 'archive')) continue
 				const file = app.getFile(fileId)
 				if (!file) continue
 				const name = app.getFileName(file)
