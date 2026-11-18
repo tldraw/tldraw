@@ -50,7 +50,8 @@ export function getLinkOpenPolicy(url: string): TLLinkOpenPolicy {
 /**
  * Open a user-provided link in a new window, following {@link getLinkOpenPolicy}. Links that need
  * confirming emit a `confirm-open-link` event, which the default UI answers with a dialog. With no
- * listener for that event, those links are not opened.
+ * listener for that event (for example with `hideUi`), those links are not opened. To handle them
+ * yourself, add a listener that asks the user and calls `openWindow(url, '_blank')` if they agree.
  *
  * @public
  */
@@ -63,7 +64,9 @@ export function openLink(editor: Editor, url: string) {
 			if (editor.listenerCount('confirm-open-link') > 0) {
 				editor.emit('confirm-open-link', { url })
 			} else {
-				console.warn(`Not opening ${url}: nothing is listening for confirm-open-link`)
+				console.warn(
+					`Not opening ${url}: links into unknown apps need confirming, and nothing is listening for the editor's confirm-open-link event. Add a listener with editor.on('confirm-open-link', ({ url }) => ...) to ask the user, or render the default tldraw UI.`
+				)
 			}
 			return
 		case 'block':

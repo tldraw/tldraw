@@ -242,6 +242,16 @@ editor.on('max-shapes', ({ pageId, count }) => {
 })
 ```
 
+The default UI answers `confirm-open-link` with a dialog. Without it, for example with `hideUi` or a bare `TldrawEditor`, links into apps tldraw doesn't recognize don't open. To open them, add your own listener:
+
+```tsx
+import { openWindow } from 'tldraw'
+
+editor.on('confirm-open-link', async ({ url }) => {
+	if (await askUser(`Open ${url}?`)) openWindow(url, '_blank')
+})
+```
+
 ## UI events
 
 The `Tldraw` component's `onUiEvent` prop captures high-level UI interactions separately from canvas events. This includes toolbar selections, menu actions, and keyboard shortcuts.
