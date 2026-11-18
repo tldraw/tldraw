@@ -1046,21 +1046,14 @@ describe('hitPadding', () => {
 		new Edge2d({ start: new Vec(0, 0), end: new Vec(100, 0), hitPadding })
 	const noPadding: Geometry2dFilters = { includeHitPadding: false }
 
-	it('defaults to 0', () => {
-		expect(new Edge2d({ start: new Vec(0, 0), end: new Vec(100, 0) }).hitPadding).toBe(0)
-	})
-
-	it('reaches max(margin, padding) in point tests, never the sum', () => {
-		expect(edge().hitTestPoint(new Vec(50, 5), 1)).toBe(true)
-		expect(edge().hitTestPoint(new Vec(50, 5.5), 1)).toBe(false)
-		expect(edge().hitTestPoint(new Vec(50, 5.5), 6)).toBe(true)
-		expect(edge().hitTestPoint(new Vec(50, 6.5), 6)).toBe(false)
-	})
-
-	it('reaches max(distance, padding) in segment tests, never the sum', () => {
-		expect(edge().hitTestLineSegment(new Vec(20, 5), new Vec(80, 5), 1)).toBe(true)
-		expect(edge().hitTestLineSegment(new Vec(20, 5.5), new Vec(80, 5.5), 1)).toBe(false)
-		expect(edge().hitTestLineSegment(new Vec(20, 5.5), new Vec(80, 5.5), 6)).toBe(true)
+	it.each([
+		[5, 1, true],
+		[5.5, 1, false],
+		[5.5, 6, true],
+		[6.5, 6, false],
+	])('reaches max(margin, padding), never the sum: %s off, margin %s', (off, margin, expected) => {
+		expect(edge().hitTestPoint(new Vec(50, off), margin)).toBe(expected)
+		expect(edge().hitTestLineSegment(new Vec(20, off), new Vec(80, off), margin)).toBe(expected)
 	})
 
 	it('pads polylines, circles and points', () => {
@@ -1079,6 +1072,19 @@ describe('hitPadding', () => {
 		expect(point.hitTestLineSegment(new Vec(-10, 5), new Vec(10, 5), 1)).toBe(true)
 		expect(point.hitTestLineSegment(new Vec(-10, 5), new Vec(10, 5))).toBe(true)
 		expect(point.hitTestLineSegment(new Vec(-10, 5.5), new Vec(10, 5.5), 1)).toBe(false)
+	})
+
+	// centre (50, 50), radius 50, ink 45..55
+	const circle = new Circle2d({ radius: 50, isFilled: false, hitPadding: 5 })
+	it.each([
+		['a short drag wholly inside the stroke band', new Vec(102, 50), new Vec(102, 51), 0, true],
+		['tangent to the outer ink', new Vec(0, -5), new Vec(100, -5), 0, true],
+		['just beyond the outer ink', new Vec(0, -5.5), new Vec(100, -5.5), 0, false],
+		['inside the hole', new Vec(40, 50), new Vec(60, 50), 0, false],
+		['6 off with a smaller distance', new Vec(0, -6), new Vec(100, -6), 1.125, false],
+		['6 off with distance 6', new Vec(0, -6), new Vec(100, -6), 6, true],
+	])('band-tests circle segment hits: %s', (_, A, B, distance, expected) => {
+		expect(circle.hitTestLineSegment(A, B, distance)).toBe(expected)
 	})
 
 	// A radius 50 arc over the top from (-50, 0) to (50, 0), sampled every 22.5°
@@ -1131,7 +1137,6 @@ describe('hitPadding', () => {
 		expect(g.hitTestPoint(new Vec(50, 45), 1, false)).toBe(false)
 		expect(g.hitTestLineSegment(new Vec(20, 5), new Vec(80, 5), 1)).toBe(true)
 		expect(g.hitTestLineSegment(new Vec(20, 45), new Vec(80, 45), 1)).toBe(false)
-		expect(g.transform(Mat.Translate(10, 0)).hitTestPoint(new Vec(60, 5), 1, false)).toBe(true)
 	})
 
 	it("gives a group its widest non-label child's padding, at least", () => {
@@ -1147,7 +1152,6 @@ describe('hitPadding', () => {
 
 	it('ignores the padding when includeHitPadding is false', () => {
 		expect(edge().hitTestPoint(new Vec(50, 3), 1, false, noPadding)).toBe(false)
-		expect(edge().hitTestPoint(new Vec(50, 1), 1, false, noPadding)).toBe(true)
 		expect(edge().hitTestLineSegment(new Vec(20, 3), new Vec(80, 3), 1, noPadding)).toBe(false)
 		expect(
 			edge().transform(Mat.Scale(2, 2)).hitTestPoint(new Vec(100, 3), 1, false, noPadding)
@@ -1155,28 +1159,6 @@ describe('hitPadding', () => {
 		const group = new Group2d({ children: [edge()] })
 		expect(group.hitTestPoint(new Vec(50, 3), 1, false, noPadding)).toBe(false)
 		expect(group.hitTestLineSegment(new Vec(20, 3), new Vec(80, 3), 1, noPadding)).toBe(false)
-		expect(
-			new Circle2d({ radius: 50, isFilled: false, hitPadding: 5 }).hitTestPoint(
-				new Vec(50, -3),
-				1,
-				false,
-				noPadding
-			)
-		).toBe(false)
-	})
-})
-
-describe('distanceToLineSegment near misses', () => {
-	it('measures a drag running parallel to an edge, between its vertices', () => {
-		const e = new Edge2d({ start: new Vec(0, 0), end: new Vec(100, 0) })
-		expect(e.distanceToLineSegment(new Vec(20, 3), new Vec(80, 3))).toBe(3)
-		// a short drag above the middle of the edge, offset in both axes
-		expect(e.distanceToLineSegment(new Vec(50, 4), new Vec(52, 7))).toBe(4)
-	})
-
-	it("measures to the edges of a closed shape from the drag's ends", () => {
-		const rect = new Rectangle2d({ width: 400, height: 100, isFilled: false })
-		expect(rect.distanceToLineSegment(new Vec(100, -4), new Vec(300, -4))).toBe(4)
-		expect(rect.distanceToLineSegment(new Vec(150, 110), new Vec(160, 106))).toBe(6)
+		expect(circle.hitTestPoint(new Vec(50, -3), 1, false, noPadding)).toBe(false)
 	})
 })

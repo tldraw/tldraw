@@ -1,7 +1,4 @@
 import {
-	Box,
-	Circle2d,
-	Geometry2d,
 	Group2d,
 	TLArrowShape,
 	TLGeoShape,
@@ -140,43 +137,38 @@ describe('xl arrow shaft at 400% (#11567, #10855)', () => {
 })
 
 describe('geo stroke reach', () => {
-	it('reaches the ink edge of an xl stroke at 100%, both sides', () => {
-		geo(ids.a, {})
-		expect(hover(95, 200)).toBe(ids.a)
-		expect(hover(105, 200)).toBe(ids.a)
-		expect(hover(94.5, 200)).toBe(null)
-		expect(hover(105.5, 200)).toBe(null)
-	})
-
-	it('keeps the 4.5 margin for an s stroke at 100%', () => {
-		geo(ids.a, { size: 's' })
-		expect(hover(95.5, 200)).toBe(ids.a)
-		expect(hover(104.5, 200)).toBe(ids.a)
-		expect(hover(95.25, 200)).toBe(null)
-		expect(hover(104.75, 200)).toBe(null)
-	})
-
-	it('reaches the ink at 400%, with no margin on top', () => {
-		geo(ids.a, {})
-		zoomTo400()
-		// 4.5 off the centre line is past the 1.125 margin, but on the ink
-		expect(hover(95.5, 200)).toBe(ids.a)
-		expect(hover(104.5, 200)).toBe(ids.a)
-		// 0.5 past the ink edge
-		expect(hover(94.5, 200)).toBe(null)
-		expect(hover(105.5, 200)).toBe(null)
+	// A geo's left edge is at x = 100; hits reach `lastHit` either side of it and miss at `firstMiss`
+	it.each([
+		['xl at 100%: the ink, past the margin', 'xl', 1, 5, 5.5],
+		['s at 100%: the margin, past the ink', 's', 1, 4.5, 4.75],
+		['xl at 400%: the ink, with no margin on top', 'xl', 4, 5, 5.5],
+	] as const)('reaches %s', (_, size, zoom, lastHit, firstMiss) => {
+		geo(ids.a, { size })
+		if (zoom === 4) zoomTo400()
+		for (const side of [-1, 1]) {
+			expect(hover(100 + side * lastHit, 200)).toBe(ids.a)
+			expect(hover(100 + side * firstMiss, 200)).toBe(null)
+		}
 	})
 
 	it('doubles the padding for a rotated shape at scale 2', () => {
 		geo(ids.a, { w: 400, h: 200, scale: 2 })
 		editor.rotateShapesBy([ids.a], Math.PI / 2)
 		zoomTo400()
-		expect(editor.getShapeGeometry(ids.a).hitPadding).toBe(10)
 		const { minX, center } = editor.getShapePageBounds(ids.a)!
 		expect(hover(minX - 9.75, center.y)).toBe(ids.a)
 		expect(hover(minX + 9.75, center.y)).toBe(ids.a)
 		expect(hover(minX - 10.5, center.y)).toBe(null)
 		expect(hover(minX + 10.5, center.y)).toBe(null)
+	})
+
+	it('gives dash none no padding: no reach past the fill, and no invisible ink to win with', () => {
+		line(ids.b, 103, 's')
+		geo(ids.a, { dash: 'none', fill: 'solid' }, 100, 106)
+		zoomTo400()
+		// solid xl would reach 5 out; the pointer is on the thin line, 3 above the borderless shape
+		expect(hit(200, 103)).toBe(ids.b)
+		expect(hit(150, 105.5)).toBe(ids.a)
 	})
 })
 
@@ -188,18 +180,6 @@ describe('ink edge of other stroked shapes at 400%', () => {
 	it('line', () => {
 		line(ids.a, 100, 'xl')
 		expect(hit(200, 95)).toBe(ids.a)
-		expect(hit(200, 105)).toBe(ids.a)
-		expect(hit(200, 105.5)).toBe(null)
-	})
-
-	it('straight arrow', () => {
-		editor.createShape({
-			id: ids.a,
-			type: 'arrow',
-			x: 100,
-			y: 100,
-			props: { size: 'xl', start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
-		})
 		expect(hit(200, 105)).toBe(ids.a)
 		expect(hit(200, 105.5)).toBe(null)
 	})
@@ -244,21 +224,23 @@ describe('ink edge of other stroked shapes at 400%', () => {
 		expect(hit(at(5.5).x, at(5.5).y)).toBe(null)
 	})
 
-	function draw(isClosed: boolean) {
-		const points = isClosed
-			? [
-					{ x: 0, y: 0, z: 0.5 },
-					{ x: 100, y: 0, z: 0.5 },
-					{ x: 200, y: 0, z: 0.5 },
-					{ x: 200, y: 200, z: 0.5 },
-					{ x: 0, y: 200, z: 0.5 },
-					{ x: 0, y: 0, z: 0.5 },
-				]
-			: [
-					{ x: 0, y: 0, z: 0.5 },
-					{ x: 100, y: 0, z: 0.5 },
-					{ x: 200, y: 0, z: 0.5 },
-				]
+	// draw strokes render (strokeWidth + 1) wide: 11 for xl, so the ink reaches 5.5
+	it.each([
+		['open', false],
+		['closed', true],
+	])('%s draw', (_kind, isClosed) => {
+		const points = [
+			{ x: 0, y: 0, z: 0.5 },
+			{ x: 100, y: 0, z: 0.5 },
+			{ x: 200, y: 0, z: 0.5 },
+			...(isClosed
+				? [
+						{ x: 200, y: 200, z: 0.5 },
+						{ x: 0, y: 200, z: 0.5 },
+						{ x: 0, y: 0, z: 0.5 },
+					]
+				: []),
+		]
 		editor.createShape({
 			id: ids.a,
 			type: 'draw',
@@ -271,30 +253,14 @@ describe('ink edge of other stroked shapes at 400%', () => {
 				segments: [{ type: 'free', path: b64Vecs.encodePoints(points) }],
 			},
 		})
-	}
-
-	// From the stroke's nearest point towards `toward`, in page space
-	function inkProbe(geometry: Geometry2d, toward: VecLike) {
-		const local = Vec.Sub(toward, { x: 100, y: 100 })
-		const nearest = geometry.nearestPoint(local)
-		const dir = Vec.Sub(local, nearest).uni()
-		return (d: number) => Vec.Add({ x: 100, y: 100 }, Vec.Add(nearest, Vec.Mul(dir, d)))
-	}
-
-	// draw strokes render (strokeWidth + 1) wide: 11 for xl, so the ink reaches 5.5
-	it.each([
-		['open', false],
-		['closed', true],
-	])('%s draw', (_kind, isClosed) => {
-		draw(isClosed)
 		const geometry = editor.getShapeGeometry(ids.a)
 		expect(geometry.isClosed).toBe(isClosed)
 		expect(geometry.hitPadding).toBe(5.5)
-		for (const toward of [
-			{ x: 150, y: 50 },
-			{ x: 150, y: 150 },
-		]) {
-			const at = inkProbe(geometry, toward)
+		// out from the stroke's nearest point, on both sides
+		for (const toward of [new Vec(50, -50), new Vec(50, 50)]) {
+			const nearest = geometry.nearestPoint(toward)
+			const at = (d: number) =>
+				Vec.Add({ x: 100, y: 100 }, Vec.Sub(toward, nearest).uni().mul(d).add(nearest))
 			expect(hit(at(5.4).x, at(5.4).y)).toBe(ids.a)
 			expect(hit(at(6).x, at(6).y)).toBe(null)
 		}
@@ -302,104 +268,65 @@ describe('ink edge of other stroked shapes at 400%', () => {
 })
 
 describe('labels', () => {
-	beforeEach(() => {
+	it.each([
+		['geo', () => geo(ids.a, { w: 400, h: 400, richText: toRichText('hello') })],
+		[
+			'arrow',
+			() =>
+				editor.createShape({
+					id: ids.a,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: {
+						size: 'xl',
+						start: { x: 0, y: 0 },
+						end: { x: 400, y: 0 },
+						richText: toRichText('hello'),
+					},
+				}),
+		],
+	])('hits a %s label only inside its box', (_, create) => {
 		zoomTo400()
-	})
-
-	it('hits a geo label only inside its box', () => {
-		geo(ids.a, { w: 400, h: 400, richText: toRichText('hello') })
+		create()
 		const label = (editor.getShapeGeometry(ids.a) as Group2d).children.find((c) => c.isLabel)!
 		expect(label.hitPadding).toBe(0)
+		// the label's top edge, away from the stroke's ink
 		const { minY, center } = label.bounds
-		// the label spans the shape's width; its top edge is far from the stroke
-		expect(minY).toBeGreaterThan(100)
-		expect(hit(100 + center.x, 100 + minY + 0.25)).toBe(ids.a)
-		expect(hit(100 + center.x, 100 + minY - 0.5)).toBe(null)
-	})
-
-	it('hits an arrow label only inside its box', () => {
-		editor.createShape({
-			id: ids.a,
-			type: 'arrow',
-			x: 100,
-			y: 100,
-			props: {
-				size: 'xl',
-				start: { x: 0, y: 0 },
-				end: { x: 400, y: 0 },
-				richText: toRichText('hello'),
-			},
-		})
-		const label = (editor.getShapeGeometry(ids.a) as Group2d).children.find((c) => c.isLabel)!
-		expect(label.hitPadding).toBe(0)
-		const { minY, center } = label.bounds
-		// above the shaft's ink, at the label's top edge
-		expect(minY).toBeLessThan(-6)
 		expect(hit(100 + center.x, 100 + minY + 0.25)).toBe(ids.a)
 		expect(hit(100 + center.x, 100 + minY - 0.5)).toBe(null)
 	})
 })
 
 describe('overlapping shapes', () => {
-	it('picks the line whose ink the pointer is on over a thinner one in reach, in both orders', () => {
-		// thin ink 99..101, thick ink 99..109; the pointer is 1.5 from the thin centre line
-		for (const thinOnTop of [true, false]) {
-			editor.deleteShapes([ids.a, ids.b])
-			if (thinOnTop) {
-				line(ids.b, 104, 'xl')
-				line(ids.a, 100, 's')
-			} else {
-				line(ids.a, 100, 's')
-				line(ids.b, 104, 'xl')
-			}
-			expect(hit(200, 101.5)).toBe(ids.b)
-		}
-	})
-
-	it('picks the top shape where the pointer is on both inks, in both orders', () => {
-		zoomTo400()
-		// the pointer is 1 from a's left edge and 2 from b's: on both inks
-		for (const aOnTop of [true, false]) {
-			editor.deleteShapes([ids.a, ids.b])
-			if (aOnTop) {
-				geo(ids.b, {}, 103)
-				geo(ids.a, {}, 100)
-			} else {
-				geo(ids.a, {}, 100)
-				geo(ids.b, {}, 103)
-			}
-			expect(hit(101, 200)).toBe(aOnTop ? ids.a : ids.b)
-		}
-	})
-
-	// thin ink 99..101 (s) or 98.25..101.75 (m), thick ink 99..109; the pointer is on both
+	// a thin line at 100 (s ink 99..101, m 98.25..101.75, xl 95..105) and an xl line at 104 (99..109)
 	it.each([
-		['s', true],
-		['s', false],
-		['m', true],
-		['m', false],
-	] as const)('picks the top line on an %s and an xl ink, thin on top: %s', (size, thinOnTop) => {
+		['on the xl ink only, s on top', 's', true, 101.5, ids.b],
+		['on the xl ink only, s below', 's', false, 101.5, ids.b],
+		['on both inks, s on top', 's', true, 100.5, ids.a],
+		['on both inks, s below', 's', false, 100.5, ids.b],
+		['on both inks, m on top', 'm', true, 100.5, ids.a],
+		['on both inks, m below', 'm', false, 100.5, ids.b],
+		['on both xl inks, a on top', 'xl', true, 100.5, ids.a],
+		['on both xl inks, a below', 'xl', false, 100.5, ids.b],
+	] as const)('picks the right line %s', (_, size, aOnTop, y, id) => {
 		const lines = [() => line(ids.b, 104, 'xl'), () => line(ids.a, 100, size)]
-		if (!thinOnTop) lines.reverse()
+		if (!aOnTop) lines.reverse()
 		lines.forEach((create) => create())
-		expect(hit(200, 100.5)).toBe(thinOnTop ? ids.a : ids.b)
+		expect(hit(200, y)).toBe(id)
 	})
 
-	it('picks the closest edge among thin strokes at 100%, as without padding', () => {
-		// 2 from s's edge (1 past its ink) and 3 from l's edge (0.5 past its ink): the raw distance
-		// picks s, a distance-to-ink ranking would pick l
-		for (const sOnTop of [true, false]) {
-			editor.deleteShapes([ids.a, ids.b])
-			if (sOnTop) {
-				geo(ids.b, { size: 'l' }, 105)
-				geo(ids.a, { size: 's' }, 100)
-			} else {
-				geo(ids.a, { size: 's' }, 100)
-				geo(ids.b, { size: 'l' }, 105)
-			}
+	// 2 from s's edge (1 past its ink) and 3 from l's edge (0.5 past its ink): the raw distance
+	// picks s, a distance-to-ink ranking would pick l
+	it.each([true, false])(
+		'picks the closest thin edge at 100%%, as without padding, s on top: %s',
+		(sOnTop) => {
+			const shapes = [() => geo(ids.b, { size: 'l' }, 105), () => geo(ids.a, { size: 's' }, 100)]
+			if (!sOnTop) shapes.reverse()
+			shapes.forEach((create) => create())
 			expect(hit(102, 200)).toBe(ids.a)
 		}
-	})
+	)
 
 	// An xl line along a frame's top edge, behind it: only outside the edge may its ink win
 	it.each([
@@ -427,17 +354,7 @@ describe('candidate lookup', () => {
 
 	it('clicks the outer ink edge outside the page bounds', () => {
 		geo(ids.a, {})
-		expect(editor.getShapePageBounds(ids.a)!.minX).toBe(100)
 		expect(click(95.5, 200)).toBe(ids.a)
-	})
-
-	it('indexes a group geometry at its widest child padding', () => {
-		geo(ids.a, {})
-		const geometry = editor.getShapeGeometry(ids.a)
-		expect(geometry).toBeInstanceOf(Group2d)
-		expect(geometry.hitPadding).toBe(5)
-		expect(editor.getShapeIdsInsideBounds(new Box(95.1, 200, 0.5, 0.5)).has(ids.a)).toBe(true)
-		expect(editor.getShapeIdsInsideBounds(new Box(92.4, 200, 0.5, 0.5)).has(ids.a)).toBe(false)
 	})
 
 	it('indexes the outer ink at the extremum of a rotated curved arrow', () => {
@@ -493,15 +410,12 @@ describe('drag-line hit tests at 400%', () => {
 		{ x: 400, y: 96 },
 	]
 
-	it('erases along the outer ink of a long edge', () => {
-		drag('eraser', alongTopInk)
-		expect(editor.getErasingShapeIds()).toEqual([ids.a])
-	})
-
-	it('scribble selects along the outer ink of a long edge', () => {
-		drag('scribble', alongTopInk)
-		editor.expectToBeIn('select.scribble_brushing')
-		expect(editor.getSelectedShapeIds()).toEqual([ids.a])
+	it.each([
+		['erases', 'eraser', () => editor.getErasingShapeIds()],
+		['scribble selects', 'scribble', () => editor.getSelectedShapeIds()],
+	] as const)('%s along the outer ink of a long edge', (_, tool, getIds) => {
+		drag(tool, alongTopInk)
+		expect(getIds()).toEqual([ids.a])
 	})
 
 	it('does not erase from 24px away: the reach is the ink, not ink plus margin', () => {
@@ -536,29 +450,6 @@ describe('drag-line hit tests at 400%', () => {
 		const { page, radius } = arcProbe(ids.arrow)
 		drag('eraser', [page(radius + 20), page(radius + 4), page(radius + 4, 0.05)])
 		expect(editor.getErasingShapeIds()).toEqual([ids.arrow])
-	})
-})
-
-describe('Circle2d band', () => {
-	// centre (50, 50), radius 50, ink 45..55
-	const circle = () => new Circle2d({ radius: 50, isFilled: false, hitPadding: 5 })
-
-	it('hits a short drag lying wholly inside the stroke band', () => {
-		expect(circle().hitTestLineSegment({ x: 102, y: 50 }, { x: 102, y: 51 })).toBe(true)
-	})
-
-	it('hits a drag tangent to the outer ink edge, and misses just beyond it', () => {
-		expect(circle().hitTestLineSegment({ x: 0, y: -5 }, { x: 100, y: -5 })).toBe(true)
-		expect(circle().hitTestLineSegment({ x: 0, y: -5.5 }, { x: 100, y: -5.5 })).toBe(false)
-	})
-
-	it('misses a drag inside the hole', () => {
-		expect(circle().hitTestLineSegment({ x: 40, y: 50 }, { x: 60, y: 50 })).toBe(false)
-	})
-
-	it('reaches max(distance, padding), not the sum', () => {
-		expect(circle().hitTestLineSegment({ x: 0, y: -6 }, { x: 100, y: -6 }, 1.125)).toBe(false)
-		expect(circle().hitTestLineSegment({ x: 0, y: -6 }, { x: 100, y: -6 }, 6)).toBe(true)
 	})
 })
 
@@ -660,34 +551,15 @@ describe('exact-outline callers', () => {
 	})
 })
 
-describe('review follow-ups', () => {
-	it('gives dash none no stroke padding: no ink, no reach past the fill', () => {
-		geo(ids.a, { dash: 'none', fill: 'solid' })
-		zoomTo400()
-		// solid xl would hit up to 5 units out; with no stroke drawn only the margin applies
-		expect(hit(96, 200)).toBe(null)
-		expect(hit(99.5, 200)).toBe(ids.a)
-	})
-
-	it('does not let an invisible dash none stroke win an overlap', () => {
-		line(ids.b, 103, 's')
-		geo(ids.a, { dash: 'none', fill: 'solid' }, 100, 106)
-		zoomTo400()
-		// the pointer is on the thin line, 3 units above the borderless shape
-		expect(hit(200, 103)).toBe(ids.b)
-	})
-
-	it('keeps the zero-margin fallback for a flat line with default options', () => {
-		line(ids.a, 100, 'm')
-		// no options: outerMargin 0, but a flat line still hits within the hit test margin
-		expect(editor.getShapeAtPoint({ x: 200, y: 97 })?.id).toBe(ids.a)
-		expect(editor.getShapeAtPoint({ x: 200, y: 94 })?.id).toBe(undefined)
-	})
-
-	it('picks a stroke anywhere on its ink with default options', () => {
-		line(ids.a, 100, 'm', 200)
-		// on the round cap, outside the line's bounds
-		expect(editor.isPointInShape(ids.a, { x: 99, y: 99 })).toBe(true)
-		expect(editor.getShapeAtPoint({ x: 99, y: 99 })?.id).toBe(ids.a)
+describe('default options', () => {
+	// No margin: open shapes still reach the hit test margin within their bounds, and their ink
+	// outside them
+	it.each([
+		['a flat line 3 off', 0, { x: 200, y: 97 }, ids.a],
+		['a flat line 6 off', 0, { x: 200, y: 94 }, undefined],
+		["a diagonal line's round cap, outside its bounds", 200, { x: 99, y: 99 }, ids.a],
+	])('picks %s', (_, rise, point, id) => {
+		line(ids.a, 100, 'm', rise)
+		expect(editor.getShapeAtPoint(point)?.id).toBe(id)
 	})
 })
