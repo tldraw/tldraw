@@ -1,4 +1,5 @@
-import { Editor, Tldraw, TLRichText, toRichText } from 'tldraw'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { Editor, openWindow, TLComponents, Tldraw, TLRichText, toRichText, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const trustedLink = 'vscode://file/src/index.ts'
@@ -48,11 +49,72 @@ function createShapes(editor: Editor) {
 	])
 }
 
-export default function OpeningLinksExample() {
+const HideUiContext = createContext({ hideUi: false, setHideUi: (_hideUi: boolean) => {} })
+
+// [2]
+function ConfirmLinkWithoutUi() {
+	const editor = useEditor()
+	const { hideUi, setHideUi } = useContext(HideUiContext)
+	const [pendingUrl, setPendingUrl] = useState<string | null>(null)
+
+	useEffect(() => {
+		if (!hideUi) return
+		const handleConfirmOpenLink = ({ url }: { url: string }) => setPendingUrl(url)
+		editor.on('confirm-open-link', handleConfirmOpenLink)
+		return () => {
+			editor.off('confirm-open-link', handleConfirmOpenLink)
+			setPendingUrl(null)
+		}
+	}, [editor, hideUi])
+
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="opening-links-example" onMount={createShapes} />
+		<div
+			style={{
+				position: 'absolute',
+				top: 8,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				pointerEvents: 'all',
+			}}
+			onPointerDown={editor.markEventAsHandled}
+		>
+			<label style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+				<input type="checkbox" checked={hideUi} onChange={(e) => setHideUi(e.target.checked)} />
+				Hide the UI and confirm links with a custom prompt
+			</label>
+			{pendingUrl && (
+				<div style={{ marginTop: 8, padding: 8, background: 'white', border: '1px solid #ccc' }}>
+					<p style={{ margin: '0 0 8px' }}>Open {pendingUrl}?</p>
+					<button
+						onClick={() => {
+							openWindow(pendingUrl, '_blank')
+							setPendingUrl(null)
+						}}
+					>
+						Open
+					</button>{' '}
+					<button onClick={() => setPendingUrl(null)}>Cancel</button>
+				</div>
+			)}
 		</div>
+	)
+}
+
+const components: TLComponents = { InFrontOfTheCanvas: ConfirmLinkWithoutUi }
+
+export default function OpeningLinksExample() {
+	const [hideUi, setHideUi] = useState(false)
+	return (
+		<HideUiContext.Provider value={{ hideUi, setHideUi }}>
+			<div className="tldraw__editor">
+				<Tldraw
+					persistenceKey="opening-links-example"
+					hideUi={hideUi}
+					components={components}
+					onMount={createShapes}
+				/>
+			</div>
+		</HideUiContext.Provider>
 	)
 }
 
@@ -60,4 +122,10 @@ export default function OpeningLinksExample() {
 [1]
 `toRichText` makes plain text, so build the rich text by hand to give each line a link mark. In
 the app, you'd select some text and use the link button on the rich text toolbar.
+
+[2]
+With `hideUi`, nothing answers `confirm-open-link`, so links into unknown apps don't open. This
+component listens for the event only while the UI is hidden, since the default UI already shows a
+dialog, and opens the link with `openWindow` if the user agrees. Use your own UI for the prompt
+rather than `window.confirm`, which blocks the page.
 */

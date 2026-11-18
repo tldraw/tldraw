@@ -19,5 +19,8 @@ Shapes, bookmarks and rich text can link to web pages and to other apps, such as
   can't store them either.
 
 Click the link buttons on the shapes, the bookmarks, and the links in the note to try each case.
+Links you reach with Tab and open with Enter follow the same rules.
+
 To open links your own way, call `openLink(editor, url)`, or listen for `confirm-open-link` and
-show your own prompt.
+show your own prompt. Tick the checkbox at the top to hide the UI: the example then answers
+`confirm-open-link` with its own prompt instead of the default dialog.
