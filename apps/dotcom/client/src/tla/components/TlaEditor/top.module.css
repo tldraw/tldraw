@@ -118,9 +118,12 @@ span.topLeftWorkspace {
 	flex-shrink: 0;
 }
 
-/* The signed-out scratch board, which only this browser holds until it is signed in. */
+/*
+ * The signed-out scratch board, which only this browser holds until it is signed in. Warning
+ * orange alone is too pale to read as text on the light theme, so it leans on the danger red.
+ */
 button.topLeftInputNameWidthSetter.topLeftUnsavedFile {
-	color: var(--tl-color-warning);
+	color: color-mix(in srgb, var(--tl-color-warning) 40%, var(--tl-color-danger));
 }
 
 .topLeftInputNameWidthSetter:focus-visible {
