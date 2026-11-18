@@ -141,7 +141,7 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	shapes_missing:
 		'Those shapes are no longer on the page. Call get_page_info for the current clusters.',
 	too_many_shapes:
-		'That is too many shapes to capture at once without interrupting the user. Ask for fewer clusters.',
+		'Those clusters hold too much text to capture at once without interrupting the user: one screenshot fits about 200 shapes with text, and shapes without text count for far less. Ask for fewer clusters.',
 	busy: 'The user is busy in the browser tab. Try again in a moment.',
 	export_timed_out:
 		'The picture took too long to draw, usually while images load. Try again in a moment.',

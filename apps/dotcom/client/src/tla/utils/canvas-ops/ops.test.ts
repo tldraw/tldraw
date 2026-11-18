@@ -191,6 +191,54 @@ describe('add, place, and label', () => {
 		expect(overlap(rect('n1'), rect('blocker'))).toBe(false)
 	})
 
+	// A box given a size still grows to fit its label, and an unflagged growth reads as the size asked for.
+	it('says when a box grew past the size it was given to fit its text', () => {
+		const result = applyOps(editor, [
+			{
+				op: 'add',
+				kind: 'box',
+				id: 'tall',
+				text: 'a label long enough to wrap',
+				at: { x: 0, y: 0 },
+				w: 120,
+				h: 40,
+			},
+			{ op: 'add', kind: 'box', id: 'roomy', text: 'ok', at: { x: 0, y: 300 }, w: 200, h: 100 },
+			{
+				op: 'duplicate',
+				subject: 'roomy',
+				id: 'copy',
+				at: { x: 400, y: 300 },
+				text: 'now this one wraps\nonto more\nlines than before',
+			},
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('tall').h).toBeGreaterThan(40)
+		expect(result.results[0].adjusted).toMatch(
+			/^grew to 120x\d+ to fit its text, not the 120x40 asked for$/
+		)
+		expect(result.results[1].adjusted).toBeUndefined()
+		expect(result.results[2].adjusted).toMatch(
+			/^grew to 200x\d+ to fit its text, not the 200x100 asked for$/
+		)
+	})
+
+	// Shapes are made off to the side and moved into place, which used to stamp them as edited.
+	it('stamps agentEdit only on shapes a later batch changes', () => {
+		seedDiagram()
+		const first = applyOps(editor, [
+			{ op: 'add', kind: 'box', text: 'Cache', id: 'cache', relation: 'below', target: 'db' },
+		])
+		expect(editor.getShape(id('cache'))!.meta).toEqual({
+			agent: expect.objectContaining({ batchId: first.batchId }),
+		})
+		const second = applyOps(editor, [{ op: 'rename', target: 'cache', text: 'Redis' }])
+		expect(editor.getShape(id('cache'))!.meta).toEqual({
+			agent: expect.objectContaining({ batchId: first.batchId }),
+			agentEdit: expect.objectContaining({ batchId: second.batchId }),
+		})
+	})
+
 	it('a new box beside a box takes its style and footprint', () => {
 		seedDiagram()
 		const result = applyOps(editor, [
@@ -327,6 +375,47 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(rect('api').h).toBe(100)
 	})
 
+	it('rename says when a widened box swallows a neighbour, but not the shapes it already held', () => {
+		seed([
+			{
+				type: 'create_shape',
+				id: 'outline',
+				geo: 'rectangle',
+				x: 0,
+				y: 0,
+				w: 1000,
+				h: 400,
+				dash: 'dashed',
+			},
+			{
+				type: 'create_shape',
+				id: 'box',
+				geo: 'rectangle',
+				x: 100,
+				y: 100,
+				w: 120,
+				h: 80,
+				text: 'A',
+			},
+			{ type: 'create_shape', id: 'dot', geo: 'ellipse', x: 260, y: 120, w: 30, h: 30 },
+		])
+		const result = applyOps(editor, [
+			{ op: 'rename', target: 'box', text: 'A much longer label than before' },
+		])
+		expect(rect('box').w).toBeGreaterThan(200)
+		expect(result.results[0].adjusted).toMatch(/now covers dot/)
+		expect(result.results[0].adjusted).not.toMatch(/outline/)
+	})
+
+	it('duplicate says when the copy lands on a neighbour', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{ op: 'duplicate', subject: 'api', id: 'copy', at: { x: 450, y: 120 } },
+		])
+		expect(result.errors).toEqual([])
+		expect(result.results[0].adjusted).toMatch(/now overlaps db/)
+	})
+
 	it('restyles a shape like another', () => {
 		seedDiagram()
 		applyOps(editor, [{ op: 'restyle', targets: ['api'], like: 'db' }])
@@ -361,6 +450,73 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(result.errors).toEqual([])
 		expect(overlap(rect('l1'), rect('l2'))).toBe(false)
 		expect(Math.hypot(rect('l1').center.x - 200, rect('l1').center.y - 200)).toBeLessThan(120)
+	})
+
+	// An outline encloses its group rather than overlapping it, and a bound arrow follows its shapes.
+	it('untangle leaves enclosing outlines and arrows where they are', () => {
+		seed([
+			{
+				type: 'create_shape',
+				id: 'outline',
+				geo: 'rectangle',
+				x: 0,
+				y: 0,
+				w: 600,
+				h: 300,
+				dash: 'dashed',
+			},
+			{ type: 'create_shape', id: 'a', geo: 'rectangle', x: 40, y: 40, w: 120, h: 80 },
+			{ type: 'create_shape', id: 'b', geo: 'rectangle', x: 400, y: 40, w: 120, h: 80 },
+			{ type: 'create_arrow', id: 'ab', from: { shapeId: 'a' }, to: { shapeId: 'b' } },
+		])
+		const before = { outline: rect('outline'), ab: rect('ab') }
+		const result = applyOps(editor, [{ op: 'untangle', targets: ['outline', 'a', 'b', 'ab'] }])
+		expect(result.errors).toEqual([])
+		expect(rect('outline')).toEqual(before.outline)
+		expect(rect('ab')).toEqual(before.ab)
+		expect(result.results[0]).toMatchObject({
+			shapeIds: [],
+			message: 'moved 0 of 3 shape(s) apart',
+			adjusted: 'left arrows alone, since they follow their shapes: ab',
+		})
+	})
+
+	it('resizes lines and closed paths', () => {
+		applyOps(editor, [
+			{
+				op: 'path',
+				id: 'zig',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 50 },
+					{ x: 200, y: 0 },
+				],
+			},
+			{
+				op: 'path',
+				id: 'blob',
+				closed: true,
+				points: [
+					{ x: 400, y: 0 },
+					{ x: 500, y: 0 },
+					{ x: 450, y: 100 },
+				],
+			},
+		])
+		const zig = rect('zig')
+		const blob = rect('blob')
+		const result = applyOps(editor, [
+			{ op: 'resize', target: 'zig', scale: 2 },
+			{ op: 'resize', target: 'blob', w: blob.w * 3, h: blob.h * 3, anchor: 'center' },
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('zig').x).toBeCloseTo(zig.x, 0)
+		expect(rect('zig').y).toBeCloseTo(zig.y, 0)
+		expect(rect('zig').w).toBeCloseTo(zig.w * 2, 0)
+		expect(rect('zig').h).toBeCloseTo(zig.h * 2, 0)
+		expect(rect('blob').w).toBeCloseTo(blob.w * 3, 0)
+		expect(rect('blob').center.x).toBeCloseTo(blob.center.x, 0)
+		expect(rect('blob').center.y).toBeCloseTo(blob.center.y, 0)
 	})
 })
 
@@ -435,6 +591,15 @@ describe('paths and duplicates', () => {
 })
 
 describe('batches', () => {
+	// Every created id is already in its op's shapeIds; a second list only doubled the reply.
+	it('reports each created shape once, in its op result', () => {
+		const result = applyOps(editor, [
+			{ op: 'add', kind: 'box', id: 'one', text: 'One', at: { x: 0, y: 0 } },
+		])
+		expect(Object.keys(result).sort()).toEqual(['applied', 'batchId', 'errors', 'results'])
+		expect(result.results[0].shapeIds).toEqual(['one'])
+	})
+
 	it('rolls back an op that fails partway and keeps the rest', () => {
 		seedDiagram()
 		seed([

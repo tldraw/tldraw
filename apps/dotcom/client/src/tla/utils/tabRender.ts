@@ -49,8 +49,13 @@ const SLICE_MS = 8
 const FONT_WAIT_MS = 1_500
 
 // An export can't be sliced: it renders every shape in one synchronous flush, on the main thread of a
-// tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
-const MAX_EXPORT_SHAPES = 500
+// tab that may be in use, and nothing else answers a screenshot it declines. The flush is mostly
+// embedding the computed styles of each text label, about 2.5ms a label on an M2, while a shape
+// without text costs about a fiftieth of that. A shape count misses that: in a benchmark, 500 diagram
+// shapes froze the tab for a second, and 4,000 freehand strokes for under a quarter of one. 200 labels
+// is about half a second.
+const MAX_EXPORT_TEXT_SHAPES = 200
+const TEXTLESS_SHAPES_PER_TEXT_SHAPE = 50
 
 // Longer than this since the job arrived and its answer may not reach the worker before the job's
 // timeout. For a read that would be main thread time spent on nobody. For a write it's worse: the agent
@@ -158,9 +163,21 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 	if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
 	const ids = getRequestedShapeIds(editor, request.shapeIds)
 	if (ids.length === 0) return 'shapes_missing'
-	if (editor.getShapeAndDescendantIds(ids).size > MAX_EXPORT_SHAPES) return 'too_many_shapes'
+	if (isTooCostlyToExport(editor, ids)) return 'too_many_shapes'
 	if (editor.inputs.getIsDragging()) return 'busy'
 	return undefined
+}
+
+function isTooCostlyToExport(editor: Editor, ids: TLShapeId[]) {
+	const budget = MAX_EXPORT_TEXT_SHAPES * TEXTLESS_SHAPES_PER_TEXT_SHAPE
+	let cost = 0
+	for (const id of editor.getShapeAndDescendantIds(ids)) {
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		cost += editor.getShapeUtil(shape).getText(shape)?.trim() ? TEXTLESS_SHAPES_PER_TEXT_SHAPE : 1
+		if (cost > budget) return true
+	}
+	return false
 }
 
 // Checked again at the front of the queue, because the page, the shapes and the user's drag can all

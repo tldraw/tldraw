@@ -252,7 +252,6 @@ export interface OpResult {
 export interface ApplyOpsResult {
 	batchId: string
 	applied: number
-	createdIds: string[]
 	errors: string[]
 	results: OpResult[]
 }

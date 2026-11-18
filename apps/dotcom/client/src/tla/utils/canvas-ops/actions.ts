@@ -355,7 +355,32 @@ function applyAction(
 			if (action.dash !== undefined && 'dash' in current) props.dash = action.dash
 			if (action.size !== undefined && 'size' in current) props.size = action.size
 			if (Object.keys(props).length) partial.props = props as never
-			partial.meta = { ...shape.meta, agentEdit: { ...journal.stamp } }
+			// Lines and strokes have no w/h props: their shape utils scale the points instead.
+			if (
+				(shape.type === 'line' || shape.type === 'draw') &&
+				(action.w !== undefined || action.h !== undefined)
+			) {
+				const factor = (size: number | undefined, current: number) =>
+					size === undefined || current < 1 ? 1 : Math.max(1, size) / current
+				const scaleTowards = () => {
+					const bounds = editor.getShapePageBounds(id)!
+					editor.resizeShape(
+						id,
+						{ x: factor(action.w, bounds.w), y: factor(action.h, bounds.h) },
+						{ scaleOrigin: { x: bounds.x, y: bounds.y } }
+					)
+				}
+				// A stroke's bounds include its width, which doesn't scale with the points, so one pass
+				// lands short or long; a second takes up most of the difference.
+				scaleTowards()
+				scaleTowards()
+			}
+			// New shapes are made off to the side and then moved into place, so without this every
+			// placed shape would carry its own creation batch as an edit, and agentEdit couldn't tell
+			// a later change from a new shape.
+			if (!journal.created.includes(id)) {
+				partial.meta = { ...shape.meta, agentEdit: { ...journal.stamp } }
+			}
 			editor.updateShape(partial)
 			return
 		}

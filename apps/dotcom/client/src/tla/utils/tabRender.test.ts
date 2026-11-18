@@ -260,18 +260,43 @@ describe('answerTabRender', () => {
 		editor.dispose()
 	})
 
+	function addGeoShapes(editor: Editor, count: number, label?: string) {
+		const ids = Array.from({ length: count }, () => createShapeId())
+		editor.createShapes(
+			ids.map((id, i) => ({
+				id,
+				type: 'geo' as const,
+				x: (i % 50) * 120,
+				y: 1000 + Math.floor(i / 50) * 120,
+				props: { w: 100, h: 100, ...(label ? { richText: toRichText(label) } : {}) },
+			}))
+		)
+		return ids
+	}
+
 	// An export can't be sliced, so a big one would stall a tab someone may be drawing in.
-	it('declines a screenshot too large to export without dropping frames', async () => {
+	it('declines a screenshot with too many text labels to export without dropping frames', async () => {
 		const { editor, firstPageId, firstShapeId } = setupEditor()
 		const toImage = stubExport(editor)
-		vi.spyOn(editor, 'getShapeAndDescendantIds').mockReturnValue(
-			new Set(Array.from({ length: 501 }, (_, i) => createShapeId(String(i))))
-		)
+		const labelled = addGeoShapes(editor, 200, 'Step')
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId, ...labelled]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'too_many_shapes' }])
 		expect(toImage).not.toHaveBeenCalled()
+		editor.dispose()
+	})
+
+	// Labels are what make an export slow; thousands of shapes without text are cheap.
+	it('exports many more shapes when they have no text', async () => {
+		const { editor, firstPageId, firstShapeId } = setupEditor()
+		const toImage = stubExport(editor)
+		const plain = addGeoShapes(editor, 3000)
+
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId, ...plain]))
+
+		expect(replies.map((reply) => reply.status)).not.toContain('declined')
+		expect(toImage).toHaveBeenCalledTimes(1)
 		editor.dispose()
 	})
 
@@ -434,7 +459,7 @@ describe('answerTabRender', () => {
 					status: 'applied',
 					pageId: firstPageId,
 					pageName: editor.getCurrentPage().name,
-					result: expect.objectContaining({ applied: 1, errors: [], createdIds: ['hello'] }),
+					result: expect.objectContaining({ applied: 1, errors: [] }),
 				},
 			])
 			editor.dispose()

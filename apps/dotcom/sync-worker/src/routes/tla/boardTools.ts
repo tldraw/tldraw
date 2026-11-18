@@ -2306,7 +2306,7 @@ function getClusterScreenshotToolDefinition() {
 	return {
 		name: CLUSTER_SCREENSHOT_TOOL_NAME,
 		title: 'Get tldraw cluster screenshot',
-		description: `Get a screenshot of one or more clusters from get_page_info. The clusters will render together in a single image in their relative positions on the board. The board and page in question must be open in the user’s browser tab: if they are not, ask them to open it or switch to it. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. Use get_cluster_info only when the individual shapes matter.`,
+		description: `Get a screenshot of one or more clusters from get_page_info. The clusters will render together in a single image in their relative positions on the board. The board and page in question must be open in the user’s browser tab: if they are not, ask them to open it or switch to it. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. One screenshot fits about 200 shapes with text (shapes without text count for far less), so split a text-heavy page across calls. Use get_cluster_info only when the individual shapes matter.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
