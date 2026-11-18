@@ -23,6 +23,11 @@ export class StyleEmbedder {
 	constructor(private readonly root: Element) {}
 	private readonly styles = new Map<Element, ElementStyleInfo>()
 	readonly fonts = new FontEmbedder()
+	// `computedStyleMap().keys()` costs more than reading every value: it also lists the 100+
+	// custom properties on a tldraw container, which we drop. Its other entries are the same, in
+	// the same order, for every connected element, so we list them once per export. A detached
+	// element lists nothing, and caching that would leave every later element unstyled.
+	private computedStyleProperties: string[] | undefined
 
 	readRootElementStyles(rootElement: Element) {
 		// when reading a root, we always apply _all_ the styles, even if they match the defaults
@@ -76,17 +81,13 @@ export class StyleEmbedder {
 		this.styles.set(element, info)
 	}
 
-	// `computedStyleMap().keys()` costs more than reading every value: it also lists the 100+
-	// custom properties on a tldraw container, which we drop. Its other entries are the same, in
-	// the same order, for every element, so we list them once per export.
-	private computedStyleProperties: string[] | undefined
-
 	private styleFromElement(element: Element, opts: ReadStyleOpts) {
 		// `computedStyleMap` produces a more accurate representation of the styles, but it's not
 		// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if
 		// it's not available.
 		if (element.computedStyleMap) {
 			const style = element.computedStyleMap()
+			if (!element.isConnected) return styleFromComputedStyleMap(style, opts)
 			this.computedStyleProperties ??= Array.from(style.keys()).filter(shouldIncludeCssProperty)
 			return styleFromComputedStyleMap(style, opts, this.computedStyleProperties)
 		}

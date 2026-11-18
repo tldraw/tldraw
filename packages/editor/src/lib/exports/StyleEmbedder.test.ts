@@ -1,18 +1,19 @@
 import { vi } from 'vitest'
 import { StyleEmbedder } from './StyleEmbedder'
 
-// jsdom has no `computedStyleMap`, so we fake one: each element lists the same standard
-// properties followed by its own custom properties, like Chrome does.
+// jsdom has no `computedStyleMap`, so we fake one the way Chrome behaves: an element lists the
+// standard properties it has a value for, in a fixed order, then its custom properties. A
+// detached element has no computed style and lists nothing.
 const STANDARD_PROPERTIES = ['color', 'margin-top', 'padding-left']
 const computedStyles = new WeakMap<Element, Record<string, string>>()
 let keysCalls = 0
 
 function fakeComputedStyleMap(this: Element) {
-	const values = computedStyles.get(this) ?? {}
+	const values = this.isConnected ? (computedStyles.get(this) ?? {}) : {}
 	return {
 		*keys() {
 			keysCalls++
-			yield* STANDARD_PROPERTIES
+			yield* STANDARD_PROPERTIES.filter((property) => property in values)
 			yield* Object.keys(values).filter((property) => property.startsWith('--'))
 		},
 		get(property: string) {
@@ -50,11 +51,11 @@ describe('StyleEmbedder', () => {
 		container.remove()
 	})
 
-	function embed(roots: Element[]) {
+	function embed(roots: Element[], { detached = [] as Element[] } = {}) {
 		container.append(...roots)
 		const embedder = new StyleEmbedder(container)
 		try {
-			for (const root of roots) embedder.readRootElementStyles(root)
+			for (const root of [...detached, ...roots]) embedder.readRootElementStyles(root)
 			embedder.embedStyles()
 		} finally {
 			embedder.dispose()
@@ -97,7 +98,19 @@ describe('StyleEmbedder', () => {
 		expect(keysCalls).toBe(2)
 	})
 
-	it('skips a listed property that an element has no value for', () => {
+	it('still styles every element when the first one read is detached', () => {
+		// e.g. embedMedia replaced a root <canvas> with an <img> before styles were read
+		const detached = el('canvas', { color: 'rgb(1, 2, 3)' })
+		const root = el('div', { color: 'rgb(4, 5, 6)', 'margin-top': '3px', 'padding-left': '9px' })
+
+		embed([root], { detached: [detached] })
+
+		expect(root.getAttribute('style')).toBe(
+			'color: rgb(4, 5, 6); margin-top: 3px; padding-left: 9px;'
+		)
+	})
+
+	it('skips a property that an element has no value for', () => {
 		const root = el('div', { color: 'rgb(4, 5, 6)', 'margin-top': '3px', 'padding-left': '9px' })
 		const sparse = el('div', { 'padding-left': '2px' })
 
