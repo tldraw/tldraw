@@ -6,6 +6,7 @@ import { useApp } from '../../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
+import { startSidebarRename } from './sidebar-shared'
 
 export function useSwitchToWorkspace() {
 	const app = useApp()
@@ -37,12 +38,7 @@ export function useSwitchToWorkspace() {
 			// home workspace — just gets a fresh blank file to rename, not another welcome doc.
 			const res = await app.createFile({ workspaceId })
 			if (res.ok) {
-				if (!getIsCoarsePointer()) {
-					app.sidebarState.update((prev) => ({
-						...prev,
-						renameState: { fileId: res.value.fileId, workspaceId },
-					}))
-				}
+				if (!getIsCoarsePointer()) startSidebarRename(app, res.value.fileId, workspaceId)
 				navigate(routes.tlaFile(res.value.fileId))
 			}
 		},
