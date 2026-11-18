@@ -64,6 +64,7 @@ export function TlaEditorTopRightPanel({
 	const trackEvent = useTldrawAppUiEvents()
 	const { addDialog } = useDialogs()
 	const editor = useEditor()
+	const isUiV3 = useIsUiV3()
 	// Share and the comments sidebar are mutually exclusive: opening share closes the sidebar.
 	// (The reverse is automatic — clicking the sidebar button dismisses the share popover as an
 	// outside interaction.)
@@ -79,20 +80,35 @@ export function TlaEditorTopRightPanel({
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
 				<DesignSwitchesMenu />
-				<SignedOutShareButton fileId={fileId} context={context} />
-				<TlaCtaButton
-					canvas
-					data-testid="tla-sign-in-button"
-					onClick={() => {
-						trackEvent('sign-up-clicked', {
-							source: 'anon-landing-page',
-							ctaMessage: msg(ctaMessages.signInToShare),
-						})
-						addDialog({ component: TlaSignInDialog })
-					}}
-				>
-					<F {...ctaMessages.signInToShare} />
-				</TlaCtaButton>
+				{isUiV3 ? (
+					// v3 has one Share button, as signed in. Its menu asks for sign-in where one is needed.
+					<TlaFileShareMenu fileId={fileId} context={context} source="anon">
+						<TlaCtaButton
+							canvas
+							data-testid="tla-share-button"
+							onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
+						>
+							<F defaultMessage="Share" />
+						</TlaCtaButton>
+					</TlaFileShareMenu>
+				) : (
+					<>
+						<SignedOutShareButton fileId={fileId} context={context} />
+						<TlaCtaButton
+							canvas
+							data-testid="tla-sign-in-button"
+							onClick={() => {
+								trackEvent('sign-up-clicked', {
+									source: 'anon-landing-page',
+									ctaMessage: msg(ctaMessages.signInToShare),
+								})
+								addDialog({ component: TlaSignInDialog })
+							}}
+						>
+							<F {...ctaMessages.signInToShare} />
+						</TlaCtaButton>
+					</>
+				)}
 			</div>
 		)
 	}

@@ -8,6 +8,7 @@ import {
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import {
@@ -18,10 +19,11 @@ import {
 } from '../tla-menu/tla-menu'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { getShareMenuId } from './openShareMenu'
-import { TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
+import { TlaAnonCopyLink, TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
 import { TlaExportTab } from './Tabs/TlaExportTab'
 import { TlaInviteTab } from './Tabs/TlaInviteTab'
 import { TlaPublishTab } from './Tabs/TlaPublishTab'
+import { TlaSignInTab } from './Tabs/TlaSignInTab'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
@@ -61,16 +63,22 @@ export function TlaFileShareMenu({
 
 	let tabToShowAsActive = shareMenuActiveTab
 
+	// In v3 a signed-out visitor sees the tabs a signed-in owner does, with sign-in standing in for
+	// the two that need an account. Published and legacy rooms have no such tabs to stand in for.
+	const isUiV3 = useIsUiV3()
+	const needsSignIn = isUiV3 && !app && (context === 'file' || context === 'scratch')
+
 	const okTabs = {
 		// If the context is a guest file or published file, show the anon share file
 		'anon-share':
+			!needsSignIn &&
 			!hasAdminRights &&
 			(context === 'file' || context === 'published-file' || context === 'legacy'),
 		export: true,
 		// Can the current user configure the file's sharing settings?
-		share: context === 'file' && fileId && file && hasAdminRights,
+		share: needsSignIn || (context === 'file' && fileId && file && hasAdminRights),
 		// Can the current user configure the file's publishing settings?
-		publish: context === 'file' && fileId && file && hasAdminRights,
+		publish: needsSignIn || (context === 'file' && fileId && file && hasAdminRights),
 	}
 
 	// If the user is not signed in and their local active tab is share, then show the anon share tab
@@ -120,7 +128,15 @@ export function TlaFileShareMenu({
 								</TlaMenuTabsTab>
 							)}
 						</TlaMenuTabsTabs>
-						{okTabs.share && fileId && (
+						{needsSignIn && (
+							<TlaMenuTabsPage id="share" data-testid="tla-share-tab-page-share">
+								<TlaSignInTab>
+									{/* A guest on a shared file can still pass its link on. */}
+									{context === 'file' && <TlaAnonCopyLink type="secondary" />}
+								</TlaSignInTab>
+							</TlaMenuTabsPage>
+						)}
+						{!needsSignIn && okTabs.share && fileId && (
 							// We have a file and we're authenticated
 							<TlaMenuTabsPage id="share" data-testid="tla-share-tab-page-share">
 								<TlaInviteTab fileId={fileId} />
@@ -134,8 +150,13 @@ export function TlaFileShareMenu({
 						<TlaMenuTabsPage id="export" data-testid="tla-share-tab-page-export">
 							<TlaExportTab />
 						</TlaMenuTabsPage>
+						{needsSignIn && (
+							<TlaMenuTabsPage id="publish" data-testid="tla-share-tab-page-publish">
+								<TlaSignInTab />
+							</TlaMenuTabsPage>
+						)}
 						{/* Only show the publish tab if the file is owned by the user */}
-						{okTabs.publish && file && (
+						{!needsSignIn && okTabs.publish && file && (
 							<TlaMenuTabsPage id="publish" data-testid="tla-share-tab-page-publish">
 								<TlaPublishTab file={file} />
 							</TlaMenuTabsPage>
