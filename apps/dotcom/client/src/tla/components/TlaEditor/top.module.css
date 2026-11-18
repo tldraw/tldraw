@@ -65,6 +65,18 @@
 	flex-shrink: 2;
 }
 
+/* The other crumbs pull their slashes 4px closer; the workspace button has no such margin of its own. */
+span.topLeftWorkspace {
+	margin-left: -4px;
+}
+
+/* The workspace crumb gives way first: the file name and page still have to fit beside the top right panel. */
+@media (max-width: 639px) {
+	.topLeftWorkspace {
+		display: none;
+	}
+}
+
 @media (max-width: 550px) {
 	.topLeftPanelButtons:has(.topLeftOfflineLogo) .topLeftInputWrapper {
 		display: none;
@@ -151,6 +163,19 @@ button.topLeftInputNameWidthSetter {
 	.topLeftInputWrapperEditable:hover:not(:focus-within)::after {
 		background-color: var(--tl-color-muted-2);
 	}
+}
+
+/* ---------------- Workspace switcher -------------- */
+
+/* Seven rows, then it scrolls. */
+.workspaceSwitcherList {
+	max-height: 280px;
+}
+
+.workspaceSwitcherDivider {
+	flex: 0 0 auto;
+	height: 1px;
+	background: var(--tl-color-divider);
 }
 
 /* -------------------- Main Menu ------------------- */

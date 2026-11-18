@@ -72,6 +72,7 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
+import { TlaEditorWorkspaceSwitcher } from './TlaEditorWorkspaceSwitcher'
 import styles from './top.module.css'
 
 /** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
@@ -307,6 +308,15 @@ function TlaEditorTopLeftPanelSignedIn() {
 			) : (
 				// spacer for the sidebar toggle button
 				<div style={{ width: 40, flexShrink: 0 }} />
+			)}
+			{/* Only where v3 hides the sidebar, which holds the switcher everywhere else. */}
+			{isUiV3 && fileId && !isEmbed && (
+				<>
+					<TlaEditorWorkspaceSwitcher className={styles.topLeftWorkspace} />
+					<span className={classNames(styles.topLeftPanelSeparator, styles.topLeftWorkspace)}>
+						{SEPARATOR}
+					</span>
+				</>
 			)}
 			<TlaFileNameEditor
 				source="file-header"
