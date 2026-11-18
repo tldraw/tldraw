@@ -34,6 +34,7 @@ import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
+import { startSidebarRename } from '../TlaSidebar/components/sidebar-shared'
 
 const messages = defineMessages({
 	copied: { defaultMessage: 'Copied link' },
@@ -230,10 +231,7 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			app.sidebarState.update((prev) => ({
-				...prev,
-				renameState: { fileId: newFileId, workspaceId: targetWorkspaceId },
-			}))
+			startSidebarRename(app, newFileId, targetWorkspaceId)
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, workspaceId, activeWorkspaceId, navigate, trackEvent, source])

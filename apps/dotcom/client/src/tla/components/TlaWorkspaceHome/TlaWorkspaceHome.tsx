@@ -1,15 +1,7 @@
 import { formatRelativeTime } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import {
-	KeyboardEvent,
-	MouseEvent,
-	ReactNode,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
+import { MouseEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -38,6 +30,7 @@ import {
 	messages as sidebarMessages,
 	useHandleSidebarCreateFile,
 } from '../TlaSidebar/components/sidebar-shared'
+import { TlaSidebarRenameInline } from '../TlaSidebar/components/TlaSidebarRenameInline'
 import styles from './workspace-home.module.css'
 
 const messages = defineMessages({
@@ -60,7 +53,7 @@ interface BoardItem {
 	name: string
 	date: number
 	isPinned: boolean
-	/** Set for boards owned by someone outside this workspace. */
+	/** Set for boards shared with the user by someone else. */
 	ownerName?: string
 }
 
@@ -133,15 +126,15 @@ function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): Board
 				if (!file) continue
 				const name = app.getFileName(file)
 				if (normalizedQuery && !name.toLowerCase().includes(normalizedQuery)) continue
-				// Owned by a workspace the user isn't in: a shared board they opened as a guest.
-				const isShared = !!file.owningGroupId && !app.getWorkspaceMembership(file.owningGroupId)
+				// The sidebar's test for its "Shared by" badge: boards the user can't administer.
+				const isShared = !app.canUpdateFile(fileId)
 				if (tab === 'shared' && !isShared) continue
 				boards.push({
 					fileId,
 					name,
 					isPinned,
 					date: getFileRecencyDate(app.getFileState(fileId), file),
-					ownerName: isShared ? file.ownerName : undefined,
+					ownerName: isShared ? file.ownerName.trim() || undefined : undefined,
 				})
 			}
 			return boards
@@ -335,23 +328,16 @@ function TlaBoardCard({
 
 	const handleRenameAction = useCallback(() => {
 		if (isCoarsePointer) {
-			const name = prompt(intl.formatMessage(sidebarMessages.renameFile), board.name)?.trim()
-			if (name) app.updateFile(board.fileId, { name })
+			const name = prompt(intl.formatMessage(sidebarMessages.renameFile), board.name)
+				?.slice(0, 200)
+				.trim()
+			if (!name) return
+			app.updateFile(board.fileId, { name })
+			trackEvent('rename-file', { name, source: 'workspace-home' })
 		} else {
 			setIsRenaming(true)
 		}
-	}, [app, intl, board.fileId, board.name, isCoarsePointer])
-
-	const handleRenameComplete = useCallback(
-		(name: string) => {
-			setIsRenaming(false)
-			const trimmed = name.trim()
-			if (!trimmed || trimmed === board.name) return
-			app.updateFile(board.fileId, { name: trimmed })
-			trackEvent('rename-file', { name: trimmed, source: 'workspace-home' })
-		},
-		[app, board.fileId, board.name, trackEvent]
-	)
+	}, [app, intl, board.fileId, board.name, isCoarsePointer, trackEvent])
 
 	const time = formatRelativeTime(new Date(board.date).toISOString(), intl.locale)
 	const edited = intl.formatMessage(messages.edited, { time })
@@ -392,10 +378,12 @@ function TlaBoardCard({
 					<div className={styles.cardFooter}>
 						<div className={styles.cardText}>
 							{isRenaming ? (
-								<TlaBoardRenameInput
-									defaultValue={board.name}
-									onComplete={handleRenameComplete}
-									onCancel={() => setIsRenaming(false)}
+								<TlaSidebarRenameInline
+									source="workspace-home"
+									fileId={board.fileId}
+									onClose={() => setIsRenaming(false)}
+									wrapperClassName={styles.cardRename}
+									className={styles.cardRenameInput}
 								/>
 							) : (
 								<div
@@ -464,50 +452,13 @@ function TlaBoardCard({
 	)
 }
 
-function TlaBoardRenameInput({
-	defaultValue,
-	onComplete,
-	onCancel,
-}: {
-	defaultValue: string
-	onComplete(name: string): void
-	onCancel(): void
-}) {
-	const msg = useTranslation()
-	// Escape cancels, but the blur it causes as the input unmounts must not then save.
-	const [isDone, setIsDone] = useState(false)
-	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === 'Enter') {
-			setIsDone(true)
-			onComplete(e.currentTarget.value)
-		} else if (e.key === 'Escape') {
-			setIsDone(true)
-			onCancel()
-		}
-	}
-	return (
-		<input
-			className={classNames(styles.cardRenameInput, 'notranslate')}
-			defaultValue={defaultValue}
-			aria-label={msg(sidebarMessages.renameFile)}
-			autoFocus
-			onFocus={(e) => e.currentTarget.select()}
-			onKeyDown={handleKeyDown}
-			onBlur={(e) => {
-				if (!isDone) onComplete(e.currentTarget.value)
-			}}
-			data-testid="tla-board-rename-input"
-		/>
-	)
-}
-
 function TlaBoardThumbnail({ fileId }: { fileId: string }) {
 	// A board nobody has edited since thumbnails shipped has none yet; the endpoint 404s.
 	const [failed, setFailed] = useState(false)
 	return (
 		<div className={styles.cardPreview}>
 			{failed ? (
-				<TlaSemicolon className={styles.cardPreviewPlaceholder} />
+				<TlaIcon icon="tldraw" className={styles.cardPreviewPlaceholder} />
 			) : (
 				<img
 					className={styles.cardPreviewImage}
@@ -519,17 +470,5 @@ function TlaBoardThumbnail({ fileId }: { fileId: string }) {
 				/>
 			)}
 		</div>
-	)
-}
-
-/** The semicolon from the tldraw mark, without its rounded square. */
-function TlaSemicolon({ className }: { className?: string }) {
-	return (
-		<svg className={className} viewBox="5.6 2.9 4.2 9.5" aria-hidden="true">
-			<path
-				fill="currentColor"
-				d="M9.055 4.5a1.35 1.35 0 1 1-2.7 0 1.35 1.35 0 0 1 2.7 0M7.262 12.15c.635.002 1.246-.88 1.475-1.372.281-.606.457-1.696.175-2.342-.198-.452-.652-.786-1.25-.786-.722 0-1.307.586-1.307 1.31 0 .2.046.387.127.553.075.154.174.314.274.476.315.508.637 1.03.244 1.398-.318.3-.218.761.262.763"
-			/>
-		</svg>
 	)
 }

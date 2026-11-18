@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	F,
 	TldrawUiButton,
@@ -27,6 +27,7 @@ export function TlaDeleteFileDialog({
 }) {
 	const app = useApp()
 	const navigate = useNavigate()
+	const { pathname } = useLocation()
 	const trackEvent = useTldrawAppUiEvents()
 	const auth = useAuth()
 
@@ -42,6 +43,15 @@ export function TlaDeleteFileDialog({
 			return
 		}
 		trackEvent('delete-file', { source: 'file-menu' })
+
+		// v3 has a gallery to return to: stay on it, or go back to it from the deleted file.
+		if (app.isUiV3Enabled) {
+			if (pathname.startsWith(routes.tlaFile(fileId))) {
+				navigate(routes.tlaWorkspace(workspaceId))
+			}
+			onClose()
+			return
+		}
 
 		// Stay in the workspace the file was deleted from: go to its most recent remaining
 		// file, or — if that was its last file — create a fresh blank file in it, the same
