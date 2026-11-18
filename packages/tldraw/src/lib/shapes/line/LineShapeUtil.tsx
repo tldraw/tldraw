@@ -96,7 +96,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	getGeometry(shape: TLLineShape) {
 		// todo: should we have min size?
-		const hitPadding = (getDisplayValues(this, shape).strokeWidth * shape.props.scale) / 2
+		// dash none draws no stroke, so there is no ink to hit
+		const hitPadding =
+			shape.props.dash === 'none'
+				? 0
+				: (getDisplayValues(this, shape).strokeWidth * shape.props.scale) / 2
 		const geometry = getPathForLineShape(shape).toGeometry({ hitPadding })
 		assert(geometry instanceof PathBuilderGeometry2d)
 		return geometry

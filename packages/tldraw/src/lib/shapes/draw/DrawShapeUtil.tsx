@@ -145,7 +145,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		// Half the nominal rendered width. Freehand width varies along the stroke (pressure, simulated
 		// thinning), so this misses its widest parts and grabs a little space beside the thinnest.
-		const hitPadding = (shape.props.isPen && shape.props.dash === 'draw' ? 1 + sw * 1.2 : sw) / 2
+		const hitPadding =
+			shape.props.dash === 'none'
+				? 0
+				: (shape.props.isPen && shape.props.dash === 'draw' ? 1 + sw * 1.2 : sw) / 2
 
 		// A closed draw stroke
 		if (shape.props.isClosed && strokePoints.length > 2) {

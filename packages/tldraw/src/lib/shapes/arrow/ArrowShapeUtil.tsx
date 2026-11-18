@@ -269,7 +269,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)!
 
 		const debugGeom: Geometry2d[] = []
-		const hitPadding = (getDisplayValues(this, shape).strokeWidth * shape.props.scale) / 2
+		// dash none draws no stroke, so there is no ink to hit
+		const hitPadding =
+			shape.props.dash === 'none'
+				? 0
+				: (getDisplayValues(this, shape).strokeWidth * shape.props.scale) / 2
 
 		const bodyGeom =
 			info.type === 'straight'

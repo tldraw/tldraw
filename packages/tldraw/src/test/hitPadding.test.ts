@@ -85,7 +85,7 @@ function geo(id: TLShapeId, props: Partial<TLGeoShape['props']>, x = 100, y = 10
 	})
 }
 
-function line(id: TLShapeId, y: number, size: 's' | 'xl') {
+function line(id: TLShapeId, y: number, size: 's' | 'm' | 'xl') {
 	editor.createShape({
 		id,
 		type: 'line',
@@ -604,5 +604,30 @@ describe('exact-outline callers', () => {
 			  "y": 0.14644660940672616,
 			}
 		`)
+	})
+})
+
+describe('review follow-ups', () => {
+	it('gives dash none no stroke padding: no ink, no reach past the fill', () => {
+		geo(ids.a, { dash: 'none', fill: 'solid' })
+		zoomTo400()
+		// solid xl would hit up to 5 units out; with no stroke drawn only the margin applies
+		expect(hit(96, 200)).toBe(null)
+		expect(hit(99.5, 200)).toBe(ids.a)
+	})
+
+	it('does not let an invisible dash none stroke win an overlap', () => {
+		line(ids.b, 103, 's')
+		geo(ids.a, { dash: 'none', fill: 'solid' }, 100, 106)
+		zoomTo400()
+		// the pointer is on the thin line, 3 units above the borderless shape
+		expect(hit(200, 103)).toBe(ids.b)
+	})
+
+	it('keeps the zero-margin fallback for a flat line with default options', () => {
+		line(ids.a, 100, 'm')
+		// no options: outerMargin 0, but a flat line still hits within the hit test margin
+		expect(editor.getShapeAtPoint({ x: 200, y: 97 })?.id).toBe(ids.a)
+		expect(editor.getShapeAtPoint({ x: 200, y: 94 })?.id).toBe(undefined)
 	})
 })
