@@ -985,6 +985,19 @@ export class TLFileDurableObject extends DurableObject {
 				dataText = JSON.stringify(restored)
 			}
 
+			// Looked up before the document is replaced: a throw after that would report a restore that
+			// happened as failed and skip the broadcast. Clients show "Someone" for an empty name.
+			const byName = await this.db
+				.selectFrom('user')
+				.select('name')
+				.where('id', '=', userId)
+				.executeTakeFirst()
+				.then((user) => user?.name ?? '')
+				.catch((error) => {
+					this.reportError(error)
+					return ''
+				})
+
 			const restoreId = uniqueId()
 			// After the slow R2 reads and before _isRestoring blocks persists, so the state being
 			// replaced (edits made during the reads included) becomes the version an undo restores.
@@ -1064,11 +1077,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.reportError(error)
 					})
 
-				const user = await this.db
-					.selectFrom('user')
-					.select('name')
-					.where('id', '=', userId)
-					.executeTakeFirst()
 				this.broadcastPersistenceEvent({
 					type: 'file_restored',
 					restoreId,
@@ -1076,7 +1084,7 @@ export class TLFileDurableObject extends DurableObject {
 					restoredFromName,
 					preRestoreTs,
 					byUserId: userId,
-					byName: user?.name ?? '',
+					byName,
 				})
 
 				return Response.json({ restoreId, preRestoreTs, restoredTs })
