@@ -135,8 +135,8 @@ const flyioReplAppName =
 	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
-// needs (see flyRmHandoff.ts). Rolling back to RMv1 resyncs.
-const zeroRmv2: boolean = false
+// needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
+const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 // RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
 // RMv1 with v5 backups before zeroRmv2 turns on for it.
 const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
