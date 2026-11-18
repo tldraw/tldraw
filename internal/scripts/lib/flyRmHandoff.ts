@@ -323,7 +323,11 @@ export async function handOffReplicationManager({
 	nicelog(`${appName}: ${newMachine.id} is healthy, stopping ${old.id} so it drains to it`)
 	await stopAndDestroy(appName, old)
 
-	const leftover = (await listVolumes(appName)).filter((v) => !v.attached_machine_id)
+	// `volumes list` still returns the old RM's volume right after it is destroyed.
+	const oldVolumeId = old.config.mounts?.[0]?.volume
+	const leftover = (await listVolumes(appName)).filter(
+		(v) => !v.attached_machine_id && v.id !== oldVolumeId
+	)
 	if (leftover.length > 0) {
 		nicelog(`${appName}: unattached volumes left over: ${leftover.map((v) => v.id).join(', ')}`)
 	}
