@@ -53,6 +53,12 @@
       "value": "GetHelpLink"
     }
   ],
+  "0496cbcd85": [
+    {
+      "type": 0,
+      "value": "Show version history"
+    }
+  ],
   "04a2dd56d6": [
     {
       "type": 0,
