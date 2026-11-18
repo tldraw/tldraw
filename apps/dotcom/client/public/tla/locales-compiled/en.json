@@ -311,6 +311,16 @@
       "value": "Regenerate invite link"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (you)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -972,6 +982,12 @@
     {
       "type": 0,
       "value": "Submit an issue on GitHub"
+    }
+  ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· On this board now"
     }
   ],
   "7a1920d611": [

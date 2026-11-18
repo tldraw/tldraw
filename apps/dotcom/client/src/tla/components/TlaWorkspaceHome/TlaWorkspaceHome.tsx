@@ -444,7 +444,13 @@ function TlaBoardCard({
 								</span>
 							</div>
 						</div>
-						{showVisitors && <TlaBoardVisitors fileId={board.fileId} />}
+						{showVisitors && (
+							<TlaBoardVisitors
+								fileId={board.fileId}
+								href={href}
+								onClick={() => trackEvent('click-file-link', { source: 'workspace-home' })}
+							/>
+						)}
 						<TlaFileMenu
 							fileId={board.fileId}
 							workspaceId={workspaceId}

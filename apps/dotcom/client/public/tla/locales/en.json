@@ -125,6 +125,9 @@
   "2e9856a31e": {
     "translation": "Regenerate invite link"
   },
+  "2f42560ef5": {
+    "translation": "{name} (you)"
+  },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
   },
@@ -394,6 +397,9 @@
   },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
+  },
+  "797c5be9a7": {
+    "translation": "· On this board now"
   },
   "7a1920d611": {
     "translation": "Default"
