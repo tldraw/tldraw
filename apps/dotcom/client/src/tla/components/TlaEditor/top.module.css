@@ -9,8 +9,8 @@
 	align-items: center;
 }
 
-/* The logoMenu design switch: the signed-out wordmark as the main menu's button. */
-button.topLeftLogoMenuTrigger {
+/* The signed-out wordmark as a v3 button: Home, or the main menu with the logoMenu design switch. */
+button.topLeftLogoButton {
 	width: auto;
 	height: 40px;
 	padding: 0px 8px 0px 10px;

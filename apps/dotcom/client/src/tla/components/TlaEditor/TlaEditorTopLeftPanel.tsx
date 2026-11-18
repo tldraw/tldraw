@@ -177,7 +177,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					{hasLogoMenu ? (
 						<TldrawUiButton
 							type="icon"
-							className={styles.topLeftLogoMenuTrigger}
+							className={styles.topLeftLogoButton}
 							tooltip={menuLbl}
 							title={menuLbl}
 							data-testid="tla-main-menu"
@@ -232,6 +232,8 @@ function TlaEditorTopLeftPanelAnonymous() {
 		<>
 			{hasLogoMenu ? (
 				mainMenu
+			) : isUiV3 ? (
+				<TlaEditorHomeLogoButton />
 			) : (
 				<ExternalLink
 					to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
@@ -437,6 +439,32 @@ function TlaEditorHomeButton() {
 			data-testid="tla-editor-home-button"
 		>
 			<TlaIcon icon="tldraw" />
+		</TldrawUiButton>
+	)
+}
+
+/**
+ * The signed-out wordmark as v3's Home button. Home is the workspace page, which needs an account,
+ * so signed out it goes by way of the sign-in route.
+ */
+function TlaEditorHomeLogoButton() {
+	const msg = useTranslation()
+	const navigate = useNavigate()
+	// Published files show this panel to signed-in users too.
+	const app = useMaybeApp()
+	const lbl = msg(messages.home)
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topLeftLogoButton}
+			tooltip={lbl}
+			title={lbl}
+			onClick={() =>
+				navigate(app ? routes.tlaWorkspace(app.getHomeWorkspaceId()) : routes.tlaSignIn())
+			}
+			data-testid="tla-editor-home-button"
+		>
+			<TlaLogo data-testid="tla-top-left-logo-icon" />
 		</TldrawUiButton>
 	)
 }
