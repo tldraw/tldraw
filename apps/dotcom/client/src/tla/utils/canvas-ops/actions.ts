@@ -355,29 +355,30 @@ function applyAction(
 			if (action.dash !== undefined && 'dash' in current) props.dash = action.dash
 			if (action.size !== undefined && 'size' in current) props.size = action.size
 			if (Object.keys(props).length) partial.props = props as never
-			// Lines and strokes have no w/h props: their shape utils scale the points instead.
+			// Lines and strokes have no w/h props: their shape utils scale the points instead. Applied
+			// now rather than through `partial`, so x and y in the same action land after it.
 			if (
-				(shape.type === 'line' || shape.type === 'draw') &&
+				(shape.type === 'line' || shape.type === 'draw' || shape.type === 'highlight') &&
 				(action.w !== undefined || action.h !== undefined)
 			) {
-				const factor = (size: number | undefined, current: number) =>
-					size === undefined || current < 1 ? 1 : Math.max(1, size) / current
+				const ratio = (target: number | undefined, actual: number) =>
+					target === undefined || actual < 1 ? 1 : Math.max(1, target) / actual
 				const scaleTowards = () => {
 					const bounds = editor.getShapePageBounds(id)!
 					editor.resizeShape(
 						id,
-						{ x: factor(action.w, bounds.w), y: factor(action.h, bounds.h) },
-						{ scaleOrigin: { x: bounds.x, y: bounds.y } }
+						{ x: ratio(action.w, bounds.w), y: ratio(action.h, bounds.h) },
+						// The ratios are in page axes, which a rotated shape's own axes are not.
+						{ scaleOrigin: { x: bounds.x, y: bounds.y }, scaleAxisRotation: 0 }
 					)
 				}
-				// A stroke's bounds include its width, which doesn't scale with the points, so one pass
-				// lands short or long; a second takes up most of the difference.
+				// Stroke width is in the bounds but doesn't scale, so one pass misses; a second closes
+				// most of the gap.
 				scaleTowards()
 				scaleTowards()
 			}
-			// New shapes are made off to the side and then moved into place, so without this every
-			// placed shape would carry its own creation batch as an edit, and agentEdit couldn't tell
-			// a later change from a new shape.
+			// New shapes are moved into place after creation; stamping that move would mark every new
+			// shape as edited.
 			if (!journal.created.includes(id)) {
 				partial.meta = { ...shape.meta, agentEdit: { ...journal.stamp } }
 			}

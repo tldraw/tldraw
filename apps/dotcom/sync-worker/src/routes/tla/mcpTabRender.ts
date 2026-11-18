@@ -2,6 +2,7 @@ import {
 	McpPageLookup,
 	McpPageRead,
 	TAB_RENDER_DECLINE_REASONS,
+	TAB_RENDER_MAX_EXPORT_TEXT_SHAPES,
 	TabRenderApplyOpsRequest,
 	TabRenderReply,
 	TabRenderRequest,
@@ -140,8 +141,7 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 		'The browser tab is showing a different page, and this only works on the page in view. Ask the user to switch to that page, then try again.',
 	shapes_missing:
 		'Those shapes are no longer on the page. Call get_page_info for the current clusters.',
-	too_many_shapes:
-		'Those clusters hold too much text to capture at once without interrupting the user: one screenshot fits about 200 shapes with text, and shapes without text count for far less. Ask for fewer clusters.',
+	too_many_shapes: `Those clusters hold too much text to capture at once without interrupting the user: one screenshot fits about ${TAB_RENDER_MAX_EXPORT_TEXT_SHAPES} shapes with text, and shapes without text count for far less. Ask for fewer clusters.`,
 	busy: 'The user is busy in the browser tab. Try again in a moment.',
 	export_timed_out:
 		'The picture took too long to draw, usually while images load. Try again in a moment.',

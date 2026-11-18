@@ -276,11 +276,11 @@ describe('answerTabRender', () => {
 
 	// An export can't be sliced, so a big one would stall a tab someone may be drawing in.
 	it('declines a screenshot with too many text labels to export without dropping frames', async () => {
-		const { editor, firstPageId, firstShapeId } = setupEditor()
+		const { editor, firstPageId } = setupEditor()
 		const toImage = stubExport(editor)
-		const labelled = addGeoShapes(editor, 200, 'Step')
+		const labelled = addGeoShapes(editor, 201, 'Step')
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId, ...labelled]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, labelled))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'too_many_shapes' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -295,7 +295,7 @@ describe('answerTabRender', () => {
 
 		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId, ...plain]))
 
-		expect(replies.map((reply) => reply.status)).not.toContain('declined')
+		expect(replies.at(-1)).toEqual({ status: 'captured', base64: expect.any(String) })
 		expect(toImage).toHaveBeenCalledTimes(1)
 		editor.dispose()
 	})
