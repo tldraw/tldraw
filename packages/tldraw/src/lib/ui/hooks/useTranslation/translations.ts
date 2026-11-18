@@ -36,6 +36,18 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
+	try {
+		return await fetchLocaleTranslation(locale, assetUrls)
+	} catch (error) {
+		console.warn(`Could not load translations for locale ${locale}.`, error)
+		return EN_TRANSLATION
+	}
+}
+
+async function fetchLocaleTranslation(
+	locale: TLUiTranslation['locale'],
+	assetUrls: TLUiAssetUrls
+): Promise<TLUiTranslation> {
 	const language = LANGUAGES.find((t) => t.locale === locale)
 
 	if (!language) {

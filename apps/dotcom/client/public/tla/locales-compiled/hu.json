@@ -143,6 +143,12 @@
       "value": "Visszajelzés küldése"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Az összes értesítés megjelölése olvasottként"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -179,10 +185,22 @@
       "value": "Értesítési beállítások"
     }
   ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Munkaterület váltása"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Fájl létrehozása"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Áthelyezés ide:"
     }
   ],
   "1da2e8106b": [
@@ -235,26 +253,20 @@
       "value": "A tldraw-ról"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " hozzászólást fűzött a tábládhoz"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Nem sikerült elküldeni a visszajelzést"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " nevében"
     }
   ],
   "299cb00a7a": [
@@ -317,10 +329,22 @@
       "value": "Vissza a tldraw-hoz"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Másodpéldány fájl"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Kérjük, próbálja meg frissíteni az oldalt."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Fájlnév"
     }
   ],
   "344a7f427f": [
@@ -339,6 +363,12 @@
     {
       "type": 0,
       "value": "Tag eltávolítása"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Jelentkezz be a meghívás elfogadásához."
     }
   ],
   "3bc7d6ea2f": [
@@ -415,6 +445,12 @@
       "value": "Köszönjük, hogy segít a tldraw fejlesztésében!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Fájl áthelyezése ide:"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -437,6 +473,28 @@
     {
       "type": 0,
       "value": "Név"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Közzétett link másolása"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " hozzászólt"
     }
   ],
   "4d0d3ddec9": [
@@ -527,6 +585,12 @@
       "value": "Munkaterület létrehozása"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Ugrás a fájlhoz"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -555,22 +619,6 @@
     {
       "type": 0,
       "value": "A munkaterületem"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagált a hozzászólásodra"
     }
   ],
   "5d04a002ea": [
@@ -615,35 +663,6 @@
       "value": "Később"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Valaki reagált a hozzászólásodra"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " ember reagált a hozzászólásodra"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -674,10 +693,80 @@
       "value": "Elérhető a tldraw új verziója. A folytatáshoz töltse be újra az oldalt."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Szerkesztve"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Új fájl"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " és "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagált"
     }
   ],
   "6832ac5936": [
@@ -692,10 +781,49 @@
       "value": "Munkaterület törlése"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Valaki reagált"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ember reagált"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Segítség"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -708,6 +836,12 @@
     {
       "type": 0,
       "value": "Kövesse az alábbi lépéseket a tartalom kézi importálásához:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Vászon"
     }
   ],
   "70a6facb9d": [
@@ -732,6 +866,12 @@
     {
       "type": 0,
       "value": "Kérjük, töltse be újra az oldalt"
+    }
+  ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Mentsd el a tartalmat .tldr fájlként: válaszd a „Másolat mentése” lehetőséget a bal felső menüben."
     }
   ],
   "74ff4bad28": [
@@ -774,6 +914,12 @@
     {
       "type": 0,
       "value": "Kérjük, töltse újra"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Fájl link másolása"
     }
   ],
   "777f9e90cf": [
@@ -938,6 +1084,56 @@
       "value": "Már tagja vagy ennek a munkaterületnek"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " és "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagált"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -954,6 +1150,12 @@
     {
       "type": 0,
       "value": "Megosztva veled"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Körülbelül"
     }
   ],
   "8ff3d0a705": [
@@ -994,6 +1196,18 @@
       "value": " munkaterületet? Ez a művelet nem vonható vissza."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Fájlok"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Meghívólink másolva"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1010,6 +1224,22 @@
     {
       "type": 0,
       "value": "Ebben a hónapban"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagált"
     }
   ],
   "985a4b720f": [
@@ -1138,12 +1368,6 @@
       "value": "count"
     }
   ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” lehetőséget a bal felső menüben."
-    }
-  ],
   "a104439641": [
     {
       "type": 0,
@@ -1178,6 +1402,12 @@
     {
       "type": 0,
       "value": "Cookie-szabályzat"
+    }
+  ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Hozzászólások oldalsávjának be- és kikapcsolása"
     }
   ],
   "a4d3b161ce": [
@@ -1234,6 +1464,18 @@
       "value": "Elérte a fájlkorlátot"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "Alkalmazás"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Könyvtárak"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1284,6 +1526,12 @@
     {
       "type": 0,
       "value": "A fájl megtelt"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Értesítési panel megnyitása"
     }
   ],
   "b357b524e7": [
@@ -1382,6 +1630,12 @@
       "value": "ownerName"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Aktuális fájl"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1462,6 +1716,18 @@
       "value": "Elvetés"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Szín"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profil"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1486,54 +1752,16 @@
       "value": "További információ a közzétételről."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " és "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " másik személy"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " másik személy"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Beállítások"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " reagált a hozzászólásodra"
+      "value": "Fájl közzétételének visszavonása"
     }
   ],
   "d3d2e61733": [
@@ -1552,6 +1780,12 @@
     {
       "type": 0,
       "value": "Oldalsáv váltása"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Munkaterületek"
     }
   ],
   "d638a3344b": [
@@ -1624,12 +1858,6 @@
       "value": "Munkaterület elhagyása"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Alkalmazás-hibakeresési jelzők"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1654,40 +1882,16 @@
       "value": "Szolgáltatási feltételek"
     }
   ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " és "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagáltak a hozzászólásodra"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "vagy"
+    }
+  ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Fájlelőzmények"
     }
   ],
   "ea4788705e": [
@@ -1788,68 +1992,10 @@
       "value": "Töröl"
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "f408fa5fbd": [
     {
       "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " és "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " másik személy"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " másik személy"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reagált a hozzászólásodra"
+      "value": "Ez a meghívólink érvénytelen vagy lejárt."
     }
   ],
   "f4f70727dc": [
@@ -1924,6 +2070,42 @@
     {
       "type": 0,
       "value": "Hozz létre egy ingyenes fiókot, hogy menthesd a fájljaidat és rajzolhass a csapattársaiddal."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Hiba a meghívó elfogadásakor"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " és "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagáltak"
     }
   ],
   "ffcd73e997": [

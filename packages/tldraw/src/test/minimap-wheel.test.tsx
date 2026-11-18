@@ -1,7 +1,11 @@
 import { act } from '@testing-library/react'
-import { TLEventInfo, deleteFromLocalStorage, setInLocalStorage } from '@tldraw/editor'
+import { TLEventInfo } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { Tldraw } from '../lib/Tldraw'
+import {
+	isMinimapCollapsed,
+	toggleMinimap,
+} from '../lib/ui/components/NavigationPanel/minimapCollapsed'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
 // jsdom has no 2D canvas context; without one the minimap manager throws on mount and the
@@ -9,12 +13,13 @@ import { renderTldrawComponentWithEditor } from './testutils/renderTldrawCompone
 const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext')
 
 beforeEach(() => {
-	setInLocalStorage('minimap', 'false') // start with the navigation panel expanded
+	// Start with the navigation panel expanded.
+	if (isMinimapCollapsed()) toggleMinimap()
 	getContext.mockImplementation(() => new Proxy({}, { get: () => () => {} }) as any)
 })
 
 afterEach(() => {
-	deleteFromLocalStorage('minimap')
+	if (!isMinimapCollapsed()) toggleMinimap()
 	getContext.mockReset()
 })
 

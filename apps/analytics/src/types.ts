@@ -1,3 +1,6 @@
+import type { Attribution } from './utils/attribution'
+import type { CopyCodeData } from './utils/copy-event'
+
 // Expose global functions
 declare global {
 	interface Window {
@@ -9,17 +12,15 @@ declare global {
 			track(name: string, data?: { [key: string]: any }): void
 			gtag(...args: any[]): void
 			getConsentState(): ConsentPreferences
+			// The tl_attribution cookie, or null without analytics consent.
+			getAttribution(): Attribution | null
+			getCopyVisitorId(): string | undefined
 			onConsentUpdate(callback: (preferences: ConsentPreferences) => void): () => void
-			trackCopyCode(data: {
-				page_category: string
-				text_snippet: string
-				user_email?: string
-				user_email_sha256?: string
-				user_first_name?: string
-				user_last_name?: string
-				user_phone_number?: string
-			}): void
+			trackCopyCode(data: CopyCodeData): void
 			trackFormSubmission(data: {
+				prospectId?: string
+				copyVisitorId?: string
+				previousCopyVisitorId?: string
 				enquiry_type: string
 				company_size?: string
 				company_website?: string

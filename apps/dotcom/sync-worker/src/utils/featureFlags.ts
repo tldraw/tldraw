@@ -45,12 +45,12 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
-		collections: {
+		libraries: {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
 			description:
-				'Shows the collections UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
+				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
 		thumbnail_render_push: {
 			type: 'percentage',
@@ -65,6 +65,22 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			enabled: true,
 			description:
 				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
+		},
+		headless_shadow: {
+			type: 'percentage',
+			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. Bucketed per user:
+			// the sync worker passes the caller's user id, so a stable sample of accounts runs the shadow.
+			percentage: 0,
+			enabled: true,
+			description:
+				'Runs the headless editor over an MCP page read in shadow mode, off the critical path, and records how its clustering compares with the open tab. Does nothing unless the HEADLESS_WORKER binding is present. Bucketed per user. A change lands within about a minute',
+		},
+		ui_v3: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
 		},
 	}
 }
@@ -420,6 +436,11 @@ export async function getAllFeatureFlagValues(
 
 	await Promise.all(
 		FEATURE_FLAG_KEYS.map(async (key) => {
+			// headless_shadow only does anything where HEADLESS_WORKER is bound (staging today). A flag
+			// that cannot act is a control that misleads, so it is hidden from the admin panel until the
+			// binding exists in this environment, and reappears the moment the worker is bound there.
+			// See headlessShadow.ts.
+			if (key === 'headless_shadow' && !env.HEADLESS_WORKER) return
 			flags[key] = await readFeatureFlag(env, key)
 		})
 	)

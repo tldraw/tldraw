@@ -12,13 +12,21 @@ export default function Analytics() {
 
 	useEffect(() => {
 		const handleCopy = (copyEvent: ClipboardEvent) => {
-			const isWithinCodeBlock = (copyEvent.target as HTMLElement | null)?.closest('pre, code')
+			if (copyEvent.defaultPrevented) return
+			const anchor = window.getSelection()?.anchorNode
+			const element = anchor instanceof Element ? anchor : anchor?.parentElement
+			const target = copyEvent.target instanceof Element ? copyEvent.target : null
+			const isWithinCodeBlock = element?.closest('pre, code') ?? target?.closest('pre, code')
 			if (isWithinCodeBlock) {
 				const copiedText = window.getSelection()?.toString() || ''
+				if (!copiedText) return
 
 				if (window.tlanalytics?.trackCopyCode) {
 					window.tlanalytics.trackCopyCode({
 						page_category: 'docs',
+						copy_kind: 'code_snippet',
+						method: 'selection',
+						page_url: window.location.href,
 						text_snippet: copiedText,
 					})
 				}
@@ -74,6 +82,10 @@ declare global {
 			trackCopyCode(data: {
 				page_category: string
 				text_snippet: string
+				page_url?: string
+				copy_kind?: 'install_command' | 'code_snippet' | 'page_markdown'
+				method?: 'button' | 'selection'
+				chars?: number
 				user_email?: string
 				user_email_sha256?: string
 				user_first_name?: string

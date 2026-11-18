@@ -1,4 +1,4 @@
-import { Role, TlaFile, can } from '@tldraw/dotcom-shared'
+import { MCP_AGENT_COMMENT_META_KEY, Role, TlaFile, can } from '@tldraw/dotcom-shared'
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
@@ -9,6 +9,7 @@ import {
 	TLRecord,
 	TLShape,
 } from '@tldraw/tlschema'
+import { isEqual } from '@tldraw/utils'
 
 /** Per-session metadata attached to each socket: the local store id and the authenticated user (if any). */
 export interface SessionMeta {
@@ -51,13 +52,38 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	return next
 }
 
+const commentAuthorizers = createCommentAuthorizers<SessionMeta>({
+	getUserId: (session) => session.meta.userId,
+})
+
+function getAgentMeta(comment: TLComment): unknown {
+	return (comment.meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
+}
+
+/**
+ * `meta.mcpAgent` is what badges a comment as an agent's, and only the MCP server's own write may
+ * put it there; without this, anyone could post a comment that reads as an agent's on their behalf,
+ * or relabel their own. A client write may keep it unchanged or drop it, but not add or change it.
+ * The MCP write stamps it after this check (see `planMcpComment`); server-side writes skip the
+ * authorizers anyway.
+ */
+const authorizeComment: TLRecordAuthorizer<TLComment, SessionMeta> = (args) => {
+	const after = args.type === 'delete' ? undefined : getAgentMeta(args.next)
+	if (after !== undefined) {
+		if (args.type === 'create') return null
+		if (args.type === 'update' && !isEqual(after, getAgentMeta(args.prev))) return null
+	}
+	return commentAuthorizers.comment!(args)
+}
+
 /**
  * Force comment, thread, and reaction authorship from the session's identity (via the shared
  * commenting authorizers), and guard note text attribution, so nothing can be posted, pinned,
- * or reacted in someone else's name.
+ * or reacted in someone else's name, or badged as an agent's.
  */
 export const authorizeFileRecord = {
-	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
+	...commentAuthorizers,
+	comment: authorizeComment,
 	shape: authorizeShape,
 } satisfies TLRecordAuthorizers<FileRecord, SessionMeta>
 

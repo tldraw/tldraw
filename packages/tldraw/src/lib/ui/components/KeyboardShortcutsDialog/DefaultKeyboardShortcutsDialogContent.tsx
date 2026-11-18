@@ -1,5 +1,6 @@
 import { defineMessages, noop } from '@tldraw/editor'
 import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
+import { CommandPaletteMenuItem } from '../CommandPalette/CommandPaletteMenuItem'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
@@ -10,6 +11,10 @@ import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 // `label` is data the menu primitives translate, so these reference the id rather than being `<F>`.
 const messages = defineMessages({
 	toolRichTextOrderedList: { id: 'tool.rich-text-orderedList', defaultMessage: 'Ordered list' },
+	toolRichTextTaskItemToggle: {
+		id: 'tool.rich-text-taskItem-toggle',
+		defaultMessage: 'Tick task item',
+	},
 	a11yEnterLeaveContainer: {
 		id: 'a11y.enter-leave-container',
 		defaultMessage: 'Enter/leave container',
@@ -109,6 +114,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="delete" />
 				<TldrawUiMenuActionItem actionId="duplicate" />
 				<TldrawUiMenuActionItem actionId="print" />
+				<CommandPaletteMenuItem />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label={messages.shortcutsDialogView.id} id="view">
 				<TldrawUiMenuActionItem actionId="select-zoom-tool" />
@@ -189,6 +195,18 @@ export function DefaultKeyboardShortcutsDialogContent() {
 					id="text-bulletedlist"
 					label="tool.rich-text-bulletList"
 					kbd="cmd+shift+8"
+					onSelect={noop}
+				/>
+				<TldrawUiMenuItem
+					id="text-tasklist"
+					label="tool.rich-text-taskList"
+					kbd="cmd+shift+9"
+					onSelect={noop}
+				/>
+				<TldrawUiMenuItem
+					id="text-taskitem-toggle"
+					label={messages.toolRichTextTaskItemToggle.id}
+					kbd="cmd+enter"
 					onSelect={noop}
 				/>
 			</TldrawUiMenuGroup>

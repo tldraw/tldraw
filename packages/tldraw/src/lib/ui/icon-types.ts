@@ -14,6 +14,7 @@ export type TLUiIconType =
 	| 'arrow-cycle'
 	| 'arrow-elbow'
 	| 'arrow-left'
+	| 'arrow-right'
 	| 'arrowhead-arrow'
 	| 'arrowhead-bar'
 	| 'arrowhead-diamond'
@@ -121,6 +122,7 @@ export type TLUiIconType =
 	| 'reset-zoom'
 	| 'rotate-ccw'
 	| 'rotate-cw'
+	| 'search'
 	| 'send-backward'
 	| 'send-to-back'
 	| 'share-1'
@@ -136,6 +138,7 @@ export type TLUiIconType =
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
 	| 'strike'
+	| 'taskList'
 	| 'text-align-center'
 	| 'text-align-left'
 	| 'text-align-right'
@@ -180,6 +183,7 @@ export const iconTypes = [
 	'arrow-cycle',
 	'arrow-elbow',
 	'arrow-left',
+	'arrow-right',
 	'arrowhead-arrow',
 	'arrowhead-bar',
 	'arrowhead-diamond',
@@ -287,6 +291,7 @@ export const iconTypes = [
 	'reset-zoom',
 	'rotate-ccw',
 	'rotate-cw',
+	'search',
 	'send-backward',
 	'send-to-back',
 	'share-1',
@@ -302,6 +307,7 @@ export const iconTypes = [
 	'stretch-horizontal',
 	'stretch-vertical',
 	'strike',
+	'taskList',
 	'text-align-center',
 	'text-align-left',
 	'text-align-right',

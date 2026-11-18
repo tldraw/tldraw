@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Soo dir jawaab celin"
   },
+  "0e4a10d921": {
+    "translation": "Calaamadee dhammaan ogeysiisyada sidii la akhriyay"
+  },
   "1063e38cb5": {
     "translation": "Ka saar"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "Ikhtiyaarada ogeysiiska"
   },
+  "15bf4fead9": {
+    "translation": "Beddel goobta shaqada"
+  },
   "181b90f889": {
     "translation": "Samee fayl"
+  },
+  "1a7222b4e5": {
+    "translation": "U guur"
   },
   "1da2e8106b": {
     "translation": "Khalad lama filaan ah ayaa dhacay"
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "Ku saabsan tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> ayaa faallo ka bixiyay guddigaaga"
-  },
   "28b2464e1f": {
     "translation": "Ma soo gudbin karin jawaab celin"
+  },
+  "2944edaa8d": {
+    "translation": "Magaca {name}"
   },
   "299cb00a7a": {
     "translation": "Soo dejintu waa fashilantay"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "Ku laabo tldraw"
   },
+  "32811caa8c": {
+    "translation": "Faylka nuqulka ah"
+  },
   "335defdafe": {
     "translation": "Fadlan isku day inaad dib u cusbooneysiiso bogga"
+  },
+  "34082694d2": {
+    "translation": "Magaca faylka"
   },
   "344a7f427f": {
     "translation": "Tafatire"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "Ka saar xubinta"
+  },
+  "398f51738e": {
+    "translation": "Soo gal si aad u aqbasho martiqaadkan."
   },
   "3bc7d6ea2f": {
     "translation": "Ku sii wad iimaylka"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "Waad ku mahadsan tahay inaad naga caawisay horumarinta tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "U wareeji faylka"
+  },
   "46de2de6bb": {
     "translation": "Aqbal shuruudaha isticmaalka"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Magaca"
+  },
+  "4a8165368a": {
+    "translation": "Nuqul ka samee xiriirka la daabacay"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> ayaa faallo ka bixiyay"
   },
   "4d0d3ddec9": {
     "translation": "Goobtani waxay isticmaashaa cookies si ay abka uga dhigto mid shaqaynaysa iyo si ay u ururiso falanqaynta."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "Samee goob shaqo"
   },
+  "5653ebed2e": {
+    "translation": "Tag faylka"
+  },
   "5677e381d2": {
     "translation": "Waxaan isticmaalnaa cookies-ka falanqaynta si aan tldraw uga dhigno mid wanagsan."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Goobta shaqadayda"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> ayaa ka falceliyay faalladaada"
   },
   "5d04a002ea": {
     "translation": "Lama xiri karo"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "Ka dib"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {Qof ayaa ka jawaabay faalladaada} other {# dadku waxay ka jawaabeen faalladaada}}"
-  },
   "625fd29749": {
     "translation": "Ka weyn"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
   },
+  "67ed6ddb7d": {
+    "translation": "Wax laga beddelay"
+  },
   "681e10aecb": {
     "translation": "Faylka cusub"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> iyo {count, plural, one {# kale} other {# kale}} ayaa ka falceliyay"
   },
   "6832ac5936": {
     "translation": "Geli ciwaanka iimaylkaaga"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Tirtir goobta shaqada"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {Qof ayaa ka jawaabay} other {# dadku way ka jawaabeen}}"
+  },
   "6a26f54883": {
     "translation": "Caawin"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Ma haysatid rukhsadaha lagama maarmaanka ah si aad u samayso falkan."
   },
   "6dfc62f621": {
     "translation": "Raac tillaabooyinkan si aad gacanta ugu soo dejiso waxa ku jira:"
+  },
+  "6ea5359e01": {
+    "translation": "Shiraac"
   },
   "70a6facb9d": {
     "translation": "Todobaadkan"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "Fadlan dib u soo deji bogga"
+  },
+  "747ee44424": {
+    "translation": "Keydi macluumaadka sida fayl .tldr ah: dooro 'Keydso nuqul' liiska bidix ee sare."
   },
   "74ff4bad28": {
     "translation": "Faylal lama helin"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Nagala hadal Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "Nuqul ka samee xiriirka faylka"
   },
   "777f9e90cf": {
     "translation": "Codsi aan sax ahayn"
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Waxaad horey xubin uga ahayd goobta shaqadan"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> iyo {count, plural, one {# kale} other {# kale}} ayaa ka falceliyay"
+  },
   "88bf6ab42c": {
     "translation": "Xiriirintan martiqaadku way dhacday"
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "kula wadaagay"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Ku saabsan"
   },
   "8ff3d0a705": {
     "translation": "Qiimaha xaddidan"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "Ma hubtaa inaad rabto inaad tirtirto <strong>{workspaceName}</strong>? Ficilkan lama celin karo."
   },
+  "91f3a2c0e4": {
+    "translation": "Faylasha"
+  },
+  "930390d222": {
+    "translation": "Xiriirinta casuumaadda la koobiyay"
+  },
   "95aacd4d4a": {
     "translation": "Ku gal Google"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Bishan"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> ayaa ka falceliyay"
   },
   "985a4b720f": {
     "translation": "Shuruudaha Isticmaalka"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# aan la akhrin} other {# aan la akhrin}}"
   },
-  "a0da245992": {
-    "translation": "U dhoofi waxa ku jira sidii faylka .tldr: Dooro 'Download' menu-ka sare ee bidix."
-  },
   "a104439641": {
     "translation": "suufka"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "Siyaasadda kukiyada"
+  },
+  "a4bef6414b": {
+    "translation": "Beddel dhinaca faallooyinka"
   },
   "a4d3b161ce": {
     "translation": "Gudbi"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Xadka faylka waa la gaarey"
   },
+  "ac863f346e": {
+    "translation": "Abka"
+  },
+  "aeb428554a": {
+    "translation": "Maktabadaha"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Markii u dambaysay ee la daabacay <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Faylku wuu buuxaa"
+  },
+  "b3205c1e45": {
+    "translation": "Fur guddiga ogeysiisyada"
   },
   "b357b524e7": {
     "translation": "Ciwaanka iimaylka"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Waxaa wadaaga {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Faylka hadda jira"
+  },
   "c17466812d": {
     "translation": "Maaree goobta shaqada"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Iska dhaaf"
   },
+  "cb5feb1b73": {
+    "translation": "Midab"
+  },
+  "cce99c598c": {
+    "translation": "Astaamaha Guud"
+  },
   "cceaefbc20": {
     "translation": "La wadaag faylkan"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "Wax badan ka baro daabacaadda"
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> iyo {count, plural, one {# qof kale} other {# dad kale}} ayaa ka falceliyay faalladaada"
+  "d0834fcec6": {
+    "translation": "Doorbidyada"
+  },
+  "d28d6bbc42": {
+    "translation": "Faylka ka fur daabicida"
   },
   "d3d2e61733": {
     "translation": "Xir"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Beddel dhinaca bar"
+  },
+  "d5e92609cf": {
+    "translation": "Goobaha Shaqada"
   },
   "d638a3344b": {
     "translation": "Kahor intaadan bilaabin, fadlan aqbal <tos>shuruudaha isticmaalka</tos> iyo <privacy>siyaasadda asturnaanta</privacy>."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Ka bax goobta shaqada"
   },
-  "dfdb78a4e4": {
-    "translation": "Calaamadaha cilladaha abka"
-  },
   "e0aa021e21": {
     "translation": "Hagaag"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "Shuruudaha adeegga"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> iyo <name>{b}</name> ayaa ka falceliyay faalladaada"
-  },
   "e81c4e4f2b": {
     "translation": "ama"
+  },
+  "ea13ecec38": {
+    "translation": "Taariikhda faylka"
   },
   "ea4788705e": {
     "translation": "Jooji"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "Tirtir"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> iyo {count, plural, one {# qof kale} other {# dad kale}} ayaa ka falceliyay faalladaada"
+  "f408fa5fbd": {
+    "translation": "Xiriiriyahan martiqaadku waa mid aan sax ahayn ama wuu dhacay."
   },
   "f4f70727dc": {
     "translation": "Dejinta"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "Samee akoon bilaash ah si aad u kaydiso faylashaada oo aad ula wadaagto asxaabtaada."
+  },
+  "ffad261a48": {
+    "translation": "Khalad ayaa ka jira aqbalidda martiqaadka"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> iyo <name>{b}</name> ayaa ka falceliyay"
   },
   "ffcd73e997": {
     "translation": "Soo rar faylka…"

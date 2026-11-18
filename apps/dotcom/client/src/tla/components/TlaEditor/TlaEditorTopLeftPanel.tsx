@@ -1,4 +1,5 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
+import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
@@ -6,6 +7,7 @@ import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
+	CommandPaletteMenuItem,
 	DefaultPageMenu,
 	defineMessages,
 	EditSubmenu,
@@ -45,8 +47,10 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
+import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -62,16 +66,16 @@ import {
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
-import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
-import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
 /** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
- *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
- *  into. */
+ *  only) and, in `ui_v3`, the per-file display toggles that otherwise sit under Preferences.
+ *  Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject into. */
 function TlaViewSubmenu() {
-	const commentingEnabled = useIsCommentingEnabled()
+	const commentingEnabled = useIsCommentingEnabledForUser()
+	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
@@ -81,6 +85,13 @@ function TlaViewSubmenu() {
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
 			</TldrawUiMenuGroup>
+			{isUiV3 && (
+				<TldrawUiMenuGroup id="view-toggles">
+					<ToggleGridItem />
+					<ToggleFocusModeItem />
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+			)}
 			{commentingEnabled && (
 				<TldrawUiMenuGroup id="view-comments">
 					<CommentsMenuItem />
@@ -93,6 +104,7 @@ function TlaViewSubmenu() {
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
+	libraries: { defaultMessage: 'Libraries' },
 })
 
 const SEPARATOR = '/'
@@ -211,6 +223,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 function TlaEditorTopLeftPanelSignedIn() {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const isUiV3 = useIsUiV3()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = msg(messages.pageMenu)
@@ -276,6 +289,9 @@ function TlaEditorTopLeftPanelSignedIn() {
 			/>
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 			<DefaultPageMenu />
+			{/* Only file editors mount the libraries panel (see TlaEditor); on legacy routes there is
+			    no file and the button would toggle state nothing reads. */}
+			{fileId && <LibrariesPanelButton />}
 			<TlaFileMenu
 				fileId={fileId ?? ''}
 				workspaceId={null}
@@ -310,11 +326,38 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="preferences">
-					<PreferencesGroup />
-				</TldrawUiMenuGroup>
+				{/* In `ui_v3`, preferences, language and keyboard shortcuts live in the settings dialog. */}
+				{!isUiV3 && (
+					<TldrawUiMenuGroup id="preferences">
+						<PreferencesGroup />
+					</TldrawUiMenuGroup>
+				)}
 			</TlaFileMenu>
 		</>
+	)
+}
+
+function LibrariesPanelButton() {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const hasLibraries = !!useMaybeApp()?.libraries
+	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+	const label = msg(messages.libraries)
+
+	if (!hasLibraries) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topLeftMainMenuTrigger}
+			data-testid="tla-libraries-button"
+			aria-pressed={open}
+			tooltip={label}
+			title={label}
+			onClick={() => toggleLibrariesPanel(editor)}
+		>
+			<TlaIcon icon="library" />
+		</TldrawUiButton>
 	)
 }
 
@@ -469,20 +512,24 @@ function SignInMenuItem() {
 	)
 }
 
+/** The anonymous menu keeps the account-wide preferences: without an account there is no settings
+ *  dialog to hold them. */
 function TlaPreferencesGroup() {
+	// In `ui_v3` these are under View (see TlaViewSubmenu), and tool lock is left to the toolbar.
+	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
-					<ToggleToolLockItem />
-					<ToggleGridItem />
+					{!isUiV3 && <ToggleToolLockItem />}
+					{!isUiV3 && <ToggleGridItem />}
 					<ToggleWrapModeItem />
-					<ToggleFocusModeItem />
+					{!isUiV3 && <ToggleFocusModeItem />}
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
-					<ToggleDebugModeItem />
+					{!isUiV3 && <ToggleDebugModeItem />}
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />
@@ -493,6 +540,7 @@ function TlaPreferencesGroup() {
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />
 			<KeyboardShortcutsMenuItem />
+			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

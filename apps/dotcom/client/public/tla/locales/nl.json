@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Feedback sturen"
   },
+  "0e4a10d921": {
+    "translation": "Markeer alle meldingen als gelezen"
+  },
   "1063e38cb5": {
     "translation": "Verwijderen"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "Meldingsopties"
   },
+  "15bf4fead9": {
+    "translation": "Werkruimte wisselen"
+  },
   "181b90f889": {
     "translation": "Bestand aanmaken"
+  },
+  "1a7222b4e5": {
+    "translation": "Verplaatsen naar"
   },
   "1da2e8106b": {
     "translation": "Er is een onverwachte fout opgetreden."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "Over tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> heeft een reactie geplaatst op je forum"
-  },
   "28b2464e1f": {
     "translation": "Feedback verzenden is niet mogelijk"
+  },
+  "2944edaa8d": {
+    "translation": "Namens {name}"
   },
   "299cb00a7a": {
     "translation": "Uploaden mislukt"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "Terug naar tldraw"
   },
+  "32811caa8c": {
+    "translation": "Dubbel bestand"
+  },
   "335defdafe": {
     "translation": "Probeer de pagina te vernieuwen."
+  },
+  "34082694d2": {
+    "translation": "Bestandsnaam"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "Lid verwijderen"
+  },
+  "398f51738e": {
+    "translation": "Meld u aan om deze uitnodiging te accepteren."
   },
   "3bc7d6ea2f": {
     "translation": "Doorgaan met e-mail"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Verplaats het bestand naar"
+  },
   "46de2de6bb": {
     "translation": "Gebruiksvoorwaarden accepteren"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Naam"
+  },
+  "4a8165368a": {
+    "translation": "Kopieer de gepubliceerde link"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> reageerde"
   },
   "4d0d3ddec9": {
     "translation": "Deze site maakt gebruik van cookies om de app te laten werken en om analyses te verzamelen."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "Maak een werkruimte aan"
   },
+  "5653ebed2e": {
+    "translation": "Ga naar bestand"
+  },
   "5677e381d2": {
     "translation": "Wij gebruiken analytische cookies om tldraw te verbeteren."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Mijn werkplek"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> reageerde op je reactie"
   },
   "5d04a002ea": {
     "translation": "Kan geen verbinding maken"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "Later"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {Iemand heeft gereageerd op je reactie.} other {# mensen reageerden op je reactie}}"
-  },
   "625fd29749": {
     "translation": "Ouder"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "Er is een nieuwe versie van tldraw beschikbaar. Laad de pagina opnieuw om verder te gaan."
   },
+  "67ed6ddb7d": {
+    "translation": "Bewerkt"
+  },
   "681e10aecb": {
     "translation": "Nieuw bestand"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> en {count, plural, one {# other} other {# others}} reageerden"
   },
   "6832ac5936": {
     "translation": "Voer uw e-mailadres in"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Werkruimte verwijderen"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {Iemand reageerde} other {# mensen reageerden}}"
+  },
   "6a26f54883": {
     "translation": "Hulp"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "U beschikt niet over de benodigde machtigingen om deze actie uit te voeren."
   },
   "6dfc62f621": {
     "translation": "Volg deze stappen om de inhoud handmatig te importeren:"
+  },
+  "6ea5359e01": {
+    "translation": "Canvas"
   },
   "70a6facb9d": {
     "translation": "Deze week"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "Laad de pagina opnieuw"
+  },
+  "747ee44424": {
+    "translation": "Sla de inhoud op als een .tldr-bestand: selecteer 'Een kopie opslaan' in het menu linksboven."
   },
   "74ff4bad28": {
     "translation": "Geen bestanden gevonden"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Chat met ons op Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "Kopieer de link naar het bestand"
   },
   "777f9e90cf": {
     "translation": "Ongeldig verzoek."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Je bent al lid van deze werkruimte."
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> en {count, plural, one {# other} other {# others}} reageerden"
+  },
   "88bf6ab42c": {
     "translation": "Deze uitnodigingslink is verlopen."
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Gedeeld met jou"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Over"
   },
   "8ff3d0a705": {
     "translation": "Beperkt door limiet"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "Weet je zeker dat je <strong>{workspaceName}</strong> wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
+  "91f3a2c0e4": {
+    "translation": "Bestanden"
+  },
+  "930390d222": {
+    "translation": "Kopieer de uitnodigingslink"
+  },
   "95aacd4d4a": {
     "translation": "Aanmelden met Google"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Deze maand"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> reageerde"
   },
   "985a4b720f": {
     "translation": "Gebruiksvoorwaarden"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# ongelezen} other {# ongelezen}}"
   },
-  "a0da245992": {
-    "translation": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Downloaden' in het menu linksboven."
-  },
   "a104439641": {
     "translation": "Opvulling"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "Cookiebeleid"
+  },
+  "a4bef6414b": {
+    "translation": "Reacties zijbalk weergeven/verbergen"
   },
   "a4d3b161ce": {
     "translation": "Verzenden"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Bestandslimiet bereikt"
   },
+  "ac863f346e": {
+    "translation": "App"
+  },
+  "aeb428554a": {
+    "translation": "Bibliotheken"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Laatst gepubliceerd <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Bestand is vol"
+  },
+  "b3205c1e45": {
+    "translation": "Open het meldingenpaneel"
   },
   "b357b524e7": {
     "translation": "E-mailadres"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Gedeeld door {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Huidig ​​bestand"
+  },
   "c17466812d": {
     "translation": "Werkruimte beheren"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Sluiten"
   },
+  "cb5feb1b73": {
+    "translation": "Kleur"
+  },
+  "cce99c598c": {
+    "translation": "Profiel"
+  },
   "cceaefbc20": {
     "translation": "Deel dit bestand"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "Meer informatie over publiceren."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> en {count, plural, one {# ander} other {# anderen}} reageerden op je reactie"
+  "d0834fcec6": {
+    "translation": "Voorkeuren"
+  },
+  "d28d6bbc42": {
+    "translation": "Bestand verwijderen"
   },
   "d3d2e61733": {
     "translation": "Sluiten"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Schakel zijbalk in"
+  },
+  "d5e92609cf": {
+    "translation": "Werkruimtes"
   },
   "d638a3344b": {
     "translation": "Voordat u begint, accepteert u onze <tos>gebruiksvoorwaarden</tos> en ons <privacy>privacybeleid</privacy>."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Verlaat de werkruimte"
   },
-  "dfdb78a4e4": {
-    "translation": "App-debug vlaggen"
-  },
   "e0aa021e21": {
     "translation": "OK"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "Servicevoorwaarden"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> en <name>{b}</name> reageerden op je reactie"
-  },
   "e81c4e4f2b": {
     "translation": "of"
+  },
+  "ea13ecec38": {
+    "translation": "Bestandsgeschiedenis"
   },
   "ea4788705e": {
     "translation": "Annuleren"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "Verwijderen"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> en {count, plural, one {# ander} other {# anderen}} reageerden op je reactie"
+  "f408fa5fbd": {
+    "translation": "Deze uitnodigingslink is ongeldig of verlopen."
   },
   "f4f70727dc": {
     "translation": "Instellingen"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten te tekenen (tldraw)."
+  },
+  "ffad261a48": {
+    "translation": "Fout bij het accepteren van de uitnodiging"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> en <name>{b}</name> reageerden"
   },
   "ffcd73e997": {
     "translation": "Bestand importeren…"
