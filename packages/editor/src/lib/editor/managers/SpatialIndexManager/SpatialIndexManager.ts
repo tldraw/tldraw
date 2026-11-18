@@ -43,6 +43,7 @@ export class SpatialIndexManager {
 	private lastPageId: TLPageId | null = null
 	private lastFontLoadEpoch = -1
 	private lastTheme: TLTheme | null = null
+	private lastColorMode: 'light' | 'dark' | null = null
 
 	// Bumps only when the rbush content may have changed. Consumers subscribe
 	// via the computed; a stable epoch lets prop-only diffs skip downstream
@@ -70,8 +71,9 @@ export class SpatialIndexManager {
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
 			// These reads are the computed's only tracked dependencies: shape and
 			// binding record changes, font loads (measured text resizes when its
-			// font swaps in), and the theme (font size and stroke width resize
-			// shapes and their stroke padding without a record diff).
+			// font swaps in), and the theme and color mode (display values such as
+			// font size and stroke width resize shapes and their stroke padding
+			// without a record diff).
 			// The rebuild/update paths below run without capture to avoid
 			// registering a dependency per checked shape on every update (and
 			// ~page-size dependencies on every rebuild).
@@ -80,6 +82,7 @@ export class SpatialIndexManager {
 			const currentPageId = this.editor.getCurrentPageId()
 			const fontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
 			const theme = this.editor.getCurrentTheme()
+			const colorMode = this.editor.getColorMode()
 
 			if (
 				isUninitialized(_prevValue) ||
@@ -91,7 +94,8 @@ export class SpatialIndexManager {
 				// number of distinct fonts.
 				this.lastFontLoadEpoch !== fontLoadEpoch ||
 				// Same for theme changes, which are rarer still
-				this.lastTheme !== theme
+				this.lastTheme !== theme ||
+				this.lastColorMode !== colorMode
 			) {
 				return unsafe__withoutCapture(() => this.rebuildAndBumpEpoch())
 			}
@@ -110,6 +114,7 @@ export class SpatialIndexManager {
 		this.lastPageId = this.editor.getCurrentPageId()
 		this.lastFontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
 		this.lastTheme = this.editor.getCurrentTheme()
+		this.lastColorMode = this.editor.getColorMode()
 
 		const elements: SpatialElement[] = []
 		for (const shape of this.editor.getCurrentPageShapes()) {

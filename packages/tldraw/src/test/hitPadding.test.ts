@@ -15,6 +15,7 @@ import {
 import { getElbowArrowInfo } from '../lib/shapes/arrow/elbow/getElbowArrowInfo'
 import { getArrowInfo } from '../lib/shapes/arrow/getArrowInfo'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
+import { LineShapeUtil } from '../lib/shapes/line/LineShapeUtil'
 import { TestEditor } from './TestEditor'
 
 // Stroke widths are the theme's 2 * the size multiplier, so the ink reaches half that past the
@@ -416,13 +417,24 @@ describe('candidate lookup', () => {
 		expect(editor.getShapeIdsInsideBounds(new Box(94.4, 200, 0.5, 0.5)).has(ids.a)).toBe(false)
 	})
 
-	it('follows a theme stroke width change without touching the shape', () => {
-		geo(ids.a, {})
-		expect(hit(93, 200)).toBe(null)
-		editor.updateTheme({ ...editor.getTheme('default')!, strokeWidth: 3 })
-		// xl is now 15 wide: the ink reaches 7.5
-		expect(editor.getShapeGeometry(ids.a).hitPadding).toBe(7.5)
-		expect(hit(93, 200)).toBe(ids.a)
+	// xl lines are 20 wide (ink 10 either side) after either change
+	it.each([
+		['theme', () => editor.updateTheme({ ...editor.getTheme('default')!, strokeWidth: 4 })],
+		['color mode', () => editor.setColorMode('dark')],
+	])('follows a %s change that widens the stroke without touching the shape', (_, widen) => {
+		editor = new TestEditor({
+			shapeUtils: [
+				LineShapeUtil.configure({
+					getCustomDisplayValues: (_editor, _shape, _theme, colorMode) =>
+						colorMode === 'dark' ? { strokeWidth: 20 } : {},
+				}),
+			],
+		})
+		editor.setColorMode('light')
+		line(ids.a, 100, 'xl')
+		expect(editor.getShapesAtPoint({ x: 200, y: 108 })).toEqual([])
+		widen()
+		expect(editor.getShapesAtPoint({ x: 200, y: 108 }).map((s) => s.id)).toEqual([ids.a])
 	})
 })
 
