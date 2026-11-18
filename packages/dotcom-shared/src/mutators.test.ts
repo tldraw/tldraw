@@ -2,6 +2,7 @@ import type { Transaction } from '@rocicorp/zero'
 import { IndexKey, uniqueId } from '@tldraw/utils'
 import { describe, expect, it } from 'vitest'
 import { createMutators, parseFlags, userHasFlag } from './mutators'
+import type { Role } from './roles'
 import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
 	TlaComment,
@@ -14,6 +15,7 @@ import {
 	TlaSchema,
 	TlaUser,
 } from './tlaSchema'
+import type { DefaultFileSharing } from './tlaSchema'
 import { ZErrorCode } from './types'
 
 // ---- helpers ----
@@ -114,6 +116,7 @@ function makeGroup(overrides: Partial<TlaGroup> & { id: string }): TlaGroup {
 		name: 'Test Group',
 		inviteSecret: null,
 		inviteLinkEnabled: true,
+		defaultFileSharing: 'shared',
 		isDeleted: false,
 		createdAt: 1,
 		updatedAt: 1,
@@ -1300,6 +1303,95 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 		await expectForbidden(() =>
 			m.setWorkspaceInviteLinkEnabled(tx, { id: groupId, enabled: false })
 		)
+	})
+})
+
+describe('setWorkspaceDefaultFileSharing', () => {
+	const userId = 'user_aaaa11112222bbbb'
+	const groupId = 'group_aaa11112222bbb'
+
+	function store(role: Role) {
+		return makeStore({
+			user: [makeUser({ id: userId })],
+			group: [makeGroup({ id: groupId })],
+			group_user: [makeGroupUser({ userId, groupId, role })],
+		})
+	}
+
+	it('owner can toggle it', async () => {
+		const s = store('owner')
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.setWorkspaceDefaultFileSharing(tx, { id: groupId, defaultFileSharing: 'private' })
+		expect(s.group[0]?.defaultFileSharing).toBe('private')
+		await m.setWorkspaceDefaultFileSharing(tx, { id: groupId, defaultFileSharing: 'shared' })
+		expect(s.group[0]?.defaultFileSharing).toBe('shared')
+	})
+
+	it('member cannot toggle it', async () => {
+		const s = store('member')
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectForbidden(() =>
+			m.setWorkspaceDefaultFileSharing(tx, { id: groupId, defaultFileSharing: 'private' })
+		)
+	})
+
+	it('rejects unknown values', async () => {
+		const s = store('owner')
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await expectBadRequest(() =>
+			m.setWorkspaceDefaultFileSharing(tx, { id: groupId, defaultFileSharing: 'public' as any })
+		)
+	})
+
+	it('user can toggle it on their home workspace', async () => {
+		const s = makeStore({ user: [makeUser({ id: userId })], group: [makeGroup({ id: userId })] })
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.setWorkspaceDefaultFileSharing(tx, { id: userId, defaultFileSharing: 'private' })
+		expect(s.group[0]?.defaultFileSharing).toBe('private')
+	})
+})
+
+describe('createFile sharing default', () => {
+	const userId = 'user_aaaa11112222bbbb'
+	const groupId = 'group_aaa11112222bbb'
+	const sourceId = 'file_source123456789'
+	const newFileId = 'file_new12345678901a'
+
+	async function create(
+		defaultFileSharing: DefaultFileSharing,
+		createSource: string | null = null
+	) {
+		const s = makeStore({
+			user: [makeUser({ id: userId })],
+			file: [makeFile({ id: sourceId, owningGroupId: groupId, shared: true })],
+			group: [makeGroup({ id: groupId, defaultFileSharing })],
+			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
+		})
+		const { tx } = createMockTx(s, { location: 'server' })
+		await createMutators(userId).createFile(tx, {
+			fileId: newFileId,
+			workspaceId: groupId,
+			name: 'New',
+			time: Date.now(),
+			createSource,
+		})
+		return s.file.find((f) => f.id === newFileId)
+	}
+
+	it('shares new files by default', async () => {
+		expect(await create('shared')).toMatchObject({ shared: true, sharedLinkType: 'edit' })
+	})
+
+	it('creates unshared files when the workspace is private by default', async () => {
+		expect(await create('private')).toMatchObject({ shared: false, sharedLinkType: 'edit' })
+	})
+
+	it('makes a duplicate of a shared file unshared when the workspace is private by default', async () => {
+		expect(await create('private', `${FILE_PREFIX}/${sourceId}`)).toMatchObject({ shared: false })
 	})
 })
 

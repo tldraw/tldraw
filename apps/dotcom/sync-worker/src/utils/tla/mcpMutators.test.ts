@@ -29,6 +29,7 @@ describe('createMcpMutators', () => {
 				'updateWorkspace',
 				'regenerateWorkspaceInviteSecret',
 				'setWorkspaceInviteLinkEnabled',
+				'setWorkspaceDefaultFileSharing',
 				'setWorkspaceMemberRole',
 				'removeWorkspaceMember',
 				'leaveWorkspace',

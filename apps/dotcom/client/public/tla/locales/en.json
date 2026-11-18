@@ -77,6 +77,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "191b4dd9dc": {
+    "translation": "Make new files private"
+  },
   "1a7222b4e5": {
     "translation": "Move to"
   },
@@ -199,6 +202,9 @@
   },
   "49ee308734": {
     "translation": "Name"
+  },
+  "4a1465ccf7": {
+    "translation": "New files start unshared. Only workspace owners can change this."
   },
   "4a8165368a": {
     "translation": "Copy published link"
@@ -562,6 +568,9 @@
   },
   "ac863f346e": {
     "translation": "App"
+  },
+  "ae3d410563": {
+    "translation": "New files start unshared. Existing files don't change."
   },
   "aeb428554a": {
     "translation": "Libraries"

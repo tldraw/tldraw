@@ -11,6 +11,8 @@ import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
+	DEFAULT_FILE_SHARING_VALUES,
+	DefaultFileSharing,
 	immutableColumns,
 	schema,
 	TlaFile,
@@ -348,6 +350,11 @@ export function createMutators(userId: string) {
 			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'addFiles'), ZErrorCode.forbidden)
 
+			// Every creation path (new, duplicate, import, slurp, MCP) lands here, so the
+			// workspace's default sharing is enforced in one place.
+			const workspace = await tx.run(zql.group.where('id', '=', workspaceId).one())
+			const shared = workspace?.defaultFileSharing !== 'private'
+
 			// create file row, group_file row, file_state row
 			await tx.mutate.file.insert({
 				id: fileId,
@@ -355,7 +362,7 @@ export function createMutators(userId: string) {
 				owningGroupId: workspaceId,
 				ownerName: '',
 				thumbnail: '',
-				shared: true,
+				shared,
 				sharedLinkType: 'edit',
 				isEmpty: true,
 				published: false,
@@ -512,6 +519,7 @@ export function createMutators(userId: string) {
 				name: clampedName,
 				inviteSecret: tx.location === 'server' ? uniqueId() : null,
 				inviteLinkEnabled: true,
+				defaultFileSharing: 'shared',
 				isDeleted: false,
 				createdAt: Date.now(),
 				updatedAt: Date.now(),
@@ -572,6 +580,18 @@ export function createMutators(userId: string) {
 			// Flip the flag only; inviteSecret is preserved so re-enabling restores the
 			// same link.
 			await tx.mutate.group.update({ id, inviteLinkEnabled: enabled })
+		},
+		setWorkspaceDefaultFileSharing: async (
+			tx: Tx,
+			{ id, defaultFileSharing }: { id: string; defaultFileSharing: DefaultFileSharing }
+		) => {
+			assert(id, ZErrorCode.bad_request)
+			assert(DEFAULT_FILE_SHARING_VALUES.includes(defaultFileSharing), ZErrorCode.bad_request)
+			// Allowed on the home workspace: its owner is the user.
+			const role = await getRole(tx, userId, id)
+			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)
+
+			await tx.mutate.group.update({ id, defaultFileSharing })
 		},
 		setWorkspaceMemberRole: async (
 			tx: Tx,
