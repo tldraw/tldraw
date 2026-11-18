@@ -313,7 +313,42 @@
 	flex: 0 0 auto;
 }
 
-/* User settings button */
+/* ----------------- Link button ---------------- */
+
+.sidebarLinkButton {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	flex: 0 0 auto;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tl-color-text-0);
+	padding: 0px 8px;
+	text-align: left;
+	text-decoration: none;
+}
+
+.sidebarLinkButton > span[role='img'] {
+	flex-shrink: 0;
+}
+
+.sidebarLinkButtonLabel {
+	flex: 0 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sidebarLinkButton:focus-visible {
+	outline-offset: -2px;
+}
+
+/* User settings trigger: a menu, or in `ui_v3` the button that opens the settings dialog */
 
 .sidebarUserSettingsTrigger {
 	background: none;
@@ -342,6 +377,12 @@
 	inset: 2px 0px;
 }
 
+.sidebarUserSettingsAvatarIcon {
+	flex: 0 0 auto;
+	color: var(--tl-color-text-0);
+	margin-inline-end: 6px;
+}
+
 /* 20px circle on the 15px icon column: the start margin keeps its centre in line with the icons above. */
 .sidebarUserSettingsAvatar {
 	width: 20px;
@@ -362,6 +403,13 @@
 	.sidebarUserSettingsTrigger:hover {
 		color: var(--tl-color-text-0);
 	}
+}
+
+/* Its menu opens upward from the footer, so the wash fades in toward it, like the bell beside it. */
+.sidebarUserSettingsTrigger[data-state='open']::after {
+	visibility: visible;
+	background: var(--tl-muted-gradient-to-top);
+	opacity: 1;
 }
 
 /* ---------------- File link section --------------- */

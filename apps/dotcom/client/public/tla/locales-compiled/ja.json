@@ -135,6 +135,12 @@
       "value": "フィードバックを送信"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "すべての通知を既読にする"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -169,6 +175,12 @@
     {
       "type": 0,
       "value": "通知オプション"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "ワークスペースを切り替える"
     }
   ],
   "181b90f889": [
@@ -229,26 +241,20 @@
       "value": "tldrawについて"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "さんがあなたのボードにコメントしました"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "フィードバックを送信できませんでした"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " を代表して"
     }
   ],
   "299cb00a7a": [
@@ -311,10 +317,22 @@
       "value": "tldrawに戻る"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "重複ファイル"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "ページの再読み込みをお試しください。"
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "ファイル名"
     }
   ],
   "344a7f427f": [
@@ -411,6 +429,12 @@
       "value": "tldraw の改善にご協力いただきありがとうございます。"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "ファイルを移動"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -433,6 +457,28 @@
     {
       "type": 0,
       "value": "名前"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "公開されたリンクをコピー"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "がコメントしました"
     }
   ],
   "4d0d3ddec9": [
@@ -523,6 +569,12 @@
       "value": "ワークスペースを作成する"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "ファイルへ移動"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -551,22 +603,6 @@
     {
       "type": 0,
       "value": "私の作業スペース"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "さんがあなたのコメントに反応しました"
     }
   ],
   "5d04a002ea": [
@@ -611,27 +647,6 @@
       "value": "後で"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " 人々があなたのコメントに反応しました"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -662,10 +677,80 @@
       "value": "tldraw の新しいバージョンが利用可能です。続行するにはページを再読み込みしてください。"
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "編集済み"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "新しいファイル"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "、"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "、および"
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "が反応しました"
     }
   ],
   "6832ac5936": [
@@ -680,10 +765,41 @@
       "value": "ワークスペースを削除"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 人々の反応"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "ヘルプ"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -696,6 +812,12 @@
     {
       "type": 0,
       "value": "コンテンツを手動でインポートするには、次の手順に従ってください。"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "キャンバス"
     }
   ],
   "70a6facb9d": [
@@ -768,6 +890,12 @@
     {
       "type": 0,
       "value": "再読み込みしてください"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "ファイルリンクをコピー"
     }
   ],
   "777f9e90cf": [
@@ -928,6 +1056,56 @@
       "value": "あなたは既にこのワークスペースのメンバーです"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "と"
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "が反応しました"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -944,6 +1122,12 @@
     {
       "type": 0,
       "value": "あなたと共有しました"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "について"
     }
   ],
   "8ff3d0a705": [
@@ -980,6 +1164,12 @@
       "value": "を削除してもよろしいですか？この操作は元に戻せません。"
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "ファイル"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1002,6 +1192,22 @@
     {
       "type": 0,
       "value": "今月"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "が反応しました"
     }
   ],
   "985a4b720f": [
@@ -1151,6 +1357,12 @@
       "value": "クッキーポリシー"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "コメントサイドバーの表示/非表示を切り替える"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1205,6 +1417,18 @@
       "value": "ファイル制限に達しました"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "アプリ"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "図書館"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1255,6 +1479,12 @@
     {
       "type": 0,
       "value": "ファイルがいっぱいです"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "通知パネルを開く"
     }
   ],
   "b357b524e7": [
@@ -1345,6 +1575,12 @@
       "value": "さんが共有"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "現在のファイル"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1414,6 +1650,18 @@
       "value": "閉じる"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "色"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "プロフィール"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1438,47 +1686,16 @@
       "value": "公開についてさらに詳しく。"
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " と"
-    },
-    {
-      "offset": 0,
-      "options": {
-        "other": {
-          "value": [
-            {
-              "type": 0,
-              "value": "他 "
-            },
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " 人"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "設定"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": "があなたのコメントに反応しました"
+      "value": "ファイルの非公開"
     }
   ],
   "d3d2e61733": [
@@ -1497,6 +1714,12 @@
     {
       "type": 0,
       "value": "サイドバーを切り替え"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "ワークスペース"
     }
   ],
   "d638a3344b": [
@@ -1569,12 +1792,6 @@
       "value": "ワークスペースを離れる"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "デバッグのフラグを追加"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1597,36 +1814,6 @@
     {
       "type": 0,
       "value": "利用規約"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " と "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " があなたのコメントに反応しました"
     }
   ],
   "e81c4e4f2b": [
@@ -1745,63 +1932,6 @@
       "value": "この招待リンクは無効であるか、期限切れです。"
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": "、"
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " と"
-    },
-    {
-      "offset": 0,
-      "options": {
-        "other": {
-          "value": [
-            {
-              "type": 0,
-              "value": "他 "
-            },
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " 人"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": "があなたのコメントに反応しました"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -1880,6 +2010,36 @@
     {
       "type": 0,
       "value": "招待の承諾エラー"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "と"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "が反応しました"
     }
   ],
   "ffcd73e997": [
