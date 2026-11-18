@@ -293,6 +293,19 @@ function getPosthog() {
 	return posthog
 }
 
+/**
+ * PostHog's persisted first touch, `{ r: referrer or '$direct', u: landing url }` (posthog-js
+ * getPersonInfo). Undefined until PostHog is configured.
+ */
+export function getPosthogInitialPersonInfo(): unknown {
+	if (!shouldUsePosthog || !currentOptionsPosthog) return undefined
+	try {
+		return posthog.get_property('$initial_person_info')
+	} catch {
+		return undefined
+	}
+}
+
 function getGA4() {
 	if (!shouldUseGA4) return null
 	if (!currentOptionsGA4) {

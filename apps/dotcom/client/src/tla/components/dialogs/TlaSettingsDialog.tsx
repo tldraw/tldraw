@@ -19,6 +19,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { getDotDevUrl } from '../../../utils/appOriginLinks'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { TldrawApp } from '../../app/TldrawApp'
@@ -65,8 +66,7 @@ const messages = defineMessages({
 
 const USER_MANUAL_URL = 'https://tldraw.notion.site/support'
 const LEGAL_SUMMARY_URL = '/legal.html'
-const DOT_DEV_URL =
-	'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link'
+const DOT_DEV_URL = getDotDevUrl('sidebar-link')
 
 function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
 	app.tlUser.setUserPreferences({ id: app.userId, ...prefs })
