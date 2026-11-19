@@ -299,7 +299,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	async deleteLibrary(libraryId: TLLibraryId) {
 		const id = await this.getLibraryRowId(libraryId)
+		const itemIds = this.getItems(libraryId).map((item) => rowId(item.id))
 		await this.apply(this.app.z.mutate.library.delete({ id }))
+		this.releaseLocalThumbnails(itemIds)
 	}
 
 	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
@@ -406,14 +408,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async deleteItem(itemId: TLLibraryItemId) {
 		const id = await this.getItemRowId(itemId)
 		await this.apply(this.app.z.mutate.library_item.delete({ id }))
-		const thumbnail = this.localThumbnails.get().get(id)
-		if (!thumbnail) return
-		revokeThumbnail(thumbnail)
-		this.localThumbnails.update((all) => {
-			const rest = new Map(all)
-			rest.delete(id)
-			return rest
-		})
+		this.releaseLocalThumbnails([id])
 	}
 
 	async moveItem(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
@@ -490,6 +485,18 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			adding.settleArrival(true)
 		})
 		return item
+	}
+
+	private releaseLocalThumbnails(itemRowIds: string[]) {
+		const localThumbnails = this.localThumbnails.get()
+		const released = itemRowIds.filter((id) => localThumbnails.has(id))
+		if (released.length === 0) return
+		for (const id of released) revokeThumbnail(localThumbnails.get(id)!)
+		this.localThumbnails.update((all) => {
+			const rest = new Map(all)
+			for (const id of released) rest.delete(id)
+			return rest
+		})
 	}
 
 	private unlistNewItems(adding: NewItem[]) {
