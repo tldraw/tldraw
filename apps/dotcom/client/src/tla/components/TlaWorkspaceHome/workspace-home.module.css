@@ -311,7 +311,6 @@
 	cursor: pointer;
 }
 
-/* Holds the name and, in list view, the pin right after it. */
 .cardTitle {
 	display: flex;
 	align-items: center;
