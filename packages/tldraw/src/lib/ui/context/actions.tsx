@@ -22,6 +22,7 @@ import {
 	fetch,
 	kickoutOccludedShapes,
 	openWindow,
+	useAtom,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -29,9 +30,13 @@ import { defaultHandleExternalTextContent } from '../../defaultExternalContentHa
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
+import { openLink } from '../../utils/openLink'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
+import { commandPaletteOpen } from '../components/CommandPalette/commandPaletteOpen'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -65,6 +70,7 @@ import {
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
+import { useBreakpoint } from './breakpoints'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -73,6 +79,12 @@ import { TLUiEventSource, useUiEvents } from './events'
 // keeps the string extractable and the prop a plain key, which is what an app overriding one
 // passes.
 const messages = defineMessages({
+	actionOpenCommandPalette: {
+		id: 'action.open-command-palette',
+		defaultMessage: 'Command palette',
+	},
+	actionToggleMinimap: { id: 'action.toggle-minimap', defaultMessage: 'Toggle minimap' },
+	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -324,6 +336,12 @@ export interface TLUiActionItem<
 	isEnabled?(editor: Editor): boolean
 	/** For checkbox actions: whether the item shows as checked. Must be pure and read only editor state. */
 	isChecked?(editor: Editor): boolean
+	/**
+	 * Where the command palette lists the action. `false` leaves it out; `{ group }` lists it in the
+	 * `CommandPaletteActionGroup` with that group when one is rendered. Otherwise (`true`, or
+	 * without a group) the palette's catch-all group lists it.
+	 */
+	commandPalette?: boolean | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
@@ -405,6 +423,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
+
+	// An atom, not a memo dep, so actions don't rebuild on every breakpoint change.
+	const breakpoint = useBreakpoint()
+	const breakpointAtom = useAtom('actions breakpoint', breakpoint)
+	React.useLayoutEffect(() => {
+		breakpointAtom.set(breakpoint)
+	}, [breakpointAtom, breakpoint])
 
 	const defaultDocumentName = helpers.msg(messages.documentDefaultName)
 
@@ -543,6 +568,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && hasLinkShapeSelected(editor),
 				label: messages.actionEditLink.id,
 				icon: 'link',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('edit-link', { source })
 					editor.markHistoryStoppingPoint('edit-link')
@@ -553,6 +580,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'insert-embed',
 				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
+				readonlyOk: false,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
@@ -562,6 +591,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-kbd-shortcuts',
 				label: messages.actionOpenKbdShortcuts.id,
 				kbd: 'cmd+alt+/,ctrl+alt+/',
+				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					const { KeyboardShortcutsDialog } = components
 					if (!KeyboardShortcutsDialog) return
@@ -573,6 +604,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'insert-media',
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
+				readonlyOk: false,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
@@ -584,6 +617,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionUndo.id,
 				icon: 'undo',
 				kbd: 'cmd+z,ctrl+z',
+				readonlyOk: false,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					trackEvent('undo', { source })
 					editor.undo()
@@ -595,6 +630,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionRedo.id,
 				icon: 'redo',
 				kbd: 'cmd+shift+z,ctrl+shift+z',
+				readonlyOk: false,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					trackEvent('redo', { source })
 					editor.redo()
@@ -609,6 +646,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionExportAsSvgShort.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					const ids = getSelectedOrAllShapeIds(editor)
 					if (ids.length === 0) return
@@ -625,6 +663,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionExportAsPngShort.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					const ids = getSelectedOrAllShapeIds(editor)
 					if (ids.length === 0) return
@@ -641,6 +680,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionExportAllAsSvgShort.id,
 				},
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					const ids = Array.from(editor.getCurrentPageShapeIds())
 					if (ids.length === 0) return
@@ -657,6 +697,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionExportAllAsPngShort.id,
 				},
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					const ids = Array.from(editor.getCurrentPageShapeIds())
 					if (ids.length === 0) return
@@ -673,6 +714,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionCopyAsSvgShort.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					const ids = getSelectedOrAllShapeIds(editor)
 					if (ids.length === 0) return
@@ -691,6 +733,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				kbd: 'cmd+shift+c,ctrl+shift+c',
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					const ids = getSelectedOrAllShapeIds(editor)
 					if (ids.length === 0) return
@@ -708,6 +751,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionCopyAsJsonShort.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					const ids = getSelectedOrAllShapeIds(editor)
 					if (ids.length === 0) return
@@ -719,6 +763,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-auto-size',
 				isEnabled: (editor) => editor.isIn('select') && canToggleAutoSize(editor),
 				label: messages.actionToggleAutoSize.id,
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('toggle-auto-size', { source })
 					editor.markHistoryStoppingPoint('toggling auto size')
@@ -749,6 +795,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				label: messages.actionOpenEmbedLink.id,
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					trackEvent('open-embed-link', { source })
 					const ids = editor.getSelectedShapeIds()
@@ -763,7 +810,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					openWindow(shape.props.url, '_blank')
+					openLink(editor, shape.props.url)
 				},
 			},
 			{
@@ -771,6 +818,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionSelectZoomTool.id,
 				readonlyOk: true,
 				kbd: 'z, !z',
+				commandPalette: false,
 				onSelect(source) {
 					// Noop if user is actually cmd/ctrl+z'ing
 					if (editor.inputs.getAccelKey()) return
@@ -794,6 +842,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'convert-to-bookmark',
 				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbedWithUrlSelected(editor),
 				label: messages.actionConvertToBookmark.id,
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				async onSelect(source) {
 					trackEvent('convert-to-bookmark', { source })
 					const shapes = editor.getSelectedShapes()
@@ -830,6 +880,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'convert-to-embed',
 				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbeddableBookmarkSelected(editor),
 				label: messages.actionConvertToEmbed.id,
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('convert-to-embed', { source })
 
@@ -880,6 +932,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+d,ctrl+d',
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('duplicate-shapes', { source })
 					const instanceState = editor.getInstanceState()
@@ -925,6 +979,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionUngroup.id,
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect: ungroupSelectedShapes,
 			},
 			{
@@ -932,6 +988,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && isGroupAllowed(editor),
 				label: messages.actionGroup.id,
 				icon: 'group',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect: groupSelectedShapes,
 			},
 			{
@@ -940,6 +998,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionGroup.id,
 				kbd: 'cmd+g,ctrl+g',
 				icon: 'group',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					const action = getGroupToggleAction(editor)
 					if (action) return finalActions.current?.[action].onSelect(source)
@@ -949,6 +1009,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'frame-selection',
 				isEnabled: (editor) => editor.isIn('select') && canFrameSelection(editor),
 				label: messages.actionFrameSelection.id,
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect: frameSelectedShapes,
 			},
 			{
@@ -956,6 +1018,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && areAllSelectedFrameLike(editor),
 				label: messages.actionRemoveFrame.id,
 				kbd: 'cmd+alt+shift+g,ctrl+alt+shift+g',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect: removeSelectedFrames,
 			},
 			{
@@ -963,6 +1027,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => editor.isIn('select') && getFrameToggleAction(editor) !== null,
 				label: messages.actionFrameSelection.id,
 				kbd: 'cmd+alt+g,ctrl+alt+g',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					const action = getFrameToggleAction(editor)
 					if (action) return finalActions.current?.[action].onSelect(source)
@@ -972,6 +1038,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'fit-frame-to-content',
 				isEnabled: (editor) => editor.isIn('select') && canFitFrameToContent(editor),
 				label: messages.actionFitFrameToContent.id,
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('fit-frame-to-content', { source })
 					const onlySelectedShape = editor.getOnlySelectedShape()
@@ -987,6 +1055,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionAlignLeft.id,
 				kbd: 'alt+A',
 				icon: 'align-left',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'left', source })
 					updateSelectedShapes('align left', (ids) => editor.alignShapes(ids, 'left'))
@@ -1001,6 +1071,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'alt+H',
 				icon: 'align-center-horizontal',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'center-horizontal', source })
 					updateSelectedShapes('align center horizontal', (ids) =>
@@ -1014,6 +1086,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionAlignRight.id,
 				kbd: 'alt+D',
 				icon: 'align-right',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'right', source })
 					updateSelectedShapes('align right', (ids) => editor.alignShapes(ids, 'right'))
@@ -1028,6 +1102,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'alt+V',
 				icon: 'align-center-vertical',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'center-vertical', source })
 					updateSelectedShapes('align center vertical', (ids) =>
@@ -1041,6 +1117,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionAlignTop.id,
 				icon: 'align-top',
 				kbd: 'alt+W',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'top', source })
 					updateSelectedShapes('align top', (ids) => editor.alignShapes(ids, 'top'))
@@ -1052,6 +1130,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionAlignBottom.id,
 				icon: 'align-bottom',
 				kbd: 'alt+S',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'bottom', source })
 					updateSelectedShapes('align bottom', (ids) => editor.alignShapes(ids, 'bottom'))
@@ -1066,6 +1146,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-horizontal',
 				kbd: 'alt+shift+h',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('distribute horizontal', (ids) =>
@@ -1082,6 +1164,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				icon: 'distribute-vertical',
 				kbd: 'alt+shift+V',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('distribute vertical', (ids) =>
@@ -1097,6 +1181,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionStretchHorizontalShort.id,
 				},
 				icon: 'stretch-horizontal',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('stretch-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('stretch horizontal', (ids) =>
@@ -1112,6 +1198,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionStretchVerticalShort.id,
 				},
 				icon: 'stretch-vertical',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('stretch-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('stretch vertical', (ids) => editor.stretchShapes(ids, 'vertical'))
@@ -1125,6 +1213,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionFlipHorizontalShort.id,
 				},
 				kbd: 'shift+h',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('flip horizontal', (ids) => editor.flipShapes(ids, 'horizontal'))
@@ -1138,6 +1228,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionFlipVerticalShort.id,
 				},
 				kbd: 'shift+v',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('flip-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('flip vertical', (ids) => editor.flipShapes(ids, 'vertical'))
@@ -1148,6 +1240,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 2),
 				label: messages.actionPack.id,
 				icon: 'pack',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('pack-shapes', { source })
 					updateSelectedShapes('pack', (ids) =>
@@ -1163,6 +1257,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionStackVerticalShort.id,
 				},
 				icon: 'stack-vertical',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'vertical', source })
 					updateSelectedShapes('stack-vertical', (ids) =>
@@ -1178,6 +1274,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionStackHorizontalShort.id,
 				},
 				icon: 'stack-horizontal',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					updateSelectedShapes('stack-horizontal', (ids) =>
@@ -1191,6 +1289,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionBringToFront.id,
 				kbd: ']',
 				icon: 'bring-to-front',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'toFront', source })
 					editor.markHistoryStoppingPoint('bring to front')
@@ -1203,6 +1303,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionBringForward.id,
 				icon: 'bring-forward',
 				kbd: 'alt+]',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'forward', source })
 					editor.markHistoryStoppingPoint('bring forward')
@@ -1215,6 +1317,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionSendBackward.id,
 				icon: 'send-backward',
 				kbd: 'alt+[',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'backward', source })
 					editor.markHistoryStoppingPoint('send backward')
@@ -1227,6 +1331,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionSendToBack.id,
 				icon: 'send-to-back',
 				kbd: '[',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'toBack', source })
 					editor.markHistoryStoppingPoint('send to back')
@@ -1238,6 +1344,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
 				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					helpers.cut(source)
 				},
@@ -1248,6 +1356,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionCopy.id,
 				kbd: 'cmd+c,ctrl+c',
 				readonlyOk: true,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					helpers.copy(source)
 				},
@@ -1257,6 +1366,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isAvailable: canReadClipboard,
 				label: messages.actionPaste.id,
 				kbd: 'cmd+v,ctrl+v',
+				readonlyOk: false,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					// Resolve the point before the clipboard read: the menu closes, and clears
 					// its point, before the read settles.
@@ -1275,6 +1386,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'paste-at-cursor',
 				label: messages.actionPaste.id,
 				kbd: '$?v',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
 					const point = pasteAtCursor ? editor.inputs.getCurrentPagePoint() : undefined
@@ -1289,6 +1402,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'paste-plain-text-at-cursor',
 				label: messages.actionPaste.id,
 				kbd: '$!?v',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect() {
 					const pasteAtCursor = !editor.user.getIsPasteAtCursorMode()
 					const point = pasteAtCursor
@@ -1311,6 +1426,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionSelectAll.id,
 				kbd: 'cmd+a,ctrl+a',
 				readonlyOk: true,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					editor.run(() => {
 						if (!editor.isIn('select')) {
@@ -1330,6 +1446,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: canApplySelection,
 				label: messages.actionSelectNone.id,
 				readonlyOk: true,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('select-none-shapes', { source })
 					editor.markHistoryStoppingPoint('select none')
@@ -1342,6 +1459,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionDelete.id,
 				kbd: '⌫,del',
 				icon: 'trash',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('delete-shapes', { source })
 					editor.markHistoryStoppingPoint('delete')
@@ -1354,6 +1473,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionRotateCw.id,
 				icon: 'rotate-cw',
 				kbd: 'shift+.,shift+alt+.',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-cw', { source, fine: isFine })
@@ -1372,6 +1493,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-ccw',
 				// omg double comma
 				kbd: 'shift+,,shift+alt+,',
+				readonlyOk: false,
+				commandPalette: { group: 'arrange' },
 				onSelect(source) {
 					const isFine = editor.inputs.getAltKey()
 					trackEvent('rotate-ccw', { source, fine: isFine })
@@ -1388,6 +1511,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionZoomIn.id,
 				kbd: 'cmd+=,ctrl+=,=',
 				readonlyOk: true,
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: false })
 					editor.zoomIn(undefined, {
@@ -1400,6 +1524,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionZoomIn.id,
 				kbd: 'shift+cmd+=,shift+ctrl+=,shift+=',
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					trackEvent('zoom-in', { source, towardsCursor: true })
 					editor.zoomIn(editor.inputs.getCurrentScreenPoint(), {
@@ -1412,6 +1537,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionZoomOut.id,
 				kbd: 'cmd+-,ctrl+-,-',
 				readonlyOk: true,
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: false })
 					editor.zoomOut(undefined, {
@@ -1424,6 +1550,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionZoomOut.id,
 				kbd: 'shift+cmd+-,shift+ctrl+-,shift+-',
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					trackEvent('zoom-out', { source, towardsCursor: true })
 					editor.zoomOut(editor.inputs.getCurrentScreenPoint(), {
@@ -1438,6 +1565,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'reset-zoom',
 				kbd: 'shift+0',
 				readonlyOk: true,
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
 					editor.resetZoom(undefined, {
@@ -1451,6 +1579,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionZoomToFit.id,
 				kbd: 'shift+1',
 				readonlyOk: true,
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
 					editor.zoomToFit({ animation: { duration: editor.options.animationMediumMs } })
@@ -1462,6 +1591,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionZoomToSelection.id,
 				kbd: 'shift+2',
 				readonlyOk: true,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					trackEvent('zoom-to-selection', { source })
 					editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
@@ -1474,6 +1604,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: messages.actionToggleSnapMode.id,
 					menu: messages.actionToggleSnapModeMenu.id,
 				},
+				readonlyOk: false,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
 					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
@@ -1489,6 +1621,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				kbd: 'cmd+/,ctrl+/',
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect(source) {
 					const value = editor.user.getIsDarkMode() ? 'light' : 'dark'
 					trackEvent('color-scheme', { source, value })
@@ -1506,6 +1639,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleWrapModeMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-wrap-mode', { source })
 					editor.user.updateUserPreferences({
@@ -1522,6 +1656,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleDynamicSizeModeMenu.id,
 				},
 				readonlyOk: false,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-dynamic-size-mode', { source })
 					editor.user.updateUserPreferences({
@@ -1538,6 +1673,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionTogglePasteAtCursorMenu.id,
 				},
 				readonlyOk: false,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-paste-at-cursor', { source })
 					editor.user.updateUserPreferences({
@@ -1554,6 +1690,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleReduceMotionMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'accessibility' },
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
 					editor.user.updateUserPreferences({
@@ -1570,6 +1707,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleKeyboardShortcutsMenu.id,
 				},
 				readonlyOk: true,
+				// Turning shortcuts off from the palette would also turn off its own Cmd+K.
+				commandPalette: false,
 				onSelect(source) {
 					trackEvent('toggle-keyboard-shortcuts', { source })
 					editor.user.updateUserPreferences({
@@ -1586,6 +1725,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionEnhancedA11yModeMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'accessibility' },
 				onSelect(source) {
 					trackEvent('enhanced-a11y-mode', { source })
 					editor.user.updateUserPreferences({
@@ -1602,6 +1742,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleEdgeScrollingMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-edge-scrolling', { source })
 					editor.user.updateUserPreferences({
@@ -1619,6 +1760,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleInvertZoomMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-invert-zoom', { source })
 					editor.user.updateUserPreferences({
@@ -1636,6 +1778,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					['context-menu']: messages.actionToggleTransparentContextMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState({
@@ -1652,6 +1795,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleToolLockMenu.id,
 				},
 				kbd: 'q',
+				readonlyOk: false,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
 					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
@@ -1662,6 +1807,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'unlock-all',
 				isEnabled: hasLockedShapesOnPage,
 				label: messages.actionUnlockAll.id,
+				readonlyOk: false,
+				commandPalette: { group: 'edit' },
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
 					const updates = [] as TLShapePartial[]
@@ -1686,6 +1833,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'cmd+.,ctrl+.',
 				checkbox: true,
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
@@ -1700,6 +1848,24 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-minimap',
+				label: messages.actionToggleMinimap.id,
+				// Mirrors where TldrawUi and DefaultNavigationPanel actually render the minimap.
+				isAvailable: (editor) =>
+					!!components.Minimap &&
+					!!components.NavigationPanel &&
+					!editor.getInstanceState().isFocusMode &&
+					breakpointAtom.get() >= PORTRAIT_BREAKPOINT.TABLET,
+				isChecked: () => !isMinimapCollapsed(),
+				readonlyOk: true,
+				commandPalette: { group: 'view' },
+				onSelect(source) {
+					trackEvent('toggle-minimap', { source })
+					toggleMinimap()
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-grid',
 				isChecked: (editor) => editor.getInstanceState().isGridMode,
 				label: {
@@ -1708,6 +1874,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				kbd: "cmd+',ctrl+'",
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
@@ -1722,6 +1889,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					menu: messages.actionToggleDebugModeMenu.id,
 				},
 				readonlyOk: true,
+				commandPalette: { group: 'preferences' },
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
 					editor.updateInstanceState({
@@ -1736,6 +1904,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionPrint.id,
 				kbd: 'cmd+p,ctrl+p',
 				readonlyOk: true,
+				commandPalette: { group: 'export' },
 				onSelect(source) {
 					trackEvent('print', { source })
 					helpers.printSelectionOrPages()
@@ -1747,6 +1916,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionExitPenMode.id,
 				icon: 'cross-2',
 				readonlyOk: true,
+				commandPalette: { group: 'help' },
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
 					editor.updateInstanceState({ isPenMode: false })
@@ -1758,6 +1928,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionStopFollowing.id,
 				icon: 'cross-2',
 				readonlyOk: true,
+				commandPalette: { group: 'help' },
 				onSelect(source) {
 					trackEvent('stop-following', { source })
 					editor.stopFollowingUser()
@@ -1769,6 +1940,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionBackToContent.id,
 				icon: 'arrow-left',
 				readonlyOk: true,
+				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('zoom-to-content', { source })
 					const bounds = editor.getSelectionPageBounds() ?? editor.getCurrentPageBounds()
@@ -1784,6 +1956,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: canApplySelection,
 				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect(source) {
 					editor.markHistoryStoppingPoint('locking')
 					trackEvent('toggle-lock', { source })
@@ -1795,6 +1969,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) =>
 					hasUnlockedSelection(editor, 1) && editor.getPages().length < editor.options.maxPages,
 				label: messages.contextPagesNewPage.id,
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
@@ -1813,6 +1989,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-white-color',
 				label: messages.colorStyleWhite.id,
 				kbd: 'alt+t',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					setStyleShortcut(DefaultColorStyle, 'white', 'change-color', source)
 				},
@@ -1821,6 +1999,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-fill-fill',
 				label: messages.fillStyleFill.id,
 				kbd: 'alt+f',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					setStyleShortcut(DefaultFillStyle, 'fill', 'change-fill', source)
 				},
@@ -1829,6 +2009,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-fill-lined-fill',
 				label: messages.fillStyleLinedFill.id,
 				kbd: 'alt+shift+f',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect(source) {
 					setStyleShortcut(DefaultFillStyle, 'lined-fill', 'change-fill', source)
 				},
@@ -1838,6 +2020,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: canFlatten,
 				label: messages.actionFlattenToImage.id,
 				kbd: 'shift+f',
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect: async (source) => {
 					const ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) return
@@ -1859,6 +2043,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'select-geo-tool',
 				kbd: 'g',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					trackEvent('select-tool', { source, id: `geo-previous` })
@@ -1869,6 +2055,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'change-page-prev',
 				kbd: 'alt+left,alt+up',
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1883,6 +2070,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'change-page-next',
 				kbd: 'alt+right,alt+down',
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
 					const pages = editor.getPages()
@@ -1919,6 +2107,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.a11yAdjustShapeStyles.id,
 				kbd: 'cmd+Enter,ctrl+Enter',
 				isRequiredA11yAction: true,
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect: async (source) => {
 					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (
@@ -1946,6 +2136,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'cmd+shift+Enter,ctrl+shift+Enter',
 				isRequiredA11yAction: true,
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect: async (source) => {
 					// For multiple shapes or a single shape, get the selection bounds
 					const selectionBounds = editor.getSelectionPageBounds()
@@ -1974,6 +2165,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
 				label: messages.a11yEnlargeShape.id,
 				kbd: 'cmd+alt+shift+=,ctrl+alt+shift+=',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect: async (source) => {
 					scaleShapes(1.1)
 					trackEvent('enlarge-shapes', { source })
@@ -1984,6 +2177,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
 				label: messages.a11yShrinkShape.id,
 				kbd: 'cmd+alt+shift+-,ctrl+alt+shift+-',
+				readonlyOk: false,
+				commandPalette: false,
 				onSelect: async (source) => {
 					scaleShapes(1 / 1.1)
 					trackEvent('shrink-shapes', { source })
@@ -1995,6 +2190,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.a11yRepeatShape.id,
 				isRequiredA11yAction: true,
 				readonlyOk: true,
+				commandPalette: false,
 				onSelect: async (source) => {
 					const selectedShapeIds = editor.getSelectedShapeIds()
 					if (!selectedShapeIds.length) return
@@ -2014,10 +2210,26 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'crop-image',
+				label: messages.toolImageCrop.id,
+				isAvailable: (editor) => {
+					if (!editor.isIn('select')) return false
+					const shape = editor.getOnlySelectedShape()
+					return !!shape && shape.type === 'image' && !shape.isLocked
+				},
+				readonlyOk: false,
+				commandPalette: false,
+				onSelect(source) {
+					trackEvent('crop-image', { source })
+					editor.setCurrentTool('select.crop.idle')
+				},
+			},
+			{
 				id: 'image-replace',
 				label: messages.toolReplaceMedia.id,
 				icon: 'arrow-cycle',
 				readonlyOk: false,
+				commandPalette: false,
 				onSelect: async (source) => {
 					trackEvent('image-replace', { source })
 					helpers.replaceImage()
@@ -2028,6 +2240,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.toolReplaceMedia.id,
 				icon: 'arrow-cycle',
 				readonlyOk: false,
+				commandPalette: false,
 				onSelect: async (source) => {
 					trackEvent('video-replace', { source })
 					helpers.replaceVideo()
@@ -2038,6 +2251,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				isEnabled: hasDownloadableMediaSelected,
 				label: messages.actionDownloadOriginal.id,
 				readonlyOk: true,
+				commandPalette: { group: 'selection' },
 				onSelect: async (source) => {
 					const selectedShapes = editor.getSelectedShapes()
 					if (selectedShapes.length === 0) return
@@ -2082,6 +2296,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'copy-hovered-styles',
 				label: messages.actionCopyHoveredStyles.id,
 				kbd: 'shift+q',
+				readonlyOk: false,
+				commandPalette: false,
 				async onSelect(source) {
 					const shape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
 						hitInside: false,
@@ -2115,6 +2331,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: messages.actionOpenCursorChat.id,
 				readonlyOk: true,
 				kbd: '/',
+				commandPalette: { group: 'help' },
 				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
 
@@ -2122,6 +2339,27 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.timers.requestAnimationFrame(() => {
 						editor.updateInstanceState({ isChatting: true })
 					})
+				},
+			})
+		}
+
+		// Without a palette to render, the shortcut would open nothing.
+		if (components.CommandPalette) {
+			actionItems.push({
+				id: 'open-command-palette',
+				label: messages.actionOpenCommandPalette.id,
+				kbd: 'cmd+k,ctrl+k',
+				readonlyOk: true,
+				commandPalette: false,
+				onSelect(source) {
+					// The palette stays open while the canvas has focus, so the shortcut also closes it.
+					if (commandPaletteOpen.get(editor)) {
+						commandPaletteOpen.set(editor, false)
+						return
+					}
+					trackEvent('open-command-palette', { source })
+					editor.complete()
+					commandPaletteOpen.set(editor, true)
 				},
 			})
 		}
@@ -2140,6 +2378,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		msg,
 		a11y,
 		components,
+		breakpointAtom,
 	])
 
 	return (

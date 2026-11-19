@@ -1,6 +1,7 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { createContext, type PointerEvent, type ReactNode, type RefObject, useContext } from 'react'
 import {
+	defineMessages,
 	preventDefault,
 	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuGroup,
@@ -8,7 +9,14 @@ import {
 	TldrawUiDropdownMenuSub,
 	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiIcon,
+	useTranslation,
 } from 'tldraw'
+import type { TLLibraryOwner } from '../lib/LibrarySource'
+
+const messages = defineMessages({
+	other: { id: 'libraries.tabs.other', defaultMessage: 'Other' },
+})
 
 const InContextMenuContext = createContext(false)
 
@@ -137,4 +145,52 @@ export function MenuSubmenu({
 			</TldrawUiDropdownMenuSubContent>
 		</TldrawUiDropdownMenuSub>
 	)
+}
+
+/** @public */
+export interface LibraryMenuTarget {
+	id: string
+	name: string
+	/**
+	 * Who the library belongs to. Targets spanning two or more owners are listed under their
+	 * owners' names.
+	 */
+	owner?: TLLibraryOwner
+}
+
+/**
+ * Menu items for libraries to send something to, in the order given. Targets spanning two or more
+ * owners are listed under each owner's name, and icon if it has one.
+ */
+export function MenuTargetItems({
+	targets,
+	onSelect,
+}: {
+	targets: LibraryMenuTarget[]
+	onSelect(libraryId: string): void
+}) {
+	const msg = useTranslation()
+	const groups: { owner?: TLLibraryOwner; targets: LibraryMenuTarget[] }[] = []
+	for (const target of targets) {
+		const last = groups[groups.length - 1]
+		if (last && last.owner?.id === target.owner?.id) last.targets.push(target)
+		else groups.push({ owner: target.owner, targets: [target] })
+	}
+	const items = (list: LibraryMenuTarget[]) =>
+		list.map((target) => (
+			<MenuItem key={target.id} label={target.name} onClick={() => onSelect(target.id)} />
+		))
+	if (groups.length < 2) return items(targets)
+	return groups.map(({ owner, targets: list }) => {
+		const label = owner ? owner.name : msg(messages.other)
+		return (
+			<div key={owner?.id ?? ''} role="group" aria-label={label}>
+				<div className="tlui-libraries-menu-heading" role="presentation">
+					{owner?.icon && <TldrawUiIcon icon={owner.icon} label="" small />}
+					<span>{label}</span>
+				</div>
+				{items(list)}
+			</div>
+		)
+	})
 }

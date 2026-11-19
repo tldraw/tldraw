@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Pošalji povratne informacije"
   },
+  "0e4a10d921": {
+    "translation": "Označi sve obavijesti kao pročitane"
+  },
   "1063e38cb5": {
     "translation": "Ukloni"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "Opcije obavijesti"
   },
+  "15bf4fead9": {
+    "translation": "Promijeni radni prostor"
+  },
   "181b90f889": {
     "translation": "Stvori datoteku"
+  },
+  "1a7222b4e5": {
+    "translation": "Premjesti u"
   },
   "1da2e8106b": {
     "translation": "Došlo je do neočekivane pogreške."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "O tldrawu"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> je komentirao/la vašu ploču"
-  },
   "28b2464e1f": {
     "translation": "Nije moguće poslati povratne informacije"
+  },
+  "2944edaa8d": {
+    "translation": "U ime {name}"
   },
   "299cb00a7a": {
     "translation": "Prijenos nije uspio"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "Natrag na tldraw"
   },
+  "32811caa8c": {
+    "translation": "Duplikat datoteke"
+  },
   "335defdafe": {
     "translation": "Pokušajte osvježiti stranicu."
+  },
+  "34082694d2": {
+    "translation": "Naziv datoteke"
   },
   "344a7f427f": {
     "translation": "Urednik"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "Ukloni člana"
+  },
+  "398f51738e": {
+    "translation": "Prijavite se da biste prihvatili ovu pozivnicu."
   },
   "3bc7d6ea2f": {
     "translation": "Nastavite s e-poštom"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "Hvala što nam pomažete poboljšati tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Premjesti datoteku u"
+  },
   "46de2de6bb": {
     "translation": "Prihvati uvjete korištenja"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Ime"
+  },
+  "4a8165368a": {
+    "translation": "Kopiraj objavljenu poveznicu"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> je komentirao/la"
   },
   "4d0d3ddec9": {
     "translation": "Ova stranica koristi kolačiće kako bi aplikacija funkcionirala i prikupljala analitičke podatke."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "Izradite radni prostor"
   },
+  "5653ebed2e": {
+    "translation": "Idi na datoteku"
+  },
   "5677e381d2": {
     "translation": "Koristimo analitičke kolačiće kako bismo poboljšali tldraw."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Moj radni prostor"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> reagirao je na vaš komentar"
   },
   "5d04a002ea": {
     "translation": "Nije moguće povezivanje"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "Kasnije"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {Netko je reagirao na tvoj komentar} few {# osobe reagirale su na tvoj komentar} other {# osoba reagiralo je na tvoj komentar}}"
-  },
   "625fd29749": {
     "translation": "Starije"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
   },
+  "67ed6ddb7d": {
+    "translation": "Uređeno"
+  },
   "681e10aecb": {
     "translation": "Nova datoteka"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# other} other {# others}} reagirali su"
   },
   "6832ac5936": {
     "translation": "Unesite svoju adresu e-pošte"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Izbriši radni prostor"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {Netko je reagirao} few {} other {# osoba je reagiralo}}"
+  },
   "6a26f54883": {
     "translation": "Pomoć"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Nemate potrebna dopuštenja za izvođenje ove radnje."
   },
   "6dfc62f621": {
     "translation": "Slijedite ove korake za ručni uvoz sadržaja:"
+  },
+  "6ea5359e01": {
+    "translation": "Platno"
   },
   "70a6facb9d": {
     "translation": "Ovaj tjedan"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "Molimo ponovno učitajte stranicu"
+  },
+  "747ee44424": {
+    "translation": "Spremite sadržaj kao .tldr datoteku: odaberite 'Spremi kopiju' u gornjem lijevom izborniku."
   },
   "74ff4bad28": {
     "translation": "Nisu pronađene datoteke"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Razgovarajte s nama na Discordu"
+  },
+  "76ec4e4ed9": {
+    "translation": "Kopiraj vezu datoteke"
   },
   "777f9e90cf": {
     "translation": "Neispravan zahtjev."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Već ste član ovog radnog prostora"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> i {count, plural, one {# other} other {# others}} reagirali su"
+  },
   "88bf6ab42c": {
     "translation": "Ova pozivnica je istekla"
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Podijeljeno s vama"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Oko"
   },
   "8ff3d0a705": {
     "translation": "Stopa ograničena"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "Jeste li sigurni da želite izbrisati <strong>{workspaceName}</strong>? Ovu radnju nije moguće poništiti."
   },
+  "91f3a2c0e4": {
+    "translation": "Datoteke"
+  },
+  "930390d222": {
+    "translation": "Kopirana je poveznica za poziv"
+  },
   "95aacd4d4a": {
     "translation": "Prijava putem Googlea"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Ovaj mjesec"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> je reagirao/la"
   },
   "985a4b720f": {
     "translation": "Uvjeti korištenja"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# nepročitano} few {# nepročitana} other {# nepročitanih}}"
   },
-  "a0da245992": {
-    "translation": "Izvezite sadržaj kao .tldr datoteku: Odaberite 'Preuzmi' u gornjem lijevom izborniku."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "Politika kolačića"
+  },
+  "a4bef6414b": {
+    "translation": "Uključi/isključi bočnu traku s komentarima"
   },
   "a4d3b161ce": {
     "translation": "Pošalji"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Dosegnuto je ograničenje datoteke"
   },
+  "ac863f346e": {
+    "translation": "Aplikacija"
+  },
+  "aeb428554a": {
+    "translation": "Knjižnice"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Posljednji put objavljeno <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Datoteka je puna"
+  },
+  "b3205c1e45": {
+    "translation": "Otvori ploču s obavijestima"
   },
   "b357b524e7": {
     "translation": "E-mail adresa"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Dijeli {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Trenutna datoteka"
+  },
   "c17466812d": {
     "translation": "Upravljanje radnim prostorom"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Odbaciti"
   },
+  "cb5feb1b73": {
+    "translation": "Boja"
+  },
+  "cce99c598c": {
+    "translation": "Profil"
+  },
   "cceaefbc20": {
     "translation": "Podijelite ovu datoteku"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "Saznajte više o objavljivanju."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> i {count, plural, one {# drugi} few {# druga} other {# drugih}} reagirali su na vaš komentar"
+  "d0834fcec6": {
+    "translation": "Postavke"
+  },
+  "d28d6bbc42": {
+    "translation": "Poništi objavu datoteke"
   },
   "d3d2e61733": {
     "translation": "Zatvoriti"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Uključi/isključi bočnu traku"
+  },
+  "d5e92609cf": {
+    "translation": "Radni prostori"
   },
   "d638a3344b": {
     "translation": "Prije nego što započnete, molimo vas da prihvatite naše <tos>uvjete korištenja</tos> i <privacy>pravila privatnosti</privacy>."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Napustite radni prostor"
   },
-  "dfdb78a4e4": {
-    "translation": "Oznake za otklanjanje pogrešaka aplikacije"
-  },
   "e0aa021e21": {
     "translation": "U REDU"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "Uvjeti usluge"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> i <name>{b}</name> reagirali su na vaš komentar"
-  },
   "e81c4e4f2b": {
     "translation": "ili"
+  },
+  "ea13ecec38": {
+    "translation": "Povijest datoteke"
   },
   "ea4788705e": {
     "translation": "Otkazati"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "Izbrisati"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# drugi} few {# druga} other {# drugih}} reagirali su na vaš komentar"
+  "f408fa5fbd": {
+    "translation": "Ova pozivnica nije važeća ili je istekla."
   },
   "f4f70727dc": {
     "translation": "Postavke"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "Izradite besplatni račun za spremanje datoteka i crtanje sa suigračima."
+  },
+  "ffad261a48": {
+    "translation": "Pogreška pri prihvaćanju pozivnice"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> i <name>{b}</name> reagirali su"
   },
   "ffcd73e997": {
     "translation": "Uvoz datoteke…"

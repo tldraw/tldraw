@@ -17,7 +17,6 @@ import embedIconsReplitPngUrl from './embed-icons/replit.png?url'
 import embedIconsScratchPngUrl from './embed-icons/scratch.png?url'
 import embedIconsSpotifyPngUrl from './embed-icons/spotify.png?url'
 import embedIconsTldrawPngUrl from './embed-icons/tldraw.png?url'
-import embedIconsValTownPngUrl from './embed-icons/val_town.png?url'
 import embedIconsVimeoPngUrl from './embed-icons/vimeo.png?url'
 import embedIconsYoutubePngUrl from './embed-icons/youtube.png?url'
 import fontsIBMPlexMonoBoldWoff2Url from './fonts/IBMPlexMono-Bold.woff2?url'
@@ -131,6 +130,7 @@ export function getAssetUrlsByImport(opts) {
 			'arrow-cycle': iconsIcon0MergedSvg2 + '#arrow-cycle',
 			'arrow-elbow': iconsIcon0MergedSvg2 + '#arrow-elbow',
 			'arrow-left': iconsIcon0MergedSvg2 + '#arrow-left',
+			'arrow-right': iconsIcon0MergedSvg2 + '#arrow-right',
 			'arrowhead-arrow': iconsIcon0MergedSvg2 + '#arrowhead-arrow',
 			'arrowhead-bar': iconsIcon0MergedSvg2 + '#arrowhead-bar',
 			'arrowhead-diamond': iconsIcon0MergedSvg2 + '#arrowhead-diamond',
@@ -238,6 +238,7 @@ export function getAssetUrlsByImport(opts) {
 			'reset-zoom': iconsIcon0MergedSvg2 + '#reset-zoom',
 			'rotate-ccw': iconsIcon0MergedSvg2 + '#rotate-ccw',
 			'rotate-cw': iconsIcon0MergedSvg2 + '#rotate-cw',
+			search: iconsIcon0MergedSvg2 + '#search',
 			'send-backward': iconsIcon0MergedSvg2 + '#send-backward',
 			'send-to-back': iconsIcon0MergedSvg2 + '#send-to-back',
 			'share-1': iconsIcon0MergedSvg2 + '#share-1',
@@ -253,6 +254,7 @@ export function getAssetUrlsByImport(opts) {
 			'stretch-horizontal': iconsIcon0MergedSvg2 + '#stretch-horizontal',
 			'stretch-vertical': iconsIcon0MergedSvg2 + '#stretch-vertical',
 			strike: iconsIcon0MergedSvg2 + '#strike',
+			taskList: iconsIcon0MergedSvg2 + '#taskList',
 			'text-align-center': iconsIcon0MergedSvg2 + '#text-align-center',
 			'text-align-left': iconsIcon0MergedSvg2 + '#text-align-left',
 			'text-align-right': iconsIcon0MergedSvg2 + '#text-align-right',
@@ -356,7 +358,6 @@ export function getAssetUrlsByImport(opts) {
 			scratch: formatAssetUrl(embedIconsScratchPngUrl, opts),
 			spotify: formatAssetUrl(embedIconsSpotifyPngUrl, opts),
 			tldraw: formatAssetUrl(embedIconsTldrawPngUrl, opts),
-			val_town: formatAssetUrl(embedIconsValTownPngUrl, opts),
 			vimeo: formatAssetUrl(embedIconsVimeoPngUrl, opts),
 			youtube: formatAssetUrl(embedIconsYoutubePngUrl, opts),
 		},

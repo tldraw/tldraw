@@ -1,3 +1,4 @@
+import { McpAgentClient } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
@@ -19,27 +20,37 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
+	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
+	COMMENT_CURSOR_WRONG_PAGE_MESSAGE,
+	CommentTarget,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
+	READ_PAGE_COMMENTS_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	McpPageRead,
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
 	USER_STATE_TOOL_NAME,
+	WRITE_COMMENT_TOOL_NAME,
 	describePageSelector,
 	getBoardInfo,
 	getBoardSearchResults,
+	getBoardUsersResult,
 	getClusterInfo,
 	getClusterScreenshotSize,
 	getClustersBox,
 	getCreatedBoardResult,
+	getPageCommentsResult,
 	getPageInfo,
+	getPeerStateResult,
+	getTextMentionIds,
 	getToolDefinitions,
+	getWrittenCommentResult,
 	getWorkspaceListResult,
 	parseApplyOpsInput,
 	parseBoardInfoInput,
@@ -49,26 +60,32 @@ import {
 	parseCreateBoardInput,
 	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pageLookupFailure,
+	resolveSnapshotPage,
 	parseUserStateInput,
+	parseWriteCommentInput,
 	pickClusterShapes,
 	toolError as modelToolError,
 	toolJsonResult,
 	toolPageResult,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
+import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
 	PUBLISHED_BOARD_FAILURE,
+	TabRenderContext,
 	applyOpsInOpenTab,
 	captureInOpenTab,
 	readBoardUsers,
 	readPageInOpenTab,
 	readUserStateInOpenTab,
 } from './mcpTabRender'
+import { readMentionableUsers, readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -238,10 +255,16 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 // and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
 // unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
 // truncated raw name for spotting families worth adding here. Order matters where strings overlap —
-// a Claude UA also says Mozilla, so `mozilla` sits last.
+// a Claude UA also says Mozilla, so `mozilla` sits below it, and the codex plugin's UA also says codex.
+//
+// `codex-plugin` is the codex plugin's proxy worker, which forwards a few board tools for every
+// Codex user and names itself in its User-Agent. A Worker's fetch sends no User-Agent of its own, so
+// without that header its calls are `none`.
 const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['tldraw-codex-plugin', 'codex-plugin'],
 	['claude', 'claude'],
 	['anthropic', 'claude'],
+	['codex', 'codex'],
 	['chatgpt', 'openai'],
 	['openai', 'openai'],
 	['cursor', 'cursor'],
@@ -252,7 +275,50 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['undici', 'node'],
 	['curl', 'curl'],
 	['mozilla', 'browser'],
+	['opencode', 'opencode'],
 ]
+
+// The name an agent goes by on a board when write_comment isn't told one: its client's family, which
+// is what the owner would call it. Bounded to these on purpose, like the families themselves — a raw
+// User-Agent is not a name anyone would recognise.
+const AGENT_NAMES_BY_CLIENT_FAMILY: Record<string, string> = {
+	claude: 'Claude',
+	openai: 'ChatGPT',
+	cursor: 'Cursor',
+}
+
+// The OAuth clients we recognise, by the host of their client id (a client id metadata document URL).
+// A client id we can't place, such as an opaque one, gets no logo rather than a guessed one.
+const MCP_AGENT_CLIENT_HOSTS: ReadonlyArray<readonly [host: string, client: McpAgentClient]> = [
+	['claude.ai', 'claude'],
+	['claude.com', 'claude'],
+	['anthropic.com', 'claude'],
+	['chatgpt.com', 'openai'],
+	['openai.com', 'openai'],
+	['cursor.com', 'cursor'],
+	['cursor.sh', 'cursor'],
+]
+
+/** Which app an OAuth client id belongs to, or null when we don't recognise it. */
+export function getMcpAgentClient(clientId: string | null): McpAgentClient | null {
+	if (!clientId) return null
+	let host: string
+	try {
+		host = new URL(clientId).hostname.toLowerCase()
+	} catch {
+		return null
+	}
+	for (const [known, client] of MCP_AGENT_CLIENT_HOSTS) {
+		if (host === known || host.endsWith(`.${known}`)) return client
+	}
+	return null
+}
+
+export function getDefaultAgentName(request: Request): string {
+	return (
+		AGENT_NAMES_BY_CLIENT_FAMILY[normalizeMcpClient(request.headers.get('user-agent'))] ?? 'Agent'
+	)
+}
 
 // Takes unknown because one caller passes a header and the other passes a field parsed straight out
 // of the request body, which is whatever the client chose to send.
@@ -263,6 +329,14 @@ export function normalizeMcpClient(value: unknown): string {
 		if (lower.includes(needle)) return family
 	}
 	return 'other'
+}
+
+function tabContext(
+	request: Request,
+	ctx: ExecutionContext | undefined,
+	tool: string
+): TabRenderContext {
+	return { request, ctx, tool, client: normalizeMcpClient(request.headers.get('user-agent')) }
 }
 
 // One datapoint per tools/call dispatch, whatever the tool did: the render path's
@@ -282,6 +356,24 @@ function writeMcpToolCallTelemetry(
 			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
 		],
 		doubles: [data.durationMs],
+	})
+}
+
+// One datapoint per comment that landed. The tool call event says a write succeeded but not what it
+// was, and a `queued` write is a success that read_page_comments can't see yet: the one outcome an
+// agent may answer by posting the comment again.
+function writeCommentWriteTelemetry(
+	env: Environment,
+	request: Request,
+	data: { target: CommentTarget['kind']; queued: boolean; mentions: number }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_comment_write', {
+		blobs: [
+			`target:${data.target}`,
+			`stored:${data.queued ? 'queued' : 'saved'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.mentions],
 	})
 }
 
@@ -340,7 +432,8 @@ const TOOL_HANDLERS = new Map<
 		request: Request,
 		env: Environment,
 		userId: string,
-		ctx?: ExecutionContext
+		ctx?: ExecutionContext,
+		clientId?: string | null
 	) => Promise<ToolCallResult>
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
@@ -354,6 +447,8 @@ const TOOL_HANDLERS = new Map<
 	[APPLY_OPS_TOOL_NAME, callApplyOpsTool],
 	[USER_STATE_TOOL_NAME, callUserStateTool],
 	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
+	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
+	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
 ])
 
 export async function mcpServer(
@@ -470,7 +565,14 @@ export async function mcpServer(
 			const startedAt = Date.now()
 			let called: ToolCallResult
 			try {
-				called = await toolHandler(rpcRequest.params?.arguments, request, env, auth.userId, ctx)
+				called = await toolHandler(
+					rpcRequest.params?.arguments,
+					request,
+					env,
+					auth.userId,
+					ctx,
+					auth.clientId
+				)
 			} catch (error) {
 				writeMcpToolCallTelemetry(env, request, {
 					tool: toolName,
@@ -782,6 +884,116 @@ async function callRenameBoardTool(
 	}
 }
 
+async function callReadPageCommentsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseReadPageCommentsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// Shares search_boards' budget, like list_workspaces: a Postgres read and an R2 read, and no
+		// Browser Run.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		// The snapshot names the page and the shapes threads are pinned to; the threads themselves
+		// live in Postgres, under the file's id, which for a file is its board id.
+		const loaded = await loadBoardForTool(env, input.boardId, userId)
+		if (!loaded.ok) return loaded.result
+		// A published board has no comments, and its slug names no file to read them under.
+		if (!loaded.isFile) {
+			return toolError(COMMENTS_ON_PUBLISHED_BOARD_MESSAGE, 'comments_unavailable')
+		}
+		const resolved = resolveSnapshotPage(loaded.snapshot, input.page)
+		if (!resolved.ok) return withTelemetryReason(resolved.result, resolved.reason)
+		if (input.cursor && input.cursor.pageId !== resolved.page.pageId) {
+			return toolError(COMMENT_CURSOR_WRONG_PAGE_MESSAGE, 'invalid_input')
+		}
+
+		const { threads, comments, hasMore } = await readPageCommentRows(
+			env,
+			input.boardId,
+			resolved.page.pageId,
+			{ includeResolved: input.includeResolved, after: input.cursor }
+		)
+		return getPageCommentsResult(resolved.page, threads, comments, userId, { hasMore })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_comment_read',
+			extras: { boardId: input.boardId, page: describePageSelector(input.page) },
+			summary: 'Could not read comments',
+			// As for get_board_info: no render, so only the snapshot-read class can honestly apply.
+			recordAs: (reason) => (reason === 'snapshot_read_error' ? reason : 'board_lookup_error'),
+		})
+	}
+}
+
+async function callWriteCommentTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext,
+	clientId: string | null = null
+) {
+	const parsed = parseToolInput(() => parseWriteCommentInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// The budget every tool that goes through the board's durable object shares.
+		const refusal = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		// The agent picks its own name, but which app it is comes from its OAuth client, so tldraw.com
+		// shows that app's logo however the agent names itself.
+		const agentClient = getMcpAgentClient(clientId)
+		const written = await writeCommentForUser(env, userId, {
+			...input,
+			agentName:
+				input.agentName ??
+				(agentClient ? AGENT_NAMES_BY_CLIENT_FAMILY[agentClient] : getDefaultAgentName(request)),
+			agentClient,
+		})
+		if (!written.ok) return withTelemetryReason(written.result, written.reason)
+		writeCommentWriteTelemetry(env, request, {
+			target: input.target.kind,
+			queued: written.queued,
+			mentions: getTextMentionIds(input.text).length,
+		})
+		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
+		return getWrittenCommentResult({
+			boardId: input.boardId,
+			threadId: written.threadId,
+			commentId: written.commentId,
+			pageId: written.pageId,
+			newThread: written.newThread,
+			queued: written.queued,
+			// tldraw.com opens the thread from this, as its own "copy link" does.
+			url: `${boardUrl}?comment=${encodeURIComponent(written.threadId)}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_comment_write',
+			// The text is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId, target: input.target.kind },
+			summary: 'Could not post the comment',
+			recordAs: () => 'comment_write_error',
+		})
+	}
+}
+
 async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -793,10 +1005,28 @@ async function callBoardInfoTool(
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
+	// The people a comment can @mention, with the ids write_comment takes, read alongside the board
+	// rather than after it. Safe to start before the access check: the query applies the caller's own
+	// roster rules, and its answer is used only once the board has let them in. The roster is extra
+	// to the board's info, so a failed read lists nobody rather than failing the tool.
+	const peopleRead = readMentionableUsers(env, input.boardId, userId).catch((error) => {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_board_info',
+			extras: { boardId: input.boardId, operation: 'read_mentionable_users' },
+		})
+		return null
+	})
 	try {
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
-		return getBoardInfo(loaded.snapshot, loaded.fileName)
+		// A published copy has no comments, so it lists none.
+		const roster = loaded.isFile ? await peopleRead : null
+		const people =
+			roster?.map((person) => ({ ...person, isCurrentUser: person.id === userId })) ?? null
+		return getBoardInfo(loaded.snapshot, loaded.fileName, people)
 	} catch (error) {
 		// No `telemetry`: this tool isn't on the screenshot ledger.
 		return toolFailure(error, {
@@ -837,6 +1067,7 @@ async function callPageInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: PAGE_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		telemetry({})
@@ -856,7 +1087,13 @@ async function callPageInfoTool(
 }
 
 type LoadedBoard =
-	| { ok: true; fileName: string | null; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| {
+			ok: true
+			fileName: string | null
+			snapshot: import('@tldraw/sync-core').RoomSnapshot
+			/** A file the caller can open, rather than a published copy. */
+			isFile: boolean
+	  }
 	| { ok: false; result: ToolCallResult }
 
 async function loadBoardForTool(
@@ -886,7 +1123,12 @@ async function loadBoardForTool(
 		file: resolved.board.file,
 	})
 	if (!snapshot) return { ok: false, result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty') }
-	return { ok: true, fileName: resolved.fileName, snapshot }
+	return {
+		ok: true,
+		fileName: resolved.fileName,
+		snapshot,
+		isFile: resolved.board.access === 'render',
+	}
 }
 
 type BoardPageRead = { ok: true; read: McpPageRead } | { ok: false; result: ToolCallResult }
@@ -922,12 +1164,14 @@ async function readBoardPage(
 		telemetry,
 		request,
 		ctx,
+		tool,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		tool: string
 	}
 ): Promise<BoardPageRead> {
 	const fail = (reason: string, result: ToolCallResult): BoardPageRead => {
@@ -941,11 +1185,23 @@ async function readBoardPage(
 	const refusal = await refuseUnlessFile(env, boardId, userId)
 	if (refusal) return fail(refusal.reason, refusal.result)
 
-	const tab = await readPageInOpenTab(env, boardId, userId, page, clusterIds, { request, ctx })
+	const tab = await readPageInOpenTab(
+		env,
+		boardId,
+		userId,
+		page,
+		clusterIds,
+		tabContext(request, ctx, tool)
+	)
 	if (!tab.ok) return fail(tab.reason, toolError(tab.message, tab.reason))
 	if (!tab.value.found) {
 		const failure = pageLookupFailure(tab.value.lookup, page)
 		return fail(failure.reason, withTelemetryReason(failure.result, failure.reason))
+	}
+	// get_page_info reads the whole page (no cluster ids named); shadow-compare that clustering against
+	// the headless editor, off the critical path. Inert until HEADLESS_WORKER is bound — see headlessShadow.ts.
+	if (clusterIds.length === 0 && ctx && env.HEADLESS_WORKER) {
+		ctx.waitUntil(compareMeasureInShadow(env, { boardId, userId, read: tab.value.read }))
 	}
 	return { ok: true, read: tab.value.read }
 }
@@ -1043,7 +1299,7 @@ async function checkTabRateLimit(
 		callerHash: await sha256(userId),
 	})
 	return toolError(
-		`Rate limited. Reading, screenshotting and editing boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
+		`Rate limited. Reading, screenshotting, editing and commenting on boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
 		'rate_limited_tab'
 	)
 }
@@ -1090,6 +1346,7 @@ async function callClusterInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const info = getClusterInfo(page.read, input.clusterIds, input.page, input.cursor)
@@ -1138,6 +1395,7 @@ async function callClusterScreenshotTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_SCREENSHOT_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const picked = pickClusterShapes(page.read.details, input.clusterIds, input.page)
@@ -1161,7 +1419,7 @@ async function callClusterScreenshotTool(
 				width: size.width,
 				height: size.height,
 			},
-			{ request, ctx }
+			tabContext(request, ctx, CLUSTER_SCREENSHOT_TOOL_NAME)
 		)
 		if (!image.ok) {
 			telemetry({ failureReason: image.reason })
@@ -1219,7 +1477,7 @@ async function callApplyOpsTool(
 				page: input.page ?? undefined,
 				attribution: { userId, runId: input.runId ?? undefined },
 			},
-			{ request, ctx }
+			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)
 		if (!applied.ok) return toolError(applied.message, applied.reason)
 		const { pageId, pageName, result } = applied.value
@@ -1257,13 +1515,18 @@ async function callUserStateTool(
 		if (refusal) return refusal.result
 
 		if (input.userId === null || input.userId === userId) {
-			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			const state = await readUserStateInOpenTab(
+				env,
+				input.boardId,
+				userId,
+				tabContext(request, ctx, USER_STATE_TOOL_NAME)
+			)
 			if (!state.ok) return toolError(state.message, state.reason)
 			const { pageId, pageName, selectedShapeIds, viewport } = state.value
 			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
 		}
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
 		if (!user) {
@@ -1272,7 +1535,7 @@ async function callUserStateTool(
 				'user_not_on_board'
 			)
 		}
-		return toolJsonResult(user)
+		return getPeerStateResult(user, Date.now())
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -1304,9 +1567,9 @@ async function callBoardUsersTool(
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
-		return toolJsonResult(users.value)
+		return getBoardUsersResult(users.value, Date.now())
 	} catch (error) {
 		return toolFailure(error, {
 			env,

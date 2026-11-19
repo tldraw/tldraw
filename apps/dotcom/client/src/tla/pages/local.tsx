@@ -8,18 +8,25 @@ import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaSignInDialog } from '../components/dialogs/TlaSignInDialog'
 import { TlaAnonDotDevLink } from '../components/TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { useAnonCommentToolOverrides } from '../components/TlaEditor/CommentsOnCanvas'
 import { SneakyDarkModeSync } from '../components/TlaEditor/sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebugModeToast'
-import { components } from '../components/TlaEditor/TlaEditor'
+import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
+import { useAnonCommentToolOverrides } from '../components/TlaEditor/useAnonCommentToolOverrides'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { hasNotAcceptedLegal } from '../utils/auth'
 import { startCachedFileVisit } from '../utils/cachedFileVisit'
+import { getCurrentFlags } from '../utils/featureFlags'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
-import { clearRedirectOnSignIn, OPEN_SIGN_IN } from '../utils/redirect'
+import {
+	clearRedirectOnSignIn,
+	clearStayOnBoardAfterSignIn,
+	getStayOnBoardAfterSignIn,
+	isClerkFrontendApiUrl,
+	OPEN_SIGN_IN,
+} from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -39,6 +46,8 @@ export function Component() {
 		if (app || !isAppLoading || !userId) return
 		if (getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)) return
 		if (location.state?.importUrl || getShouldSlurpFile()) return
+		// Flagged users land on the workspace page, which needs the app; don't open a file early.
+		if (getCurrentFlags().ui_v3?.enabled) return
 		const cachedFileId = getLastVisitedFileId(userId)
 		if (!cachedFileId) return
 		navigate(routes.tlaFile(cachedFileId), {
@@ -60,6 +69,11 @@ export function Component() {
 				clearRedirectOnSignIn()
 				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
+					return
+				}
+				// /sign-in stores Clerk's OAuth authorize URL, which lives on Clerk's own origin.
+				if (isClerkFrontendApiUrl(redirectTo)) {
+					window.location.replace(redirectTo)
 					return
 				}
 			}
@@ -93,9 +107,19 @@ export function Component() {
 				// unslurped means it's still there when they log out.
 				if (res.ok) {
 					clearShouldSlurpFile()
+					clearStayOnBoardAfterSignIn()
 					navigate(routes.tlaFile(res.value.fileId), { replace: true, state: location.state })
 					return
 				}
+			}
+
+			// Someone who just signed in on the board here stays on a board, as below.
+			if (app.isUiV3Enabled && !getStayOnBoardAfterSignIn()) {
+				navigate(routes.tlaWorkspace(app.getHomeWorkspaceId()), {
+					replace: true,
+					state: location.state,
+				})
+				return
 			}
 
 			// Land on the file the user last had open, across all workspaces, not just home.
@@ -106,10 +130,12 @@ export function Component() {
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
+				clearStayOnBoardAfterSignIn()
 				navigate(routes.tlaFile(result.value.fileId), { replace: true, state: location.state })
 				return
 			}
 
+			clearStayOnBoardAfterSignIn()
 			navigate(routes.tlaFile(mostRecentFileId), { replace: true, state: location.state })
 		}
 
@@ -171,7 +197,8 @@ function useOpenSignInFromLocationState() {
 		if (!location.state?.[OPEN_SIGN_IN]) return
 		navigate('.', { replace: true, state: omit(location.state, [OPEN_SIGN_IN]) })
 		dialogs.addDialog({
-			component: TlaSignInDialog,
+			// Sent here to sign in, by the Home button or by Clerk, not signing in from the board.
+			component: (props) => <TlaSignInDialog {...props} goesHome />,
 			// Dismissed without signing in: a redirect left behind would hijack a later sign-in.
 			onClose: () => {
 				if (!clerk.isSignedIn) clearRedirectOnSignIn()

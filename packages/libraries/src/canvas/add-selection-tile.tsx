@@ -1,44 +1,46 @@
-import { defineMessages, TldrawUiIcon, useEditor, useTranslation, useValue } from 'tldraw'
-import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId } from '../lib/schema'
-import type { PrepareItemContent } from './save-shapes'
-import { useSaveSelection } from './use-save-selection'
+import { defineMessages, TldrawUiIcon, TldrawUiTooltip, useTranslation } from 'tldraw'
+import type { TLLibrary } from '../lib/schema'
 
 const messages = defineMessages({
 	addSelection: { id: 'libraries.add-selection', defaultMessage: 'Add selection' },
 	selectToAdd: { id: 'libraries.select-to-add', defaultMessage: 'Select shapes to add them' },
 })
 
-export function AddSelectionTile({
-	source,
-	libraryId,
-	prepareItemContent,
-}: {
-	source: LibrarySource
-	libraryId: TLLibraryId
-	prepareItemContent?: PrepareItemContent
-}) {
-	const editor = useEditor()
+/** @public */
+export interface AddSelectionTileProps {
+	/** The library the selection is added to. */
+	library: TLLibrary
+	/** Whether any shapes are selected. */
+	hasSelection: boolean
+	/** Adds the selected shapes to the library as one item. Does nothing when none are selected. */
+	onAddSelection(): void
+}
+
+/**
+ * A + tile that adds the selected shapes to a library. The default for
+ * {@link LibrariesComponents.AddSelectionTile}.
+ * @public @react
+ */
+export function AddSelectionTile({ hasSelection, onAddSelection }: AddSelectionTileProps) {
 	const msg = useTranslation()
-	const { saveSelection } = useSaveSelection(source, prepareItemContent)
-	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
-		editor,
-	])
+	const hint = msg(hasSelection ? messages.addSelection : messages.selectToAdd)
 
 	return (
 		<div className="tlui-libraries-tile tlui-libraries-add-tile">
-			<button
-				type="button"
-				className="tlui-libraries-tile__button"
-				aria-label={msg(messages.addSelection)}
-				title={msg(hasSelection ? messages.addSelection : messages.selectToAdd)}
-				disabled={!hasSelection}
-				onClick={() => saveSelection(libraryId)}
-			>
-				<span className="tlui-libraries-tile__thumbnail">
-					<TldrawUiIcon icon="plus" label="" small />
-				</span>
-			</button>
+			<TldrawUiTooltip content={hint}>
+				<button
+					type="button"
+					className="tlui-libraries-tile__button"
+					aria-label={msg(messages.addSelection)}
+					aria-description={hasSelection ? undefined : hint}
+					aria-disabled={!hasSelection}
+					onClick={onAddSelection}
+				>
+					<span className="tlui-libraries-tile__thumbnail">
+						<TldrawUiIcon icon="plus" label="" small />
+					</span>
+				</button>
+			</TldrawUiTooltip>
 		</div>
 	)
 }

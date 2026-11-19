@@ -143,6 +143,12 @@
       "value": "Send feedback"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Mark all notifications as read"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -179,10 +185,22 @@
       "value": "Notification options"
     }
   ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Switch workspace"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Create file"
+    }
+  ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Created by me"
     }
   ],
   "1a7222b4e5": [
@@ -241,26 +259,20 @@
       "value": "About tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " commented on your board"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Could not submit feedback"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "On behalf of "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -305,6 +317,16 @@
       "value": "Regenerate invite link"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (you)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -323,10 +345,22 @@
       "value": "Back to tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Duplicate file"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Please try refreshing the page."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "File name"
     }
   ],
   "344a7f427f": [
@@ -395,6 +429,12 @@
       "value": "Contact the owner to request access."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Actions…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -427,6 +467,12 @@
       "value": "Thanks for helping us improve tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Move file to"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -445,10 +491,48 @@
       "value": "Pin file"
     }
   ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Object"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Edited "
+    },
+    {
+      "type": 1,
+      "value": "time"
+    }
+  ],
   "49ee308734": [
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Copy published link"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented"
     }
   ],
   "4d0d3ddec9": [
@@ -485,6 +569,18 @@
     {
       "type": 0,
       "value": "Page menu"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "No files here yet."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Export…"
     }
   ],
   "53770fd374": [
@@ -539,6 +635,12 @@
       "value": "Create a workspace"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Go to file"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -549,6 +651,12 @@
     {
       "type": 0,
       "value": "Privacy policy"
+    }
+  ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Archived files will appear here."
     }
   ],
   "5a95a425f7": [
@@ -567,22 +675,6 @@
     {
       "type": 0,
       "value": "My workspace"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
     }
   ],
   "5d04a002ea": [
@@ -627,33 +719,10 @@
       "value": "Later"
     }
   ],
-  "61fb03fd7b": [
+  "623cddd380": [
     {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Someone reacted to your comment"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " people reacted to your comment"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
+      "type": 0,
+      "value": "Recents"
     }
   ],
   "625fd29749": [
@@ -686,10 +755,80 @@
       "value": "A new version of tldraw is available. Please reload the page to continue."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Edited"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "New file"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "6832ac5936": [
@@ -704,10 +843,55 @@
       "value": "Delete workspace"
     }
   ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Sign in to save"
+    }
+  ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Someone reacted"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " people reacted"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Help"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -720,6 +904,12 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Canvas"
     }
   ],
   "70a6facb9d": [
@@ -794,6 +984,12 @@
       "value": "Please reload"
     }
   ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Copy file link"
+    }
+  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -816,6 +1012,12 @@
     {
       "type": 0,
       "value": "Submit an issue on GitHub"
+    }
+  ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· On this board now"
     }
   ],
   "7a1920d611": [
@@ -842,10 +1044,22 @@
       "value": "Open tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Sign in to edit profile settings"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Forget"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Archived"
     }
   ],
   "7daeced9ff": [
@@ -950,10 +1164,66 @@
       "value": "Rename file"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Untitled workspace"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
       "value": "You are already a member of this workspace"
+    }
+  ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "88bf6ab42c": [
@@ -968,10 +1238,22 @@
       "value": "Check your email for a verification code."
     }
   ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Home"
+    }
+  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Shared with you"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "About"
     }
   ],
   "8ff3d0a705": [
@@ -1012,6 +1294,12 @@
       "value": "? This action cannot be undone."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Files"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1036,6 +1324,22 @@
       "value": "This month"
     }
   ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
+    }
+  ],
   "985a4b720f": [
     {
       "type": 0,
@@ -1052,6 +1356,12 @@
     {
       "type": 0,
       "value": "Clear search"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Unsaved file"
     }
   ],
   "9b33f5c63c": [
@@ -1198,6 +1508,12 @@
       "value": "Cookie policy"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Toggle comments sidebar"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1250,6 +1566,12 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "App"
     }
   ],
   "aeb428554a": [
@@ -1310,10 +1632,22 @@
       "value": "File is full"
     }
   ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Open notifications panel"
+    }
+  ],
   "b357b524e7": [
     {
       "type": 0,
       "value": "Email address"
+    }
+  ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Grid view"
     }
   ],
   "b48becc771": [
@@ -1410,6 +1744,18 @@
       "value": "ownerName"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Current file"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Search…"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1498,6 +1844,18 @@
       "value": "Dismiss"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Color"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profile"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1522,54 +1880,16 @@
       "value": "Learn more about publishing."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " and "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " others"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Preferences"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " reacted to your comment"
+      "value": "Unpublish file"
     }
   ],
   "d3d2e61733": [
@@ -1588,6 +1908,12 @@
     {
       "type": 0,
       "value": "Toggle sidebar"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Workspaces"
     }
   ],
   "d638a3344b": [
@@ -1690,36 +2016,6 @@
       "value": "Terms of service"
     }
   ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1760,6 +2056,12 @@
     {
       "type": 0,
       "value": "Account menu"
+    }
+  ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "No files match your search."
     }
   ],
   "ed75712b0e": [
@@ -1806,6 +2108,12 @@
       "value": "selected"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Shared with me"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1816,6 +2124,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "List view"
     }
   ],
   "f2569594b2": [
@@ -1834,70 +2148,6 @@
     {
       "type": 0,
       "value": "This invite link is invalid or has expired."
-    }
-  ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " others"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
     }
   ],
   "f4f70727dc": [
@@ -1982,6 +2232,36 @@
     {
       "type": 0,
       "value": "Error accepting invite"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "ffcd73e997": [

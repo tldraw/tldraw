@@ -139,6 +139,12 @@
       "value": "Geri bildirim gönder"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Tüm bildirimleri okundu olarak işaretle"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -175,10 +181,22 @@
       "value": "Bildirim seçenekleri"
     }
   ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Çalışma alanını değiştir"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
       "value": "Dosya oluştur"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Taşın"
     }
   ],
   "1da2e8106b": [
@@ -227,26 +245,20 @@
       "value": "tldraw hakkında"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " panonuza yorum yaptı."
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Geri bildirim gönderilemedi."
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " adına"
     }
   ],
   "299cb00a7a": [
@@ -309,10 +321,22 @@
       "value": "tldraw'a geri dön"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Dosya kopyası"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Lütfen sayfayı yenilemeyi deneyin."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Dosya adı"
     }
   ],
   "344a7f427f": [
@@ -331,6 +355,12 @@
     {
       "type": 0,
       "value": "Üyeyi kaldır"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Bu daveti kabul etmek için giriş yapın."
     }
   ],
   "3bc7d6ea2f": [
@@ -403,6 +433,12 @@
       "value": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Dosyayı taşı"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -425,6 +461,28 @@
     {
       "type": 0,
       "value": "İsim"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Yayınlanan bağlantıyı kopyala"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " yorum yaptı"
     }
   ],
   "4d0d3ddec9": [
@@ -515,6 +573,12 @@
       "value": "Bir çalışma alanı oluşturun"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Dosyaya git"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -543,22 +607,6 @@
     {
       "type": 0,
       "value": "Çalışma alanım"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " yorumunuza yanıt verdi."
     }
   ],
   "5d04a002ea": [
@@ -603,35 +651,6 @@
       "value": "Daha sonra"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Birisi yorumunuza yanıt verdi."
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " Kişi yorumunuza tepki verdi"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -662,10 +681,80 @@
       "value": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Düzenlendi"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Yeni dosya"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ve "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " tepki verdi"
     }
   ],
   "6832ac5936": [
@@ -680,10 +769,49 @@
       "value": "Çalışma alanını sil"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Birisi tepki gösterdi."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " insanlar tepki verdi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Yardım"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -696,6 +824,12 @@
     {
       "type": 0,
       "value": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Tuval"
     }
   ],
   "70a6facb9d": [
@@ -720,6 +854,12 @@
     {
       "type": 0,
       "value": "Lütfen sayfayı tekrar yükleyin"
+    }
+  ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "İçeriği .tldr dosyası olarak kaydedin: sol üst menüden 'Bir kopyasını kaydet' seçeneğini seçin."
     }
   ],
   "74ff4bad28": [
@@ -762,6 +902,12 @@
     {
       "type": 0,
       "value": "Lütfen yeniden yükleyin"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Dosya bağlantısını kopyala"
     }
   ],
   "777f9e90cf": [
@@ -922,6 +1068,56 @@
       "value": "Zaten bu çalışma alanının bir üyesisiniz."
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ve "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " tepki verdi"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -938,6 +1134,12 @@
     {
       "type": 0,
       "value": "Sizinle paylaşıldı"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Hakkında"
     }
   ],
   "8ff3d0a705": [
@@ -974,6 +1176,18 @@
       "value": " öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Dosyalar"
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Davet bağlantısı kopyalandı."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -990,6 +1204,22 @@
     {
       "type": 0,
       "value": "Bu ay"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " tepki verdi"
     }
   ],
   "985a4b720f": [
@@ -1114,12 +1344,6 @@
       "value": "count"
     }
   ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "İçeriği .tldr dosyası olarak dışa aktarın: Sol üst menüden 'İndir'i seçin."
-    }
-  ],
   "a104439641": [
     {
       "type": 0,
@@ -1154,6 +1378,12 @@
     {
       "type": 0,
       "value": "Çerez politikası"
+    }
+  ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Yorumlar kenar çubuğunu aç/kapat"
     }
   ],
   "a4d3b161ce": [
@@ -1210,6 +1440,18 @@
       "value": "Dosya sınırına ulaşıldı"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "Uygulama"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Kütüphaneler"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1260,6 +1502,12 @@
     {
       "type": 0,
       "value": "Dosya dolu"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Bildirim panelini açın"
     }
   ],
   "b357b524e7": [
@@ -1358,6 +1606,12 @@
       "value": " tarafından paylaşıldı"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Mevcut dosya"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1438,6 +1692,18 @@
       "value": "Kapat"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Renk"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profil"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1462,54 +1728,16 @@
       "value": "Yayınlama hakkında daha fazla bilgi edinin."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " ve "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " kişi daha"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " kişi daha"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Tercihler"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " yorumunuza tepki verdi."
+      "value": "Dosyayı yayından kaldır"
     }
   ],
   "d3d2e61733": [
@@ -1528,6 +1756,12 @@
     {
       "type": 0,
       "value": "Kenar çubuğunu aç/kapat"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Çalışma Alanları"
     }
   ],
   "d638a3344b": [
@@ -1600,12 +1834,6 @@
       "value": "Çalışma alanından ayrılın"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Uygulama hata ayıklama bayrakları"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1630,40 +1858,16 @@
       "value": "Hizmet Şartları"
     }
   ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " ve "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " yorumunuza yanıt verdi."
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
       "value": "veya"
+    }
+  ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Dosya geçmişi"
     }
   ],
   "ea4788705e": [
@@ -1764,68 +1968,10 @@
       "value": "Sil"
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "f408fa5fbd": [
     {
       "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " ve "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " kişi daha"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " kişi daha"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " yorumunuza tepki verdi."
+      "value": "Bu davet bağlantısı geçersiz veya süresi dolmuş."
     }
   ],
   "f4f70727dc": [
@@ -1896,6 +2042,42 @@
     {
       "type": 0,
       "value": "Dosyalarınızı kaydetmek ve takım arkadaşlarınızla birlikte çizim yapmak için ücretsiz bir hesap oluşturun."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Daveti kabul etmede hata oluştu"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ve "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " tepki verdi"
     }
   ],
   "ffcd73e997": [

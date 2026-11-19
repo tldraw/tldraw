@@ -1412,6 +1412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean;
         margin?: number;
     }): TLShape[];
+    // @internal
     getShapesInReadingOrder(shapes: TLShape[]): TLShape[];
     getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
     // @internal (undocumented)
@@ -4162,6 +4163,10 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
+    // (undocumented)
+    'confirm-open-link': [{
+        url: string;
+    }];
     // (undocumented)
     'created-shapes': [TLRecord[]];
     // (undocumented)

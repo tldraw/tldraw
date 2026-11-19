@@ -11,6 +11,7 @@ export const ROUTES = {
 
 	tlaRoot: `/`,
 	tlaNew: `/new`,
+	tlaWorkspace: `/w/:workspaceId`,
 	tlaFile: `/f/:fileSlug`,
 	tlaFileHistory: `/f/:fileSlug/history`,
 	tlaFileHistorySnapshot: `/f/:fileSlug/history/:timestamp`,
@@ -19,6 +20,7 @@ export const ROUTES = {
 	tlaPublish: `/p/:fileSlug`,
 	tlaImport: `/import`,
 	tlaInvite: `/invite/:token`,
+	tlaSignIn: `/sign-in`,
 	tlaSsoCallback: `/sso-callback`,
 	tlaOAuthConsent: `/oauth-consent`,
 	// Legacy routes

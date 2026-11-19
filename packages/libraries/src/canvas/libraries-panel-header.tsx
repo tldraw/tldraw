@@ -1,75 +1,71 @@
 import type { ReactNode } from 'react'
 import {
 	defineMessages,
-	getIncrementedName,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
 	useEditor,
-	useToasts,
+	useReadonly,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import type { LibrarySource } from '../lib/LibrarySource'
+import { NewLibraryIcon } from '../ui/library-icon'
 import { LibraryMenu } from '../ui/library-menu'
-import { canCreateNewLibrary, createNewLibrary } from './new-library'
-import { activeLibraryId, renamingLibraryId } from './state'
+import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
-	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
-	changeErrorTitle: {
-		id: 'libraries.library-error.title',
-		defaultMessage: "Couldn't change libraries",
-	},
-	changeErrorDescription: {
-		id: 'libraries.library-error.description',
-		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
-	},
 })
 
-export function LibrariesPanelHeader({
-	source,
-	menuItems,
-}: {
-	source: LibrarySource
+/**
+ * Creates a library from the {@link LibrariesPanel}. When the source has two or more owners, it
+ * creates one for a tab's owner: the open tab's in the header, and each tab's own in its
+ * {@link NoLibraries}.
+ * @public
+ */
+export interface NewLibraryAction {
+	/** "New library", or "New library in …" naming the owner. */
+	label: string
+	onCreate(): void
+}
+
+/** @public */
+export interface LibrariesPanelHeaderProps {
+	/** For the open tab's owner. Left out when the source doesn't allow creating a library there. */
+	newLibrary?: NewLibraryAction
+	/** The host's items for the panel's ⋯ menu, from {@link LibrariesPanelProps.menuItems}. */
 	menuItems?: ReactNode
-}) {
+}
+
+/**
+ * The {@link LibrariesPanel}'s header: its title, a "New library" button and a ⋯ menu. The default
+ * for {@link LibrariesComponents.LibrariesPanelHeader}.
+ * @public @react
+ */
+export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { addToast } = useToasts()
-	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
+	const isReadonly = useReadonly()
 	const renaming = useValue('renaming library', () => renamingLibraryId.get(editor) !== null, [
 		editor,
 	])
-
-	const createLibrary = () => {
-		const name = getIncrementedName(
-			msg(messages.newLibraryName),
-			source.getLibraries().map((library) => library.name)
-		)
-		createNewLibrary(source, name).then(
-			(library) => {
-				activeLibraryId.set(editor, library.id)
-				renamingLibraryId.set(editor, library.id)
-			},
-			() =>
-				addToast({
-					title: msg(messages.changeErrorTitle),
-					description: msg(messages.changeErrorDescription),
-					severity: 'error',
-				})
-		)
-	}
 
 	return (
 		<header className="tlui-libraries-panel__header">
 			<span className="tlui-libraries-panel__title">{msg(messages.title)}</span>
 			<div className="tlui-libraries-panel__header-actions">
+				{newLibrary && !isReadonly && (
+					<TldrawUiButton
+						type="icon"
+						tooltip={newLibrary.label}
+						title={newLibrary.label}
+						onClick={newLibrary.onCreate}
+					>
+						<TldrawUiButtonIcon icon={<NewLibraryIcon />} />
+					</TldrawUiButton>
+				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the new library's name input straight away. */}
-				{!renaming && (
-					<LibraryMenu id="libraries-panel-menu" onCreate={canCreate ? createLibrary : undefined}>
-						{menuItems}
-					</LibraryMenu>
-				)}
+				{!renaming && <LibraryMenu id="libraries-panel-menu">{menuItems}</LibraryMenu>}
 			</div>
 		</header>
 	)

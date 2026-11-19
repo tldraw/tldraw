@@ -1,6 +1,6 @@
 import { Image, noop } from '@tldraw/editor'
 import { createContext, useContext, useEffect } from 'react'
-import { TLUiAssetUrls } from '../assetUrls'
+import { TLUiAssetUrls, defaultUiAssetUrls } from '../assetUrls'
 
 /** @internal */
 type UiAssetUrlsContextType = TLUiAssetUrls | null
@@ -51,4 +51,15 @@ export function useAssetUrls() {
 	}
 
 	return assetUrls
+}
+
+/**
+ * Like {@link useAssetUrls}, but falls back to the default asset URLs instead of throwing when
+ * there's no provider. Components exported for use outside `<Tldraw>` (such as
+ * `@tldraw/commenting`'s comment list) render `TldrawUiIcon`, and must not crash there.
+ *
+ * @internal
+ */
+export function useAssetUrlsOrDefaults(): TLUiAssetUrls {
+	return useContext(AssetUrlsContext) ?? defaultUiAssetUrls
 }

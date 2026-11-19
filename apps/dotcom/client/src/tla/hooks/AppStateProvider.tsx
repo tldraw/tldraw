@@ -1,0 +1,150 @@
+import { useAuth, useUser as useClerkUser } from '@clerk/react'
+import { captureException } from '@sentry/react'
+import { ReactNode, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useValue } from 'tldraw'
+import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
+import { markFirstLoad } from '../../utils/firstLoad'
+import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
+import { useTldrawAppUiEvents } from '../utils/app-ui-events'
+import { tokenOrUndefinedWhenOffline } from '../utils/auth'
+import {
+	DEFAULT_FLAGS,
+	FeatureFlags,
+	fetchFeatureFlags,
+	wasAuthenticated,
+} from '../utils/featureFlags'
+import { appContext, appLoadingContext, currentApp$, isClientTooOld$ } from './useAppState'
+
+const APP_LOAD_ERROR_MESSAGES = {
+	header: 'Something went wrong',
+	para1: 'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
+	cta: 'Refresh',
+}
+
+export function AppStateProvider({ children }: { children: ReactNode }) {
+	const app = useValue(currentApp$)
+	const [error, setError] = useState<unknown>(null)
+	const auth = useAuth()
+	const { user, isLoaded } = useClerkUser()
+	const trackEvent = useTldrawAppUiEvents()
+
+	if (!auth.isSignedIn || !user || !isLoaded) {
+		throw new Error('should have redirected in TlaRootProviders')
+	}
+	const navigate = useNavigate()
+	const email = user.primaryEmailAddress?.emailAddress
+
+	// Cleared on unmount only. When the bootstrap below re-runs (the userId or email changed),
+	// nulling the atom there would blank every gated route for the whole preload, so the old app
+	// stays in place until the new one replaces it.
+	useEffect(() => {
+		return () => {
+			currentApp$.set(null)
+		}
+	}, [])
+
+	useEffect(() => {
+		let _app: TldrawApp
+		let didCancel = false
+		const abort = new AbortController()
+		setError(null)
+
+		const FETCH_TIMEOUT = 5000
+		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
+			return Promise.race([
+				fetchFeatureFlags(),
+				new Promise<FeatureFlags>((resolve) =>
+					setTimeout(() => resolve({ ...DEFAULT_FLAGS }), FETCH_TIMEOUT)
+				),
+			])
+		}
+
+		;(async () => {
+			let flags = await fetchFlagsWithTimeout()
+			if (!wasAuthenticated()) {
+				flags = await fetchFlagsWithTimeout()
+			}
+			markFirstLoad('flags-loaded')
+			if (didCancel) return
+			const token = await auth.getToken()
+			if (!token) throw new Error('no token')
+			const { app } = await TldrawApp.create({
+				userId: auth.userId,
+				email,
+				flags,
+				getToken: async () => {
+					const token = await auth.getToken()
+					return token || undefined
+				},
+				// `skipCache` is load-bearing, not belt and braces: Clerk hands back a cached token
+				// until it is nearly expired, and the refresh schedules itself from the *remaining*
+				// life of whatever it is given. Cached tokens would shorten that interval on every
+				// pass — 90s, then 45s, then 22s — until it bottomed out against its floor.
+				// Zero boots tokenless and picks a token up on its next refresh, so offline must not reject.
+				getZeroToken: () =>
+					tokenOrUndefinedWhenOffline(() => auth.getToken({ template: 'zero', skipCache: true })),
+				onClientTooOld: () => {
+					isClientTooOld$.set(true)
+				},
+				trackEvent,
+				navigate,
+				signal: abort.signal,
+			})
+			if (didCancel) {
+				app.dispose()
+				return
+			}
+			_app = app
+			currentApp$.set(app)
+		})().catch((err) => {
+			if (didCancel) return
+			console.error('[AppState] Failed to initialize:', err)
+			// Default grouping keys on the stack, which every preload timeout shares; the message
+			// carries the stalled stage or init status, so group on it. The Zero connection state
+			// goes on a tag rather than the fingerprint so one stage stays one issue.
+			const diagnostics = getPreloadDiagnostics(err)
+			captureException(err, {
+				fingerprint: ['{{ default }}', err instanceof Error ? err.message : String(err)],
+				tags: diagnostics && { zero_connection: diagnostics.connection },
+			})
+			setError(err)
+		})
+
+		return () => {
+			didCancel = true
+			abort.abort()
+			if (_app) {
+				_app.dispose()
+			}
+		}
+		// Depend on email, not the Clerk `user` object: Clerk v6 hands back a fresh user object on
+		// every token refresh (Zero refreshes ~once a minute with skipCache), and depending on it
+		// would dispose and recreate the whole app — and the editor below it — on each refresh.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [auth.userId, email])
+
+	if (error) {
+		// A swallowed bootstrap failure would leave the blank loading state below up for the
+		// whole session.
+		return (
+			<ErrorPage
+				messages={APP_LOAD_ERROR_MESSAGES}
+				cta={
+					<button type="button" onClick={() => window.location.reload()}>
+						{APP_LOAD_ERROR_MESSAGES.cta}
+					</button>
+				}
+			/>
+		)
+	}
+
+	// Children render while the app loads so the file route can open its sync socket in parallel
+	// with the Zero preload. Routes that cannot cope with a null app are held back by the
+	// `AppGate` in `TlaRootProviders`, not here.
+	return (
+		<appLoadingContext.Provider value={!app}>
+			<appContext.Provider value={app}>{children}</appContext.Provider>
+		</appLoadingContext.Provider>
+	)
+}

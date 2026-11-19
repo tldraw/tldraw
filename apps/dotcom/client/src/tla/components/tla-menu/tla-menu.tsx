@@ -17,23 +17,12 @@ import {
 	useTranslation,
 } from 'tldraw'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TLA_MENU_POSITION } from './tla-menu-position'
 import styles from './menu.module.css'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
 })
-
-/**
- * Shared positioning for tla dropdowns, popovers, and selects so they sit consistently
- * relative to their triggers. Spread onto a Radix/SDK content element (e.g.
- * `{...TLA_MENU_POSITION}`); tweak here to adjust every tla menu at once. `side` and
- * `align` stay per-menu since they depend on the trigger's placement.
- */
-export const TLA_MENU_POSITION = {
-	sideOffset: 4,
-	alignOffset: -4,
-	collisionPadding: 4,
-} as const
 
 // Used to section areas of the menu, ie links vs snapshots
 export function TlaMenuSection({ children }: { children: ReactNode }) {
@@ -106,7 +95,8 @@ export function TlaMenuControlLabel({
 	htmlFor,
 }: {
 	children: ReactNode
-	htmlFor: string
+	// Omit when the control can't take an id (a radio group, an SDK input); name it with aria-label instead.
+	htmlFor?: string
 }) {
 	return (
 		<label className={classNames(styles.menuLabel, 'tla-text_ui__medium')} htmlFor={htmlFor}>
@@ -132,6 +122,7 @@ export function TlaMenuSelect<T extends string>({
 	onChange,
 	options,
 	actions,
+	onHighlight,
 	'data-testid': dataTestId,
 }: {
 	id: string
@@ -151,6 +142,8 @@ export function TlaMenuSelect<T extends string>({
 		// Shown on hover when the action is disabled (e.g. why it can't be used).
 		tooltip?: ReactNode
 	}[]
+	// Fires as options are hovered or arrowed through, and with null when the list closes.
+	onHighlight?(value: T | null): void
 	'data-testid'?: string
 }) {
 	const container = useContainer()
@@ -168,7 +161,13 @@ export function TlaMenuSelect<T extends string>({
 
 	return (
 		<div className={styles.menuSelectWrapper}>
-			<_Select.Root value={value} onValueChange={handleChange}>
+			<_Select.Root
+				value={value}
+				onValueChange={handleChange}
+				onOpenChange={(open) => {
+					if (!open) onHighlight?.(null)
+				}}
+			>
 				<_Select.Trigger
 					id={id}
 					className={styles.menuSelectTrigger}
@@ -186,6 +185,9 @@ export function TlaMenuSelect<T extends string>({
 				<_Select.Portal container={container}>
 					<_Select.Content
 						className={styles.menuSelectContent}
+						// Radix moves focus to the list (not an item) when the pointer leaves an item, so
+						// item focus alone would leave the last hovered option highlighted.
+						onPointerLeave={() => onHighlight?.(null)}
 						position="popper"
 						side="bottom"
 						align="end"
@@ -198,6 +200,7 @@ export function TlaMenuSelect<T extends string>({
 									className={styles.menuSelectOption}
 									value={option.value}
 									disabled={option.disabled}
+									onFocus={() => onHighlight?.(option.value)}
 								>
 									<_Select.ItemIndicator>
 										<TlaIcon icon="check" />

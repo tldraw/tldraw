@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Gửi phản hồi"
   },
+  "0e4a10d921": {
+    "translation": "Đánh dấu tất cả thông báo là đã đọc"
+  },
   "1063e38cb5": {
     "translation": "Xóa"
   },
@@ -68,8 +71,14 @@
   "14b03eeeb5": {
     "translation": "Tùy chọn thông báo"
   },
+  "15bf4fead9": {
+    "translation": "Chuyển đổi không gian làm việc"
+  },
   "181b90f889": {
     "translation": "Tạo tệp"
+  },
+  "1a7222b4e5": {
+    "translation": "Di chuyển đến"
   },
   "1da2e8106b": {
     "translation": "Đã xảy ra lỗi không mong muốn."
@@ -89,11 +98,11 @@
   "250ddea65c": {
     "translation": "Giới thiệu về tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> đã bình luận trên diễn đàn của bạn"
-  },
   "28b2464e1f": {
     "translation": "Không thể gửi phản hồi"
+  },
+  "2944edaa8d": {
+    "translation": "Thay mặt cho {name}"
   },
   "299cb00a7a": {
     "translation": "Tải lên thất bại"
@@ -125,8 +134,14 @@
   "324a0f3182": {
     "translation": "Quay lại tldraw"
   },
+  "32811caa8c": {
+    "translation": "Tệp trùng lặp"
+  },
   "335defdafe": {
     "translation": "Vui lòng thử tải lại trang."
+  },
+  "34082694d2": {
+    "translation": "Tên tệp"
   },
   "344a7f427f": {
     "translation": "Biên tập viên"
@@ -136,6 +151,9 @@
   },
   "375396d6e5": {
     "translation": "Xóa thành viên"
+  },
+  "398f51738e": {
+    "translation": "Đăng nhập để chấp nhận lời mời này."
   },
   "3bc7d6ea2f": {
     "translation": "Tiếp tục với email"
@@ -167,6 +185,9 @@
   "46137245cd": {
     "translation": "Cảm ơn bạn đã giúp chúng tôi cải thiện tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Di chuyển tệp đến"
+  },
   "46de2de6bb": {
     "translation": "Chấp nhận điều khoản sử dụng"
   },
@@ -178,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Tên"
+  },
+  "4a8165368a": {
+    "translation": "Sao chép liên kết đã xuất bản"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> đã bình luận"
   },
   "4d0d3ddec9": {
     "translation": "Trang web này sử dụng cookie để ứng dụng hoạt động và thu thập số liệu phân tích."
@@ -218,6 +245,9 @@
   "5638176be5": {
     "translation": "Tạo không gian làm việc"
   },
+  "5653ebed2e": {
+    "translation": "Đi đến tệp"
+  },
   "5677e381d2": {
     "translation": "Chúng tôi sử dụng cookie phân tích để cải thiện tldraw."
   },
@@ -232,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Không gian làm việc của tôi"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> đã phản hồi bình luận của bạn"
   },
   "5d04a002ea": {
     "translation": "Không thể kết nối"
@@ -257,9 +284,6 @@
   "61057a0c84": {
     "translation": "Để sau"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, other {# Mọi người đã phản hồi bình luận của bạn}}"
-  },
   "625fd29749": {
     "translation": "Cũ hơn"
   },
@@ -275,8 +299,14 @@
   "6637a98151": {
     "translation": "Phiên bản mới của tldraw đã có sẵn. Vui lòng tải lại trang để tiếp tục."
   },
+  "67ed6ddb7d": {
+    "translation": "Đã chỉnh sửa"
+  },
   "681e10aecb": {
     "translation": "Tệp mới"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> và {count, plural, other {# người khác}} đã phản ứng"
   },
   "6832ac5936": {
     "translation": "Nhập địa chỉ email của bạn"
@@ -284,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Xóa không gian làm việc"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, other {# mọi người đã phản ứng}}"
+  },
   "6a26f54883": {
     "translation": "Trợ giúp"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Bạn không có đủ quyền cần thiết để thực hiện hành động này."
   },
   "6dfc62f621": {
     "translation": "Làm theo các bước sau để nhập nội dung theo cách thủ công:"
+  },
+  "6ea5359e01": {
+    "translation": "Vải bố"
   },
   "70a6facb9d": {
     "translation": "Tuần này"
@@ -304,6 +343,9 @@
   },
   "7408cf0d7b": {
     "translation": "Vui lòng tải lại trang"
+  },
+  "747ee44424": {
+    "translation": "Lưu nội dung dưới dạng tệp .tldr: chọn 'Lưu bản sao' trong menu ở góc trên bên trái."
   },
   "74ff4bad28": {
     "translation": "Không tìm thấy tệp nào"
@@ -325,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Trò chuyện với chúng tôi trên Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "Sao chép liên kết tệp"
   },
   "777f9e90cf": {
     "translation": "Yêu cầu không hợp lệ."
@@ -386,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Bạn đã là thành viên của không gian làm việc này."
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> và {count, plural, one {# other} other {# others}} đã phản ứng"
+  },
   "88bf6ab42c": {
     "translation": "Liên kết mời này đã hết hạn"
   },
@@ -394,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Về"
   },
   "8ff3d0a705": {
     "translation": "Lượng gửi/nhận yêu cầu có giới hạn"
@@ -407,6 +458,12 @@
   "90646db02d": {
     "translation": "Bạn có chắc chắn muốn xóa <strong>{workspaceName}</strong> không? Hành động này không thể hoàn tác."
   },
+  "91f3a2c0e4": {
+    "translation": "Tệp"
+  },
+  "930390d222": {
+    "translation": "Đã sao chép liên kết mời"
+  },
   "95aacd4d4a": {
     "translation": "Đăng nhập bằng Google"
   },
@@ -415,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Tháng này"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> đã phản ứng"
   },
   "985a4b720f": {
     "translation": "Điều khoản sử dụng"
@@ -452,9 +512,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, other {# chưa đọc}}"
   },
-  "a0da245992": {
-    "translation": "Xuất nội dung dưới dạng tệp .tldr: Chọn 'Tải xuống' ở menu trên cùng bên trái."
-  },
   "a104439641": {
     "translation": "Lề trong"
   },
@@ -472,6 +529,9 @@
   },
   "a3debabee7": {
     "translation": "Chính sách cookie"
+  },
+  "a4bef6414b": {
+    "translation": "Ẩn/bật thanh bên bình luận"
   },
   "a4d3b161ce": {
     "translation": "Nộp"
@@ -500,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Đã đạt đến giới hạn tập tin"
   },
+  "ac863f346e": {
+    "translation": "Ứng dụng"
+  },
+  "aeb428554a": {
+    "translation": "Thư viện"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Lần xuất bản gần nhất: <date></date>"
@@ -518,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Tệp đã đầy"
+  },
+  "b3205c1e45": {
+    "translation": "Mở bảng thông báo"
   },
   "b357b524e7": {
     "translation": "Địa chỉ email"
@@ -549,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Chia sẻ bởi {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Tệp hiện tại"
+  },
   "c17466812d": {
     "translation": "Quản lý không gian làm việc"
   },
@@ -576,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Bỏ qua"
   },
+  "cb5feb1b73": {
+    "translation": "Màu sắc"
+  },
+  "cce99c598c": {
+    "translation": "Hồ sơ"
+  },
   "cceaefbc20": {
     "translation": "Chia sẻ tệp này"
   },
@@ -588,8 +666,11 @@
   "cea291e45e": {
     "translation": "Tìm hiểu thêm về xuất bản."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> và {count, plural, other {# người khác}} đã phản hồi bình luận của bạn"
+  "d0834fcec6": {
+    "translation": "Tùy chọn"
+  },
+  "d28d6bbc42": {
+    "translation": "Hủy xuất bản tệp"
   },
   "d3d2e61733": {
     "translation": "Đóng"
@@ -599,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Chuyển đổi thanh bên"
+  },
+  "d5e92609cf": {
+    "translation": "Không gian làm việc"
   },
   "d638a3344b": {
     "translation": "Trước khi bắt đầu, vui lòng chấp nhận <tos>điều khoản sử dụng</tos> và <privacy>chính sách bảo mật</privacy> của chúng tôi."
@@ -621,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Rời khỏi không gian làm việc"
   },
-  "dfdb78a4e4": {
-    "translation": "Cờ gỡ lỗi ứng dụng"
-  },
   "e0aa021e21": {
     "translation": "OK"
   },
@@ -636,11 +717,11 @@
   "e404559826": {
     "translation": "Điều khoản dịch vụ"
   },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> và <name>{b}</name> đã phản hồi bình luận của bạn"
-  },
   "e81c4e4f2b": {
     "translation": "hoặc"
+  },
+  "ea13ecec38": {
+    "translation": "Lịch sử tập tin"
   },
   "ea4788705e": {
     "translation": "Hủy"
@@ -684,8 +765,8 @@
   "f2a6c498fb": {
     "translation": "Xóa"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> và {count, plural, other {# người khác}} đã phản hồi bình luận của bạn"
+  "f408fa5fbd": {
+    "translation": "Liên kết mời này không hợp lệ hoặc đã hết hạn."
   },
   "f4f70727dc": {
     "translation": "Cài đặt"
@@ -710,6 +791,12 @@
   },
   "ff52811b98": {
     "translation": "Tạo tài khoản miễn phí để lưu tệp của bạn và sử dụng tldraw cùng đồng đội."
+  },
+  "ffad261a48": {
+    "translation": "Lỗi khi chấp nhận lời mời"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> và <name>{b}</name> đã phản ứng"
   },
   "ffcd73e997": {
     "translation": "Nhập tập tin…"

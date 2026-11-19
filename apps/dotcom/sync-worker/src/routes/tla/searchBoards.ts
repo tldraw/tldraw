@@ -94,6 +94,7 @@ function toBoardSearchRow(
 		updatedAt: string | number
 		ownerName: string
 		owningGroupId: string | null
+		matched: string | number
 	},
 	arrivedAt: string | number,
 	source: BoardSearchRow['source']
@@ -101,6 +102,7 @@ function toBoardSearchRow(
 	return {
 		id: row.id,
 		name: row.name,
+		matched: Number(row.matched),
 		arrivedAt: Number(arrivedAt),
 		createdAt: Number(row.createdAt),
 		updatedAt: Number(row.updatedAt),
@@ -110,20 +112,39 @@ function toBoardSearchRow(
 }
 
 /**
+ * How many of `terms` the board's name contains, the leading sort key (see `BoardSearchCursor`). A
+ * constant 0 with no terms, which leaves the order on (arrivedAt, id) for the index to serve.
+ */
+function countMatchedTerms(terms: string[]): RawBuilder<number> {
+	if (!terms.length) return sql<number>`0`
+	return sql<number>`(${sql.join(
+		terms.map(
+			(term) =>
+				sql`(case when ${sql.ref('file.name')} ilike ${`%${escapeLikePattern(term)}%`} then 1 else 0 end)`
+		),
+		sql` + `
+	)})`
+}
+
+/**
  * The filters both reads share, applied through one helper because a filter that reached one and not
  * the other would make that read's page a different search from the rest of the merge — and the
  * surplus row only means "there is another page" if both were searching the same thing.
  */
 function narrowToTerms<T extends { where: any }>(query: T, terms: string[]): T {
-	let narrowed = query
+	const narrowed = query
 		.where('file.isDeleted', '=', false)
 		// Mirrors isTestFile: reading a test file needs admin auth, so it is not the caller's to find.
 		// In SQL rather than after the fact, or one could take a slot on the page.
 		.where('file.id', 'not like', 'test\\_%')
-	for (const term of terms) {
-		narrowed = narrowed.where('file.name', 'ilike', `%${escapeLikePattern(term)}%`)
-	}
-	return narrowed
+	if (!terms.length) return narrowed
+	// ORed: a board matches when its name contains any one term. A model guessing at a title tends to
+	// add a word the title lacks, and under AND that one stray word emptied the result. Ranking by
+	// `countMatchedTerms` keeps the boards matching every word ahead of the ones a common word
+	// (`%the%`, `%app%`) drags in.
+	return narrowed.where((eb: any) =>
+		eb.or(terms.map((term) => eb('file.name', 'ilike', `%${escapeLikePattern(term)}%`)))
+	)
 }
 
 /**
@@ -160,19 +181,22 @@ async function searchWorkspaceBoards(
 				eb
 					.selectFrom('file')
 					.select(BOARD_COLUMNS)
+					.select(countMatchedTerms(terms).as('matched'))
 					// `file_owning_group_created_at_idx` (`052_file_search_index.sql`) serves this equality
 					// and the ordering together, so each arm reads its page and stops instead of top-N
 					// sorting a whole workspace. What no index helps is the `ilike '%term%'` above: a query
 					// matching nothing still reads every board in scope. The index bounds paging, not
-					// matching.
+					// matching, and only for a listing: with a query, ranking by match count top-N sorts
+					// the matches, which the ilike scan has already read anyway.
 					.where('file.owningGroupId', '=', sql.ref<string>('g.groupId')),
 				terms
 			)
 			if (cursor) {
-				arm = arm.where(seekBelow(FILE_ID, sql.ref('file.createdAt'), cursor))
+				arm = arm.where(seekBelow(terms, FILE_ID, sql.ref('file.createdAt'), cursor))
 			}
 			return (
 				arm
+					.$if(terms.length > 0, (q) => q.orderBy(countMatchedTerms(terms), 'desc'))
 					.orderBy('file.createdAt', 'desc')
 					.orderBy(FILE_ID, 'desc')
 					// One more than a page, so the caller can answer "there is another page" without a second
@@ -181,7 +205,15 @@ async function searchWorkspaceBoards(
 					.as('s')
 			)
 		})
-		.select(['s.id', 's.name', 's.createdAt', 's.updatedAt', 's.ownerName', 's.owningGroupId'])
+		.select([
+			's.id',
+			's.name',
+			's.createdAt',
+			's.updatedAt',
+			's.ownerName',
+			's.owningGroupId',
+			's.matched',
+		])
 		.execute()
 
 	// A home group carries its user's id, which is what makes a board the caller's own rather than a
@@ -234,6 +266,7 @@ async function searchBoardsSharedWithCaller(
 			.selectFrom('group_file')
 			.innerJoin('file', 'file.id', 'group_file.fileId')
 			.select([...BOARD_COLUMNS, 'group_file.createdAt as arrivedAt'])
+			.select(countMatchedTerms(terms).as('matched'))
 			.where('group_file.groupId', '=', userId)
 			.where('file.shared', '=', true)
 			// Load-bearing rather than tidy-up: the caller's home group id is in `groupIds`, so this is
@@ -245,9 +278,10 @@ async function searchBoardsSharedWithCaller(
 		terms
 	)
 	if (cursor) {
-		query = query.where(seekBelow(LINK_FILE_ID, sql.ref('group_file.createdAt'), cursor))
+		query = query.where(seekBelow(terms, LINK_FILE_ID, sql.ref('group_file.createdAt'), cursor))
 	}
 	const rows = await query
+		.$if(terms.length > 0, (q) => q.orderBy(countMatchedTerms(terms), 'desc'))
 		.orderBy('group_file.createdAt', 'desc')
 		.orderBy(LINK_FILE_ID, 'desc')
 		.limit(BOARD_SEARCH_PAGE_SIZE + 1)
@@ -278,10 +312,16 @@ async function searchBoardsSharedWithCaller(
  * harness starts paging differently from production.
  */
 function seekBelow(
+	terms: string[],
 	id: RawBuilder<string>,
 	arrivedAt: RawBuilder<unknown>,
 	cursor: BoardSearchCursor
 ) {
+	// With a query the match count leads, and all three keys sort descending, so one row comparison
+	// still states the seek. Without one it is a constant and left out, keeping the index seek.
+	if (terms.length) {
+		return sql<SqlBool>`(${countMatchedTerms(terms)}, ${arrivedAt}, ${id}) < (${cursor.matched}, ${cursor.arrivedAt}, ${cursor.id})`
+	}
 	return sql<SqlBool>`(${arrivedAt}, ${id}) < (${cursor.arrivedAt}, ${cursor.id})`
 }
 

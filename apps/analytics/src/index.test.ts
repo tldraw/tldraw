@@ -6,6 +6,7 @@ vi.mock('posthog-js', () => ({
 		init: vi.fn(),
 		opt_in_capturing: vi.fn(),
 		opt_out_capturing: vi.fn(),
+		clear_opt_in_out_capturing: vi.fn(),
 		setPersonProperties: vi.fn(),
 		identify: vi.fn(),
 		reset: vi.fn(),
@@ -52,6 +53,8 @@ describe('tl_attribution consent gate', () => {
 
 		clickBannerButton('opt-out')
 		expect(readAttribution()).toBeNull()
+		const { default: posthog } = await import('posthog-js')
+		expect(posthog.opt_out_capturing).toHaveBeenCalled()
 	})
 
 	test('writes the cookie once the visitor accepts', async () => {

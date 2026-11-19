@@ -23,6 +23,7 @@ import {
 	hashFlyDeployInputs,
 	stampDeployInputHash,
 } from './lib/flyDeployGate'
+import { handOffReplicationManager } from './lib/flyRmHandoff'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
@@ -128,9 +129,20 @@ const flyioAppName =
 	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
 		: deployZero === 'flyio-multinode'
-			? `${env.TLDRAW_ENV}-zero-vs`
+			? `${previewId ?? env.TLDRAW_ENV}-zero-vs`
 			: undefined
-const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
+const flyioReplAppName =
+	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
+
+// RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
+// needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
+const zeroRmv2 = env.TLDRAW_ENV === 'staging'
+// RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
+// RMv1 with v5 backups before zeroRmv2 turns on for it.
+const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
+// Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
+// would redeploy production's zero apps in place.
+const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -742,22 +754,28 @@ async function ensureFlyApp(appName: string, appsListOutput: string) {
 }
 
 // Most dotcom deploys don't touch zero-cache; see flyDeployGate.ts for why redeploying anyway
-// hurts. Staging and production only: a preview has no connected clients to bounce, and its zero
-// app can need rebuilding for reasons no input covers, like a reset preview database leaving the
-// replica stale. The gate compares this run's inputs to the stamp on the machines, not to the
-// machines' actual state, so a change made out of band (`fly secrets set`, `fly scale`) stays
-// unreconciled until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub
+// hurts. Production only: staging deploys zero on every merge so the deploy path, the RM handoff
+// included, is exercised before production runs it, and a preview has no connected clients to
+// bounce and its zero app can need rebuilding for reasons no input covers, like a reset preview
+// database leaving the replica stale. The gate compares this run's inputs to the stamp on the
+// machines, not to the machines' actual state, so a change made out of band (`fly secrets set`,
+// `fly scale`) stays unreconciled until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub
 // environment to push a deploy through regardless.
 async function deployFlyAppIfChanged({
 	appName,
 	configFile,
 	inputs,
+	deploy = async () => {
+		await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
+	},
 }: {
 	appName: string
 	configFile: string
 	inputs: FlyDeployInputs
+	/** Rolls out the config already written to configFile; defaults to `flyctl deploy`. */
+	deploy?(stampedConfig: string): Promise<void>
 }) {
-	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
+	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId || env.TLDRAW_ENV === 'staging'
 	const hash = hashFlyDeployInputs(inputs)
 	const deployed = forced ? null : await getDeployedInputHash(appName)
 	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
@@ -771,11 +789,8 @@ async function deployFlyAppIfChanged({
 			? deployed.hash.slice(0, 12)
 			: `no stamp: ${deployed.reason}`
 	nicelog(`${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`)
-	fs.writeFileSync(
-		path.join(zeroCacheFolder, configFile),
-		stampDeployInputHash(inputs.config, hash),
-		'utf-8'
-	)
+	const stampedConfig = stampDeployInputHash(inputs.config, hash)
+	fs.writeFileSync(path.join(zeroCacheFolder, configFile), stampedConfig, 'utf-8')
 	if (inputs.dockerfile) {
 		fs.writeFileSync(
 			path.join(inputs.dockerfile.contextDir, 'Dockerfile'),
@@ -784,7 +799,7 @@ async function deployFlyAppIfChanged({
 		)
 	}
 	if (inputs.secrets) await stageZeroFlySecrets(appName, inputs.secrets)
-	await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
+	await deploy(stampedConfig)
 }
 
 async function deployZeroViaFlyIo() {
@@ -820,6 +835,8 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
+		.replace('__RMV2_ENV\n', rmv2Env)
+		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -855,6 +872,8 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
+		.replace('__RMV2_ENV\n', rmv2Env)
+		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
@@ -888,7 +907,9 @@ async function deployZeroViaFlyIoMultiNode() {
 	}
 
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
-	const backupPath = previewId ?? env.TLDRAW_ENV
+	// v5 backups put each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
+	// replaces the env folder and the backup lands at the bucket root.
+	const backupPath = `${previewId ?? env.TLDRAW_ENV}${zeroBackupV5 ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -904,10 +925,20 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)
+	const rmConfigFile = 'flyio-replication-manager.toml'
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
-		configFile: 'flyio-replication-manager.toml',
+		configFile: rmConfigFile,
 		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
+		deploy: zeroRmv2
+			? (renderedToml) =>
+					handOffReplicationManager({
+						appName: flyioReplAppName,
+						renderedToml,
+						configFile: rmConfigFile,
+						pwd: zeroCacheFolder,
+					})
+			: undefined,
 	})
 
 	// Deploy view syncer with reference to replication manager

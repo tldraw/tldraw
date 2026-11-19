@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { isPreAppLinkUrl } from '../misc/linkUrl'
 import { TLRichText, richTextValidator, toRichText } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
@@ -149,6 +150,8 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddFirstEditedBy: 11,
 	MakeFontSizeAdjustmentRatio: 12,
 	RenameFirstEditedByToLast: 13,
+	AllowAppLinkUrls: 14,
+	BlockMoreLinkProtocols: 15,
 })
 
 /**
@@ -302,6 +305,28 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				props.textFirstEditedBy = props.textLastEditedBy ?? null
 				delete props.textLastEditedBy
+			},
+		},
+		{
+			id: Versions.AllowAppLinkUrls,
+			up: (_props) => {
+				// noop
+			},
+			down: (props) => {
+				if (!isPreAppLinkUrl(props.url)) {
+					props.url = ''
+				}
+			},
+		},
+		{
+			id: Versions.BlockMoreLinkProtocols,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
+				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
 	],

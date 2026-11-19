@@ -115,7 +115,8 @@ class Analytics {
 				this.maybeTrackConsentUpdate(consentState)
 				// Disable the analytics services when consent is revoked or when consent is unknown
 				for (const service of this.services) {
-					service.disable()
+					if (service === posthogService) posthogService.disable(this.consent)
+					else service.disable()
 				}
 			}
 
