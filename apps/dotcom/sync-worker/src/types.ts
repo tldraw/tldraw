@@ -39,6 +39,8 @@ export interface Environment {
 	HYPERDRIVE_DISABLED?: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	// Where the MCP server's send_feedback tool posts. Separate from the in-app form's channel.
+	DISCORD_MCP_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
 	PLAIN_LABEL_TYPE_ID?: string
 	PLAIN_WORKSPACE_ID?: string
@@ -110,6 +112,8 @@ export interface Environment {
 	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 	/** Per-account calls to the tools that go through a board's durable object. Bounds load on a shared board. */
 	MCP_SERVER_TAB_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `send_feedback` calls. Bounds posts to the feedback channel. */
+	MCP_SERVER_FEEDBACK_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 

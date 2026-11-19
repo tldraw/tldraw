@@ -16,6 +16,7 @@ import {
 	READ_PAGE_COMMENTS_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	SEARCH_BOARDS_TOOL_NAME,
+	SEND_FEEDBACK_TOOL_NAME,
 	ShapeMeasurement,
 	WRITE_COMMENT_TOOL_NAME,
 	ToolResult,
@@ -36,6 +37,7 @@ import {
 	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseSendFeedbackInput,
 	parseWriteCommentInput,
 	pickClusterShapes,
 	readSnapshotPage,
@@ -299,6 +301,12 @@ async function callFixtureTool(
 				parseWriteCommentInput(args)
 				return toolError(
 					`${HARNESS_GAP_MARKER} Comments cannot be posted against fixtures. Run against staging or production to post one.`
+				)
+			}
+			case SEND_FEEDBACK_TOOL_NAME: {
+				parseSendFeedbackInput(args)
+				return toolError(
+					`${HARNESS_GAP_MARKER} Feedback is not sent from fixtures. Run against staging or production to send it.`
 				)
 			}
 			default:
