@@ -7,6 +7,15 @@ export function stepThumbnailWidth(width: number) {
 	return Math.pow(2, Math.ceil(Math.log2(Math.max(width, 1))))
 }
 
+/**
+ * The default width of a tile in the libraries panel, in CSS pixels: canvas.css's default for
+ * `--tlui-libraries-tile-width`, which hosts can override.
+ */
+export const LIBRARIES_TILE_WIDTH = 86.67
+
+/** The stepped width of a tile in the libraries panel, used where a tile can't be measured. */
+export const DEFAULT_THUMBNAIL_WIDTH = stepThumbnailWidth(LIBRARIES_TILE_WIDTH)
+
 export function getThumbnailContext({
 	colorMode,
 	tileWidth,
