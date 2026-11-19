@@ -399,6 +399,37 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
 		})
 
+		it('keeps waiting for a stored item when deleting its library here is rejected', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			const rows = backend.holdWorkerRows()
+			const item = await added(source.addItem(kit.id, { content }))
+			const server = backend.holdServer()
+			const renaming = source.renameItem(item.id, 'Moon')
+			await source.deleteLibrary(kit.id)
+			await Promise.resolve()
+			expect(source.getItems(kit.id)).toMatchObject([{ id: item.id }])
+			server.fail()
+			await vi.waitFor(() => expect(backend.rows.get()).toHaveLength(1))
+			backend.holdServer().release()
+			rows.release()
+			await renaming
+			expect(source.getItems(kit.id)).toMatchObject([{ id: item.id, name: 'Moon' }])
+		})
+
+		it('drops a stored item once the server confirms deleting its library here', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			backend.holdWorkerRows()
+			const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
+			const server = backend.holdServer()
+			const renaming = source.renameItem(item.id, 'Moon')
+			await source.deleteLibrary(kit.id)
+			server.release()
+			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
+			expect(source.getItems(kit.id)).toEqual([])
+		})
+
 		it('renames an item being added once its row has arrived', async () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')

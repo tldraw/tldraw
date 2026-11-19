@@ -166,6 +166,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	// Libraries created or copied here that the server hasn't confirmed yet, by row id. The worker
 	// can't add items to them or copy them until it has.
 	private readonly unconfirmedLibraries = new Map<string, Promise<boolean>>()
+	// Libraries deleted here that the server hasn't confirmed deleting yet, by row id. If it rejects
+	// the delete, the row returns, and so may the rows of items being stored in it.
+	private readonly unconfirmedDeletes = atom<ReadonlySet<string>>(
+		'unconfirmed library deletes',
+		new Set()
+	)
 
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
@@ -302,7 +308,20 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async deleteLibrary(libraryId: TLLibraryId) {
 		const id = await this.getLibraryRowId(libraryId)
 		const itemIds = this.getItems(libraryId).map((item) => rowId(item.id))
-		await this.apply(this.app.z.mutate.library.delete({ id }))
+		this.unconfirmedDeletes.update((all) => new Set(all).add(id))
+		const forget = () =>
+			this.unconfirmedDeletes.update((all) => {
+				const rest = new Set(all)
+				rest.delete(id)
+				return rest
+			})
+		try {
+			const { confirmed } = await this.apply(this.app.z.mutate.library.delete({ id }))
+			confirmed.then(forget)
+		} catch (error) {
+			forget()
+			throw error
+		}
 		this.releaseLocalThumbnails(itemIds)
 	}
 
@@ -503,14 +522,17 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	/**
 	 * Unlists stored items once their rows arrive, or once their library's row is gone, which is here
-	 * when this starts as storeNewItems waited for it.
+	 * when this starts as storeNewItems waited for it. A library deleted here is only gone once the
+	 * server confirms the delete.
 	 */
 	private unlistWhenRowsArrive(libraryId: TLLibraryId, adding: NewItem[]) {
 		const libraryRowId = rowId(libraryId)
 		const awaiting = new Set(adding)
 		const stop = react('library item rows arrive', () => {
 			const rows = this.app.getLibraryRows()
-			const libraryGone = !rows.some((row) => row.id === libraryRowId)
+			const libraryGone =
+				!rows.some((row) => row.id === libraryRowId) &&
+				!this.unconfirmedDeletes.get().has(libraryRowId)
 			const itemRowIds = new Set(rows.flatMap((row) => row.items.map((item) => item.id)))
 			const settled = [...awaiting].filter((a) => libraryGone || itemRowIds.has(a.id))
 			if (settled.length === 0) return
