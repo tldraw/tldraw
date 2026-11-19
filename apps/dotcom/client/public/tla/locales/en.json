@@ -77,6 +77,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1914dedd04": {
+    "translation": "Created by me"
+  },
   "1a7222b4e5": {
     "translation": "Move to"
   },
@@ -163,9 +166,6 @@
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
-  },
-  "3bf4ed96b1": {
-    "translation": "Recently viewed"
   },
   "3c5e891bff": {
     "translation": "Pinned"
@@ -299,6 +299,9 @@
   "61057a0c84": {
     "translation": "Later"
   },
+  "623cddd380": {
+    "translation": "Recents"
+  },
   "625fd29749": {
     "translation": "Older"
   },
@@ -415,6 +418,9 @@
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
+  },
+  "7d69b3cb4c": {
+    "translation": "Archived"
   },
   "7daeced9ff": {
     "translation": "Publish changes"
@@ -749,9 +755,6 @@
   },
   "e404559826": {
     "translation": "Terms of service"
-  },
-  "e727b00944": {
-    "translation": "Archive"
   },
   "e81c4e4f2b": {
     "translation": "or"
