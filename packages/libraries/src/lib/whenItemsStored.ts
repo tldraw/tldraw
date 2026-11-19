@@ -12,12 +12,12 @@ const storing = new Map<TLLibraryItemId, Promise<void>>()
  */
 export function trackItemsStoring(itemIds: TLLibraryItemId[], stored: Promise<void>) {
 	for (const itemId of itemIds) storing.set(itemId, stored)
-	stored.then(
-		() => {
-			for (const itemId of itemIds) storing.delete(itemId)
-		},
-		() => {}
-	)
+	const forget = () => {
+		for (const itemId of itemIds) {
+			if (storing.get(itemId) === stored) storing.delete(itemId)
+		}
+	}
+	stored.then(forget, forget)
 }
 
 /**
