@@ -115,15 +115,22 @@ const formatVersionValidator = T.object({
 }).allowUnknownProperties()
 
 /**
- * Thrown when item content was written by a newer version of the package. Reading it anyway
- * would silently drop whatever the newer format added, so callers should ask for an update.
+ * Thrown when item content was written by a newer version of tldraw than this one: its format is
+ * newer than this package reads, its shapes were saved at schema versions the editor can't migrate
+ * down from, or it has a shape or binding type the editor has no util for. Reading it anyway would
+ * drop or break whatever the newer version added, so callers should ask for an update.
  */
 export class LibraryItemContentTooNewError extends Error {
 	override name = 'LibraryItemContentTooNewError'
-	constructor(readonly formatVersion: number) {
+	/** The content's format version, when the format is what's too new. */
+	readonly formatVersion?: number
+	constructor(reason: { formatVersion: number } | { message: string }) {
 		super(
-			`Library item content has format version ${formatVersion}, but this version of @tldraw/libraries only reads up to ${CURRENT_ITEM_CONTENT_FORMAT_VERSION}.`
+			'formatVersion' in reason
+				? `Library item content has format version ${reason.formatVersion}, but this version of @tldraw/libraries only reads up to ${CURRENT_ITEM_CONTENT_FORMAT_VERSION}.`
+				: reason.message
 		)
+		if ('formatVersion' in reason) this.formatVersion = reason.formatVersion
 	}
 }
 
@@ -131,7 +138,7 @@ export class LibraryItemContentTooNewError extends Error {
 export function parseLibraryItemContent(value: unknown): TLLibraryItemContent {
 	const { formatVersion } = formatVersionValidator.validate(value)
 	if (formatVersion > CURRENT_ITEM_CONTENT_FORMAT_VERSION) {
-		throw new LibraryItemContentTooNewError(formatVersion)
+		throw new LibraryItemContentTooNewError({ formatVersion })
 	}
 	return itemContentValidator.validate(value)
 }

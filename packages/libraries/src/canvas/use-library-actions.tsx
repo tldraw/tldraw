@@ -11,6 +11,7 @@ import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { getContentTooNewToast } from './content-too-new-toast'
 import { getOwnerChoices } from './owner-choices'
 import { renamingLibraryId } from './state'
 
@@ -114,7 +115,11 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
 					title: msg(messages.copiedTitle),
 					description: owner && msg(messages.copiedDescription, { name: owner.name }),
 				}),
-			showError
+			(error) => {
+				const tooNew = getContentTooNewToast(error, msg)
+				if (tooNew) addToast(tooNew)
+				else showError()
+			}
 		)
 	}
 
