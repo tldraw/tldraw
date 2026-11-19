@@ -32,10 +32,15 @@ export function findSyncClient(socket: unknown): SyncClientInternals | null {
 	return client
 }
 
+// Disposing the socket emits no status event, so without this a flush pending at the time would never
+// settle, and the tab's job queue would wait on it forever. A timed-out push isn't cancelled: it may
+// still land, and is sent again on reconnect if it doesn't.
+const FLUSH_TIMEOUT_MS = 5_000
+
 /**
  * Sends local changes now and resolves once the server has answered them, having applied whatever it
  * sent first. Resolves `true` when committed or when there was nothing to send, and `false` when
- * offline, discarded, or the connection dropped first. Unanswered changes are sent again on reconnect.
+ * offline, discarded, or the connection dropped or the server didn't answer first.
  */
 export function createFlushChanges(
 	socket: Pick<ClientWebSocketAdapter, 'onReceiveMessage' | 'onStatusChange'>,
@@ -52,12 +57,14 @@ export function createFlushChanges(
 		if (!lastPush) return Promise.resolve(true)
 		return new Promise((resolve) => {
 			const settle = (committed: boolean) => {
+				clearTimeout(timeout)
 				stopMessages()
 				stopStatus()
 				// The client buffered the answer for a frame too; apply it so the store is current.
 				if (committed) client.fpsScheduler.flush()
 				resolve(committed)
 			}
+			const timeout = setTimeout(() => settle(false), FLUSH_TIMEOUT_MS)
 			const stopMessages = socket.onReceiveMessage((message) => {
 				const action = findPushResult(message, lastPush.clientClock)
 				if (action) settle(action !== 'discard')

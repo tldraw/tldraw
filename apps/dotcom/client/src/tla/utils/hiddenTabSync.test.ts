@@ -45,6 +45,9 @@ class MockSocket implements TLPersistentClientSocket<
 		this.connectionStatus = 'offline'
 		this.statusListeners.forEach((cb) => cb({ status: 'offline' }))
 	}
+	listenerCount() {
+		return this.messageListeners.size + this.statusListeners.size
+	}
 	pushes() {
 		return this.sent.filter((m): m is TLPushRequest<TLRecord> => m.type === 'push')
 	}
@@ -163,6 +166,31 @@ describe('createFlushChanges, with no animation frames', () => {
 		socket.goOffline()
 
 		expect(await flushed).toBe(false)
+	})
+
+	it('resolves false when the server never answers, as when the socket is disposed, and stops listening', async () => {
+		vi.useFakeTimers()
+		const listenersBefore = socket.listenerCount()
+		store.put([makePage('Disposed page')])
+		const flushed = flushChanges()
+		expect(socket.listenerCount()).toBe(listenersBefore + 2)
+
+		vi.advanceTimersByTime(5_000)
+		expect(await flushed).toBe(false)
+		expect(socket.listenerCount()).toBe(listenersBefore)
+		vi.useRealTimers()
+	})
+
+	it('clears its timeout once the server answers', async () => {
+		vi.useFakeTimers()
+		store.put([makePage('Answered page')])
+		const flushed = flushChanges()
+		const timersWhileWaiting = vi.getTimerCount()
+		confirm(socket.pushes()[0].clientClock)
+
+		expect(await flushed).toBe(true)
+		expect(vi.getTimerCount()).toBe(timersWhileWaiting - 1)
+		vi.useRealTimers()
 	})
 
 	it('resolves false while offline, without sending anything', async () => {
