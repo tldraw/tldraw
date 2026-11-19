@@ -197,6 +197,12 @@
       "value": "Create file"
     }
   ],
+  "191b4dd9dc": [
+    {
+      "type": 0,
+      "value": "Make new files private"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -499,6 +505,12 @@
     {
       "type": 0,
       "value": "Name"
+    }
+  ],
+  "4a1465ccf7": [
+    {
+      "type": 0,
+      "value": "New files start unshared. Only workspace owners can change this."
     }
   ],
   "4a8165368a": [
@@ -1524,6 +1536,12 @@
     {
       "type": 0,
       "value": "App"
+    }
+  ],
+  "ae3d410563": [
+    {
+      "type": 0,
+      "value": "New files start unshared. Existing files don't change."
     }
   ],
   "aeb428554a": [

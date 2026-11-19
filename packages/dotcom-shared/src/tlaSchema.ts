@@ -96,6 +96,9 @@ export const file = table('file')
 	})
 	.primaryKey('id')
 
+export const DEFAULT_FILE_SHARING_VALUES = ['shared', 'private'] as const
+export type DefaultFileSharing = (typeof DEFAULT_FILE_SHARING_VALUES)[number]
+
 export const group = table('group')
 	.columns({
 		id: string(),
@@ -106,6 +109,9 @@ export const group = table('group')
 		// the same link (cf. a file's `shared` flag). Optional so older cached rows
 		// without the column read as enabled (defaulted true) until they refetch.
 		inviteLinkEnabled: boolean().optional(),
+		// Initial `shared` value for new files. Optional so cached rows from before the
+		// column read as 'shared'.
+		defaultFileSharing: string<DefaultFileSharing>().optional(),
 		isDeleted: boolean(),
 		createdAt: number(),
 		updatedAt: number(),

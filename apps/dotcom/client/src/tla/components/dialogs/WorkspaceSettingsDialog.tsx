@@ -20,6 +20,7 @@ import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
 	TlaMenuControl,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSelect,
 	TlaMenuSwitch,
@@ -182,6 +183,46 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		}
 		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
 	}
+
+	const handleToggleNewFilesPrivate = async (isPrivate: boolean) => {
+		const defaultFileSharing = isPrivate ? 'private' : 'shared'
+		const res = await app.z.mutate.setWorkspaceDefaultFileSharing({
+			id: workspaceId,
+			defaultFileSharing,
+		}).client
+		if (res.type === 'error') {
+			app.showMutationRejectionToast(res.error)
+			return
+		}
+		trackEvent('set-workspace-default-file-sharing', {
+			source: 'workspace-settings',
+			defaultFileSharing,
+		})
+	}
+
+	const newFilesPrivateControl = (
+		<div className={styles.section}>
+			<TlaMenuControl>
+				<TlaMenuControlLabel htmlFor="workspace-new-files-private-switch">
+					<F defaultMessage="Make new files private" />
+				</TlaMenuControlLabel>
+				<TlaMenuControlInfoTooltip>
+					{canManageWorkspace ? (
+						<F defaultMessage="New files start unshared. Existing files don't change." />
+					) : (
+						<F defaultMessage="New files start unshared. Only workspace owners can change this." />
+					)}
+				</TlaMenuControlInfoTooltip>
+				<TlaMenuSwitch
+					id="workspace-new-files-private-switch"
+					data-testid="workspace-new-files-private-switch"
+					checked={workspace.defaultFileSharing === 'private'}
+					disabled={!canManageWorkspace}
+					onChange={handleToggleNewFilesPrivate}
+				/>
+			</TlaMenuControl>
+		</div>
+	)
 
 	const handleRegenerateInviteLink = async () => {
 		const res = await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
@@ -360,6 +401,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 						autoSelect
 					/>
 				</div>
+
+				{newFilesPrivateControl}
 
 				{/* The home workspace is private and can't be shared, so show a disabled invite
 				    control with a note pointing the user to creating a shared workspace instead. */}

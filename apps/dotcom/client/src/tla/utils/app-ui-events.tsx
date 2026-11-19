@@ -1,4 +1,4 @@
-import { Role, TlaFile, TlaUser } from '@tldraw/dotcom-shared'
+import { DefaultFileSharing, Role, TlaFile, TlaUser } from '@tldraw/dotcom-shared'
 import { createContext, useContext } from 'react'
 import { trackEvent } from '../../utils/analytics'
 import { TldrawAppSessionState } from './local-session-state'
@@ -61,6 +61,7 @@ export interface TLAppUiEventMap {
 	'remove-workspace-member': null
 	'set-workspace-member-role': { role: Role }
 	'set-workspace-invite-link-enabled': { enabled: boolean }
+	'set-workspace-default-file-sharing': { defaultFileSharing: DefaultFileSharing }
 	'regenerate-workspace-invite-secret': null
 	'delete-file': null
 	'rename-file': { name: string }
