@@ -74,6 +74,7 @@ export function TlaEditorTopRightPanel({
 	const { addDialog } = useDialogs()
 	const editor = useEditor()
 	const hasSignedOutShare = useDesignSwitch('signedOutShare')
+	const className = classNames(styles.topRightPanel, useIsUiV3() && styles.topRightPanelV3)
 	// Share and the comments sidebar are mutually exclusive: opening share closes the sidebar.
 	// (The reverse is automatic — clicking the sidebar button dismisses the share popover as an
 	// outside interaction.)
@@ -86,12 +87,11 @@ export function TlaEditorTopRightPanel({
 
 	if (isAnonUser) {
 		return (
-			<div ref={ref} className={styles.topRightPanel}>
+			<div ref={ref} className={className}>
 				<PeopleMenu />
 				<DesignSwitchesMenu />
 				<SettingsButton />
 				{hasSignedOutShare ? (
-					// One Share button, as signed in. Its menu asks for sign-in where one is needed.
 					<TlaFileShareMenu fileId={fileId} context={context} source="anon">
 						<TlaCtaButton
 							canvas
@@ -124,13 +124,13 @@ export function TlaEditorTopRightPanel({
 	}
 
 	return (
-		<div ref={ref} className={styles.topRightPanel}>
+		<div ref={ref} className={className}>
 			<PeopleMenu />
 			<DesignSwitchesMenu />
 			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
 			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
-			{/* Only where v3 hides the sidebar, which has this button everywhere else. */}
+			{/* The sidebar has this button on every other route, and v3 hides it only on files. */}
 			{context === 'file' && <NewFileShortcutButton />}
 			<SettingsButton />
 			{context === 'legacy' && <LegacyImportButton />}
@@ -189,10 +189,7 @@ function CommentsSidebarButton() {
 	)
 }
 
-/**
- * The settingsIcon design switch: the settings dialog from the top bar. The main menu drops its
- * Settings item while this shows (see `TlaSettingsGroup`).
- */
+/** For the settingsIcon design switch, which also takes Settings out of `TlaSettingsGroup`. */
 function SettingsButton() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
@@ -215,7 +212,7 @@ function SettingsButton() {
 	)
 }
 
-/** The newFileShortcut design switch: the sidebar's create-file button, for a canvas without one. */
+/** For the newFileShortcut design switch. */
 function NewFileShortcutButton() {
 	const msg = useTranslation()
 	const isOn = useDesignSwitch('newFileShortcut')
