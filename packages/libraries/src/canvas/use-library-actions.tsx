@@ -33,12 +33,27 @@ const messages = defineMessages({
 	},
 })
 
+/** @public */
+export interface LibraryActions {
+	/** Whether the library's name is being edited: after `menuActions.onRename`, or once it's new. */
+	isRenaming: boolean
+	/** Ends renaming with a new name. A blank name, or the one it has, changes nothing. */
+	onRenameComplete(name: string): void
+	onRenameCancel(): void
+	/**
+	 * Props for a {@link LibraryMenu}: each action is left out when the source doesn't allow it.
+	 * Deleting asks first in a dialog; moving and copying show a toast once done.
+	 */
+	menuActions: Pick<LibraryMenuProps, 'onRename' | 'onDelete' | 'copy'>
+}
+
 /**
  * A library's rename, delete and copy, as the source allows them, for its header and its
- * menu. Renaming starts from the menu, or when the library is new, and ends with the header's
- * input.
+ * menu, as each section of the {@link LibrariesPanel} uses them. Renaming starts from the menu,
+ * or when the library is new, and ends with the header's input. Failures show a toast.
+ * @public
  */
-export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
+export function useLibraryActions(source: LibrarySource, library: TLLibrary): LibraryActions {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()

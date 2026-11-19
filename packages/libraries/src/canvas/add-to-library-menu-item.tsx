@@ -15,7 +15,7 @@ import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary } from './new-library'
 import { sortByRecentlyAddedTo } from './recent-libraries'
 import type { PrepareItemContent } from './save-shapes'
-import { useSaveSelection } from './use-save-selection'
+import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
 const messages = defineMessages({
 	addToLibrary: { id: 'libraries.add-to-library', defaultMessage: 'Add to library' },
@@ -54,7 +54,7 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 	)
 	const grouping = useLibraryGrouping(source)
 	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
-	const { saveSelection, saveToNewLibrary } = useSaveSelection(source, prepareItemContent)
+	const { saveSelection, saveToNewLibrary } = useSaveSelectionToLibrary(source, prepareItemContent)
 
 	if (!librariesEnabled || !hasSelection || (libraries.length === 0 && !canCreate)) return null
 

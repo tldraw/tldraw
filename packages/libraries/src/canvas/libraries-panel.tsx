@@ -1,17 +1,13 @@
-import { type ReactNode, useCallback, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
 	useEditor,
-	useToasts,
 	useTranslation,
-	useUiEvents,
 	useValue,
 	type TLLibrary,
-	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { getContentTooNewToast } from './content-too-new-toast'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
@@ -32,19 +28,16 @@ import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
-import { placeLibraryItem } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
-import { getLibraryErrorReason } from './ui-events'
 import { useCreateLibrary } from './use-create-library'
-import { useItemDrag } from './use-item-drag'
+import { useLibraryItemDrag } from './use-item-drag'
 import { useLibraries } from './use-libraries'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 	newLibrary: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	newLibraryIn: { id: 'libraries.group.new-library', defaultMessage: 'New library in {name}' },
-	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
 })
 
 /** @public */
@@ -109,34 +102,11 @@ function LibrariesPanelContent({
 	const { LibrariesPanelHeader = DefaultLibrariesPanelHeader, NoLibraries = DefaultNoLibraries } =
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
-	const { addToast } = useToasts()
-	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useLibraries(source)
 	const grouping = useLibraryGrouping(source)
-	const placeItem = useCallback(
-		(itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).then(
-				() => trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
-				(error) => {
-					trackEvent('library-error', {
-						source: 'libraries',
-						action: 'place-library-item',
-						reason: getLibraryErrorReason(error),
-					})
-					addToast(
-						getContentTooNewToast(error, msg) ?? {
-							title: msg(messages.placeErrorTitle),
-							severity: 'error',
-						}
-					)
-				}
-			)
-		},
-		[editor, source, addToast, msg, trackEvent]
-	)
-	const getItemProps = useItemDrag(source, placeItem)
+	const getItemProps = useLibraryItemDrag(source)
 	const createLibrary = useCreateLibrary(source)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()
