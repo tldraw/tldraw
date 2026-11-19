@@ -35,6 +35,19 @@ export function clearStayOnBoardAfterSignIn() {
 	deleteFromSessionStorage(SESSION_STORAGE_KEYS.STAY_ON_BOARD)
 }
 
+/** Set by a sign-in from the settings dialog, for `TlaSettingsAfterSignIn` to open it again. */
+export function setReopenSettingsAfterSignIn() {
+	setInSessionStorage(SESSION_STORAGE_KEYS.REOPEN_SETTINGS, 'true')
+}
+
+export function getReopenSettingsAfterSignIn() {
+	return getFromSessionStorage(SESSION_STORAGE_KEYS.REOPEN_SETTINGS) === 'true'
+}
+
+export function clearReopenSettingsAfterSignIn() {
+	deleteFromSessionStorage(SESSION_STORAGE_KEYS.REOPEN_SETTINGS)
+}
+
 export const OPEN_SIGN_IN = 'openSignIn'
 
 /**

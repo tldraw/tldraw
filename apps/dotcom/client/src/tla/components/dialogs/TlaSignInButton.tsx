@@ -7,10 +7,12 @@ import { TlaSignInDialog } from './TlaSignInDialog'
 export function TlaSignInButton({
 	label,
 	source,
+	onBeforeSignIn,
 	'data-testid': testId,
 }: {
 	label: string
 	source: TLAppUiEventSource
+	onBeforeSignIn?(): void
 	'data-testid'?: string
 }) {
 	const { addDialog } = useDialogs()
@@ -21,7 +23,9 @@ export function TlaSignInButton({
 			data-testid={testId}
 			onClick={() => {
 				trackEvent('sign-up-clicked', { source, ctaMessage: label })
-				addDialog({ component: TlaSignInDialog })
+				addDialog({
+					component: (props) => <TlaSignInDialog {...props} onBeforeSignIn={onBeforeSignIn} />,
+				})
 			}}
 		>
 			{label}

@@ -29,6 +29,7 @@ import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
+import { setReopenSettingsAfterSignIn } from '../../utils/redirect'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	TlaMenuControl,
@@ -267,6 +268,7 @@ function SignedOutProfilePanel() {
 			<TlaSignInButton
 				label={msg(messages.signInToEditProfile)}
 				source="user-preferences"
+				onBeforeSignIn={setReopenSettingsAfterSignIn}
 				data-testid="tla-settings-sign-in"
 			/>
 		</TlaMenuSection>

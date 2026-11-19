@@ -23,6 +23,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import {
+	clearReopenSettingsAfterSignIn,
 	clearStayOnBoardAfterSignIn,
 	setRedirectOnSignIn,
 	setStayOnBoardAfterSignIn,
@@ -42,6 +43,7 @@ export function TlaSignInDialog({
 	onInviteAccepted,
 	skipRedirect,
 	goesHome,
+	onBeforeSignIn,
 }: {
 	onClose?(): void
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
@@ -49,12 +51,17 @@ export function TlaSignInDialog({
 	skipRedirect?: boolean
 	/** Opened by a link to Home, not from the board, so v3 lands on the workspace page afterwards. */
 	goesHome?: boolean
+	/** Called as the sign-in goes through: the dialogs do not survive it (see `SignedInProvider`). */
+	onBeforeSignIn?(): void
 }) {
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
 	const handleBeforeSignIn = useCallback(() => {
 		if (goesHome) clearStayOnBoardAfterSignIn()
 		else setStayOnBoardAfterSignIn()
-	}, [goesHome])
+		// A sign-in abandoned half way, at Google say, must not send this one back to settings.
+		clearReopenSettingsAfterSignIn()
+		onBeforeSignIn?.()
+	}, [goesHome, onBeforeSignIn])
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
