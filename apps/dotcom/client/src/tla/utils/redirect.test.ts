@@ -31,6 +31,22 @@ describe('getSignInRedirect', () => {
 		expect(getSignInRedirect('/oauth-consent?a=b', opts)).toBe('/oauth-consent?a=b')
 	})
 
+	it('treats the apex and www hosts as the same app', () => {
+		// Production Clerk sends `redirect_url` on the apex while the app runs on www.
+		expect(getSignInRedirect('https://tldraw.com/oauth-consent?x=1', opts)).toBe(
+			'/oauth-consent?x=1'
+		)
+		expect(
+			getSignInRedirect(`${appOrigin}/oauth-consent?x=1`, {
+				appOrigin: 'https://tldraw.com',
+				clerkOrigin,
+			})
+		).toBe('/oauth-consent?x=1')
+		expect(getSignInRedirect('https://evil.tldraw.com/oauth-consent', opts)).toBe(null)
+		expect(getSignInRedirect('http://tldraw.com/oauth-consent', opts)).toBe(null)
+		expect(getSignInRedirect('https://tldraw.com:8443/oauth-consent', opts)).toBe(null)
+	})
+
 	it('drops the root, missing values and foreign origins', () => {
 		expect(getSignInRedirect(null, opts)).toBe(null)
 		expect(getSignInRedirect(`${appOrigin}/`, opts)).toBe(null)
