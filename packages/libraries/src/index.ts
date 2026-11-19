@@ -32,6 +32,11 @@ export {
 	type SaveShapesOptions,
 } from './canvas/save-shapes'
 export { activeLibraryId, librariesPanelOpen, toggleLibrariesPanel } from './canvas/state'
+export {
+	getLibraryErrorReason,
+	type TLLibrariesUiEventMap,
+	type TLLibraryErrorReason,
+} from './canvas/ui-events'
 export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,

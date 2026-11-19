@@ -6,6 +6,7 @@ import {
 	TldrawUiToolbarButton,
 	useEditor,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	type TLUiQuickActionsProps,
 } from 'tldraw'
@@ -40,6 +41,7 @@ export function LibrariesQuickActions({ children }: TLUiQuickActionsProps) {
 function LibrariesToolbarButton() {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 
@@ -51,7 +53,10 @@ function LibrariesToolbarButton() {
 			aria-pressed={open}
 			isActive={open}
 			title={msg(messages.title)}
-			onClick={() => toggleLibrariesPanel(editor)}
+			onClick={() => {
+				trackEvent('toggle-libraries-panel', { source: 'libraries', open: !open })
+				toggleLibrariesPanel(editor)
+			}}
 		>
 			<TldrawUiButtonIcon icon={<LibraryIcon />} small />
 		</TldrawUiToolbarButton>
