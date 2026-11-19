@@ -73,7 +73,7 @@ import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
-import { getFeatureFlags } from './utils/featureFlags'
+import { getFeatureFlags, isFeatureFlagEnabledForUser } from './utils/featureFlags'
 import { getAuth, getZeroAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 import { createMcpMutators } from './utils/tla/mcpMutators'
@@ -250,7 +250,13 @@ const router = createRouter<Environment>()
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
 		// Mutators close over userId. `userID` is what zero-cache checks the client's claim against.
-		const mutators = auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId)
+		const mutators = auth.mcp
+			? createMcpMutators(auth.userId)
+			: createMutators(auth.userId, {
+					// Read without the stale value: the mutators consult a flag only to admit a change.
+					isFeatureEnabled: (flag) =>
+						isFeatureFlagEnabledForUser(env, flag, auth.userId, { staleOnError: false }),
+				})
 		const result = await handleMutateRequest({
 			dbProvider: zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
 			handler: (transact) =>
