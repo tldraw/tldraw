@@ -20,7 +20,7 @@ import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
 import { addStarterPack } from './starterPacks'
-import { getUntrackedSource } from './trackedLibrarySource'
+import { getUntrackedSource, TrackedLibrarySource } from './trackedLibrarySource'
 
 vi.mock('@sentry/react', () => ({ captureException: vi.fn() }))
 
@@ -69,21 +69,21 @@ describe('TrackedLibrarySource', () => {
 		await source.createLibrary('Secret')
 		await source.createLibrary('Secret', { ownerId: 'acme' })
 		expect(events()).toEqual([
-			['create-library', { source: 'libraries', owner: 'home' }],
-			['create-library', { source: 'libraries', owner: 'workspace' }],
+			['create-library', { source: 'libraries', owner: 'home', method: 'new' }],
+			['create-library', { source: 'libraries', owner: 'workspace', method: 'new' }],
 		])
 	})
 
-	it('reports saving items once they are stored, with how many', async () => {
+	it('reports adding items once they are stored, with how many', async () => {
 		const { source, newItem, events } = setUp()
 		const library = await source.createLibrary('Secret')
 		const items = await source.addItems!(library.id, [newItem(), newItem()])
 		expect(events()).toHaveLength(1)
 		await stored(items)
-		expect(events().at(-1)).toEqual(['save-to-library', { source: 'libraries', item_count: 2 }])
+		expect(events().at(-1)).toEqual(['add-to-library', { source: 'libraries', item_count: 2 }])
 	})
 
-	it('reports saving items that fail to store as an error, not a save', async () => {
+	it('reports adding items that fail to store as an error, not an add', async () => {
 		const { backend, source, newItem, events } = setUp()
 		const library = await source.createLibrary('Secret')
 		backend.fetch.mockResolvedValueOnce(new Response(null, { status: 500 }))
@@ -92,12 +92,12 @@ describe('TrackedLibrarySource', () => {
 		await vi.waitFor(() =>
 			expect(events().at(-1)).toEqual([
 				'library-error',
-				{ source: 'libraries', action: 'save-to-library', reason: 'failed' },
+				{ source: 'libraries', action: 'add-to-library', reason: 'failed' },
 			])
 		)
-		expect(events().map(([name]) => name)).not.toContain('save-to-library')
+		expect(events().map(([name]) => name)).not.toContain('add-to-library')
 		expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
-			tags: { operation: 'save-to-library' },
+			tags: { operation: 'add-to-library' },
 		})
 	})
 
@@ -118,9 +118,26 @@ describe('TrackedLibrarySource', () => {
 			['rename-library', { source: 'libraries' }],
 			['rename-library-item', { source: 'libraries' }],
 			['move-library-item', { source: 'libraries' }],
-			['copy-library', { source: 'libraries', item_count: 1 }],
+			[
+				'create-library',
+				{ source: 'libraries', owner: 'workspace', method: 'copy', item_count: 1 },
+			],
 			['delete-library-item', { source: 'libraries' }],
 			['delete-library', { source: 'libraries' }],
+		])
+	})
+
+	it('reports changes with the part of the app they were made from', async () => {
+		const { backend, events } = setUp()
+		const libraries = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		const source = new TrackedLibrarySource(libraries, backend.app, {
+			eventSource: 'workspace-settings',
+		})
+		const library = await source.createLibrary('Secret', { ownerId: 'acme' })
+		await source.deleteLibrary(library.id)
+		expect(events()).toEqual([
+			['create-library', { source: 'workspace-settings', owner: 'workspace', method: 'new' }],
+			['delete-library', { source: 'workspace-settings' }],
 		])
 	})
 

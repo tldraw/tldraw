@@ -32,7 +32,7 @@ export type TLAppUiEventSource =
 /** @public */
 export type TLAppLibraryAction =
 	| 'create-library'
-	| 'save-to-library'
+	| 'add-to-library'
 	| 'rename-library'
 	| 'delete-library'
 	| 'copy-library'
@@ -131,11 +131,12 @@ export interface TLAppUiEventMap {
 		filter: 'onlyCurrentPage' | 'onlyMine' | 'onlyUnread' | 'showResolved'
 		value: boolean
 	}
-	'create-library': { owner: 'home' | 'workspace' | 'file' }
-	'save-to-library': { item_count: number }
+	'create-library':
+		| { owner: 'home' | 'workspace' | 'file'; method: 'new' }
+		| { owner: 'home' | 'workspace' | 'file'; method: 'copy'; item_count: number }
+	'add-to-library': { item_count: number }
 	'rename-library': null
 	'delete-library': null
-	'copy-library': { item_count: number }
 	'rename-library-item': null
 	'delete-library-item': null
 	'move-library-item': null
