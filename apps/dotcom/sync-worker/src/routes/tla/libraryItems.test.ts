@@ -3,7 +3,7 @@ import {
 	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
 } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { STORAGE_CONCURRENCY } from '../../libraryStorage'
+import { MAX_R2_CONNECTIONS } from '../../libraryStorage'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { createFakeR2 } from '../../test/fakeR2'
 import { Environment } from '../../types'
@@ -552,7 +552,7 @@ describe('addLibraryItems', () => {
 		}) as R2Bucket['put']
 		const response = await addLibraryItems(addRequest(ids.map((id) => valid(id))), env)
 		expect(response.status).toBe(200)
-		expect(mostAtOnce).toBe(STORAGE_CONCURRENCY)
+		expect(mostAtOnce).toBe(MAX_R2_CONNECTIONS)
 	})
 
 	it('leaves nothing behind once its queued deletes drain, when one item fails to store', async () => {
