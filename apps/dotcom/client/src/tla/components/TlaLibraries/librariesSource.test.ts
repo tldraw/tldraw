@@ -15,6 +15,7 @@ import {
 	type TLLibraryItemContent,
 	type TLLibraryThumbnailContext,
 } from '@tldraw/libraries'
+import { react } from 'tldraw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { getCopyName, TldrawAppLibrariesSource } from './librariesSource'
@@ -387,6 +388,32 @@ describe('TldrawAppLibrariesSource', () => {
 				[pending[2].id, 'Sun', { light: 'blob:local-2', dark: 'blob:local-3' }],
 			])
 			expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+		})
+
+		it('lists the items of a request as stored, and then as arrived, in one change each', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			const requests = backend.holdRequests()
+			const rows = backend.holdWorkerRows()
+			const items = await source.addItems(kit.id, [
+				{ content, thumbnail: png() },
+				{ content, thumbnail: png() },
+				{ content, thumbnail: png() },
+			])
+			let changes = 0
+			const stop = react('count item changes', () => {
+				source.getItems(kit.id)
+				changes++
+			})
+			changes = 0
+			requests.release()
+			await whenItemsStored(items.map((item) => item.id))
+			expect(changes).toBe(1)
+			changes = 0
+			rows.release()
+			await vi.waitFor(() => expect(backend.rows.get()[0].items).toHaveLength(3))
+			await vi.waitFor(() => expect(changes).toBe(2))
+			stop()
 		})
 
 		it('drops every item being added together when the worker fails to store them', async () => {

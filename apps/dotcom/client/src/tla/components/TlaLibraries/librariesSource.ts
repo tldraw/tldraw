@@ -35,7 +35,7 @@ import {
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import { structuredClone } from '@tldraw/utils'
-import { atom, computed, defineMessages, fetch, react, uniqueId } from 'tldraw'
+import { atom, computed, defineMessages, fetch, react, transact, uniqueId } from 'tldraw'
 import {
 	getNetworkCompensation,
 	getUserContentImageUrl,
@@ -218,7 +218,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		for (const { item } of this.pendingItems.get()) {
 			if (itemRowIds.has(rowId(item.id))) continue
 			const libraryRowId = rowId(item.libraryId)
-			byLibrary.set(libraryRowId, [...(byLibrary.get(libraryRowId) ?? []), item])
+			const listed = byLibrary.get(libraryRowId)
+			if (listed) listed.push(item)
+			else byLibrary.set(libraryRowId, [item])
 		}
 		return byLibrary
 	})
@@ -466,35 +468,65 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	/**
-	 * Lists a stored item as its row will be, its thumbnails still the local ones, until the row
-	 * arrives.
+	 * Lists stored items as their rows will be, their thumbnails still the local ones, until the rows
+	 * arrive.
 	 */
-	private listStoredItem(adding: NewItem, stored: StoredItem): TLLibraryItem {
-		const { id, newItem, pending, thumbnail } = adding
-		const listedThumbnail = thumbnail ?? stored.thumbnail
-		const item = LibraryItemRecordType.create({
-			id: pending.item.id,
-			libraryId: pending.item.libraryId,
-			...(newItem.name ? { name: newItem.name } : {}),
-			...(listedThumbnail ? { thumbnail: listedThumbnail } : {}),
-			createdAt: stored.createdAt,
+	private listStoredItems(libraryId: TLLibraryId, adding: NewItem[], stored: StoredItem[]) {
+		const items = new Map<TLLibraryItemId, TLLibraryItem>()
+		adding.forEach(({ newItem, pending, thumbnail }, index) => {
+			const listedThumbnail = thumbnail ?? stored[index].thumbnail
+			items.set(
+				pending.item.id,
+				LibraryItemRecordType.create({
+					id: pending.item.id,
+					libraryId: pending.item.libraryId,
+					...(newItem.name ? { name: newItem.name } : {}),
+					...(listedThumbnail ? { thumbnail: listedThumbnail } : {}),
+					createdAt: stored[index].createdAt,
+				})
+			)
 		})
-		if (thumbnail) {
-			this.localThumbnails.update((all) => new Map(all).set(id, thumbnail))
-		}
-		this.pendingItems.update((all) => all.map((p) => (p.item.id === item.id ? { ...p, item } : p)))
-		// The library's row is here when this starts, as storeNewItems waited for it.
-		const libraryRowId = rowId(item.libraryId)
-		this.whenTrue(
-			'library item row arrives',
-			() => this.hasItemRow(id) || !this.hasLibraryRow(libraryRowId)
-		).then(() => {
-			const arrived = this.hasItemRow(id)
-			this.pendingItems.update((all) => all.filter((p) => p.item.id !== item.id))
-			if (!arrived) this.releaseLocalThumbnails([id])
-			adding.settleArrival(arrived)
+		transact(() => {
+			this.localThumbnails.update((all) => {
+				const next = new Map(all)
+				for (const { id, thumbnail } of adding) {
+					if (thumbnail) next.set(id, thumbnail)
+				}
+				return next
+			})
+			this.pendingItems.update((all) =>
+				all.map((p) => {
+					const item = items.get(p.item.id)
+					return item ? { ...p, item } : p
+				})
+			)
 		})
-		return item
+		this.unlistWhenRowsArrive(libraryId, adding)
+	}
+
+	/**
+	 * Unlists stored items once their rows arrive, or once their library's row is gone, which is here
+	 * when this starts as storeNewItems waited for it.
+	 */
+	private unlistWhenRowsArrive(libraryId: TLLibraryId, adding: NewItem[]) {
+		const libraryRowId = rowId(libraryId)
+		const awaiting = new Set(adding)
+		const stop = react('library item rows arrive', () => {
+			const rows = this.app.getLibraryRows()
+			const libraryGone = !rows.some((row) => row.id === libraryRowId)
+			const itemRowIds = new Set(rows.flatMap((row) => row.items.map((item) => item.id)))
+			const settled = [...awaiting].filter((a) => libraryGone || itemRowIds.has(a.id))
+			if (settled.length === 0) return
+			for (const a of settled) awaiting.delete(a)
+			Promise.resolve().then(() => {
+				if (awaiting.size === 0) stop()
+				const settledIds = new Set(settled.map((a) => a.pending.item.id))
+				this.pendingItems.update((all) => all.filter((p) => !settledIds.has(p.item.id)))
+				const gone = settled.filter((a) => !itemRowIds.has(a.id))
+				this.releaseLocalThumbnails(gone.map((a) => a.id))
+				for (const a of settled) a.settleArrival(itemRowIds.has(a.id))
+			})
+		})
 	}
 
 	private releaseLocalThumbnails(itemRowIds: string[]) {
@@ -525,7 +557,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			await this.whenConfirmed(libraryId)
 			for (const request of splitIntoRequests(adding)) {
 				const stored = await this.storeItems(libraryId, request)
-				request.forEach((a, index) => this.listStoredItem(a, stored[index]))
+				this.listStoredItems(libraryId, request, stored)
 				storedCount += request.length
 			}
 		} catch (error) {
