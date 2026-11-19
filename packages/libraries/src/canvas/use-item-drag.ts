@@ -1,5 +1,14 @@
 import { PointerEvent, useMemo } from 'react'
-import { getPointerInfo, react, TLLibraryItemId, TLContent, useEditor, Vec, VecModel } from 'tldraw'
+import {
+	getPointerInfo,
+	react,
+	TLLibraryItemId,
+	TLContent,
+	useEditor,
+	useUiEvents,
+	Vec,
+	VecModel,
+} from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 
 type DragState =
@@ -14,6 +23,7 @@ type DragState =
  */
 export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryItemId) => void) {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
 
 	return useMemo(() => {
 		let state: DragState = { name: 'idle' }
@@ -65,6 +75,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 					creatingMarkId: markId,
 					onCreate() {
 						editor.setCurrentTool('select.idle')
+						trackEvent('place-library-item', { source: 'libraries', method: 'drag' })
 					},
 				})
 
@@ -143,5 +154,5 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				if (!wasDrag) onPlace(itemId)
 			},
 		})
-	}, [editor, source, onPlace])
+	}, [editor, source, onPlace, trackEvent])
 }

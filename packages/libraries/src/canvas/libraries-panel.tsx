@@ -5,6 +5,7 @@ import {
 	useEditor,
 	useToasts,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	type TLLibrary,
 	type TLLibraryItemId,
@@ -34,6 +35,7 @@ import { NoLibraries as DefaultNoLibraries } from './no-libraries'
 import { placeLibraryItem } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
+import { getLibraryErrorReason } from './ui-events'
 import { useCreateLibrary } from './use-create-library'
 import { useItemDrag } from './use-item-drag'
 
@@ -88,22 +90,31 @@ function LibrariesPanelContent({
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
 	const placeItem = useCallback(
 		(itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).catch((error) => {
-				addToast(
-					getContentTooNewToast(error, msg) ?? {
-						title: msg(messages.placeErrorTitle),
-						severity: 'error',
-					}
-				)
-			})
+			placeLibraryItem(editor, source, itemId).then(
+				() => trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
+				(error) => {
+					trackEvent('library-error', {
+						source: 'libraries',
+						action: 'place-library-item',
+						reason: getLibraryErrorReason(error),
+					})
+					addToast(
+						getContentTooNewToast(error, msg) ?? {
+							title: msg(messages.placeErrorTitle),
+							severity: 'error',
+						}
+					)
+				}
+			)
 		},
-		[editor, source, addToast, msg]
+		[editor, source, addToast, msg, trackEvent]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 	const createLibrary = useCreateLibrary(source)
