@@ -7,7 +7,8 @@ import {
 } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
+import { queueLibraryObjectDeletes } from '../../libraryEffects'
+import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
 import {
 	getLibraryAccess,
 	getLibraryItemAccess,
@@ -17,6 +18,7 @@ import {
 import {
 	LIBRARY_ITEM_THUMBNAIL_TYPES,
 	MAX_LIBRARY_ITEM_THUMBNAIL_BYTES,
+	nameThumbnailUpload,
 	putThumbnail,
 	toThumbnailColumn,
 } from '../../libraryThumbnails'
@@ -66,11 +68,12 @@ function isItemContent(value: unknown): value is StoredItemContent {
 
 /**
  * Adds an item to a library: gives it its own copies of the uploads its content refers to (see
- * copyItemAssets), stores its content (a TLLibraryItemContent as JSON) privately and its
+ * planItemAssetCopies), stores its content (a TLLibraryItemContent as JSON) privately and its
  * optional thumbnails as public uploads, then inserts its row, with the thumbnails' URLs, which
- * reaches clients through Zero, and a library_item_object row for each object it stored. The
- * worker picks the item's id and its content's key, so a request can't name existing content and
- * overwrite it.
+ * reaches clients through Zero, and a library_item_object row for each object it stored. Each
+ * object is queued for deletion before it's stored (see queueLibraryObjectDeletes), so a failed or
+ * stopped request leaves nothing behind once the processor has drained it. The worker picks the
+ * item's id and every object's name, so a request can't name existing content and overwrite it.
  *
  * Form fields: `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG), `darkThumbnail` (optional, and
  * only with `thumbnail`, which is then the light one of the pair) and `name` (optional).
@@ -113,53 +116,55 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 
 		const id = uniqueId()
 		const contentKey = newLibraryItemContentKey()
-		const uploads: string[] = []
-		let ownedObjectNames: string[] = []
+		const assetCopies = planItemAssetCopies(env, content, id)
+		const lightThumbnail = thumbnailFile && nameThumbnailUpload(thumbnailFile)
+		const darkThumbnail = darkThumbnailFile && nameThumbnailUpload(darkThumbnailFile)
+		const thumbnailUploads = [lightThumbnail, darkThumbnail].flatMap((upload) =>
+			upload ? [upload.objectName] : []
+		)
+		const uploads = [...assetCopies.map((copy) => copy.newObjectName), ...thumbnailUploads]
+		// Queued before anything is stored, so what this stores is deleted if it fails or is stopped
+		// before the rows below name it.
+		await queueLibraryObjectDeletes(db, [
+			{ bucket: 'rooms', objectName: contentKey },
+			...uploads.map((objectName) => ({ bucket: 'uploads' as const, objectName })),
+		])
+
+		const owned = await copyItemAssets(env, content, assetCopies)
+		await env.ROOMS.put(contentKey, JSON.stringify(owned.content), {
+			httpMetadata: { contentType: 'application/json' },
+		})
+		const thumbnail = lightThumbnail && (await putThumbnail(env, lightThumbnail, darkThumbnail))
 		const now = Date.now()
-		try {
-			const owned = await copyItemAssets(env, content, id)
-			ownedObjectNames = owned.ownedObjectNames
-			await env.ROOMS.put(contentKey, JSON.stringify(owned.content), {
-				httpMetadata: { contentType: 'application/json' },
-			})
-			const thumbnail =
-				thumbnailFile && (await putThumbnail(env, thumbnailFile, darkThumbnailFile, uploads))
-			await db.transaction().execute(async (tx) => {
-				await tx
-					.insertInto('library_item')
-					.values({
-						id,
-						libraryId,
-						name,
-						thumbnail: toThumbnailColumn(thumbnail),
-						contentKey,
-						createdBy: auth.userId,
-						createdAt: now,
-						updatedAt: now,
-					})
-					.execute()
-				const objects: TlaLibraryItemObject[] = [
-					{ itemId: id, bucket: 'rooms', objectName: contentKey },
-					...[...uploads, ...ownedObjectNames].map((objectName) => ({
-						itemId: id,
-						bucket: 'uploads' as const,
-						objectName,
-					})),
-				]
-				await tx.insertInto('library_item_object').values(objects).execute()
-			})
-			return Response.json({
-				id,
-				createdAt: now,
-				thumbnail,
-			} satisfies AddLibraryItemResponseBody)
-		} catch (error) {
-			// e.g. the library was deleted meanwhile; nothing refers to the objects yet
-			await env.ROOMS.delete(contentKey)
-			const stored = [...uploads, ...ownedObjectNames]
-			if (stored.length > 0) await env.UPLOADS.delete(stored)
-			throw error
-		}
+		await db.transaction().execute(async (tx) => {
+			await tx
+				.insertInto('library_item')
+				.values({
+					id,
+					libraryId,
+					name,
+					thumbnail: toThumbnailColumn(thumbnail),
+					contentKey,
+					createdBy: auth.userId,
+					createdAt: now,
+					updatedAt: now,
+				})
+				.execute()
+			const objects: TlaLibraryItemObject[] = [
+				{ itemId: id, bucket: 'rooms', objectName: contentKey },
+				...[...thumbnailUploads, ...owned.ownedObjectNames].map((objectName) => ({
+					itemId: id,
+					bucket: 'uploads' as const,
+					objectName,
+				})),
+			]
+			await tx.insertInto('library_item_object').values(objects).execute()
+		})
+		return Response.json({
+			id,
+			createdAt: now,
+			thumbnail,
+		} satisfies AddLibraryItemResponseBody)
 	} finally {
 		await db.destroy()
 	}
