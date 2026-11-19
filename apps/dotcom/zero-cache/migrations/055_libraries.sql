@@ -3,9 +3,10 @@
 -- to their home workspace, whose id is the user's id. Every member of the workspace sees them.
 --
 -- Rows hold listing metadata only and sync through Zero. An item's content (shapes JSON, which can
--- run to megabytes) is stored privately in R2 by the sync worker, keyed by the item id, so it is
--- never replicated to every member's client. Its thumbnail images are public uploads at unguessable
--- URLs, like a board's images, and the row holds those URLs.
+-- run to megabytes) is stored privately in R2 by the sync worker, under the row's "contentKey", so
+-- it is never replicated to every member's client. Its thumbnail images are public uploads at
+-- unguessable URLs, like a board's images, and the row holds those URLs. A library's copy shares
+-- these objects with the items it was copied from (see 056).
 
 CREATE TABLE library (
   "id" VARCHAR PRIMARY KEY,
@@ -31,6 +32,8 @@ CREATE TABLE library_item (
   -- the thumbnail's URL, or { "light", "dark" } URLs for an item with one per colour mode; null
   -- when the item has none
   "thumbnail" JSONB,
+  -- the ROOMS bucket key of the item's content; server-only, left out of the Zero schema
+  "contentKey" VARCHAR NOT NULL,
   "createdBy" VARCHAR NOT NULL,
   "createdAt" BIGINT NOT NULL,
   "updatedAt" BIGINT NOT NULL,

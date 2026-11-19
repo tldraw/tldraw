@@ -497,9 +497,16 @@ export interface TlaAsset {
 	userId: string | null
 }
 
-/** An uploads-bucket object a library item owns. Server-only: not in the Zero schema. */
-export interface TlaLibraryItemAsset {
+/** library_item columns the Zero schema leaves out, so they never replicate to clients. */
+export interface LibraryItemPersistenceColumns {
+	/** The ROOMS bucket key of the item's content, which a library's copy shares. */
+	contentKey: string
+}
+
+/** An R2 object a library item uses. Server-only: not in the Zero schema. */
+export interface TlaLibraryItemObject {
 	itemId: string
+	bucket: 'rooms' | 'uploads'
 	objectName: string
 }
 
@@ -567,8 +574,8 @@ export interface DB {
 	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
 	effect_outbox: TlaEffectOutbox
 	library: TlaLibrary
-	library_item: TlaLibraryItem
-	library_item_asset: TlaLibraryItemAsset
+	library_item: TlaLibraryItem & LibraryItemPersistenceColumns
+	library_item_object: TlaLibraryItemObject
 }
 
 export const schema = createSchema({

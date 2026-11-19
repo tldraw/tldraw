@@ -2,6 +2,7 @@ import {
 	can,
 	isRole,
 	MAX_LIBRARY_NAME_LENGTH,
+	TlaLibraryItemObject,
 	TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
@@ -10,8 +11,8 @@ import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
 import {
 	getLibraryAccess,
 	getLibraryItemAccess,
-	getLibraryItemContentKey,
 	MAX_LIBRARY_ITEM_CONTENT_BYTES,
+	newLibraryItemContentKey,
 } from '../../libraryStorage'
 import {
 	LIBRARY_ITEM_THUMBNAIL_TYPES,
@@ -67,8 +68,9 @@ function isItemContent(value: unknown): value is StoredItemContent {
  * Adds an item to a library: gives it its own copies of the uploads its content refers to (see
  * copyItemAssets), stores its content (a TLLibraryItemContent as JSON) privately and its
  * optional thumbnails as public uploads, then inserts its row, with the thumbnails' URLs, which
- * reaches clients through Zero, and records the copies it owns. The worker picks the item's id, so
- * a request can't name an existing item and overwrite its content.
+ * reaches clients through Zero, and a library_item_object row for each object it stored. The
+ * worker picks the item's id and its content's key, so a request can't name existing content and
+ * overwrite it.
  *
  * Form fields: `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG), `darkThumbnail` (optional, and
  * only with `thumbnail`, which is then the light one of the pair) and `name` (optional).
@@ -110,7 +112,7 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 		}
 
 		const id = uniqueId()
-		const contentKey = getLibraryItemContentKey(id)
+		const contentKey = newLibraryItemContentKey()
 		const uploads: string[] = []
 		let ownedObjectNames: string[] = []
 		const now = Date.now()
@@ -130,17 +132,21 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 						libraryId,
 						name,
 						thumbnail: toThumbnailColumn(thumbnail),
+						contentKey,
 						createdBy: auth.userId,
 						createdAt: now,
 						updatedAt: now,
 					})
 					.execute()
-				if (ownedObjectNames.length > 0) {
-					await tx
-						.insertInto('library_item_asset')
-						.values(ownedObjectNames.map((objectName) => ({ itemId: id, objectName })))
-						.execute()
-				}
+				const objects: TlaLibraryItemObject[] = [
+					{ itemId: id, bucket: 'rooms', objectName: contentKey },
+					...[...uploads, ...ownedObjectNames].map((objectName) => ({
+						itemId: id,
+						bucket: 'uploads' as const,
+						objectName,
+					})),
+				]
+				await tx.insertInto('library_item_object').values(objects).execute()
 			})
 			return Response.json({
 				id,
@@ -167,16 +173,18 @@ export async function getLibraryItemContent(request: IRequest, env: Environment)
 	if (!itemId) return badRequest('Item id is required')
 
 	const db = createPostgresConnectionPool(env, 'getLibraryItem')
+	let contentKey: string
 	try {
 		const access = await getLibraryItemAccess(db, auth.userId, itemId)
 		if (!access || !isRole(access.role)) return notFound()
+		contentKey = access.item.contentKey
 	} finally {
 		await db.destroy()
 	}
 
-	const object = await env.ROOMS.get(getLibraryItemContentKey(itemId))
+	const object = await env.ROOMS.get(contentKey)
 	if (!object) return notFound()
-	// Items are never edited, so what's stored under an id doesn't change.
+	// Items' content is never edited, so what an id serves doesn't change.
 	return new Response(object.body, {
 		headers: {
 			'content-type': 'application/json',
