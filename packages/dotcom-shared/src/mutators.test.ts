@@ -1909,6 +1909,49 @@ describe('libraries', () => {
 		})
 	})
 
+	describe('deleteWorkspace', () => {
+		const ownedW = (location: 'server' | 'client', flag = true) =>
+			setup(
+				{
+					group_user: [
+						makeGroupUser({ userId: me, groupId: W, role: 'owner' }),
+						makeGroupUser({ userId: me, groupId: V, role: 'member' }),
+					],
+					library: [
+						makeLibrary({ id: libraryId, owningGroupId: W }),
+						makeLibrary({ id: 'coll_vvvv11112222vvvv', owningGroupId: V }),
+					],
+					library_item: [
+						makeItem('item_1111222233334444', libraryId),
+						makeItem('item_5555666677778888', 'coll_vvvv11112222vvvv'),
+					],
+				},
+				location,
+				{ isFeatureEnabled: async () => flag }
+			)
+
+		it("deletes the workspace's libraries on the server, leaving their items to the cascade", async () => {
+			const { store, tx, mutations, mutators } = ownedW('server')
+			await mutators.deleteWorkspace(tx, { id: W })
+			expect(mutations).toContainEqual({ op: 'delete', table: 'library', data: { id: libraryId } })
+			expect(mutations.filter((m) => m.table === 'library_item')).toEqual([])
+			expect(store.library.map((l) => l.id)).toEqual(['coll_vvvv11112222vvvv'])
+		})
+
+		it("deletes them, and their items, from a client's local store", async () => {
+			const { store, tx, mutators } = ownedW('client')
+			await mutators.deleteWorkspace(tx, { id: W })
+			expect(store.library.map((l) => l.id)).toEqual(['coll_vvvv11112222vvvv'])
+			expect(store.library_item.map((i) => i.id)).toEqual(['item_5555666677778888'])
+		})
+
+		it('deletes them when the libraries flag is off for me', async () => {
+			const { store, tx, mutators } = ownedW('server', false)
+			await mutators.deleteWorkspace(tx, { id: W })
+			expect(store.library.map((l) => l.id)).toEqual(['coll_vvvv11112222vvvv'])
+		})
+	})
+
 	describe('library.move', () => {
 		it('moves between two workspaces I belong to, home included', async () => {
 			const { store, tx, mutators } = setup({
