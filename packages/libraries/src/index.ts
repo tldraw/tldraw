@@ -42,7 +42,13 @@ export {
 	useSaveSelectionToLibrary,
 } from './canvas/use-save-selection-to-library'
 export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
-export { placeLibraryItem } from './canvas/place-item'
+export {
+	defaultPlaceLibraryItem,
+	type LibraryItemPlacer,
+	placeLibraryItem,
+	type TLLibraryItemPlacement,
+	type TLPlaceLibraryItemOptions,
+} from './canvas/place-item'
 export {
 	saveShapesToLibrary,
 	type PrepareItemContent,

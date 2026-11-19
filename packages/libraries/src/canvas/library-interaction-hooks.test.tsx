@@ -18,6 +18,11 @@ import {
 } from 'tldraw'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { TLLibraryItemContent } from '../lib/schema'
+import {
+	defaultPlaceLibraryItem,
+	type LibraryItemPlacer,
+	type TLLibraryItemPlacement,
+} from './place-item'
 import { useLibraryItemDrag, type LibraryItemDragOptions } from './use-item-drag'
 import { useLibraryItemActions } from './use-library-item-actions'
 import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
@@ -166,6 +171,45 @@ describe('useLibraryItemDrag', () => {
 		expect(editor.getCurrentPageShapes()).toHaveLength(0)
 		await act(async () => tile.dispatchEvent(pointer('pointermove', 400, 400)))
 		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		expect(editor.isIn('select.translating')).toBe(true)
+	})
+})
+
+describe('useLibraryItemDrag with a placer', () => {
+	function renderPlacerTile(source: InMemoryLibrarySource, itemId: TLLibraryItemId) {
+		const calls: TLLibraryItemPlacement[] = []
+		const placeItem: LibraryItemPlacer = (e, placement) => {
+			calls.push(placement)
+			return defaultPlaceLibraryItem(e, { ...placement, select: false })
+		}
+		renderHook(
+			() => useLibraryItemDrag(source, { placeItem }),
+			(getItemProps) => <button className="tile" {...getItemProps(itemId)} />
+		)
+		const tile = container.querySelector<HTMLButtonElement>('.tile')!
+		tile.getBoundingClientRect = () => new DOMRect(0, 0, 50, 50)
+		return { tile, calls }
+	}
+
+	it('calls it for a click, with the item, and honours its select', async () => {
+		const { source, box } = await makeSource()
+		const { tile, calls } = renderPlacerTile(source, box.id)
+		await act(async () => tile.click())
+		await flush()
+		expect(calls).toMatchObject([{ item: { id: box.id }, select: true, via: 'click' }])
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('calls it for a drag, and selects what it placed so the drag can move it', async () => {
+		const { source, box } = await makeSource()
+		const { tile, calls } = renderPlacerTile(source, box.id)
+		await act(async () => tile.dispatchEvent(pointer('pointerdown', 10, 10)))
+		await flush()
+		await act(async () => tile.dispatchEvent(pointer('pointermove', 100, 100)))
+		expect(calls).toMatchObject([{ item: { id: box.id }, select: true, via: 'drag' }])
+		const placed = editor.getCurrentPageShapes()
+		expect(editor.getSelectedShapeIds()).toEqual(placed.map((s) => s.id))
 		expect(editor.isIn('select.translating')).toBe(true)
 	})
 })

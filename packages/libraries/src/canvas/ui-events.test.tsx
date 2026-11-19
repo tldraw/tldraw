@@ -17,6 +17,7 @@ import { vi } from 'vitest'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import { LibrariesPanel } from './libraries-panel'
 import { LibrariesPanelButton } from './libraries-panel-button'
+import { defaultPlaceLibraryItem, type LibraryItemPlacer } from './place-item'
 import { librariesPanelOpen } from './state'
 
 vi.mock('tldraw', async (importOriginal) => ({
@@ -164,6 +165,22 @@ describe('libraries UI events', () => {
 		expect(editor.isIn('select.translating')).toBe(false)
 		expect(editor.getCurrentPageShapes()).toEqual([])
 		expect(onUiEvent).not.toHaveBeenCalled()
+	})
+
+	it('reports a placement once when the panel has its own placer', async () => {
+		librariesPanelOpen.set(editor, true)
+		const placeItem = vi.fn<LibraryItemPlacer>((e, placement) =>
+			defaultPlaceLibraryItem(e, { ...placement, select: false })
+		)
+		await render(<LibrariesPanel source={await makeSource()} placeItem={placeItem} />)
+		const tile = container.querySelector('button[aria-label="Box"]')!
+
+		await act(async () => pointer(tile, 'click'))
+
+		expect(placeItem).toHaveBeenCalledTimes(1)
+		expect(onUiEvent.mock.calls).toEqual([
+			['place-library-item', { source: 'libraries', method: 'click' }],
+		])
 	})
 
 	it('reports an item that could not be placed, and not a placement', async () => {
