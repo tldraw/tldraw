@@ -19,6 +19,11 @@ const LIBRARY_ID = 'coll_aaaa11112222bbbb'
 const ITEM_ID = 'item_1111222233334444'
 const CONTENT = { formatVersion: 1, content: { shapes: [], rootShapeIds: [], schema: {} } }
 const CONTENT_KEY = 'library-items/content_1111222233334444/content.json'
+const png = () => new Blob([new Uint8Array([1])], { type: 'image/png' })
+
+// The library and the user's role, no item with the id, the queued deletes, then the inserted
+// row's id.
+const adding = (access: unknown) => [[access], [], [], [{ id: ITEM_ID }]]
 
 function mockPool(resultSets: unknown[][]) {
 	const fake = createFakeKysely(resultSets)
@@ -103,9 +108,11 @@ async function storedContent(env: Environment) {
 	return { key, content: await (await env.ROOMS.get(key))!.json<any>() }
 }
 
-function addRequest(fields: Record<string, string | Blob>) {
+function addRequest(fields: Record<string, string | Blob | undefined>) {
 	const form = new FormData()
-	for (const [key, value] of Object.entries(fields)) form.set(key, value)
+	for (const [key, value] of Object.entries({ id: ITEM_ID, ...fields })) {
+		if (value !== undefined) form.set(key, value)
+	}
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/items`, {
 			method: 'POST',
@@ -152,7 +159,7 @@ afterEach(() => vi.clearAllMocks())
 
 describe('addLibraryItem', () => {
 	it("stores a member's item and inserts its row under an id the worker picks", async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const response = await addLibraryItem(
 			addRequest({
@@ -165,7 +172,7 @@ describe('addLibraryItem', () => {
 
 		expect(response.status).toBe(200)
 		const { id, thumbnail } = (await response.json()) as { id: string; thumbnail: string }
-		expect(id).not.toBe(ITEM_ID)
+		expect(id).toBe(ITEM_ID)
 		const stored = await storedContent(env)
 		expect(stored.content).toEqual(CONTENT)
 		expect(stored.key).not.toContain(id)
@@ -182,7 +189,7 @@ describe('addLibraryItem', () => {
 	})
 
 	it('stores a light and a dark thumbnail', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const response = await addLibraryItem(
 			addRequest({
@@ -208,7 +215,7 @@ describe('addLibraryItem', () => {
 	})
 
 	it('stores an SVG thumbnail as an SVG upload', async () => {
-		mockPool([[libraryAccess(W, 'member')]])
+		mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const response = await addLibraryItem(
 			addRequest({
@@ -224,7 +231,7 @@ describe('addLibraryItem', () => {
 	})
 
 	it('queues every object it stores for deletion before storing any', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
 		const queuedAtEachPut: number[] = []
@@ -258,7 +265,7 @@ describe('addLibraryItem', () => {
 	})
 
 	it('leaves nothing behind once its queued deletes drain, when the row is never inserted', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
 			throw new Error('the worker was stopped')
 		})
@@ -282,7 +289,7 @@ describe('addLibraryItem', () => {
 	})
 
 	it('keeps what an added item names when its queued deletes drain', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const response = await addLibraryItem(
 			addRequest({
@@ -302,7 +309,7 @@ describe('addLibraryItem', () => {
 		const env = makeEnv()
 		const keys: string[] = []
 		for (let i = 0; i < 2; i++) {
-			const fake = mockPool([[libraryAccess(W, 'member')]])
+			const fake = mockPool(adding(libraryAccess(W, 'member')))
 			await addLibraryItem(addRequest({ content: JSON.stringify(CONTENT) }), env)
 			keys.push(namedObjects(fake).find((o) => o.bucket === 'rooms')!.objectName)
 		}
@@ -328,7 +335,7 @@ describe('addLibraryItem', () => {
 	})
 
 	it('adds to a library in my home workspace, which may have no group_user row', async () => {
-		mockPool([[libraryAccess(ME, null)]])
+		mockPool(adding(libraryAccess(ME, null)))
 		const response = await addLibraryItem(
 			addRequest({ content: JSON.stringify(CONTENT) }),
 			makeEnv()
@@ -371,10 +378,67 @@ describe('addLibraryItem', () => {
 				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }),
 			},
 		],
+		['a request without an id', { id: undefined, content: JSON.stringify(CONTENT) }],
+		['an id uniqueId would not make', { id: 'item_1', content: JSON.stringify(CONTENT) }],
+		[
+			'an id with characters uniqueId does not use',
+			{ id: 'item/../111222233334444', content: JSON.stringify(CONTENT) },
+		],
 	])('refuses %s', async (_, fields) => {
-		mockPool([[libraryAccess(W, 'member')]])
-		const response = await addLibraryItem(addRequest(fields), makeEnv())
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
+		const env = makeEnv()
+		const response = await addLibraryItem(addRequest(fields), env)
 		expect(response.status).toBe(400)
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
+	})
+
+	it('refuses an id that names an existing item, before queueing or storing anything', async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')], [{ id: ITEM_ID }]])
+		const env = makeEnv()
+		const response = await addLibraryItem(
+			addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
+			env
+		)
+		expect(response.status).toBe(409)
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(await uploadNames(env)).toEqual([])
+		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
+	})
+
+	it("answers 409 when another request inserts the id first; its queued deletes remove what it stored, and not the other's", async () => {
+		const env = makeEnv()
+		// the request that inserted the id first, and what it stored
+		const winner = mockPool(adding(libraryAccess(W, 'member')))
+		expect(
+			(
+				await addLibraryItem(
+					addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
+					env
+				)
+			).status
+		).toBe(200)
+		const winnerObjects = namedObjects(winner)
+		const stored = async () => [
+			...(await env.ROOMS.list()).objects.map((o: { key: string }) => o.key),
+			...(await uploadNames(env)),
+		]
+		const winnerStored = await stored()
+
+		// no item when it checks, but the insert finds one
+		const loser = mockPool([[libraryAccess(W, 'member')], [], [], []])
+		const response = await addLibraryItem(
+			addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
+			env
+		)
+		expect(response.status).toBe(409)
+		expect(namedObjects(loser)).toEqual([])
+		expect(loser.queries.at(-1)!.sql).toBe('commit')
+		const loserQueued = queuedObjects(loser)
+		expect(loserQueued.filter((o) => winnerStored.includes(o.objectName))).toEqual([])
+
+		await drainQueued(env, [...queuedObjects(winner), ...loserQueued], winnerObjects)
+		expect((await stored()).sort()).toEqual(winnerStored.sort())
 	})
 })
 
@@ -390,7 +454,7 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets } })
 
 	it('copies each uploaded image to an object the item owns and points the content at it', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
 
@@ -399,7 +463,8 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 			env
 		)
 
-		const { id } = (await response.json()) as { id: string }
+		expect(response.status).toBe(200)
+		const id = ITEM_ID
 		const uploads = await uploadNames(env)
 		const copyName = uploads.find((key: string) => key !== 'abc123-png')!
 		expect(copyName).toMatch(/-png$/)
@@ -412,7 +477,7 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 	})
 
 	it('names exactly the objects it writes: its content, its copies and both thumbnails', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		await env.UPLOADS.put('abc123-png', new Uint8Array([1]))
 		await env.UPLOADS.put('def456-png', new Uint8Array([2]))
@@ -437,7 +502,7 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 	})
 
 	it("neither names nor stores the copy of an upload that's missing", async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		await env.UPLOADS.put('abc123-png', new Uint8Array([1]))
 		const written = recordPuts(env)
@@ -473,12 +538,13 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 	})
 
 	it('leaves an asset whose upload is missing, or that is not an upload, as it was', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const assets = [image('https://content.test/gone-png'), image('data:image/png;base64,AAAA')]
 		const response = await addLibraryItem(addRequest({ content: withAssets(assets) }), env)
 
-		const { id } = (await response.json()) as { id: string }
+		expect(response.status).toBe(200)
+		const id = ITEM_ID
 		const { key, content: stored } = await storedContent(env)
 		expect(stored.content.assets).toEqual(assets)
 		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
