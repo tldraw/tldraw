@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
+import {
+	LibraryNotFoundError,
+	LibraryPermissionError,
+	type TLLibraryThumbnailContext,
+} from './LibrarySource'
 import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 function content(name: string): TLLibraryItemContent {
@@ -304,5 +308,61 @@ describe('CompositeLibrarySource', () => {
 			parts: [{ owner: tldraw, source: unmovable }],
 		})
 		expect(withoutMoving.moveItem).toBeUndefined()
+	})
+
+	describe('resolveThumbnail', () => {
+		const icons = LibraryRecordType.createId('icons')
+		const star = LibraryItemRecordType.create({
+			libraryId: icons,
+			name: 'Star',
+			thumbnail: { light: 'https://x/star-light.png', dark: 'https://x/star-dark.png' },
+		})
+		const context = (colorMode: 'light' | 'dark'): TLLibraryThumbnailContext => ({
+			colorMode,
+			width: 128,
+			dpr: 2,
+			networkEffectiveType: '4g',
+		})
+
+		function setUpThumbnails() {
+			const plain = new InMemoryLibrarySource({
+				id: 'plain',
+				initial: {
+					libraries: [LibraryRecordType.create({ id: icons, name: 'Icons' })],
+					items: [star],
+					contents: { [star.id]: content('star') },
+				},
+			})
+			const sized = Object.assign(shared(), {
+				resolveThumbnail: vi.fn(() => 'https://x/sized.png'),
+			})
+			const source = new CompositeLibrarySource({
+				parts: [
+					{ owner: personal, source: plain },
+					{ owner: tldraw, source: sized },
+				],
+			})
+			return { source, sized }
+		}
+
+		it("asks the item's part when it resolves thumbnails", () => {
+			const { source, sized } = setUpThumbnails()
+			const button = sized.getItems(wireframing)[0]
+			expect(source.resolveThumbnail(button, context('light'))).toBe('https://x/sized.png')
+			expect(sized.resolveThumbnail).toHaveBeenCalledWith(button, context('light'))
+		})
+
+		it("gives the item's own thumbnail for a part that doesn't, in the colour mode", () => {
+			const { source, sized } = setUpThumbnails()
+			expect(source.resolveThumbnail(star, context('light'))).toBe('https://x/star-light.png')
+			expect(source.resolveThumbnail(star, context('dark'))).toBe('https://x/star-dark.png')
+			expect(sized.resolveThumbnail).not.toHaveBeenCalled()
+		})
+
+		it('gives null for an item without a thumbnail in a part that does not resolve them', () => {
+			const { source } = setUpThumbnails()
+			const { thumbnail: _thumbnail, ...bare } = star
+			expect(source.resolveThumbnail(bare, context('light'))).toBeNull()
+		})
 	})
 })

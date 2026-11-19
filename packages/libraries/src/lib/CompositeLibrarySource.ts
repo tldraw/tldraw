@@ -8,9 +8,11 @@ import {
 	type TLLibraryAction,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
+	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getThumbnailForColorMode, type TLLibraryItem } from './schema'
 
 /** @public */
 export interface CompositeLibrarySourcePart {
@@ -113,6 +115,17 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	getItemContent(itemId: TLLibraryItemId) {
 		return this.getItemPart(itemId).part.source.getItemContent(itemId)
+	}
+
+	/**
+	 * Asks the item's part, so each part sizes its own thumbnails. A part without
+	 * `resolveThumbnail` gets the item's `thumbnail` for the colour mode, as the panel shows it
+	 * from a source without one.
+	 */
+	resolveThumbnail(item: TLLibraryItem, context: TLLibraryThumbnailContext) {
+		const source = this.getLibraryPart(item.libraryId).source
+		if (source.resolveThumbnail) return source.resolveThumbnail(item, context)
+		return item.thumbnail ? getThumbnailForColorMode(item.thumbnail, context.colorMode) : null
 	}
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
