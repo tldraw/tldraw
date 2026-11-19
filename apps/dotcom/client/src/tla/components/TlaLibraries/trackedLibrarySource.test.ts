@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import {
 	LibraryNotFoundError,
 	whenItemsStored,
@@ -21,6 +22,8 @@ import { TldrawAppLibrariesSource } from './librariesSource'
 import { addStarterPack } from './starterPacks'
 import { getUntrackedSource } from './trackedLibrarySource'
 
+vi.mock('@sentry/react', () => ({ captureException: vi.fn() }))
+
 let editors: Editor[] = []
 
 afterEach(() => {
@@ -28,6 +31,7 @@ afterEach(() => {
 	editors = []
 	vi.unstubAllGlobals()
 	vi.restoreAllMocks()
+	vi.mocked(captureException).mockClear()
 })
 
 function setUp() {
@@ -94,6 +98,9 @@ describe('TrackedLibrarySource', () => {
 			])
 		)
 		expect(events().map(([name]) => name)).not.toContain('save-to-library')
+		expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+			tags: { operation: 'save-to-library' },
+		})
 	})
 
 	it('reports changes to libraries and items', async () => {
@@ -144,6 +151,22 @@ describe('TrackedLibrarySource', () => {
 			],
 			['library-error', { source: 'libraries', action: 'create-library', reason: 'not-found' }],
 		])
+		expect(captureException).not.toHaveBeenCalled()
+	})
+
+	it('sends a failure to load an item to Sentry only when its reason is unknown', async () => {
+		const { source } = setUp()
+		const itemId = 'library_item:any' as TLLibraryItemId
+		const getItemContent = vi.spyOn(getUntrackedSource(source), 'getItemContent')
+		getItemContent.mockRejectedValueOnce(new LibraryNotFoundError(itemId))
+		await expect(source.getItemContent(itemId)).rejects.toThrow()
+		expect(captureException).not.toHaveBeenCalled()
+		const failure = new Error('network down')
+		getItemContent.mockRejectedValueOnce(failure)
+		await expect(source.getItemContent(itemId)).rejects.toThrow(failure)
+		expect(captureException).toHaveBeenCalledWith(failure, {
+			tags: { operation: 'get-library-item-content' },
+		})
 	})
 
 	it('reports a change the server rejects after it was made', async () => {
