@@ -61,6 +61,24 @@ describe('getAppOriginParams', () => {
 		}
 	})
 
+	it('adds nothing when the visitor found tldraw.com through tldraw.dev', () => {
+		for (const personInfo of [
+			{ r: 'https://tldraw.dev/', u: 'https://www.tldraw.com/' },
+			{ r: 'https://www.tldraw.dev/pricing', u: 'https://www.tldraw.com/?utm_medium=x' },
+			{ r: 'https://docs.tldraw.dev/', u: 'https://www.tldraw.com/' },
+			{ r: '$direct', u: 'https://www.tldraw.com/?utm_source=dotdev&utm_campaign=hero' },
+			{ r: 'https://www.google.com/', u: 'https://www.tldraw.com/?utm_source=DotDev' },
+		]) {
+			expect(getAppOriginParams(personInfo)).toEqual([])
+		}
+	})
+
+	it('keeps referrers that only look like tldraw.dev', () => {
+		expect(getAppOriginParams({ r: 'https://nottldraw.dev/', u: undefined })).toEqual([
+			['tl_or', 'nottldraw.dev'],
+		])
+	})
+
 	it('keeps referrers that only look like tldraw.com', () => {
 		expect(getAppOriginParams({ r: 'https://nottldraw.com/', u: undefined })).toEqual([
 			['tl_or', 'nottldraw.com'],

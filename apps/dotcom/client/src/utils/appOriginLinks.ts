@@ -29,6 +29,10 @@ function isTldrawComHostname(hostname: string) {
 	return hostname === 'tldraw.com' || hostname.endsWith('.tldraw.com')
 }
 
+function isDotDevHostname(hostname: string) {
+	return hostname === 'tldraw.dev' || hostname.endsWith('.tldraw.dev')
+}
+
 /** Turns PostHog's `$initial_person_info` (`{ r, u }`) into the tl_* params to put on a link. */
 export function getAppOriginParams(personInfo: unknown): Array<[string, string]> {
 	if (!personInfo || typeof personInfo !== 'object') return []
@@ -37,6 +41,15 @@ export function getAppOriginParams(personInfo: unknown): Array<[string, string]>
 	const landing = parseUrl(u)?.searchParams
 	// r is '$direct' when there was no referrer, which doesn't parse as a URL.
 	const referrerHostname = parseUrl(r)?.hostname.toLowerCase()
+
+	// A visitor who found tldraw.com through tldraw.dev would otherwise carry tldraw.dev back as
+	// their app origin. tldraw.dev links here with utm_source=dotdev, often with no referrer.
+	if (
+		(referrerHostname && isDotDevHostname(referrerHostname)) ||
+		landing?.get('utm_source')?.trim().toLowerCase() === 'dotdev'
+	) {
+		return []
+	}
 
 	const params: Array<[string, string | undefined]> = [
 		['tl_os', cleanParamValue(landing?.get('utm_source'))],
