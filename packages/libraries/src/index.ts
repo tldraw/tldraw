@@ -17,7 +17,7 @@ export {
 	type NewLibraryAction,
 } from './canvas/libraries-panel-header'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
-export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
+export { LibrariesQuickActions, LibrariesToolbarButton } from './canvas/libraries-quick-actions'
 export {
 	LibrarySectionHeader,
 	type LibrarySectionHeaderProps,
@@ -31,7 +31,12 @@ export {
 	type PrepareItemContent,
 	type SaveShapesOptions,
 } from './canvas/save-shapes'
-export { activeLibraryId, librariesPanelOpen, toggleLibrariesPanel } from './canvas/state'
+export {
+	activeLibraryId,
+	collapsedLibraryIds,
+	librariesPanelOpen,
+	toggleLibrariesPanel,
+} from './canvas/state'
 export {
 	getLibraryErrorReason,
 	type TLLibrariesUiEventMap,

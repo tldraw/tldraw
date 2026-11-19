@@ -73,6 +73,20 @@ export interface LibrariesPanelProps {
  * active tab's owner. Setting {@link activeLibraryId} switches to the tab holding that library.
  * Clicking an item places a copy of it in the middle of the viewport; dragging one out drops it
  * under the pointer.
+ *
+ * A drag starts once the pointer has left the panel and moved past the editor's
+ * `uiDragDistanceSquared` option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a
+ * tool out of the toolbar does. Set them with `<Tldraw options={{ … }}>`.
+ *
+ * Its size and position follow CSS variables set on the panel or any element around it:
+ *
+ * - `--tlui-libraries-panel-inset-top`: the gap above the panel. Defaults to `48px`, below the
+ *   main menu.
+ * - `--tlui-libraries-panel-inset-side`: the gap between the panel and its side of the canvas.
+ *   Defaults to `8px`.
+ * - `--tlui-libraries-panel-max-height`: the tallest the panel grows before it scrolls. Defaults to
+ *   the canvas's height less the two insets, at most `720px`.
+ * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
  * @public @react
  */
 export function LibrariesPanel({ components, ...props }: LibrariesPanelProps) {
