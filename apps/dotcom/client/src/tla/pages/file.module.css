@@ -1,0 +1,15 @@
+/* The live editor and, while history is open, the history preview stacked on top of it. */
+.fileArea {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.liveEditor {
+	position: absolute;
+	inset: 0;
+}
+
+.liveEditor[data-hidden] {
+	visibility: hidden;
+}

@@ -26,6 +26,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
@@ -48,11 +49,13 @@ import {
 import { routes } from '../../../routeDefs'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useCanEditFile } from '../../hooks/useCanEditFile'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useRoomInfo } from '../../hooks/useRoomInfo'
+import { useVersionHistoryEnabled } from '../../hooks/useVersionHistoryEnabled'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -326,6 +329,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 								workspaceId={null}
 							/>
 							<ImportFileActionItem />
+							<ShowVersionHistoryMenuItem fileId={fileId} />
 						</TldrawUiMenuSubmenu>
 					)}
 					<EditSubmenu />
@@ -567,5 +571,28 @@ function TlaPreferencesGroup() {
 			<KeyboardShortcutsMenuItem />
 			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
+	)
+}
+
+function ShowVersionHistoryMenuItem({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
+	const enabled = useVersionHistoryEnabled()
+	const canEdit = useCanEditFile(fileId)
+	if (!enabled || !canEdit) return null
+	return (
+		<TldrawUiMenuItem
+			id="show-version-history"
+			label={msg(editorMessages.showVersionHistory)}
+			readonlyOk
+			onSelect={() => {
+				trackEvent('open-version-history', { source: 'file-header' })
+				navigate(routes.tlaFileHistory(fileId), {
+					state: { view: { pageId: editor.getCurrentPageId(), camera: editor.getCamera() } },
+				})
+			}}
+		/>
 	)
 }
