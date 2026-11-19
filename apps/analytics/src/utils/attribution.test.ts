@@ -112,6 +112,50 @@ describe('getAttributionTouch', () => {
 		).toBeNull()
 	})
 
+	test("reads the linking app's first touch from tl_* params, kept out of the landing page", () => {
+		expect(
+			getAttributionTouch({
+				url: 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo&tl_os=google&tl_om=cpc&tl_oc=brand&tl_or=www.google.com',
+				referrer: 'https://www.tldraw.com/',
+				time,
+			})
+		).toEqual({
+			s: 'dotcom',
+			m: 'organic',
+			c: 'top-left-logo',
+			l: 'https://tldraw.dev/?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo',
+			t: '2026-10-30T12:00:00.000Z',
+			os: 'google',
+			om: 'cpc',
+			oc: 'brand',
+			or: 'www.google.com',
+		})
+	})
+
+	test('trims and caps utm_* and tl_* values, dropping blank ones', () => {
+		const long = 'x'.repeat(600)
+		expect(
+			getAttributionTouch({
+				url: `https://tldraw.dev/?utm_source=%20google%20&utm_campaign=${long}&tl_os=%20bing%20&tl_oc=${long}&tl_om=%20%20`,
+				referrer: '',
+				time,
+			})
+		).toEqual({
+			s: 'google',
+			c: 'x'.repeat(500),
+			l: expect.any(String),
+			t: '2026-10-30T12:00:00.000Z',
+			os: 'bing',
+			oc: 'x'.repeat(500),
+		})
+	})
+
+	test('tl_* params alone are not a new touch', () => {
+		expect(
+			getAttributionTouch({ url: 'https://tldraw.dev/?tl_os=google', referrer: '', time })
+		).toBeNull()
+	})
+
 	test('counts any utm_* param, not only the four it stores', () => {
 		expect(
 			getAttributionTouch({ url: 'https://tldraw.dev/?utm_id=42', referrer: '', time })
@@ -206,6 +250,40 @@ describe('recordAttributionPageView', () => {
 				c: 'launch',
 				l: 'https://tldraw.dev/?utm_source=newsletter&utm_campaign=launch',
 				t: '2026-11-02T00:00:00.000Z',
+			},
+		})
+	})
+
+	test("stores the linking app's first touch on whichever touch the landing creates", () => {
+		visit('https://tldraw.dev/')
+		recordAttributionPageView({
+			url: 'https://tldraw.dev/?utm_source=dotcom&tl_os=google&tl_or=www.google.com',
+			referrer: '',
+			time,
+		})
+		const first = readAttribution()!.first
+		expect(first).toEqual({
+			s: 'dotcom',
+			l: 'https://tldraw.dev/?utm_source=dotcom',
+			t: time.toISOString(),
+			os: 'google',
+			or: 'www.google.com',
+		})
+
+		recordAttributionPageView({
+			url: 'https://tldraw.dev/pricing?utm_source=flash&tl_os=newsletter&tl_om=email',
+			referrer: '',
+			time: new Date('2026-11-01T00:00:00.000Z'),
+		})
+		expect(readAttribution()).toEqual({
+			v: 1,
+			first,
+			last: {
+				s: 'flash',
+				l: 'https://tldraw.dev/pricing?utm_source=flash',
+				t: '2026-11-01T00:00:00.000Z',
+				os: 'newsletter',
+				om: 'email',
 			},
 		})
 	})
