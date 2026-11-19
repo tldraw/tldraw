@@ -11,6 +11,8 @@ import {
 	createLibraryItemContentId,
 	TLLibraryItemId,
 	TLLibraryItemRecord,
+	TLLibraryRecord,
+	TLLibraryRecordPropsMap,
 } from './TLLibrary'
 import { TLShapeId } from './TLShape'
 
@@ -154,5 +156,19 @@ describe('schema registration', () => {
 			'down'
 		)
 		expect(result.type).toBe('error')
+	})
+})
+
+describe('TLLibraryRecordPropsMap', () => {
+	it('names the record types librarySchemaRecords registers, each by its type name', () => {
+		type Mapped = { [K in keyof TLLibraryRecordPropsMap]: TLLibraryRecordPropsMap[K]['typeName'] }
+		const typeNames: Mapped = {
+			library: 'library',
+			'library-item': 'library-item',
+			'library-item-content': 'library-item-content',
+		}
+		const record: TLLibraryRecord = {} as TLLibraryRecordPropsMap[keyof TLLibraryRecordPropsMap]
+		expect(record).toBeDefined()
+		expect(Object.keys(typeNames).sort()).toEqual(Object.keys(librarySchemaRecords).sort())
 	})
 })
