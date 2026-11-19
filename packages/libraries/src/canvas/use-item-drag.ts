@@ -20,7 +20,12 @@ import {
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { getContentTooNewToast } from './content-too-new-toast'
-import { placeLibraryItem } from './place-item'
+import {
+	defaultPlaceLibraryItem,
+	findListedItem,
+	type LibraryItemPlacer,
+	placeItemWith,
+} from './place-item'
 import { getLibraryErrorReason } from './ui-events'
 
 const messages = defineMessages({
@@ -33,6 +38,11 @@ const messages = defineMessages({
 
 /** @public */
 export interface LibraryItemDragOptions {
+	/**
+	 * Places the item, on a click or once a drag starts. Defaults to
+	 * {@link defaultPlaceLibraryItem}.
+	 */
+	placeItem?: LibraryItemPlacer
 	/**
 	 * The element the pointer has to leave before a press on a tile becomes a drag. Defaults to the
 	 * {@link LibrariesPanel} around the tile, or the tile itself outside one. Return the element
@@ -81,7 +91,8 @@ export function useLibraryItemDrag(
 
 	return useMemo(() => {
 		const onPlace = (itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).then(
+			const { placeItem = defaultPlaceLibraryItem } = latest.current.options
+			placeItemWith(editor, source, itemId, {}, placeItem, 'click').then(
 				() =>
 					latest.current.trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
 				(error) => {
@@ -123,7 +134,14 @@ export function useLibraryItemDrag(
 			return Vec.Dist2(screenSpaceStart, { x, y }) > minDistanceSq
 		}
 
-		const startDrag = (e: PointerEvent, screenSpaceStart: VecModel, content: TLContent) => {
+		const startDrag = (
+			e: PointerEvent,
+			screenSpaceStart: VecModel,
+			itemId: TLLibraryItemId,
+			content: TLContent
+		) => {
+			const item = findListedItem(source, itemId)
+			if (!item) return
 			editor.run(() => {
 				editor.setCurrentTool('select')
 				editor.dispatch({
@@ -136,10 +154,15 @@ export function useLibraryItemDrag(
 				editor.selectNone()
 
 				const markId = editor.markHistoryStoppingPoint('drag library item')
-				editor.putContentOntoCurrentPage(content, {
+				const { placeItem = defaultPlaceLibraryItem } = latest.current.options
+				const ids = placeItem(editor, {
+					item,
+					content,
 					point: editor.inputs.getCurrentPagePoint(),
 					select: true,
+					via: 'drag',
 				})
+				editor.setSelectedShapes(ids)
 				const shape = editor.getSelectedShapes()[0]
 				if (!shape) {
 					editor.setCurrentTool('select.idle')
@@ -211,7 +234,7 @@ export function useLibraryItemDrag(
 				if (!content || !hasLeftRegion(e, state.screenSpaceStart, state.regionRect)) return
 				const { screenSpaceStart } = state
 				state = { name: 'dragging' }
-				startDrag(e, screenSpaceStart, content)
+				startDrag(e, screenSpaceStart, itemId, content)
 				showMoveCursorWhileTranslating()
 			},
 			onPointerUp(e: PointerEvent<HTMLButtonElement>) {

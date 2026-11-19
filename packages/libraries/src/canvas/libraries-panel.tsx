@@ -28,6 +28,7 @@ import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
+import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useCreateLibrary } from './use-create-library'
@@ -54,6 +55,11 @@ export interface LibrariesPanelProps {
 	prepareItemContent?: PrepareItemContent
 	/** Replaces or hides pieces of the panel. See {@link LibrariesComponents}. */
 	components?: LibrariesComponents
+	/**
+	 * Places an item when it's clicked or dragged out, e.g. without selecting it. Defaults to
+	 * {@link defaultPlaceLibraryItem}.
+	 */
+	placeItem?: LibraryItemPlacer
 }
 
 /**
@@ -97,6 +103,7 @@ function LibrariesPanelContent({
 	side = 'left',
 	menuItems,
 	prepareItemContent,
+	placeItem,
 }: Omit<LibrariesPanelProps, 'components'>) {
 	const editor = useEditor()
 	const { LibrariesPanelHeader = DefaultLibrariesPanelHeader, NoLibraries = DefaultNoLibraries } =
@@ -106,7 +113,7 @@ function LibrariesPanelContent({
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useLibraries(source)
 	const grouping = useLibraryGrouping(source)
-	const getItemProps = useLibraryItemDrag(source)
+	const getItemProps = useLibraryItemDrag(source, { placeItem })
 	const createLibrary = useCreateLibrary(source)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()
