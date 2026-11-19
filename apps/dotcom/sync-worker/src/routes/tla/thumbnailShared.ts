@@ -151,6 +151,8 @@ export function describeThumbnailFailure(reason: string): string {
 			return 'the new name could not be saved'
 		case 'comment_write_error':
 			return 'the comment could not be saved'
+		case 'feedback_send_error':
+			return 'the feedback could not be delivered'
 		case 'rate_limiter_unavailable':
 			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
 			// message saying otherwise would have them back off for a minute that would not help.
@@ -173,6 +175,7 @@ export type ThumbnailErrorSurface =
 	| 'mcp_workspace_list'
 	| 'mcp_comment_read'
 	| 'mcp_comment_write'
+	| 'mcp_feedback'
 	| 'mcp_screenshot'
 	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
 	// help. The caller is told the tab isn't responding.
