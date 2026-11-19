@@ -55,7 +55,11 @@ function isItemContent(value: unknown): value is StoredItemContent {
 	if (!value || typeof value !== 'object') return false
 	const { formatVersion, content } = value as { formatVersion?: unknown; content?: any }
 	if (formatVersion !== 1 || !content || typeof content !== 'object') return false
-	return content.assets === undefined || Array.isArray(content.assets)
+	if (content.assets === undefined) return true
+	return (
+		Array.isArray(content.assets) &&
+		content.assets.every((asset: unknown) => !!asset && typeof asset === 'object')
+	)
 }
 
 /**
