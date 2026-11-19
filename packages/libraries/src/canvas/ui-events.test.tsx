@@ -147,6 +147,25 @@ describe('libraries UI events', () => {
 		])
 	})
 
+	it.each([
+		['the pointer is cancelled', (tile: Element) => pointer(tile, 'pointercancel')],
+		['Escape is pressed', () => editor.cancel()],
+	])('reports nothing for a drag cancelled because %s', async (_, cancel) => {
+		librariesPanelOpen.set(editor, true)
+		await render(<LibrariesPanel source={await makeSource()} />)
+		const tile = container.querySelector('button[aria-label="Box"]')!
+
+		await act(async () => pointer(tile, 'pointerdown', { clientX: 0, clientY: 0 }))
+		await act(async () => pointer(tile, 'pointermove', { clientX: 300, clientY: 300 }))
+		expect(editor.isIn('select.translating')).toBe(true)
+
+		await act(async () => cancel(tile))
+
+		expect(editor.isIn('select.translating')).toBe(false)
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(onUiEvent).not.toHaveBeenCalled()
+	})
+
 	it('reports an item that could not be placed, and not a placement', async () => {
 		librariesPanelOpen.set(editor, true)
 		const source = await makeSource()

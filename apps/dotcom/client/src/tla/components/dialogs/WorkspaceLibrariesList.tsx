@@ -55,7 +55,10 @@ export function WorkspaceLibrariesList({
 }) {
 	const msg = useTranslation()
 	const app = useApp()
-	const source = useMemo(() => new TrackedLibrarySource(userLibraries, app), [userLibraries, app])
+	const source = useMemo(
+		() => new TrackedLibrarySource(userLibraries, app, { eventSource: 'workspace-settings' }),
+		[userLibraries, app]
+	)
 	const { addDialog } = useDialogs()
 	const { addToast } = useToasts()
 	const [renamingId, setRenamingId] = useState<TLLibraryId>()

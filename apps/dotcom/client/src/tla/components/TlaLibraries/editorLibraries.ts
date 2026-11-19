@@ -45,7 +45,7 @@ export function getEditorLibraries(
 			{ source: userLibraries },
 		],
 	})
-	const source = new TrackedLibrarySource(composite, app, fileId)
+	const source = new TrackedLibrarySource(composite, app, { fileId })
 	sources.set(editor, { fileId, source })
 	return source
 }
