@@ -38,7 +38,24 @@ export function LibrariesQuickActions({ children }: TLUiQuickActionsProps) {
 	)
 }
 
-function LibrariesToolbarButton() {
+/**
+ * The button {@link LibrariesQuickActions} adds: opens and closes the {@link LibrariesPanel}, and
+ * shows nothing when libraries aren't enabled. Use it to keep the button while choosing which of
+ * tldraw's quick actions to show.
+ *
+ * @example
+ * ```tsx
+ * const components: TLComponents = {
+ * 	QuickActions: () => (
+ * 		<DefaultQuickActions>
+ * 			<LibrariesToolbarButton />
+ * 		</DefaultQuickActions>
+ * 	),
+ * }
+ * ```
+ * @public @react
+ */
+export function LibrariesToolbarButton() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()

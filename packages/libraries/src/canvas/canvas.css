@@ -1,12 +1,18 @@
 /* Floats on the left below the main menu, or on the right where the comments sidebar sits: 48px
-   from the top on either side, sized to its content and scrolling past max-height. Hosts can change
+   from the top and 8px from the side, sized to its content and scrolling past max-height. Hosts can
+   move it with --tlui-libraries-panel-inset-top and --tlui-libraries-panel-inset-side, and change
    the cap with --tlui-libraries-panel-max-height. */
 .tlui-libraries-panel {
+	--tlui-libraries-panel-top: var(--tlui-libraries-panel-inset-top, 48px);
+	--tlui-libraries-panel-side: var(--tlui-libraries-panel-inset-side, 8px);
 	position: absolute;
-	top: 48px;
-	left: 8px;
+	top: var(--tlui-libraries-panel-top);
+	left: var(--tlui-libraries-panel-side);
 	width: 260px;
-	max-height: var(--tlui-libraries-panel-max-height, min(calc(100% - 56px), 720px));
+	max-height: var(
+		--tlui-libraries-panel-max-height,
+		min(calc(100% - var(--tlui-libraries-panel-top) - var(--tlui-libraries-panel-side)), 720px)
+	);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;
@@ -30,7 +36,7 @@
 
 .tlui-libraries-panel[data-side='right'] {
 	left: auto;
-	right: 8px;
+	right: var(--tlui-libraries-panel-side);
 }
 
 /* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */
