@@ -783,7 +783,7 @@ export const libraryItemRecordValidator: T.Validator<TLLibraryItemRecord>;
 // @internal (undocumented)
 export const LibraryRecordType: RecordType<TLLibrary, "name" | "ownerId">;
 
-// @internal
+// @public
 export const librarySchemaRecords: {
     'library-item-content': {
         createDefaultProperties: () => {
@@ -1678,7 +1678,7 @@ export type TLInstancePresenceID = RecordId<TLInstancePresence>;
 // @public
 export type TLLanguage = (typeof LANGUAGES)[number];
 
-// @internal
+// @public
 export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
     // (undocumented)
     meta: JsonObject;
@@ -1687,10 +1687,10 @@ export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
     ownerId?: string;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLLibraryId = RecordId<TLLibrary>;
 
-// @internal
+// @public
 export interface TLLibraryItemContentRecord extends BaseRecord<'library-item-content', TLLibraryItemContentRecordId> {
     // (undocumented)
     assetIds: TLAssetId[];
@@ -1708,13 +1708,13 @@ export interface TLLibraryItemContentRecord extends BaseRecord<'library-item-con
     meta: JsonObject;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLLibraryItemContentRecordId = RecordId<TLLibraryItemContentRecord>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLLibraryItemId = RecordId<TLLibraryItemRecord>;
 
-// @internal
+// @public
 export interface TLLibraryItemRecord extends BaseRecord<'library-item', TLLibraryItemId> {
     createdAt?: number;
     // (undocumented)
@@ -1726,10 +1726,20 @@ export interface TLLibraryItemRecord extends BaseRecord<'library-item', TLLibrar
     version: number;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type TLLibraryRecord = TLLibrary | TLLibraryItemContentRecord | TLLibraryItemRecord;
 
-// @internal
+// @public
+export interface TLLibraryRecordPropsMap {
+    // (undocumented)
+    'library-item': TLLibraryItemRecord;
+    // (undocumented)
+    'library-item-content': TLLibraryItemContentRecord;
+    // (undocumented)
+    library: TLLibrary;
+}
+
+// @public
 export type TLLibraryThumbnail<Src = string> = {
     dark: Src;
     light: Src;
