@@ -29,7 +29,7 @@ const CONTENT = { formatVersion: 1, content: { shapes: [], rootShapeIds: [], sch
 const CONTENT_KEY = 'library-items/content_1111222233334444/content.json'
 const png = () => new Blob([new Uint8Array([1])], { type: 'image/png' })
 
-// The library and the user's role, its item count, no item with the ids, the queued deletes, the
+// The library and the user's role, no item with the ids, its item count, the queued deletes, the
 // library's lock and its count again, then the inserted rows' ids.
 const adding = (access: unknown, ids = [ITEM_ID]) => [
 	[access],
@@ -346,6 +346,7 @@ describe('addLibraryItems', () => {
 	it('answers 409 without storing or queueing anything when the items would overfill the library', async () => {
 		const fake = mockPool([
 			[libraryAccess(W, 'member')],
+			[],
 			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS - 1) }],
 		])
 		const env = makeEnv()
@@ -363,8 +364,8 @@ describe('addLibraryItems', () => {
 	it('inserts no row, and leaves nothing once drained, when another add fills the library first', async () => {
 		const fake = mockPool([
 			[libraryAccess(W, 'member')],
-			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS - 1) }],
 			[],
+			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS - 1) }],
 			[],
 			[],
 			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS) }],
@@ -509,7 +510,7 @@ describe('addLibraryItems', () => {
 	})
 
 	it('refuses an id that names an existing item, before queueing or storing anything', async () => {
-		const fake = mockPool([[libraryAccess(W, 'member')], [], [{ id: ITEM_ID }]])
+		const fake = mockPool([[libraryAccess(W, 'member')], [{ id: ITEM_ID }]])
 		const env = makeEnv()
 		const response = await addLibraryItems(
 			addRequest([{ content: JSON.stringify(CONTENT), thumbnail: png() }]),
@@ -519,6 +520,37 @@ describe('addLibraryItems', () => {
 		expect((await env.ROOMS.list()).objects).toEqual([])
 		expect(await uploadNames(env)).toEqual([])
 		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
+	})
+
+	it('answers a retry of a request that added its items with those items', async () => {
+		const thumbnail = 'https://content.test/thumb_1-png'
+		const fake = mockPool([
+			[libraryAccess(W, 'member')],
+			[{ id: ITEM_ID }],
+			[{ id: ITEM_ID, createdAt: 1000, thumbnail }],
+		])
+		const env = makeEnv()
+		const response = await addLibraryItems(
+			addRequest([{ content: JSON.stringify(CONTENT), thumbnail: png() }]),
+			env
+		)
+		expect(response.status).toBe(200)
+		expect(await response.json()).toEqual({ items: [{ id: ITEM_ID, createdAt: 1000, thumbnail }] })
+		expect(await uploadNames(env)).toEqual([])
+		const added = fake.queries.at(-1)!
+		expect(added.parameters).toEqual(expect.arrayContaining([ITEM_ID, ME]))
+		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
+	})
+
+	it('refuses a retry when one of its ids is an item someone else added', async () => {
+		const SECOND = 'item_5555666677778888'
+		mockPool([
+			[libraryAccess(W, 'member')],
+			[{ id: ITEM_ID }],
+			[{ id: ITEM_ID, createdAt: 1000, thumbnail: null }],
+		])
+		const response = await addLibraryItems(addRequest([valid(ITEM_ID), valid(SECOND)]), makeEnv())
+		expect(response.status).toBe(409)
 	})
 
 	it("answers 409 when another request inserts an id first; its queued deletes remove what it stored, and not the other's", async () => {
