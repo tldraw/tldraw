@@ -233,12 +233,6 @@
       "value": "Workspace name"
     }
   ],
-  "2250ec73cd": [
-    {
-      "type": 0,
-      "value": "Archive file"
-    }
-  ],
   "23dcace54a": [
     {
       "type": 0,
@@ -297,6 +291,12 @@
     {
       "type": 0,
       "value": "Search..."
+    }
+  ],
+  "2bd339d85e": [
+    {
+      "type": 0,
+      "value": "Restore"
     }
   ],
   "2d3cdcfdd4": [
@@ -1784,6 +1784,16 @@
       "value": "Unable to publish the file."
     }
   ],
+  "c372cefc22": [
+    {
+      "type": 0,
+      "value": "Archived on "
+    },
+    {
+      "type": 1,
+      "value": "date"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1848,12 +1858,6 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
-    }
-  ],
-  "cfc28518b6": [
-    {
-      "type": 0,
-      "value": "Unarchive file"
     }
   ],
   "d0834fcec6": [

@@ -1,3 +1,17 @@
+/* ------------------- Top panel ------------------- */
+
+.archivedPill {
+	margin-top: 8px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	background-color: var(--tl-color-low);
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+	line-height: 20px;
+	white-space: nowrap;
+	pointer-events: all;
+}
+
 /* ------------------- Top left panel ------------------- */
 
 .topLeftOfflineLogo {

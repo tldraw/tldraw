@@ -95,9 +95,6 @@
   "21f66c9c00": {
     "translation": "Workspace name"
   },
-  "2250ec73cd": {
-    "translation": "Archive file"
-  },
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
@@ -118,6 +115,9 @@
   },
   "2a37324bb4": {
     "translation": "Search..."
+  },
+  "2bd339d85e": {
+    "translation": "Restore"
   },
   "2d3cdcfdd4": {
     "translation": "Please try again."
@@ -672,6 +672,9 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
+  "c372cefc22": {
+    "translation": "Archived on {date}"
+  },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
@@ -704,9 +707,6 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
-  },
-  "cfc28518b6": {
-    "translation": "Unarchive file"
   },
   "d0834fcec6": {
     "translation": "Preferences"

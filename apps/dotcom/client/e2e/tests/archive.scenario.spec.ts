@@ -64,14 +64,14 @@ test.describe('archived boards', () => {
 			await chooseFromCardMenu(owner, fileName, 'Pin file')
 			await expect(boardCard(owner, fileName)).toHaveAttribute('data-is-pinned', 'true')
 
-			await chooseFromCardMenu(owner, fileName, 'Archive file')
+			await chooseFromCardMenu(owner, fileName, 'Archive')
 			await expect(boardCard(owner, fileName)).toHaveCount(0)
 		})
 
 		await test.step('undo from the toast restores the board and its pin', async () => {
 			await owner.page.getByRole('button', { name: 'Undo', exact: true }).click()
 			await expect(boardCard(owner, fileName)).toHaveAttribute('data-is-pinned', 'true')
-			await chooseFromCardMenu(owner, fileName, 'Archive file')
+			await chooseFromCardMenu(owner, fileName, 'Archive')
 			await expect(boardCard(owner, fileName)).toHaveCount(0)
 		})
 
@@ -83,16 +83,21 @@ test.describe('archived boards', () => {
 
 		await test.step('an archived board has no pin item', async () => {
 			await boardCard(owner, fileName).click({ button: 'right' })
-			await expect(owner.page.getByRole('menuitem', { name: 'Unarchive file' })).toBeVisible()
+			await expect(owner.page.getByRole('menuitem', { name: 'Restore' })).toBeVisible()
 			await expect(owner.page.getByRole('menuitem', { name: /^(Pin|Unpin) file$/ })).toHaveCount(0)
 			await owner.page.keyboard.press('Escape')
 		})
 
-		await test.step('the member unarchives it and the owner sees it return', async () => {
-			await chooseFromCardMenu(member, fileName, 'Unarchive file')
+		await test.step('the archived board shows an archived pill', async () => {
+			await boardCard(owner, fileName).click()
+			await expect(owner.page.getByTestId('tla-archived-pill')).toContainText('Archived on')
+		})
+
+		await test.step('the member restores it and the pill goes away for the owner', async () => {
+			await chooseFromCardMenu(member, fileName, 'Restore')
 			await expect(boardCard(member, fileName)).toHaveCount(0)
-			await expect(boardCard(owner, fileName)).toHaveCount(0)
-			await selectTab(owner, 'recent')
+			await expect(owner.page.getByTestId('tla-archived-pill')).toHaveCount(0)
+			await openGallery(owner, workspaceId)
 			await expect(boardCard(owner, fileName)).toBeVisible()
 		})
 	})
@@ -103,6 +108,6 @@ test.describe('archived boards', () => {
 		await fileLink.hover()
 		await fileLink.getByRole('button').click()
 		await expect(owner.page.getByRole('menuitem', { name: 'Pin file' })).toBeVisible()
-		await expect(owner.page.getByRole('menuitem', { name: 'Archive file' })).toHaveCount(0)
+		await expect(owner.page.getByRole('menuitem', { name: 'Archive', exact: true })).toHaveCount(0)
 	})
 })
