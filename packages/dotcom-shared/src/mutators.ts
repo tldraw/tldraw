@@ -226,6 +226,19 @@ async function assertCanManageLibraryItem(tx: Tx, userId: string, itemId: string
 }
 
 /**
+ * Deletes a library. Its items go with it: the foreign key cascades in Postgres, deleting their
+ * library_item_object rows, which queues their objects' deletion, but a client's local store has
+ * no cascade.
+ */
+async function deleteLibrary(tx: Tx, id: string) {
+	if (tx.location !== 'server') {
+		const items = await tx.run(zql.library_item.where('libraryId', '=', id))
+		for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+	}
+	await tx.mutate.library.delete({ id })
+}
+
+/**
  * Refuses on the server unless the `libraries` flag is on for the user. The client skips it: its UI
  * is behind the same flag.
  */
@@ -350,12 +363,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 			delete: async (tx: Tx, { id }: { id: string }) => {
 				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibrary(tx, userId, id)
-				// The foreign key cascades in Postgres, but a client's local store has no cascade.
-				if (tx.location !== 'server') {
-					const items = await tx.run(zql.library_item.where('libraryId', '=', id))
-					for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
-				}
-				await tx.mutate.library.delete({ id })
+				await deleteLibrary(tx, id)
 			},
 		},
 
@@ -803,6 +811,11 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 			for (const file of files) {
 				await tx.mutate.file.update({ id: file.id, isDeleted: true })
 			}
+
+			// Delete its libraries whether or not the libraries flag is on: nothing restores a
+			// deleted workspace, so nothing would remove them, or their items' objects, later.
+			const libraries = await tx.run(zql.library.where('owningGroupId', '=', id))
+			for (const library of libraries) await deleteLibrary(tx, library.id)
 
 			await tx.mutate.group.update({ id: id, isDeleted: true })
 			if (tx.location !== 'server') {
