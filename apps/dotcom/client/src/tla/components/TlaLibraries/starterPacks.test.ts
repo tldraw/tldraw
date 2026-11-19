@@ -1,5 +1,7 @@
-import { type LibraryPack, InMemoryLibrarySource } from '@tldraw/libraries'
+import { type LibraryPack, type LibraryPackItem, InMemoryLibrarySource } from '@tldraw/libraries'
+import { createTLSchema, type SerializedStore, type TLRecord } from 'tldraw'
 import { describe, expect, it } from 'vitest'
+import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import {
 	addStarterPack,
 	canAddStarterPack,
@@ -65,6 +67,43 @@ describe('starter pack data', () => {
 			}
 		}
 	)
+})
+
+describe('starter pack content', () => {
+	// tldraw.com's board schema, which the content is placed into
+	const schema = createTLSchema({ records: fileSchemaRecords })
+
+	// Migrates an item's records to the current schema and validates them, throwing if either fails.
+	function migrateAndValidate({ content }: LibraryPackItem['content']) {
+		const records = [...content.shapes, ...(content.bindings ?? []), ...content.assets]
+		const store = Object.fromEntries(
+			records.map((record) => [record.id, record])
+		) as SerializedStore<TLRecord>
+		const migrated = schema.migrateStoreSnapshot({ store, schema: content.schema })
+		if (migrated.type !== 'success') throw new Error(`Migration failed: ${migrated.reason}`)
+		for (const record of Object.values(migrated.value)) {
+			schema.validateRecord(null!, record, 'tests', null)
+		}
+	}
+
+	it.each(fullPacks.map((p) => [p.id, p] as const))(
+		"%s's items migrate to and validate against the current schema",
+		(_, p) => {
+			for (const item of p.items) {
+				expect(() => migrateAndValidate(item.content), item.id).not.toThrow()
+			}
+		}
+	)
+
+	it('fails an item with a record the schema refuses', () => {
+		const { content } = fullPacks[0].items[0]
+		const [shape, ...shapes] = content.content.shapes
+		const broken = {
+			...content,
+			content: { ...content.content, shapes: [{ ...shape, x: 'left' } as any, ...shapes] },
+		}
+		expect(() => migrateAndValidate(broken)).toThrow()
+	})
 })
 
 describe('starter packs in a source without owners', () => {
