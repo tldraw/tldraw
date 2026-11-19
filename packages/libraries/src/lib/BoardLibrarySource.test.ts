@@ -17,7 +17,11 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BoardLibrarySource } from './BoardLibrarySource'
 import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
-import { CURRENT_ITEM_CONTENT_FORMAT_VERSION, type TLLibraryItemContent } from './schema'
+import {
+	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
+	LibraryItemContentTooNewError,
+	type TLLibraryItemContent,
+} from './schema'
 
 let editors: Editor[] = []
 
@@ -234,6 +238,43 @@ describe('BoardLibrarySource', () => {
 
 		const { content } = await source.getItemContent(item.id)
 		expect(content.shapes[0].props).toMatchObject({ url: '', altText: '', flipX: false })
+	})
+
+	describe('content from a newer version of tldraw', () => {
+		async function addAndEditStored(
+			edit: (stored: TLLibraryItemContentRecord) => TLLibraryItemContentRecord
+		) {
+			const editor = makeEditor()
+			const source = new BoardLibrarySource(editor)
+			const library = await source.createLibrary('Photos')
+			const item = await source.addItem(library.id, {
+				content: contentOf(editor, [addImage(editor)]),
+			})
+			const contentId = createLibraryItemContentId(item.id)
+			const stored = editor.store.get(contentId as any) as unknown as TLLibraryItemContentRecord
+			editor.store.put([edit(stored) as any])
+			return { source, item }
+		}
+
+		it('rejects content saved at a newer shape version', async () => {
+			const { source, item } = await addAndEditStored((stored) => {
+				const schema = structuredClone(stored.content.schema) as any
+				schema.sequences['com.tldraw.shape.image'] += 1
+				return { ...stored, content: { ...stored.content, schema } }
+			})
+			await expect(source.getItemContent(item.id)).rejects.toThrow(LibraryItemContentTooNewError)
+		})
+
+		it('rejects content with a shape type the editor has no util for', async () => {
+			const { source, item } = await addAndEditStored((stored) => ({
+				...stored,
+				content: {
+					...stored.content,
+					shapes: [{ ...stored.content.shapes[0], type: 'hologram' } as any],
+				},
+			}))
+			await expect(source.getItemContent(item.id)).rejects.toThrow(LibraryItemContentTooNewError)
+		})
 	})
 
 	it('deletes items and libraries with their content, leaving the assets', async () => {

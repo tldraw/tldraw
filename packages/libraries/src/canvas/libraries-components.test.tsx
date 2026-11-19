@@ -12,12 +12,13 @@ import {
 	Editor,
 	EditorContext,
 	TldrawUiContextProvider,
+	useToasts,
 } from 'tldraw'
 import { vi } from 'vitest'
 import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { LibraryItemRecordType } from '../lib/schema'
+import { LibraryItemContentTooNewError, LibraryItemRecordType } from '../lib/schema'
 import { ItemMenu } from '../ui/item-menu'
 import { MenuItem } from '../ui/menu-items'
 import { type LibrariesComponents, LibrariesComponentsProvider } from './libraries-components'
@@ -332,6 +333,52 @@ describe('LibrariesPanel item menus on right-click', () => {
 		const event = await rightClickBox(panel)
 		expect(event.defaultPrevented).toBe(false)
 		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+})
+
+describe('LibrariesPanel placing an item', () => {
+	async function clickBoxAndGetToasts(error: Error) {
+		const source = await makeSource()
+		vi.spyOn(source, 'getItemContent').mockRejectedValue(error)
+		let toasts: ReturnType<typeof useToasts> | undefined
+		const ToastsProbe = () => {
+			toasts = useToasts()
+			return null
+		}
+		await act(async () => {
+			root.render(
+				<ContainerProvider container={container}>
+					<EditorContext.Provider value={editor}>
+						<TldrawUiContextProvider>
+							<LibrariesPanel source={source} />
+							<ToastsProbe />
+						</TldrawUiContextProvider>
+					</EditorContext.Provider>
+				</ContainerProvider>
+			)
+		})
+		await act(async () => {
+			container.querySelector<HTMLButtonElement>('button[aria-label="Box"]')!.click()
+		})
+		return toasts!.toasts.get()
+	}
+
+	it('says an item made with a newer version of tldraw needs a reload', async () => {
+		const toasts = await clickBoxAndGetToasts(
+			new LibraryItemContentTooNewError({ message: 'newer shapes' })
+		)
+		expect(toasts).toMatchObject([
+			{
+				title: 'Made with a newer version of tldraw',
+				description: 'Reload tldraw to use this item.',
+				severity: 'error',
+			},
+		])
+	})
+
+	it('keeps the general error for other failures', async () => {
+		const toasts = await clickBoxAndGetToasts(new Error('offline'))
+		expect(toasts).toMatchObject([{ title: "Couldn't place item", severity: 'error' }])
 	})
 })
 

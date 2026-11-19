@@ -30,6 +30,7 @@ import {
 	LibraryItemRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	getThumbnailForColorMode,
+	LibraryItemContentTooNewError,
 	mapThumbnail,
 	parseLibraryItemContent,
 	type TLLibraryItem,
@@ -98,7 +99,9 @@ export class BoardLibrarySource implements LibrarySource {
 	/**
 	 * The content as it would be copied from the canvas: its assets looked up in the document, and
 	 * its shapes migrated to the document's current schema, since assets are always current and
-	 * the two have to share one.
+	 * the two have to share one. Content the editor can't migrate, or with a shape or binding type it
+	 * has no util for, was made by a newer version of tldraw, and rejects with
+	 * {@link LibraryItemContentTooNewError}.
 	 */
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		this.getItem(itemId)
@@ -110,9 +113,21 @@ export class BoardLibrarySource implements LibrarySource {
 		)
 		const migrated = this.editor.store.schema.migrateStoreSnapshot({ store: stored, schema })
 		if (migrated.type === 'error') {
-			throw new Error(`Couldn't migrate the content of ${itemId}: ${migrated.reason}`)
+			throw new LibraryItemContentTooNewError({
+				message: `Couldn't migrate the content of ${itemId}: ${migrated.reason}`,
+			})
 		}
 		const records = Object.values(migrated.value)
+		for (const r of records) {
+			if (
+				(r.typeName === 'shape' && !this.editor.hasShapeUtil(r.type)) ||
+				(r.typeName === 'binding' && !this.editor.bindingUtils[r.type])
+			) {
+				throw new LibraryItemContentTooNewError({
+					message: `The content of ${itemId} has a ${r.typeName} of type "${r.type}", which the editor has no util for`,
+				})
+			}
+		}
 		const assets = record.assetIds.flatMap((id) => {
 			const asset = this.editor.store.get(id)
 			return asset ? [structuredClone(asset)] : []
