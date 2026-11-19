@@ -1,5 +1,6 @@
 import {
 	can,
+	isSvgLibraryThumbnail,
 	libraryName,
 	type TlaLibrary,
 	type TlaLibraryItemThumbnail,
@@ -19,11 +20,16 @@ import {
 	type TLLibraryItemId,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
+	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import { createElement } from 'react'
 import { computed, defineMessages, fetch, uniqueId } from 'tldraw'
+import {
+	getNetworkCompensation,
+	getUserContentImageUrl,
+} from '../../../utils/resolveUserContentImageUrl'
 import type { TldrawApp } from '../../app/TldrawApp'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 
@@ -119,6 +125,17 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)
 		return (await response.json()) as TLLibraryItemContent
+	}
+
+	/** The colour mode's thumbnail, resized for the tile as a board's images are. */
+	resolveThumbnail(item: TLLibraryItem, context: TLLibraryThumbnailContext) {
+		if (!item.thumbnail) return null
+		const src = getThumbnailForColorMode(item.thumbnail, context.colorMode)
+		const networkCompensation = getNetworkCompensation(context.networkEffectiveType)
+		return getUserContentImageUrl(src, {
+			width: Math.ceil(context.width * context.dpr * networkCompensation),
+			isVector: isSvgLibraryThumbnail(src),
+		})
 	}
 
 	can(_action: TLLibraryAction, target?: TLLibraryTarget) {

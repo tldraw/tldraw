@@ -1,5 +1,6 @@
 import {
 	LibraryItemPersistenceColumns,
+	libraryThumbnailObjectName,
 	TlaLibraryItem,
 	TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
@@ -46,8 +47,7 @@ export interface ThumbnailUpload {
 
 /** Names a thumbnail image's upload, before it is stored. */
 export function nameThumbnailUpload(image: Blob): ThumbnailUpload {
-	const extension = image.type === 'image/svg+xml' ? 'svg' : image.type.split('/')[1]
-	return { image, objectName: `${uniqueId()}-${extension}` }
+	return { image, objectName: libraryThumbnailObjectName(uniqueId(), image.type) }
 }
 
 /**
