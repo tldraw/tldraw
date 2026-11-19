@@ -124,6 +124,7 @@ export function FileItems({
 	onRenameAction,
 	workspaceId,
 	menuType = 'menu',
+	showPin = true,
 }: {
 	source: TLAppUiEventSource
 	fileId: string
@@ -131,6 +132,7 @@ export function FileItems({
 	onRenameAction?(): void
 	workspaceId: string | null
 	menuType?: TLUiMenuContextType
+	showPin?: boolean
 }) {
 	const inPalette = menuType === 'command-palette'
 	// The palette keeps one entry per id: unprefixed, duplicate/delete clash with the SDK actions
@@ -356,7 +358,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
-				{workspaceId && !(canArchive && isArchived) && (
+				{showPin && workspaceId && !(canArchive && isArchived) && (
 					<TldrawUiMenuItem
 						label={msg(isPinned ? messages.unpin : messages.pin)}
 						id={`${idPrefix}pin-unpin`}

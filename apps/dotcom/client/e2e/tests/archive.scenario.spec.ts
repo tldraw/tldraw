@@ -102,6 +102,29 @@ test.describe('archived boards', () => {
 		})
 	})
 
+	test('the board file menu archives, restores and deletes', async ({ owner, scenario }) => {
+		const { url } = await scenario.createPersonalFile(owner)
+		await enableUiV3(owner)
+		await owner.page.goto(url)
+
+		async function chooseFromBoardFileMenu(item: string) {
+			await owner.editor.openPageMenu()
+			await owner.page.getByRole('menuitem', { name: 'File', exact: true }).click()
+			await owner.page.getByRole('menuitem', { name: item, exact: true }).click()
+		}
+
+		await chooseFromBoardFileMenu('Archive')
+		await expect(owner.page.getByTestId('tla-archived-pill')).toBeVisible()
+
+		await chooseFromBoardFileMenu('Restore')
+		await expect(owner.page.getByTestId('tla-archived-pill')).toHaveCount(0)
+
+		await chooseFromBoardFileMenu('Delete')
+		await owner.page.getByRole('button', { name: 'Delete', exact: true }).click()
+		await expect(owner.page.getByTestId('tla-workspace-home')).toBeVisible()
+		await expect(owner.page).toHaveURL(/\/w\//)
+	})
+
 	test('the archive item is hidden without ui_v3', async ({ owner, scenario }) => {
 		const { fileName } = await scenario.createPersonalFile(owner)
 		const fileLink = owner.sidebar.getFileByName(fileName)
