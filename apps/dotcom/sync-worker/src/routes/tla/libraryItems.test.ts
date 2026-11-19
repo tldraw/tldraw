@@ -192,6 +192,10 @@ describe('addLibraryItem', () => {
 		['content that is not JSON', { content: '{' }],
 		['JSON that is not item content', { content: JSON.stringify({ shapes: [] }) }],
 		[
+			'item content with an asset that is not an object',
+			{ content: JSON.stringify({ formatVersion: 1, content: { assets: [null] } }) },
+		],
+		[
 			'a GIF thumbnail',
 			{
 				content: JSON.stringify(CONTENT),
