@@ -9,7 +9,7 @@ export interface StoredItemContent {
 
 /**
  * Gives an item its own copy of each uploaded file its content refers to, so deleting the board
- * it was saved from, or the item it was copied from, can't break it. The uploads it copies, and how
+ * it was saved from can't break it. The uploads it copies, and how
  * it names the copies, are the ones a board's asset association pass would copy (see
  * collectAssetAssociationChanges); each asset's src is pointed at its copy and its `fileId` is
  * dropped, so a board the item is placed on makes a copy of its own. An asset whose object is

@@ -1,11 +1,13 @@
 import { DB, Role } from '@tldraw/dotcom-shared'
+import { uniqueId } from '@tldraw/utils'
 import { Kysely } from 'kysely'
 
 // An item's content is kept in the ROOMS bucket, which only this worker reads: the uploads bucket
 // is served publicly by object name, which would bypass the membership check the content route
-// makes. Its thumbnails are public uploads (see libraryThumbnails).
-export function getLibraryItemContentKey(itemId: string) {
-	return `library-items/${itemId}/content.json`
+// makes. Its thumbnails are public uploads (see libraryThumbnails). The key isn't derived from the
+// item's id because a library's copy shares its items' content: the row names it.
+export function newLibraryItemContentKey() {
+	return `library-items/${uniqueId()}/content.json`
 }
 
 export const MAX_LIBRARY_ITEM_CONTENT_BYTES = 5_000_000
