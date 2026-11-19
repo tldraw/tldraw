@@ -1,6 +1,7 @@
 import { DB, Role, ZErrorCode } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { Kysely } from 'kysely'
+import PQueue from 'p-queue'
 
 // An item's content is kept in the ROOMS bucket, which only this worker reads: the uploads bucket
 // is served publicly by object name, which would bypass the membership check the content route
@@ -11,6 +12,25 @@ export function newLibraryItemContentKey() {
 }
 
 export const MAX_LIBRARY_ITEM_CONTENT_BYTES = 5_000_000
+
+/** How many items' objects a request reads or writes at once. */
+export const STORAGE_CONCURRENCY = 4
+
+/**
+ * Runs the tasks, STORAGE_CONCURRENCY at a time, and resolves with their results in order. If one
+ * fails, those under way finish and the rest aren't started, so a caller knows everything they
+ * stored before the error is rethrown.
+ */
+export async function runStorageTasks<T>(tasks: (() => Promise<T>)[]): Promise<T[]> {
+	const queue = new PQueue({ concurrency: STORAGE_CONCURRENCY })
+	try {
+		return await queue.addAll(tasks)
+	} catch (error) {
+		queue.clear()
+		await queue.onIdle()
+		throw error
+	}
+}
 
 // What uniqueId() makes, which is how clients pick library and item ids.
 const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/

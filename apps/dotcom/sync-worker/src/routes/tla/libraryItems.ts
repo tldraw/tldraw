@@ -1,6 +1,8 @@
 import {
 	can,
 	isRole,
+	MAX_LIBRARY_ITEMS_PER_REQUEST,
+	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
 	MAX_LIBRARY_NAME_LENGTH,
 	MAX_NUMBER_OF_LIBRARY_ITEMS,
 	TlaLibraryItemThumbnail,
@@ -19,10 +21,12 @@ import {
 	limitReached,
 	MAX_LIBRARY_ITEM_CONTENT_BYTES,
 	newLibraryItemContentKey,
+	runStorageTasks,
 } from '../../libraryStorage'
 import {
 	LIBRARY_ITEM_THUMBNAIL_TYPES,
 	MAX_LIBRARY_ITEM_THUMBNAIL_BYTES,
+	LibraryItemInsertRow,
 	nameThumbnailUpload,
 	putThumbnail,
 	ThumbnailUpload,
@@ -33,17 +37,27 @@ import { Environment } from '../../types'
 import { canUseLibraries } from '../../utils/featureFlags'
 import { requireAuth } from '../../utils/tla/getAuth'
 
-export interface AddLibraryItemResponseBody {
-	id: string
-	createdAt: number
-	thumbnail: TlaLibraryItemThumbnail | null
+export interface AddLibraryItemsResponseBody {
+	/** The items added, in the order the request listed them. */
+	items: {
+		id: string
+		createdAt: number
+		thumbnail: TlaLibraryItemThumbnail | null
+	}[]
 }
+
+// Room for the form's field names, boundaries and list of items, on top of their content and
+// thumbnails.
+const FORM_OVERHEAD_BYTES = 1_000_000
 
 // Callers who aren't members of the workspace get the same answer as for an id that doesn't
 // exist, so ids can't be probed.
 const notFound = () => Response.json({ error: 'Not found' }, { status: 404 })
 const badRequest = (error: string) => Response.json({ error }, { status: 400 })
-const conflict = () => Response.json({ error: 'The item id is taken' }, { status: 409 })
+const tooLarge = (error: string) => Response.json({ error }, { status: 413 })
+const conflict = () => Response.json({ error: 'An item id is taken' }, { status: 409 })
+
+class IdTakenError extends Error {}
 
 async function readText(value: FormDataEntryValue | null) {
 	if (value === null) return null
@@ -56,9 +70,7 @@ function readThumbnail(value: FormDataEntryValue | null): File | null | Response
 	if (!LIBRARY_ITEM_THUMBNAIL_TYPES.has(value.type)) {
 		return badRequest('Thumbnail must be PNG, WebP, JPEG or SVG')
 	}
-	if (value.size > MAX_LIBRARY_ITEM_THUMBNAIL_BYTES) {
-		return Response.json({ error: 'Thumbnail is too large' }, { status: 413 })
-	}
+	if (value.size > MAX_LIBRARY_ITEM_THUMBNAIL_BYTES) return tooLarge('Thumbnail is too large')
 	return value
 }
 
@@ -73,139 +85,233 @@ function isItemContent(value: unknown): value is StoredItemContent {
 	)
 }
 
+function parseJson(text: string): { value: unknown } | null {
+	try {
+		return { value: JSON.parse(text) }
+	} catch {
+		return null
+	}
+}
+
+interface NewItem {
+	id: string
+	name: string | null
+	content: StoredItemContent
+	thumbnail: File | null
+	darkThumbnail: File | null
+}
+
+// The items the form lists, in its order, or the response refusing them.
+async function readItems(form: FormData): Promise<NewItem[] | Response> {
+	const listText = await readText(form.get('items'))
+	const listed = listText === null ? null : parseJson(listText)
+	if (!listed || !Array.isArray(listed.value) || listed.value.length === 0) {
+		return badRequest('A list of items is required')
+	}
+	if (listed.value.length > MAX_LIBRARY_ITEMS_PER_REQUEST) return tooLarge('Too many items')
+
+	const items: NewItem[] = []
+	let bytes = 0
+	for (const entry of listed.value as unknown[]) {
+		const { id, name } = (entry ?? {}) as { id?: unknown; name?: unknown }
+		if (!isClientPickedId(id)) return badRequest('A valid item id is required')
+		if (items.some((item) => item.id === id)) return badRequest('Item ids must differ')
+
+		const contentText = await readText(form.get(`content:${id}`))
+		if (contentText === null) return badRequest('Content is required')
+		const contentBytes = new TextEncoder().encode(contentText).byteLength
+		if (contentBytes > MAX_LIBRARY_ITEM_CONTENT_BYTES) return tooLarge('Content is too large')
+		const content = parseJson(contentText)
+		if (!content) return badRequest('Content must be JSON')
+		if (!isItemContent(content.value)) return badRequest('Content must be library item content')
+
+		const thumbnail = readThumbnail(form.get(`thumbnail:${id}`))
+		if (thumbnail instanceof Response) return thumbnail
+		const darkThumbnail = readThumbnail(form.get(`darkThumbnail:${id}`))
+		if (darkThumbnail instanceof Response) return darkThumbnail
+		if (darkThumbnail && !thumbnail) return badRequest('A dark thumbnail needs a light one')
+
+		bytes += contentBytes + (thumbnail?.size ?? 0) + (darkThumbnail?.size ?? 0)
+		if (bytes > MAX_LIBRARY_ITEMS_REQUEST_BYTES) return tooLarge('The items are too large')
+		items.push({
+			id,
+			name: typeof name === 'string' ? name.trim().slice(0, MAX_LIBRARY_NAME_LENGTH) || null : null,
+			content: content.value,
+			thumbnail,
+			darkThumbnail,
+		})
+	}
+	return items
+}
+
 /**
- * Adds an item to a library: gives it its own copies of the uploads its content refers to (see
- * planItemAssetCopies), stores its content (a TLLibraryItemContent as JSON) privately and its
- * optional thumbnails as public uploads, then inserts its row, with the thumbnails' URLs, which
- * reaches clients through Zero, and a library_item_object row for each object it stored. Each
- * object is queued for deletion before it's stored (see queueLibraryObjectDeletes), so a failed or
- * stopped request leaves nothing behind once the processor has drained it. The worker picks every
- * object's name, so a request can't name existing content and overwrite it. A library holds at
- * most MAX_NUMBER_OF_LIBRARY_ITEMS items; past that, adding answers 409.
+ * Adds items to a library, in the order the request lists them: gives each its own copies of
+ * the uploads its content refers to (see copyItemAssets), stores its content (a
+ * TLLibraryItemContent as JSON) privately and its optional thumbnails as public uploads, then
+ * inserts all their rows together, with the thumbnails' URLs, which reach clients through Zero,
+ * and a library_item_object row for each object each item stored. Every object is named, and
+ * queued for deletion (see queueLibraryObjectDeletes), before any is stored, so a failed or stopped
+ * request leaves nothing behind once the processor has drained it. Items are stored a few at a
+ * time; each row's createdAt is a step later than the one before, since items are listed by it. A
+ * library holds at most MAX_NUMBER_OF_LIBRARY_ITEMS items; adding past that answers 409 and adds
+ * none of them.
  *
- * The client picks the item's id, as it does a file's, so it can list the item under that id while
- * this runs. An id that's taken is refused with 409 before anything is stored; if another request
- * takes it meanwhile, the row insert finds it and this answers 409, leaving what it stored to the
- * deletes it queued.
+ * The client picks each item's id, as it does a file's, so it can list the items under those ids
+ * while this runs. Ids that are taken are refused with 409 before anything is stored; if another
+ * request takes one meanwhile, the row insert finds it and this answers 409, inserting no row. The
+ * worker picks every object's name, so a request can't overwrite stored content.
  *
- * Form fields: `id` (made by uniqueId), `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG),
- * `darkThumbnail` (optional, and only with `thumbnail`, which is then the light one of the pair)
- * and `name` (optional).
+ * Form fields: `items`, a JSON list of `{ id, name? }` with each id made by uniqueId; then for each
+ * item, by its id, `content:<id>`, `thumbnail:<id>` (optional, PNG, WebP, JPEG or SVG) and
+ * `darkThumbnail:<id>` (optional, and only with `thumbnail:<id>`, which is then the light one of
+ * the pair). At most MAX_LIBRARY_ITEMS_PER_REQUEST items, of at most
+ * MAX_LIBRARY_ITEMS_REQUEST_BYTES of content and thumbnails together.
  */
-export async function addLibraryItem(request: IRequest, env: Environment) {
+export async function addLibraryItems(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
 	if (!(await canUseLibraries(env, auth.userId))) return notFound()
 	const libraryId = request.params.libraryId
 	if (!libraryId) return badRequest('Library id is required')
+	// Refused before the form is read, which holds all of it in memory.
+	const length = Number(request.headers.get('content-length'))
+	if (length > MAX_LIBRARY_ITEMS_REQUEST_BYTES + FORM_OVERHEAD_BYTES) {
+		return tooLarge('The items are too large')
+	}
 
 	const form = await request.formData().catch(() => null)
 	if (!form) return badRequest('Expected form data')
-	const id = await readText(form.get('id'))
-	if (!isClientPickedId(id)) return badRequest('A valid item id is required')
-	const contentText = await readText(form.get('content'))
-	if (contentText === null) return badRequest('Content is required')
-	if (new TextEncoder().encode(contentText).byteLength > MAX_LIBRARY_ITEM_CONTENT_BYTES) {
-		return Response.json({ error: 'Content is too large' }, { status: 413 })
-	}
-	let content: unknown
-	try {
-		content = JSON.parse(contentText)
-	} catch {
-		return badRequest('Content must be JSON')
-	}
-	if (!isItemContent(content)) return badRequest('Content must be library item content')
+	const items = await readItems(form)
+	if (items instanceof Response) return items
 
-	const thumbnailFile = readThumbnail(form.get('thumbnail'))
-	if (thumbnailFile instanceof Response) return thumbnailFile
-	const darkThumbnailFile = readThumbnail(form.get('darkThumbnail'))
-	if (darkThumbnailFile instanceof Response) return darkThumbnailFile
-	if (darkThumbnailFile && !thumbnailFile) return badRequest('A dark thumbnail needs a light one')
-	const name = (await readText(form.get('name')))?.trim().slice(0, MAX_LIBRARY_NAME_LENGTH) || null
-
-	const db = createPostgresConnectionPool(env, 'addLibraryItem')
+	const db = createPostgresConnectionPool(env, 'addLibraryItems')
 	try {
 		const access = await getLibraryAccess(db, auth.userId, libraryId)
 		if (!access || !isRole(access.role)) return notFound()
 		if (!can(access.role, 'manageLibraries')) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
-		// Checked before anything is stored, and again under the library's lock before the row is
+		const wouldOverfill = (count: number) => count + items.length > MAX_NUMBER_OF_LIBRARY_ITEMS
+		// Checked before anything is stored, and again under the library's lock before the rows are
 		// inserted, in case another add filled it meanwhile.
-		if ((await countLibraryItems(db, libraryId)) >= MAX_NUMBER_OF_LIBRARY_ITEMS) {
+		if (wouldOverfill(await countLibraryItems(db, libraryId))) {
 			return limitReached(ZErrorCode.max_library_items_reached)
 		}
 
-		if (await isAnyItemIdTaken(db, [id])) return conflict()
+		if (
+			await isAnyItemIdTaken(
+				db,
+				items.map((item) => item.id)
+			)
+		) {
+			return conflict()
+		}
 
-		const contentKey = newLibraryItemContentKey()
-		const assetCopies = planItemAssetCopies(env, content, id)
-		const lightThumbnail = thumbnailFile && nameThumbnailUpload(thumbnailFile)
-		const darkThumbnail = darkThumbnailFile && nameThumbnailUpload(darkThumbnailFile)
-		const objects = itemObjects(contentKey, assetCopies, [lightThumbnail, darkThumbnail])
+		const planned = items.map((item) => planItemObjects(env, item))
+		const objectsByItem = planned.map(plannedObjects)
 		// Queued before anything is stored, so what this stores is deleted if it fails or is stopped
 		// before the rows below name it.
-		await queueLibraryObjectDeletes(db, objects)
+		await queueLibraryObjectDeletes(db, objectsByItem.flat())
 
-		const copied = await copyItemAssets(env, content, assetCopies)
-		await env.ROOMS.put(contentKey, JSON.stringify(copied.content), {
-			httpMetadata: { contentType: 'application/json' },
-		})
-		const thumbnail = lightThumbnail && (await putThumbnail(env, lightThumbnail, darkThumbnail))
-		const skipped = new Set(copied.skippedObjectNames)
-		const storedObjects = objects.filter((object) => !skipped.has(object.objectName))
+		const storedItems = await runStorageTasks(
+			items.map((item, index) => () => storeItemObjects(env, item, planned[index]))
+		)
 		const now = Date.now()
-		const refused = await db.transaction().execute(async (tx) => {
-			if ((await countLibraryItems(tx, libraryId, { lock: true })) >= MAX_NUMBER_OF_LIBRARY_ITEMS) {
-				return limitReached(ZErrorCode.max_library_items_reached)
-			}
-			const row = await tx
-				.insertInto('library_item')
-				.values({
-					id,
-					libraryId,
-					name,
-					thumbnail: toThumbnailColumn(thumbnail),
-					contentKey,
-					createdBy: auth.userId,
-					createdAt: now,
-					updatedAt: now,
-				})
-				.onConflict((oc) => oc.column('id').doNothing())
-				.returning('id')
-				.executeTakeFirst()
-			if (!row) return conflict()
-			await tx
-				.insertInto('library_item_object')
-				.values(storedObjects.map((object) => ({ itemId: id, ...object })))
-				.execute()
-			return null
+		const rows: LibraryItemInsertRow[] = items.map((item, index) => ({
+			id: item.id,
+			libraryId,
+			name: item.name,
+			thumbnail: toThumbnailColumn(storedItems[index].thumbnail),
+			contentKey: planned[index].contentKey,
+			createdBy: auth.userId,
+			createdAt: now + index,
+			updatedAt: now,
+		}))
+		const objects = items.flatMap((item, index) => {
+			const skipped = new Set(storedItems[index].skippedObjectNames)
+			return objectsByItem[index]
+				.filter((object) => !skipped.has(object.objectName))
+				.map((object) => ({ itemId: item.id, ...object }))
 		})
+
+		let refused: Response | undefined
+		try {
+			refused = await db.transaction().execute(async (tx) => {
+				if (wouldOverfill(await countLibraryItems(tx, libraryId, { lock: true }))) {
+					return limitReached(ZErrorCode.max_library_items_reached)
+				}
+				const inserted = await tx
+					.insertInto('library_item')
+					.values(rows)
+					.onConflict((oc) => oc.column('id').doNothing())
+					.returning('id')
+					.execute()
+				if (inserted.length < rows.length) throw new IdTakenError()
+				await tx.insertInto('library_item_object').values(objects).execute()
+				return undefined
+			})
+		} catch (error) {
+			if (error instanceof IdTakenError) return conflict()
+			throw error
+		}
 		if (refused) return refused
+
 		return Response.json({
-			id,
-			createdAt: now,
-			thumbnail,
-		} satisfies AddLibraryItemResponseBody)
+			items: rows.map((row, index) => ({
+				id: row.id,
+				createdAt: row.createdAt,
+				thumbnail: storedItems[index].thumbnail,
+			})),
+		} satisfies AddLibraryItemsResponseBody)
 	} finally {
 		await db.destroy()
 	}
 }
 
+interface PlannedItemObjects {
+	contentKey: string
+	assetCopies: AssetToReplace[]
+	light: ThumbnailUpload | null
+	dark: ThumbnailUpload | null
+}
+
+// Names every object an item will store, before anything is stored.
+function planItemObjects(env: Environment, item: NewItem): PlannedItemObjects {
+	return {
+		contentKey: newLibraryItemContentKey(),
+		assetCopies: planItemAssetCopies(env, item.content, item.id),
+		light: item.thumbnail && nameThumbnailUpload(item.thumbnail),
+		dark: item.darkThumbnail && nameThumbnailUpload(item.darkThumbnail),
+	}
+}
+
 // Every object an item stores, named before any is stored: what's queued for deletion, and, less
 // any copy copyItemAssets skips, what the item's rows name.
-function itemObjects(
-	contentKey: string,
-	assetCopies: AssetToReplace[],
-	thumbnails: (ThumbnailUpload | null)[]
-): LibraryItemObject[] {
-	const uploads = [
-		...assetCopies.map((copy) => copy.newObjectName),
-		...thumbnails.flatMap((upload) => (upload ? [upload.objectName] : [])),
-	]
+function plannedObjects(planned: PlannedItemObjects): LibraryItemObject[] {
 	return [
-		{ bucket: 'rooms', objectName: contentKey },
-		...uploads.map((objectName) => ({ bucket: 'uploads' as const, objectName })),
+		{ bucket: 'rooms', objectName: planned.contentKey },
+		...[
+			...planned.assetCopies.map((copy) => copy.newObjectName),
+			...[planned.light, planned.dark].flatMap((upload) => (upload ? [upload.objectName] : [])),
+		].map((objectName) => ({ bucket: 'uploads' as const, objectName })),
 	]
+}
+
+/**
+ * Stores an item's content, with its own copies of the uploads it refers to, and its thumbnails,
+ * under the names planItemObjects gave them. Returns its thumbnail and the names of the copies it
+ * skipped.
+ */
+async function storeItemObjects(env: Environment, item: NewItem, planned: PlannedItemObjects) {
+	const { content, skippedObjectNames } = await copyItemAssets(
+		env,
+		item.content,
+		planned.assetCopies
+	)
+	await env.ROOMS.put(planned.contentKey, JSON.stringify(content), {
+		httpMetadata: { contentType: 'application/json' },
+	})
+	const thumbnail = planned.light && (await putThumbnail(env, planned.light, planned.dark))
+	return { thumbnail, skippedObjectNames }
 }
 
 /** An item's content, to members of its library's workspace. */
