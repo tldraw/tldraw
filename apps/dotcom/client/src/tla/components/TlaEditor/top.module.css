@@ -267,21 +267,13 @@ button.topLeftInputNameWidthSetter {
 	margin-inline-start: 4px;
 }
 
-/* v3 has a row of these beside Share. Narrower than they are tall, they read as one group. */
+/* v3 has a row of these beside Share: square, and evenly gapped up to and including Share. */
+.topRightPanelV3 {
+	gap: 4px;
+}
+
 .topRightPanelV3 .topRightIconButton {
-	width: 32px;
-	min-width: 32px;
-	margin-inline-start: 0;
-}
-
-/* The hover and pressed square, which the default inset would leave taller than it is wide. */
-.topRightPanelV3 .topRightIconButton::after {
-	inset: 6px 2px;
-}
-
-/* Sets the row a little apart from what follows it, about as far as the icons are from each other. */
-.topRightPanelV3 .topRightIconButton:has(+ :not(.topRightIconButton)) {
-	margin-inline-end: 4px;
+	margin: 0;
 }
 
 .topRightIconButton[aria-pressed='true']::after {
