@@ -4,6 +4,7 @@ import {
 	type TlaLibraryItem,
 	type TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
+import type { JsonObject } from '@tldraw/utils'
 import { atom } from 'tldraw'
 import { vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
@@ -139,7 +140,8 @@ export function createFakeLibrariesBackend({
 		id: string,
 		libraryId: string,
 		name: string | null,
-		thumbnail: TlaLibraryItemThumbnail | null
+		thumbnail: TlaLibraryItemThumbnail | null,
+		meta: JsonObject
 	): TlaLibraryItem => ({
 		id,
 		libraryId,
@@ -148,6 +150,7 @@ export function createFakeLibrariesBackend({
 		createdBy: userId,
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
+		meta,
 	})
 	const insertRows = (insert: () => void) => {
 		if (rowHold) rowHold.passes.then(insert)
@@ -170,7 +173,8 @@ export function createFakeLibrariesBackend({
 					newThumbnail(
 						form.get(`thumbnail:${id}`) instanceof Blob,
 						form.get(`darkThumbnail:${id}`) instanceof Blob
-					)
+					),
+					JSON.parse((form.get(`meta:${id}`) as string | null) ?? '{}')
 				),
 				createdAt: now + index,
 			}))
@@ -194,7 +198,8 @@ export function createFakeLibrariesBackend({
 						copyId,
 						id,
 						item.name,
-						newThumbnail(thumbnail !== null, typeof thumbnail === 'object' && thumbnail !== null)
+						newThumbnail(thumbnail !== null, typeof thumbnail === 'object' && thumbnail !== null),
+						item.meta
 					),
 				]
 			})
