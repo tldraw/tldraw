@@ -10,6 +10,7 @@ import {
 	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getContentTooNewToast } from './content-too-new-toast'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
@@ -95,12 +96,14 @@ function LibrariesPanelContent({
 	const grouping = useLibraryGrouping(source)
 	const placeItem = useCallback(
 		(itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).catch(() => {
-				addToast({
-					title: msg(messages.placeErrorTitle),
-					description: msg(messages.placeErrorDescription),
-					severity: 'error',
-				})
+			placeLibraryItem(editor, source, itemId).catch((error) => {
+				addToast(
+					getContentTooNewToast(error, msg) ?? {
+						title: msg(messages.placeErrorTitle),
+						description: msg(messages.placeErrorDescription),
+						severity: 'error',
+					}
+				)
 			})
 		},
 		[editor, source, addToast, msg]

@@ -17,6 +17,7 @@ import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
 import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { getContentTooNewToast } from './content-too-new-toast'
 import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
 import { type ItemOrdering, sortItems } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
@@ -206,7 +207,11 @@ export function LibraryItems({
 						],
 					})
 				},
-				() => showChangeError(msg(messages.copyErrorTitle))
+				(error) => {
+					const tooNew = getContentTooNewToast(error, msg)
+					if (tooNew) addToast(tooNew)
+					else showChangeError(msg(messages.copyErrorTitle))
+				}
 			)
 		},
 		[editor, source, items, copyTargets, addToast, msg, showChangeError]
