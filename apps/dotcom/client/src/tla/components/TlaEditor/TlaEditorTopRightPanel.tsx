@@ -74,6 +74,8 @@ export function TlaEditorTopRightPanel({
 	const { addDialog } = useDialogs()
 	const editor = useEditor()
 	const hasSignedOutShare = useDesignSwitch('signedOutShare')
+	// Its menu's File → Export… stands in for the share icon, which signed out only exports.
+	const hasAndysMainMenu = useDesignSwitch('andysMainMenu')
 	const className = classNames(styles.topRightPanel, useIsUiV3() && styles.topRightPanelV3)
 	// Share and the comments sidebar are mutually exclusive: opening share closes the sidebar.
 	// (The reverse is automatic — clicking the sidebar button dismisses the share popover as an
@@ -103,7 +105,7 @@ export function TlaEditorTopRightPanel({
 					</TlaFileShareMenu>
 				) : (
 					<>
-						<SignedOutShareButton fileId={fileId} context={context} />
+						{!hasAndysMainMenu && <SignedOutShareButton fileId={fileId} context={context} />}
 						<TlaCtaButton
 							canvas
 							data-testid="tla-sign-in-button"

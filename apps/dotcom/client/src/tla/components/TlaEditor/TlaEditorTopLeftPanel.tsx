@@ -28,6 +28,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	TLUiIconType,
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
@@ -37,9 +38,11 @@ import {
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
 	ToggleWrapModeItem,
+	useActions,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
+	useSomeActionsEnabled,
 	useTranslation,
 	useValue,
 	ZoomTo100MenuItem,
@@ -57,6 +60,7 @@ import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { useDesignSwitch } from '../../utils/designSwitches'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
+import { TlaExportDialog } from '../dialogs/TlaExportDialog'
 import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
@@ -116,6 +120,9 @@ const messages = defineMessages({
 	pageMenu: { defaultMessage: 'Page menu' },
 	home: { defaultMessage: 'Home' },
 	libraries: { defaultMessage: 'Libraries' },
+	object: { defaultMessage: 'Object' },
+	actions: { defaultMessage: 'Actions…' },
+	export: { defaultMessage: 'Export…' },
 })
 
 const SEPARATOR = '/'
@@ -209,6 +216,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					)}
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+					{hasAndysMainMenu && <TlaActionsGroup />}
 					<TldrawUiMenuGroup id="basic">
 						{hasAndysMainMenu && (
 							<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
@@ -222,13 +230,20 @@ function TlaEditorTopLeftPanelAnonymous() {
 									</TldrawUiMenuGroup>
 								)}
 								<TldrawUiMenuGroup id="file-actions">{fileActions}</TldrawUiMenuGroup>
+								<TlaExportGroup />
 							</TldrawUiMenuSubmenu>
 						)}
 						<EditSubmenu />
 						<TlaViewSubmenu />
-						<ExportFileContentSubMenu />
-						<ExtrasGroup />
-						{!hasAndysMainMenu && fileActions}
+						{hasAndysMainMenu ? (
+							<TlaObjectSubmenu />
+						) : (
+							<>
+								<ExportFileContentSubMenu />
+								<ExtrasGroup />
+								{fileActions}
+							</>
+						)}
 					</TldrawUiMenuGroup>
 					{isUiV3 ? (
 						<TlaSettingsGroup />
@@ -359,6 +374,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	// An embed has no logo to hang the menu on.
 	const hasLogoMenu = useDesignSwitch('logoMenu') && !isEmbed
 	const hasFileSwitcher = useDesignSwitch('fileSwitcher') && !isEmbed
+	const hasAndysMainMenu = useDesignSwitch('andysMainMenu')
 	const menuLbl = msg('menu.title')
 
 	const mainMenu = (
@@ -392,6 +408,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<HomeMenuItem />
 				</TldrawUiMenuGroup>
 			)}
+			{hasAndysMainMenu && <TlaActionsGroup />}
 			<TldrawUiMenuGroup id="regular-stuff">
 				{fileId && (
 					<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
@@ -401,13 +418,22 @@ function TlaEditorTopLeftPanelSignedIn() {
 							onRenameAction={handleRenameAction}
 							workspaceId={null}
 						/>
-						<ImportFileActionItem />
+						<TldrawUiMenuGroup id="file-import">
+							<ImportFileActionItem />
+						</TldrawUiMenuGroup>
+						{hasAndysMainMenu && <TlaExportGroup />}
 					</TldrawUiMenuSubmenu>
 				)}
 				<EditSubmenu />
 				<TlaViewSubmenu />
-				<ExportFileContentSubMenu />
-				<ExtrasGroup />
+				{hasAndysMainMenu ? (
+					<TlaObjectSubmenu />
+				) : (
+					<>
+						<ExportFileContentSubMenu />
+						<ExtrasGroup />
+					</>
+				)}
 			</TldrawUiMenuGroup>
 			{isUiV3 ? (
 				<TlaSettingsGroup />
@@ -746,6 +772,9 @@ function TlaSettingsGroup() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	const hasSettingsIcon = useDesignSwitch('settingsIcon')
+	// Andy's main menu has the palette as "Actions…" in its own group near the top.
+	const hasAndysMainMenu = useDesignSwitch('andysMainMenu')
+	if (hasSettingsIcon && hasAndysMainMenu) return null
 	return (
 		<TldrawUiMenuGroup id="settings">
 			{!hasSettingsIcon && (
@@ -758,8 +787,85 @@ function TlaSettingsGroup() {
 					}}
 				/>
 			)}
-			<CommandPaletteMenuItem />
+			{!hasAndysMainMenu && <CommandPaletteMenuItem />}
 		</TldrawUiMenuGroup>
+	)
+}
+
+/** Andy's main menu: the command palette, renamed for people who don't know the term. */
+function TlaActionsGroup() {
+	const msg = useTranslation()
+	const actions = useActions()
+	if (!actions['open-command-palette']) return null
+	return (
+		<TldrawUiMenuGroup id="actions">
+			<RelabeledActionItem
+				actionId="open-command-palette"
+				label={msg(messages.actions)}
+				iconLeft="search"
+			/>
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** Andy's main menu: what tldraw's main menu calls extras. */
+function TlaObjectSubmenu() {
+	const msg = useTranslation()
+	return (
+		<TldrawUiMenuSubmenu id="object" label={msg(messages.object)}>
+			<TldrawUiMenuGroup id="object-insert">
+				<ExtrasGroup />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/**
+ * Andy's main menu: the share menu's Export tab as a dialog, then tldraw's "Export as" submenu
+ * flattened, without its transparent-background toggle (Export… has that setting).
+ */
+function TlaExportGroup() {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	return (
+		<TldrawUiMenuGroup id="file-export">
+			<TldrawUiMenuItem
+				id="export"
+				label={msg(messages.export)}
+				readonlyOk
+				onSelect={() => {
+					addDialog({ component: TlaExportDialog })
+				}}
+			/>
+			<RelabeledActionItem actionId="export-all-as-svg" label={msg('action.export-all-as-svg')} />
+			<RelabeledActionItem actionId="export-all-as-png" label={msg('action.export-all-as-png')} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+/** An action's menu item under another label, which `TldrawUiMenuActionItem` can't take. */
+function RelabeledActionItem({
+	actionId,
+	label,
+	iconLeft,
+}: {
+	actionId: string
+	label: string
+	iconLeft?: TLUiIconType
+}) {
+	const action = useActions()[actionId]
+	const isEnabled = useSomeActionsEnabled([actionId])
+	if (!action) return null
+	return (
+		<TldrawUiMenuItem
+			id={action.id}
+			label={label}
+			iconLeft={iconLeft}
+			kbd={action.kbd}
+			readonlyOk={action.readonlyOk}
+			disabled={!isEnabled}
+			onSelect={action.onSelect}
+		/>
 	)
 }
 

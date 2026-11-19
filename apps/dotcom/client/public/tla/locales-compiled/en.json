@@ -429,6 +429,12 @@
       "value": "Contact the owner to request access."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Actions…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -483,6 +489,12 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Object"
     }
   ],
   "49800157c1": [
@@ -563,6 +575,12 @@
     {
       "type": 0,
       "value": "No files here yet."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Export…"
     }
   ],
   "53770fd374": [
