@@ -197,6 +197,12 @@
       "value": "Create file"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Created by me"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -393,12 +399,6 @@
       "value": "Unable to publish the changes."
     }
   ],
-  "3bf4ed96b1": [
-    {
-      "type": 0,
-      "value": "Recently viewed"
-    }
-  ],
   "3c5e891bff": [
     {
       "type": 0,
@@ -427,6 +427,12 @@
     {
       "type": 0,
       "value": "Contact the owner to request access."
+    }
+  ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Actions…"
     }
   ],
   "44db318ee5": [
@@ -483,6 +489,12 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Object"
     }
   ],
   "49800157c1": [
@@ -563,6 +575,12 @@
     {
       "type": 0,
       "value": "No files here yet."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Export…"
     }
   ],
   "53770fd374": [
@@ -701,6 +719,12 @@
       "value": "Later"
     }
   ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Recents"
+    }
+  ],
   "625fd29749": [
     {
       "type": 0,
@@ -817,6 +841,12 @@
     {
       "type": 0,
       "value": "Delete workspace"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Sign in to save"
     }
   ],
   "69ce6a28fb": [
@@ -1014,10 +1044,22 @@
       "value": "Open tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Sign in to edit profile settings"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Forget"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Archived"
     }
   ],
   "7daeced9ff": [
@@ -1314,6 +1356,12 @@
     {
       "type": 0,
       "value": "Clear search"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Unsaved file"
     }
   ],
   "9b33f5c63c": [
@@ -1966,12 +2014,6 @@
     {
       "type": 0,
       "value": "Terms of service"
-    }
-  ],
-  "e727b00944": [
-    {
-      "type": 0,
-      "value": "Archive"
     }
   ],
   "e81c4e4f2b": [

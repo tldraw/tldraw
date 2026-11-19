@@ -106,9 +106,9 @@
 /* The bell in the v3 workspace header: sized to sit beside the account avatar, opening downward. */
 .headerButton:global(.tlui-button) {
 	flex-shrink: 0;
-	width: 32px;
-	min-width: 32px;
-	height: 32px;
+	width: 40px;
+	min-width: 40px;
+	height: 40px;
 	padding: 0;
 }
 
@@ -118,7 +118,7 @@
 
 /* The header sits on the panel colour, not the sidebar's, so the badge's ring follows it. */
 .headerButton .badge {
-	top: 6px;
-	right: 6px;
+	top: 8px;
+	right: 8px;
 	box-shadow: 0 0 0 2px var(--tl-color-panel);
 }

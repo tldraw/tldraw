@@ -12,6 +12,11 @@ export interface LibraryGroup {
 	libraries: TLLibrary[]
 }
 
+/** The owner a group is for. Undefined for libraries without a known owner. */
+export function getGroupOwner({ key, label, icon }: LibraryGroup): TLLibraryOwner | undefined {
+	return key === undefined || label === undefined ? undefined : { id: key, name: label, icon }
+}
+
 export interface LibraryGrouping {
 	keyOf(library: TLLibrary): string | undefined
 	labelOf(key: string): string | undefined

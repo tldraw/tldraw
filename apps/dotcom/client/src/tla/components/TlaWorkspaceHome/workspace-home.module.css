@@ -269,7 +269,7 @@
 	align-items: center;
 	gap: 4px;
 	width: 100%;
-	padding: 10px 4px 12px 14px;
+	padding: 10px 12px 12px 14px;
 }
 
 .row .cardFooter {
@@ -311,8 +311,18 @@
 	cursor: pointer;
 }
 
-.row .cardName {
+.cardTitle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+}
+
+.row .cardTitle {
 	flex: 1 1 auto;
+}
+
+.row .cardName {
 	font-size: 13px;
 	font-weight: 500;
 }
@@ -321,6 +331,7 @@
 .cardText .cardRename {
 	position: relative;
 	z-index: 2;
+	flex: 1 1 auto;
 	margin: 0 -6px;
 	padding: 0 6px;
 }
@@ -336,10 +347,6 @@
 .cardText .cardRenameInput {
 	font-size: 13px;
 	font-weight: 600;
-}
-
-.row .cardText .cardRename {
-	flex: 1 1 auto;
 }
 
 .cardMeta {
@@ -374,6 +381,45 @@
 	flex-shrink: 0;
 	width: 12px;
 	height: 12px;
+	color: var(--tl-color-text-3);
+}
+
+/* Grid view: the pin and menu sit over the thumbnail's top corners, with a backdrop to read on it. */
+.cardPinnedBadge,
+.cardMenu {
+	position: absolute;
+	top: 8px;
+	z-index: 2;
+}
+
+.cardPinnedBadge {
+	inset-inline-start: 8px;
+	display: flex;
+	padding: 6px;
+	border-radius: 6px;
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	pointer-events: none;
+}
+
+.cardPinnedBadge .cardPinned {
+	color: var(--tl-color-text-1);
+}
+
+.cardMenu {
+	inset-inline-end: 8px;
+}
+
+/* Shaped like the editor's top-right icon buttons, but white with a shadow: they sit on the canvas
+   colour, which a blank thumbnail shares, so their chip would vanish here. */
+.cardMenu .cardMenuTrigger {
+	width: 32px;
+	min-width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	color: var(--tl-color-text-1);
 }
 
 .cardMenuTrigger {
@@ -429,7 +475,7 @@
 	border-radius: inherit;
 	background-color: var(--tl-color-low);
 	/* Has opened the board; full opacity is reserved for whoever is on it now. */
-	opacity: 0.45;
+	opacity: 0.7;
 	transition: opacity 200ms ease;
 }
 

@@ -108,6 +108,7 @@ const Versions = createShapePropsMigrationIds('video', {
 	AddAltText: 3,
 	AddAutoplay: 4,
 	AllowAppLinkUrls: 5,
+	BlockMoreLinkProtocols: 6,
 })
 
 /**
@@ -186,6 +187,17 @@ export const videoShapeMigrations = createShapePropsMigrationSequence({
 				if (!isPreAppLinkUrl(props.url)) {
 					props.url = ''
 				}
+			},
+		},
+		{
+			id: Versions.BlockMoreLinkProtocols,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
+				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
 	],

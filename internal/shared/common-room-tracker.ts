@@ -74,6 +74,8 @@ export class CommonRoomTracker {
 		html.append(frameDocument.createElement('head'), frameDocument.createElement('body'))
 		frameDocument.appendChild(html)
 		frameDocument.close()
+		// The loader frame otherwise reports an empty or same-site referrer, losing acquisition.
+		Object.defineProperty(frameDocument, 'referrer', { value: document.referrer })
 		this.syncPageUrl()
 
 		const script = frameDocument.createElement('script')

@@ -67,6 +67,19 @@ describe('§15 URL validators', () => {
 		expect(() => T.linkUrl.validate('file:///etc/passwd')).toThrow('(invalid protocol)')
 		expect(() => T.linkUrl.validate('about:blank#blocked')).toThrow('(invalid protocol)')
 		expect(() => T.linkUrl.validate('ms-msdt:/id PCWDiagnostic')).toThrow('(invalid protocol)')
+		for (const url of [
+			'ms-word:ofe|u|https://evil/x.docx',
+			'smb://evil/share',
+			'ldap://evil',
+			'ms-settings:privacy',
+			'microsoft-edge:https://evil',
+			'intent://scan/#Intent;scheme=zxing;end',
+			'jnlp://evil/app.jnlp',
+			'Steam://run/1',
+			'itms-services://?action=download-manifest',
+		]) {
+			expect(() => T.linkUrl.validate(url)).toThrow('(invalid protocol)')
+		}
 		expect(() => T.linkUrl.validate('C:/Users/me/file.txt')).toThrow('(invalid protocol)')
 	})
 

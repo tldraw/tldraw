@@ -77,6 +77,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1914dedd04": {
+    "translation": "Created by me"
+  },
   "1a7222b4e5": {
     "translation": "Move to"
   },
@@ -164,9 +167,6 @@
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
   },
-  "3bf4ed96b1": {
-    "translation": "Recently viewed"
-  },
   "3c5e891bff": {
     "translation": "Pinned"
   },
@@ -181,6 +181,9 @@
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
+  },
+  "42ff290cc4": {
+    "translation": "Actions…"
   },
   "44db318ee5": {
     "translation": "Get help on Discord"
@@ -202,6 +205,9 @@
   },
   "47f493a590": {
     "translation": "Pin file"
+  },
+  "4970317944": {
+    "translation": "Object"
   },
   "49800157c1": {
     "translation": "Edited {time}"
@@ -235,6 +241,9 @@
   },
   "517f5f3544": {
     "translation": "No files here yet."
+  },
+  "536b51486d": {
+    "translation": "Export…"
   },
   "53770fd374": {
     "translation": "Unread"
@@ -299,6 +308,9 @@
   "61057a0c84": {
     "translation": "Later"
   },
+  "623cddd380": {
+    "translation": "Recents"
+  },
   "625fd29749": {
     "translation": "Older"
   },
@@ -328,6 +340,9 @@
   },
   "694f82ed9d": {
     "translation": "Delete workspace"
+  },
+  "697c59072d": {
+    "translation": "Sign in to save"
   },
   "69ce6a28fb": {
     "translation": "{count, plural, one {Someone reacted} other {# people reacted}}"
@@ -413,8 +428,14 @@
   "7c0747a5df": {
     "translation": "Open tldraw"
   },
+  "7c10d4771a": {
+    "translation": "Sign in to edit profile settings"
+  },
   "7cb5f8b4a5": {
     "translation": "Forget"
+  },
+  "7d69b3cb4c": {
+    "translation": "Archived"
   },
   "7daeced9ff": {
     "translation": "Publish changes"
@@ -508,6 +529,9 @@
   },
   "9983381c21": {
     "translation": "Clear search"
+  },
+  "9ac3b80777": {
+    "translation": "Unsaved file"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
@@ -749,9 +773,6 @@
   },
   "e404559826": {
     "translation": "Terms of service"
-  },
-  "e727b00944": {
-    "translation": "Archive"
   },
   "e81c4e4f2b": {
     "translation": "or"
