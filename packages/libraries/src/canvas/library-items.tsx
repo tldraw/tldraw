@@ -2,22 +2,22 @@ import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
 import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import { copyItem } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId, TLLibraryItemId } from '../lib/schema'
-import { ItemGrid, ItemGridItems, ItemGridTile } from '../ui/item-grid'
-import { getItemMenuId, ItemMenu } from '../ui/item-menu'
-import { AddSelectionTile } from './add-selection-tile'
+import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '../lib/schema'
+import { ItemGrid, ItemGridTile } from '../ui/item-grid'
+import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
+import { ItemTile as DefaultItemTile } from '../ui/item-tile'
+import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
 import { type ItemOrdering, sortItems } from './item-order'
+import { useLibrariesComponentOverrides } from './libraries-components'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
+import { useSaveSelection } from './use-save-selection'
 import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
-	emptyLibrary: {
-		id: 'libraries.empty-library',
-		defaultMessage: 'Nothing saved here yet.',
-	},
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
 	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
@@ -51,7 +51,7 @@ const messages = defineMessages({
 
 export interface LibraryItemsProps {
 	source: LibrarySource
-	libraryId: TLLibraryId
+	library: TLLibrary
 	/** Where the tiles are measured for their thumbnail size. */
 	container: HTMLElement | null
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
@@ -62,7 +62,7 @@ export interface LibraryItemsProps {
 
 export function LibraryItems({
 	source,
-	libraryId,
+	library,
 	container,
 	getItemProps,
 	ordering,
@@ -73,6 +73,14 @@ export function LibraryItems({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
+	const overrides = useLibrariesComponentOverrides()
+	const {
+		ItemTile = DefaultItemTile,
+		ItemMenu = DefaultItemMenu,
+		EmptyLibrary = DefaultEmptyLibrary,
+		AddSelectionTile = DefaultAddSelectionTile,
+	} = overrides
+	const libraryId = library.id
 	const items = useValue(
 		'library items',
 		() => sortItems(source.getItems(libraryId), ordering, reversed),
@@ -107,7 +115,14 @@ export function LibraryItems({
 		() => (source.moveItem && source.can('deleteItem', libraryId) ? copyTargets : []),
 		[source, libraryId, copyTargets]
 	)
-	const hasItemMenu = canRename || canDelete || moveTargets.length > 0 || copyTargets.length > 0
+	// An override can add entries of its own, so it has a menu whatever the source allows.
+	const hasItemMenu =
+		ItemMenu !== null &&
+		(overrides.ItemMenu !== undefined ||
+			canRename ||
+			canDelete ||
+			moveTargets.length > 0 ||
+			copyTargets.length > 0)
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const props = getItemProps(itemId)
@@ -200,61 +215,72 @@ export function LibraryItems({
 		[items, source, showChangeError, msg]
 	)
 
+	const { saveSelection } = useSaveSelection(source, prepareItemContent)
+	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
+		editor,
+	])
+
 	if (items.length === 0 && !canAdd) {
-		return <p className="tlui-libraries-panel__empty">{msg(messages.emptyLibrary)}</p>
+		return EmptyLibrary && <EmptyLibrary library={library} />
 	}
 
 	return (
 		<ItemGrid>
-			<ItemGridItems
-				items={items.map((item) => ({
-					id: item.id,
-					name: item.name,
-					accessibleLabel: item.name ?? msg(messages.unnamedItem),
-					thumbnailUrl: thumbnailUrls[item.id] ?? undefined,
-				}))}
-				getItemProps={getTileProps}
-				renderItemMenu={(item) => (
-					<ItemMenu
-						id={item.id}
-						name={item.name}
-						onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
-						moveTargets={moveTargets}
-						onMove={(toLibraryId) => moveItem(item.id, toLibraryId as TLLibraryId)}
-						copyTargets={copyTargets}
-						onCopy={(toLibraryId) => copyToLibrary(item.id, toLibraryId as TLLibraryId)}
-						onDelete={
-							canDelete
-								? () =>
-										addDialog({
-											component: ({ onClose }) => (
-												<ConfirmDeleteDialog
-													title={msg(messages.deleteItemTitle)}
-													body={
-														item.name
-															? msg(messages.deleteItemBody, { name: item.name })
-															: msg(messages.deleteUnnamedItemBody)
-													}
-													onClose={onClose}
-													onConfirm={() =>
-														source
-															.deleteItem(item.id)
-															.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
-													}
-												/>
-											),
-										})
-								: undefined
-						}
-					/>
-				)}
-			/>
-			{canAdd && (
+			{ItemTile &&
+				items.map((item) => (
+					<ItemGridTile key={item.id}>
+						<ItemTile
+							item={item}
+							name={item.name}
+							accessibleLabel={item.name ?? msg(messages.unnamedItem)}
+							thumbnailUrl={thumbnailUrls[item.id] ?? undefined}
+							buttonProps={getTileProps(item.id)}
+							menu={
+								ItemMenu && (
+									<ItemMenu
+										item={item}
+										id={item.id}
+										name={item.name}
+										onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
+										moveTargets={moveTargets}
+										onMove={(toLibraryId) => moveItem(item.id, toLibraryId as TLLibraryId)}
+										copyTargets={copyTargets}
+										onCopy={(toLibraryId) => copyToLibrary(item.id, toLibraryId as TLLibraryId)}
+										onDelete={
+											canDelete
+												? () =>
+														addDialog({
+															component: ({ onClose }) => (
+																<ConfirmDeleteDialog
+																	title={msg(messages.deleteItemTitle)}
+																	body={
+																		item.name
+																			? msg(messages.deleteItemBody, { name: item.name })
+																			: msg(messages.deleteUnnamedItemBody)
+																	}
+																	onClose={onClose}
+																	onConfirm={() =>
+																		source
+																			.deleteItem(item.id)
+																			.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+																	}
+																/>
+															),
+														})
+												: undefined
+										}
+									/>
+								)
+							}
+						/>
+					</ItemGridTile>
+				))}
+			{canAdd && AddSelectionTile && (
 				<ItemGridTile>
 					<AddSelectionTile
-						source={source}
-						libraryId={libraryId}
-						prepareItemContent={prepareItemContent}
+						library={library}
+						hasSelection={hasSelection}
+						onAddSelection={() => saveSelection(libraryId)}
 					/>
 				</ItemGridTile>
 			)}

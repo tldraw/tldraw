@@ -67,9 +67,11 @@
 	color: var(--tl-color-text-3);
 }
 
+/* Three tiles to a row. Hosts can change the count with --tlui-libraries-columns, e.g. 1 for an
+   ItemTile override that draws each item as a row. */
 .tlui-libraries-grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: repeat(var(--tlui-libraries-columns, 3), minmax(0, 1fr));
 	margin: 0;
 	padding: 4px 10px 8px;
 	list-style: none;

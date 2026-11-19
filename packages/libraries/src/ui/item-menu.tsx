@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import {
 	defineMessages,
 	TldrawUiButton,
@@ -40,6 +40,11 @@ export interface ItemMenuProps {
 	/** The libraries the item can be copied to. Leave out, or leave empty, to hide "Copy to". */
 	copyTargets?: LibraryMenuTarget[]
 	onCopy?(libraryId: string): void
+	/**
+	 * Items of the host's own, placed before Rename, e.g. {@link LibraryMenuItem}s. Shown in a
+	 * read-only editor too, so leave out any that change the document.
+	 */
+	children?: ReactNode
 }
 
 /**
@@ -65,11 +70,12 @@ export function ItemMenu({
 	onMove,
 	copyTargets,
 	onCopy,
+	children,
 }: ItemMenuProps) {
 	const msg = useTranslation()
 	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
 	const canCopy = onCopy !== undefined && copyTargets !== undefined && copyTargets.length > 0
-	if (!onRename && !onDelete && !canMove && !canCopy) return null
+	if (!onRename && !onDelete && !canMove && !canCopy && !children) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={getItemMenuId(id)}>
@@ -99,7 +105,9 @@ export function ItemMenu({
 					onMove={onMove}
 					copyTargets={canCopy ? copyTargets : undefined}
 					onCopy={onCopy}
-				/>
+				>
+					{children}
+				</ItemMenuContent>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
@@ -115,6 +123,7 @@ function ItemMenuContent({
 	onMove,
 	copyTargets,
 	onCopy,
+	children,
 }: ItemMenuProps) {
 	const msg = useTranslation()
 	const [renaming, setRenaming] = useState(false)
@@ -152,6 +161,7 @@ function ItemMenuContent({
 				</div>
 			)}
 			<TldrawUiDropdownMenuGroup>
+				{children}
 				{onRename && (
 					<MenuItem
 						buttonRef={renameItemRef}
