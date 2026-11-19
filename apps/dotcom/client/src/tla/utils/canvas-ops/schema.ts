@@ -245,14 +245,13 @@ export interface OpResult {
 	ok: boolean
 	shapeIds: string[]
 	message: string
-	/** What the op did beyond the literal request (a nudge, a shrink, an inherited style), if anything */
+	/** What the op did beyond the literal request (a nudge, a shrink, an inherited style), or a warning about its neighbours, if anything */
 	adjusted?: string
 }
 
 export interface ApplyOpsResult {
 	batchId: string
 	applied: number
-	createdIds: string[]
 	errors: string[]
 	results: OpResult[]
 }
