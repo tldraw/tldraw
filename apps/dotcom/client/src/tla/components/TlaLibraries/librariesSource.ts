@@ -84,6 +84,9 @@ function settleable<T>() {
 	return { promise, settle }
 }
 
+// How long a stored item's row may take to arrive before it's taken to have been deleted.
+const ITEM_ROW_ARRIVAL_TIMEOUT_MS = 60_000
+
 // A row's id is the record id without its type prefix.
 const rowId = (id: TLLibraryId | TLLibraryItemId) => id.slice(id.indexOf(':') + 1)
 
@@ -506,11 +509,24 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	/**
 	 * Unlists stored items once their rows arrive, or once their library's row is gone, which is here
 	 * when this starts as storeNewItems waited for it. A library deleted here is only gone once the
-	 * server confirms the delete.
+	 * server confirms the delete. An item whose row hasn't arrived after ITEM_ROW_ARRIVAL_TIMEOUT_MS,
+	 * as when a collaborator deleted it, is unlisted as gone.
 	 */
 	private unlistWhenRowsArrive(libraryId: TLLibraryId, adding: NewItem[]) {
 		const libraryRowId = rowId(libraryId)
 		const awaiting = new Set(adding)
+		const settle = (settled: NewItem[], itemRowIds: ReadonlySet<string>) => {
+			for (const a of settled) awaiting.delete(a)
+			if (awaiting.size === 0) {
+				stop()
+				clearTimeout(timeout)
+			}
+			const settledIds = new Set(settled.map((a) => a.pending.item.id))
+			this.pendingItems.update((all) => all.filter((p) => !settledIds.has(p.item.id)))
+			const gone = settled.filter((a) => !itemRowIds.has(a.id))
+			this.releaseLocalThumbnails(gone.map((a) => a.id))
+			for (const a of settled) a.settleArrival(itemRowIds.has(a.id))
+		}
 		const stop = react('library item rows arrive', () => {
 			const rows = this.app.getLibraryRows()
 			const libraryGone =
@@ -520,15 +536,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			const settled = [...awaiting].filter((a) => libraryGone || itemRowIds.has(a.id))
 			if (settled.length === 0) return
 			for (const a of settled) awaiting.delete(a)
-			Promise.resolve().then(() => {
-				if (awaiting.size === 0) stop()
-				const settledIds = new Set(settled.map((a) => a.pending.item.id))
-				this.pendingItems.update((all) => all.filter((p) => !settledIds.has(p.item.id)))
-				const gone = settled.filter((a) => !itemRowIds.has(a.id))
-				this.releaseLocalThumbnails(gone.map((a) => a.id))
-				for (const a of settled) a.settleArrival(itemRowIds.has(a.id))
-			})
+			Promise.resolve().then(() => settle(settled, itemRowIds))
 		})
+		const timeout = setTimeout(() => settle([...awaiting], new Set()), ITEM_ROW_ARRIVAL_TIMEOUT_MS)
 	}
 
 	private releaseLocalThumbnails(itemRowIds: string[]) {

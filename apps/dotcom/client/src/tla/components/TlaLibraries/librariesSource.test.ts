@@ -428,6 +428,47 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(source.getItems(kit.id)).toEqual([])
 		})
 
+		describe('when a stored item’s row doesn’t arrive', () => {
+			afterEach(() => {
+				vi.useRealTimers()
+			})
+
+			it('drops the item after a minute, as a collaborator may have deleted it', async () => {
+				vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+				const { backend, source } = setUp()
+				const kit = await source.createLibrary('Kit')
+				backend.holdWorkerRows()
+				const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
+				const renaming = expect(source.renameItem(item.id, 'Moon')).rejects.toThrow(
+					LibraryNotFoundError
+				)
+				const copying = copyLibrary(source, kit.id, 'acme')
+				await vi.advanceTimersByTimeAsync(59_999)
+				expect(source.getItems(kit.id)).toMatchObject([{ id: item.id }])
+				await vi.advanceTimersByTimeAsync(1)
+				expect(source.getItems(kit.id)).toEqual([])
+				expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
+				await renaming
+				await copying
+				expect(backend.fetch.mock.calls.at(-1)![0]).toBe(`/api/app/libraries/${rowId(kit.id)}/copy`)
+			})
+
+			it('keeps an item whose row arrives in time', async () => {
+				vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+				const { backend, source } = setUp()
+				const kit = await source.createLibrary('Kit')
+				const rows = backend.holdWorkerRows()
+				const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
+				rows.release()
+				await vi.advanceTimersByTimeAsync(0)
+				expect(backend.rows.get()[0].items).toHaveLength(1)
+				expect(vi.getTimerCount()).toBe(0)
+				await vi.advanceTimersByTimeAsync(60_000)
+				expect(source.getItems(kit.id)).toMatchObject([{ id: item.id, thumbnail: 'blob:local-1' }])
+				expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+			})
+		})
+
 		it('renames an item being added once its row has arrived', async () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')
