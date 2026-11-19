@@ -203,6 +203,12 @@
       "value": "Move to"
     }
   ],
+  "1cdc076b28": [
+    {
+      "type": 0,
+      "value": "Undo"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -285,6 +291,12 @@
     {
       "type": 0,
       "value": "Search..."
+    }
+  ],
+  "2bd339d85e": [
+    {
+      "type": 0,
+      "value": "Restore"
     }
   ],
   "2d3cdcfdd4": [
@@ -1632,6 +1644,12 @@
       "value": "Copy link"
     }
   ],
+  "b7e6f111b9": [
+    {
+      "type": 0,
+      "value": "File archived"
+    }
+  ],
   "ba0318cb81": [
     {
       "type": 0,
@@ -1764,6 +1782,16 @@
     {
       "type": 0,
       "value": "Unable to publish the file."
+    }
+  ],
+  "c372cefc22": [
+    {
+      "type": 0,
+      "value": "Archived on "
+    },
+    {
+      "type": 1,
+      "value": "date"
     }
   ],
   "c4b39a1cc3": [

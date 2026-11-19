@@ -237,6 +237,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const isOwner = useHasFileAdminRights(fileSlug)
 
 	const app = useApp()
+	const activeWorkspaceId = useActiveWorkspaceId()
 	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
 	const fileId = useCurrentFileId()
 	const fileName = useValue(
@@ -323,7 +324,8 @@ function TlaEditorTopLeftPanelSignedIn() {
 								source="file-header"
 								fileId={fileId}
 								onRenameAction={handleRenameAction}
-								workspaceId={null}
+								workspaceId={activeWorkspaceId}
+								showPin={false}
 							/>
 							<ImportFileActionItem />
 						</TldrawUiMenuSubmenu>

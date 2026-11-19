@@ -58,6 +58,36 @@ describe('getWorkspaceFilesSorted', () => {
 
 		expect(app.getWorkspaceFilesSorted(homeId)).toEqual([])
 	})
+
+	it('keeps archived files in the list and flags them', () => {
+		const homeId = 'user:home'
+		const membership = makeMembership(homeId, [
+			{
+				fileId: 'file:archived',
+				groupId: homeId,
+				index: null,
+				archivedAt: 5000,
+				file: makeFile({ id: 'file:archived', owningGroupId: homeId, updatedAt: 3000 }),
+			},
+			{
+				fileId: 'file:active',
+				groupId: homeId,
+				index: null,
+				archivedAt: null,
+				file: makeFile({ id: 'file:active', owningGroupId: homeId, updatedAt: 2000 }),
+			},
+		])
+		const app = createAppStub([membership], homeId)
+
+		expect(
+			app.getWorkspaceFilesSorted(homeId).map(({ fileId, isArchived }) => ({ fileId, isArchived }))
+		).toEqual([
+			{ fileId: 'file:archived', isArchived: true },
+			{ fileId: 'file:active', isArchived: false },
+		])
+		expect(app.isArchived('file:archived', homeId)).toBe(true)
+		expect(app.isArchived('file:active', homeId)).toBe(false)
+	})
 })
 
 describe('getWorkspaceMembership', () => {

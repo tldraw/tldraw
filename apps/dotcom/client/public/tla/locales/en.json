@@ -80,6 +80,9 @@
   "1a7222b4e5": {
     "translation": "Move to"
   },
+  "1cdc076b28": {
+    "translation": "Undo"
+  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -112,6 +115,9 @@
   },
   "2a37324bb4": {
     "translation": "Search..."
+  },
+  "2bd339d85e": {
+    "translation": "Restore"
   },
   "2d3cdcfdd4": {
     "translation": "Please try again."
@@ -633,6 +639,9 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "b7e6f111b9": {
+    "translation": "File archived"
+  },
   "ba0318cb81": {
     "translation": "Sign in to share"
   },
@@ -662,6 +671,9 @@
   },
   "c303bd1095": {
     "translation": "Unable to publish the file."
+  },
+  "c372cefc22": {
+    "translation": "Archived on {date}"
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"

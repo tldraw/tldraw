@@ -1,3 +1,28 @@
+/* ------------------- Top panel ------------------- */
+
+/* Positioned against the whole layout rather than the top-center flex slot, which gets squeezed
+   between the left and right panels and pushes the pill off center. Top offset lines it up with
+   the 44px panels. */
+.archivedPill {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: max-content;
+	max-width: calc(100% - 32px);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 4px 12px;
+	border-radius: var(--tl-radius-1);
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+	line-height: 20px;
+	white-space: nowrap;
+	pointer-events: all;
+}
+
 /* ------------------- Top left panel ------------------- */
 
 .topLeftOfflineLogo {

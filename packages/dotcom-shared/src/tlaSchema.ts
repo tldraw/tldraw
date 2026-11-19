@@ -132,6 +132,7 @@ export const group_file = table('group_file')
 		createdAt: number(),
 		updatedAt: number(),
 		index: string<IndexKey>().optional(),
+		archivedAt: number().optional(),
 	})
 	.primaryKey('fileId', 'groupId')
 

@@ -25,8 +25,10 @@ import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../hooks/useAppState'
+import { useFileArchiveState } from '../../hooks/useFileArchiveState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
@@ -46,6 +48,10 @@ const messages = defineMessages({
 	copy: { defaultMessage: 'Copy' },
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
+	archive: { defaultMessage: 'Archive' },
+	unarchive: { defaultMessage: 'Restore' },
+	archived: { defaultMessage: 'File archived' },
+	undo: { defaultMessage: 'Undo' },
 	myWorkspace: { defaultMessage: 'My workspace' },
 	moveTo: { defaultMessage: 'Move to' },
 	newWorkspace: { defaultMessage: 'New workspace' },
@@ -118,6 +124,7 @@ export function FileItems({
 	onRenameAction,
 	workspaceId,
 	menuType = 'menu',
+	showPin = true,
 }: {
 	source: TLAppUiEventSource
 	fileId: string
@@ -125,6 +132,7 @@ export function FileItems({
 	onRenameAction?(): void
 	workspaceId: string | null
 	menuType?: TLUiMenuContextType
+	showPin?: boolean
 }) {
 	const inPalette = menuType === 'command-palette'
 	// The palette keeps one entry per id: unprefixed, duplicate/delete clash with the SDK actions
@@ -140,6 +148,10 @@ export function FileItems({
 	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId)
+	const archiveState = useFileArchiveState(fileId, workspaceId)
+	const isArchived = archiveState === 'archived'
+	// Only the v3 gallery hides archived files, so elsewhere archiving would do nothing visible.
+	const canArchive = useIsUiV3() && archiveState !== null
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
@@ -207,6 +219,39 @@ export function FileItems({
 			app.z.mutate.pinFile({ fileId, workspaceId })
 		}
 	}, [app, fileId, workspaceId])
+
+	const handleArchiveUnarchiveClick = useCallback(() => {
+		if (!workspaceId) return
+		const groupFile = app.getWorkspaceGroupFile(fileId, workspaceId)
+		if (!groupFile) return
+		if (groupFile.archivedAt != null) {
+			app.z.mutate.unarchiveFile({ fileId, workspaceId })
+			trackEvent('unarchive-file', { source })
+			return
+		}
+		// Archiving clears the pin, so undo has to put it back where it was.
+		const pinnedIndex = groupFile.index
+		app.z.mutate.archiveFile({ fileId, workspaceId })
+		trackEvent('archive-file', { source })
+		addToast({
+			id: `archived-${fileId}`,
+			title: msg(messages.archived),
+			actions: [
+				{
+					type: 'normal',
+					label: msg(messages.undo),
+					onClick: () => {
+						if (pinnedIndex) {
+							app.z.mutate.pinFile({ fileId, workspaceId, index: pinnedIndex })
+						} else {
+							app.z.mutate.unarchiveFile({ fileId, workspaceId })
+						}
+						trackEvent('unarchive-file', { source })
+					},
+				},
+			],
+		})
+	}, [app, fileId, workspaceId, trackEvent, source, addToast, msg])
 
 	const handleDuplicateClick = useCallback(async () => {
 		// The sidebar passes the workspace the file is listed under; the file header doesn't, so
@@ -313,7 +358,7 @@ export function FileItems({
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
-				{workspaceId && (
+				{showPin && workspaceId && !(canArchive && isArchived) && (
 					<TldrawUiMenuItem
 						label={msg(isPinned ? messages.unpin : messages.pin)}
 						id={`${idPrefix}pin-unpin`}
@@ -351,6 +396,14 @@ export function FileItems({
 							/>
 						</TldrawUiMenuGroup>
 					</TldrawUiMenuSubmenu>
+				)}
+				{canArchive && (
+					<TldrawUiMenuItem
+						label={msg(isArchived ? messages.unarchive : messages.archive)}
+						id={`${idPrefix}archive-unarchive`}
+						readonlyOk
+						onSelect={handleArchiveUnarchiveClick}
+					/>
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
