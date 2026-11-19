@@ -365,6 +365,7 @@ export function createMutators(userId: string) {
 				updatedAt: time,
 				isDeleted: false,
 				createSource,
+				createdBy: userId,
 			})
 			await tx.mutate.group_file.insert({
 				fileId,
