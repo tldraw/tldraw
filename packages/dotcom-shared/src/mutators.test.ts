@@ -1743,7 +1743,7 @@ describe('libraries', () => {
 		updatedAt: 1,
 	})
 
-	function setup(tables: Partial<TableStore> = {}) {
+	function setup(tables: Partial<TableStore> = {}, location: 'server' | 'client' = 'server') {
 		const store = makeStore({
 			user: [makeUser({ id: me }), makeUser({ id: other })],
 			group: [makeGroup({ id: W }), makeGroup({ id: V }), makeGroup({ id: X })],
@@ -1754,8 +1754,8 @@ describe('libraries', () => {
 			],
 			...tables,
 		})
-		const { tx } = createMockTx(store)
-		return { store, tx, mutators: createMutators(me) }
+		const { tx, mutations } = createMockTx(store, { location })
+		return { store, tx, mutations, mutators: createMutators(me) }
 	}
 
 	describe('library.create', () => {
@@ -1814,19 +1814,31 @@ describe('libraries', () => {
 	})
 
 	describe('library.rename / delete', () => {
-		it('lets any member rename and delete, deleting the items too', async () => {
-			const { store, tx, mutators } = setup({
-				library: [makeLibrary({ id: libraryId, owningGroupId: W, createdBy: other })],
-				library_item: [
-					makeItem('item_1111222233334444', libraryId),
-					makeItem('item_5555666677778888', 'coll_elsewhere0000000'),
-				],
-			})
+		it('lets any member rename and delete, deleting the items too on the client', async () => {
+			const { store, tx, mutators } = setup(
+				{
+					library: [makeLibrary({ id: libraryId, owningGroupId: W, createdBy: other })],
+					library_item: [
+						makeItem('item_1111222233334444', libraryId),
+						makeItem('item_5555666677778888', 'coll_elsewhere0000000'),
+					],
+				},
+				'client'
+			)
 			await mutators.library.rename(tx, { id: libraryId, name: 'Icons' })
 			expect(store.library[0].name).toBe('Icons')
 			await mutators.library.delete(tx, { id: libraryId })
 			expect(store.library).toEqual([])
 			expect(store.library_item.map((i) => i.id)).toEqual(['item_5555666677778888'])
+		})
+
+		it('deletes only the library on the server, where Postgres cascades to its items', async () => {
+			const { tx, mutations, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: W })],
+				library_item: [makeItem('item_1111222233334444', libraryId)],
+			})
+			await mutators.library.delete(tx, { id: libraryId })
+			expect(mutations).toEqual([{ op: 'delete', table: 'library', data: { id: libraryId } }])
 		})
 
 		it("can't rename or delete a library in a workspace I'm not in", async () => {

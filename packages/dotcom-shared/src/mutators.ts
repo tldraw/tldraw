@@ -330,8 +330,10 @@ export function createMutators(userId: string) {
 			delete: async (tx: Tx, { id }: { id: string }) => {
 				await assertCanManageLibrary(tx, userId, id)
 				// The foreign key cascades in Postgres, but a client's local store has no cascade.
-				const items = await tx.run(zql.library_item.where('libraryId', '=', id))
-				for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+				if (tx.location !== 'server') {
+					const items = await tx.run(zql.library_item.where('libraryId', '=', id))
+					for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+				}
 				await tx.mutate.library.delete({ id })
 			},
 		},
