@@ -1,4 +1,9 @@
+import {
+	MAX_LIBRARY_ITEMS_PER_REQUEST,
+	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
+} from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { STORAGE_CONCURRENCY } from '../../libraryStorage'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { createFakeR2 } from '../../test/fakeR2'
 import { Environment } from '../../types'
@@ -10,20 +15,21 @@ vi.mock('../../utils/featureFlags', () => ({ canUseLibraries: vi.fn() }))
 const { createPostgresConnectionPool } = await import('../../postgres')
 const { requireAuth } = await import('../../utils/tla/getAuth')
 const { canUseLibraries } = await import('../../utils/featureFlags')
-const { addLibraryItem, getLibraryItemContent } = await import('./libraryItems')
+const { addLibraryItems, getLibraryItemContent } = await import('./libraryItems')
 const { processLibraryItemObjectEffect } = await import('../../libraryEffects')
 
 const ME = 'user_aaaa11112222bbbb'
 const W = 'group_www11112222www'
 const LIBRARY_ID = 'coll_aaaa11112222bbbb'
 const ITEM_ID = 'item_1111222233334444'
+const OTHER_ID = 'item_5555666677778888'
 const CONTENT = { formatVersion: 1, content: { shapes: [], rootShapeIds: [], schema: {} } }
 const CONTENT_KEY = 'library-items/content_1111222233334444/content.json'
 const png = () => new Blob([new Uint8Array([1])], { type: 'image/png' })
 
-// The library and the user's role, no item with the id, the queued deletes, then the inserted
-// row's id.
-const adding = (access: unknown) => [[access], [], [], [{ id: ITEM_ID }]]
+// The library and the user's role, no item with the ids, the queued deletes, then the inserted
+// rows' ids.
+const adding = (access: unknown, ids = [ITEM_ID]) => [[access], [], [], ids.map((id) => ({ id }))]
 
 function mockPool(resultSets: unknown[][]) {
 	const fake = createFakeKysely(resultSets)
@@ -43,6 +49,14 @@ const uploadNames = async (env: Environment) =>
 	(await env.UPLOADS.list()).objects.map((o: { key: string }) => o.key)
 
 type FakeKysely = ReturnType<typeof mockPool>
+
+// The library_item_object rows inserted, as [itemId, bucket, objectName].
+function objectRows(fake: FakeKysely) {
+	const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))
+	const parameters = (insert?.parameters ?? []) as string[]
+	return Array.from({ length: parameters.length / 3 }, (_, i) => parameters.slice(i * 3, i * 3 + 3))
+}
+
 interface QueuedObject {
 	bucket: 'rooms' | 'uploads'
 	objectName: string
@@ -55,15 +69,17 @@ function queuedObjects(fake: FakeKysely): QueuedObject[] {
 	return parameters.filter((_, i) => i % 2 === 1).map((payload) => JSON.parse(payload))
 }
 
-// The objects the library_item_object insert names.
-function namedObjects(fake: FakeKysely): QueuedObject[] {
-	const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))
-	const parameters = (insert?.parameters ?? []) as string[]
-	return Array.from({ length: parameters.length / 3 }, (_, i) => ({
-		bucket: parameters[i * 3 + 1] as QueuedObject['bucket'],
-		objectName: parameters[i * 3 + 2],
+const namedObjects = (fake: FakeKysely): QueuedObject[] =>
+	objectRows(fake).map(([, bucket, objectName]) => ({
+		bucket: bucket as QueuedObject['bucket'],
+		objectName,
 	}))
-}
+
+// Every object stored, by bucket and name.
+const storedObjects = async (env: Environment) => [
+	...(await env.ROOMS.list()).objects.map((o: { key: string }) => `rooms/${o.key}`),
+	...(await uploadNames(env)).map((name) => `uploads/${name}`),
+]
 
 // Drains the queued deletes as the effect processor would once their grace period is over, with
 // the objects in `named` still named by rows.
@@ -83,16 +99,34 @@ async function drainQueued(env: Environment, queued: QueuedObject[], named: Queu
 	}
 }
 
-// The key of the one item content stored, and the content.
-async function storedContent(env: Environment) {
-	const [{ key }] = (await env.ROOMS.list()).objects
+// An added item's content key, and the content stored under it.
+async function storedContent(env: Environment, fake: FakeKysely, id = ITEM_ID) {
+	const [, , key] = objectRows(fake).find(
+		([itemId, bucket]) => itemId === id && bucket === 'rooms'
+	)!
 	return { key, content: await (await env.ROOMS.get(key))!.json<any>() }
 }
 
-function addRequest(fields: Record<string, string | Blob | undefined>) {
+interface ItemFields {
+	id?: string
+	name?: string
+	content?: string
+	thumbnail?: Blob
+	darkThumbnail?: Blob
+}
+
+// A request adding the items, each listed by its id and name unless `list` replaces the listing.
+function addRequest(items: ItemFields[], list?: unknown) {
 	const form = new FormData()
-	for (const [key, value] of Object.entries({ id: ITEM_ID, ...fields })) {
-		if (value !== undefined) form.set(key, value)
+	const listed = items.map(({ id = ITEM_ID, name }) => ({
+		id,
+		...(name === undefined ? {} : { name }),
+	}))
+	form.set('items', JSON.stringify(list === undefined ? listed : list))
+	for (const { id = ITEM_ID, content, thumbnail, darkThumbnail } of items) {
+		if (content !== undefined) form.set(`content:${id}`, content)
+		if (thumbnail) form.set(`thumbnail:${id}`, thumbnail)
+		if (darkThumbnail) form.set(`darkThumbnail:${id}`, darkThumbnail)
 	}
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/items`, {
@@ -102,6 +136,8 @@ function addRequest(fields: Record<string, string | Blob | undefined>) {
 		{ params: { libraryId: LIBRARY_ID } }
 	) as any
 }
+
+const valid = (id = ITEM_ID): ItemFields => ({ id, content: JSON.stringify(CONTENT) })
 
 function getRequest() {
 	return Object.assign(
@@ -138,71 +174,87 @@ beforeEach(() => {
 
 afterEach(() => vi.clearAllMocks())
 
-describe('addLibraryItem', () => {
-	it("stores a member's item and inserts its row under an id the worker picks", async () => {
+describe('addLibraryItems', () => {
+	it("stores a member's item and inserts its row under the id the client picked", async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
-				name: '  Button  ',
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify(CONTENT),
+					thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+					name: '  Button  ',
+				},
+			]),
 			env
 		)
 
 		expect(response.status).toBe(200)
-		const { id, thumbnail } = (await response.json()) as { id: string; thumbnail: string }
+		const {
+			items: [{ id, thumbnail }],
+		} = (await response.json()) as { items: { id: string; thumbnail: string }[] }
 		expect(id).toBe(ITEM_ID)
-		const stored = await storedContent(env)
+		const stored = await storedContent(env, fake)
 		expect(stored.content).toEqual(CONTENT)
-		expect(stored.key).not.toContain(id)
+		expect(stored.key).not.toContain(ITEM_ID)
 		const [objectName] = await uploadNames(env)
 		expect(objectName).toMatch(/-webp$/)
-		expect(objectName).not.toContain(id)
+		expect(objectName).not.toContain(ITEM_ID)
 		expect(thumbnail).toBe(`https://content.test/${objectName}`)
 		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item" '))!
 		expect(insert.parameters).toEqual(
-			expect.arrayContaining([id, LIBRARY_ID, 'Button', JSON.stringify(thumbnail), stored.key, ME])
+			expect.arrayContaining([
+				ITEM_ID,
+				LIBRARY_ID,
+				'Button',
+				JSON.stringify(thumbnail),
+				stored.key,
+				ME,
+			])
 		)
-		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
-		expect(objects.parameters).toEqual([id, 'rooms', stored.key, id, 'uploads', objectName])
+		expect(objectRows(fake)).toEqual([
+			[ITEM_ID, 'rooms', stored.key],
+			[ITEM_ID, 'uploads', objectName],
+		])
 	})
 
 	it('stores a light and a dark thumbnail', async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
-				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/webp' }),
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify(CONTENT),
+					thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+					darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/webp' }),
+				},
+			]),
 			env
 		)
 
 		expect(response.status).toBe(200)
-		const { thumbnail } = (await response.json()) as {
-			thumbnail: { light: string; dark: string }
-		}
+		const {
+			items: [{ thumbnail }],
+		} = (await response.json()) as { items: { thumbnail: { light: string; dark: string } }[] }
 		const names = await uploadNames(env)
 		expect(names).toHaveLength(2)
 		expect(thumbnail.light).toMatch(/^https:\/\/content\.test\/.+-png$/)
 		expect(thumbnail.dark).toMatch(/^https:\/\/content\.test\/.+-webp$/)
 		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item" '))!
 		expect(insert.parameters).toContain(JSON.stringify(thumbnail))
-		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
-		expect(objects.parameters).toEqual(expect.arrayContaining(names))
+		expect(objectRows(fake).map(([, , name]) => name)).toEqual(expect.arrayContaining(names))
 	})
 
 	it('stores an SVG thumbnail as an SVG upload', async () => {
 		mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob(['<svg/>'], { type: 'image/svg+xml' }),
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify(CONTENT),
+					thumbnail: new Blob(['<svg/>'], { type: 'image/svg+xml' }),
+				},
+			]),
 			env
 		)
 
@@ -212,9 +264,8 @@ describe('addLibraryItem', () => {
 	})
 
 	it('queues every object it stores for deletion before storing any', async () => {
-		const fake = mockPool(adding(libraryAccess(W, 'member')))
+		const fake = mockPool(adding(libraryAccess(W, 'member'), [ITEM_ID, OTHER_ID]))
 		const env = makeEnv()
-		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
 		const queuedAtEachPut: number[] = []
 		for (const bucket of [env.ROOMS, env.UPLOADS]) {
 			const put = bucket.put.bind(bucket)
@@ -223,89 +274,67 @@ describe('addLibraryItem', () => {
 				return put(...args)
 			}) as R2Bucket['put']
 		}
-		const image = {
-			id: 'asset:photo',
-			typeName: 'asset',
-			type: 'image',
-			props: { src: 'https://content.test/abc123-png', w: 10, h: 10 },
-			meta: {},
-		}
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets: [image] } }),
-				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
-				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }),
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{ ...valid(), thumbnail: png(), darkThumbnail: png() },
+				{ ...valid(OTHER_ID), thumbnail: png() },
+			]),
 			env
 		)
-
 		expect(response.status).toBe(200)
-		expect(queuedAtEachPut).toEqual([4, 4, 4, 4])
+		expect(queuedAtEachPut).toEqual([5, 5, 5, 5, 5])
 		expect(queuedObjects(fake)).toEqual(expect.arrayContaining(namedObjects(fake)))
-		expect(namedObjects(fake)).toHaveLength(4)
+		expect(fake.queries.filter((q) => q.sql.startsWith('INSERT INTO effect_outbox'))).toHaveLength(
+			1
+		)
 	})
 
-	it('leaves nothing behind once its queued deletes drain, when the row is never inserted', async () => {
+	it('leaves nothing behind once its queued deletes drain, when the rows are never inserted', async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
 			throw new Error('the worker was stopped')
 		})
 		const env = makeEnv()
 		await expect(
-			addLibraryItem(
-				addRequest({
-					content: JSON.stringify(CONTENT),
-					thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
-				}),
-				env
-			)
+			addLibraryItems(addRequest([{ ...valid(), thumbnail: png() }]), env)
 		).rejects.toThrow('the worker was stopped')
 		// what it stored stays until the processor drains the queued deletes
-		expect((await env.ROOMS.list()).objects).toHaveLength(1)
-		expect(await uploadNames(env)).toHaveLength(1)
+		expect(await storedObjects(env)).toHaveLength(2)
 
 		await drainQueued(env, queuedObjects(fake), [])
-		expect((await env.ROOMS.list()).objects).toEqual([])
-		expect(await uploadNames(env)).toEqual([])
+		expect(await storedObjects(env)).toEqual([])
 	})
 
-	it('keeps what an added item names when its queued deletes drain', async () => {
+	it('keeps what added items name when their queued deletes drain', async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
-			}),
-			env
-		)
+		const response = await addLibraryItems(addRequest([{ ...valid(), thumbnail: png() }]), env)
 		expect(response.status).toBe(200)
-
 		await drainQueued(env, queuedObjects(fake), namedObjects(fake))
-		expect((await env.ROOMS.list()).objects).toHaveLength(1)
-		expect(await uploadNames(env)).toHaveLength(1)
+		expect(await storedObjects(env)).toHaveLength(2)
 	})
 
-	it("stores each request's content under a key of its own", async () => {
+	it("stores each request's content under keys of its own", async () => {
 		const env = makeEnv()
 		const keys: string[] = []
 		for (let i = 0; i < 2; i++) {
 			const fake = mockPool(adding(libraryAccess(W, 'member')))
-			await addLibraryItem(addRequest({ content: JSON.stringify(CONTENT) }), env)
-			keys.push(namedObjects(fake).find((o) => o.bucket === 'rooms')!.objectName)
+			await addLibraryItems(addRequest([valid()]), env)
+			keys.push((await storedContent(env, fake)).key)
 		}
 		expect(keys[0]).not.toBe(keys[1])
-		expect((await env.ROOMS.list()).objects).toHaveLength(2)
 	})
 
 	it('answers 404 without storing anything when the libraries flag is off for me', async () => {
 		vi.mocked(canUseLibraries).mockResolvedValue(false)
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify(CONTENT),
+					thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+				},
+			]),
 			env
 		)
 		expect(response.status).toBe(404)
@@ -317,8 +346,8 @@ describe('addLibraryItem', () => {
 
 	it('adds to a library in my home workspace, which may have no group_user row', async () => {
 		mockPool(adding(libraryAccess(ME, null)))
-		const response = await addLibraryItem(
-			addRequest({ content: JSON.stringify(CONTENT) }),
+		const response = await addLibraryItems(
+			addRequest([{ content: JSON.stringify(CONTENT) }]),
 			makeEnv()
 		)
 		expect(response.status).toBe(200)
@@ -331,54 +360,93 @@ describe('addLibraryItem', () => {
 	])('answers 404 for %s and stores nothing', async (_, resultSets) => {
 		const fake = mockPool(resultSets)
 		const env = makeEnv()
-		const response = await addLibraryItem(addRequest({ content: JSON.stringify(CONTENT) }), env)
+		const response = await addLibraryItems(addRequest([{ content: JSON.stringify(CONTENT) }]), env)
 		expect(response.status).toBe(404)
 		expect((await env.ROOMS.list()).objects).toEqual([])
 		expect(await uploadNames(env)).toEqual([])
 		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
-	it.each([
-		['content that is not JSON', { content: '{' }],
-		['JSON that is not item content', { content: JSON.stringify({ shapes: [] }) }],
+	it.each<[string, ItemFields[], unknown?]>([
+		['content that is not JSON', [{ content: '{' }]],
+		['JSON that is not item content', [{ content: JSON.stringify({ shapes: [] }) }]],
+		['an item without content', [{}]],
 		[
 			'item content with an asset that is not an object',
-			{ content: JSON.stringify({ formatVersion: 1, content: { assets: [null] } }) },
+			[{ content: JSON.stringify({ formatVersion: 1, content: { assets: [null] } }) }],
 		],
 		[
 			'a GIF thumbnail',
-			{
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/gif' }),
-			},
+			[{ ...valid(), thumbnail: new Blob([new Uint8Array([1])], { type: 'image/gif' }) }],
 		],
 		[
 			'a dark thumbnail without a light one',
-			{
-				content: JSON.stringify(CONTENT),
-				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }),
-			},
+			[{ ...valid(), darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }) }],
 		],
-		['a request without an id', { id: undefined, content: JSON.stringify(CONTENT) }],
-		['an id uniqueId would not make', { id: 'item_1', content: JSON.stringify(CONTENT) }],
-		[
-			'an id with characters uniqueId does not use',
-			{ id: 'item/../111222233334444', content: JSON.stringify(CONTENT) },
-		],
-	])('refuses %s', async (_, fields) => {
+		['a request without a list of items', [valid()], null],
+		['an empty list of items', [], []],
+		['an item without an id', [valid()], [{}]],
+		['an id uniqueId would not make', [valid('item_1')]],
+		['an id with characters uniqueId does not use', [valid('item/../111222233334444')]],
+		['the same id twice', [valid(), valid()]],
+		['a bad item after a good one', [valid(), { id: OTHER_ID, content: '{' }]],
+	])('refuses %s, storing nothing', async (_, items, list) => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(addRequest(fields), env)
+		const response = await addLibraryItems(addRequest(items, list), env)
 		expect(response.status).toBe(400)
 		expect((await env.ROOMS.list()).objects).toEqual([])
-		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
+		expect(await uploadNames(env)).toEqual([])
+		expect(fake.queries).toEqual([])
+	})
+
+	it.each<[string, ItemFields[]]>([
+		[
+			'more items than one request may add',
+			Array.from({ length: MAX_LIBRARY_ITEMS_PER_REQUEST + 1 }, (_, i) =>
+				valid(`item_${String(i).padStart(16, '0')}`)
+			),
+		],
+		[
+			'content that is too large',
+			[{ content: JSON.stringify({ ...CONTENT, padding: 'x'.repeat(5_000_000) }) }],
+		],
+		[
+			'a thumbnail that is too large',
+			[{ ...valid(), thumbnail: new Blob([new Uint8Array(1_000_001)], { type: 'image/png' }) }],
+		],
+		[
+			'items that are too large together',
+			Array.from({ length: 3 }, (_, i) => ({
+				id: `item_${String(i).padStart(16, '0')}`,
+				content: JSON.stringify({ ...CONTENT, padding: 'x'.repeat(4_000_000) }),
+			})),
+		],
+	])('refuses %s with 413, storing nothing', async (_, items) => {
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
+		const env = makeEnv()
+		const response = await addLibraryItems(addRequest(items), env)
+		expect(response.status).toBe(413)
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(fake.queries).toEqual([])
+	})
+
+	it('refuses a request too large to read, before reading it', async () => {
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
+		const request = addRequest([valid()])
+		request.headers.set('content-length', String(MAX_LIBRARY_ITEMS_REQUEST_BYTES * 2))
+		const formData = vi.spyOn(request, 'formData')
+		const response = await addLibraryItems(request, makeEnv())
+		expect(response.status).toBe(413)
+		expect(formData).not.toHaveBeenCalled()
+		expect(fake.queries).toEqual([])
 	})
 
 	it('refuses an id that names an existing item, before queueing or storing anything', async () => {
 		const fake = mockPool([[libraryAccess(W, 'member')], [{ id: ITEM_ID }]])
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
+		const response = await addLibraryItems(
+			addRequest([{ content: JSON.stringify(CONTENT), thumbnail: png() }]),
 			env
 		)
 		expect(response.status).toBe(409)
@@ -387,43 +455,126 @@ describe('addLibraryItem', () => {
 		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
 	})
 
-	it("answers 409 when another request inserts the id first; its queued deletes remove what it stored, and not the other's", async () => {
+	it("answers 409 when another request inserts an id first; its queued deletes remove what it stored, and not the other's", async () => {
 		const env = makeEnv()
-		// the request that inserted the id first, and what it stored
+		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
+		const image = {
+			id: 'asset:photo',
+			typeName: 'asset',
+			type: 'image',
+			props: { src: 'https://content.test/abc123-png', w: 10, h: 10 },
+			meta: {},
+		}
+		const fields = {
+			content: JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets: [image] } }),
+			thumbnail: png(),
+		}
 		const winner = mockPool(adding(libraryAccess(W, 'member')))
-		expect(
-			(
-				await addLibraryItem(
-					addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
-					env
-				)
-			).status
-		).toBe(200)
-		const winnerObjects = namedObjects(winner)
-		const stored = async () => [
-			...(await env.ROOMS.list()).objects.map((o: { key: string }) => o.key),
-			...(await uploadNames(env)),
-		]
-		const winnerStored = await stored()
+		expect((await addLibraryItems(addRequest([fields]), env)).status).toBe(200)
+		const winnerStored = await storedObjects(env)
 
 		// no item when it checks, but the insert finds one
 		const loser = mockPool([[libraryAccess(W, 'member')], [], [], []])
-		const response = await addLibraryItem(
-			addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
+		const response = await addLibraryItems(addRequest([fields]), env)
+		expect(response.status).toBe(409)
+		expect(objectRows(loser)).toEqual([])
+		expect(loser.queries.at(-1)!.sql).toBe('rollback')
+		const loserQueued = queuedObjects(loser)
+		expect(loserQueued.filter((o) => winnerStored.includes(`${o.bucket}/${o.objectName}`))).toEqual(
+			[]
+		)
+
+		await drainQueued(env, [...queuedObjects(winner), ...loserQueued], namedObjects(winner))
+		expect((await storedObjects(env)).sort()).toEqual(winnerStored.sort())
+	})
+
+	it('inserts no row when another request takes one of the ids', async () => {
+		// no item when it checks, but the insert finds the second taken
+		const fake = mockPool([[libraryAccess(W, 'member')], [], [], [{ id: ITEM_ID }]])
+		const env = makeEnv()
+		const response = await addLibraryItems(addRequest([valid(), valid(OTHER_ID)]), env)
+		expect(response.status).toBe(409)
+		expect(objectRows(fake)).toEqual([])
+		expect(fake.queries.at(-1)!.sql).toBe('rollback')
+		await drainQueued(env, queuedObjects(fake), [])
+		expect(await storedObjects(env)).toEqual([])
+	})
+
+	it('adds several items in one insert, in the order listed, each a step newer', async () => {
+		const ids = [OTHER_ID, ITEM_ID, 'item_9999000011112222']
+		const fake = mockPool(adding(libraryAccess(W, 'member'), ids))
+		const env = makeEnv()
+		vi.spyOn(Date, 'now').mockReturnValue(1000)
+		const response = await addLibraryItems(
+			addRequest([
+				{ ...valid(ids[0]), name: 'First', thumbnail: png() },
+				{ ...valid(ids[1]), name: 'Second' },
+				{ ...valid(ids[2]), name: 'Third', thumbnail: png() },
+			]),
 			env
 		)
-		expect(response.status).toBe(409)
-		expect(namedObjects(loser)).toEqual([])
-		expect(loser.queries.at(-1)!.sql).toBe('commit')
-		const loserQueued = queuedObjects(loser)
-		expect(loserQueued.filter((o) => winnerStored.includes(o.objectName))).toEqual([])
 
-		await drainQueued(env, [...queuedObjects(winner), ...loserQueued], winnerObjects)
-		expect((await stored()).sort()).toEqual(winnerStored.sort())
+		expect(response.status).toBe(200)
+		const body = (await response.json()) as {
+			items: { id: string; createdAt: number; thumbnail: string | null }[]
+		}
+		expect(body.items.map((item) => [item.id, item.createdAt])).toEqual([
+			[ids[0], 1000],
+			[ids[1], 1001],
+			[ids[2], 1002],
+		])
+		expect(body.items[0].thumbnail).toMatch(/^https:\/\/content\.test\//)
+		expect(body.items[1].thumbnail).toBeNull()
+		for (const id of ids) {
+			expect((await storedContent(env, fake, id)).content).toEqual(CONTENT)
+		}
+		const inserts = fake.queries.filter((q) => q.sql.startsWith('insert into "library_item" '))
+		expect(inserts).toHaveLength(1)
+		const parameters = inserts[0].parameters as unknown[]
+		const order = ids.map((id) => parameters.indexOf(id))
+		expect(order).toEqual([...order].sort((a, b) => a - b))
+		expect(parameters).toEqual(expect.arrayContaining(['First', 'Second', 'Third']))
+		vi.restoreAllMocks()
+	})
+
+	it('stores a few items at a time', async () => {
+		const ids = Array.from({ length: 10 }, (_, i) => `item_${String(i).padStart(16, '0')}`)
+		mockPool(adding(libraryAccess(W, 'member'), ids))
+		const env = makeEnv()
+		const put = env.ROOMS.put.bind(env.ROOMS)
+		let storing = 0
+		let mostAtOnce = 0
+		env.ROOMS.put = (async (...args: Parameters<R2Bucket['put']>) => {
+			mostAtOnce = Math.max(mostAtOnce, ++storing)
+			await new Promise((resolve) => setTimeout(resolve, 5))
+			storing--
+			return put(...args)
+		}) as R2Bucket['put']
+		const response = await addLibraryItems(addRequest(ids.map((id) => valid(id))), env)
+		expect(response.status).toBe(200)
+		expect(mostAtOnce).toBe(STORAGE_CONCURRENCY)
+	})
+
+	it('leaves nothing behind once its queued deletes drain, when one item fails to store', async () => {
+		const ids = Array.from({ length: 6 }, (_, i) => `item_${String(i).padStart(16, '0')}`)
+		const fake = mockPool(adding(libraryAccess(W, 'member'), ids))
+		const env = makeEnv()
+		const put = env.UPLOADS.put.bind(env.UPLOADS)
+		let thumbnails = 0
+		env.UPLOADS.put = (async (...args: Parameters<R2Bucket['put']>) => {
+			if (++thumbnails === 3) throw new Error('storage is down')
+			return put(...args)
+		}) as R2Bucket['put']
+		await expect(
+			addLibraryItems(addRequest(ids.map((id) => ({ ...valid(id), thumbnail: png() }))), env)
+		).rejects.toThrow('storage is down')
+		expect(objectRows(fake)).toEqual([])
+		await drainQueued(env, queuedObjects(fake), [])
+		expect(await storedObjects(env)).toEqual([])
 	})
 })
 
-describe('addLibraryItem, with uploaded images in the content', () => {
+describe('addLibraryItems, with uploaded images in the content', () => {
 	const image = (src: string, fileId?: string) => ({
 		id: 'asset:photo',
 		typeName: 'asset',
@@ -439,36 +590,35 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		const env = makeEnv()
 		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
 
-		const response = await addLibraryItem(
-			addRequest({ content: withAssets([image('https://content.test/abc123-png', 'file-a')]) }),
+		const response = await addLibraryItems(
+			addRequest([{ content: withAssets([image('https://content.test/abc123-png', 'file-a')]) }]),
 			env
 		)
 
 		expect(response.status).toBe(200)
-		const id = ITEM_ID
 		const uploads = await uploadNames(env)
 		const copyName = uploads.find((key: string) => key !== 'abc123-png')!
 		expect(copyName).toMatch(/-png$/)
-		const { key, content: stored } = await storedContent(env)
+		const { key, content: stored } = await storedContent(env, fake)
 		expect(stored.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
 		// so a board it's placed on copies the image for itself
 		expect(stored.content.assets[0].meta).toEqual({})
-		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
-		expect(objects.parameters).toEqual([id, 'rooms', key, id, 'uploads', copyName])
+		expect(objectRows(fake)).toEqual([
+			[ITEM_ID, 'rooms', key],
+			[ITEM_ID, 'uploads', copyName],
+		])
 	})
 
 	it('leaves an asset whose upload is missing, or that is not an upload, as it was', async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const assets = [image('https://content.test/gone-png'), image('data:image/png;base64,AAAA')]
-		const response = await addLibraryItem(addRequest({ content: withAssets(assets) }), env)
+		const response = await addLibraryItems(addRequest([{ content: withAssets(assets) }]), env)
 
 		expect(response.status).toBe(200)
-		const id = ITEM_ID
-		const { key, content: stored } = await storedContent(env)
+		const { key, content: stored } = await storedContent(env, fake)
 		expect(stored.content.assets).toEqual(assets)
-		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
-		expect(objects.parameters).toEqual([id, 'rooms', key])
+		expect(objectRows(fake)).toEqual([[ITEM_ID, 'rooms', key]])
 	})
 })
 
