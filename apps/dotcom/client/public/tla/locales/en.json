@@ -182,6 +182,9 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
+  "42ff290cc4": {
+    "translation": "Actions…"
+  },
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
@@ -202,6 +205,9 @@
   },
   "47f493a590": {
     "translation": "Pin file"
+  },
+  "4970317944": {
+    "translation": "Object"
   },
   "49800157c1": {
     "translation": "Edited {time}"
@@ -235,6 +241,9 @@
   },
   "517f5f3544": {
     "translation": "No files here yet."
+  },
+  "536b51486d": {
+    "translation": "Export…"
   },
   "53770fd374": {
     "translation": "Unread"
@@ -332,6 +341,9 @@
   "694f82ed9d": {
     "translation": "Delete workspace"
   },
+  "697c59072d": {
+    "translation": "Sign in to save"
+  },
   "69ce6a28fb": {
     "translation": "{count, plural, one {Someone reacted} other {# people reacted}}"
   },
@@ -415,6 +427,9 @@
   },
   "7c0747a5df": {
     "translation": "Open tldraw"
+  },
+  "7c10d4771a": {
+    "translation": "Sign in to edit profile settings"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"
@@ -514,6 +529,9 @@
   },
   "9983381c21": {
     "translation": "Clear search"
+  },
+  "9ac3b80777": {
+    "translation": "Unsaved file"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
