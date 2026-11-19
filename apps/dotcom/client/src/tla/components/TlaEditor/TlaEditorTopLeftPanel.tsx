@@ -44,6 +44,7 @@ import {
 	usePassThroughWheelEvents,
 	useSomeActionsEnabled,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	ZoomTo100MenuItem,
 	ZoomToFitMenuItem,
@@ -550,6 +551,7 @@ function HomeMenuItem() {
 function LibrariesPanelButton() {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const hasLibraries = !!useMaybeApp()?.libraries
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
@@ -565,7 +567,10 @@ function LibrariesPanelButton() {
 			aria-pressed={open}
 			tooltip={label}
 			title={label}
-			onClick={() => toggleLibrariesPanel(editor)}
+			onClick={() => {
+				trackEvent('toggle-libraries-panel', { source: 'libraries', open: !open })
+				toggleLibrariesPanel(editor)
+			}}
 		>
 			<TlaIcon icon="library" />
 		</TldrawUiButton>

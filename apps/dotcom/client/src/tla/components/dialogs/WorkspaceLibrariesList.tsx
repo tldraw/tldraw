@@ -5,7 +5,7 @@ import {
 	type TLLibraryId,
 	type TLLibraryOwner,
 } from '@tldraw/libraries'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	defineMessages,
 	F,
@@ -26,6 +26,7 @@ import {
 import { useApp } from '../../hooks/useAppState'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TrackedLibrarySource } from '../TlaLibraries/trackedLibrarySource'
 import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
@@ -46,7 +47,7 @@ const messages = defineMessages({
 const MOVE_SUBMENU_ID = 'move-library'
 
 export function WorkspaceLibrariesList({
-	source,
+	source: userLibraries,
 	workspaceId,
 }: {
 	source: LibrarySource
@@ -54,6 +55,7 @@ export function WorkspaceLibrariesList({
 }) {
 	const msg = useTranslation()
 	const app = useApp()
+	const source = useMemo(() => new TrackedLibrarySource(userLibraries, app), [userLibraries, app])
 	const { addDialog } = useDialogs()
 	const { addToast } = useToasts()
 	const [renamingId, setRenamingId] = useState<TLLibraryId>()

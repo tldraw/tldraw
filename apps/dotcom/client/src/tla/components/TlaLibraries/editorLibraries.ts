@@ -8,6 +8,7 @@ import {
 import { createElement } from 'react'
 import { defineMessages, type Editor } from 'tldraw'
 import type { TldrawApp } from '../../app/TldrawApp'
+import { TrackedLibrarySource } from './trackedLibrarySource'
 
 const messages = defineMessages({
 	thisBoard: { defaultMessage: 'This board' },
@@ -20,11 +21,11 @@ const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
  * document so they are saved, synced and duplicated with it, then the user's own libraries under
  * the workspaces they belong to. New libraries go to the user's home workspace.
  *
- * Made once per editor, so the panel and the context menu share it. `reporting` is where the
- * board's source reports a thumbnail that fails to upload.
+ * Made once per editor, so the panel and the context menu share it. Changes made through it are
+ * tracked. `reporting` is where the board's source reports a thumbnail that fails to upload.
  */
 export function getEditorLibraries(
-	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg'>,
+	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg' | 'trackEvent'>,
 	userLibraries: LibrarySource,
 	editor: Editor,
 	fileId: string,
@@ -32,7 +33,7 @@ export function getEditorLibraries(
 ): LibrarySource {
 	const existing = sources.get(editor)
 	if (existing && existing.fileId === fileId) return existing.source
-	const source = new CompositeLibrarySource({
+	const composite = new CompositeLibrarySource({
 		// The user source's id, so choices the UI keeps per source carry over.
 		id: userLibraries.id,
 		defaultOwnerId: app.getHomeWorkspaceId(),
@@ -44,6 +45,7 @@ export function getEditorLibraries(
 			{ source: userLibraries },
 		],
 	})
+	const source = new TrackedLibrarySource(composite, app, fileId)
 	sources.set(editor, { fileId, source })
 	return source
 }
