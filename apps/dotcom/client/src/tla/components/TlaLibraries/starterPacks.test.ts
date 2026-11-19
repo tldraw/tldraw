@@ -58,12 +58,13 @@ describe('starter pack data', () => {
 	})
 
 	it.each(fullPacks.map((p) => [p.id, p] as const))(
-		'%s has items, each with a thumbnail',
+		'%s has items, each with a light and a dark thumbnail',
 		(_, p) => {
 			expect(p.items.length).toBeGreaterThan(0)
 			expect(new Set(p.items.map((item) => item.id)).size).toBe(p.items.length)
+			const dataUrl = expect.stringMatching(/^data:image\//)
 			for (const item of p.items) {
-				expect(item.thumbnail, item.id).toEqual(expect.stringMatching(/^data:image\//))
+				expect(item.thumbnail, item.id).toEqual({ light: dataUrl, dark: dataUrl })
 			}
 		}
 	)
