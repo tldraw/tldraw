@@ -554,6 +554,23 @@ describe('answerTabRender', () => {
 				editor.dispose()
 			})
 
+			// The worker has given up on the job by then, so the agent may already be sending it again.
+			it('applies nothing when catching up takes past the deadline', async () => {
+				const { editor } = setupEditor()
+				let calls = 0
+				const flushChanges = async () => {
+					// The first call is the read catch-up, not awaited; the second is the write's.
+					if (++calls === 2) vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 10_000)
+					return true
+				}
+
+				await answerTabRender(editor, flushChanges, 'file-1', applyOps())
+
+				expect(editor.getShape(hello)).toBeUndefined()
+				expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'busy' }])
+				editor.dispose()
+			})
+
 			// The edits are in the tab and go out again on reconnect, so they may yet land.
 			it('reports a batch the server never confirmed as one that may have landed', async () => {
 				const { editor } = setupEditor()

@@ -208,6 +208,8 @@ function queueApplyOps(
 		// Waited on, unlike a read's catch-up: the batch must not land on top of this tab's own unsent
 		// edits from before, or report them as its own if the server refuses them.
 		if (flushChanges && !(await flushChanges())) return { status: 'declined', reason: 'failed' }
+		// Again, because the flush can take long enough for the worker to have given up.
+		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
 		const reason = getRefusal(editor, request, flushChanges)
 		if (reason) return { status: 'declined', reason }
 		let result
