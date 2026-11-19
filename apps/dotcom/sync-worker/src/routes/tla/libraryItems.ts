@@ -4,9 +4,10 @@ import {
 	MAX_LIBRARY_NAME_LENGTH,
 	TlaLibraryItemObject,
 	TlaLibraryItemThumbnail,
+	type DB,
 } from '@tldraw/dotcom-shared'
-import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { Kysely } from 'kysely'
 import { queueLibraryObjectDeletes } from '../../libraryEffects'
 import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
 import {
@@ -37,6 +38,10 @@ export interface AddLibraryItemResponseBody {
 // exist, so ids can't be probed.
 const notFound = () => Response.json({ error: 'Not found' }, { status: 404 })
 const badRequest = (error: string) => Response.json({ error }, { status: 400 })
+const conflict = () => Response.json({ error: 'The item id is taken' }, { status: 409 })
+
+// What uniqueId() makes, which is how clients pick item ids.
+const ITEM_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/
 
 async function readText(value: FormDataEntryValue | null) {
 	if (value === null) return null
@@ -53,6 +58,15 @@ function readThumbnail(value: FormDataEntryValue | null): File | null | Response
 		return Response.json({ error: 'Thumbnail is too large' }, { status: 413 })
 	}
 	return value
+}
+
+async function isItemIdTaken(db: Kysely<DB>, id: string) {
+	const row = await db
+		.selectFrom('library_item')
+		.select('id')
+		.where('id', '=', id)
+		.executeTakeFirst()
+	return row !== undefined
 }
 
 function isItemContent(value: unknown): value is StoredItemContent {
@@ -72,11 +86,17 @@ function isItemContent(value: unknown): value is StoredItemContent {
  * optional thumbnails as public uploads, then inserts its row, with the thumbnails' URLs, which
  * reaches clients through Zero, and a library_item_object row for each object it stored. Each
  * object is queued for deletion before it's stored (see queueLibraryObjectDeletes), so a failed or
- * stopped request leaves nothing behind once the processor has drained it. The worker picks the
- * item's id and every object's name, so a request can't name existing content and overwrite it.
+ * stopped request leaves nothing behind once the processor has drained it. The worker picks every
+ * object's name, so a request can't name existing content and overwrite it.
  *
- * Form fields: `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG), `darkThumbnail` (optional, and
- * only with `thumbnail`, which is then the light one of the pair) and `name` (optional).
+ * The client picks the item's id, as it does a file's, so it can list the item under that id while
+ * this runs. An id that's taken is refused with 409 before anything is stored; if another request
+ * takes it meanwhile, the row insert finds it and this answers 409, leaving what it stored to the
+ * deletes it queued.
+ *
+ * Form fields: `id` (made by uniqueId), `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG),
+ * `darkThumbnail` (optional, and only with `thumbnail`, which is then the light one of the pair)
+ * and `name` (optional).
  */
 export async function addLibraryItem(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -86,6 +106,8 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 
 	const form = await request.formData().catch(() => null)
 	if (!form) return badRequest('Expected form data')
+	const id = await readText(form.get('id'))
+	if (id === null || !ITEM_ID_PATTERN.test(id)) return badRequest('A valid item id is required')
 	const contentText = await readText(form.get('content'))
 	if (contentText === null) return badRequest('Content is required')
 	if (new TextEncoder().encode(contentText).byteLength > MAX_LIBRARY_ITEM_CONTENT_BYTES) {
@@ -114,7 +136,8 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
 
-		const id = uniqueId()
+		if (await isItemIdTaken(db, id)) return conflict()
+
 		const contentKey = newLibraryItemContentKey()
 		const assetCopies = planItemAssetCopies(env, content, id)
 		const lightThumbnail = thumbnailFile && nameThumbnailUpload(thumbnailFile)
@@ -136,8 +159,8 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 		})
 		const thumbnail = lightThumbnail && (await putThumbnail(env, lightThumbnail, darkThumbnail))
 		const now = Date.now()
-		await db.transaction().execute(async (tx) => {
-			await tx
+		const inserted = await db.transaction().execute(async (tx) => {
+			const row = await tx
 				.insertInto('library_item')
 				.values({
 					id,
@@ -149,7 +172,10 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 					createdAt: now,
 					updatedAt: now,
 				})
-				.execute()
+				.onConflict((oc) => oc.column('id').doNothing())
+				.returning('id')
+				.executeTakeFirst()
+			if (!row) return false
 			const objects: TlaLibraryItemObject[] = [
 				{ itemId: id, bucket: 'rooms', objectName: contentKey },
 				...[...thumbnailUploads, ...owned.ownedObjectNames].map((objectName) => ({
@@ -159,7 +185,9 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 				})),
 			]
 			await tx.insertInto('library_item_object').values(objects).execute()
+			return true
 		})
+		if (!inserted) return conflict()
 		return Response.json({
 			id,
 			createdAt: now,
