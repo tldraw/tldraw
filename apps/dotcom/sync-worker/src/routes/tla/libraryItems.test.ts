@@ -11,6 +11,7 @@ const { createPostgresConnectionPool } = await import('../../postgres')
 const { requireAuth } = await import('../../utils/tla/getAuth')
 const { canUseLibraries } = await import('../../utils/featureFlags')
 const { addLibraryItem, getLibraryItemContent } = await import('./libraryItems')
+const { processLibraryItemObjectEffect } = await import('../../libraryEffects')
 
 const ME = 'user_aaaa11112222bbbb'
 const W = 'group_www11112222www'
@@ -35,6 +36,66 @@ function makeEnv() {
 
 const uploadNames = async (env: Environment) =>
 	(await env.UPLOADS.list()).objects.map((o: { key: string }) => o.key)
+
+type FakeKysely = ReturnType<typeof mockPool>
+interface QueuedObject {
+	bucket: 'rooms' | 'uploads'
+	objectName: string
+}
+
+// The objects queued for deletion, from the effect_outbox insert.
+function queuedObjects(fake: FakeKysely): QueuedObject[] {
+	const insert = fake.queries.find((q) => q.sql.startsWith('INSERT INTO effect_outbox'))
+	const parameters = (insert?.parameters ?? []) as string[]
+	return parameters.filter((_, i) => i % 2 === 1).map((payload) => JSON.parse(payload))
+}
+
+// The objects the library_item_object insert names.
+function namedObjects(fake: FakeKysely): QueuedObject[] {
+	const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))
+	const parameters = (insert?.parameters ?? []) as string[]
+	return Array.from({ length: parameters.length / 3 }, (_, i) => ({
+		bucket: parameters[i * 3 + 1] as QueuedObject['bucket'],
+		objectName: parameters[i * 3 + 2],
+	}))
+}
+
+// Records each object put to either bucket from here on.
+function recordPuts(env: Environment): QueuedObject[] {
+	const written: QueuedObject[] = []
+	for (const [bucket, r2] of [
+		['rooms', env.ROOMS],
+		['uploads', env.UPLOADS],
+	] as const) {
+		const put = r2.put.bind(r2)
+		r2.put = (async (...args: Parameters<R2Bucket['put']>) => {
+			written.push({ bucket, objectName: args[0] })
+			return put(...args)
+		}) as R2Bucket['put']
+	}
+	return written
+}
+
+const objectKey = (object: QueuedObject) => `${object.bucket}/${object.objectName}`
+const byKey = (objects: QueuedObject[]) => objects.map(objectKey).sort()
+
+// Drains the queued deletes as the effect processor would once their grace period is over, with
+// the objects in `named` still named by rows.
+async function drainQueued(env: Environment, queued: QueuedObject[], named: QueuedObject[]) {
+	const key = (object: QueuedObject) => `${object.bucket}/${object.objectName}`
+	const used = new Set(named.map(key))
+	for (const object of queued) {
+		await processLibraryItemObjectEffect(
+			{
+				isObjectUsed: async (o) => used.has(key(o)),
+				deleteObject: async (o) => {
+					await (o.bucket === 'rooms' ? env.ROOMS : env.UPLOADS).delete(o.objectName)
+				},
+			},
+			{ command: 'delete', payload: object } as any
+		)
+	}
+}
 
 // The key of the one item content stored, and the content.
 async function storedContent(env: Environment) {
@@ -162,10 +223,44 @@ describe('addLibraryItem', () => {
 		expect(objectName).toMatch(/-svg$/)
 	})
 
-	it("removes what it stored when the row can't be inserted", async () => {
+	it('queues every object it stores for deletion before storing any', async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
+		const queuedAtEachPut: number[] = []
+		for (const bucket of [env.ROOMS, env.UPLOADS]) {
+			const put = bucket.put.bind(bucket)
+			bucket.put = (async (...args: Parameters<R2Bucket['put']>) => {
+				queuedAtEachPut.push(queuedObjects(fake).length)
+				return put(...args)
+			}) as R2Bucket['put']
+		}
+		const image = {
+			id: 'asset:photo',
+			typeName: 'asset',
+			type: 'image',
+			props: { src: 'https://content.test/abc123-png', w: 10, h: 10 },
+			meta: {},
+		}
+		const response = await addLibraryItem(
+			addRequest({
+				content: JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets: [image] } }),
+				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }),
+			}),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		expect(queuedAtEachPut).toEqual([4, 4, 4, 4])
+		expect(queuedObjects(fake)).toEqual(expect.arrayContaining(namedObjects(fake)))
+		expect(namedObjects(fake)).toHaveLength(4)
+	})
+
+	it('leaves nothing behind once its queued deletes drain, when the row is never inserted', async () => {
 		const fake = mockPool([[libraryAccess(W, 'member')]])
 		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
-			throw new Error('the library was deleted')
+			throw new Error('the worker was stopped')
 		})
 		const env = makeEnv()
 		await expect(
@@ -176,9 +271,43 @@ describe('addLibraryItem', () => {
 				}),
 				env
 			)
-		).rejects.toThrow('the library was deleted')
+		).rejects.toThrow('the worker was stopped')
+		// what it stored stays until the processor drains the queued deletes
+		expect((await env.ROOMS.list()).objects).toHaveLength(1)
+		expect(await uploadNames(env)).toHaveLength(1)
+
+		await drainQueued(env, queuedObjects(fake), [])
 		expect((await env.ROOMS.list()).objects).toEqual([])
 		expect(await uploadNames(env)).toEqual([])
+	})
+
+	it('keeps what an added item names when its queued deletes drain', async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		const response = await addLibraryItem(
+			addRequest({
+				content: JSON.stringify(CONTENT),
+				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+			}),
+			env
+		)
+		expect(response.status).toBe(200)
+
+		await drainQueued(env, queuedObjects(fake), namedObjects(fake))
+		expect((await env.ROOMS.list()).objects).toHaveLength(1)
+		expect(await uploadNames(env)).toHaveLength(1)
+	})
+
+	it("stores each request's content under a key of its own", async () => {
+		const env = makeEnv()
+		const keys: string[] = []
+		for (let i = 0; i < 2; i++) {
+			const fake = mockPool([[libraryAccess(W, 'member')]])
+			await addLibraryItem(addRequest({ content: JSON.stringify(CONTENT) }), env)
+			keys.push(namedObjects(fake).find((o) => o.bucket === 'rooms')!.objectName)
+		}
+		expect(keys[0]).not.toBe(keys[1])
+		expect((await env.ROOMS.list()).objects).toHaveLength(2)
 	})
 
 	it('answers 404 without storing anything when the libraries flag is off for me', async () => {
@@ -250,8 +379,8 @@ describe('addLibraryItem', () => {
 })
 
 describe('addLibraryItem, with uploaded images in the content', () => {
-	const image = (src: string, fileId?: string) => ({
-		id: 'asset:photo',
+	const image = (src: string, fileId?: string, id = 'asset:photo') => ({
+		id,
 		typeName: 'asset',
 		type: 'image',
 		props: { src, w: 10, h: 10 },
@@ -280,6 +409,67 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		expect(stored.content.assets[0].meta).toEqual({})
 		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
 		expect(objects.parameters).toEqual([id, 'rooms', key, id, 'uploads', copyName])
+	})
+
+	it('names exactly the objects it writes: its content, its copies and both thumbnails', async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		await env.UPLOADS.put('abc123-png', new Uint8Array([1]))
+		await env.UPLOADS.put('def456-png', new Uint8Array([2]))
+		const written = recordPuts(env)
+
+		const response = await addLibraryItem(
+			addRequest({
+				content: withAssets([
+					image('https://content.test/abc123-png', undefined, 'asset:a'),
+					image('https://content.test/def456-png', undefined, 'asset:b'),
+				]),
+				thumbnail: new Blob([new Uint8Array([3])], { type: 'image/png' }),
+				darkThumbnail: new Blob([new Uint8Array([4])], { type: 'image/webp' }),
+			}),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		expect(written).toHaveLength(5)
+		expect(byKey(namedObjects(fake))).toEqual(byKey(written))
+		expect(byKey(queuedObjects(fake))).toEqual(byKey(written))
+	})
+
+	it("neither names nor stores the copy of an upload that's missing", async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		await env.UPLOADS.put('abc123-png', new Uint8Array([1]))
+		const written = recordPuts(env)
+
+		const response = await addLibraryItem(
+			addRequest({
+				content: withAssets([
+					image('https://content.test/abc123-png', undefined, 'asset:a'),
+					image('https://content.test/gone-png', undefined, 'asset:b'),
+				]),
+				thumbnail: new Blob([new Uint8Array([3])], { type: 'image/png' }),
+			}),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const named = namedObjects(fake)
+		expect(byKey(named)).toEqual(byKey(written))
+		// the missing upload's copy was queued, but nothing was stored under its name
+		const writtenKeys = byKey(written)
+		const notStored = queuedObjects(fake).filter(
+			(queued) => !writtenKeys.includes(objectKey(queued))
+		)
+		expect(notStored).toHaveLength(1)
+		expect(notStored[0].bucket).toBe('uploads')
+		expect(await env.UPLOADS.head(notStored[0].objectName)).toBeNull()
+
+		await drainQueued(env, queuedObjects(fake), named)
+		for (const object of named) {
+			const r2 = object.bucket === 'rooms' ? env.ROOMS : env.UPLOADS
+			expect(await r2.head(object.objectName)).not.toBeNull()
+		}
 	})
 
 	it('leaves an asset whose upload is missing, or that is not an upload, as it was', async () => {
