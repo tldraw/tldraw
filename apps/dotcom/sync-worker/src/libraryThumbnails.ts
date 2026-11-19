@@ -1,5 +1,6 @@
-import { TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
+import { TlaLibraryItem, TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
+import { RawBuilder, sql } from 'kysely'
 import { getUploadObjectName } from './assetAssociation'
 import { Environment } from './types'
 
@@ -25,10 +26,19 @@ export function getThumbnailObjectNames(thumbnail: TlaLibraryItemThumbnail | nul
 
 /**
  * The value to write to library_item."thumbnail". node-postgres passes a string parameter
- * through as it is, and jsonb would read a bare URL as malformed JSON, so it is encoded here.
+ * through as it is, and jsonb would read a bare URL as malformed JSON, so it is encoded here. It
+ * comes back as a query value rather than a string because a string is also a thumbnail: the
+ * encoded JSON could otherwise be read back as one.
  */
-export function toThumbnailColumn(thumbnail: TlaLibraryItemThumbnail | null) {
-	return thumbnail === null ? null : JSON.stringify(thumbnail)
+export function toThumbnailColumn(
+	thumbnail: TlaLibraryItemThumbnail | null
+): RawBuilder<TlaLibraryItemThumbnail> | null {
+	return thumbnail === null ? null : sql<TlaLibraryItemThumbnail>`${JSON.stringify(thumbnail)}`
+}
+
+/** A library_item row as it is inserted, its thumbnail written with toThumbnailColumn. */
+export type LibraryItemInsertRow = Omit<TlaLibraryItem, 'thumbnail'> & {
+	thumbnail: ReturnType<typeof toThumbnailColumn>
 }
 
 /**

@@ -3,7 +3,7 @@ import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
 import { getLibraryAccess, getLibraryItemContentKey, getWorkspaceRole } from '../../libraryStorage'
-import { copyThumbnail, toThumbnailColumn } from '../../libraryThumbnails'
+import { copyThumbnail, LibraryItemInsertRow, toThumbnailColumn } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { requireAuth } from '../../utils/tla/getAuth'
@@ -51,7 +51,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 		const id = uniqueId()
 		const now = Date.now()
 		const copied: CopiedObjects = { keys: [], uploads: [] }
-		const rows: TlaLibraryItem[] = []
+		const rows: LibraryItemInsertRow[] = []
 		const owned: TlaLibraryItemAsset[] = []
 		try {
 			for (const item of items) {
