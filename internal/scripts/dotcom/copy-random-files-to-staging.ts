@@ -112,6 +112,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 					isEmpty: false,
 					isDeleted: false,
 					createSource: null,
+					createdBy: env.STAGING_OWNER_ID,
 					// the staging user's home workspace: home group id is the user's own id. Must be set —
 					// file_owner_xor_check rejects a row with neither owner, and cleanup-test-files finds
 					// these rows by owningGroupId.
@@ -119,8 +120,8 @@ async function copyFilesToStaging(fileIds: string[]) {
 				}
 
 				const insertQuery = `
-					INSERT INTO file (id, name, "ownerName", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId")
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+					INSERT INTO file (id, name, "ownerName", thumbnail, shared, "sharedLinkType", published, "lastPublished", "publishedSlug", "createdAt", "updatedAt", "isEmpty", "isDeleted", "owningGroupId", "createdBy")
+					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 				`
 				await stagingClient.query(insertQuery, [
 					testFile.id,
@@ -137,6 +138,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 					testFile.isEmpty,
 					testFile.isDeleted,
 					testFile.owningGroupId,
+					testFile.createdBy,
 				])
 
 				await stagingClient.query(
