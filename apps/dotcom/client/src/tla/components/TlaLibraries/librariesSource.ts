@@ -1,4 +1,9 @@
-import { can, type TlaLibrary, type TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
+import {
+	can,
+	libraryName,
+	type TlaLibrary,
+	type TlaLibraryItemThumbnail,
+} from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
 	LibraryNotFoundError,
@@ -140,7 +145,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		)
 		return LibraryRecordType.create({
 			id: LibraryRecordType.createId(id),
-			name: name.trim(),
+			name: libraryName(name),
 			ownerId,
 			meta,
 		})

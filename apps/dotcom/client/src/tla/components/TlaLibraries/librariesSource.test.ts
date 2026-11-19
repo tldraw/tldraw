@@ -1,3 +1,4 @@
+import { MAX_LIBRARY_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { copyLibrary, type TLLibraryItemContent } from '@tldraw/libraries'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
@@ -31,6 +32,14 @@ describe('TldrawAppLibrariesSource', () => {
 		const library = await source.createLibrary('Kit')
 		expect(library.ownerId).toBe('user_me')
 		expect(source.getLibraries()).toMatchObject([{ id: library.id, name: 'Kit' }])
+	})
+
+	it('returns a new library named as it is stored: trimmed and clamped', async () => {
+		const { source } = setUp()
+		const name = `  ${'a'.repeat(MAX_LIBRARY_NAME_LENGTH + 10)}  `
+		const library = await source.createLibrary(name)
+		expect(library.name).toBe('a'.repeat(MAX_LIBRARY_NAME_LENGTH))
+		expect(source.getLibraries()).toMatchObject([{ id: library.id, name: library.name }])
 	})
 
 	it('lists libraries from the synced rows, with their workspace as owner', async () => {
