@@ -463,9 +463,16 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			this.localThumbnails.update((all) => new Map(all).set(id, thumbnail))
 		}
 		this.pendingItems.update((all) => all.map((p) => (p.item.id === item.id ? { ...p, item } : p)))
-		this.whenItemRowArrives(id).then(() => {
+		// The library's row is here when this starts, as storeNewItems waited for it.
+		const libraryRowId = rowId(item.libraryId)
+		this.whenTrue(
+			'library item row arrives',
+			() => this.hasItemRow(id) || !this.hasLibraryRow(libraryRowId)
+		).then(() => {
+			const arrived = this.hasItemRow(id)
 			this.pendingItems.update((all) => all.filter((p) => p.item.id !== item.id))
-			adding.settleArrival(true)
+			if (!arrived) this.releaseLocalThumbnails([id])
+			adding.settleArrival(arrived)
 		})
 		return item
 	}
@@ -590,18 +597,16 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		await Promise.all(pending.map((p) => p.arrived))
 	}
 
+	private hasLibraryRow(id: string) {
+		return this.app.getLibraryRows().some((row) => row.id === id)
+	}
+
 	private whenLibraryRowArrives(id: string) {
-		return this.whenTrue('library row arrives', () =>
-			this.app.getLibraryRows().some((row) => row.id === id)
-		)
+		return this.whenTrue('library row arrives', () => this.hasLibraryRow(id))
 	}
 
 	private hasItemRow(id: string) {
 		return this.app.getLibraryRows().some((row) => row.items.some((item) => item.id === id))
-	}
-
-	private whenItemRowArrives(id: string) {
-		return this.whenTrue('library item row arrives', () => this.hasItemRow(id))
 	}
 
 	private whenTrue(name: string, isTrue: () => boolean) {

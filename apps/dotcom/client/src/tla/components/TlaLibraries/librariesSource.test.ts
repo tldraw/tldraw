@@ -358,6 +358,18 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(sizes).toEqual([MAX_LIBRARY_ITEMS_PER_REQUEST, 1])
 		})
 
+		it('drops a stored item whose library is deleted before its row arrives', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			backend.holdWorkerRows()
+			const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
+			// a collaborator deletes the library
+			backend.rows.update((all) => all.filter((row) => row.id !== rowId(kit.id)))
+			await expect(source.renameItem(item.id, 'Moon')).rejects.toThrow(LibraryNotFoundError)
+			expect(source.getItems(kit.id)).toEqual([])
+			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
+		})
+
 		it('renames an item being added once its row has arrived', async () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')
