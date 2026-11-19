@@ -366,14 +366,6 @@ export function FileItems({
 						onSelect={handlePinUnpinClick}
 					/>
 				)}
-				{canArchive && (
-					<TldrawUiMenuItem
-						label={msg(isArchived ? messages.unarchive : messages.archive)}
-						id={`${idPrefix}archive-unarchive`}
-						readonlyOk
-						onSelect={handleArchiveUnarchiveClick}
-					/>
-				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id={`${idPrefix}file-delete`}>
 				{hasAdminRights && (
@@ -404,6 +396,14 @@ export function FileItems({
 							/>
 						</TldrawUiMenuGroup>
 					</TldrawUiMenuSubmenu>
+				)}
+				{canArchive && (
+					<TldrawUiMenuItem
+						label={msg(isArchived ? messages.unarchive : messages.archive)}
+						id={`${idPrefix}archive-unarchive`}
+						readonlyOk
+						onSelect={handleArchiveUnarchiveClick}
+					/>
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
