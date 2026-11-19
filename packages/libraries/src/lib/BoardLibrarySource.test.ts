@@ -182,6 +182,20 @@ describe('BoardLibrarySource', () => {
 		expect(source.getLibraries()).toEqual([library])
 	})
 
+	it('stores the meta an item is given on its record', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor)
+		const library = await source.createLibrary('Kit')
+		const item = await added(
+			source.addItem(library.id, {
+				content: contentOf(editor, [addImage(editor)]),
+				meta: { category: 'Photos' },
+			})
+		)
+		expect(item.meta).toEqual({ category: 'Photos' })
+		expect(editor.store.get(item.id as any)).toMatchObject({ meta: { category: 'Photos' } })
+	})
+
 	it("refuses an owner, since the board doesn't track them", async () => {
 		const source = new BoardLibrarySource(makeEditor())
 		await expect(source.createLibrary('Kit', { ownerId: 'acme' })).rejects.toThrow(

@@ -2,6 +2,8 @@ export const MAX_NUMBER_OF_FILES = 200
 export const MAX_NUMBER_OF_WORKSPACES = 20
 export const MAX_WORKSPACE_NAME_LENGTH = 100
 export const MAX_LIBRARY_NAME_LENGTH = 100
+/** How long a library's or library item's `meta` may be, as JSON. */
+export const MAX_LIBRARY_META_LENGTH = 4096
 /** How many library items one request to the sync worker may add. */
 export const MAX_LIBRARY_ITEMS_PER_REQUEST = 50
 /**

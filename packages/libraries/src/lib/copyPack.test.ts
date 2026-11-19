@@ -80,6 +80,18 @@ describe('copyPack', () => {
 		expect(copy.meta).toEqual({ packId: 'wireframing', packVersion: 3 })
 	})
 
+	it("stores each item's meta on its copy", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const copy = await copyPack(source, {
+			...pack,
+			items: [
+				{ id: 'button', name: 'Button', content: content('button'), meta: { category: 'Actions' } },
+				{ id: 'card', content: content('card') },
+			],
+		})
+		expect(source.getItems(copy.id).map((item) => item.meta)).toEqual([{ category: 'Actions' }, {}])
+	})
+
 	it("numbers the copy's name when the source already has one by the pack's name", async () => {
 		const source = new InMemoryLibrarySource({ owners })
 		await source.createLibrary('Wireframing')

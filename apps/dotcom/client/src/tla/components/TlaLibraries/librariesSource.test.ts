@@ -107,6 +107,22 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(await source.getItemContent(item.id)).toEqual(content)
 	})
 
+	it("sends an item's meta to the worker, and lists it while pending and from its row", async () => {
+		const { backend, source } = setUp()
+		const kit = await source.createLibrary('Kit')
+		const meta = { category: 'Actions', tags: ['button'] }
+		const item = await source.addItem(kit.id, { content, meta })
+		expect(item.meta).toEqual(meta)
+		await added(Promise.resolve(item))
+		const plain = await added(source.addItem(kit.id, { content }))
+		const [, init] = backend.fetch.mock.calls[0]
+		expect((init!.body as FormData).get(`meta:${rowId(item.id)}`)).toBe(JSON.stringify(meta))
+		expect(backend.rows.get()[0].items.map((i) => i.meta)).toEqual([meta, {}])
+		const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		expect(second.getItems(kit.id).map((i) => i.meta)).toEqual([meta, {}])
+		expect(plain.meta).toEqual({})
+	})
+
 	it("lists an item's thumbnail from its row, with no request", async () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
@@ -504,6 +520,23 @@ describe('TldrawAppLibrariesSource', () => {
 				{ name: 'Moon', libraryId: copy.id },
 			])
 			expect(source.can('renameLibrary', copy.id)).toBe(true)
+		})
+
+		it("keeps each item's meta on its copy, while it's copied and from its row", async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			await added(source.addItem(kit.id, { name: 'Star', content, meta: { category: 'Sky' } }))
+			const requests = backend.holdRequests()
+			const copying = source.copyLibrary(kit.id, 'acme')
+			const pending = source.getLibraries().find((c) => c.id !== kit.id)!
+			expect(source.getItems(pending.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
+			requests.release()
+			const copy = await copying
+			await vi.waitFor(() =>
+				expect(backend.rows.get().find((row) => row.id === rowId(copy.id))?.items).toHaveLength(1)
+			)
+			const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+			expect(second.getItems(copy.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
 		})
 
 		it('places an item being copied from its source item’s content', async () => {
