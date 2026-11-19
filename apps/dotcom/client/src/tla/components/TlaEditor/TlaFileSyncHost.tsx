@@ -39,6 +39,12 @@ import {
 	isCachedFileVisitLive,
 	resolveCachedFileVisit,
 } from '../../utils/cachedFileVisit'
+import {
+	capHiddenReconnectDelay,
+	closeSocketWithCode,
+	createFlushChanges,
+	findSyncClient,
+} from '../../utils/hiddenTabSync'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 import { answerTabRender } from '../../utils/tabRender'
 
@@ -136,15 +142,13 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const socketRef = useRef<ClientWebSocketAdapter | null>(null)
 	const connect = useCallback<UseSyncConnectFn>(
 		({ sessionId, storeId }) => {
-			const socket = new ClientWebSocketAdapter(
-				async () => {
-					const url = new URL(await getUri())
-					url.searchParams.set('sessionId', sessionId)
-					url.searchParams.set('storeId', storeId)
-					return url.toString()
-				},
-				userId ? { maxHiddenReconnectDelayMs: HIDDEN_RECONNECT_MAX_MS } : {}
-			)
+			const socket = new ClientWebSocketAdapter(async () => {
+				const url = new URL(await getUri())
+				url.searchParams.set('sessionId', sessionId)
+				url.searchParams.set('storeId', storeId)
+				return url.toString()
+			})
+			if (userId) capHiddenReconnectDelay(socket, HIDDEN_RECONNECT_MAX_MS)
 			socketRef.current = socket
 			return socket
 		},
@@ -156,7 +160,9 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		// told the tab isn't responding. The socket's reconnect timer runs again on resume.
 		const onFreeze = () => {
 			const socket = socketRef.current
-			if (socket && !socket.isDisposed) socket._closeSocket(TAB_FROZEN_CLOSE_CODE, 'tab frozen')
+			if (socket && !socket.isDisposed) {
+				closeSocketWithCode(socket, TAB_FROZEN_CLOSE_CODE, 'tab frozen')
+			}
 		}
 		document.addEventListener('freeze', onFreeze)
 		return () => document.removeEventListener('freeze', onFreeze)
@@ -195,7 +201,14 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		),
 	})
 
-	flushChangesRef.current = store.status === 'synced-remote' ? store.flushChanges : null
+	const syncedStore = store.status === 'synced-remote' ? store.store : null
+	const flushChanges = useMemo(() => {
+		const socket = socketRef.current
+		if (!syncedStore || !socket) return null
+		const client = findSyncClient(socket)
+		return client ? createFlushChanges(socket, client) : null
+	}, [syncedStore])
+	flushChangesRef.current = flushChanges
 
 	const navigate = useNavigate()
 	const location = useLocation()
