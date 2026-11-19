@@ -4157,6 +4157,10 @@ export interface TLEventMap {
     // (undocumented)
     'before-event': [TLEventInfo];
     // (undocumented)
+    'confirm-open-link': [{
+        url: string;
+    }];
+    // (undocumented)
     'created-shapes': [TLRecord[]];
     // (undocumented)
     'deleted-shapes': [TLShapeId[]];

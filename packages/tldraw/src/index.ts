@@ -844,6 +844,7 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export { getLinkOpenPolicy, openLink, type TLLinkOpenPolicy } from './lib/utils/openLink'
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,

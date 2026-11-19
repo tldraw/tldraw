@@ -24,6 +24,7 @@ import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
+import { useOpenLinkHandler } from '../shared/useOpenLinkHandler'
 import {
 	BOOKMARK_HEIGHT,
 	BOOKMARK_WIDTH,
@@ -181,6 +182,7 @@ export function BookmarkShapeComponent({
 	const [isFaviconValid, setIsFaviconValid] = useState(true)
 	const onFaviconError = () => setIsFaviconValid(false)
 
+	const handleOpenLink = useOpenLinkHandler(url)
 	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
 			if (!editor.inputs.getShiftKey()) editor.markEventAsHandled(e)
@@ -226,6 +228,8 @@ export function BookmarkShapeComponent({
 							draggable={false}
 							onPointerDown={markAsHandledOnShiftKey}
 							onPointerUp={markAsHandledOnShiftKey}
+							onClick={handleOpenLink}
+							onAuxClick={handleOpenLink}
 						>
 							<h2 className="tl-bookmark__heading">{convertCommonTitleHTMLEntities(title)}</h2>
 						</a>
@@ -241,6 +245,8 @@ export function BookmarkShapeComponent({
 						draggable={false}
 						onPointerDown={markAsHandledOnShiftKey}
 						onPointerUp={markAsHandledOnShiftKey}
+						onClick={handleOpenLink}
+						onAuxClick={handleOpenLink}
 					>
 						{isFaviconValid && asset?.props.favicon ? (
 							<img

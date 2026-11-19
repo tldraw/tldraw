@@ -1,7 +1,8 @@
-import { defineMessages, openWindow, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
+import { defineMessages, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { normalizeLinkUrl } from '../../../utils/linkUrl'
+import { openLink } from '../../../utils/openLink'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -66,7 +67,7 @@ export function LinkEditor({ textEditor, value: initialValue, onClose }: LinkEdi
 
 	const handleVisitLink = () => {
 		trackEvent('rich-text', { operation: 'link-visit', source })
-		if (normalizedValue) openWindow(normalizedValue, '_blank')
+		if (normalizedValue) openLink(editor, normalizedValue)
 		onClose()
 	}
 
