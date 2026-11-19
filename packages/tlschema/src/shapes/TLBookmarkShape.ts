@@ -73,6 +73,7 @@ const Versions = createShapePropsMigrationIds('bookmark', {
 	NullAssetId: 1,
 	MakeUrlsValid: 2,
 	AllowAppLinkUrls: 3,
+	BlockMoreLinkProtocols: 4,
 })
 
 /**
@@ -119,6 +120,17 @@ export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 				if (!isPreAppLinkUrl(props.url)) {
 					props.url = ''
 				}
+			},
+		},
+		{
+			id: Versions.BlockMoreLinkProtocols,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
+				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
 	],

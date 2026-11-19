@@ -3,7 +3,7 @@ import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
@@ -45,10 +45,13 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
+import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
@@ -70,10 +73,11 @@ import { editorMessages } from './editor-messages'
 import styles from './top.module.css'
 
 /** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
- *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
- *  into. */
+ *  only) and, in `ui_v3`, the per-file display toggles that otherwise sit under Preferences.
+ *  Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject into. */
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabledForUser()
+	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
@@ -83,6 +87,13 @@ function TlaViewSubmenu() {
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
 			</TldrawUiMenuGroup>
+			{isUiV3 && (
+				<TldrawUiMenuGroup id="view-toggles">
+					<ToggleGridItem />
+					<ToggleFocusModeItem />
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+			)}
 			{commentingEnabled && (
 				<TldrawUiMenuGroup id="view-comments">
 					<CommentsMenuItem />
@@ -95,6 +106,7 @@ function TlaViewSubmenu() {
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
+	home: { defaultMessage: 'Home' },
 	libraries: { defaultMessage: 'Libraries' },
 })
 
@@ -214,6 +226,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 function TlaEditorTopLeftPanelSignedIn() {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const isUiV3 = useIsUiV3()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = msg(messages.pageMenu)
@@ -268,8 +281,12 @@ function TlaEditorTopLeftPanelSignedIn() {
 
 	return (
 		<>
-			{/* spacer for the sidebar toggle button */}
-			{isEmbed ? null : <div style={{ width: 40, flexShrink: 0 }} />}
+			{isEmbed ? null : isUiV3 ? (
+				<TlaEditorHomeButton />
+			) : (
+				// spacer for the sidebar toggle button
+				<div style={{ width: 40, flexShrink: 0 }} />
+			)}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
@@ -316,11 +333,32 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="preferences">
-					<PreferencesGroup />
-				</TldrawUiMenuGroup>
+				{/* In `ui_v3`, preferences, language and keyboard shortcuts live in the settings dialog. */}
+				{!isUiV3 && (
+					<TldrawUiMenuGroup id="preferences">
+						<PreferencesGroup />
+					</TldrawUiMenuGroup>
+				)}
 			</TlaFileMenu>
 		</>
+	)
+}
+
+function TlaEditorHomeButton() {
+	const msg = useTranslation()
+	const navigate = useNavigate()
+	const workspaceId = useActiveWorkspaceId()
+	const lbl = msg(messages.home)
+	return (
+		<TldrawUiButton
+			type="icon"
+			tooltip={lbl}
+			title={lbl}
+			onClick={() => navigate(routes.tlaWorkspace(workspaceId))}
+			data-testid="tla-editor-home-button"
+		>
+			<TlaIcon icon="tldraw" />
+		</TldrawUiButton>
 	)
 }
 
@@ -499,20 +537,24 @@ function SignInMenuItem() {
 	)
 }
 
+/** The anonymous menu keeps the account-wide preferences: without an account there is no settings
+ *  dialog to hold them. */
 function TlaPreferencesGroup() {
+	// In `ui_v3` these are under View (see TlaViewSubmenu), and tool lock is left to the toolbar.
+	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
-					<ToggleToolLockItem />
-					<ToggleGridItem />
+					{!isUiV3 && <ToggleToolLockItem />}
+					{!isUiV3 && <ToggleGridItem />}
 					<ToggleWrapModeItem />
-					<ToggleFocusModeItem />
+					{!isUiV3 && <ToggleFocusModeItem />}
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
-					<ToggleDebugModeItem />
+					{!isUiV3 && <ToggleDebugModeItem />}
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />

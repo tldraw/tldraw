@@ -10,6 +10,7 @@ keywords:
   - release
   - v5.6
   - v5.6.0
+  - v5.6.1
   - translations
   - i18n
   - icu
@@ -89,3 +90,13 @@ Existing translations overridden by ID through `overrides.translations` continue
 - Fix a resumed sync session on a hibernating host skipping the version checks made on first connect, so after a server redeploy a client could be sent changes its schema couldn't handle. It's now rejected with `SERVER_TOO_OLD` or `CLIENT_TOO_OLD`, as on connect. ([#10122](https://github.com/tldraw/tldraw/pull/10122))
 - Fix a record field set to `undefined` getting the sync session kicked with `INVALID_RECORD`, and ignore `__proto__` keys in incoming changes. ([#10118](https://github.com/tldraw/tldraw/pull/10118))
 - Fix older sync clients (protocol version 7) silently falling out of sync when the server sent them text-append changes they don't support. ([#10095](https://github.com/tldraw/tldraw/pull/10095))
+
+---
+
+## Patch releases
+
+### v5.6.1
+
+- Allow app links into apps such as VS Code, Cursor, Slack and Figma in shape links and bookmarks. ([#10899](https://github.com/tldraw/tldraw/pull/10899))
+
+[View release on GitHub](https://github.com/tldraw/tldraw/releases/tag/v5.6.1)

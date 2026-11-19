@@ -5,10 +5,10 @@ author: tldraw
 date: 10/28/2026
 order: 0
 status: published
-last_version: v5.6.0
+last_version: v5.6.1
 ---
 
-So far this release adds a command palette (Cmd/Ctrl+K), lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, runs agent starter kit actions through tool calls, and allows app links in shape URLs. It also includes bug fixes across arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
+So far this release adds a command palette (Cmd/Ctrl+K), task lists in rich text with font-matched checkboxes, lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across text and note shape re-renders, video controls on zoom, arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
 
 ## What's new
 
@@ -16,8 +16,14 @@ So far this release adds a command palette (Cmd/Ctrl+K), lets shapes decide whet
 
 Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, pages, preferences and more. Recently used commands come first. Actions, including your custom ones, are listed automatically; set `commandPalette: false` on internal or shortcut-only actions to leave them out. The palette is a `CommandPalette` component slot built from the same menu items as the other menus, so you place commands by wrapping `DefaultCommandPalette`, the same way you customize the main menu. Cmd/Ctrl+K is now bound by default; pass `components={{ CommandPalette: null }}` to turn the palette and its shortcut off.
 
+### Task lists in rich text ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+
+You can now write task lists in rich text shapes (text, notes, and shapes with labels). Type `[ ] ` or `[x] ` at the start of a line to create an interactive task item with a checkbox that can be toggled with a click or Cmd+Enter. Checkboxes are styled to match the active font: hand-drawn checkboxes in the draw font that cycle through sketched outlines, and standard boxes in sans, serif, and mono. Custom font checkbox styles can also be configured via `TLThemeFont.checkbox`.
+
 ## API changes
 
+- 💥 Remove the `val_town` entry from `DEFAULT_EMBED_DEFINITIONS`. Pasting a Val Town link now creates a bookmark instead of an embed shape. ([#11535](https://github.com/tldraw/tldraw/pull/11535))
+- 💥 Remove `embedIcons.val_town` from `@tldraw/assets`. ([#11535](https://github.com/tldraw/tldraw/pull/11535))
 - 💥 Add `ShapeUtil.canFlip(shape)`, which decides whether the flip menu items and shift+H / shift+V act on a single selected shape. It defaults to `false`, so a lone custom shape no longer gets the flip menu items or shortcuts. If your shape changes when flipped (for example it handles negative scale in `onResize`), add `override canFlip() { return true }` to its util. Multi-shape flips are unchanged. ([#11041](https://github.com/tldraw/tldraw/pull/11041))
 - Add the `CommandPalette` component slot with `DefaultCommandPalette`, `DefaultCommandPaletteContent`, `CommandPaletteShell`, the `CommandPalette*Group` components, `CommandPaletteMenuItem`, `useCommandPaletteQuery` and `getCommandPaletteMatchScore`. The new `open-command-palette` action opens it. The slot is mounted only while the palette is open, and gets an `onClose` prop to close it. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
 - Add `CommandPaletteStylesGroup`, which sets the style panel's styles from the palette, and `CommandPaletteImageGroup`, with the image toolbar's commands. ([#11158](https://github.com/tldraw/tldraw/pull/11158))
@@ -35,8 +41,15 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - 💥 Remove `comments.dismiss` from `TLUiTranslationKey`. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
 - Actions don't run when `isAvailable` or `isEnabled` returns false, or when the editor is readonly and the action isn't `readonlyOk`, whether they're triggered from a menu, a keyboard shortcut or an `onSelect` call on an action from `useActions()`. The copy, cut and paste shortcuts still come from native clipboard events and aren't gated. If your app calls a custom action directly in readonly mode, set `readonlyOk: true` on it. An override that replaces a built-in's `onSelect`, in place or by spreading it, keeps the built-in's `isEnabled`, so the action no longer runs from a shortcut or `useActions()` when that returns false; override `isEnabled` too if your `onSelect` handles that case. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Add `CommentByline` and `Avatar` component slots to `@tldraw/commenting`, so you can change how comment authors and their avatars are shown. ([#11447](https://github.com/tldraw/tldraw/pull/11447))
+- `CommentingComponents.ThreadRow` in `@tldraw/commenting` now also receives `comments: TLComment[]`, containing the thread's comments in chronological order. ([#11465](https://github.com/tldraw/tldraw/pull/11465))
 - Add `comments.close`, `comments.see-more`, and `comments.see-less` to `TLUiTranslationKey`. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
 - Add the `--tl-muted-gradient-to-bottom`, `--tl-muted-gradient-to-top`, `--tl-muted-gradient-to-right`, and `--tl-muted-gradient-to-left` theme CSS variables for open menu triggers. ([#11492](https://github.com/tldraw/tldraw/pull/11492))
+- Add `TaskItemToggleExtension` to default rich text extensions. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `taskList` to rich text toolbar operations, a `taskList` icon, and the `rich-text.task-list` translation key. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `TLThemeFont.checkbox` and the `TLThemeFontCheckbox` type for font-specific checkbox mask images. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `getFontCheckboxStyle(theme, font)` to convert theme font checkbox definitions to CSS custom properties. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add an optional `checkboxStyle` prop to `RichTextLabel` and `RichTextSVG`. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- Add `checkboxStyle` to `TextShapeUtilDisplayValues`, and `labelCheckboxStyle` to `GeoShapeUtilDisplayValues`, `NoteShapeUtilDisplayValues`, and `ArrowShapeUtilDisplayValues`. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
 
 ## Improvements
 
@@ -53,7 +66,8 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - Run agent starter kit actions through tool calls rather than plain JSON text output, with streaming partial updates and follow-up turns, and let actions provide their own results via `AgentActionUtil.getResult`. ([#11147](https://github.com/tldraw/tldraw/pull/11147))
 - Add OpenRouter support to the agent and branching-chat starter kits via `OPENROUTER_API_KEY`. ([#11103](https://github.com/tldraw/tldraw/pull/11103))
 - Use Node's built-in `node:sqlite` instead of `better-sqlite3` in the Node and socket.io sync server starter templates, removing the need for a native module dependency. ([#11175](https://github.com/tldraw/tldraw/pull/11175))
-- Allow app links into apps such as VS Code, Cursor, Slack and Figma in shape links and bookmarks. ([#10899](https://github.com/tldraw/tldraw/pull/10899))
+- Add task lists to rich text with interactive checkboxes, markdown `[ ]` shortcuts, and checkboxes styled to match the active font. ([#11129](https://github.com/tldraw/tldraw/pull/11129))
+- In `@tldraw/commenting`, comment card actions show on keyboard focus (`:focus-visible`) and leaving an edit via keyboard returns focus to the card's action menu button. ([#11465](https://github.com/tldraw/tldraw/pull/11465))
 
 ## Bug fixes
 
@@ -74,3 +88,5 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - Fix the comment composer's text jumping up when a comment wraps onto a second line. ([#11255](https://github.com/tldraw/tldraw/pull/11255))
 - Fix the selection box of a text shape shrinking when an empty heading is created. ([#11219](https://github.com/tldraw/tldraw/pull/11219))
 - Remove an unused `data-iseditinganything` attribute from `.tlui-layout`, along with the editing-state reactor that set it on iOS and Android. ([#10502](https://github.com/tldraw/tldraw/pull/10502))
+- Fix text and note shapes re-rendering on every selection change, even when their own selected state has not changed. ([#11526](https://github.com/tldraw/tldraw/pull/11526))
+- Fix video controls not appearing or hiding when zooming. ([#11526](https://github.com/tldraw/tldraw/pull/11526))

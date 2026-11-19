@@ -696,7 +696,7 @@ button.tlui-cmt-reaction:hover {
 }
 
 .tlui-cmt-thread .tlui-cmt-composer {
-	padding: 12px;
+	padding: 4px;
 }
 .tlui-cmt-thread .tlui-cmt-composer .tlui-cmt-avatar {
 	display: none;
@@ -775,10 +775,10 @@ button.tlui-cmt-reaction:hover {
 	justify-content: space-between;
 	gap: 8px;
 	/* Flush top and right, like the thread popover's header: the 40px buttons' 32px hover squares
-	   then sit 4px in from the panel edge, and the title shares the popover's 12px inset. The
-	   divider is an inset shadow, not a border, so the header stays the buttons' 40px tall. */
+	   then sit 4px in from the panel edge, and the title shares the popover's 12px inset. */
 	height: 40px;
 	padding: 0 0 0 12px;
+	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
 	font-size: 12px;

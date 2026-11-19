@@ -1,0 +1,480 @@
+.home {
+	display: flex;
+	flex-direction: column;
+	font-family: var(--tla-font-ui);
+}
+
+/* --------------------- Toolbar --------------------- */
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 32px;
+	margin: 8px 0 24px;
+}
+
+.spacer {
+	flex: 1 1 auto;
+}
+
+.search {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex: 0 1 240px;
+	min-width: 140px;
+	height: 32px;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 6px;
+	background-color: var(--tl-color-panel);
+}
+
+.search:focus-within {
+	border-color: var(--tl-color-primary);
+}
+
+.searchIcon {
+	position: absolute;
+	inset-inline-start: 8px;
+	color: var(--tl-color-text-3);
+	pointer-events: none;
+}
+
+.searchInput {
+	width: 100%;
+	height: 100%;
+	padding: 0 28px 0 30px;
+	background: none;
+	border: none;
+	outline: none;
+	color: var(--tl-color-text-0);
+	font-family: inherit;
+	font-size: 13px;
+}
+
+.searchInput::-webkit-search-cancel-button {
+	display: none;
+}
+
+.searchClear {
+	position: absolute;
+	inset-inline-end: 2px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tl-color-text-3);
+}
+
+.viewToggle {
+	display: flex;
+	align-items: center;
+	flex: 0 0 auto;
+	height: 32px;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.viewToggleButton {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 100%;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tl-color-text-0);
+}
+
+.viewToggleButton + .viewToggleButton {
+	border-inline-start: 1px solid var(--tla-color-workspace-border);
+}
+
+.viewToggleButton[aria-pressed='true'] {
+	background-color: var(--tl-color-hint);
+}
+
+.viewToggleButton > span {
+	width: 16px;
+	height: 16px;
+}
+
+.newFile {
+	flex: 0 0 auto;
+	height: 32px;
+	padding: 0 12px;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+/* ----------------------- Tabs ---------------------- */
+
+.tabs {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	min-width: 0;
+}
+
+.tab {
+	position: relative;
+	padding: 6px 0;
+	white-space: nowrap;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--tl-color-text-3);
+}
+
+.tab[aria-selected='true'] {
+	color: var(--tl-color-text-0);
+}
+
+.tab[aria-selected='true']::after {
+	content: '';
+	position: absolute;
+	inset-inline: 0;
+	bottom: 0;
+	height: 1.5px;
+	background-color: var(--tl-color-text-0);
+}
+
+@media (hover: hover) {
+	.tab:hover {
+		color: var(--tl-color-text-0);
+	}
+}
+
+/* ---------------------- Boards --------------------- */
+
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+	gap: 24px;
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+}
+
+.empty {
+	padding: 48px 0;
+	text-align: center;
+	color: var(--tl-color-text-3);
+}
+
+.card,
+.row {
+	position: relative;
+	display: flex;
+	background-color: var(--tl-color-panel);
+}
+
+.card {
+	flex-direction: column;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 8px;
+	overflow: hidden;
+	transition: box-shadow 120ms ease;
+}
+
+@media (hover: hover) {
+	.card:hover {
+		box-shadow: var(--tl-shadow-2);
+	}
+
+	.row:hover {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+.row {
+	border-radius: 6px;
+}
+
+/* Covers the whole card so it opens on click; the name and menu trigger sit above it. */
+.cardLink {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+.cardLink:focus-visible {
+	outline: 2px solid var(--tl-color-primary);
+	outline-offset: -2px;
+	border-radius: inherit;
+}
+
+.card:has(.cardLink:focus-visible) {
+	border-color: var(--tl-color-primary);
+}
+
+.cardPreview {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 3 / 2;
+	background-color: var(--tl-color-background);
+	border-bottom: 1px solid var(--tla-color-workspace-border);
+}
+
+.cardPreviewImage {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.cardPreviewPlaceholder {
+	width: 32px;
+	height: 32px;
+	color: var(--tl-color-text-0);
+	opacity: 0.08;
+}
+
+/* The list view's small thumbnail; holds the same image and placeholder as .cardPreview. */
+.rowPreview {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 32px;
+	margin-right: 8px;
+	border: 1px solid var(--tla-color-workspace-border);
+	border-radius: 4px;
+	overflow: hidden;
+	background-color: var(--tl-color-background);
+}
+
+.rowPreview .cardPreviewPlaceholder {
+	width: 16px;
+	height: 16px;
+}
+
+.cardFooter {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	width: 100%;
+	padding: 10px 4px 12px 14px;
+}
+
+.row .cardFooter {
+	padding: 10px 8px 10px 12px;
+}
+
+.cardText {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.row .cardText {
+	flex-direction: row;
+	align-items: center;
+	gap: 16px;
+}
+
+.cardName {
+	position: relative;
+	z-index: 2;
+	align-self: flex-start;
+	max-width: 100%;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 20px;
+	color: var(--tl-color-text-0);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	/* Clicks fall through to the card link unless the name can be renamed by double-clicking. */
+	pointer-events: none;
+}
+
+.cardName[data-renamable='true'] {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+.row .cardName {
+	flex: 1 1 auto;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+/* The sidebar's rename input, resized to sit where the card name does. */
+.cardText .cardRename {
+	position: relative;
+	z-index: 2;
+	margin: 0 -6px;
+	padding: 0 6px;
+}
+
+.cardText .cardRename::before {
+	inset: 0;
+}
+
+.cardText .cardRename div:global(.tlui-input__wrapper) {
+	height: 20px;
+}
+
+.cardText .cardRenameInput {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.row .cardText .cardRename {
+	flex: 1 1 auto;
+}
+
+.cardMeta {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--tl-color-text-3);
+}
+
+.row .cardMeta {
+	flex: 0 0 200px;
+	font-size: 12px;
+}
+
+/* Wide enough for the facepile at its fullest: three overlapped avatars and the overflow count. */
+.rowVisitors {
+	display: flex;
+	justify-content: flex-end;
+	flex: 0 0 80px;
+}
+
+.cardMetaText {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.cardPinned {
+	flex-shrink: 0;
+	width: 12px;
+	height: 12px;
+}
+
+.cardMenuTrigger {
+	position: relative;
+	z-index: 2;
+	flex-shrink: 0;
+	height: 28px;
+	width: 28px;
+	min-width: 28px;
+	color: var(--tl-color-text-3);
+	opacity: 0;
+}
+
+.card:hover .cardMenuTrigger,
+.row:hover .cardMenuTrigger,
+.cardMenuTrigger:focus-visible,
+.cardMenuTrigger[data-state='open'] {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.cardMenuTrigger {
+		opacity: 1;
+	}
+}
+
+/* ---------------------- Visitors --------------------- */
+
+/* Sizes and overlap come from the editor's people menu facepile (tlui-people-menu__*). */
+.visitors {
+	position: relative;
+	z-index: 2;
+	flex-shrink: 0;
+	text-decoration: none;
+}
+
+.visitor {
+	/*
+	 * A solid backdrop in the card's color under each face, and the ring in the same color. The face
+	 * is what dims, so a past visitor fades into the card rather than showing the overlapped avatar
+	 * beneath it through itself.
+	 */
+	background-color: var(--tl-color-panel);
+	border-color: var(--tl-color-panel);
+}
+
+.visitorFace {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: inherit;
+	background-color: var(--tl-color-low);
+	/* Has opened the board; full opacity is reserved for whoever is on it now. */
+	opacity: 0.45;
+	transition: opacity 200ms ease;
+}
+
+.visitor[data-present='true'] .visitorFace {
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	/* The hover tint is translucent: alone, it would let the overlapped avatar show through. */
+	.row:hover .visitor {
+		background:
+			linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2)), var(--tl-color-panel);
+		border-color: transparent;
+	}
+}
+
+.visitorTooltipLine {
+	text-align: start;
+}
+
+.visitorTooltipHere {
+	margin-inline-start: 4px;
+	opacity: 0.7;
+}
+
+@media (max-width: 767px) {
+	.toolbar {
+		flex-wrap: wrap;
+	}
+
+	.search {
+		order: 1;
+		flex: 1 1 100%;
+	}
+
+	.tabs {
+		order: 2;
+		flex: 1 1 100%;
+	}
+
+	.grid {
+		gap: 16px;
+	}
+
+	.row .cardMeta {
+		flex-basis: 140px;
+	}
+}

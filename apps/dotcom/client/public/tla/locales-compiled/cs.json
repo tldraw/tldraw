@@ -2,7 +2,7 @@
   "0095a9fa74": [
     {
       "type": 0,
-      "value": "Vývozní"
+      "value": "Exportovat"
     }
   ],
   "00b177e080": [
@@ -143,6 +143,12 @@
       "value": "Odeslat zpětnou vazbu"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Označit všechna oznámení jako přečtená"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -177,6 +183,12 @@
     {
       "type": 0,
       "value": "Možnosti oznámení"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Přepnout pracovní prostor"
     }
   ],
   "181b90f889": [
@@ -241,26 +253,20 @@
       "value": "O tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " okomentoval(a) vaši nástěnku"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Nepodařilo se odeslat zpětnou vazbu"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "Jménem uživatele "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -323,10 +329,22 @@
       "value": "Zpět na tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Duplicitní soubor"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Zkuste prosím obnovit stránku."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Název souboru"
     }
   ],
   "344a7f427f": [
@@ -427,6 +445,12 @@
       "value": "Děkujeme, že nám pomáháte zlepšovat tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Přesunout soubor do"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -449,6 +473,28 @@
     {
       "type": 0,
       "value": "Jméno"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Kopírovat zveřejněný odkaz"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " okomentoval(a)"
     }
   ],
   "4d0d3ddec9": [
@@ -539,6 +585,12 @@
       "value": "Vytvořte pracovní prostor"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Přejít do souboru"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -554,7 +606,7 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Podíl"
+      "value": "Sdílet"
     }
   ],
   "5bec508475": [
@@ -567,22 +619,6 @@
     {
       "type": 0,
       "value": "Můj pracovní prostor"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagoval na váš komentář"
     }
   ],
   "5d04a002ea": [
@@ -627,57 +663,6 @@
       "value": "Později"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " lidé reagovali na váš komentář"
-            }
-          ]
-        },
-        "many": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " lidí reagovalo na váš komentář"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Někdo reagoval na váš komentář"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " lidí reagovalo na váš komentář"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -708,10 +693,80 @@
       "value": "K dispozici je nová verze tldraw. Chcete-li pokračovat, znovu načtěte stránku."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Upraveno"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Nový soubor"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagovali"
     }
   ],
   "6832ac5936": [
@@ -726,10 +781,57 @@
       "value": "Smazat pracovní prostor"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "many": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Někdo reagoval"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lidí reagovalo"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Pomoc"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -742,6 +844,12 @@
     {
       "type": 0,
       "value": "Chcete-li obsah importovat ručně, postupujte takto:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Plátno"
     }
   ],
   "70a6facb9d": [
@@ -814,6 +922,12 @@
     {
       "type": 0,
       "value": "Načtěte znovu"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Kopírovat odkaz na soubor"
     }
   ],
   "777f9e90cf": [
@@ -978,6 +1092,56 @@
       "value": "Již jste členem tohoto pracovního prostoru."
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagovali"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -994,6 +1158,12 @@
     {
       "type": 0,
       "value": "Sdíleno s vámi"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "O"
     }
   ],
   "8ff3d0a705": [
@@ -1034,6 +1204,12 @@
       "value": "? Tuto akci nelze vrátit zpět."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Soubory"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1056,6 +1232,22 @@
     {
       "type": 0,
       "value": "Tento měsíc"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagoval"
     }
   ],
   "985a4b720f": [
@@ -1227,7 +1419,7 @@
   "a239905023": [
     {
       "type": 0,
-      "value": "Export obrázku"
+      "value": "Exportovat obrázek"
     }
   ],
   "a274f4d467": [
@@ -1240,6 +1432,12 @@
     {
       "type": 0,
       "value": "Zásady používání souborů cookie"
+    }
+  ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Přepnout postranní panel s komentáři"
     }
   ],
   "a4d3b161ce": [
@@ -1296,6 +1494,18 @@
       "value": "Byl dosažen limit souborů"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "Aplikace"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Knihovny"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1348,6 +1558,12 @@
       "value": "Soubor je plný"
     }
   ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Otevřít panel oznámení"
+    }
+  ],
   "b357b524e7": [
     {
       "type": 0,
@@ -1381,7 +1597,7 @@
   "b758336699": [
     {
       "type": 0,
-      "value": "Zkopírujte odkaz"
+      "value": "Kopírovat odkaz"
     }
   ],
   "ba0318cb81": [
@@ -1494,6 +1710,12 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Aktuální soubor"
     }
   ],
   "c17466812d": [
@@ -1614,6 +1836,18 @@
       "value": "Zavřít"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Barva"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profil"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1638,76 +1872,16 @@
       "value": "Další informace o publikování."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " a "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " další"
-            }
-          ]
-        },
-        "many": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " dalšího"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " další"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " dalších"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Předvolby"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " reagovali na váš komentář"
+      "value": "Zrušit publikování souboru"
     }
   ],
   "d3d2e61733": [
@@ -1726,6 +1900,12 @@
     {
       "type": 0,
       "value": "Přepnout postranní panel"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Pracovní prostory"
     }
   ],
   "d638a3344b": [
@@ -1798,12 +1978,6 @@
       "value": "Opusťte pracovní prostor"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Příznaky ladění aplikace"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1826,36 +2000,6 @@
     {
       "type": 0,
       "value": "Podmínky služby"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " a "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagovali na váš komentář"
     }
   ],
   "e81c4e4f2b": [
@@ -1974,92 +2118,6 @@
       "value": "Tento odkaz na pozvánku je neplatný nebo jeho platnost vypršela."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " a "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " další"
-            }
-          ]
-        },
-        "many": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " dalšího"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " další"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " dalších"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reagovali na váš komentář"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -2138,6 +2196,36 @@
     {
       "type": 0,
       "value": "Chyba při přijímání pozvánky"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagovali"
     }
   ],
   "ffcd73e997": [

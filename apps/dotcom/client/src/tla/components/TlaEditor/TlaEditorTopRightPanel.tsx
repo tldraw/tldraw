@@ -31,7 +31,7 @@ import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnable
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
+import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -98,8 +98,8 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			<DesignSwitchesMenu />
 			<PeopleMenu />
+			<DesignSwitchesMenu />
 			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
 			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
@@ -162,7 +162,9 @@ function CommentsSidebarButton() {
 /** The beaker: v3 design switches, for `ui_v3` users only. See `designSwitches`. */
 function DesignSwitchesMenu() {
 	const isUiV3 = useIsUiV3()
-	if (!isUiV3) return null
+	// With this switch on, the settings dialog's Labs tab lists the switches instead.
+	const isInSettings = useDesignSwitch('settingsLabsTab')
+	if (!isUiV3 || isInSettings) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id="design-switches">
@@ -170,7 +172,7 @@ function DesignSwitchesMenu() {
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
 						type="icon"
-						className={styles.topRightIconButton}
+						className={classNames(styles.topRightIconButton, styles.topRightDesignSwitchesButton)}
 						data-testid="tla-design-switches-button"
 						tooltip="Design switches"
 						title="Design switches"

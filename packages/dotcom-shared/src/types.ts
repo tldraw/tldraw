@@ -359,6 +359,18 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
+/** Caps the durable objects one gallery poll wakes. */
+export const MAX_BOARD_PRESENCE_FILE_IDS = 60
+
+export interface BoardPresenceRequestBody {
+	fileIds: string[]
+}
+
+export interface BoardPresenceResponseBody {
+	/** The signed-in users connected to each board, by file id. Boards with nobody on them are absent. */
+	presence: Record<string, string[]>
+}
+
 export const CONNECT_STEPS = [
 	'route',
 	'do_init',
@@ -400,6 +412,7 @@ export const FEATURE_FLAG_KEYS = [
 	'libraries',
 	'thumbnail_render_push',
 	'mcp_render_push',
+	'headless_shadow',
 	'ui_v3',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]

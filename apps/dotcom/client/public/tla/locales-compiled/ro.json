@@ -139,6 +139,12 @@
       "value": "Trimite feedback"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Marchează toate notificările ca citite"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -173,6 +179,12 @@
     {
       "type": 0,
       "value": "Opțiuni de notificare"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Schimbați spațiul de lucru"
     }
   ],
   "181b90f889": [
@@ -237,26 +249,20 @@
       "value": "Despre tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " a comentat pe forumul tău"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Nu s-a putut trimite feedback"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "În numele "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -319,10 +325,22 @@
       "value": "Înapoi la tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Fișier duplicat"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Vă rugăm să încercați să reîmprospătați pagina."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Nume de fișier"
     }
   ],
   "344a7f427f": [
@@ -423,6 +441,12 @@
       "value": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Mută ​​fișierul în"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -445,6 +469,28 @@
     {
       "type": 0,
       "value": "Nume"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Copiați linkul publicat"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a comentat"
     }
   ],
   "4d0d3ddec9": [
@@ -535,6 +581,12 @@
       "value": "Creați un spațiu de lucru"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Accesați fișierul"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -563,22 +615,6 @@
     {
       "type": 0,
       "value": "Spațiul meu de lucru"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " a reacționat la comentariul tău"
     }
   ],
   "5d04a002ea": [
@@ -623,46 +659,6 @@
       "value": "Mai târziu"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " persoane au reacționat la comentariul tău"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Cineva a reacționat la comentariul tău"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " de persoane au reacționat la comentariul tău"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -693,10 +689,80 @@
       "value": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Editat"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Fișier nou"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " și "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " au reacționat"
     }
   ],
   "6832ac5936": [
@@ -711,10 +777,53 @@
       "value": "Șterge spațiul de lucru"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Cineva a reacționat"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " persoane au reacționat"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Ajutor"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -727,6 +836,12 @@
     {
       "type": 0,
       "value": "Urmați acești pași pentru a importa manual conținutul:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Pânză"
     }
   ],
   "70a6facb9d": [
@@ -799,6 +914,12 @@
     {
       "type": 0,
       "value": "Vă rugăm să reîncărcați"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Copiați linkul fișierului"
     }
   ],
   "777f9e90cf": [
@@ -963,6 +1084,56 @@
       "value": "Ești deja membru al acestui spațiu de lucru"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " și "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " au reacționat"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -979,6 +1150,12 @@
     {
       "type": 0,
       "value": "Împărtășită cu tine"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Despre"
     }
   ],
   "8ff3d0a705": [
@@ -1019,6 +1196,12 @@
       "value": "? Această acțiune nu poate fi anulată."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Fișiere"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1041,6 +1224,22 @@
     {
       "type": 0,
       "value": "Luna aceasta"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " a reacționat"
     }
   ],
   "985a4b720f": [
@@ -1216,6 +1415,12 @@
       "value": "Politica de cookie-uri"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Comutare bara laterală de comentarii"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1270,6 +1475,18 @@
       "value": "Limita de fișiere a fost atinsă"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "Aplicație"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Biblioteci"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1320,6 +1537,12 @@
     {
       "type": 0,
       "value": "Fișierul este plin"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Deschideți panoul de notificări"
     }
   ],
   "b357b524e7": [
@@ -1446,6 +1669,12 @@
       "value": "ownerName"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Fișier curent"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1549,6 +1778,18 @@
       "value": "Închide"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Culoare"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profil"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1573,65 +1814,16 @@
       "value": "Aflați mai multe despre publicare."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " și "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " alte persoane"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " altă persoană"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " de alte persoane"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Preferințe"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " au reacționat la comentariul tău"
+      "value": "Anulează publicarea fișierului"
     }
   ],
   "d3d2e61733": [
@@ -1650,6 +1842,12 @@
     {
       "type": 0,
       "value": "Comutați bara laterală"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Spații de lucru"
     }
   ],
   "d638a3344b": [
@@ -1722,12 +1920,6 @@
       "value": "Părăsiți spațiul de lucru"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Indicatori de depanare a aplicației"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1750,36 +1942,6 @@
     {
       "type": 0,
       "value": "Termeni și condiții"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " și "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " au reacționat la comentariul tău"
     }
   ],
   "e81c4e4f2b": [
@@ -1898,81 +2060,6 @@
       "value": "Acest link de invitație este invalid sau a expirat."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " și "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " alte persoane"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " altă persoană"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " de alte persoane"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " au reacționat la comentariul tău"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -2051,6 +2138,36 @@
     {
       "type": 0,
       "value": "Eroare la acceptarea invitației"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " și "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " au reacționat"
     }
   ],
   "ffcd73e997": [

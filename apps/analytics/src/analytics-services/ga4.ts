@@ -30,6 +30,12 @@ class GA4AnalyticsService extends AnalyticsService {
 		this.googleAdsId = window.TL_GOOGLE_ADS_ID ?? undefined
 
 		if (this.measurementId) {
+			// Initialize dataLayer
+			window.dataLayer = window.dataLayer || []
+			window.gtag = function () {
+				// eslint-disable-next-line prefer-rest-params
+				window.dataLayer!.push(arguments)
+			}
 			gtag('consent', 'default', {
 				ad_storage: 'denied',
 				ad_user_data: 'denied',
@@ -39,12 +45,6 @@ class GA4AnalyticsService extends AnalyticsService {
 				wait_for_update: 500,
 			})
 
-			// Initialize dataLayer
-			window.dataLayer = window.dataLayer || []
-			window.gtag = function () {
-				// eslint-disable-next-line prefer-rest-params
-				window.dataLayer!.push(arguments)
-			}
 			gtag('js', new Date())
 
 			// Load the GA4 script
@@ -105,6 +105,7 @@ class GA4AnalyticsService extends AnalyticsService {
 	}
 
 	override identify(userId: string, properties?: { [key: string]: any }) {
+		if (!this.isEnabled) return
 		gtag('set', { user_id: userId })
 		if (properties) {
 			gtag('set', properties)
