@@ -9,23 +9,23 @@ export interface FeedbackSender {
 	/** The OAuth client id itself: for an unrecognised client, the only way to tell which it was. */
 	clientId: string | null
 	userAgent: string | null
-	/** The `CF-Worker` header: set when another Cloudflare Worker, such as the Codex app, proxied the call. */
-	cfWorker: string | null
+	/**
+	 * The call came through the Codex app's proxy Worker, which names itself in its User-Agent. A label
+	 * for triage, not a security check: any caller can send that User-Agent.
+	 */
+	viaCodexApp: boolean
 }
 
-export type SendFeedbackResult = { ok: true } | { ok: false; reason: 'feedback_not_configured' }
+/** False on a deployment without the webhook. Local dev logs the post instead, so it counts. */
+export function isMcpFeedbackConfigured(env: Environment) {
+	return !!env.DISCORD_MCP_FEEDBACK_WEBHOOK_URL || !!env.IS_LOCAL
+}
 
 const TYPE_LABELS: Record<FeedbackType, string> = {
 	bug: '🐛 Bug',
 	feature_request: '💡 Feature request',
 	other: '💬 Other',
 }
-
-// The Codex app (tldraw-internal/apps/public/codex-plugin) proxies our tools from a Cloudflare Worker,
-// and Cloudflare stamps every Worker subrequest with `CF-Worker: <the Worker's zone>`. It runs on
-// both of these zones while it moves to mcp.tldraw.com. A label for triage, not a security check: a
-// direct caller could send the header itself.
-const CODEX_APP_ZONES = new Set(['tldraw.xyz', 'tldraw.com'])
 
 const COLORS: Record<FeedbackType, number> = {
 	bug: 0xe5484d,
@@ -36,35 +36,69 @@ const COLORS: Record<FeedbackType, number> = {
 // Header and client id are caller-controlled and unbounded; Discord refuses a field value over 1024.
 const RAW_FIELD_MAX_LENGTH = 200
 
+const FEEDBACK_WEBHOOK_TIMEOUT_MS = 5_000
+
 export async function sendMcpFeedback(
 	env: Environment,
 	input: FeedbackInput,
 	sender: FeedbackSender
-): Promise<SendFeedbackResult> {
+): Promise<void> {
 	const payload = getFeedbackPayload(env, input, sender)
 	const webhookUrl = env.DISCORD_MCP_FEEDBACK_WEBHOOK_URL
 	if (!webhookUrl) {
-		if (!env.IS_LOCAL) return { ok: false, reason: 'feedback_not_configured' }
 		// eslint-disable-next-line no-console
 		console.log('MCP feedback:', JSON.stringify(payload, null, 2))
-		return { ok: true }
+		return
 	}
 
 	const res = await fetch(webhookUrl, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(payload),
+		// A hung webhook would otherwise hold the agent's tool call open; the abort lands in the
+		// tool's feedback_send_error path.
+		signal: AbortSignal.timeout(FEEDBACK_WEBHOOK_TIMEOUT_MS),
 	})
 	if (!res.ok) {
-		throw new Error(`Failed to send MCP feedback to Discord: ${res.status} ${await res.text()}`)
+		const body = await res.text().catch(() => '')
+		throw new DiscordWebhookError(res.status, body.slice(0, DISCORD_ERROR_DETAIL_MAX_LENGTH))
 	}
-	return { ok: true }
+}
+
+// Discord's error bodies name the payload fields it rejected, which is what makes a 400 debuggable,
+// but they are unbounded.
+const DISCORD_ERROR_DETAIL_MAX_LENGTH = 500
+
+// `message` stays `Discord webhook failed (<status>)` so Sentry groups on it; a varying body there
+// would split one recurring issue into many. The body goes to the event's context instead, via
+// feedbackErrorContext.
+export class DiscordWebhookError extends Error {
+	constructor(
+		readonly status: number,
+		readonly detail: string
+	) {
+		super(`Discord webhook failed (${status})`)
+		this.name = 'DiscordWebhookError'
+	}
+}
+
+/** Sentry context for a failed send, merged into the tool's extras. */
+export function feedbackErrorContext(error: unknown): Record<string, unknown> {
+	if (!(error instanceof DiscordWebhookError)) return {}
+	return {
+		discord_status: error.status,
+		discord_detail: error.detail || '(no response body)',
+	}
 }
 
 export function getFeedbackPayload(env: Environment, input: FeedbackInput, sender: FeedbackSender) {
 	const fields = [
 		{ name: 'Type', value: TYPE_LABELS[input.type], inline: true },
-		{ name: 'Source', value: getFeedbackSource(sender.cfWorker), inline: true },
+		{
+			name: 'Source',
+			value: sender.viaCodexApp ? 'Codex app' : 'dotcom MCP server',
+			inline: true,
+		},
 		{ name: 'Agent', value: input.agent ?? 'Not given', inline: true },
 		{ name: 'Client', value: sender.agentClient ?? 'Unrecognised', inline: true },
 		// The full id, so the team can find the account to follow up or reproduce. The channel is internal.
@@ -86,12 +120,6 @@ export function getFeedbackPayload(env: Environment, input: FeedbackInput, sende
 			},
 		],
 	}
-}
-
-function getFeedbackSource(cfWorker: string | null) {
-	if (!cfWorker) return 'dotcom MCP server'
-	if (CODEX_APP_ZONES.has(cfWorker)) return 'Codex app'
-	return `Proxied by a Worker on ${cfWorker}`
 }
 
 function codeValue(value: string | null) {

@@ -1441,23 +1441,23 @@ describe('send_feedback', () => {
 		])
 	})
 
-	it('tells a call proxied by the Codex app from a direct one by its CF-Worker header', async () => {
+	it('tells a call proxied by the Codex app from a direct one by its User-Agent', async () => {
 		const sources = []
-		for (const cfWorker of ['tldraw.xyz', 'tldraw.com', 'example.org']) {
+		for (const userAgent of ['tldraw-codex-plugin', 'codex-cli/0.50.0']) {
 			const fetchMock = stubDiscord()
 			const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
 			await mcpServer(
 				makeRpcRequest(
 					'tools/call',
 					{ name: 'send_feedback', arguments: { message: 'Broken' } },
-					{ headers: { 'cf-worker': cfWorker } }
+					{ userAgent }
 				),
 				env
 			)
 			const fields = postedPayload(fetchMock).embeds[0].fields
 			sources.push(fields.find((field: any) => field.name === 'Source').value)
 		}
-		expect(sources).toEqual(['Codex app', 'Codex app', 'Proxied by a Worker on example.org'])
+		expect(sources).toEqual(['Codex app', 'dotcom MCP server'])
 	})
 
 	it('rejects bad input before posting anything', async () => {
@@ -1479,8 +1479,11 @@ describe('send_feedback', () => {
 
 	it('says so when no webhook is configured on a deployment', async () => {
 		const fetchMock = stubDiscord()
-		const env = makeEnv()
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SERVER_FEEDBACK_RATE_LIMITER: { limit } })
 		const result = await callTool('send_feedback', { message: 'Broken' }, env)
+		// Checked before the rate limit, so a call that can't be sent doesn't spend the budget.
+		expect(limit).not.toHaveBeenCalled()
 		expect(result).toEqual({
 			content: [
 				{ type: 'text', text: 'Feedback is not set up on this deployment, so it was not sent.' },
@@ -1506,7 +1509,8 @@ describe('send_feedback', () => {
 	})
 
 	it('reports a Discord failure without its details', async () => {
-		stubDiscord(new Response('webhook token invalid', { status: 401 }))
+		stubDiscord(new Response(`webhook token invalid ${'x'.repeat(1000)}`, { status: 401 }))
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
 		const result = await callTool('send_feedback', { message: 'Broken' }, env)
 		expect(result.isError).toBe(true)
@@ -1514,6 +1518,42 @@ describe('send_feedback', () => {
 			'Could not send the feedback: the feedback could not be delivered.'
 		)
 		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['feedback_send_error'])
+
+		// Without a ctx there is no Sentry, so the report goes to console.error with the same context.
+		const [, context, error] = reported.mock.calls[0]
+		reported.mockRestore()
+		expect((error as Error).message).toBe('Discord webhook failed (401)')
+		expect(context).toMatchObject({ type: 'bug', discord_status: 401 })
+		expect((context as any).discord_detail).toHaveLength(500)
+		expect((context as any).discord_detail).toMatch(/^webhook token invalid x+$/)
+	})
+
+	it('gives up on a Discord webhook that does not answer', async () => {
+		const fetchMock = vi.fn(
+			(_url: string, init: RequestInit) =>
+				new Promise<Response>((_resolve, reject) => {
+					init.signal!.addEventListener('abort', () => reject(init.signal!.reason))
+				})
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		// Fake timers don't drive AbortSignal.timeout, so the test fires the timeout itself.
+		const timeout = new AbortController()
+		const timeoutSpy = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal)
+		try {
+			const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+			const pending = callTool('send_feedback', { message: 'Broken' }, env)
+			await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+			expect(timeoutSpy).toHaveBeenCalledWith(5_000)
+			timeout.abort(new DOMException('The operation timed out.', 'TimeoutError'))
+			const result = await pending
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toBe(
+				'Could not send the feedback: the feedback could not be delivered.'
+			)
+			expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['feedback_send_error'])
+		} finally {
+			timeoutSpy.mockRestore()
+		}
 	})
 
 	it(`allows ${MCP_FEEDBACK_PER_USER_RATE_LIMIT} reports per account per minute, then rate limits`, async () => {

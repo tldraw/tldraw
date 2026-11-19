@@ -79,7 +79,7 @@ import { createBoardForUser } from './createBoard'
 import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
-import { sendMcpFeedback } from './mcpFeedback'
+import { feedbackErrorContext, isMcpFeedbackConfigured, sendMcpFeedback } from './mcpFeedback'
 import {
 	PUBLISHED_BOARD_FAILURE,
 	TabRenderContext,
@@ -1014,24 +1014,25 @@ async function callSendFeedbackTool(
 	const parsed = parseToolInput(() => parseSendFeedbackInput(argumentsValue))
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
+	if (!isMcpFeedbackConfigured(env)) {
+		return toolError(
+			'Feedback is not set up on this deployment, so it was not sent.',
+			'feedback_not_configured'
+		)
+	}
 
 	try {
 		const refusal = await checkFeedbackRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
-		const sent = await sendMcpFeedback(env, input, {
+		const userAgent = request.headers.get('user-agent')
+		await sendMcpFeedback(env, input, {
 			userId,
 			agentClient: getMcpAgentClient(clientId),
 			clientId,
-			userAgent: request.headers.get('user-agent'),
-			cfWorker: request.headers.get('cf-worker'),
+			userAgent,
+			viaCodexApp: normalizeMcpClient(userAgent) === 'codex-plugin',
 		})
-		if (!sent.ok) {
-			return toolError(
-				'Feedback is not set up on this deployment, so it was not sent.',
-				sent.reason
-			)
-		}
 		return toolJsonResult({ sent: true, type: input.type })
 	} catch (error) {
 		return toolFailure(error, {
@@ -1040,7 +1041,7 @@ async function callSendFeedbackTool(
 			ctx,
 			surface: 'mcp_feedback',
 			// The message is something the caller wrote, so it stays off the Sentry event.
-			extras: { type: input.type },
+			extras: { type: input.type, ...feedbackErrorContext(error) },
 			summary: 'Could not send the feedback',
 			recordAs: () => 'feedback_send_error',
 		})
