@@ -2,8 +2,8 @@ import { createClerkClient, SessionAuthObject, verifyToken } from '@clerk/backen
 import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
+import { ensureMcpUserRows } from '../../routes/tla/initUser'
 import { Environment } from '../../types'
-import { canUseMcpServer } from '../featureFlags'
 import { getRole } from './getRole'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
@@ -169,10 +169,9 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
 
 /**
  * Why an access token was refused, as a closed vocabulary, so a caller can tell "presented nothing"
- * from "presented something bad" from "signed in and still not allowed" — three refusals that call
- * for entirely different answers, and that the MCP endpoint reports separately during the rollout.
+ * from "presented something bad" — refusals that call for different answers.
  */
-export type McpTokenRefusal = OAuthAccessTokenRefusal | 'not_allowlisted'
+export type McpTokenRefusal = OAuthAccessTokenRefusal
 
 /**
  * `clientId` is the OAuth client the token was issued to, e.g. Claude's or ChatGPT's metadata URL.
@@ -304,9 +303,8 @@ export async function verifyOAuthAccessToken(
 }
 
 /**
- * {@link verifyOAuthAccessToken}, for a user `canUseMcpServer` admits: one the `mcp_server_access`
- * flag names, or a `@tldraw.com` account. That check also creates the user's rows when they have
- * none, so an account that signed up on the consent screen has a workspace by the time it is let in.
+ * {@link verifyOAuthAccessToken}, then the user's rows when they have none, so an account that signed
+ * up on the consent screen has a workspace by the time it is let in.
  */
 export async function getMcpTokenAuth(
 	request: IRequest,
@@ -315,9 +313,7 @@ export async function getMcpTokenAuth(
 ): Promise<McpTokenAuth> {
 	const result = await verifyOAuthAccessToken(request, env, options)
 	if (!result.ok) return result
-	if (!(await canUseMcpServer(env, result.userId))) {
-		return { ok: false, reason: 'not_allowlisted' }
-	}
+	await ensureMcpUserRows(env, result.userId)
 	return result
 }
 
