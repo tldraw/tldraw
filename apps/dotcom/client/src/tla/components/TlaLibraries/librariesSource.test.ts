@@ -541,6 +541,18 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Star', 'Moon', 'Sun'])
 		})
 
+		it('moves an item into a copy once its row has arrived', async () => {
+			const { backend, source, kit, star } = await withKit()
+			const rows = backend.holdWorkerRows()
+			source.copyLibrary(kit.id, 'acme')
+			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
+			const moving = source.moveItem(star.id, copy.id)
+			rows.release()
+			await moving
+			const copyRow = backend.rows.get().find((row) => row.id === rowId(copy.id))!
+			expect(copyRow.items.map((item) => item.id)).toContain(rowId(star.id))
+		})
+
 		it('copies a new library only once the server has it', async () => {
 			const { backend, source } = setUp()
 			const server = backend.holdServer()

@@ -420,12 +420,11 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async moveItem(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
-		const id = await this.getItemRowId(itemId)
-		await this.apply(
-			this.app.z.mutate.library_item.move({ id, libraryId: rowId(toLibraryId) }),
-			'addItem',
-			toLibraryId
-		)
+		const [id, libraryId] = await Promise.all([
+			this.getItemRowId(itemId),
+			this.getLibraryRowId(toLibraryId),
+		])
+		await this.apply(this.app.z.mutate.library_item.move({ id, libraryId }), 'addItem', toLibraryId)
 	}
 
 	/** Releases the thumbnail URLs this source made for items added here. */
