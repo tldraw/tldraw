@@ -1,5 +1,11 @@
 import { MAX_LIBRARY_NAME_LENGTH } from '@tldraw/dotcom-shared'
-import { copyLibrary, type TLLibraryItemContent } from '@tldraw/libraries'
+import {
+	LibraryItemRecordType,
+	LibraryRecordType,
+	copyLibrary,
+	type TLLibraryItemContent,
+	type TLLibraryThumbnailContext,
+} from '@tldraw/libraries'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
@@ -131,5 +137,61 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(source.getItems(other.id).map((i) => i.name)).toEqual(['Star'])
 		await source.deleteItem(item.id)
 		expect(source.getItems(other.id)).toEqual([])
+	})
+
+	describe('resolveThumbnail', () => {
+		const uploads = 'https://tldrawusercontent.com'
+		const context = (
+			overrides: Partial<TLLibraryThumbnailContext> = {}
+		): TLLibraryThumbnailContext => ({
+			colorMode: 'light',
+			width: 128,
+			dpr: 2,
+			networkEffectiveType: '4g',
+			...overrides,
+		})
+		const itemWith = (thumbnail?: string | { light: string; dark: string }) =>
+			LibraryItemRecordType.create({
+				libraryId: LibraryRecordType.createId('kit'),
+				...(thumbnail ? { thumbnail } : {}),
+			})
+
+		it('resizes a stored thumbnail to the tile at the screen density', () => {
+			const { source } = setUp()
+			const item = itemWith(`${uploads}/abc-png`)
+			expect(source.resolveThumbnail(item, context())).toBe(
+				`${uploads}/cdn-cgi/image/w=256,format=auto/abc-png`
+			)
+			expect(source.resolveThumbnail(item, context({ networkEffectiveType: '3g' }))).toBe(
+				`${uploads}/cdn-cgi/image/w=128,format=auto/abc-png`
+			)
+		})
+
+		it("picks the colour mode's thumbnail", () => {
+			const { source } = setUp()
+			const item = itemWith({ light: `${uploads}/light-png`, dark: `${uploads}/dark-png` })
+			expect(source.resolveThumbnail(item, context({ colorMode: 'dark' }))).toBe(
+				`${uploads}/cdn-cgi/image/w=256,format=auto/dark-png`
+			)
+			expect(source.resolveThumbnail(item, context({ colorMode: 'light' }))).toBe(
+				`${uploads}/cdn-cgi/image/w=256,format=auto/light-png`
+			)
+		})
+
+		it('passes object URLs, data URIs and SVG thumbnails through unchanged', () => {
+			const { source } = setUp()
+			for (const src of [
+				'blob:http://localhost:3000/1234',
+				'data:image/png;base64,AAAA',
+				`${uploads}/abc-svg`,
+			]) {
+				expect(source.resolveThumbnail(itemWith(src), context())).toBe(src)
+			}
+		})
+
+		it('has no URL for an item without a thumbnail', () => {
+			const { source } = setUp()
+			expect(source.resolveThumbnail(itemWith(), context())).toBeNull()
+		})
 	})
 })
