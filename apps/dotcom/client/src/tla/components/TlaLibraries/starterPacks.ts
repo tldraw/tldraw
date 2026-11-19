@@ -36,6 +36,8 @@ export const STARTER_PACK_PREVIEW_COUNT = 4
 // these by starterPacks.test.ts, in this order; run that test with `-u` after changing a pack.
 export const STARTER_PACK_LOADERS: Record<string, () => Promise<{ default: unknown }>> = {
 	wireframing: () => import('./starterPackWireframing.json'),
+	architecture: () => import('./starterPackArchitecture.json'),
+	math: () => import('./starterPackMath.json'),
 	diagramming: () => import('./starterPackDiagramming.json'),
 	'floor-plan': () => import('./starterPackFloorPlan.json'),
 	'tldraw-characters': () => import('./starterPackTldrawCharacters.json'),
