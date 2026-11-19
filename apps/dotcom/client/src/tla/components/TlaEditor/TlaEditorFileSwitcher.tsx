@@ -3,10 +3,6 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
-	TldrawUiInput,
 	TldrawUiPopover,
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
@@ -25,6 +21,14 @@ import {
 	messages as sidebarMessages,
 	useHandleSidebarCreateFile,
 } from '../TlaSidebar/components/sidebar-shared'
+import {
+	TlaSwitcherList,
+	TlaSwitcherRow,
+	TlaSwitcherRowButton,
+	TlaSwitcherRowInput,
+	TlaSwitcherRowMenu,
+	TlaSwitcherRowMenuTrigger,
+} from './TlaEditorSwitcherList'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -33,16 +37,9 @@ const messages = defineMessages({
 
 const MENU_ID = 'files'
 
-// The row height `.tlui-page-menu__item` is laid out at.
-const ITEM_HEIGHT = 40
-
 /**
- * The fileSwitcher design switch: the file crumb opens the current workspace's files, as the page
- * crumb opens the file's pages, instead of renaming in place. Each row has the menu a sidebar row
- * had, which is where renaming moves to.
- *
- * Built from the page menu's own classes so the two popovers match; that menu positions its rows
- * absolutely, so these are too.
+ * The file crumb as a list of the current workspace's files, for the fileSwitcher design switch.
+ * Renaming moves from the crumb to each row's menu, which is the one a sidebar row had.
  */
 export function TlaEditorFileSwitcher({ fileId, fileName }: { fileId: string; fileName: string }) {
 	const app = useApp()
@@ -94,7 +91,7 @@ export function TlaEditorFileSwitcher({ fileId, fileName }: { fileId: string; fi
 					className={classNames(styles.topLeftInputNameWidthSetter, 'notranslate')}
 					data-testid="tla-file-name"
 				>
-					{fileName.replace(/ /g, ' ')}
+					{fileName.replace(/ /g, '\u00a0')}
 				</button>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
@@ -103,50 +100,36 @@ export function TlaEditorFileSwitcher({ fileId, fileName }: { fileId: string; fi
 				sideOffset={0}
 				disableEscapeKeyDown={editingFileId !== null}
 			>
-				<div className="tlui-page-menu__wrapper">
-					<div
-						className={classNames('tlui-page-menu__list', styles.switcherList)}
-						data-testid="tla-file-switcher-list"
-					>
-						<div
-							className="tlui-page-menu__list__content"
-							style={{ height: files.length * ITEM_HEIGHT }}
-						>
-							{files.map((file, index) => (
-								<FileSwitcherItem
-									key={file.fileId}
-									fileId={file.fileId}
-									workspaceId={workspaceId}
-									index={index}
-									isCurrent={file.fileId === fileId}
-									isEditing={file.fileId === editingFileId}
-									onSelect={() => {
-										setIsOpen(false)
-										if (file.fileId !== fileId) navigate(routes.tlaFile(file.fileId))
-									}}
-									onRenameAction={() => handleRenameAction(file.fileId)}
-									onRename={(name) => {
-										rename(file.fileId, name)
-										setEditingFileId(null)
-									}}
-								/>
-							))}
-						</div>
-					</div>
-					<div className={styles.switcherDivider} />
-					<TldrawUiButton
-						type="menu"
-						className="tlui-page-menu__create-button"
-						data-testid="tla-file-switcher-create"
-						onClick={() => {
-							setIsOpen(false)
-							handleCreateFile({ source: 'file-header' })
-						}}
-					>
-						<TldrawUiButtonLabel>{msg(messages.newFile)}</TldrawUiButtonLabel>
-						<TldrawUiButtonIcon icon="plus" small />
-					</TldrawUiButton>
-				</div>
+				<TlaSwitcherList
+					rowCount={files.length}
+					createLabel={msg(messages.newFile)}
+					createTestId="tla-file-switcher-create"
+					onCreate={() => {
+						setIsOpen(false)
+						handleCreateFile({ source: 'file-header' })
+					}}
+					data-testid="tla-file-switcher-list"
+				>
+					{files.map((file, index) => (
+						<FileSwitcherItem
+							key={file.fileId}
+							fileId={file.fileId}
+							workspaceId={workspaceId}
+							index={index}
+							isCurrent={file.fileId === fileId}
+							isEditing={file.fileId === editingFileId}
+							onSelect={() => {
+								setIsOpen(false)
+								if (file.fileId !== fileId) navigate(routes.tlaFile(file.fileId))
+							}}
+							onRenameAction={() => handleRenameAction(file.fileId)}
+							onRename={(name) => {
+								rename(file.fileId, name)
+								setEditingFileId(null)
+							}}
+						/>
+					))}
+				</TlaSwitcherList>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)
@@ -173,32 +156,21 @@ function FileSwitcherItem({
 	onRename(name: string): void
 }) {
 	const app = useApp()
-	const msg = useTranslation()
 	const name = useValue('file name', () => app.getFileName(fileId), [app, fileId])
-	const menuLbl = msg('page-menu.submenu.title')
 
 	return (
-		<div
-			className="tlui-page-menu__item"
-			data-iscurrent={isCurrent}
-			data-editing={isEditing}
+		<TlaSwitcherRow
+			index={index}
+			isCurrent={isCurrent}
+			isEditing={isEditing}
 			data-testid="tla-file-switcher-item"
-			style={{ transform: `translateY(${index * ITEM_HEIGHT}px)` }}
 		>
 			{isEditing ? (
-				<div className="tlui-page-menu__item__title">
-					<FileNameInput name={name} onRename={onRename} />
-				</div>
+				<FileNameInput name={name} onRename={onRename} />
 			) : (
 				<>
-					<TldrawUiButton
-						type="normal"
-						className="tlui-page-menu__item__button notranslate"
-						onClick={onSelect}
-					>
-						<TldrawUiButtonLabel>{name}</TldrawUiButtonLabel>
-					</TldrawUiButton>
-					<div className="tlui-page-menu__item__submenu">
+					<TlaSwitcherRowButton onClick={onSelect}>{name}</TlaSwitcherRowButton>
+					<TlaSwitcherRowMenu>
 						<TlaFileMenu
 							fileId={fileId}
 							workspaceId={workspaceId}
@@ -206,21 +178,12 @@ function FileSwitcherItem({
 							source={isCurrent ? 'file-header' : 'file-menu'}
 							onRenameAction={onRenameAction}
 							align="start"
-							trigger={
-								<TldrawUiButton
-									type="icon"
-									tooltip={menuLbl}
-									title={menuLbl}
-									data-testid="tla-file-switcher-item-menu"
-								>
-									<TldrawUiButtonIcon icon="dots-vertical" small />
-								</TldrawUiButton>
-							}
+							trigger={<TlaSwitcherRowMenuTrigger data-testid="tla-file-switcher-item-menu" />}
 						/>
-					</div>
+					</TlaSwitcherRowMenu>
 				</>
 			)}
-		</div>
+		</TlaSwitcherRow>
 	)
 }
 
@@ -233,14 +196,11 @@ function FileNameInput({ name, onRename }: { name: string; onRename(name: string
 		onRename(value)
 	}
 	return (
-		<TldrawUiInput
-			className="tlui-page-menu__item__input"
+		<TlaSwitcherRowInput
 			defaultValue={name}
 			onComplete={finish}
 			onCancel={() => finish('')}
 			onBlur={finish}
-			autoFocus
-			autoSelect
 		/>
 	)
 }

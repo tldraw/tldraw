@@ -63,9 +63,7 @@ export function TlaFileShareMenu({
 
 	let tabToShowAsActive = shareMenuActiveTab
 
-	// The signedOutShare design switch: a signed-out visitor sees the tabs a signed-in owner does,
-	// with sign-in standing in for the two that need an account. Published and legacy rooms have no
-	// such tabs to stand in for.
+	// Published and legacy rooms have no Invite or Publish tab for sign-in to stand in for.
 	const hasSignedOutShare = useDesignSwitch('signedOutShare')
 	const needsSignIn = hasSignedOutShare && !app && (context === 'file' || context === 'scratch')
 
@@ -92,8 +90,6 @@ export function TlaFileShareMenu({
 		tabToShowAsActive = 'export'
 	}
 
-	// todo: replace disabled tabs for signed out users with "sign in to do X" content
-
 	return (
 		<TldrawUiPopover id={getShareMenuId(fileId, source)} onOpenChange={onOpenChange}>
 			<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
@@ -107,7 +103,6 @@ export function TlaFileShareMenu({
 				<div className={styles.fileShareMenu}>
 					<TlaMenuTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaMenuTabsTabs>
-							{/* Disable share when on a scratchpad file */}
 							{okTabs.share && (
 								<TlaMenuTabsTab id="share" data-testid="tla-share-tab-button-share">
 									<F defaultMessage="Invite" />

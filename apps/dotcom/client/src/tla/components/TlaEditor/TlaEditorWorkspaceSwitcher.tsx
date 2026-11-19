@@ -2,7 +2,6 @@ import classNames from 'classnames'
 import {
 	defineMessages,
 	TldrawUiButton,
-	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -27,7 +26,14 @@ import {
 	useCreateWorkspaceDialog,
 	useSwitchToWorkspace,
 } from '../TlaSidebar/components/useWorkspaceActions'
-import styles from './top.module.css'
+import {
+	SWITCHER_TRIGGER_CLASS_NAME,
+	TlaSwitcherList,
+	TlaSwitcherRow,
+	TlaSwitcherRowButton,
+	TlaSwitcherRowMenu,
+	TlaSwitcherRowMenuTrigger,
+} from './TlaEditorSwitcherList'
 
 const messages = defineMessages({
 	newWorkspace: { defaultMessage: 'New workspace' },
@@ -36,16 +42,10 @@ const messages = defineMessages({
 
 const MENU_ID = 'workspaces'
 
-// The row height `.tlui-page-menu__item` is laid out at.
-const ITEM_HEIGHT = 40
-
 /**
  * The workspace crumb in the v3 file header, and the successor to the sidebar's workspace switcher
  * now that the v3 canvas has no sidebar: it keeps that switcher's test ids. Picking a workspace
  * opens the file last open in it, which makes it the active one.
- *
- * Built from the page menu's own classes so the two popovers match; that menu positions its rows
- * absolutely, so these are too.
  */
 export function TlaEditorWorkspaceSwitcher({ className }: { className?: string }) {
 	const app = useApp()
@@ -90,7 +90,7 @@ export function TlaEditorWorkspaceSwitcher({ className }: { className?: string }
 					type="menu"
 					tooltip={activeWorkspaceName}
 					title={activeWorkspaceName}
-					className="tlui-page-menu__trigger notranslate"
+					className={classNames(SWITCHER_TRIGGER_CLASS_NAME, 'notranslate')}
 					data-testid="tla-workspace-switcher"
 				>
 					<TldrawUiButtonLabel>
@@ -99,42 +99,30 @@ export function TlaEditorWorkspaceSwitcher({ className }: { className?: string }
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={0}>
-				<div className="tlui-page-menu__wrapper">
-					<div className={classNames('tlui-page-menu__list', styles.switcherList)}>
-						<div
-							className="tlui-page-menu__list__content"
-							style={{ height: workspaceIds.length * ITEM_HEIGHT }}
-						>
-							{workspaceIds.map((workspaceId, index) => (
-								<WorkspaceSwitcherItem
-									key={workspaceId}
-									workspaceId={workspaceId}
-									index={index}
-									isActive={workspaceId === activeWorkspaceId}
-									isHome={workspaceId === homeWorkspaceId}
-									onSelect={() => {
-										setIsOpen(false)
-										switchToWorkspace(workspaceId)
-									}}
-									onManage={() => handleManage(workspaceId)}
-								/>
-							))}
-						</div>
-					</div>
-					<div className={styles.switcherDivider} />
-					<TldrawUiButton
-						type="menu"
-						className="tlui-page-menu__create-button"
-						data-testid="tla-create-workspace-menu-item"
-						onClick={() => {
-							setIsOpen(false)
-							handleCreateWorkspace()
-						}}
-					>
-						<TldrawUiButtonLabel>{msg(messages.newWorkspace)}</TldrawUiButtonLabel>
-						<TldrawUiButtonIcon icon="plus" small />
-					</TldrawUiButton>
-				</div>
+				<TlaSwitcherList
+					rowCount={workspaceIds.length}
+					createLabel={msg(messages.newWorkspace)}
+					createTestId="tla-create-workspace-menu-item"
+					onCreate={() => {
+						setIsOpen(false)
+						handleCreateWorkspace()
+					}}
+				>
+					{workspaceIds.map((workspaceId, index) => (
+						<WorkspaceSwitcherItem
+							key={workspaceId}
+							workspaceId={workspaceId}
+							index={index}
+							isActive={workspaceId === activeWorkspaceId}
+							isHome={workspaceId === homeWorkspaceId}
+							onSelect={() => {
+								setIsOpen(false)
+								switchToWorkspace(workspaceId)
+							}}
+							onManage={() => handleManage(workspaceId)}
+						/>
+					))}
+				</TlaSwitcherList>
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)
@@ -157,34 +145,20 @@ function WorkspaceSwitcherItem({
 }) {
 	const msg = useTranslation()
 	const name = useWorkspaceName(workspaceId)
-	const menuLbl = msg('page-menu.submenu.title')
 	return (
-		<div
-			className="tlui-page-menu__item"
-			data-iscurrent={isActive}
-			style={{ transform: `translateY(${index * ITEM_HEIGHT}px)` }}
-		>
-			<TldrawUiButton
-				type="normal"
-				className="tlui-page-menu__item__button notranslate"
+		<TlaSwitcherRow index={index} isCurrent={isActive}>
+			<TlaSwitcherRowButton
 				data-element="workspace-link"
 				data-active={isActive}
 				data-testid={isHome ? 'tla-workspace-switcher-home' : undefined}
 				onClick={onSelect}
 			>
-				<TldrawUiButtonLabel>{name}</TldrawUiButtonLabel>
-			</TldrawUiButton>
-			<div className="tlui-page-menu__item__submenu">
+				{name}
+			</TlaSwitcherRowButton>
+			<TlaSwitcherRowMenu>
 				<TldrawUiDropdownMenuRoot id={`workspace item submenu ${index}`}>
 					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton
-							type="icon"
-							tooltip={menuLbl}
-							title={menuLbl}
-							data-testid="tla-workspace-switcher-item-menu"
-						>
-							<TldrawUiButtonIcon icon="dots-vertical" small />
-						</TldrawUiButton>
+						<TlaSwitcherRowMenuTrigger data-testid="tla-workspace-switcher-item-menu" />
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
@@ -199,7 +173,7 @@ function WorkspaceSwitcherItem({
 						</TldrawUiMenuContextProvider>
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiDropdownMenuRoot>
-			</div>
-		</div>
+			</TlaSwitcherRowMenu>
+		</TlaSwitcherRow>
 	)
 }

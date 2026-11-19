@@ -42,12 +42,11 @@ import {
 	TlaMenuTabsTab,
 	TlaMenuTabsTabs,
 } from '../tla-menu/tla-menu'
-import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import { SubmitFeedbackDialog } from './SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
-import { TlaSignInDialog } from './TlaSignInDialog'
+import { TlaSignInButton } from './TlaSignInButton'
 import styles from './TlaSettingsDialog.module.css'
 
 const messages = defineMessages({
@@ -261,24 +260,15 @@ function SignOutButton({ layout }: { layout: 'nav' | 'row' }) {
 	)
 }
 
-/** Profile is the account, which a signed-out visitor has none of, so the tab offers sign-in. */
 function SignedOutProfilePanel() {
 	const msg = useTranslation()
-	const { addDialog } = useDialogs()
-	const trackEvent = useTldrawAppUiEvents()
-	const label = msg(messages.signInToEditProfile)
 	return (
 		<TlaMenuSection>
-			<TlaButton
-				variant="primary"
+			<TlaSignInButton
+				label={msg(messages.signInToEditProfile)}
+				source="user-preferences"
 				data-testid="tla-settings-sign-in"
-				onClick={() => {
-					trackEvent('sign-up-clicked', { source: 'user-preferences', ctaMessage: label })
-					addDialog({ component: TlaSignInDialog })
-				}}
-			>
-				{label}
-			</TlaButton>
+			/>
 		</TlaMenuSection>
 	)
 }

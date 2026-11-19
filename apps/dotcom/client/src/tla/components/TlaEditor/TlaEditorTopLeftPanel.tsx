@@ -159,7 +159,6 @@ function TlaEditorTopLeftPanelAnonymous() {
 		[editor, isUiV3, fileId, intl]
 	)
 
-	// v3 always shows the page menu, as the signed-in header does.
 	const hasPageMenu = useValue('hasPageMenu', () => isUiV3 || editor.getPages().length > 1, [
 		editor,
 		isUiV3,
@@ -176,7 +175,6 @@ function TlaEditorTopLeftPanelAnonymous() {
 	// - being an anonymous guest on someone else's file
 	// - being a logged out viewer of a published file
 
-	// What this menu can do to the file itself without an account.
 	const fileActions = (
 		<>
 			<TldrawUiMenuActionItem actionId={'save-file-copy'} />
@@ -212,7 +210,6 @@ function TlaEditorTopLeftPanelAnonymous() {
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="basic">
-						{/* The andysMainMenu design switch: under File, where the signed-in menu has them. */}
 						{hasAndysMainMenu && (
 							<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
 								{/* Only the scratch board is unsaved: a guest's edits to a shared file already are. */}
@@ -272,15 +269,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					<TlaLogo data-testid="tla-top-left-logo-icon" />
 				</ExternalLink>
 			)}
-			{isUnsavedFile && (
-				<>
-					<span className={styles.topLeftPanelSeparator} style={{ marginRight: 0 }}>
-						{SEPARATOR}
-					</span>
-					<TlaUnsavedFileMenu />
-				</>
-			)}
-			{anonFileName && !isUnsavedFile && (
+			{(isUnsavedFile || anonFileName) && (
 				<>
 					<span
 						className={styles.topLeftPanelSeparator}
@@ -289,11 +278,15 @@ function TlaEditorTopLeftPanelAnonymous() {
 					>
 						{SEPARATOR}
 					</span>
-					<div className={classNames(styles.topLeftInputWrapper)}>
-						<button className={styles.topLeftInputNameWidthSetter} data-testid="tla-file-name">
-							{anonFileName.replace(/ /g, '\u00a0')}
-						</button>
-					</div>
+					{isUnsavedFile ? (
+						<TlaUnsavedFileMenu />
+					) : (
+						<div className={classNames(styles.topLeftInputWrapper)}>
+							<button className={styles.topLeftInputNameWidthSetter} data-testid="tla-file-name">
+								{anonFileName?.replace(/ /g, '\u00a0')}
+							</button>
+						</div>
+					)}
 				</>
 			)}
 			{hasPageMenu && (
@@ -747,8 +740,7 @@ function TlaUnsavedFileMenu() {
 
 /**
  * In v3 the settings dialog holds preferences, language and help, signed in or out. The v3 canvas
- * has no sidebar, so without this entry the dialog is only reachable from the workspace page. The
- * settingsIcon design switch moves the entry to the top right panel.
+ * has no sidebar, so without this entry the dialog is only reachable from the workspace page.
  */
 function TlaSettingsGroup() {
 	const msg = useTranslation()
