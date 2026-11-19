@@ -1,7 +1,7 @@
 import type { Transaction } from '@rocicorp/zero'
 import { IndexKey, uniqueId } from '@tldraw/utils'
-import { describe, expect, it } from 'vitest'
-import { createMutators, parseFlags, userHasFlag } from './mutators'
+import { describe, expect, it, vi } from 'vitest'
+import { createMutators, MutatorOptions, parseFlags, userHasFlag } from './mutators'
 import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
 	TlaLibrary,
@@ -1743,7 +1743,11 @@ describe('libraries', () => {
 		updatedAt: 1,
 	})
 
-	function setup(tables: Partial<TableStore> = {}, location: 'server' | 'client' = 'server') {
+	function setup(
+		tables: Partial<TableStore> = {},
+		location: 'server' | 'client' = 'server',
+		options: MutatorOptions = { isFeatureEnabled: async (flag) => flag === 'libraries' }
+	) {
 		const store = makeStore({
 			user: [makeUser({ id: me }), makeUser({ id: other })],
 			group: [makeGroup({ id: W }), makeGroup({ id: V }), makeGroup({ id: X })],
@@ -1755,8 +1759,54 @@ describe('libraries', () => {
 			...tables,
 		})
 		const { tx, mutations } = createMockTx(store, { location })
-		return { store, tx, mutations, mutators: createMutators(me) }
+		return { store, tx, mutations, mutators: createMutators(me, options) }
 	}
+
+	describe('the libraries flag', () => {
+		const itemId = 'item_1111222233334444'
+		const tables = {
+			library: [makeLibrary({ id: libraryId, owningGroupId: W })],
+			library_item: [makeItem(itemId, libraryId)],
+		}
+		const everyMutator = (
+			mutators: ReturnType<typeof createMutators>,
+			tx: Transaction<TlaSchema>
+		) => [
+			() =>
+				mutators.library.create(tx, { id: 'coll_bbbb11112222cccc', name: 'x', owningGroupId: W }),
+			() => mutators.library.rename(tx, { id: libraryId, name: 'x' }),
+			() => mutators.library.delete(tx, { id: libraryId }),
+			() => mutators.library_item.rename(tx, { id: itemId, name: 'x' }),
+			() => mutators.library_item.move(tx, { id: itemId, libraryId: 'coll_cccc11112222dddd' }),
+			() => mutators.library_item.delete(tx, { id: itemId }),
+		]
+
+		it('refuses every library mutator on the server when the flag is off for me', async () => {
+			const isFeatureEnabled = vi.fn(async () => false)
+			const { store, tx, mutations, mutators } = setup(tables, 'server', { isFeatureEnabled })
+			for (const mutate of everyMutator(mutators, tx)) await expectForbidden(mutate)
+			expect(isFeatureEnabled).toHaveBeenCalledWith('libraries')
+			expect(mutations).toEqual([])
+			expect(store.library).toHaveLength(1)
+			expect(store.library_item).toHaveLength(1)
+		})
+
+		it('refuses them on the server when nothing says whether the flag is on', async () => {
+			const { tx, mutations, mutators } = setup(tables, 'server', {})
+			for (const mutate of everyMutator(mutators, tx)) await expectForbidden(mutate)
+			expect(mutations).toEqual([])
+		})
+
+		it("doesn't check the flag on the client", async () => {
+			const isFeatureEnabled = vi.fn(async () => false)
+			const { store, tx, mutators } = setup(tables, 'client', { isFeatureEnabled })
+			await mutators.library.rename(tx, { id: libraryId, name: 'Icons' })
+			await mutators.library_item.rename(tx, { id: itemId, name: 'Button' })
+			expect(store.library[0].name).toBe('Icons')
+			expect(store.library_item[0].name).toBe('Button')
+			expect(isFeatureEnabled).not.toHaveBeenCalled()
+		})
+	})
 
 	describe('library.create', () => {
 		it('creates a private library in my home workspace', async () => {

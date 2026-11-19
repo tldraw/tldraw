@@ -6,9 +6,11 @@ import { Environment } from '../../types'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 vi.mock('../../utils/tla/getAuth', () => ({ requireAuth: vi.fn() }))
+vi.mock('../../utils/featureFlags', () => ({ canUseLibraries: vi.fn() }))
 
 const { createPostgresConnectionPool } = await import('../../postgres')
 const { requireAuth } = await import('../../utils/tla/getAuth')
+const { canUseLibraries } = await import('../../utils/featureFlags')
 const { addLibraryItem, getLibraryItemContent } = await import('./libraryItems')
 
 const ME = 'user_aaaa11112222bbbb'
@@ -75,6 +77,7 @@ const itemAccess = (role: string | null) => ({
 
 beforeEach(() => {
 	vi.mocked(requireAuth).mockResolvedValue({ userId: ME } as any)
+	vi.mocked(canUseLibraries).mockResolvedValue(true)
 })
 
 afterEach(() => vi.clearAllMocks())
@@ -161,6 +164,23 @@ describe('addLibraryItem', () => {
 				env
 			)
 		).rejects.toThrow('the library was deleted')
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(await uploadNames(env)).toEqual([])
+	})
+
+	it('answers 404 without storing anything when the libraries flag is off for me', async () => {
+		vi.mocked(canUseLibraries).mockResolvedValue(false)
+		const env = makeEnv()
+		const response = await addLibraryItem(
+			addRequest({
+				content: JSON.stringify(CONTENT),
+				thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+			}),
+			env
+		)
+		expect(response.status).toBe(404)
+		expect(canUseLibraries).toHaveBeenCalledWith(env, ME)
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
 		expect((await env.ROOMS.list()).objects).toEqual([])
 		expect(await uploadNames(env)).toEqual([])
 	})
@@ -277,6 +297,14 @@ describe('getLibraryItemContent', () => {
 		const content = await getLibraryItemContent(getRequest(), env)
 		expect(content.status).toBe(200)
 		expect(await content.json()).toEqual(CONTENT)
+	})
+
+	it('answers 404 without reading anything when the libraries flag is off for me', async () => {
+		vi.mocked(canUseLibraries).mockResolvedValue(false)
+		const env = await storedEnv()
+		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
+		expect(canUseLibraries).toHaveBeenCalledWith(env, ME)
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
 	})
 
 	it('answers 404 to someone who is not a member of the workspace', async () => {
