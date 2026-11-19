@@ -519,18 +519,24 @@ function labelWidthNeeded(editor: Editor, id: TLShapeId, text: string, size: Can
  * (an outline's contents) are left out; newly covered ones are reported, since a widened box hides
  * them.
  */
-function crowding(editor: Editor, id: TLShapeId, before?: Rect): string | undefined {
+function crowding(
+	editor: Editor,
+	id: TLShapeId,
+	before?: Rect,
+	clearance = CLEARANCE
+): string | undefined {
 	const rect = rectOf(editor, id)
 	let worst: { id: TLShapeId; gap: number } | null = null
 	const covered: string[] = []
 	for (const o of obstacles(editor, new Set([id]))) {
-		if (contains(o.rect, rect)) continue
+		// A neighbour of exactly the same box contains it too, but is covered, not a container.
+		if (contains(o.rect, rect) && !contains(rect, o.rect)) continue
 		if (contains(rect, o.rect)) {
 			if (!before || !contains(before, o.rect)) covered.push(fromShapeId(o.id))
 			continue
 		}
 		const gap = gapBetween(rect, o.rect)
-		if (gap < CLEARANCE && (!worst || gap < worst.gap)) worst = { id: o.id, gap }
+		if (gap < clearance && (!worst || gap < worst.gap)) worst = { id: o.id, gap }
 	}
 	const unnamed = covered.length - 5
 	return joinNotes(
@@ -647,14 +653,14 @@ function inheritStyle(
 	spec: NewSubject,
 	kind: NonNullable<NewSubject['kind']>,
 	targetId: TLShapeId
-): string | undefined {
+): { note?: string; footprint?: { w: number; h: number } } {
 	const target = editor.getShape(targetId)
-	if (!target) return undefined
+	if (!target) return {}
 	const sameKind =
 		(kind === 'label' && target.type === 'text') ||
 		(kind === 'note' && target.type === 'note') ||
 		((kind === 'box' || kind === 'ellipse' || kind === 'shape') && target.type === 'geo')
-	if (!sameKind) return undefined
+	if (!sameKind) return {}
 	const p = target.props as {
 		color?: CanvasColor
 		fill?: NewSubject['fill']
@@ -665,6 +671,7 @@ function inheritStyle(
 		geo?: string
 	}
 	const notes: string[] = []
+	let footprint: { w: number; h: number } | undefined
 	if (spec.size === undefined && p.size) {
 		spec.size = p.size
 		notes.push(`size ${p.size}`)
@@ -694,10 +701,15 @@ function inheritStyle(
 				: 0
 			spec.w = Math.max(p.w, needed)
 			spec.h = p.h
-			notes.push(`${Math.round(spec.w)}x${Math.round(spec.h)}`)
+			// The sibling's own size, so any widening for the label reads as growth from it.
+			footprint = { w: p.w, h: p.h }
+			notes.push(`${Math.round(p.w)}x${Math.round(p.h)}`)
 		}
 	}
-	return notes.length ? `styled like ${fromShapeId(targetId)} (${notes.join(', ')})` : undefined
+	return {
+		note: notes.length ? `styled like ${fromShapeId(targetId)} (${notes.join(', ')})` : undefined,
+		footprint,
+	}
 }
 
 function moveTo(ctx: OpContext, id: TLShapeId, x: number, y: number) {
@@ -890,7 +902,11 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				return ok(
 					[id],
 					`${fromShapeId(id)} at ${fmt(rectOf(editor, id))}`,
-					grewToFitText(editor, id, spec.w, spec.h)
+					joinNotes(
+						grewToFitText(editor, id, spec.w, spec.h),
+						// The caller chose the spot, so only an actual overlap is worth a note, not closeness.
+						crowding(editor, id, undefined, 0)
+					)
 				)
 			}
 			const targetId = resolveRef(editor, op.target, ctx.refs)
@@ -898,7 +914,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const target = rectOf(editor, targetId)
 			const gap = op.gap ?? 24
 			const align = op.align ?? 'center'
-			const styled = inheritStyle(editor, spec, kind, targetId)
+			const { note: styled, footprint } = inheritStyle(editor, spec, kind, targetId)
 			const id = materialise(ctx, spec, { x: target.x, y: target.y - 10_000 })
 			const exclude = new Set([id, targetId])
 			const p = placeLabel(ctx, id, kind === 'label' && op.size === undefined, (r) =>
@@ -908,7 +924,11 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			return ok(
 				[id],
 				`${fromShapeId(id)} ${relation.replace('_', ' ')} ${fromShapeId(targetId)} at ${fmt(rectOf(editor, id))}`,
-				joinNotes(styled, grewToFitText(editor, id, spec.w, spec.h), p.adjusted)
+				joinNotes(
+					styled,
+					grewToFitText(editor, id, footprint?.w ?? spec.w, footprint?.h ?? spec.h),
+					p.adjusted
+				)
 			)
 		}
 		case 'place': {

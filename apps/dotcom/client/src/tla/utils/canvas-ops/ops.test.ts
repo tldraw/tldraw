@@ -412,6 +412,46 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(result.results[0].adjusted).toBe('now overlaps db')
 	})
 
+	it('duplicate says when the copy lands exactly on a neighbour the same size', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{ op: 'duplicate', subject: 'api', id: 'twin', at: { x: 500, y: 100 } },
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('twin')).toEqual(rect('db'))
+		expect(result.results[0].adjusted).toBe('now covers db')
+	})
+
+	it('a box added at a point says what it lands on, but not what it sits close to', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{ op: 'add', kind: 'box', id: 'over', at: { x: 250, y: 150 }, w: 100, h: 60 },
+			{ op: 'add', kind: 'box', id: 'near', at: { x: 310, y: 300 }, w: 100, h: 60 },
+		])
+		expect(result.errors).toEqual([])
+		expect(result.results[0].adjusted).toBe('now overlaps api')
+		expect(result.results[1].adjusted).toBeUndefined()
+	})
+
+	it('a box widened past its sibling for its label says it grew from the sibling size', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{
+				op: 'add',
+				kind: 'box',
+				id: 'wide',
+				text: 'a label much longer than its neighbour',
+				relation: 'below',
+				target: 'api',
+			},
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('wide').w).toBeGreaterThan(200)
+		expect(result.results[0].adjusted).toMatch(
+			/^styled like api \(.*200x100\); grew from 200x100 to \d+x\d+ to fit its text/
+		)
+	})
+
 	it('restyles a shape like another', () => {
 		seedDiagram()
 		applyOps(editor, [{ op: 'restyle', targets: ['api'], like: 'db' }])
