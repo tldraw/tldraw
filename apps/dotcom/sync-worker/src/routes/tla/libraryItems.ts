@@ -18,6 +18,7 @@ import {
 	isClientPickedId,
 	MAX_LIBRARY_ITEM_CONTENT_BYTES,
 	newLibraryItemContentKey,
+	R2ConnectionQueue,
 	runStorageTasks,
 } from '../../libraryStorage'
 import {
@@ -200,8 +201,9 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 		// before the rows below name it.
 		await queueLibraryObjectDeletes(db, planned.flatMap(plannedObjects))
 
+		const r2 = new R2ConnectionQueue()
 		const storedItems = await runStorageTasks(
-			items.map((item, index) => () => storeItemObjects(env, item, planned[index]))
+			items.map((item, index) => () => storeItemObjects(env, r2, item, planned[index]))
 		)
 		const now = Date.now()
 		const rows: LibraryItemInsertRow[] = items.map((item, index) => ({
@@ -282,12 +284,24 @@ function plannedObjects(planned: PlannedItemObjects): LibraryItemObject[] {
  * Stores an item's content, with its own copies of the uploads it refers to, and its thumbnails,
  * under the names planItemObjects gave them. Returns its thumbnail and the uploads it stored.
  */
-async function storeItemObjects(env: Environment, item: NewItem, planned: PlannedItemObjects) {
-	const { content, ownedObjectNames } = await copyItemAssets(env, item.content, planned.assetCopies)
-	await env.ROOMS.put(planned.contentKey, JSON.stringify(content), {
-		httpMetadata: { contentType: 'application/json' },
-	})
-	const thumbnail = planned.light && (await putThumbnail(env, planned.light, planned.dark))
+async function storeItemObjects(
+	env: Environment,
+	r2: R2ConnectionQueue,
+	item: NewItem,
+	planned: PlannedItemObjects
+) {
+	const { content, ownedObjectNames } = await copyItemAssets(
+		env,
+		r2,
+		item.content,
+		planned.assetCopies
+	)
+	await r2.run(1, () =>
+		env.ROOMS.put(planned.contentKey, JSON.stringify(content), {
+			httpMetadata: { contentType: 'application/json' },
+		})
+	)
+	const thumbnail = planned.light && (await putThumbnail(env, r2, planned.light, planned.dark))
 	const thumbnailUploads = [planned.light, planned.dark].flatMap((upload) =>
 		upload ? [upload.objectName] : []
 	)
