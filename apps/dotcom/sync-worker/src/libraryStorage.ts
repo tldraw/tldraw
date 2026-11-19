@@ -13,16 +13,49 @@ export function newLibraryItemContentKey() {
 
 export const MAX_LIBRARY_ITEM_CONTENT_BYTES = 5_000_000
 
-/** How many items' objects a request reads or writes at once. */
-export const STORAGE_CONCURRENCY = 4
+// Cloudflare allows a request six simultaneous open connections. A request's library storage holds
+// at most four of them at once, leaving room for its Postgres connection.
+// https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
+export const MAX_R2_CONNECTIONS = 4
 
 /**
- * Runs the tasks, STORAGE_CONCURRENCY at a time, and resolves with their results in order. If one
- * fails, those under way finish and the rest aren't started, so a caller knows everything they
- * stored before the error is rethrown.
+ * One request's budget of simultaneous R2 connections, shared by every R2 operation it makes. A
+ * copy holds two, its get's body streaming into its put; any other operation holds one. Operations
+ * start in the order they're submitted.
+ */
+export class R2ConnectionQueue {
+	private free = MAX_R2_CONNECTIONS
+	private readonly waiting: { connections: number; start(): void }[] = []
+
+	async run<T>(connections: 1 | 2, operation: () => Promise<T>): Promise<T> {
+		if (this.waiting.length > 0 || connections > this.free) {
+			await new Promise<void>((start) => this.waiting.push({ connections, start }))
+		} else {
+			this.free -= connections
+		}
+		try {
+			return await operation()
+		} finally {
+			this.free += connections
+			this.startWaiting()
+		}
+	}
+
+	private startWaiting() {
+		while (this.waiting.length > 0 && this.waiting[0].connections <= this.free) {
+			const next = this.waiting.shift()!
+			this.free -= next.connections
+			next.start()
+		}
+	}
+}
+
+/**
+ * Runs the tasks, as many at a time as there are R2 connections for them to share, and resolves
+ * with their results in order. If one fails, those under way finish and the rest aren't started.
  */
 export async function runStorageTasks<T>(tasks: (() => Promise<T>)[]): Promise<T[]> {
-	const queue = new PQueue({ concurrency: STORAGE_CONCURRENCY })
+	const queue = new PQueue({ concurrency: MAX_R2_CONNECTIONS })
 	try {
 		return await queue.addAll(tasks)
 	} catch (error) {

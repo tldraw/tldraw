@@ -1,4 +1,5 @@
 import { AssetToReplace, collectAssetAssociationChanges } from './assetAssociation'
+import { R2ConnectionQueue } from './libraryStorage'
 import { Environment } from './types'
 
 /** Library item content as stored: a TLLibraryItemContent, read only as far as its assets. */
@@ -33,6 +34,7 @@ export function planItemAssetCopies(
  */
 export async function copyItemAssets(
 	env: Environment,
+	r2: R2ConnectionQueue,
 	stored: StoredItemContent,
 	copies: AssetToReplace[]
 ): Promise<{ content: StoredItemContent; skippedObjectNames: string[] }> {
@@ -40,12 +42,18 @@ export async function copyItemAssets(
 	const newSrcByAssetId = new Map<string, string>()
 	const skippedObjectNames: string[] = []
 	for (const asset of copies) {
-		const object = await env.UPLOADS.get(asset.objectName)
-		if (!object) {
+		const copied = await r2.run(2, async () => {
+			const object = await env.UPLOADS.get(asset.objectName)
+			if (!object) return false
+			await env.UPLOADS.put(asset.newObjectName, object.body, {
+				httpMetadata: object.httpMetadata,
+			})
+			return true
+		})
+		if (!copied) {
 			skippedObjectNames.push(asset.newObjectName)
 			continue
 		}
-		await env.UPLOADS.put(asset.newObjectName, object.body, { httpMetadata: object.httpMetadata })
 		newSrcByAssetId.set(asset.assetId, asset.newSrc)
 	}
 

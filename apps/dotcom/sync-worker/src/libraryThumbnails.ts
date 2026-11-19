@@ -6,6 +6,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { RawBuilder, sql } from 'kysely'
+import { R2ConnectionQueue } from './libraryStorage'
 import { Environment } from './types'
 
 // An item's thumbnails are public uploads, served by object name like a board's images, under
@@ -56,17 +57,23 @@ export function nameThumbnailUpload(image: Blob): ThumbnailUpload {
  */
 export async function putThumbnail(
 	env: Environment,
+	r2: R2ConnectionQueue,
 	light: ThumbnailUpload,
 	dark: ThumbnailUpload | null
 ): Promise<TlaLibraryItemThumbnail> {
-	const lightUrl = await putImage(env, light)
-	return dark ? { light: lightUrl, dark: await putImage(env, dark) } : lightUrl
+	const lightUrl = await putImage(env, r2, light)
+	return dark ? { light: lightUrl, dark: await putImage(env, r2, dark) } : lightUrl
 }
 
-async function putImage(env: Environment, { image, objectName }: ThumbnailUpload) {
-	await env.UPLOADS.put(objectName, await image.arrayBuffer(), {
-		httpMetadata: { contentType: image.type },
-	})
+async function putImage(
+	env: Environment,
+	r2: R2ConnectionQueue,
+	{ image, objectName }: ThumbnailUpload
+) {
+	const body = await image.arrayBuffer()
+	await r2.run(1, () =>
+		env.UPLOADS.put(objectName, body, { httpMetadata: { contentType: image.type } })
+	)
 	return `${getUserContentUrl(env)}/${objectName}`
 }
 
