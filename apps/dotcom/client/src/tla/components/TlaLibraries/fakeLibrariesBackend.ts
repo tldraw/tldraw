@@ -1,4 +1,9 @@
-import type { TlaLibrary, TlaLibraryItem, TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
+import {
+	libraryName,
+	type TlaLibrary,
+	type TlaLibraryItem,
+	type TlaLibraryItemThumbnail,
+} from '@tldraw/dotcom-shared'
 import { atom, uniqueId } from 'tldraw'
 import { vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
@@ -51,7 +56,7 @@ export function createFakeLibrariesBackend({
 					...all,
 					{
 						id,
-						name: name.trim(),
+						name: libraryName(name),
 						owningGroupId,
 						meta,
 						createdBy: userId,

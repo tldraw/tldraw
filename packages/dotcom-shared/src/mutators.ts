@@ -190,7 +190,7 @@ export const USER_PREFERENCE_KEYS = Object.keys(
 ) as readonly TlaUserPreferenceKey[]
 
 /** A library or item name as stored: trimmed, clamped like a workspace name, never blank. */
-function libraryName(name: string) {
+export function libraryName(name: string) {
 	assert(typeof name === 'string', ZErrorCode.bad_request)
 	const clamped = name.trim().slice(0, MAX_LIBRARY_NAME_LENGTH)
 	assert(clamped.length > 0, ZErrorCode.bad_request)
