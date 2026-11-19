@@ -34,6 +34,13 @@ export {
 	type LibraryThumbnailUrlsOptions,
 	useLibraryThumbnailUrls,
 } from './canvas/use-library-thumbnail-urls'
+export { type LibraryItemDragOptions, useLibraryItemDrag } from './canvas/use-item-drag'
+export { type LibraryActions, useLibraryActions } from './canvas/use-library-actions'
+export { type LibraryItemActions, useLibraryItemActions } from './canvas/use-library-item-actions'
+export {
+	type SaveSelectionToLibrary,
+	useSaveSelectionToLibrary,
+} from './canvas/use-save-selection-to-library'
 export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
 export { placeLibraryItem } from './canvas/place-item'
 export {
