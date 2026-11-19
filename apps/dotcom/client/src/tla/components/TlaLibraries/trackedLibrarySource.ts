@@ -1,3 +1,4 @@
+import { captureException } from '@sentry/react'
 import {
 	getLibraryErrorReason,
 	whenItemsStored,
@@ -19,7 +20,8 @@ type OwnerKind = TLAppUiEventMap['create-library']['owner']
 
 /**
  * A library source that reports the user's changes to it to PostHog, without names or content:
- * each change once it has been made, or `library-error` if it fails. Wraps the source the UI
+ * each change once it has been made, or `library-error` if it fails. Failures with no known
+ * reason also go to Sentry. Wraps the source the UI
  * writes through, so a change that a composite source makes from several, such as moving a
  * board's library to a workspace, counts once. A change the server rejects after it was made is
  * reported by TldrawAppLibrariesSource.
@@ -75,8 +77,15 @@ export class TrackedLibrarySource implements LibrarySource {
 		return this.untracked.getItems(libraryId)
 	}
 
-	getItemContent(itemId: TLLibraryItemId) {
-		return this.untracked.getItemContent(itemId)
+	async getItemContent(itemId: TLLibraryItemId) {
+		try {
+			return await this.untracked.getItemContent(itemId)
+		} catch (error) {
+			if (getLibraryErrorReason(error) === 'failed') {
+				captureException(error, { tags: { operation: 'get-library-item-content' } })
+			}
+			throw error
+		}
 	}
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
@@ -135,11 +144,9 @@ export class TrackedLibrarySource implements LibrarySource {
 		try {
 			return await operation
 		} catch (error) {
-			this.app.trackEvent('library-error', {
-				source: 'libraries',
-				action,
-				reason: getLibraryErrorReason(error),
-			})
+			const reason = getLibraryErrorReason(error)
+			this.app.trackEvent('library-error', { source: 'libraries', action, reason })
+			if (reason === 'failed') captureException(error, { tags: { operation: action } })
 			throw error
 		}
 	}
