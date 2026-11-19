@@ -30,6 +30,7 @@ import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/Erro
 import { TlaRouteHandle } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/AnalyticsTrackers'
+import { withAppOrigin } from '../../utils/appOriginLinks'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
 import { markFirstLoad } from '../../utils/firstLoad'
@@ -71,6 +72,8 @@ function WatermarkOverride() {
 						.replace('utm_source=sdk', 'utm_source=dotcom')
 						.replace('utm_campaign=watermark', 'utm_campaign=made-with-tldraw')
 					trackEvent('click-watermark', { url })
+					// Only here: openWindow also opens links in people's own boards.
+					url = withAppOrigin(url)
 				}
 				originalOpenWindow(url, target, allowReferrer)
 			},

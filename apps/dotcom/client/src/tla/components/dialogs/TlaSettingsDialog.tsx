@@ -21,6 +21,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { getDotDevUrl } from '../../../utils/appOriginLinks'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
@@ -69,8 +70,7 @@ const messages = defineMessages({
 
 const USER_MANUAL_URL = 'https://tldraw.notion.site/support'
 const LEGAL_SUMMARY_URL = '/legal.html'
-const DOT_DEV_URL =
-	'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link'
+const DOT_DEV_URL = getDotDevUrl('sidebar-link')
 
 /**
  * The preferences the dialog edits: the account's when signed in, otherwise tldraw's per-browser

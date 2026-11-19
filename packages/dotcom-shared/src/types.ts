@@ -234,6 +234,14 @@ export interface TabRenderServerEvent {
 	hiddenTab?: boolean
 }
 
+/**
+ * How many shapes with text one tab screenshot draws, counting a shape without text as
+ * `1 / TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE` of one. Past it the tab declines with
+ * `too_many_shapes`; tabRender.ts in the client says where the numbers come from.
+ */
+export const TAB_RENDER_MAX_EXPORT_TEXT_SHAPES = 200
+export const TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE = 50
+
 export const TAB_RENDER_DECLINE_REASONS = [
 	'editor_not_ready',
 	'page_missing',

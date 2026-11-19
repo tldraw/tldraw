@@ -50,6 +50,7 @@ import {
 	ZoomToSelectionMenuItem,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
+import { getDotDevUrl } from '../../../utils/appOriginLinks'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -276,7 +277,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 				<TlaEditorHomeLogoButton />
 			) : (
 				<ExternalLink
-					to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
+					to={getDotDevUrl('top-left-logo')}
 					eventName="top-left-logo-clicked"
 					aria-label="tldraw.dev"
 					className={styles.topLeftOfflineLogo}
