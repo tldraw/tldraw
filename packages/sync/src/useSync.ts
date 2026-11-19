@@ -18,6 +18,7 @@ import {
 	TLAssetStore,
 	TLPresenceStateInfo,
 	TLRecord,
+	TLRejectedWrite,
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
@@ -308,6 +309,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
 
+		const writeRejectedListeners = new Set<(rejected: TLRejectedWrite) => void>()
+
 		const store = createTLStore({
 			id: storeId,
 			schema,
@@ -317,6 +320,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
+				onWriteRejected: (listener) => {
+					writeRejectedListeners.add(listener)
+					return () => void writeRejectedListeners.delete(listener)
+				},
 			},
 		})
 
@@ -376,6 +383,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onWriteRejected(rejected) {
+				for (const listener of writeRejectedListeners) listener(rejected)
+			},
 			presence,
 			presenceMode,
 		})
