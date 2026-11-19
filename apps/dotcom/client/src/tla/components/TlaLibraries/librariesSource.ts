@@ -323,9 +323,13 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			meta: source.meta,
 		})
 		const arrival = settleable<boolean>()
-		const copies = sourceItems.map((sourceItem) =>
-			this.listCopiedItem(sourceItem, library.id, arrival.promise)
-		)
+		const copies = new Set<PendingItem>()
+		const itemIds: Record<string, string> = {}
+		for (const sourceItem of sourceItems) {
+			const copy = this.listCopiedItem(sourceItem, library.id, arrival.promise)
+			copies.add(copy)
+			itemIds[rowId(sourceItem.id)] = rowId(copy.item.id)
+		}
 		this.pendingLibraries.update((all) => [...all, { library, arrived: arrival.promise }])
 		this.pendingItems.update((all) => [...all, ...copies])
 		this.unconfirmedLibraries.set(
@@ -337,15 +341,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		)
 		const unlist = () => {
 			this.pendingLibraries.update((all) => all.filter((p) => p.library.id !== library.id))
-			this.pendingItems.update((all) => all.filter((p) => p.item.libraryId !== library.id))
+			this.pendingItems.update((all) => all.filter((p) => !copies.has(p)))
 		}
 
 		try {
 			await this.whenConfirmed(libraryId)
 			await this.whenItemsArrive(libraryId)
-			const itemIds = Object.fromEntries(
-				sourceItems.map((sourceItem, index) => [rowId(sourceItem.id), rowId(copies[index].item.id)])
-			)
 			const response = await this.request(`/api/app/libraries/${rowId(libraryId)}/copy`, {
 				method: 'POST',
 				headers: { 'content-type': 'application/json' },
