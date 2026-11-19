@@ -50,12 +50,24 @@ export function getSignInRedirect(
 	} catch {
 		return null
 	}
-	if (url.origin === appOrigin) {
+	if (isSameApp(url, appOrigin)) {
 		const path = url.pathname + url.search + url.hash
 		// `//host/x` is a path here but a protocol-relative URL to whatever navigates to it.
 		return path === '/' || path.startsWith('//') ? null : path
 	}
 	return isClerkFrontendApiUrl(url.href, clerkOrigin) ? url.href : null
+}
+
+// Production Clerk builds its path URLs on the apex (`tldraw.com/oauth-consent`) while the app runs
+// on `www.tldraw.com`, so a strict origin check would drop the OAuth authorize redirect there.
+function isSameApp(url: URL, appOrigin: string) {
+	const app = new URL(appOrigin)
+	const bare = (host: string) => host.replace(/^www\./, '')
+	return (
+		url.protocol === app.protocol &&
+		url.port === app.port &&
+		bare(url.hostname) === bare(app.hostname)
+	)
 }
 
 export const CLERK_FRONTEND_API_ORIGIN = getClerkFrontendApiOrigin(
