@@ -230,6 +230,8 @@ export interface TabRenderServerEvent {
 	type: 'mcp_tab_render'
 	jobId: string
 	request: TabRenderRequest
+	/** Whether a hidden tab may take the job: the `mcp_hidden_tab` kill switch. Absent means no. */
+	hiddenTab?: boolean
 }
 
 export const TAB_RENDER_DECLINE_REASONS = [
@@ -422,6 +424,7 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_render_push',
 	'headless_shadow',
 	'ui_v3',
+	'mcp_hidden_tab',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

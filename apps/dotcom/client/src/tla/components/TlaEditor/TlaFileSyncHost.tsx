@@ -147,7 +147,9 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 					return
 				}
 				if (message.type === 'mcp_tab_render') {
-					void answerTabRender(editorRef.current, flushChangesRef.current, fileSlug, message)
+					// Without a flush, a hidden tab declines the job.
+					const flushChanges = message.hiddenTab ? flushChangesRef.current : null
+					void answerTabRender(editorRef.current, flushChanges, fileSlug, message)
 					return
 				}
 				trackEvent(message.type)

@@ -146,6 +146,7 @@ import {
 import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { evaluateFlagForUser, getFeatureFlagValue } from './utils/featureFlags'
 import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
@@ -3618,13 +3619,23 @@ export class TLFileDurableObject extends DurableObject {
 		}).slice(0, jobIds.length)
 
 		stats.tabs = targets.length
+		const hiddenTab = evaluateFlagForUser(
+			await getFeatureFlagValue(this.env, 'mcp_hidden_tab'),
+			'mcp_hidden_tab',
+			userId
+		)
 		const sentAt = Date.now()
 		const outcome = await this.tabRenders.dispatch(
 			targets,
 			request,
 			jobIds,
 			(sessionId, jobId) => {
-				const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+				const event: TLCustomServerEvent = {
+					type: 'mcp_tab_render',
+					jobId,
+					request,
+					hiddenTab,
+				}
 				room.sendCustomMessage(sessionId, event)
 			},
 			() => (stats.ackMs = Date.now() - sentAt)
