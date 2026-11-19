@@ -1,8 +1,9 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { useEditor, useValue, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource, TLLibraryThumbnailContext } from '../lib/LibrarySource'
 import { getThumbnailForColorMode, type TLLibraryItem } from '../lib/schema'
 import {
+	DEFAULT_THUMBNAIL_WIDTH,
 	getNetworkEffectiveType,
 	getThumbnailContext,
 	stepThumbnailWidth,
@@ -14,29 +15,46 @@ interface ThumbnailRequest {
 	context: TLLibraryThumbnailContext
 }
 
-/** Each item's thumbnail URL, from the source's `resolveThumbnail` when it has one. */
-export function useThumbnailUrls(
+/**
+ * How wide the tiles showing thumbnails are, for {@link useLibraryThumbnailUrls}: a `width` in CSS
+ * pixels, or a `container` whose first element with the `tlui-libraries-tile__thumbnail` class is
+ * measured, and measured again when the container resizes.
+ * @public
+ */
+export type LibraryThumbnailUrlsOptions =
+	| { width: number; container?: never }
+	| { container: HTMLElement | null; width?: never }
+
+/**
+ * Each item's thumbnail URL, or undefined for none or while it resolves. Without a
+ * {@link LibrarySource.resolveThumbnail}, the item's own `thumbnail` for the editor's colour mode.
+ *
+ * With one, the source is asked for a URL sized for the tiles, whose width comes from `options`
+ * and is rounded up to a power of two. Without a width, or before the container has a tile to
+ * measure, URLs are sized for the libraries panel's tiles.
+ * @public
+ */
+export function useLibraryThumbnailUrls(
 	source: LibrarySource,
 	items: TLLibraryItem[],
-	container: HTMLElement | null
-): Record<string, string | null | undefined> {
+	options?: LibraryThumbnailUrlsOptions
+): Record<TLLibraryItemId, string | undefined> {
 	const editor = useEditor()
 	const colorMode = useValue('thumbnail colour mode', () => editor.getColorMode(), [editor])
 	const dpr = useValue('thumbnail dpr', () => editor.getInstanceState().devicePixelRatio, [editor])
-	const tileWidth = useTileWidth(
-		container,
+	const measuredWidth = useTileWidth(
+		options?.container ?? null,
 		source.resolveThumbnail !== undefined && items.length > 0
 	)
+	const tileWidth = options?.width ?? measuredWidth ?? DEFAULT_THUMBNAIL_WIDTH
 	const context = useMemo(
 		() =>
-			tileWidth === null
-				? null
-				: getThumbnailContext({
-						colorMode,
-						tileWidth,
-						dpr,
-						networkEffectiveType: getNetworkEffectiveType(),
-					}),
+			getThumbnailContext({
+				colorMode,
+				tileWidth,
+				dpr,
+				networkEffectiveType: getNetworkEffectiveType(),
+			}),
 		[colorMode, tileWidth, dpr]
 	)
 	const [resolved, setResolved] = useState<Record<string, string | null>>({})
@@ -47,7 +65,7 @@ export function useThumbnailUrls(
 	// A layout effect, so URLs a source answers at once are in the first paint.
 	useLayoutEffect(() => {
 		const resolve = source.resolveThumbnail?.bind(source)
-		if (!resolve || !context) return
+		if (!resolve) return
 		const answered: Record<string, string | null> = {}
 		const listed = new Set<string>()
 		for (const item of items) {
@@ -76,18 +94,32 @@ export function useThumbnailUrls(
 			if (!listed.has(id)) requests.current.delete(id)
 		}
 		// Items still resolving keep their last URL, so a new size doesn't blank the tile.
-		setResolved((urls) =>
-			Object.fromEntries(
+		setResolved((urls) => {
+			const next = Object.fromEntries(
 				items.map((item) => [item.id, item.id in answered ? answered[item.id] : urls[item.id]])
 			)
-		)
+			// A caller may pass a new but equal items array each render; keeping the same object
+			// then stops this effect from re-rendering forever.
+			const ids = Object.keys(next)
+			const same =
+				ids.length === Object.keys(urls).length && ids.every((id) => urls[id] === next[id])
+			return same ? urls : next
+		})
 	}, [source, items, context])
 
-	if (source.resolveThumbnail) return resolved
+	const resolvedUrls = useMemo(
+		() =>
+			Object.fromEntries(
+				Object.entries(resolved).map(([id, url]) => [id, url ?? undefined])
+			) as Record<TLLibraryItemId, string | undefined>,
+		[resolved]
+	)
+
+	if (source.resolveThumbnail) return resolvedUrls
 	return Object.fromEntries(
 		items.map((item) => [
 			item.id,
-			item.thumbnail && getThumbnailForColorMode(item.thumbnail, colorMode),
+			item.thumbnail ? getThumbnailForColorMode(item.thumbnail, colorMode) : undefined,
 		])
 	)
 }

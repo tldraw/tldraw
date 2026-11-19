@@ -24,6 +24,16 @@ export {
 } from './canvas/library-section-header'
 export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
 export { useLibrariesEnabled } from './canvas/license'
+export { type TLLibraryItemOrdering } from './canvas/item-order'
+export { useLibraries } from './canvas/use-libraries'
+export { useLibraryCan } from './canvas/use-library-can'
+export { useLibraryCollapsed } from './canvas/use-library-collapsed'
+export { type LibraryItemOrder, useLibraryItemOrder } from './canvas/use-library-item-order'
+export { type LibraryItemsOptions, useLibraryItems } from './canvas/use-library-items'
+export {
+	type LibraryThumbnailUrlsOptions,
+	useLibraryThumbnailUrls,
+} from './canvas/use-library-thumbnail-urls'
 export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
 export { placeLibraryItem } from './canvas/place-item'
 export {

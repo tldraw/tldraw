@@ -19,13 +19,15 @@ import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-til
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getContentTooNewToast } from './content-too-new-toast'
 import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
-import { type ItemOrdering, sortItems } from './item-order'
+import type { TLLibraryItemOrdering } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
+import { useLibraryCan } from './use-library-can'
+import { useLibraryItems } from './use-library-items'
+import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 import { useSaveSelection } from './use-save-selection'
-import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
 	copyName: { id: 'libraries.copy-name', defaultMessage: '{name} (Copy)' },
@@ -62,7 +64,7 @@ export interface LibraryItemsProps {
 	/** Where the tiles are measured for their thumbnail size. */
 	container: HTMLElement | null
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
-	ordering: ItemOrdering
+	ordering: TLLibraryItemOrdering
 	reversed: boolean
 	prepareItemContent?: PrepareItemContent
 }
@@ -88,24 +90,11 @@ export function LibraryItems({
 		AddSelectionTile = DefaultAddSelectionTile,
 	} = overrides
 	const libraryId = library.id
-	const items = useValue(
-		'library items',
-		() => sortItems(source.getItems(libraryId), ordering, reversed),
-		[source, libraryId, ordering, reversed]
-	)
-	const thumbnailUrls = useThumbnailUrls(source, items, container)
-	const canRename = useValue('can rename items', () => source.can('updateItem', libraryId), [
-		source,
-		libraryId,
-	])
-	const canAdd = useValue('can add items', () => source.can('addItem', libraryId), [
-		source,
-		libraryId,
-	])
-	const canDelete = useValue('can delete items', () => source.can('deleteItem', libraryId), [
-		source,
-		libraryId,
-	])
+	const items = useLibraryItems(source, libraryId, { ordering, reversed })
+	const thumbnailUrls = useLibraryThumbnailUrls(source, items, { container })
+	const canRename = useLibraryCan(source, 'updateItem', libraryId)
+	const canAdd = useLibraryCan(source, 'addItem', libraryId)
+	const canDelete = useLibraryCan(source, 'deleteItem', libraryId)
 	const grouping = useLibraryGrouping(source)
 	const copyTargets = useValue(
 		'copy targets',
@@ -246,7 +235,7 @@ export function LibraryItems({
 							item={item}
 							name={item.name}
 							accessibleLabel={item.name ?? msg(messages.unnamedItem)}
-							thumbnailUrl={thumbnailUrls[item.id] ?? undefined}
+							thumbnailUrl={thumbnailUrls[item.id]}
 							buttonProps={getTileProps(item.id)}
 							menu={
 								ItemMenu && (

@@ -38,6 +38,7 @@ import { activeLibraryId, librariesPanelOpen } from './state'
 import { getLibraryErrorReason } from './ui-events'
 import { useCreateLibrary } from './use-create-library'
 import { useItemDrag } from './use-item-drag'
+import { useLibraries } from './use-libraries'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
@@ -83,6 +84,11 @@ export interface LibrariesPanelProps {
  * - `--tlui-libraries-panel-max-height`: the tallest the panel grows before it scrolls. Defaults to
  *   the canvas's height less the two insets, at most `720px`.
  * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
+ *
+ * `--tlui-libraries-tile-width` is the width of a tile, `86.67px` by default, and the panel is three
+ * tiles wide (280px with its 20px of gutter) whatever the number of columns. The default is set on the panel itself, so override
+ * it with a rule on `.tlui-libraries-panel`. Read it to size an `ItemTile` override or anything
+ * else to match the tiles.
  * @public @react
  */
 export function LibrariesPanel({ components, ...props }: LibrariesPanelProps) {
@@ -107,7 +113,7 @@ function LibrariesPanelContent({
 	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
-	const libraries = useValue('libraries', () => source.getLibraries(), [source])
+	const libraries = useLibraries(source)
 	const grouping = useLibraryGrouping(source)
 	const placeItem = useCallback(
 		(itemId: TLLibraryItemId) => {
