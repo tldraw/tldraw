@@ -6,9 +6,11 @@ import { Environment } from '../../types'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 vi.mock('../../utils/tla/getAuth', () => ({ requireAuth: vi.fn() }))
+vi.mock('../../utils/featureFlags', () => ({ canUseLibraries: vi.fn() }))
 
 const { createPostgresConnectionPool } = await import('../../postgres')
 const { requireAuth } = await import('../../utils/tla/getAuth')
+const { canUseLibraries } = await import('../../utils/featureFlags')
 const { copyLibrary } = await import('./copyLibrary')
 
 const ME = 'user_aaaa11112222bbbb'
@@ -65,6 +67,7 @@ function request(owningGroupId: string) {
 
 beforeEach(() => {
 	vi.mocked(requireAuth).mockResolvedValue({ userId: ME } as any)
+	vi.mocked(canUseLibraries).mockResolvedValue(true)
 })
 
 afterEach(() => vi.clearAllMocks())
@@ -160,6 +163,16 @@ describe('copyLibrary', () => {
 		mockPool([[access(null)]])
 		const env = makeEnv()
 		expect((await copyLibrary(request(V), env)).status).toBe(404)
+	})
+
+	it('answers 404 without reading anything when the libraries flag is off for me', async () => {
+		vi.mocked(canUseLibraries).mockResolvedValue(false)
+		const env = makeEnv()
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
+		expect((await copyLibrary(request(V), env)).status).toBe(404)
+		expect(canUseLibraries).toHaveBeenCalledWith(env, ME)
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
+		expect(await keysOf(env.ROOMS)).toEqual([getLibraryItemContentKey('item_a')])
 	})
 
 	it("answers 403 when I'm not a member of the destination", async () => {

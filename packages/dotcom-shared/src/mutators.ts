@@ -27,7 +27,7 @@ import {
 	TlaUser,
 	TlaUserPartial,
 } from './tlaSchema'
-import { ZErrorCode } from './types'
+import { FeatureFlagKey, ZErrorCode } from './types'
 
 /** Query builder for mutators - uses Zero's createBuilder API */
 const zql = createBuilder(schema)
@@ -225,7 +225,25 @@ async function assertCanManageLibraryItem(tx: Tx, userId: string, itemId: string
 	return item
 }
 
-export function createMutators(userId: string) {
+/**
+ * Refuses on the server unless the `libraries` flag is on for the user. The client skips it: its UI
+ * is behind the same flag.
+ */
+async function assertLibrariesEnabled(tx: Tx, options: MutatorOptions) {
+	if (tx.location !== 'server') return
+	const { isFeatureEnabled } = options
+	assert(isFeatureEnabled && (await isFeatureEnabled('libraries')), ZErrorCode.forbidden)
+}
+
+export interface MutatorOptions {
+	/**
+	 * Whether a feature flag is on for the user, for mutators the server gates on one. Server only;
+	 * without it every such flag reads as off there.
+	 */
+	isFeatureEnabled?(flag: FeatureFlagKey): Promise<boolean>
+}
+
+export function createMutators(userId: string, options: MutatorOptions = {}) {
 	const mutators = {
 		user: {
 			update: async (tx: Tx, user: TlaUserPartial) => {
@@ -305,6 +323,7 @@ export function createMutators(userId: string) {
 					meta = {},
 				}: { id: string; name: string; owningGroupId: string; meta?: JsonObject }
 			) => {
+				await assertLibrariesEnabled(tx, options)
 				assertValidId(id)
 				assertValidLibraryMeta(meta)
 				const role = await getRole(tx, userId, owningGroupId)
@@ -324,10 +343,12 @@ export function createMutators(userId: string) {
 				})
 			},
 			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibrary(tx, userId, id)
 				await tx.mutate.library.update({ id, name: libraryName(name), updatedAt: Date.now() })
 			},
 			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibrary(tx, userId, id)
 				// The foreign key cascades in Postgres, but a client's local store has no cascade.
 				if (tx.location !== 'server') {
@@ -338,6 +359,7 @@ export function createMutators(userId: string) {
 			},
 			/** Gives a library, with its items, to another workspace the user is a member of. */
 			move: async (tx: Tx, { id, owningGroupId }: { id: string; owningGroupId: string }) => {
+				await assertLibrariesEnabled(tx, options)
 				assert(owningGroupId, ZErrorCode.bad_request)
 				const library = await assertCanManageLibrary(tx, userId, id)
 				if (library.owningGroupId === owningGroupId) return
@@ -349,6 +371,7 @@ export function createMutators(userId: string) {
 
 		library_item: {
 			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibraryItem(tx, userId, id)
 				await tx.mutate.library_item.update({
 					id,
@@ -357,11 +380,13 @@ export function createMutators(userId: string) {
 				})
 			},
 			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibraryItem(tx, userId, id)
 				await tx.mutate.library_item.delete({ id })
 			},
 			/** Moves an item to another library, which may belong to another workspace. */
 			move: async (tx: Tx, { id, libraryId }: { id: string; libraryId: string }) => {
+				await assertLibrariesEnabled(tx, options)
 				const item = await assertCanManageLibraryItem(tx, userId, id)
 				if (item.libraryId === libraryId) return
 				await assertCanManageLibrary(tx, userId, libraryId)

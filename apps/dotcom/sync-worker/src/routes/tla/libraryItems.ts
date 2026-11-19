@@ -21,6 +21,7 @@ import {
 } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { canUseLibraries } from '../../utils/featureFlags'
 import { requireAuth } from '../../utils/tla/getAuth'
 
 export interface AddLibraryItemResponseBody {
@@ -74,6 +75,7 @@ function isItemContent(value: unknown): value is StoredItemContent {
  */
 export async function addLibraryItem(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
+	if (!(await canUseLibraries(env, auth.userId))) return notFound()
 	const libraryId = request.params.libraryId
 	if (!libraryId) return badRequest('Library id is required')
 
@@ -160,6 +162,7 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 /** An item's content, to members of its library's workspace. */
 export async function getLibraryItemContent(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
+	if (!(await canUseLibraries(env, auth.userId))) return notFound()
 	const itemId = request.params.itemId
 	if (!itemId) return badRequest('Item id is required')
 

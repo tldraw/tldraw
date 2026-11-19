@@ -6,6 +6,7 @@ import { getLibraryAccess, getLibraryItemContentKey, getWorkspaceRole } from '..
 import { copyThumbnail, LibraryItemInsertRow, toThumbnailColumn } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { canUseLibraries } from '../../utils/featureFlags'
 import { requireAuth } from '../../utils/tla/getAuth'
 
 export interface CopyLibraryRequestBody {
@@ -24,6 +25,9 @@ export interface CopyLibraryResponseBody {
  */
 export async function copyLibrary(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
+	if (!(await canUseLibraries(env, auth.userId))) {
+		return Response.json({ error: 'Not found' }, { status: 404 })
+	}
 	const libraryId = request.params.libraryId
 	const body = (await request.json().catch(() => null)) as CopyLibraryRequestBody | null
 	const owningGroupId = body?.owningGroupId
