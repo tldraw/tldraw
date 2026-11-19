@@ -10,7 +10,7 @@ import {
 	getNextLibraryObjectDeleteDueAt,
 	selectEffectOutboxBatch,
 } from './effectOutboxQueries'
-import { LIBRARY_OBJECT_DELETE_GRACE_MS } from './libraryEffects'
+import { LIBRARY_OBJECT_DELETE_GRACE_MS, queueLibraryObjectDeletes } from './libraryEffects'
 
 // Runs the outbox queries against the real migration chain in a throwaway database. Opt-in, like
 // the zero-cache integration tests: set ZERO_CACHE_TEST_POSTGRES_URL (local dev stack:
@@ -102,6 +102,32 @@ describeMaybe('effect outbox queries', () => {
 		)
 		await queue('file', 'file-stalled', fifteenMinutes + 60_000)
 		expect(await countStalledEffectOutboxRows(db)).toBe(2)
+	})
+
+	it("queues an add's objects as library_item_object's trigger does, deferred like its rows", async () => {
+		await queueLibraryObjectDeletes(db, [
+			{ bucket: 'rooms', objectName: 'library-items/k/content.json' },
+			{ bucket: 'uploads', objectName: 'thumb-png' },
+		])
+		const { rows } = await pool.query(
+			`SELECT "tableName", "entityId", command, payload FROM effect_outbox ORDER BY id`
+		)
+		expect(rows).toEqual([
+			{
+				tableName: 'library_item_object',
+				entityId: 'rooms/library-items/k/content.json',
+				command: 'delete',
+				payload: { bucket: 'rooms', objectName: 'library-items/k/content.json' },
+			},
+			{
+				tableName: 'library_item_object',
+				entityId: 'uploads/thumb-png',
+				command: 'delete',
+				payload: { bucket: 'uploads', objectName: 'thumb-png' },
+			},
+		])
+		expect(await selectEffectOutboxBatch(db)).toEqual([])
+		expect(await getNextLibraryObjectDeleteDueAt(db)).not.toBe(null)
 	})
 
 	it("doesn't defer other tables' effects", async () => {

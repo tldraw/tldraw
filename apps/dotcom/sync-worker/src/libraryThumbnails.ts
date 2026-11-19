@@ -38,37 +38,35 @@ export type LibraryItemInsertRow = Omit<TlaLibraryItem, 'thumbnail'> &
 		thumbnail: ReturnType<typeof toThumbnailColumn>
 	}
 
+/** A thumbnail image to store as a public upload, and the name it's stored under. */
+export interface ThumbnailUpload {
+	image: Blob
+	objectName: string
+}
+
+/** Names a thumbnail image's upload, before it is stored. */
+export function nameThumbnailUpload(image: Blob): ThumbnailUpload {
+	const extension = image.type === 'image/svg+xml' ? 'svg' : image.type.split('/')[1]
+	return { image, objectName: `${uniqueId()}-${extension}` }
+}
+
 /**
- * Stores a thumbnail's images as new public uploads and returns their URLs: one, or a light and a
- * dark one. Their names are added to `stored`, so a caller can delete what it stored if a later
- * step fails.
+ * Stores a thumbnail's images as public uploads and returns their URLs: one, or a light and a dark
+ * one.
  */
 export async function putThumbnail(
 	env: Environment,
-	light: Blob,
-	dark: Blob | null,
-	stored: string[]
+	light: ThumbnailUpload,
+	dark: ThumbnailUpload | null
 ): Promise<TlaLibraryItemThumbnail> {
-	const lightUrl = await putImage(env, light, stored)
-	return dark ? { light: lightUrl, dark: await putImage(env, dark, stored) } : lightUrl
+	const lightUrl = await putImage(env, light)
+	return dark ? { light: lightUrl, dark: await putImage(env, dark) } : lightUrl
 }
 
-async function putImage(env: Environment, image: Blob, stored: string[]) {
-	const extension = image.type === 'image/svg+xml' ? 'svg' : image.type.split('/')[1]
-	const body = await image.arrayBuffer()
-	return putObject(env, extension, body, { contentType: image.type }, stored)
-}
-
-async function putObject(
-	env: Environment,
-	extension: string,
-	body: ArrayBuffer,
-	httpMetadata: R2HTTPMetadata | undefined,
-	stored: string[]
-) {
-	const objectName = `${uniqueId()}-${extension}`
-	await env.UPLOADS.put(objectName, body, { httpMetadata })
-	stored.push(objectName)
+async function putImage(env: Environment, { image, objectName }: ThumbnailUpload) {
+	await env.UPLOADS.put(objectName, await image.arrayBuffer(), {
+		httpMetadata: { contentType: image.type },
+	})
 	return `${getUserContentUrl(env)}/${objectName}`
 }
 
