@@ -70,7 +70,7 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
-// Per-isolate cache of stored values. Every page load fetches all flags and every MCP request
+// Per-isolate cache of stored values. Every page load fetches all flags and every MCP page read
 // checks one, so without it each costs a KV read per flag. A flip lands within this TTL plus KV's
 // own edge cache (~60s).
 const FLAG_CACHE_TTL_MS = 30_000
