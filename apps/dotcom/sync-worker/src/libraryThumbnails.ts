@@ -1,7 +1,10 @@
-import { TlaLibraryItem, TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
+import {
+	LibraryItemPersistenceColumns,
+	TlaLibraryItem,
+	TlaLibraryItemThumbnail,
+} from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { RawBuilder, sql } from 'kysely'
-import { getUploadObjectName } from './assetAssociation'
 import { Environment } from './types'
 
 // An item's thumbnails are public uploads, served by object name like a board's images, under
@@ -17,13 +20,6 @@ export const LIBRARY_ITEM_THUMBNAIL_TYPES: ReadonlySet<string> = new Set([
 	'image/svg+xml',
 ])
 
-/** The uploads-bucket objects a thumbnail's URLs point at. */
-export function getThumbnailObjectNames(thumbnail: TlaLibraryItemThumbnail | null): string[] {
-	if (thumbnail === null) return []
-	const urls = typeof thumbnail === 'string' ? [thumbnail] : [thumbnail.light, thumbnail.dark]
-	return urls.flatMap((src) => getUploadObjectName({ props: { src } }) ?? [])
-}
-
 /**
  * The value to write to library_item."thumbnail". node-postgres passes a string parameter
  * through as it is, and jsonb would read a bare URL as malformed JSON, so it is encoded here. It
@@ -37,9 +33,10 @@ export function toThumbnailColumn(
 }
 
 /** A library_item row as it is inserted, its thumbnail written with toThumbnailColumn. */
-export type LibraryItemInsertRow = Omit<TlaLibraryItem, 'thumbnail'> & {
-	thumbnail: ReturnType<typeof toThumbnailColumn>
-}
+export type LibraryItemInsertRow = Omit<TlaLibraryItem, 'thumbnail'> &
+	LibraryItemPersistenceColumns & {
+		thumbnail: ReturnType<typeof toThumbnailColumn>
+	}
 
 /**
  * Stores a thumbnail's images as new public uploads and returns their URLs: one, or a light and a
@@ -60,32 +57,6 @@ async function putImage(env: Environment, image: Blob, stored: string[]) {
 	const extension = image.type === 'image/svg+xml' ? 'svg' : image.type.split('/')[1]
 	const body = await image.arrayBuffer()
 	return putObject(env, extension, body, { contentType: image.type }, stored)
-}
-
-/**
- * Copies a thumbnail's images to new public uploads, so the copy can be deleted without the
- * original. Null when the image, or the light one of a pair, is missing; a pair whose dark image
- * is missing becomes its light one alone.
- */
-export async function copyThumbnail(
-	env: Environment,
-	thumbnail: TlaLibraryItemThumbnail | null,
-	stored: string[]
-): Promise<TlaLibraryItemThumbnail | null> {
-	if (thumbnail === null) return null
-	if (typeof thumbnail === 'string') return copyImage(env, thumbnail, stored)
-	const light = await copyImage(env, thumbnail.light, stored)
-	if (!light) return null
-	const dark = await copyImage(env, thumbnail.dark, stored)
-	return dark ? { light, dark } : light
-}
-
-async function copyImage(env: Environment, url: string, stored: string[]) {
-	const objectName = getUploadObjectName({ props: { src: url } })
-	const object = objectName && (await env.UPLOADS.get(objectName))
-	if (!object) return null
-	const extension = objectName.split('-').pop()!
-	return putObject(env, extension, await object.arrayBuffer(), object.httpMetadata, stored)
 }
 
 async function putObject(

@@ -1,70 +1,40 @@
 import { describe, expect, it, vi } from 'vitest'
-import { processLibraryItemEffect } from './libraryEffects'
-import { getLibraryItemContentKey } from './libraryStorage'
+import { processLibraryItemObjectEffect } from './libraryEffects'
 
-const row = (command: 'insert' | 'update' | 'delete', thumbnail: unknown = null) =>
+const row = (command: 'insert' | 'update' | 'delete') =>
 	({
 		id: 1,
-		tableName: 'library_item',
-		entityId: 'item_a',
+		tableName: 'library_item_object',
+		entityId: 'uploads/abc-png',
 		command,
-		payload: { id: 'item_a', thumbnail },
+		payload: { bucket: 'uploads', objectName: 'abc-png' },
 	}) as any
 
-function makeDeps(ownedUploads: string[] = []) {
-	const calls: string[] = []
+function makeDeps(used: boolean) {
 	return {
-		calls,
-		deps: {
-			deleteStoredObjects: vi.fn(async (keys: string[]) => {
-				calls.push(`stored:${keys.join(',')}`)
-			}),
-			getOwnedUploads: vi.fn(async () => ownedUploads),
-			deleteUploads: vi.fn(async (names: string[]) => {
-				calls.push(`uploads:${names.join(',')}`)
-			}),
-			forgetOwnedUploads: vi.fn(async (itemId: string) => {
-				calls.push(`forget:${itemId}`)
-			}),
-		},
+		isObjectUsed: vi.fn(async () => used),
+		deleteObject: vi.fn(async () => {}),
 	}
 }
 
-describe('processLibraryItemEffect', () => {
-	it("deletes a deleted item's thumbnails, owned uploads and content, forgetting the uploads last", async () => {
-		const { deps, calls } = makeDeps(['abc-png', 'def-jpg'])
-		await processLibraryItemEffect(
-			deps,
-			row('delete', {
-				light: 'https://content.test/light_1-png',
-				dark: 'https://content.test/dark_1-png',
-			})
-		)
-		expect(calls).toEqual([
-			'uploads:light_1-png,dark_1-png,abc-png,def-jpg',
-			'forget:item_a',
-			`stored:${getLibraryItemContentKey('item_a')}`,
-		])
+describe('processLibraryItemObjectEffect', () => {
+	it('deletes an object no item uses', async () => {
+		const deps = makeDeps(false)
+		await processLibraryItemObjectEffect(deps, row('delete'))
+		expect(deps.isObjectUsed).toHaveBeenCalledWith({ bucket: 'uploads', objectName: 'abc-png' })
+		expect(deps.deleteObject).toHaveBeenCalledWith({ bucket: 'uploads', objectName: 'abc-png' })
 	})
 
-	it('deletes a single thumbnail', async () => {
-		const { deps } = makeDeps()
-		await processLibraryItemEffect(deps, row('delete', 'https://content.test/only_1-webp'))
-		expect(deps.deleteUploads).toHaveBeenCalledWith(['only_1-webp'])
-	})
-
-	it('skips the uploads delete for an item with no thumbnail that owns none', async () => {
-		const { deps } = makeDeps()
-		await processLibraryItemEffect(deps, row('delete'))
-		expect(deps.deleteUploads).not.toHaveBeenCalled()
-		expect(deps.deleteStoredObjects).toHaveBeenCalled()
+	it('keeps an object an item has come to use since it was queued', async () => {
+		const deps = makeDeps(true)
+		await processLibraryItemObjectEffect(deps, row('delete'))
+		expect(deps.deleteObject).not.toHaveBeenCalled()
 	})
 
 	it('ignores anything but a delete', async () => {
-		const { deps } = makeDeps(['abc-png'])
-		await processLibraryItemEffect(deps, row('update', 'https://content.test/only_1-webp'))
-		expect(deps.getOwnedUploads).not.toHaveBeenCalled()
-		expect(deps.deleteUploads).not.toHaveBeenCalled()
-		expect(deps.deleteStoredObjects).not.toHaveBeenCalled()
+		const deps = makeDeps(false)
+		await processLibraryItemObjectEffect(deps, row('update'))
+		expect(deps.isObjectUsed).not.toHaveBeenCalled()
+		expect(deps.deleteObject).not.toHaveBeenCalled()
 	})
 })

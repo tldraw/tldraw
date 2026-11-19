@@ -1,9 +1,8 @@
-import { can, isRole, TlaLibraryItem, TlaLibraryItemAsset } from '@tldraw/dotcom-shared'
+import { can, isRole, TlaLibraryItemObject } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
-import { getLibraryAccess, getLibraryItemContentKey, getWorkspaceRole } from '../../libraryStorage'
-import { copyThumbnail, LibraryItemInsertRow, toThumbnailColumn } from '../../libraryThumbnails'
+import { getLibraryAccess, getWorkspaceRole } from '../../libraryStorage'
+import { LibraryItemInsertRow, toThumbnailColumn } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { canUseLibraries } from '../../utils/featureFlags'
@@ -18,10 +17,11 @@ export interface CopyLibraryResponseBody {
 }
 
 /**
- * Copies a library, with its items, into a workspace: new rows, and copies of each item's
- * content, thumbnail and the uploads it owns, made here rather than through the client. The caller must be a member of the
- * library's workspace and able to manage libraries in the destination. An item whose content
- * is missing is left out.
+ * Copies a library, with its items, into a workspace. The copy's items share the R2 objects of
+ * the items they were copied from (content, thumbnails and the uploads they own): this inserts
+ * rows only, a library_item_object row for each object a copied item uses, and an object is
+ * deleted once no item uses it. The caller must be a member of the library's workspace and able to
+ * manage libraries in the destination.
  */
 export async function copyLibrary(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -45,91 +45,58 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
 
-		const items = await db
-			.selectFrom('library_item')
-			.selectAll()
-			.where('libraryId', '=', libraryId)
-			.orderBy('createdAt')
-			.execute()
-
 		const id = uniqueId()
 		const now = Date.now()
-		const copied: CopiedObjects = { keys: [], uploads: [] }
-		const rows: LibraryItemInsertRow[] = []
-		const owned: TlaLibraryItemAsset[] = []
-		try {
-			for (const item of items) {
-				const newItemId = uniqueId()
-				const copy = await copyItemObjects(env, item, newItemId, copied)
-				if (!copy) continue
-				rows.push({
-					id: newItemId,
-					libraryId: id,
-					name: item.name,
-					thumbnail: toThumbnailColumn(copy.thumbnail),
+		await db.transaction().execute(async (tx) => {
+			// Locked so a delete of a source item waits for the copy, and can't remove an object
+			// before the copy's rows name it.
+			const items = await tx
+				.selectFrom('library_item')
+				.selectAll()
+				.where('libraryId', '=', libraryId)
+				.orderBy('createdAt')
+				.forKeyShare()
+				.execute()
+			await tx
+				.insertInto('library')
+				.values({
+					id,
+					name: access.library.name,
+					owningGroupId,
 					createdBy: auth.userId,
 					createdAt: now,
 					updatedAt: now,
+					meta: access.library.meta,
 				})
-				for (const objectName of copy.ownedObjectNames) {
-					owned.push({ itemId: newItemId, objectName })
-				}
-			}
-			await db.transaction().execute(async (tx) => {
-				await tx
-					.insertInto('library')
-					.values({
-						id,
-						name: access.library.name,
-						owningGroupId,
-						createdBy: auth.userId,
-						createdAt: now,
-						updatedAt: now,
-						meta: access.library.meta,
-					})
-					.execute()
-				if (rows.length > 0) await tx.insertInto('library_item').values(rows).execute()
-				if (owned.length > 0) await tx.insertInto('library_item_asset').values(owned).execute()
-			})
-		} catch (error) {
-			if (copied.keys.length > 0) await env.ROOMS.delete(copied.keys)
-			if (copied.uploads.length > 0) await env.UPLOADS.delete(copied.uploads)
-			throw error
-		}
+				.execute()
+			if (items.length === 0) return
+
+			const newIdsBySourceId = new Map(items.map((item) => [item.id, uniqueId()]))
+			const rows: LibraryItemInsertRow[] = items.map((item) => ({
+				id: newIdsBySourceId.get(item.id)!,
+				libraryId: id,
+				name: item.name,
+				thumbnail: toThumbnailColumn(item.thumbnail),
+				contentKey: item.contentKey,
+				createdBy: auth.userId,
+				createdAt: now,
+				updatedAt: now,
+			}))
+			await tx.insertInto('library_item').values(rows).execute()
+
+			const sourceObjects = await tx
+				.selectFrom('library_item_object')
+				.selectAll()
+				.where('itemId', 'in', [...newIdsBySourceId.keys()])
+				.execute()
+			const objects: TlaLibraryItemObject[] = sourceObjects.map((object) => ({
+				...object,
+				itemId: newIdsBySourceId.get(object.itemId)!,
+			}))
+			if (objects.length > 0) await tx.insertInto('library_item_object').values(objects).execute()
+		})
 		return Response.json({ id } satisfies CopyLibraryResponseBody)
 	} finally {
 		await db.destroy()
 	}
-}
-
-interface CopiedObjects {
-	keys: string[]
-	uploads: string[]
-}
-
-/**
- * Copies an item's stored content to a new id, the copy owning its own copies of the uploads its
- * content refers to, and its thumbnail to new public uploads; null when its content is missing.
- */
-async function copyItemObjects(
-	env: Environment,
-	item: TlaLibraryItem,
-	newId: string,
-	copied: CopiedObjects
-) {
-	const stored = await env.ROOMS.get(getLibraryItemContentKey(item.id))
-	if (!stored) return null
-	const { content, ownedObjectNames } = await copyItemAssets(
-		env,
-		(await stored.json()) as StoredItemContent,
-		newId
-	)
-	copied.uploads.push(...ownedObjectNames)
-	const contentKey = getLibraryItemContentKey(newId)
-	await env.ROOMS.put(contentKey, JSON.stringify(content), {
-		httpMetadata: { contentType: 'application/json' },
-	})
-	copied.keys.push(contentKey)
-	const thumbnail = await copyThumbnail(env, item.thumbnail, copied.uploads)
-	return { thumbnail, ownedObjectNames }
 }

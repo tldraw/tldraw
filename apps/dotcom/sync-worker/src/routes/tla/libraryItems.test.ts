@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getLibraryItemContentKey } from '../../libraryStorage'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { createFakeR2 } from '../../test/fakeR2'
 import { Environment } from '../../types'
@@ -18,6 +17,7 @@ const W = 'group_www11112222www'
 const LIBRARY_ID = 'coll_aaaa11112222bbbb'
 const ITEM_ID = 'item_1111222233334444'
 const CONTENT = { formatVersion: 1, content: { shapes: [], rootShapeIds: [], schema: {} } }
+const CONTENT_KEY = 'library-items/content_1111222233334444/content.json'
 
 function mockPool(resultSets: unknown[][]) {
 	const fake = createFakeKysely(resultSets)
@@ -35,6 +35,12 @@ function makeEnv() {
 
 const uploadNames = async (env: Environment) =>
 	(await env.UPLOADS.list()).objects.map((o: { key: string }) => o.key)
+
+// The key of the one item content stored, and the content.
+async function storedContent(env: Environment) {
+	const [{ key }] = (await env.ROOMS.list()).objects
+	return { key, content: await (await env.ROOMS.get(key))!.json<any>() }
+}
 
 function addRequest(fields: Record<string, string | Blob>) {
 	const form = new FormData()
@@ -68,6 +74,7 @@ const itemAccess = (role: string | null) => ({
 	libraryId: LIBRARY_ID,
 	name: null,
 	thumbnail: 'https://content.test/thumb_1-png',
+	contentKey: CONTENT_KEY,
 	createdBy: ME,
 	createdAt: 1,
 	updatedAt: 1,
@@ -98,15 +105,19 @@ describe('addLibraryItem', () => {
 		expect(response.status).toBe(200)
 		const { id, thumbnail } = (await response.json()) as { id: string; thumbnail: string }
 		expect(id).not.toBe(ITEM_ID)
-		expect(await (await env.ROOMS.get(getLibraryItemContentKey(id)))!.json()).toEqual(CONTENT)
+		const stored = await storedContent(env)
+		expect(stored.content).toEqual(CONTENT)
+		expect(stored.key).not.toContain(id)
 		const [objectName] = await uploadNames(env)
 		expect(objectName).toMatch(/-webp$/)
 		expect(objectName).not.toContain(id)
 		expect(thumbnail).toBe(`https://content.test/${objectName}`)
-		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
+		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item" '))!
 		expect(insert.parameters).toEqual(
-			expect.arrayContaining([id, LIBRARY_ID, 'Button', JSON.stringify(thumbnail), ME])
+			expect.arrayContaining([id, LIBRARY_ID, 'Button', JSON.stringify(thumbnail), stored.key, ME])
 		)
+		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
+		expect(objects.parameters).toEqual([id, 'rooms', stored.key, id, 'uploads', objectName])
 	})
 
 	it('stores a light and a dark thumbnail', async () => {
@@ -129,8 +140,10 @@ describe('addLibraryItem', () => {
 		expect(names).toHaveLength(2)
 		expect(thumbnail.light).toMatch(/^https:\/\/content\.test\/.+-png$/)
 		expect(thumbnail.dark).toMatch(/^https:\/\/content\.test\/.+-webp$/)
-		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
+		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item" '))!
 		expect(insert.parameters).toContain(JSON.stringify(thumbnail))
+		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
+		expect(objects.parameters).toEqual(expect.arrayContaining(names))
 	})
 
 	it('stores an SVG thumbnail as an SVG upload', async () => {
@@ -261,14 +274,12 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		const uploads = await uploadNames(env)
 		const copyName = uploads.find((key: string) => key !== 'abc123-png')!
 		expect(copyName).toMatch(/-png$/)
-		const stored = await (await env.ROOMS.get(getLibraryItemContentKey(id)))!.json<any>()
+		const { key, content: stored } = await storedContent(env)
 		expect(stored.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
 		// so a board it's placed on copies the image for itself
 		expect(stored.content.assets[0].meta).toEqual({})
-		const ownership = fake.queries.find((q) =>
-			q.sql.startsWith('insert into "library_item_asset"')
-		)!
-		expect(ownership.parameters).toEqual([id, copyName])
+		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
+		expect(objects.parameters).toEqual([id, 'rooms', key, id, 'uploads', copyName])
 	})
 
 	it('leaves an asset whose upload is missing, or that is not an upload, as it was', async () => {
@@ -278,16 +289,17 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		const response = await addLibraryItem(addRequest({ content: withAssets(assets) }), env)
 
 		const { id } = (await response.json()) as { id: string }
-		const stored = await (await env.ROOMS.get(getLibraryItemContentKey(id)))!.json<any>()
+		const { key, content: stored } = await storedContent(env)
 		expect(stored.content.assets).toEqual(assets)
-		expect(fake.queries.some((q) => q.sql.includes('library_item_asset'))).toBe(false)
+		const objects = fake.queries.find((q) => q.sql.startsWith('insert into "library_item_object"'))!
+		expect(objects.parameters).toEqual([id, 'rooms', key])
 	})
 })
 
 describe('getLibraryItemContent', () => {
 	async function storedEnv() {
 		const env = makeEnv()
-		await env.ROOMS.put(getLibraryItemContentKey(ITEM_ID), JSON.stringify(CONTENT))
+		await env.ROOMS.put(CONTENT_KEY, JSON.stringify(CONTENT))
 		return env
 	}
 
