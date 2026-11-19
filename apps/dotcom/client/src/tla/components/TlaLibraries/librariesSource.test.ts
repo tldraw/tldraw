@@ -544,4 +544,14 @@ describe('TldrawAppLibrariesSource', () => {
 		source.dispose()
 		expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-2')
 	})
+
+	it('releases the thumbnails it made for the items of a library it deletes', async () => {
+		const { source } = setUp()
+		const kit = await source.createLibrary('Kit')
+		const other = await source.createLibrary('Other')
+		await added(source.addItem(kit.id, { content, thumbnail: png() }))
+		await added(source.addItem(other.id, { content, thumbnail: png() }))
+		await source.deleteLibrary(kit.id)
+		expect(vi.mocked(URL.revokeObjectURL).mock.calls).toEqual([['blob:local-1']])
+	})
 })
