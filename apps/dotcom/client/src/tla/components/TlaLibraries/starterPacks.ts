@@ -1,11 +1,13 @@
 import {
 	copyPack,
+	libraryThumbnailValidator,
+	parseLibraryPack,
 	type LibraryPack,
 	type LibraryPackItem,
 	type LibrarySource,
 	type TLLibrary,
 } from '@tldraw/libraries'
-import { atom } from 'tldraw'
+import { atom, T } from 'tldraw'
 
 /** What the starter packs dialog shows of a pack, without loading its items. */
 export interface StarterPackSummary {
@@ -15,6 +17,18 @@ export interface StarterPackSummary {
 	itemCount: number
 	previews: Pick<LibraryPackItem, 'id' | 'thumbnail'>[]
 }
+
+const starterPackSummariesValidator: T.Validator<StarterPackSummary[]> = T.arrayOf(
+	T.object({
+		id: T.string,
+		name: T.string,
+		version: T.positiveInteger,
+		itemCount: T.nonZeroInteger,
+		previews: T.arrayOf(
+			T.object({ id: T.string, thumbnail: libraryThumbnailValidator.optional() })
+		),
+	})
+)
 
 export const STARTER_PACK_PREVIEW_COUNT = 4
 
@@ -42,7 +56,7 @@ export function getStarterPackSummaries() {
 export function loadStarterPackSummaries() {
 	loadingSummaries ??= import('./starterPackManifest.json').then(
 		(manifest) => {
-			const summaries = manifest.default as StarterPackSummary[]
+			const summaries = starterPackSummariesValidator.validate(manifest.default)
 			starterPackSummaries.set(summaries)
 			return summaries
 		},
@@ -57,7 +71,7 @@ export function loadStarterPackSummaries() {
 export async function loadStarterPack(id: string): Promise<LibraryPack> {
 	const load = Object.hasOwn(STARTER_PACK_LOADERS, id) ? STARTER_PACK_LOADERS[id] : undefined
 	if (!load) throw new Error(`No starter pack with id ${id}`)
-	return (await load()).default as LibraryPack
+	return parseLibraryPack((await load()).default)
 }
 
 function getDefaultOwnerId(source: LibrarySource) {
