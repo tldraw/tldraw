@@ -22,6 +22,7 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
 	addStarterPack,
 	canAddStarterPack,
@@ -31,6 +32,7 @@ import {
 	loadStarterPackSummaries,
 	type StarterPackSummary,
 } from './starterPacks'
+import { getUntrackedLibrarySource } from './trackLibrarySource'
 import styles from './TlaStarterPacksDialog.module.css'
 
 const messages = defineMessages({
@@ -97,6 +99,7 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: StarterPac
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
 	const [adding, setAdding] = useState(false)
 	const added = useValue('starter pack added', () => isStarterPackAdded(source, pack.id), [
 		source,
@@ -108,9 +111,11 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: StarterPac
 	const add = () => {
 		setAdding(true)
 		loadStarterPack(pack.id)
-			.then((fullPack) => addStarterPack(source, fullPack))
+			// Untracked, so the pack's library and items count only as add-starter-pack.
+			.then((fullPack) => addStarterPack(getUntrackedLibrarySource(source), fullPack))
 			.then(
 				(library) => {
+					trackEvent('add-starter-pack', { source: 'libraries', pack: pack.id })
 					activeLibraryId.set(editor, library.id)
 					addToast({
 						title: msg(messages.added),

@@ -1,23 +1,37 @@
-import { AddToLibraryMenuItem, LibrariesPanel, librariesPanelOpen } from '@tldraw/libraries'
+import {
+	AddToLibraryMenuItem,
+	type LibrariesComponents,
+	LibrariesPanel,
+	librariesPanelOpen,
+} from '@tldraw/libraries'
 import { useEffect, useMemo } from 'react'
 import { useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getEditorLibraries } from './editorLibraries'
 import { loadStarterPackSummaries } from './starterPacks'
 import { TlaBrowseStarterPacksMenuItem } from './TlaStarterPacksDialog'
+import { TlaTrackedItemTile } from './TlaTrackedItemTile'
+import { trackLibrarySource } from './trackLibrarySource'
+
+const libraryComponents: LibrariesComponents = { ItemTile: TlaTrackedItemTile }
 
 function useEditorLibraries(fileId: string) {
 	const app = useMaybeApp()
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
+	const trackEvent = useTldrawAppUiEvents()
 	const userLibraries = app?.libraries
 	return useMemo(
 		() =>
 			app && userLibraries
-				? getEditorLibraries(app, userLibraries, editor, fileId, { toasts, msg })
+				? trackLibrarySource(
+						getEditorLibraries(app, userLibraries, editor, fileId, { toasts, msg }),
+						trackEvent
+					)
 				: null,
-		[app, userLibraries, editor, fileId, toasts, msg]
+		[app, userLibraries, editor, fileId, toasts, msg, trackEvent]
 	)
 }
 
@@ -34,7 +48,11 @@ export function TlaLibrariesPanel({ fileId }: { fileId: string }) {
 
 	if (!source) return null
 	return (
-		<LibrariesPanel source={source} menuItems={<TlaBrowseStarterPacksMenuItem source={source} />} />
+		<LibrariesPanel
+			source={source}
+			components={libraryComponents}
+			menuItems={<TlaBrowseStarterPacksMenuItem source={source} />}
+		/>
 	)
 }
 

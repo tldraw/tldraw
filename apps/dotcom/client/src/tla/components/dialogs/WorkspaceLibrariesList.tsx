@@ -24,6 +24,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -56,6 +57,7 @@ export function WorkspaceLibrariesList({
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
 	const [renamingId, setRenamingId] = useState<TLLibraryId>()
 
 	const rows = useValue(
@@ -107,6 +109,7 @@ export function WorkspaceLibrariesList({
 		if (!source.moveLibrary) return
 		const owner = workspaceOwners.find((o) => o.id === ownerId)
 		source.moveLibrary(library.id, ownerId).then(() => {
+			trackEvent('move-library', { source: 'workspace-settings' })
 			if (owner) addToast({ title: msg(messages.moved, { name: owner.name }) })
 		}, showError)
 	}
@@ -129,7 +132,11 @@ export function WorkspaceLibrariesList({
 					confirmLabel={<F {...messages.delete} />}
 					cancelLabel={<F defaultMessage="Cancel" />}
 					confirmType="danger"
-					onConfirm={() => source.deleteLibrary(library.id).catch(showError)}
+					onConfirm={() =>
+						source
+							.deleteLibrary(library.id)
+							.then(() => trackEvent('delete-library', { source: 'workspace-settings' }), showError)
+					}
 					onClose={onClose}
 				/>
 			),

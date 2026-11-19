@@ -26,6 +26,7 @@ export type TLAppUiEventSource =
 	| 'workspace-settings'
 	| 'workspace-home'
 	| 'command-palette'
+	| 'libraries'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -117,6 +118,13 @@ export interface TLAppUiEventMap {
 		filter: 'onlyCurrentPage' | 'onlyMine' | 'onlyUnread' | 'showResolved'
 		value: boolean
 	}
+	'create-library': { method: 'new' | 'copy' }
+	'delete-library': null
+	'move-library': null
+	'add-to-library': null
+	'move-library-item': null
+	'place-library-item': { method: 'click' | 'drag' }
+	'add-starter-pack': { pack: string }
 }
 
 /** @public */
