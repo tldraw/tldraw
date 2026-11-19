@@ -1,5 +1,6 @@
 import {
 	can,
+	DB,
 	isRole,
 	MAX_LIBRARY_ITEMS_PER_REQUEST,
 	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
@@ -8,6 +9,7 @@ import {
 	TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import { Kysely } from 'kysely'
 import { AssetToReplace } from '../../assetAssociation'
 import { LibraryItemObject, queueLibraryObjectDeletes } from '../../libraryEffects'
 import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
@@ -153,8 +155,9 @@ async function readItems(form: FormData): Promise<NewItem[] | Response> {
  * time; each row's createdAt is a step later than the one before, since items are listed by it.
  *
  * The client picks each item's id, as it does a file's, so it can list the items under those ids
- * while this runs. Ids that are taken are refused with 409 before anything is stored; if another
- * request takes one meanwhile, the row insert finds it and this answers 409, inserting no row. The
+ * while this runs. Ids that are taken are refused with 409 before anything is stored, unless every
+ * one is an item this user added: a retry, answered with those items. If another request takes one
+ * meanwhile, the row insert finds it and this answers 409, inserting no row. The
  * worker picks every object's name, so a request can't overwrite stored content.
  *
  * Form fields: `items`, a JSON list of `{ id, name? }` with each id made by uniqueId; then for each
@@ -187,13 +190,10 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
 
-		if (
-			await isAnyItemIdTaken(
-				db,
-				items.map((item) => item.id)
-			)
-		) {
-			return conflict()
+		const ids = items.map((item) => item.id)
+		if (await isAnyItemIdTaken(db, ids)) {
+			const added = await getAddedItems(db, auth.userId, ids)
+			return added ? Response.json(added) : conflict()
 		}
 
 		const planned = items.map((item) => planItemObjects(env, item))
@@ -251,6 +251,29 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 	} finally {
 		await db.destroy()
 	}
+}
+
+/**
+ * The answer to a request that already added these items, when it's retried after its answer was
+ * lost: every id is an item this user added. Null if any isn't.
+ */
+async function getAddedItems(
+	db: Kysely<DB>,
+	userId: string,
+	ids: string[]
+): Promise<AddLibraryItemsResponseBody | null> {
+	const rows = await db
+		.selectFrom('library_item')
+		.select(['id', 'createdAt', 'thumbnail'])
+		.where('id', 'in', ids)
+		.where('createdBy', '=', userId)
+		.execute()
+	const byId = new Map(rows.map((row) => [row.id, row]))
+	const items = ids.flatMap((id) => {
+		const row = byId.get(id)
+		return row ? [{ id, createdAt: row.createdAt, thumbnail: row.thumbnail ?? null }] : []
+	})
+	return items.length === ids.length ? { items } : null
 }
 
 interface PlannedItemObjects {
