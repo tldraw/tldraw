@@ -13,7 +13,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding: 4px 12px;
-	border-radius: 999px;
+	border-radius: var(--tl-radius-1);
 	background-color: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-1);
 	color: var(--tl-color-text-1);
