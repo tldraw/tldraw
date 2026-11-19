@@ -458,6 +458,18 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(source.getLibraries().find((c) => c.id === copy.id)?.name).toBe('Copied kit')
 		})
 
+		it('keeps an item added to the copy while it was being copied', async () => {
+			const { backend, source, kit } = await withKit()
+			const rows = backend.holdWorkerRows()
+			const copy = await source.copyLibrary(kit.id, 'acme')
+			source.addItem(copy.id, { name: 'Sun', content })
+			backend.holdRequests()
+			rows.release()
+			await vi.waitFor(() => expect(backend.rows.get()).toHaveLength(2))
+			await vi.waitFor(() => expect(backend.fetch).toHaveBeenCalledTimes(4))
+			expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Star', 'Moon', 'Sun'])
+		})
+
 		it('copies a new library only once the server has it', async () => {
 			const { backend, source } = setUp()
 			const server = backend.holdServer()
