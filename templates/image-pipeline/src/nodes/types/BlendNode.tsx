@@ -1,5 +1,4 @@
-import classNames from 'classnames'
-import { T, useEditor, useValue } from 'tldraw'
+import { T, useEditor } from 'tldraw'
 import { BlendIcon } from '../../components/icons/BlendIcon'
 import {
 	NODE_HEADER_HEIGHT_PX,
@@ -8,8 +7,7 @@ import {
 	NODE_ROW_HEIGHT_PX,
 	NODE_WIDTH_PX,
 } from '../../constants'
-import { Port, ShapePort } from '../../ports/Port'
-import { getNodeInputPortValues } from '../nodePorts'
+import { ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
 import {
 	areAnyInputsOutOfDate,
@@ -20,11 +18,10 @@ import {
 	loadImage,
 	NodeComponentProps,
 	NodeDefinition,
-	NodeImage,
-	NodePlaceholder,
-	NodePortLabel,
-	NodeRow,
-	STOP_EXECUTION,
+	NodeImagePreview,
+	NodePortRow,
+	NodeSelectRow,
+	NodeSliderRow,
 	updateNode,
 } from './shared'
 
@@ -120,14 +117,10 @@ export class BlendNodeDefinition extends NodeDefinition<BlendNode> {
 		const imageA = inputs.imageA as string | null
 		const imageB = inputs.imageB as string | null
 
-		let result: string | null = null
-		if (imageA && imageB) {
-			result = await blendImages(imageA, imageB, node.mode, node.opacity)
-		} else if (imageA) {
-			result = imageA
-		} else if (imageB) {
-			result = imageB
-		}
+		const result =
+			imageA && imageB
+				? await blendImages(imageA, imageB, node.mode, node.opacity)
+				: imageA || imageB || null
 
 		updateNode<BlendNode>(this.editor, shape, (n) => ({
 			...n,
@@ -149,98 +142,32 @@ export class BlendNodeDefinition extends NodeDefinition<BlendNode> {
 
 function BlendNodeComponent({ shape, node }: NodeComponentProps<BlendNode>) {
 	const editor = useEditor()
-	const imageAInput = useValue(
-		'imageA input',
-		() => getNodeInputPortValues(editor, shape.id).imageA,
-		[editor, shape.id]
-	)
-	const imageBInput = useValue(
-		'imageB input',
-		() => getNodeInputPortValues(editor, shape.id).imageB,
-		[editor, shape.id]
-	)
 
 	return (
 		<>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="imageA" />
-				<NodePortLabel dataType="image">Image A</NodePortLabel>
-				{imageAInput ? (
-					<span className="NodeRow-connected-value">
-						{imageAInput.isOutOfDate || imageAInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<Port shapeId={shape.id} portId="imageB" />
-				<NodePortLabel dataType="image">Image B</NodePortLabel>
-				{imageBInput ? (
-					<span className="NodeRow-connected-value">
-						{imageBInput.isOutOfDate || imageBInput.value === STOP_EXECUTION ? (
-							<NodePlaceholder />
-						) : (
-							'connected'
-						)}
-					</span>
-				) : (
-					<span className="NodeRow-disconnected">not connected</span>
-				)}
-			</NodeRow>
-			<NodeRow>
-				<select
-					value={node.mode}
-					onChange={(e) =>
-						updateNode<BlendNode>(editor, shape, (n) => ({ ...n, mode: e.target.value }))
-					}
-				>
-					{BLEND_MODES.map((m) => (
-						<option key={m.id} value={m.id}>
-							{m.label}
-						</option>
-					))}
-				</select>
-			</NodeRow>
-			<NodeRow className="NodeInputRow">
-				<span className="NodeInputRow-label">Opacity</span>
-				<input
-					type="range"
-					min="0"
-					max="100"
-					value={node.opacity}
-					onChange={(e) =>
-						updateNode<BlendNode>(
-							editor,
-							shape,
-							(n) => ({
-								...n,
-								opacity: Number(e.target.value),
-							}),
-							false
-						)
-					}
-					onPointerDown={(e) => e.stopPropagation()}
-				/>
-				<span className="NodeRow-value">{node.opacity}%</span>
-			</NodeRow>
-			<div
-				className={classNames('NodeImagePreview', {
-					NodeImagePreview_loading: shape.props.isOutOfDate,
-				})}
-			>
-				{node.lastResultUrl ? (
-					<NodeImage src={node.lastResultUrl} alt="Blended" />
-				) : (
-					<div className="NodeImagePreview-empty">
-						<span>Connect images to blend</span>
-					</div>
-				)}
-			</div>
+			<NodePortRow shapeId={shape.id} portId="imageA" dataType="image" label="Image A" />
+			<NodePortRow shapeId={shape.id} portId="imageB" dataType="image" label="Image B" />
+			<NodeSelectRow
+				value={node.mode}
+				options={BLEND_MODES}
+				onChange={(mode) => updateNode<BlendNode>(editor, shape, (n) => ({ ...n, mode }))}
+			/>
+			<NodeSliderRow
+				label="Opacity"
+				min={0}
+				max={100}
+				suffix="%"
+				value={node.opacity}
+				onChange={(opacity) =>
+					updateNode<BlendNode>(editor, shape, (n) => ({ ...n, opacity }), false)
+				}
+			/>
+			<NodeImagePreview
+				src={node.lastResultUrl}
+				alt="Blended"
+				emptyText="Connect images to blend"
+				isLoading={shape.props.isOutOfDate}
+			/>
 		</>
 	)
 }
