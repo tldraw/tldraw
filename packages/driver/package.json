@@ -33,6 +33,12 @@
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"scripts": {
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
