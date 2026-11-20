@@ -176,6 +176,21 @@ function useReactionRenderer(): RenderReaction | undefined {
 	)
 }
 
+function useReactionSummaries(
+	editor: Editor,
+	comment: TLComment,
+	currentUserId: string | null | undefined,
+	resolveName: ((userId: string) => string | undefined) | undefined
+): ReactionSummary[] {
+	const reactions = useCommentReactions(editor, comment.id)
+	const msg = useTranslation()
+	const unknownAuthorName = msg(messages.commentsUnknownAuthor)
+	return useMemo(
+		() => summarizeReactions(reactions, currentUserId, resolveName, { unknownAuthorName }),
+		[reactions, currentUserId, resolveName, unknownAuthorName]
+	)
+}
+
 /**
  * The tallied reaction row under one comment. Pair with `CommentReactionPicker`, which is what
  * adds a reaction.
@@ -185,13 +200,7 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 	const editor = useEditor()
 	const renderReaction = useReactionRenderer()
 	const { components } = useCommentingOptions()
-	const reactions = useCommentReactions(editor, comment.id)
-	const msg = useTranslation()
-	const unknownAuthorName = msg(messages.commentsUnknownAuthor)
-	const summaries = useMemo(
-		() => summarizeReactions(reactions, currentUserId, resolveName, { unknownAuthorName }),
-		[reactions, currentUserId, resolveName, unknownAuthorName]
-	)
+	const summaries = useReactionSummaries(editor, comment, currentUserId, resolveName)
 	// Suppress the hover list while any menu is open (the reaction picker, an overflow menu…) so it
 	// doesn't compete with the menu the user is actually working in. Edit mode already hides the
 	// pills entirely (the card becomes a composer), so it needs no special case here.
@@ -209,6 +218,30 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 				if (currentUserId == null) return
 				toggleCommentReaction(editor, comment, currentUserId, value)
 			}}
+		/>
+	)
+}
+
+/**
+ * The reaction row in a marker's hover preview. It names who reacted and highlights the viewer's
+ * own emoji, but its pills are inert: a click on the preview card opens the thread, and a pill that
+ * toggled instead would swallow that click.
+ */
+export function PreviewCommentReactions({
+	comment,
+	currentUserId,
+	resolveName,
+}: CommentReactionsProps) {
+	const editor = useEditor()
+	const renderReaction = useReactionRenderer()
+	const { components } = useCommentingOptions()
+	const summaries = useReactionSummaries(editor, comment, currentUserId, resolveName)
+	return (
+		<Reactions
+			reactions={summaries}
+			canReact={false}
+			renderReaction={renderReaction}
+			ReactionTooltip={components.ReactionTooltip}
 		/>
 	)
 }
