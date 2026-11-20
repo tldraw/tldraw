@@ -4,7 +4,7 @@ import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
-const GRACE_PERIOD_DAYS = 30
+const GRACE_PERIOD_DAYS = 5
 
 export const FLAGS = {
 	// -- MUTUALLY EXCLUSIVE FLAGS
@@ -102,7 +102,7 @@ export type LicenseState =
 	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, WITH_WATERMARK licenses)
 	| 'unlicensed' // No valid license found or license is invalid (development)
 	| 'unlicensed-production' // No valid license in production deployment (missing, invalid, or wrong domain)
-	| 'expired' // License has been expired (30 days past expiration for regular licenses, immediately for evaluation licenses)
+	| 'expired' // License has been expired (+ grace period days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
@@ -674,7 +674,7 @@ export function getEnabledFeatures(
 		return { ...ALL_FEATURES }
 	}
 
-	// Features require an active, valid license. Both the 30-day grace-period 'licensed' state and
+	// Features require an active, valid license. Both the grace-period 'licensed' state and
 	// the watermark state count as valid; unlicensed/expired/pending do not.
 	if (
 		!result.isLicenseParseable ||
@@ -748,7 +748,7 @@ export function getLicenseState(
 	// Handle expired regular licenses (both annual and perpetual)
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
 		outputMessages([
-			'Your tldraw license has been expired for more than 30 days!',
+			`Your tldraw license has been expired for more than ${GRACE_PERIOD_DAYS} days!`,
 			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
 		])
 		return 'expired'
@@ -762,7 +762,7 @@ export function getLicenseState(
 			`License expired ${daysSinceExpiry} days ago.`,
 			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
 		])
-		// Within 30-day grace period: still licensed (no watermark)
+		// Within grace period: still licensed (no watermark)
 		return 'licensed'
 	}
 

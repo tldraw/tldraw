@@ -151,6 +151,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	MakeFontSizeAdjustmentRatio: 12,
 	RenameFirstEditedByToLast: 13,
 	AllowAppLinkUrls: 14,
+	BlockMoreLinkProtocols: 15,
 })
 
 /**
@@ -315,6 +316,17 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 				if (!isPreAppLinkUrl(props.url)) {
 					props.url = ''
 				}
+			},
+		},
+		{
+			id: Versions.BlockMoreLinkProtocols,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
+				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
 	],

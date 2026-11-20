@@ -582,10 +582,12 @@ describe('answerTabRender', () => {
 		// wakes, the job has timed out and the agent may have sent the batch again.
 		it('drops a batch when the tab wakes long after the job arrived', async () => {
 			const { editor } = setupEditor()
+			// Pinned so receivedAt matches `now`; a clock tick in between would leave the wait at exactly 5_000.
 			const now = Date.now()
+			const dateNow = vi.spyOn(Date, 'now').mockReturnValue(now)
 			vi.mocked(fetch).mockImplementationOnce(async (_url, init) => {
 				replies.push(JSON.parse((init as RequestInit).body as string))
-				vi.spyOn(Date, 'now').mockReturnValue(now + 5_001)
+				dateNow.mockReturnValue(now + 5_001)
 				return new Response('{}')
 			})
 

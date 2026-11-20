@@ -1881,6 +1881,8 @@ function parseUrl(str: string) {
 // A block list rather than an allow list: every client and the sync server validate shapes with
 // this, so a scheme accepted by one version and rejected by another breaks shared boards. Blocking
 // a scheme later has the same problem, so only add one here with a migration that blanks it.
+// Whether an accepted link opens without asking is decided when it's clicked, by tldraw's
+// `getLinkOpenPolicy`, which can change freely.
 const blockedLinkProtocols = new Set([
 	// Run script or render arbitrary content in the page's origin
 	'javascript:',
@@ -1911,6 +1913,31 @@ const blockedLinkProtocols = new Set([
 	'ms-its:',
 	'its:',
 	'mk:',
+	'res:',
+	// Open remote Office documents, a common phishing route that also leaks the NTLM hash
+	'ms-word:',
+	'ms-excel:',
+	'ms-powerpoint:',
+	'ms-visio:',
+	'ms-access:',
+	'ms-project:',
+	'ms-publisher:',
+	'ms-spd:',
+	'ms-infopath:',
+	// Leak the Windows NTLM hash to a remote host
+	'smb:',
+	'ldap:',
+	'ldaps:',
+	// Drive the OS into account setup, settings, or another browser
+	'ms-cxh:',
+	'ms-cxh-full:',
+	'ms-settings:',
+	'microsoft-edge:',
+	// Install or run remote apps
+	'intent:',
+	'jnlp:',
+	'itms-services:',
+	'steam:',
 ])
 
 // `localhost:3000` and `example.com:8080` parse as a `localhost:` or `example.com:` scheme. Ports
