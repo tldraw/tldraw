@@ -1,4 +1,5 @@
-import { AssetRecordType, TLContent, createShapeId, structuredClone } from '@tldraw/editor'
+import { AssetRecordType, TLAsset, TLContent, createShapeId, structuredClone } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -187,5 +188,50 @@ describe('Paste parent selection with explicit point', () => {
 
 		const [pastedId] = editor.getSelectedShapeIds()
 		expect(editor.getShape(pastedId)?.parentId).toBe(frameBId)
+	})
+})
+
+describe('Data url assets', () => {
+	it('keep their meta when they are uploaded', async () => {
+		const assetId = AssetRecordType.createId('imageAsset')
+		const imageId = createShapeId('image')
+		editor.createAssets([
+			{
+				type: 'image',
+				id: assetId,
+				typeName: 'asset',
+				props: {
+					w: 100,
+					h: 100,
+					name: '',
+					isAnimated: false,
+					mimeType: 'image/png',
+					src: 'data:image/png;base64,AAAA',
+				},
+				meta: { flattened: true },
+			},
+		])
+		editor.createShape({ id: imageId, type: 'image', props: { w: 100, h: 100, assetId } })
+		const content = editor.getContentFromCurrentPage([imageId])!
+
+		// the test setup refuses network requests, including data urls
+		vi.spyOn(window, 'fetch').mockResolvedValue(new Response(new Uint8Array([0])))
+		const other = new TestEditor()
+		vi.spyOn(other, 'getAssetForExternalContent').mockImplementation(
+			async () =>
+				({
+					...content.assets[0],
+					id: AssetRecordType.createId('uploaded'),
+					props: { ...content.assets[0].props, src: 'https://example.com/a.png' },
+					meta: { uploaded: true },
+				}) as TLAsset
+		)
+		other.putContentOntoCurrentPage(content)
+
+		await vi.waitFor(() =>
+			expect(other.getAsset(assetId)!.props).toMatchObject({ src: 'https://example.com/a.png' })
+		)
+		expect(other.getAsset(assetId)!.meta).toEqual({ flattened: true, uploaded: true })
+		other.dispose()
 	})
 })

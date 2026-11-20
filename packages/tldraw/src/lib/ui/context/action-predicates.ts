@@ -3,6 +3,7 @@ import { getArrowBindings } from '../../shapes/arrow/shared'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { getSelectedLinkShape } from '../../utils/shapes/shapes'
+import { isFlattenedImage } from '../hooks/useFlatten'
 
 // Shared by action isAvailable/isEnabled and the menu hooks, so the two can't drift.
 // Every function must stay pure and read only editor state or values fixed for the session (like
@@ -153,6 +154,11 @@ export function canFlatten(editor: Editor) {
 	if (editor.getSelectedShapeIds().length === 0) return false
 	const shape = editor.getOnlySelectedShape()
 	return !(shape && editor.isShapeOfType(shape, 'image'))
+}
+
+/** @internal */
+export function canUnflatten(editor: Editor) {
+	return editor.getSelectedShapes().some((shape) => isFlattenedImage(editor, shape))
 }
 
 /** @public */
