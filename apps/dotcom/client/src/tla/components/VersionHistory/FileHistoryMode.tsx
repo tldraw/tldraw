@@ -45,7 +45,7 @@ export function FileHistoryMode({ fileSlug, ts }: { fileSlug: string; ts: string
 	}, [addToast])
 
 	return (
-		<div className={styles.mode}>
+		<div className={styles.mode} data-testid="tla-version-history">
 			<VersionPreviewEditor fileId={fileSlug} ts={ts} initialView={initialView} onError={onError}>
 				<VersionHistoryPanel
 					fileId={fileSlug}
