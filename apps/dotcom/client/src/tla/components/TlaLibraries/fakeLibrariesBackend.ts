@@ -10,7 +10,7 @@ import { atom, computed } from 'tldraw'
 import { vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
 
-type Row = TlaLibrary & { items: TlaLibraryItem[] }
+type Row = Omit<TlaLibrary, 'fileCount'> & { items: TlaLibraryItem[] }
 
 /** A promise each request or mutation waits on while a test holds it, until it's let through. */
 function createHold() {
@@ -27,7 +27,8 @@ function createHold() {
  * behind `fetch`. Rows change at once, as Zero applies a mutation locally. Stored content is kept
  * in a map, and thumbnails at made-up public URLs. `otherRows` are libraries of workspaces the user
  * isn't in, seen only when added to a file; the user can edit every file but `readOnlyFiles`. Files
- * are in the first workspace unless `fileWorkspaces` says otherwise. The libraries query has synced
+ * are in the first workspace unless `fileWorkspaces` says otherwise. A library's `fileCount` is
+ * counted from `fileLibraries`, as Postgres's triggers keep it. The libraries query has synced
  * unless `librariesLoaded` is set false.
  *
  * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
@@ -41,6 +42,16 @@ export function createFakeLibrariesBackend({
 	const rows = atom<Row[]>('fake library rows', [])
 	const otherRows = atom<Row[]>('fake library rows of other workspaces', [])
 	const fileLibraries = atom<TlaFileLibrary[]>('fake file libraries', [])
+	const withFileCounts = (all: Row[]) => {
+		const added = fileLibraries.get()
+		return all.map((row) => ({
+			...row,
+			fileCount: added.filter((fl) => fl.libraryId === row.id).length,
+		}))
+	}
+	const libraryRows = computed('fake library rows with file counts', () =>
+		withFileCounts(rows.get())
+	)
 	const readOnlyFiles = new Set<string>()
 	const librariesLoaded = atom('fake libraries loaded', true)
 	// The workspace each file is in: the first of `workspaces` unless set.
@@ -311,7 +322,7 @@ export function createFakeLibrariesBackend({
 	const watchFileLibraries = vi.fn((fileId: string) => ({
 		rows: computed(`fake file libraries ${fileId}`, () => {
 			const added = fileLibraries.get().filter((fl) => fl.fileId === fileId)
-			return [...rows.get(), ...otherRows.get()].flatMap((row) => {
+			return withFileCounts([...rows.get(), ...otherRows.get()]).flatMap((row) => {
 				const own = added.filter((fl) => fl.libraryId === row.id)
 				const isMyDefault = row.isDefault && row.owningGroupId === userId
 				return isMyDefault || own.length > 0 ? [{ ...row, fileLibraries: own }] : []
@@ -328,7 +339,7 @@ export function createFakeLibrariesBackend({
 		getHomeWorkspaceId: () => userId,
 		getWorkspaceMemberships: () => memberships,
 		getWorkspaceMembership: (id: string) => memberships.find((m) => m.groupId === id),
-		getLibraryRows: () => rows.get(),
+		getLibraryRows: () => libraryRows.get(),
 		areLibrariesLoaded: () => librariesLoaded.get(),
 		watchFileLibraries,
 		canUpdateFile: (fileId: string) => !readOnlyFiles.has(fileId),

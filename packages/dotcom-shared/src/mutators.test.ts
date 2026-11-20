@@ -1736,6 +1736,7 @@ describe('libraries', () => {
 		updatedAt: 1,
 		meta: {},
 		isDefault: false,
+		fileCount: 0,
 		...overrides,
 	})
 	const makeItem = (

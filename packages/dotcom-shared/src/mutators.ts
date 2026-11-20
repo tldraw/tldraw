@@ -373,6 +373,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					updatedAt: now,
 					meta,
 					isDefault: false,
+					fileCount: 0,
 				})
 			},
 			/**
@@ -398,6 +399,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					updatedAt: now,
 					meta: {},
 					isDefault: true,
+					fileCount: 0,
 				})
 			},
 			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {

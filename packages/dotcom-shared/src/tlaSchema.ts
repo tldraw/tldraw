@@ -239,6 +239,9 @@ export const library = table('library')
 		// the user's default library, shown on every board they open; at most one per user, in their
 		// home workspace (059)
 		isDefault: boolean(),
+		// how many files the library is added to, including files the user can't see; kept by
+		// triggers on file_library (060)
+		fileCount: number(),
 	})
 	.primaryKey('id')
 

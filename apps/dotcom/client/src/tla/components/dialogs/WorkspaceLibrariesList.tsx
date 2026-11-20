@@ -35,6 +35,7 @@ import styles from './dialogs.module.css'
 
 const messages = defineMessages({
 	itemCount: { defaultMessage: '{count, plural, one {# item} other {# items}}' },
+	notInAnyFile: { defaultMessage: '· Not in any file' },
 	libraryMenu: { defaultMessage: 'Library menu' },
 	rename: { defaultMessage: 'Rename' },
 	moveTo: { defaultMessage: 'Move to' },
@@ -72,20 +73,19 @@ export function WorkspaceLibrariesList({
 	const rows = useValue(
 		'workspace libraries',
 		() => {
-			const defaultIds = new Set(
-				app
-					.getLibraryRows()
-					.filter((row) => row.isDefault)
-					.map((row) => row.id)
-			)
+			const libraryRows = new Map(app.getLibraryRows().map((row) => [row.id, row]))
 			return source
 				.getLibraries()
-				.filter((library) => library.ownerId === workspaceId && !defaultIds.has(rowId(library.id)))
+				.filter(
+					(library) =>
+						library.ownerId === workspaceId && !libraryRows.get(rowId(library.id))?.isDefault
+				)
 				.map((library) => {
 					const items = source.getItems(library.id)
 					return {
 						library,
 						itemCount: items.length,
+						notInAnyFile: libraryRows.get(rowId(library.id))?.fileCount === 0,
 						thumbnailUrls: items
 							.slice(0, PREVIEW_COUNT)
 							.map((item) => item.thumbnail && getThumbnailForColorMode(item.thumbnail, colorMode)),
@@ -170,7 +170,7 @@ export function WorkspaceLibrariesList({
 
 	return (
 		<div className={styles.librariesList}>
-			{rows.map(({ library, itemCount, thumbnailUrls, canRename, canDelete }) => (
+			{rows.map(({ library, itemCount, notInAnyFile, thumbnailUrls, canRename, canDelete }) => (
 				<div key={library.id} className={styles.libraryItem}>
 					<div className={styles.libraryThumbnails} aria-hidden>
 						{Array.from({ length: PREVIEW_COUNT }, (_, i) => (
@@ -193,6 +193,9 @@ export function WorkspaceLibrariesList({
 							)}
 							<span className={styles.libraryCount}>
 								{msg(messages.itemCount, { count: itemCount })}
+								{notInAnyFile && (
+									<span className={styles.libraryNotInAnyFile}>{msg(messages.notInAnyFile)}</span>
+								)}
 							</span>
 						</div>
 						<LibraryRowMenu

@@ -338,6 +338,10 @@
 	color: var(--tl-color-text-3);
 }
 
+.libraryNotInAnyFile {
+	margin-inline-start: 4px;
+}
+
 /* A bare icon, like the sidebar's file menu trigger. */
 .libraryMenuTrigger {
 	flex: 0 0 auto;

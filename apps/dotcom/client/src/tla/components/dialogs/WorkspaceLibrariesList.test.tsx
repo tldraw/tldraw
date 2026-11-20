@@ -10,11 +10,14 @@ import { createRoot, type Root } from 'react-dom/client'
 import { createTLSchema } from 'tldraw'
 import { WorkspaceLibrariesList } from './WorkspaceLibrariesList'
 
-const mocks = vi.hoisted(() => ({ theme: 'light' as 'light' | 'dark' }))
+const mocks = vi.hoisted(() => ({
+	theme: 'light' as 'light' | 'dark',
+	libraryRows: [] as { id: string; isDefault: boolean; fileCount: number }[],
+}))
 
 vi.mock('../../hooks/useAppState', () => ({
 	useApp: () => ({
-		getLibraryRows: () => [],
+		getLibraryRows: () => mocks.libraryRows,
 		getWorkspaceMemberships: () => [],
 		trackEvent: () => {},
 		getHomeWorkspaceId: () => 'home',
@@ -41,6 +44,7 @@ afterEach(() => {
 	act(() => root.unmount())
 	container.remove()
 	mocks.theme = 'light'
+	mocks.libraryRows = []
 })
 
 const content: TLLibraryItemContent = {
@@ -54,8 +58,9 @@ const content: TLLibraryItemContent = {
 	},
 }
 
-function renderList(thumbnails: (TLLibraryThumbnail | undefined)[]) {
+function render(thumbnails: (TLLibraryThumbnail | undefined)[], { fileCount = 1 } = {}) {
 	const library = LibraryRecordType.create({ name: 'Icons', ownerId: 'workspace' })
+	mocks.libraryRows = [{ id: library.id.slice('library:'.length), isDefault: false, fileCount }]
 	const items = thumbnails.map((thumbnail) =>
 		LibraryItemRecordType.create({ libraryId: library.id, thumbnail })
 	)
@@ -72,6 +77,10 @@ function renderList(thumbnails: (TLLibraryThumbnail | undefined)[]) {
 	document.body.appendChild(container)
 	root = createRoot(container)
 	act(() => root.render(<WorkspaceLibrariesList source={source} workspaceId="workspace" />))
+}
+
+function renderList(thumbnails: (TLLibraryThumbnail | undefined)[]) {
+	render(thumbnails)
 	const tiles = [...container.querySelectorAll('[aria-hidden] > span')]
 	return tiles.map((tile) => tile.querySelector('img')?.getAttribute('src'))
 }
@@ -101,4 +110,15 @@ it('shows no more than four thumbnails', () => {
 it("picks each thumbnail's image for the app's colour scheme", () => {
 	mocks.theme = 'dark'
 	expect(renderList([{ light: 'light.png', dark: 'dark.png' }])[0]).toBe('dark.png')
+})
+
+it("notes a library that isn't in any file", () => {
+	render([], { fileCount: 0 })
+	expect(container.textContent).toContain('Not in any file')
+})
+
+it("doesn't note a library added to a file", () => {
+	render([], { fileCount: 2 })
+	expect(container.textContent).toContain('Icons')
+	expect(container.textContent).not.toContain('Not in any file')
 })
