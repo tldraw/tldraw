@@ -36,7 +36,6 @@ export type TLAppLibraryAction =
 	| 'rename-library'
 	| 'delete-library'
 	| 'move-library'
-	| 'copy-library'
 	| 'rename-library-item'
 	| 'delete-library-item'
 	| 'move-library-item'
@@ -144,7 +143,11 @@ export interface TLAppUiEventMap {
 	'move-library-item': null
 	'open-starter-packs': null
 	'add-starter-pack': { pack_id: string }
-	'library-error': { action: TLAppLibraryAction; reason: TLLibraryErrorReason }
+	'library-error': {
+		action: TLAppLibraryAction
+		method?: 'new' | 'copy'
+		reason: TLLibraryErrorReason
+	}
 }
 
 /** @public */

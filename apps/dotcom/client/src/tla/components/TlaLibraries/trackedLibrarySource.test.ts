@@ -168,9 +168,28 @@ describe('TrackedLibrarySource', () => {
 				'library-error',
 				{ source: 'libraries', action: 'delete-library-item', reason: 'not-found' },
 			],
-			['library-error', { source: 'libraries', action: 'create-library', reason: 'not-found' }],
+			[
+				'library-error',
+				{ source: 'libraries', action: 'create-library', method: 'new', reason: 'not-found' },
+			],
 		])
 		expect(captureException).not.toHaveBeenCalled()
+	})
+
+	it('reports a failed copy as failing to create a library by copying', async () => {
+		const { backend, source, events } = setUp()
+		const library = await source.createLibrary('Secret')
+		backend.fetch.mockResolvedValueOnce(new Response(null, { status: 500 }))
+		await expect(source.copyLibrary!(library.id, 'acme')).rejects.toThrow()
+		expect(events().slice(1)).toEqual([
+			[
+				'library-error',
+				{ source: 'libraries', action: 'create-library', method: 'copy', reason: 'failed' },
+			],
+		])
+		expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+			tags: { operation: 'create-library' },
+		})
 	})
 
 	it('sends a failure to load an item to Sentry only when its reason is unknown', async () => {

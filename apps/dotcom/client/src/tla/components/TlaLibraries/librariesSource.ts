@@ -290,7 +290,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const meta = options.meta ?? {}
 		const { confirmed } = await this.apply(
 			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }),
-			'create-library'
+			'create-library',
+			'new'
 		)
 		this.unconfirmedLibraries.set(
 			id,
@@ -734,11 +735,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	 * Resolves once Zero has applied a mutation locally, with whether the server goes on to accept
 	 * it; if it doesn't, Zero rolls the change back and the app shows why. A mutation that fails
 	 * locally rejects, and fails on the server with the same error. A rejection is reported as
-	 * `library-error` for `action`.
+	 * `library-error` for `action`, with `method` for a create.
 	 */
 	private async apply(
 		mutation: MutatorResult,
-		action: TLAppLibraryAction | undefined
+		action: TLAppLibraryAction | undefined,
+		method?: 'new'
 	): Promise<{ confirmed: Promise<boolean> }> {
 		const applied = await mutation.client
 		if (applied.type === 'error') {
@@ -747,7 +749,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const confirmed = mutation.server.then((result) => {
 			if (result.type === 'success') return true
 			if (action) {
-				this.app.trackEvent('library-error', { source: 'libraries', action, reason: 'rejected' })
+				this.app.trackEvent('library-error', {
+					source: 'libraries',
+					action,
+					...(method ? { method } : {}),
+					reason: 'rejected',
+				})
 			}
 			this.app.showMutationRejectionToast(result.error)
 			return false
