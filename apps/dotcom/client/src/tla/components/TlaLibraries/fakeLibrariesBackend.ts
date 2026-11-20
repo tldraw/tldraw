@@ -106,6 +106,32 @@ export function createFakeLibrariesBackend({
 				if (!isMember(owningGroupId)) return rejected()
 				return change(() => updateRow(id, (row) => ({ ...row, owningGroupId })))
 			},
+			copy: ({ sourceId, id, owningGroupId, itemIds, time }: any) => {
+				const source = rows.get().find((row) => row.id === sourceId)
+				if (!source || !isMember(owningGroupId)) return rejected()
+				const copies = source.items.flatMap((item, index) => {
+					const copyId: string | undefined = itemIds[item.id]
+					if (!copyId) return []
+					return [
+						{ ...item, id: copyId, libraryId: id, createdBy: userId, createdAt: time + index },
+					]
+				})
+				const result = change(() =>
+					rows.update((all) => [
+						...all,
+						{ ...source, id, owningGroupId, createdBy: userId, items: copies },
+					])
+				)
+				// The copies share their sources' content, which the worker serves once the server has them.
+				result.server.then(({ type }) => {
+					if (type !== 'success') return
+					for (const [sourceItemId, copyId] of Object.entries<string>(itemIds)) {
+						const stored = contents.get(sourceItemId)
+						if (stored !== undefined) contents.set(copyId, stored)
+					}
+				})
+				return result
+			},
 		},
 		library_item: {
 			rename: ({ id, name }: any) => change(() => updateItem(id, (item) => ({ ...item, name }))),
@@ -179,32 +205,6 @@ export function createFakeLibrariesBackend({
 			return Response.json({
 				items: items.map(({ id, createdAt, thumbnail }) => ({ id, createdAt, thumbnail })),
 			})
-		}
-		match = url.match(/^\/api\/app\/libraries\/([^/]+)\/copy$/)
-		if (match && init.method === 'POST') {
-			const { owningGroupId, id, itemIds } = JSON.parse(init.body as string)
-			const source = rows.get().find((row) => row.id === match![1])!
-			const items = source.items.flatMap((item) => {
-				const copyId: string | undefined = itemIds[item.id]
-				if (!copyId) return []
-				const { thumbnail } = item
-				contents.set(copyId, contents.get(item.id)!)
-				return [
-					newItem(
-						copyId,
-						id,
-						item.name,
-						newThumbnail(thumbnail !== null, typeof thumbnail === 'object' && thumbnail !== null)
-					),
-				]
-			})
-			insertRows(() =>
-				rows.update((all) => [
-					...all,
-					{ ...source, id, owningGroupId, createdAt: all.length, items },
-				])
-			)
-			return Response.json({ id })
 		}
 		match = url.match(/^\/api\/app\/library-items\/([^/]+)\/content$/)
 		if (match) {

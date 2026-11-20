@@ -33,6 +33,7 @@ import { FeatureFlagKey, ZErrorCode } from './types'
 const zql = createBuilder(schema)
 
 type Tx = Transaction<TlaSchema>
+type ServerTx = Extract<Tx, { location: 'server' }>
 
 /**
  * Parse a flags string into an array of individual flags.
@@ -239,6 +240,56 @@ async function deleteLibrary(tx: Tx, id: string) {
 }
 
 /**
+ * Inserts a library copy's items with raw SQL: Zero's insert can't write contentKey, which the Zero
+ * schema leaves out, nor library_item_object, which isn't in it at all.
+ */
+async function copyLibraryItemsOnServer(
+	db: ServerTx['dbTransaction'],
+	{
+		sourceId,
+		id,
+		itemIds,
+		now,
+		userId,
+	}: { sourceId: string; id: string; itemIds: Record<string, string>; now: number; userId: string }
+) {
+	// Locked so a delete of a source item waits for the copy, and can't remove an object before the
+	// copy's rows name it.
+	const sources = [
+		...(await db.query(
+			`SELECT "id" FROM "library_item" WHERE "libraryId" = $1 AND "id" = ANY($2::varchar[])
+			ORDER BY "createdAt", "id" FOR KEY SHARE`,
+			[sourceId, Object.keys(itemIds)]
+		)),
+	] as { id: string }[]
+	if (sources.length === 0) return
+	const sourceIds = sources.map((s) => s.id)
+	const newIds = sourceIds.map((sourceId) => itemIds[sourceId])
+	const createdAts = sourceIds.map((_, index) => now + index)
+	const inserted = [
+		...(await db.query(
+			`INSERT INTO "library_item"
+				("id", "libraryId", "name", "thumbnail", "contentKey", "createdBy", "createdAt", "updatedAt")
+			SELECT c."newId", $1, s."name", s."thumbnail", s."contentKey", $2, c."createdAt", $3
+			FROM unnest($4::varchar[], $5::varchar[], $6::bigint[]) AS c("sourceId", "newId", "createdAt")
+			JOIN "library_item" s ON s."id" = c."sourceId"
+			ON CONFLICT ("id") DO NOTHING
+			RETURNING "id"`,
+			[id, userId, now, sourceIds, newIds, createdAts]
+		)),
+	]
+	// A taken id: the conflict is skipped rather than raised, which would report success for less.
+	assert(inserted.length === sourceIds.length, ZErrorCode.bad_request)
+	await db.query(
+		`INSERT INTO "library_item_object" ("itemId", "bucket", "objectName")
+		SELECT c."newId", o."bucket", o."objectName"
+		FROM unnest($1::varchar[], $2::varchar[]) AS c("sourceId", "newId")
+		JOIN "library_item_object" o ON o."itemId" = c."sourceId"`,
+		[sourceIds, newIds]
+	)
+}
+
+/**
  * Refuses on the server unless the `libraries` flag is on for the user. The client skips it: its UI
  * is behind the same flag.
  */
@@ -364,6 +415,82 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibrary(tx, userId, id)
 				await deleteLibrary(tx, id)
+			},
+			/**
+			 * Copies a library, with the items `itemIds` names (source id to the copy's id), into a
+			 * workspace. The copy's items share their sources' R2 objects: the server inserts a
+			 * library_item_object row naming each, and an object is deleted once no row names it.
+			 * Items deleted meanwhile, or not yet stored, are left out.
+			 */
+			copy: async (
+				tx: Tx,
+				{
+					sourceId,
+					id,
+					owningGroupId,
+					itemIds,
+					time,
+				}: {
+					sourceId: string
+					id: string
+					owningGroupId: string
+					itemIds: Record<string, string>
+					time: number
+				}
+			) => {
+				await assertLibrariesEnabled(tx, options)
+				assertValidId(id)
+				assert(itemIds && typeof itemIds === 'object', ZErrorCode.bad_request)
+				const newIds = Object.values(itemIds)
+				for (const newId of newIds) assertValidId(newId)
+				assert(new Set(newIds).size === newIds.length, ZErrorCode.bad_request)
+
+				assert(sourceId, ZErrorCode.bad_request)
+				const source = await tx.run(zql.library.where('id', '=', sourceId).one())
+				assert(source, ZErrorCode.bad_request)
+				assert(isRole(await getRole(tx, userId, source.owningGroupId)), ZErrorCode.forbidden)
+				assert(
+					can(await getRole(tx, userId, owningGroupId), 'manageLibraries'),
+					ZErrorCode.forbidden
+				)
+				const existing = await tx.run(zql.library.where('id', '=', id).one())
+				assert(!existing, ZErrorCode.bad_request)
+
+				const now = ensureSensibleTimestamp(time)
+				await tx.mutate.library.insert({
+					id,
+					name: source.name,
+					owningGroupId,
+					createdBy: userId,
+					createdAt: now,
+					updatedAt: now,
+					meta: source.meta,
+				})
+				if (tx.location === 'server') {
+					await copyLibraryItemsOnServer(tx.dbTransaction, { sourceId, id, itemIds, now, userId })
+					return
+				}
+				const items = await tx.run(
+					zql.library_item
+						.where('libraryId', '=', sourceId)
+						.orderBy('createdAt', 'asc')
+						.orderBy('id', 'asc')
+				)
+				// Items are listed by createdAt, so each copy's is a step later to keep their order.
+				let index = 0
+				for (const item of items) {
+					const newId = itemIds[item.id]
+					if (!newId) continue
+					await tx.mutate.library_item.insert({
+						id: newId,
+						libraryId: id,
+						name: item.name,
+						thumbnail: item.thumbnail,
+						createdBy: userId,
+						createdAt: now + index++,
+						updatedAt: now,
+					})
+				}
 			},
 			/** Gives a library, with its items, to another workspace the user is a member of. */
 			move: async (tx: Tx, { id, owningGroupId }: { id: string; owningGroupId: string }) => {
