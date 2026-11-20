@@ -1749,6 +1749,71 @@ describe('24. Push handling (RP)', () => {
 		}
 	})
 
+	it('[RP12] a push with an invalid record writes nothing, not even the valid records before it', () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		try {
+			const { room, storage, socketA } = setupTwoSessions()
+			// record every write the room makes to storage, including ones a rollback would undo
+			const writes: string[] = []
+			const transaction = storage.transaction.bind(storage)
+			vi.spyOn(storage, 'transaction').mockImplementation((callback, opts) =>
+				transaction((txn) => {
+					const set = txn.set.bind(txn)
+					const del = txn.delete.bind(txn)
+					txn.set = (id, record) => (writes.push(id), set(id, record))
+					txn.delete = (id) => (writes.push(id), del(id))
+					return callback(txn)
+				}, opts)
+			)
+			const valid = makePage('valid', 'Valid')
+
+			room.handleMessage('a', {
+				type: 'push',
+				clientClock: 1,
+				diff: {
+					[valid.id]: ['put', valid],
+					'unknown:record': ['put', { id: 'unknown:record', typeName: 'unknown_type' } as any],
+				},
+			} as TLPushRequest<TLRecord>)
+
+			expect(writes).toEqual([])
+			expect(storage.documents.get(valid.id)).toBeUndefined()
+			expect(socketA.close).toHaveBeenCalledWith(
+				TLSyncErrorCloseEventCode,
+				TLSyncErrorCloseEventReason.INVALID_RECORD
+			)
+		} finally {
+			consoleSpy.mockRestore()
+		}
+	})
+
+	it('[RP3][RP5][RP6][RP8] applies a create, an update and a delete from one push, in the order of the push', () => {
+		const doomed = makePage('doomed', 'Doomed', 'a3' as IndexKey)
+		const { room, storage } = makeRoom({ snapshot: makeSnapshot([...records, doomed]) })
+		connectSession(room, 'a')
+		const socketB = connectSession(room, 'b')
+		const created = makePage('created', 'Created', 'a4' as IndexKey)
+
+		room.handleMessage('a', {
+			type: 'push',
+			clientClock: 1,
+			diff: {
+				[created.id]: ['put', created],
+				[pageRecord.id]: ['patch', { name: ['put', 'Renamed'] }],
+				[doomed.id]: ['remove'],
+			},
+		} as TLPushRequest<TLRecord>)
+
+		expect(Object.entries(combinedPatchDiff(socketB))).toEqual([
+			[created.id, ['put', created]],
+			[pageRecord.id, ['patch', { name: ['put', 'Renamed'] }]],
+			[doomed.id, ['remove']],
+		])
+		expect(storage.documents.get(created.id)?.state).toEqual(created)
+		expect(storage.documents.get(pageRecord.id)?.state).toEqual({ ...pageRecord, name: 'Renamed' })
+		expect(storage.documents.get(doomed.id)).toBeUndefined()
+	})
+
 	it('[RP13] when storage modifies a pushed change, the pusher is rebased with the storage actual changes and others receive them', () => {
 		// A storage layer that embellishes every written record (e.g. with server
 		// metadata) and reports the actual changes back to the room.
