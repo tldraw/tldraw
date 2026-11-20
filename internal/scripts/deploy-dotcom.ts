@@ -141,9 +141,12 @@ const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 // RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
 // RMv1 with v5 backups before zeroRmv2 turns on for it.
 const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
-// Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
-// would redeploy production's zero apps in place.
-const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
+// The deploy gate hashes the config text, so any change to this line redeploys every zero app.
+// Off RMv2, pin the shared slot: 1.12 defaults to a slot per RM, which needs v5 backups and
+// asserts at startup without them.
+const rmv2Env = zeroRmv2
+	? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n'
+	: 'ZERO_UPSTREAM_PG_REPLICATION_SLOT_PER_REPLICA = "false"\n'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
