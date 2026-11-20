@@ -9,8 +9,6 @@ import type { AddSelectionTileProps } from './add-selection-tile'
 import type { EmptyLibraryProps } from './empty-library'
 import type { LibrariesPanelHeaderProps } from './libraries-panel-header'
 import type { LibrarySectionHeaderProps } from './library-section-header'
-import type { LibraryTabLabelProps } from './library-tab-label'
-import type { NoLibrariesProps } from './no-libraries'
 
 /**
  * Component overrides for the {@link LibrariesPanel}. Each slot replaces a built-in piece: leave a
@@ -25,16 +23,8 @@ export interface LibrariesComponents {
 	 * {@link LibrariesPanelHeader}.
 	 */
 	LibrariesPanelHeader?: ComponentType<LibrariesPanelHeaderProps> | null
-	/**
-	 * What an owner's tab shows, for a source with two or more owners. Replaces the default
-	 * {@link LibraryTabLabel}, the owner's icon and name.
-	 */
-	LibraryTabLabel?: ComponentType<LibraryTabLabelProps> | null
-	/**
-	 * Shown in place of the libraries when there are none, or none in a tab. Replaces the
-	 * default {@link NoLibraries} message.
-	 */
-	NoLibraries?: ComponentType<NoLibrariesProps> | null
+	/** Shown in place of the libraries when there are none. Replaces the default {@link NoLibraries} message. */
+	NoLibraries?: ComponentType | null
 	/**
 	 * A library's header: its name, which folds the library shut, and its ⋯ menu, passed as `menu`
 	 * from the `LibraryMenu` slot. Replaces the default {@link LibrarySectionHeader}. An override

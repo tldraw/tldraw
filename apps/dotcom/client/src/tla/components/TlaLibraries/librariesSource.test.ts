@@ -2,6 +2,7 @@ import { MAX_LIBRARY_ITEMS_PER_REQUEST, MAX_LIBRARY_NAME_LENGTH } from '@tldraw/
 import {
 	LibraryItemRecordType,
 	LibraryNotFoundError,
+	LibraryPermissionError,
 	LibraryRecordType,
 	copyLibrary,
 	whenItemsStored,
@@ -67,12 +68,64 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(source.getLibraries()).toMatchObject([{ id: library.id, name: library.name }])
 	})
 
+	it("names who saved an item from its workspace's members", async () => {
+		const { backend, source } = setUp()
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		const item = await added(source.addItem(kit.id, { content }))
+		expect(source.getItemDetails(item)).toEqual({ creatorName: 'Me' })
+
+		backend.rows.update((rows) =>
+			rows.map((row) => ({
+				...row,
+				items: row.items.map((i) => ({ ...i, createdBy: 'user_gone' })),
+			}))
+		)
+		expect(source.getItemDetails(source.getItems(kit.id)[0])).toEqual({})
+	})
+
 	it('lists libraries from the synced rows, with their workspace as owner', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Team kit', { ownerId: 'acme' })
 		const moved = await source.moveLibrary(kit.id, 'user_me')
 		expect(moved).toMatchObject({ id: kit.id, ownerId: 'user_me' })
 		expect(source.getLibraries().map((c) => [c.name, c.ownerId])).toEqual([['Team kit', 'user_me']])
+	})
+
+	it('gives the user one default library, "My stuff", in their home workspace', async () => {
+		const { backend, source } = setUp()
+		const ensureDefault = vi.spyOn(backend.app.z.mutate.library, 'ensureDefault')
+		source.ensureDefaultLibrary()
+		source.ensureDefaultLibrary()
+		expect(backend.rows.get()).toMatchObject([
+			{ name: 'My stuff', owningGroupId: 'user_me', isDefault: true },
+		])
+		await vi.waitFor(() => {
+			source.ensureDefaultLibrary()
+			expect(ensureDefault).toHaveBeenCalledTimes(1)
+		})
+	})
+
+	it('renames the default library but never deletes it', async () => {
+		const { source } = setUp()
+		source.ensureDefaultLibrary()
+		const [mine] = source.getLibraries()
+		const kit = await source.createLibrary('Kit')
+		expect(source.can('deleteLibrary', mine.id)).toBe(false)
+		expect(source.can('deleteLibrary', kit.id)).toBe(true)
+		expect(source.can('renameLibrary', mine.id)).toBe(true)
+		await expect(source.deleteLibrary(mine.id)).rejects.toThrow(LibraryPermissionError)
+		await source.renameLibrary(mine.id, 'Everything')
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['Everything', 'Kit'])
+	})
+
+	it('gives a default library even when the home workspace has others', async () => {
+		const { backend, source } = setUp()
+		await source.createLibrary('Kit')
+		source.ensureDefaultLibrary()
+		expect(backend.rows.get().map((row) => [row.name, row.isDefault])).toEqual([
+			['Kit', false],
+			['My stuff', true],
+		])
 	})
 
 	it("refuses to create in a workspace the user isn't in", async () => {

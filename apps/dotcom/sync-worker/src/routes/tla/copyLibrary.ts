@@ -89,6 +89,8 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 						createdAt: now,
 						updatedAt: now,
 						meta: access.library.meta,
+						isDefault: false,
+						fileCount: 0,
 					})
 					.onConflict((oc) => oc.column('id').doNothing())
 					.returning('id')

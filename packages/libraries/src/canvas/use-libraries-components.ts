@@ -7,7 +7,6 @@ import { EmptyLibrary } from './empty-library'
 import { type LibrariesComponents, useLibrariesComponentOverrides } from './libraries-components'
 import { LibrariesPanelHeader } from './libraries-panel-header'
 import { LibrarySectionHeader } from './library-section-header'
-import { LibraryTabLabel } from './library-tab-label'
 import { NoLibraries } from './no-libraries'
 
 /**
@@ -20,7 +19,6 @@ export function useLibrariesComponents(): Required<LibrariesComponents> {
 	return useMemo(
 		() => ({
 			LibrariesPanelHeader,
-			LibraryTabLabel,
 			NoLibraries,
 			LibrarySectionHeader,
 			LibraryMenu,

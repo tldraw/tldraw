@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import { TldrawUiIcon, type TLLibrary } from 'tldraw'
+import type { TLLibrary } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { ChevronDownStrongIcon } from '../ui/chevron-down-strong-icon'
 import type { LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 
@@ -62,7 +63,7 @@ export function LibrarySectionHeader({
 					onClick={onToggleCollapsed}
 				>
 					<span className="tlui-libraries-panel__name">{library.name}</span>
-					<TldrawUiIcon icon="chevron-down" label="" small className="tlui-libraries-chevron" />
+					<ChevronDownStrongIcon className="tlui-libraries-chevron" />
 				</button>
 			)}
 			<div className="tlui-libraries-panel__header-actions">{menu}</div>

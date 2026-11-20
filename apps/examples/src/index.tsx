@@ -89,6 +89,13 @@ const router = createBrowserRouter([
 			return { element: <LibrariesBoard /> }
 		},
 	},
+	{
+		path: 'libraries-documents',
+		lazy: async () => {
+			const { default: LibrariesDocuments } = await import('./misc/libraries-documents')
+			return { element: <LibrariesDocuments /> }
+		},
+	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
 			{

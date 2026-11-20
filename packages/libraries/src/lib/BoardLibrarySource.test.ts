@@ -175,6 +175,15 @@ describe('BoardLibrarySource', () => {
 		expect(stored[library.id]).toMatchObject({ name: 'Board kit' })
 	})
 
+	it('houses its libraries in the document, which never adds or removes them', async () => {
+		const source = new BoardLibrarySource(makeEditor())
+		const library = await source.createLibrary('Kit')
+		expect(source.getLibraryPlacement(library.id)).toBe('housed')
+		expect(source.getLibraryPlacement(LibraryRecordType.createId('nope'))).toBeUndefined()
+		expect(source.can('addLibraryToDocument', library.id)).toBe(false)
+		expect(source.can('removeLibraryFromDocument', library.id)).toBe(false)
+	})
+
 	it('stores the meta a new library is given', async () => {
 		const source = new BoardLibrarySource(makeEditor())
 		const library = await source.createLibrary('Kit', { meta: { packId: 'shapes' } })

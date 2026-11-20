@@ -6,6 +6,7 @@ import {
 	MAX_LIBRARY_ITEMS_PER_REQUEST,
 	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
 	type TlaLibrary,
+	type TlaLibraryItem,
 	type TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
 import {
@@ -23,6 +24,7 @@ import {
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
+	type TLLibraryItemDetails,
 	type TLLibraryItemId,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
@@ -33,7 +35,6 @@ import {
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import { structuredClone } from '@tldraw/utils'
-import { createElement } from 'react'
 import { atom, computed, defineMessages, fetch, react, transact, uniqueId } from 'tldraw'
 import {
 	getNetworkCompensation,
@@ -41,10 +42,9 @@ import {
 } from '../../../utils/resolveUserContentImageUrl'
 import type { TldrawApp } from '../../app/TldrawApp'
 import type { TLAppLibraryAction } from '../../utils/app-ui-events'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 
 const messages = defineMessages({
-	privateToYou: { defaultMessage: 'Private to you' },
+	myStuff: { defaultMessage: 'My stuff' },
 })
 
 interface StoredItem {
@@ -96,15 +96,31 @@ function settleable<T>() {
 const ITEM_ROW_ARRIVAL_TIMEOUT_MS = 60_000
 
 // A row's id is the record id without its type prefix.
-const rowId = (id: TLLibraryId | TLLibraryItemId) => id.slice(id.indexOf(':') + 1)
+export function rowId(id: TLLibraryId | TLLibraryItemId) {
+	return id.slice(id.indexOf(':') + 1)
+}
 
-const toLibrary = (row: TlaLibrary): TLLibrary =>
-	LibraryRecordType.create({
+export function toLibrary(row: TlaLibrary): TLLibrary {
+	return LibraryRecordType.create({
 		id: LibraryRecordType.createId(row.id),
 		name: row.name,
 		ownerId: row.owningGroupId,
 		meta: row.meta ?? {},
 	})
+}
+
+/** An item row as listed, with `localThumbnail` in place of the row's own when given. */
+export function toLibraryItem(item: TlaLibraryItem, localThumbnail?: TLLibraryThumbnail) {
+	const thumbnail = localThumbnail ?? item.thumbnail
+	return LibraryItemRecordType.create({
+		id: LibraryItemRecordType.createId(item.id),
+		libraryId: LibraryRecordType.createId(item.libraryId),
+		...(item.name ? { name: item.name } : {}),
+		...(thumbnail ? { thumbnail } : {}),
+		createdAt: item.createdAt,
+		meta: item.meta ?? {},
+	})
+}
 
 const revokeThumbnail = (thumbnail: TLLibraryThumbnail) =>
 	mapThumbnail(thumbnail, (url) => URL.revokeObjectURL(url))
@@ -137,8 +153,10 @@ function splitIntoRequests(items: NewItem[]): NewItem[][] {
 
 /**
  * Workspace libraries, kept in tldraw.com's database and synced through Zero: those of every
- * workspace the user is a member of, the home workspace's being private to them. A board's own
- * libraries are kept in its document instead (see editorLibraries).
+ * workspace the user is a member of, each named as its workspace is, the home workspace's being
+ * private to them. A board's own
+ * libraries are kept in its document instead (see editorLibraries), and which libraries a file
+ * shows is up to TldrawAppFileLibrariesSource, over this one.
  *
  * Libraries and item rows come from the app's libraries query and change through mutators.
  * An item's content is stored by the sync worker, which also adds items and copies libraries,
@@ -171,6 +189,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	// Libraries created or copied here that the server hasn't confirmed yet, by row id. The worker
 	// can't add items to them or copy them until it has.
 	private readonly unconfirmedLibraries = new Map<string, Promise<boolean>>()
+	// Starter packs' copies made here whose items haven't been added yet. The first items added to
+	// one are the pack's, sent so the worker keeps the copy's packId; any later ones change it.
+	private readonly unfilledPackCopies = new Set<string>()
 	// Libraries deleted here that the server hasn't confirmed deleting yet, by row id. If it rejects
 	// the delete, the row returns, and so may the rows of items being stored in it.
 	private readonly unconfirmedDeletes = atom<ReadonlySet<string>>(
@@ -178,21 +199,19 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		new Set()
 	)
 
+	private defaultLibrarySeed: Promise<unknown> | undefined
+
+	// What's stored under an item's id never changes, so one load serves every later use.
+	private readonly itemContents = new Map<TLLibraryItemId, Promise<TLLibraryItemContent>>()
+
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
-		const memberships = this.app.getWorkspaceMemberships()
-		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
+		const owners = this.app
+			.getWorkspaceMemberships()
+			.flatMap((m) => (m.group ? [{ id: m.groupId, name: m.group.name }] : []))
 		return [
-			{
-				id: homeId,
-				name: homeName ?? this.app.msg(messages.privateToYou),
-				icon: createElement(TlaIcon, { icon: 'home' }),
-			},
-			...memberships.flatMap((m) =>
-				m.groupId !== homeId && m.group
-					? [{ id: m.groupId, name: m.group.name, icon: createElement(TlaIcon, { icon: 'group' }) }]
-					: []
-			),
+			...owners.filter((owner) => owner.id === homeId),
+			...owners.filter((owner) => owner.id !== homeId),
 		]
 	})
 
@@ -214,15 +233,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 				row.id,
 				row.items.map((item) => {
 					itemRowIds.add(item.id)
-					const thumbnail = localThumbnails.get(item.id) ?? item.thumbnail
-					return LibraryItemRecordType.create({
-						id: LibraryItemRecordType.createId(item.id),
-						libraryId: LibraryRecordType.createId(row.id),
-						...(item.name ? { name: item.name } : {}),
-						...(thumbnail ? { thumbnail } : {}),
-						createdAt: item.createdAt,
-						meta: item.meta ?? {},
-					})
+					return toLibraryItem(item, localThumbnails.get(item.id))
 				})
 			)
 		}
@@ -234,6 +245,17 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			else byLibrary.set(libraryRowId, [item])
 		}
 		return byLibrary
+	})
+
+	// Who saved each stored item, by its row id, and the workspace whose members can name them.
+	private readonly itemCreators$ = computed('library item creators', () => {
+		const creators = new Map<string, { userId: string; workspaceId: string }>()
+		for (const row of this.app.getLibraryRows()) {
+			for (const item of row.items) {
+				creators.set(item.id, { userId: item.createdBy, workspaceId: row.owningGroupId })
+			}
+		}
+		return creators
 	})
 
 	constructor(
@@ -249,9 +271,28 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return this.items$.get().get(rowId(libraryId)) ?? []
 	}
 
+	getItemDetails(item: TLLibraryItem): TLLibraryItemDetails {
+		const creator = this.itemCreators$.get().get(rowId(item.id))
+		if (!creator) return {}
+		const member = this.app
+			.getWorkspaceMembership(creator.workspaceId)
+			?.groupMembers.find((m) => m.userId === creator.userId)
+		return member ? { creatorName: member.userName } : {}
+	}
+
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const pending = this.findPendingItem(itemId)
 		if (pending) return pending.loadContent()
+		let loading = this.itemContents.get(itemId)
+		if (!loading) {
+			loading = this.loadItemContent(itemId)
+			this.itemContents.set(itemId, loading)
+			loading.catch(() => this.itemContents.delete(itemId))
+		}
+		return loading
+	}
+
+	private async loadItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const response = await this.request(`/api/app/library-items/${rowId(itemId)}/content`)
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)
@@ -269,8 +310,11 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		})
 	}
 
-	can(_action: TLLibraryAction, target?: TLLibraryTarget) {
-		// Every member of a workspace can manage its libraries, so the action doesn't matter.
+	can(action: TLLibraryAction, target?: TLLibraryTarget) {
+		if (action === 'deleteLibrary' && typeof target === 'string' && this.isDefaultLibrary(target)) {
+			return false
+		}
+		// Otherwise every member of a workspace can manage its libraries, so the action doesn't matter.
 		const ownerId = this.getTargetOwnerId(target)
 		return ownerId !== undefined && this.canManageIn(ownerId)
 	}
@@ -283,11 +327,37 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return this.app.getHomeWorkspaceId()
 	}
 
+	/**
+	 * Gives the user their default library, "My stuff", in their home workspace, unless they have
+	 * one. Call it once the libraries have synced, so an unsynced list isn't taken for one without
+	 * it. Concurrent calls share one creation, and the mutator creates none once there is one, so tabs
+	 * that race end up with one.
+	 */
+	ensureDefaultLibrary() {
+		if (this.defaultLibrarySeed) return
+		const homeId = this.app.getHomeWorkspaceId()
+		const rows = this.app.getLibraryRows()
+		if (rows.some((row) => row.isDefault && row.owningGroupId === homeId)) return
+		this.defaultLibrarySeed = this.apply(
+			this.app.z.mutate.library.ensureDefault({
+				id: uniqueId(),
+				name: this.app.msg(messages.myStuff),
+			}),
+			undefined
+		)
+			.then(({ confirmed }) => confirmed)
+			.catch((error) => console.error("Couldn't create the default library", error))
+			.finally(() => {
+				this.defaultLibrarySeed = undefined
+			})
+	}
+
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
 		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const id = uniqueId()
 		const meta = options.meta ?? {}
+		if (meta.packId !== undefined) this.unfilledPackCopies.add(id)
 		const { confirmed } = await this.apply(
 			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }),
 			'create-library',
@@ -314,6 +384,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async deleteLibrary(libraryId: TLLibraryId) {
+		if (this.isDefaultLibrary(libraryId)) {
+			throw new LibraryPermissionError('deleteLibrary', libraryId)
+		}
 		const id = await this.getLibraryRowId(libraryId)
 		const itemIds = this.getItems(libraryId).map((item) => rowId(item.id))
 		this.unconfirmedDeletes.update((all) => new Set(all).add(id))
@@ -416,7 +489,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		)
 		this.pendingItems.update((all) => [...all, ...adding.map((a) => a.pending)])
 		const items = adding.map((a) => a.pending.item)
-		const stored = this.storeNewItems(libraryId, adding)
+		const fillsPackCopy = this.unfilledPackCopies.delete(rowId(libraryId))
+		const stored = this.storeNewItems(libraryId, adding, fillsPackCopy)
 		trackItemsStoring(
 			items.map((item) => item.id),
 			stored
@@ -593,12 +667,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	// Unlists the items of a request that fails, and those after it.
-	private async storeNewItems(libraryId: TLLibraryId, adding: NewItem[]) {
+	private async storeNewItems(libraryId: TLLibraryId, adding: NewItem[], fillsPackCopy: boolean) {
 		let storedCount = 0
 		try {
 			await this.whenConfirmed(libraryId)
 			for (const request of splitIntoRequests(adding)) {
-				const stored = await this.storeItems(libraryId, request)
+				const stored = await this.storeItems(libraryId, request, fillsPackCopy)
 				this.listStoredItems(libraryId, request, stored)
 				storedCount += request.length
 			}
@@ -608,8 +682,13 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		}
 	}
 
-	private async storeItems(libraryId: TLLibraryId, adding: NewItem[]): Promise<StoredItem[]> {
+	private async storeItems(
+		libraryId: TLLibraryId,
+		adding: NewItem[],
+		fillsPackCopy: boolean
+	): Promise<StoredItem[]> {
 		const form = new FormData()
+		if (fillsPackCopy) form.set('fillsPackCopy', 'true')
 		form.set(
 			'items',
 			JSON.stringify(
@@ -680,10 +759,17 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return rowId(itemId)
 	}
 
-	// The mutators need the library's row in the local store, which a copy doesn't have yet.
-	private async getLibraryRowId(libraryId: TLLibraryId) {
+	/**
+	 * Resolves once the library's row is in the local store, where mutators need it, with whether
+	 * it arrived: a copy's arrives after the worker stores it, and not at all if copying fails.
+	 */
+	async waitForLibraryRow(libraryId: TLLibraryId) {
 		const pending = this.pendingLibraries.get().find((p) => p.library.id === libraryId)
-		if (pending && !(await pending.arrived)) throw new LibraryNotFoundError(libraryId)
+		return pending ? pending.arrived : true
+	}
+
+	private async getLibraryRowId(libraryId: TLLibraryId) {
+		if (!(await this.waitForLibraryRow(libraryId))) throw new LibraryNotFoundError(libraryId)
 		return rowId(libraryId)
 	}
 
@@ -727,6 +813,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return this.getLibraries().find((c) => c.id === target)?.ownerId
 	}
 
+	// The user's default library is never deleted, so it can't be moved out of their home either.
+	private isDefaultLibrary(libraryId: TLLibraryId) {
+		const id = rowId(libraryId)
+		return this.app.getLibraryRows().some((row) => row.id === id && row.isDefault)
+	}
+
 	private canManageIn(workspaceId: string) {
 		return can(this.app.getWorkspaceMembership(workspaceId)?.role, 'manageLibraries')
 	}
@@ -737,7 +829,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	 * locally rejects, and fails on the server with the same error. A rejection is reported as
 	 * `library-error` for `action`, with `method` for a create.
 	 */
-	private async apply(
+	async apply(
 		mutation: MutatorResult,
 		action: TLAppLibraryAction | undefined,
 		method?: 'new'

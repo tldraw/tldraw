@@ -216,6 +216,10 @@ button.topLeftInputNameWidthSetter {
 	margin-left: -4px;
 }
 
+.librariesButton {
+	color: var(--tl-color-text-1);
+}
+
 .topLeftMainMenuTrigger:focus-visible {
 	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;

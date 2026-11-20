@@ -7,7 +7,6 @@ import {
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	useReadonly,
 	useTranslation,
 } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
@@ -18,6 +17,10 @@ const messages = defineMessages({
 	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
 	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
+	removeFromDocument: {
+		id: 'libraries.library-menu.remove-from-document',
+		defaultMessage: 'Remove from this file',
+	},
 	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort items by' },
 	reverse: { id: 'libraries.library-menu.reverse', defaultMessage: 'Reverse order' },
 	move: { id: 'libraries.library-menu.move', defaultMessage: 'Move to' },
@@ -61,6 +64,8 @@ export interface LibraryMenuProps {
 	onCreate?(): void
 	onRename?(): void
 	onDelete?(): void
+	/** Stops showing the library in the document, without deleting it. */
+	onRemoveFromDocument?(): void
 	/** A "Sort items by" submenu. Leave out to hide it. */
 	sort?: LibraryMenuSort
 	/** A "Move to" submenu of owners. Leave out to hide it. */
@@ -68,8 +73,8 @@ export interface LibraryMenuProps {
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: LibraryMenuCopy
 	/**
-	 * Items of the host's own, placed after "New library", e.g. {@link LibraryMenuItem}s. Shown
-	 * in a read-only editor too, so leave out any that change the document.
+	 * Items of the host's own, placed after "New library", e.g. {@link LibraryMenuItem}s. The menu
+	 * doesn't check whether the editor is read-only, so gate any that change the document.
 	 */
 	children?: ReactNode
 }
@@ -80,22 +85,28 @@ export interface LibraryMenuProps {
  */
 export function LibraryMenu({
 	id,
-	onCreate,
-	onRename,
-	onDelete,
+	onCreate: create,
+	onRename: rename,
+	onDelete: remove,
+	onRemoveFromDocument: removeFromDocument,
 	sort,
-	move,
-	copy,
+	move: moveTo,
+	copy: copyTo,
 	children,
 }: LibraryMenuProps) {
 	const msg = useTranslation()
-	const isReadonly = useReadonly()
-	const create = isReadonly ? undefined : onCreate
-	const rename = isReadonly ? undefined : onRename
-	const remove = isReadonly ? undefined : onDelete
-	const moveTo = isReadonly ? undefined : move
-	const copyTo = isReadonly ? undefined : copy
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
+	if (
+		!create &&
+		!rename &&
+		!remove &&
+		!removeFromDocument &&
+		!sort &&
+		!moveTo &&
+		!copyTo &&
+		!children
+	) {
+		return null
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -160,6 +171,9 @@ export function LibraryMenu({
 								/>
 							))}
 						</MenuSubmenu>
+					)}
+					{removeFromDocument && (
+						<MenuItem label={msg(messages.removeFromDocument)} onClick={removeFromDocument} />
 					)}
 					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
 				</TldrawUiDropdownMenuGroup>

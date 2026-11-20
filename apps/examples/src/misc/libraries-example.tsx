@@ -1,6 +1,7 @@
 import {
 	AddToLibraryMenuItem,
 	type LibrariesComponents,
+	type LibraryBrowseGroup,
 	type LibrarySource,
 	LibrariesPanel,
 	LibrariesQuickActions,
@@ -28,6 +29,7 @@ export interface Showing {
 	components?: LibrariesComponents
 	/** CSS variables set on the editor's container while it shows, e.g. --tlui-libraries-columns. */
 	cssVariables?: Record<string, string>
+	getBrowseGroups?(): LibraryBrowseGroup[]
 }
 
 const seeded = new Map<Showing, Promise<void>>()
@@ -66,6 +68,7 @@ function makeComponents(getShowing: (editor: Editor) => Showing): TLComponents {
 				source={showing.source}
 				menuItems={showing.menuItems}
 				components={showing.components}
+				getBrowseGroups={showing.getBrowseGroups}
 			/>
 		)
 	}

@@ -3,37 +3,40 @@ import {
 	defineMessages,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	useEditor,
-	useReadonly,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { NewLibraryIcon } from '../ui/library-icon'
+import type { TLLibraryOwner } from '../lib/LibrarySource'
 import { LibraryMenu } from '../ui/library-menu'
+import { MenuItem } from '../ui/menu-items'
 import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
+	newLibrary: { id: 'libraries.panel.new-library', defaultMessage: 'New library' },
 })
 
 /**
- * Creates a library from the {@link LibrariesPanel}. When the source has two or more owners, it
- * creates one for a tab's owner: the open tab's in the header, and each tab's own in its
- * {@link NoLibraries}.
+ * Where the {@link LibrariesPanel}'s "New library" button can create a library.
  * @public
  */
-export interface NewLibraryAction {
-	/** "New library", or "New library in …" naming the owner. */
-	label: string
-	onCreate(): void
+export interface LibrariesPanelHeaderCreate {
+	/** Where a new library can go. With fewer than two, it goes to the one, or the default. */
+	owners: TLLibraryOwner[]
+	onCreate(ownerId?: string): void
 }
 
 /** @public */
 export interface LibrariesPanelHeaderProps {
-	/** For the open tab's owner. Left out when the source doesn't allow creating a library there. */
-	newLibrary?: NewLibraryAction
 	/** The host's items for the panel's ⋯ menu, from {@link LibrariesPanelProps.menuItems}. */
 	menuItems?: ReactNode
+	/** For the "New library" button. Left out when the source doesn't allow creating a library. */
+	create?: LibrariesPanelHeaderCreate
 }
 
 /**
@@ -41,10 +44,9 @@ export interface LibrariesPanelHeaderProps {
  * for {@link LibrariesComponents.LibrariesPanelHeader}.
  * @public @react
  */
-export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHeaderProps) {
+export function LibrariesPanelHeader({ menuItems, create }: LibrariesPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const isReadonly = useReadonly()
 	const renaming = useValue('renaming library', () => renamingLibraryId.get(editor) !== null, [
 		editor,
 	])
@@ -53,20 +55,38 @@ export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHe
 		<header className="tlui-libraries-panel__header">
 			<span className="tlui-libraries-panel__title">{msg(messages.title)}</span>
 			<div className="tlui-libraries-panel__header-actions">
-				{newLibrary && !isReadonly && (
-					<TldrawUiButton
-						type="icon"
-						tooltip={newLibrary.label}
-						title={newLibrary.label}
-						onClick={newLibrary.onCreate}
-					>
-						<TldrawUiButtonIcon icon={<NewLibraryIcon />} />
-					</TldrawUiButton>
-				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the new library's name input straight away. */}
+				{!renaming && create && <NewLibraryButton create={create} />}
 				{!renaming && <LibraryMenu id="libraries-panel-menu">{menuItems}</LibraryMenu>}
 			</div>
 		</header>
+	)
+}
+
+function NewLibraryButton({ create }: { create: LibrariesPanelHeaderCreate }) {
+	const msg = useTranslation()
+	const label = msg(messages.newLibrary)
+	const button = (onClick?: () => void) => (
+		<TldrawUiButton type="icon" tooltip={label} title={label} onClick={onClick}>
+			<TldrawUiButtonIcon icon="plus" small />
+		</TldrawUiButton>
+	)
+
+	if (create.owners.length <= 1) {
+		return button(() => create.onCreate(create.owners[0]?.id))
+	}
+
+	return (
+		<TldrawUiDropdownMenuRoot id="libraries-new-library">
+			<TldrawUiDropdownMenuTrigger>{button()}</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent className="tlui-libraries-menu" side="bottom" align="end">
+				<TldrawUiDropdownMenuGroup>
+					{create.owners.map((owner) => (
+						<MenuItem key={owner.id} label={owner.name} onClick={() => create.onCreate(owner.id)} />
+					))}
+				</TldrawUiDropdownMenuGroup>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 }

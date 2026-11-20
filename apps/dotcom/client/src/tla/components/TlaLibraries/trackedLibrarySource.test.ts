@@ -131,6 +131,33 @@ describe('TrackedLibrarySource', () => {
 		])
 	})
 
+	it('reports adding a library to the file and removing it', async () => {
+		const { source, newItem, events } = setUp()
+		const library = await source.createLibrary('Secret', { ownerId: 'acme' })
+		await source.addItem(library.id, newItem())
+		await source.removeLibraryFromDocument!(library.id)
+		await vi.waitFor(() =>
+			expect(source.getAvailableLibraries!().map((l) => l.id)).toContain(library.id)
+		)
+		await source.addLibraryToDocument!(library.id)
+		expect(
+			events()
+				.filter(([name]) => name !== 'add-to-library')
+				.slice(1)
+		).toEqual([
+			['remove-library-from-file', { source: 'libraries' }],
+			['add-library-to-file', { source: 'libraries' }],
+		])
+	})
+
+	it('reports removing an empty library from the file, which deletes it, once as a delete', async () => {
+		const { backend, source, events } = setUp()
+		const library = await source.createLibrary('Secret', { ownerId: 'acme' })
+		await source.removeLibraryFromDocument!(library.id)
+		expect(backend.rows.get().map((row) => row.name)).not.toContain('Secret')
+		expect(events().slice(1)).toEqual([['delete-library', { source: 'libraries' }]])
+	})
+
 	it('reports changes with the part of the app they were made from', async () => {
 		const { backend, events } = setUp()
 		const libraries = new TldrawAppLibrariesSource(backend.app, backend.getToken)
@@ -228,7 +255,8 @@ describe('TrackedLibrarySource', () => {
 
 	it('leaves adding a starter pack to be reported as that', async () => {
 		const { source, events } = setUp()
-		await addStarterPack(source, { id: 'doodles', name: 'Doodles', version: 1, items: [] })
+		const pack = { id: 'doodles', name: 'Doodles', version: 1, items: [] }
+		await addStarterPack(source, 'doodles', async () => pack, undefined)
 		expect(events()).toEqual([])
 	})
 

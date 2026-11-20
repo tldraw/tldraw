@@ -15,6 +15,7 @@ import { RenameInput } from './rename-input'
 
 const messages = defineMessages({
 	moreOptions: { id: 'libraries.item-menu.title', defaultMessage: 'Item options' },
+	details: { id: 'libraries.item-menu.details', defaultMessage: 'Details' },
 	rename: { id: 'libraries.item-menu.rename', defaultMessage: 'Rename' },
 	delete: { id: 'libraries.item-menu.delete', defaultMessage: 'Delete' },
 	moveTo: { id: 'libraries.item-menu.move-to', defaultMessage: 'Move to' },
@@ -27,6 +28,8 @@ export interface ItemMenuProps {
 	id: string
 	/** Shown at the top of the menu. Leave out for an unnamed item. */
 	name?: string
+	/** Leave out to hide Details. */
+	onShowDetails?(): void
 	/**
 	 * Called with the input's value when a rename in the menu completes. Leave out to hide Rename,
 	 * e.g. when the source doesn't allow it.
@@ -64,6 +67,7 @@ export function getItemMenuId(id: string) {
 export function ItemMenu({
 	id,
 	name,
+	onShowDetails,
 	onRename,
 	onDelete,
 	moveTargets,
@@ -75,7 +79,7 @@ export function ItemMenu({
 	const msg = useTranslation()
 	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
 	const canCopy = onCopy !== undefined && copyTargets !== undefined && copyTargets.length > 0
-	if (!onRename && !onDelete && !canMove && !canCopy && !children) return null
+	if (!onShowDetails && !onRename && !onDelete && !canMove && !canCopy && !children) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={getItemMenuId(id)}>
@@ -99,6 +103,7 @@ export function ItemMenu({
 				<ItemMenuContent
 					id={id}
 					name={name}
+					onShowDetails={onShowDetails}
 					onRename={onRename}
 					onDelete={onDelete}
 					moveTargets={canMove ? moveTargets : undefined}
@@ -117,6 +122,7 @@ export function ItemMenu({
 function ItemMenuContent({
 	id,
 	name,
+	onShowDetails,
 	onRename,
 	onDelete,
 	moveTargets,
@@ -161,6 +167,9 @@ function ItemMenuContent({
 				</div>
 			)}
 			<TldrawUiDropdownMenuGroup>
+				{onShowDetails && (
+					<MenuItem label={msg(messages.details)} holdFocus={renaming} onClick={onShowDetails} />
+				)}
 				{children}
 				{onRename && (
 					<MenuItem

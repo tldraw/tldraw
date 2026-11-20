@@ -269,37 +269,87 @@
 .librariesList {
 	display: flex;
 	flex-direction: column;
+	gap: 8px;
 }
 
 .libraryItem {
 	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	border-radius: var(--tl-radius-4);
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
+}
+
+.libraryThumbnails {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.libraryThumbnail {
+	display: flex;
 	align-items: center;
-	gap: 10px;
-	height: 36px;
+	justify-content: center;
+	aspect-ratio: 1;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	background: var(--tl-color-background);
+	overflow: hidden;
+}
+
+.libraryThumbnail > img {
+	max-width: 80%;
+	max-height: 80%;
+	object-fit: contain;
+}
+
+.libraryFooter {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-inline-start: 2px;
+}
+
+.libraryText {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
 }
 
 .libraryName {
-	flex: 1;
-	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	font-size: 13px;
+	line-height: 20px;
+	font-weight: 500;
+	color: var(--tl-color-text-0);
+}
+
+.libraryText > .dialogInput {
+	height: 24px;
 }
 
 .libraryCount {
-	flex-shrink: 0;
-	color: var(--tl-color-text-3);
 	font-size: 12px;
+	line-height: 18px;
+	color: var(--tl-color-text-3);
 }
 
-/* A bare icon, like the sidebar's file menu trigger, flush with the content's right edge. */
+.libraryNotInAnyFile {
+	margin-inline-start: 4px;
+}
+
+/* A bare icon, like the sidebar's file menu trigger. */
 .libraryMenuTrigger {
 	flex: 0 0 auto;
-	width: 36px;
-	height: 36px;
+	width: 32px;
+	height: 32px;
 	min-width: 0;
 	padding: 0;
-	margin-inline-end: -10px;
+	margin-inline-end: -4px;
 	background: none;
 	color: var(--tl-color-text-3);
 }
@@ -307,6 +357,18 @@
 .libraryMenuTrigger:hover,
 .libraryMenuTrigger[data-state='open'] {
 	color: var(--tl-color-text-1);
+}
+
+@media (hover: hover) {
+	.libraryMenuTrigger {
+		opacity: 0;
+	}
+
+	.libraryItem:hover .libraryMenuTrigger,
+	.libraryMenuTrigger:focus-visible,
+	.libraryMenuTrigger[data-state='open'] {
+		opacity: 1;
+	}
 }
 
 /* Menus portal into the editor container beside the dialog, on the menus layer below it. Raise

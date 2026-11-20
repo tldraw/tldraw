@@ -1,4 +1,11 @@
-import { copyLibrary, whenItemsStored, type TLLibraryItem } from '@tldraw/libraries'
+import {
+	addPackToDocument,
+	copyLibrary,
+	whenItemsStored,
+	type LibraryPack,
+	type TLLibraryItem,
+	type TLLibraryItemContent,
+} from '@tldraw/libraries'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -14,7 +21,7 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
-import { addStarterPack, isStarterPackAdded } from './starterPacks'
+import { getStarterPackBrowseGroup, getStarterPackOwnerId } from './starterPacks'
 
 // An add, once its items are stored as well as listed.
 async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
@@ -73,24 +80,42 @@ function addImage(editor: Editor) {
 }
 
 describe('getEditorLibraries', () => {
-	it("lists the board first and keeps libraries made there in the file's document", async () => {
+	it("lists the board last and keeps libraries made there in the file's document", async () => {
 		const { editor, source } = setUp()
 		expect(source.getLibraryOwners?.()?.map(({ id, name }) => ({ id, name }))).toEqual([
-			{ id: 'file-a', name: 'This board' },
 			{ id: 'home', name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
+			{ id: 'file-a', name: 'This board' },
 		])
 		const library = await source.createLibrary('Board kit', { ownerId: 'file-a' })
 		expect(library.ownerId).toBe('file-a')
 		expect(ofType(editor, 'library')).toMatchObject([{ id: library.id, name: 'Board kit' }])
 	})
 
-	it('creates new libraries in the home workspace by default', async () => {
-		const { editor, source } = setUp()
+	it('creates new libraries in the home workspace by default, and adds them to the file', async () => {
+		const { editor, backend, source } = setUp()
 		expect(source.getDefaultOwnerId?.()).toBe('home')
 		const library = await source.createLibrary('Team kit')
 		expect(library.ownerId).toBe('home')
 		expect(ofType(editor, 'library')).toEqual([])
+		expect(backend.fileLibraries.get()).toMatchObject([{ fileId: 'file-a' }])
+	})
+
+	it('places board libraries as housed, and workspace ones as added', async () => {
+		const { source } = setUp()
+		const onBoard = await source.createLibrary('Board kit', { ownerId: 'file-a' })
+		const inHome = await source.createLibrary('Team kit')
+		expect(source.getLibraryPlacement!(onBoard.id)).toBe('housed')
+		expect(source.getLibraryPlacement!(inHome.id)).toBe('added')
+	})
+
+	it("stops the file's libraries query when the editor is disposed", () => {
+		const { editor, backend } = setUp()
+		const stops = backend.watchFileLibraries.mock.results.map((result) => result.value.stop)
+		editors = editors.filter((e) => e !== editor)
+		editor.dispose()
+		expect(stops).toHaveLength(1)
+		expect(stops[0]).toHaveBeenCalled()
 	})
 
 	it("creates a library in another of the user's workspaces when asked", async () => {
@@ -159,15 +184,70 @@ describe('getEditorLibraries', () => {
 		expect(boardOrder).toHaveLength(names.length)
 	})
 
-	it('adds a starter pack to the home workspace, not the board, and counts it added there', async () => {
-		const { editor, source } = setUp()
-		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
-		expect(ofType(editor, 'library')).toEqual([])
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary!(copy.id, 'acme')
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+	describe('a starter pack', () => {
+		function setUpPack() {
+			const setup = setUp()
+			const { editor, source } = setup
+			const shapeId = createShapeId()
+			editor.createShape({ id: shapeId, type: 'geo' })
+			const content: TLLibraryItemContent = {
+				formatVersion: 1,
+				content: editor.getContentFromCurrentPage([shapeId])!,
+			}
+			editor.deleteShape(shapeId)
+			const pack: LibraryPack = {
+				id: 'doodles',
+				name: 'Doodles',
+				version: 2,
+				items: [{ id: 'a', content }],
+			}
+			const summary = { id: 'doodles', name: 'Doodles', version: 2, itemCount: 1, previews: [] }
+			const entry = () =>
+				getStarterPackBrowseGroup(source, [summary], 'Public', () => {}).entries[0]
+			const add = () =>
+				addPackToDocument(source, 'doodles', async () => pack, {
+					ownerId: getStarterPackOwnerId(source),
+				})
+			return { ...setup, content, entry, add }
+		}
+
+		it("is copied to the file's workspace, not the board, and keeps its packId while filled", async () => {
+			const { editor, source, entry, add } = setUpPack()
+			expect(entry().added).toBe(false)
+			expect(getStarterPackOwnerId(source)).toBe('acme')
+			const id = await add()
+			await vi.waitFor(() => expect(source.getItems(id)).toHaveLength(1))
+			const copy = source.getLibraries().find((library) => library.id === id)
+			expect(copy).toMatchObject({ ownerId: 'acme', meta: { packId: 'doodles', packVersion: 2 } })
+			expect(ofType(editor, 'library')).toEqual([])
+			expect(source.getLibraryPlacement!(id)).toBe('added')
+			expect(entry().added).toBe(true)
+		})
+
+		it('deletes an unchanged copy when it leaves its last file, and adds a fresh copy again', async () => {
+			const { source, entry, add } = setUpPack()
+			const id = await add()
+			await vi.waitFor(() => expect(source.getItems(id)).toHaveLength(1))
+			await source.removeLibraryFromDocument!(id)
+			expect(entry().added).toBe(false)
+			expect(source.getAvailableLibraries!().map((library) => library.id)).not.toContain(id)
+			const again = await add()
+			expect(again).not.toBe(id)
+			expect(entry().added).toBe(true)
+		})
+
+		it('keeps a changed copy as an ordinary library, and copies the pack afresh', async () => {
+			const { source, content, entry, add } = setUpPack()
+			const id = await add()
+			await vi.waitFor(() => expect(source.getItems(id)).toHaveLength(1))
+			await added(source.addItem(id, { content }))
+			const copy = () => source.getLibraries().find((library) => library.id === id)
+			expect(copy()!.meta).toEqual({ packVersion: 2 })
+			expect(entry().added).toBe(false)
+			await source.removeLibraryFromDocument!(id)
+			expect(source.getAvailableLibraries!().map((library) => library.id)).toContain(id)
+			const again = await add()
+			expect(again).not.toBe(id)
+		})
 	})
 })

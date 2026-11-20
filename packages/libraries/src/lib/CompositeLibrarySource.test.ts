@@ -102,6 +102,23 @@ describe('CompositeLibrarySource', () => {
 		expect(kit).not.toHaveProperty('ownerId')
 	})
 
+	it("answers an item's details from its part, and none from a part without them", async () => {
+		const mine = Object.assign(new InMemoryLibrarySource({ id: 'mine' }), {
+			getItemDetails: () => ({ creatorName: 'Ada' }),
+		})
+		const kits = shared()
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: personal, source: mine },
+				{ owner: tldraw, source: kits },
+			],
+		})
+		const kit = await mine.createLibrary('Kit')
+		const star = await added(mine.addItem(kit.id, { name: 'Star', content: content('star') }))
+		expect(source.getItemDetails!(star)).toEqual({ creatorName: 'Ada' })
+		expect(source.getItemDetails!(kits.getItems(wireframing)[0])).toEqual({})
+	})
+
 	it('updates its listing when a part changes', async () => {
 		const { source, team } = setUp()
 		const seen: string[][] = []
@@ -231,7 +248,7 @@ describe('CompositeLibrarySource', () => {
 
 	it("won't move a library out of a read-only part, and copies nothing", async () => {
 		const { source, mine, kits } = setUp()
-		await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
+		await expect(source.moveLibrary!(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
 		expect(mine.getLibraries()).toEqual([])
 		expect(kits.getLibraries()).toHaveLength(1)
 	})
@@ -256,7 +273,7 @@ describe('CompositeLibrarySource', () => {
 		const { source, mine, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
 		await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
-		const copy = await source.moveLibrary(kit.id, 'acme')
+		const copy = await source.moveLibrary!(kit.id, 'acme')
 		expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
 		expect(copy.id).not.toBe(kit.id)
 		expect(source.getLibraries().find((c) => c.id === copy.id)).toEqual(copy)
@@ -363,7 +380,7 @@ describe('CompositeLibrarySource', () => {
 			expect(team.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
 			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
 
-			await source.moveLibrary(kit.id, 'acme')
+			await source.moveLibrary!(kit.id, 'acme')
 			expect(team.getLibraries()).toHaveLength(1)
 			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
 			await new Promise((resolve) => setTimeout(resolve, 5))
@@ -395,14 +412,14 @@ describe('CompositeLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBe('acme')
 			const kit = await source.createLibrary('Kit')
 			expect(kit.ownerId).toBe('acme')
-			const moved = await source.moveLibrary(kit.id, 'home')
+			const moved = await source.moveLibrary!(kit.id, 'home')
 			expect(moved).toEqual({ ...kit, ownerId: 'home' })
 			expect(mine.getLibraries()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
 		})
 
 		it("won't move a read-only part's library to one of its owners", async () => {
 			const { source, mine } = setUpOwned()
-			await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
+			await expect(source.moveLibrary!(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
 			expect(mine.getLibraries()).toEqual([])
 		})
 
@@ -453,7 +470,7 @@ describe('CompositeLibrarySource', () => {
 			const copy = await copyLibrary(source, wireframing, 'acme')
 			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id, copy.id])
 			expect(generated.getLibraries()).toHaveLength(1)
-			await expect(source.moveLibrary(wireframing, 'acme')).rejects.toThrow(LibraryPermissionError)
+			await expect(source.moveLibrary!(wireframing, 'acme')).rejects.toThrow(LibraryPermissionError)
 		})
 	})
 
@@ -465,6 +482,20 @@ describe('CompositeLibrarySource', () => {
 			parts: [{ owner: tldraw, source: unmovable }],
 		})
 		expect(withoutMoving.moveItem).toBeUndefined()
+	})
+
+	it('offers moving libraries only when a part can', () => {
+		expect(setUp().source.moveLibrary).toBeDefined()
+		const unmovable = Object.assign(new InMemoryLibrarySource({ owners: [personal, acme] }), {
+			moveLibrary: undefined,
+		})
+		const withoutMoving = new CompositeLibrarySource({
+			parts: [
+				{ source: unmovable },
+				{ owner: tldraw, source: Object.assign(shared(), { moveLibrary: undefined }) },
+			],
+		})
+		expect(withoutMoving.moveLibrary).toBeUndefined()
 	})
 
 	describe('resolveThumbnail', () => {
@@ -521,6 +552,94 @@ describe('CompositeLibrarySource', () => {
 			const { thumbnail: _thumbnail, ...bare } = star
 			expect(source.resolveThumbnail(bare, context('light'))).toBeNull()
 		})
+	})
+})
+
+describe('CompositeLibrarySource shown in a document', () => {
+	const kit = LibraryRecordType.createId('kit')
+	const mine = LibraryRecordType.createId('mine')
+
+	function setUp() {
+		const workspaces = new InMemoryLibrarySource({
+			id: 'workspaces',
+			owners: [personal, acme],
+			initial: {
+				libraries: [
+					LibraryRecordType.create({ id: kit, name: 'Kit', ownerId: 'acme' }),
+					LibraryRecordType.create({ id: mine, name: 'My stuff', ownerId: 'home' }),
+				],
+				items: [],
+				contents: {},
+			},
+			shownInDocument: [{ libraryId: mine, placement: 'default' }],
+		})
+		const kits = shared()
+		const source = new CompositeLibrarySource({
+			parts: [{ source: workspaces }, { owner: tldraw, source: kits }],
+		})
+		return { source, workspaces, kits }
+	}
+
+	it("offers the parts' available libraries, and adds each through its own part", async () => {
+		const { source, workspaces } = setUp()
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['My stuff', 'Wireframing'])
+		expect(source.getAvailableLibraries!().map((c) => c.name)).toEqual(['Kit'])
+		expect(source.can('addLibraryToDocument', kit)).toBe(true)
+		expect(source.can('addLibraryToDocument', wireframing)).toBe(false)
+
+		await source.addLibraryToDocument!(kit)
+		expect(workspaces.getLibraryPlacement!(kit)).toBe('added')
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['Kit', 'My stuff', 'Wireframing'])
+		expect(source.getAvailableLibraries!()).toEqual([])
+
+		await source.removeLibraryFromDocument!(kit)
+		expect(source.getAvailableLibraries!().map((c) => c.name)).toEqual(['Kit'])
+	})
+
+	it("answers each library's placement from its part, and none from a part without them", () => {
+		const { source } = setUp()
+		expect(source.getLibraryPlacement!(mine)).toBe('default')
+		expect(source.getLibraryPlacement!(wireframing)).toBeUndefined()
+	})
+
+	it('lists the items of an available library', async () => {
+		const { source, workspaces } = setUp()
+		const item = await added(workspaces.addItem(kit, { name: 'Star', content: content('star') }))
+		expect(source.getItems(kit)).toEqual([item])
+		expect(await source.getItemContent(item.id)).toEqual(content('star'))
+	})
+
+	it("refuses to add or remove through a part that doesn't add libraries", async () => {
+		const { source } = setUp()
+		await expect(source.addLibraryToDocument!(wireframing)).rejects.toThrow(LibraryPermissionError)
+		await expect(source.removeLibraryFromDocument!(wireframing)).rejects.toThrow(
+			LibraryPermissionError
+		)
+	})
+
+	it("lists each part's owners for new libraries, a fixed-owner part as its owner", () => {
+		const workspaces = Object.assign(new InMemoryLibrarySource({ owners: [personal, acme] }), {
+			getNewLibraryOwnerIds: () => ['acme', 'home'],
+		})
+		const kits = Object.assign(shared(), { getNewLibraryOwnerIds: () => ['anything'] })
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ source: workspaces },
+				{ owner: tldraw, source: kits },
+				{ owner: { id: 'board', name: 'Board' }, source: shared() },
+			],
+		})
+		expect(source.getNewLibraryOwnerIds!()).toEqual(['acme', 'home', 'tldraw'])
+	})
+
+	it('has none of the document members when no part has them', () => {
+		const source = new CompositeLibrarySource({ parts: [{ owner: tldraw, source: shared() }] })
+		expect(source.getAvailableLibraries).toBeUndefined()
+		expect(source.getLibraryPlacement).toBeUndefined()
+		expect(source.addLibraryToDocument).toBeUndefined()
+		expect(source.removeLibraryFromDocument).toBeUndefined()
+		expect(source.getNewLibraryOwnerIds).toBeUndefined()
+		expect(source.getItemDetails).toBeUndefined()
 	})
 })
 

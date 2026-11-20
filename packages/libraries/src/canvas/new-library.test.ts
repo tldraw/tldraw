@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
-import { canCreateNewLibrary, createNewLibrary } from './new-library'
+import { canCreateNewLibrary, createNewLibrary, getNewLibraryOwners } from './new-library'
 
 const owners = [
 	{ id: 'pack', name: 'Pack' },
@@ -28,4 +28,16 @@ it('creates for the owner it is given rather than the default owner', async () =
 	const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'me' })
 	expect((await createNewLibrary(source, 'Icons', 'pack')).ownerId).toBe('pack')
 	expect((await createNewLibrary(source, 'Shapes')).ownerId).toBe('me')
+})
+
+it('offers the owners the user may create in, or only those the source offers', () => {
+	const team = { id: 'team', name: 'Team' }
+	const source = new InMemoryLibrarySource({
+		owners: [...owners, team],
+		can: (_, target) => typeof target !== 'object' || target.ownerId !== 'pack',
+	})
+	expect(getNewLibraryOwners(source).map((o) => o.id)).toEqual(['me', 'team'])
+	const offering = Object.assign(source, { getNewLibraryOwnerIds: () => ['team', 'pack', 'gone'] })
+	expect(getNewLibraryOwners(offering).map((o) => o.id)).toEqual(['team'])
+	expect(getNewLibraryOwners(new InMemoryLibrarySource())).toEqual([])
 })

@@ -7,6 +7,7 @@ import {
 	TlaLibrary,
 	TlaLibraryItem,
 	TlaComment,
+	TlaFileLibrary,
 	TlaCommentRead,
 	TlaFile,
 	TlaFileState,
@@ -147,6 +148,7 @@ interface TableStore {
 	comment_read: TlaCommentRead[]
 	library: TlaLibrary[]
 	library_item: TlaLibraryItem[]
+	file_library: TlaFileLibrary[]
 }
 
 const TABLE_PKS: Record<keyof TableStore, string[]> = {
@@ -160,6 +162,7 @@ const TABLE_PKS: Record<keyof TableStore, string[]> = {
 	comment_read: ['userId', 'commentId'],
 	library: ['id'],
 	library_item: ['id'],
+	file_library: ['fileId', 'libraryId'],
 }
 
 function makeStore(tables: Partial<TableStore>): TableStore {
@@ -174,6 +177,7 @@ function makeStore(tables: Partial<TableStore>): TableStore {
 		comment_read: [],
 		library: [],
 		library_item: [],
+		file_library: [],
 		...tables,
 	}
 }
@@ -1731,6 +1735,8 @@ describe('libraries', () => {
 		createdAt: 1,
 		updatedAt: 1,
 		meta: {},
+		isDefault: false,
+		fileCount: 0,
 		...overrides,
 	})
 	const makeItem = (
@@ -1786,6 +1792,9 @@ describe('libraries', () => {
 			() => mutators.library_item.update(tx, { id: itemId, name: 'x' }),
 			() => mutators.library_item.move(tx, { id: itemId, libraryId: 'coll_cccc11112222dddd' }),
 			() => mutators.library_item.delete(tx, { id: itemId }),
+			() => mutators.library.ensureDefault(tx, { id: 'coll_dddd11112222eeee', name: 'x' }),
+			() => mutators.file_library.add(tx, { fileId: 'file_a', libraryId }),
+			() => mutators.file_library.remove(tx, { fileId: 'file_a', libraryId }),
 		]
 
 		it('refuses every library mutator on the server when the flag is off for me', async () => {
@@ -1898,11 +1907,36 @@ describe('libraries', () => {
 			expect(mutations).toEqual([{ op: 'delete', table: 'library', data: { id: libraryId } }])
 		})
 
+		it("removes a deleted library from the files it was added to in the client's store", async () => {
+			const { store, tx, mutators } = setup(
+				{
+					library: [makeLibrary({ id: libraryId, owningGroupId: W })],
+					file_library: [
+						{ fileId: 'file_a', libraryId, addedBy: me, addedAt: 1 },
+						{ fileId: 'file_a', libraryId: 'coll_elsewhere0000000', addedBy: me, addedAt: 1 },
+					],
+				},
+				'client'
+			)
+			await mutators.library.delete(tx, { id: libraryId })
+			expect(store.file_library.map((r) => r.libraryId)).toEqual(['coll_elsewhere0000000'])
+		})
+
 		it("can't rename or delete a library in a workspace I'm not in", async () => {
 			const { store, tx, mutators } = setup({
 				library: [makeLibrary({ id: libraryId, owningGroupId: X })],
 			})
 			await expectForbidden(() => mutators.library.rename(tx, { id: libraryId, name: 'Mine' }))
+			await expectForbidden(() => mutators.library.delete(tx, { id: libraryId }))
+			expect(store.library).toHaveLength(1)
+		})
+
+		it('renames my default library but never deletes it', async () => {
+			const { store, tx, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: me, isDefault: true })],
+			})
+			await mutators.library.rename(tx, { id: libraryId, name: 'Everything' })
+			expect(store.library[0].name).toBe('Everything')
 			await expectForbidden(() => mutators.library.delete(tx, { id: libraryId }))
 			expect(store.library).toHaveLength(1)
 		})
@@ -1976,6 +2010,14 @@ describe('libraries', () => {
 			await expectForbidden(() => mutators.library.move(tx, { id: libraryId, owningGroupId: W }))
 		})
 
+		it('keeps my default library in my home workspace', async () => {
+			const { store, tx, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: me, isDefault: true })],
+			})
+			await expectForbidden(() => mutators.library.move(tx, { id: libraryId, owningGroupId: W }))
+			expect(store.library[0].owningGroupId).toBe(me)
+		})
+
 		it("can't move into a workspace I'm not in", async () => {
 			const { store, tx, mutators } = setup({
 				library: [makeLibrary({ id: libraryId, owningGroupId: W })],
@@ -2006,6 +2048,44 @@ describe('libraries', () => {
 			expect(store.library_item[0].libraryId).toBe(otherLibrary)
 			await mutators.library_item.delete(tx, { id: itemId })
 			expect(store.library_item).toEqual([])
+		})
+
+		describe('on a pack copy', () => {
+			const packCopy = (id: string) =>
+				makeLibrary({ id, owningGroupId: W, meta: { packId: 'math', packVersion: 2 } })
+			const changes: [string, (m: ReturnType<typeof setup>) => Promise<void>][] = [
+				[
+					'renaming an item',
+					(m) => m.mutators.library_item.update(m.tx, { id: itemId, name: 'x' }),
+				],
+				[
+					"changing an item's meta",
+					(m) => m.mutators.library_item.update(m.tx, { id: itemId, meta: { starred: true } }),
+				],
+				['deleting an item', (m) => m.mutators.library_item.delete(m.tx, { id: itemId })],
+				[
+					'renaming the library',
+					(m) => m.mutators.library.rename(m.tx, { id: libraryId, name: 'x' }),
+				],
+			]
+
+			it.each(changes)('%s makes it an ordinary library', async (_, change) => {
+				const m = setup({
+					library: [packCopy(libraryId)],
+					library_item: [makeItem(itemId, libraryId)],
+				})
+				await change(m)
+				expect(m.store.library[0].meta).toEqual({ packVersion: 2 })
+			})
+
+			it('moving an item between two copies makes both ordinary libraries', async () => {
+				const m = setup({
+					library: [packCopy(libraryId), packCopy(otherLibrary)],
+					library_item: [makeItem(itemId, libraryId)],
+				})
+				await m.mutators.library_item.move(m.tx, { id: itemId, libraryId: otherLibrary })
+				expect(m.store.library.map((l) => l.meta)).toEqual([{ packVersion: 2 }, { packVersion: 2 }])
+			})
 		})
 
 		it('updates an item’s name, its meta, or both, merging meta key by key', async () => {
@@ -2086,6 +2166,253 @@ describe('libraries', () => {
 				mutators.library_item.move(tx, { id: 'item_x000111122223333', libraryId })
 			)
 			expect(store.library_item.map((i) => i.libraryId)).toEqual([libraryId, otherLibrary])
+		})
+	})
+
+	describe('library.ensureDefault', () => {
+		it('creates my default library in my home workspace', async () => {
+			const { store, tx, mutators } = setup()
+			await mutators.library.ensureDefault(tx, { id: libraryId, name: 'My stuff' })
+			expect(store.library).toMatchObject([
+				{ id: libraryId, name: 'My stuff', owningGroupId: me, createdBy: me, isDefault: true },
+			])
+		})
+
+		it('does nothing when I already have one, whatever id it is given', async () => {
+			const { store, tx, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: me, isDefault: true })],
+			})
+			await mutators.library.ensureDefault(tx, { id: 'coll_bbbb11112222cccc', name: 'Mine' })
+			await mutators.library.ensureDefault(tx, { id: libraryId, name: 'Mine' })
+			expect(store.library.map((l) => [l.id, l.name])).toEqual([[libraryId, 'Shapes']])
+		})
+
+		it("isn't satisfied by another user's default or a library that isn't one", async () => {
+			const { store, tx, mutators } = setup({
+				library: [
+					makeLibrary({ id: 'coll_other1111222233', owningGroupId: other, isDefault: true }),
+					makeLibrary({ id: 'coll_mine11112222333', owningGroupId: me }),
+				],
+			})
+			await mutators.library.ensureDefault(tx, { id: libraryId, name: 'My stuff' })
+			expect(store.library.filter((l) => l.isDefault).map((l) => l.owningGroupId)).toEqual([
+				other,
+				me,
+			])
+		})
+
+		it('rejects a bad id or one that names another library', async () => {
+			const { tx, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: X })],
+			})
+			await expectBadRequest(() => mutators.library.ensureDefault(tx, { id: 'short', name: 'x' }))
+			await expectBadRequest(() => mutators.library.ensureDefault(tx, { id: libraryId, name: 'x' }))
+		})
+	})
+
+	describe('file_library', () => {
+		const fileW = 'file_w'
+		const fileX = 'file_x'
+		const fileShared = 'file_shared'
+		const libraryX = 'coll_xxxx11112222xxxx'
+
+		function setupFiles(tables: Partial<TableStore> = {}) {
+			return setup({
+				file: [
+					makeFile({ id: fileW, owningGroupId: W }),
+					makeFile({ id: fileX, owningGroupId: X }),
+					makeFile({ id: fileShared, owningGroupId: X, shared: true }),
+				],
+				library: [
+					makeLibrary({ id: libraryId, owningGroupId: W }),
+					makeLibrary({ id: libraryX, owningGroupId: X }),
+				],
+				...tables,
+			})
+		}
+
+		it("adds a library from any workspace I'm in to a file I can edit, once", async () => {
+			const { store, tx, mutators } = setupFiles({
+				library: [
+					makeLibrary({ id: libraryId, owningGroupId: V }),
+					makeLibrary({ id: 'coll_home11112222333', owningGroupId: me }),
+				],
+			})
+			await mutators.file_library.add(tx, { fileId: fileW, libraryId })
+			await mutators.file_library.add(tx, { fileId: fileW, libraryId })
+			await mutators.file_library.add(tx, { fileId: fileW, libraryId: 'coll_home11112222333' })
+			expect(store.file_library).toMatchObject([
+				{ fileId: fileW, libraryId, addedBy: me },
+				{ fileId: fileW, libraryId: 'coll_home11112222333', addedBy: me },
+			])
+		})
+
+		it("can't add to a file I can only view, or can't access", async () => {
+			const { store, tx, mutators } = setupFiles()
+			await expectForbidden(() => mutators.file_library.add(tx, { fileId: fileShared, libraryId }))
+			await expectForbidden(() => mutators.file_library.add(tx, { fileId: fileX, libraryId }))
+			expect(store.file_library).toEqual([])
+		})
+
+		it("can't add a library from a workspace I'm not in, even one already added elsewhere", async () => {
+			const { store, tx, mutators } = setupFiles({
+				file_library: [{ fileId: fileShared, libraryId: libraryX, addedBy: other, addedAt: 1 }],
+			})
+			await expectForbidden(() =>
+				mutators.file_library.add(tx, { fileId: fileW, libraryId: libraryX })
+			)
+			expect(store.file_library).toHaveLength(1)
+		})
+
+		it("rejects a file or library that doesn't exist, or a deleted file", async () => {
+			const { tx, mutators } = setupFiles({
+				file: [makeFile({ id: fileW, owningGroupId: W, isDeleted: true })],
+			})
+			await expectBadRequest(() => mutators.file_library.add(tx, { fileId: 'nope', libraryId }))
+			await expectBadRequest(() => mutators.file_library.add(tx, { fileId: fileW, libraryId }))
+			const { tx: tx2, mutators: m2 } = setupFiles()
+			await expectBadRequest(() => m2.file_library.add(tx2, { fileId: fileW, libraryId: 'nope' }))
+		})
+
+		it('removes a library from a file I can edit, whoever added it', async () => {
+			const { store, tx, mutators } = setupFiles({
+				file_library: [
+					{ fileId: fileW, libraryId: libraryX, addedBy: other, addedAt: 1 },
+					{ fileId: fileShared, libraryId: libraryX, addedBy: other, addedAt: 1 },
+				],
+			})
+			await mutators.file_library.remove(tx, { fileId: fileW, libraryId: libraryX })
+			expect(store.file_library.map((r) => r.fileId)).toEqual([fileShared])
+		})
+
+		describe('removing with deleteIfDisposable', () => {
+			const remove = (
+				mutators: ReturnType<typeof createMutators>,
+				tx: Transaction<TlaSchema>,
+				id: string
+			) =>
+				mutators.file_library.remove(tx, { fileId: fileW, libraryId: id, deleteIfDisposable: true })
+			const packCopy = makeLibrary({ id: libraryId, owningGroupId: W, meta: { packId: 'math' } })
+
+			it('deletes the library when it has no items', async () => {
+				const { store, tx, mutations, mutators } = setupFiles({
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryX])
+				expect(mutations).toContainEqual({
+					op: 'delete',
+					table: 'library',
+					data: { id: libraryId },
+				})
+			})
+
+			it('only removes it from the file when it has an item', async () => {
+				const { store, tx, mutators } = setupFiles({
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+					library_item: [makeItem('item_1111222233334444', libraryId)],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId, libraryX])
+				expect(store.library_item).toHaveLength(1)
+			})
+
+			it('only removes my default library from the file', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [makeLibrary({ id: libraryId, owningGroupId: me, isDefault: true })],
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library).toHaveLength(1)
+			})
+
+			it('deletes an unchanged pack copy when no other file shows it', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [packCopy],
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+					library_item: [makeItem('item_1111222233334444', libraryId)],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library).toEqual([])
+			})
+
+			it('only removes an unchanged pack copy from the file when another file shows it', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [packCopy],
+					file_library: [
+						{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 },
+						{ fileId: fileShared, libraryId, addedBy: other, addedAt: 1 },
+					],
+					library_item: [makeItem('item_1111222233334444', libraryId)],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library.map((r) => r.fileId)).toEqual([fileShared])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId])
+			})
+
+			it('only removes a changed pack copy, or my default, from the file', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [
+						makeLibrary({ id: libraryId, owningGroupId: W, meta: { packVersion: 1 } }),
+						makeLibrary({
+							id: libraryX,
+							owningGroupId: me,
+							isDefault: true,
+							meta: { packId: 'math' },
+						}),
+					],
+					file_library: [
+						{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 },
+						{ fileId: fileW, libraryId: libraryX, addedBy: me, addedAt: 1 },
+					],
+					library_item: [
+						makeItem('item_1111222233334444', libraryId),
+						makeItem('item_5555666677778888', libraryX),
+					],
+				})
+				await remove(mutators, tx, libraryId)
+				await remove(mutators, tx, libraryX)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId, libraryX])
+			})
+
+			it("only removes a library from a workspace I'm not in from the file", async () => {
+				const { store, tx, mutators } = setupFiles({
+					file_library: [{ fileId: fileW, libraryId: libraryX, addedBy: other, addedAt: 1 }],
+				})
+				await remove(mutators, tx, libraryX)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId, libraryX])
+			})
+		})
+
+		it("can't remove a library from a file I can only view, or can't access", async () => {
+			const { store, tx, mutators } = setupFiles({
+				file_library: [{ fileId: fileShared, libraryId: libraryX, addedBy: other, addedAt: 1 }],
+			})
+			await expectForbidden(() =>
+				mutators.file_library.remove(tx, { fileId: fileShared, libraryId: libraryX })
+			)
+			await expectForbidden(() =>
+				mutators.file_library.remove(tx, { fileId: fileX, libraryId: libraryX })
+			)
+			expect(store.file_library).toHaveLength(1)
+		})
+
+		it("leaves a file's added libraries to their workspaces' members to change", async () => {
+			const { tx, mutators } = setupFiles({
+				file_library: [{ fileId: fileShared, libraryId: libraryX, addedBy: other, addedAt: 1 }],
+				library_item: [makeItem('item_1111222233334444', libraryX)],
+			})
+			await expectForbidden(() => mutators.library.rename(tx, { id: libraryX, name: 'Mine' }))
+			await expectForbidden(() => mutators.library.delete(tx, { id: libraryX }))
+			await expectForbidden(() =>
+				mutators.library_item.update(tx, { id: 'item_1111222233334444', name: 'Mine' })
+			)
 		})
 	})
 })

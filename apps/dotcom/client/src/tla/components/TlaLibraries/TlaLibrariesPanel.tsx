@@ -1,10 +1,18 @@
 import { AddToLibraryMenuItem, LibrariesPanel, librariesPanelOpen } from '@tldraw/libraries'
-import { useEffect, useMemo } from 'react'
-import { useEditor, useToasts, useTranslation, useValue } from 'tldraw'
+import { useCallback, useEffect, useMemo } from 'react'
+import { defineMessages, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getEditorLibraries } from './editorLibraries'
-import { loadStarterPackSummaries } from './starterPacks'
-import { TlaBrowseStarterPacksMenuItem } from './TlaStarterPacksDialog'
+import {
+	getStarterPackBrowseGroup,
+	getStarterPackSummaries,
+	loadStarterPackSummaries,
+} from './starterPacks'
+
+const messages = defineMessages({
+	publicLibraries: { defaultMessage: 'Public libraries' },
+})
 
 function useEditorLibraries(fileId: string) {
 	const app = useMaybeApp()
@@ -23,19 +31,28 @@ function useEditorLibraries(fileId: string) {
 
 export function TlaLibrariesPanel({ fileId }: { fileId: string }) {
 	const editor = useEditor()
+	const msg = useTranslation()
+	const trackEvent = useTldrawAppUiEvents()
 	const source = useEditorLibraries(fileId)
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 
-	// Fetch the starter packs dialog's data before it's opened, so its cards show straight away.
-	// The dialog reports a failure itself.
+	// Fetched once the panel opens, so the packs are there when browsing.
 	useEffect(() => {
-		if (open && source) loadStarterPackSummaries().catch(() => {})
+		if (open && source) {
+			loadStarterPackSummaries().catch((error) =>
+				console.error("Couldn't load the starter packs", error)
+			)
+		}
 	}, [open, source])
 
+	const getBrowseGroups = useCallback(() => {
+		const packs = getStarterPackSummaries()
+		if (!source || !packs) return []
+		return [getStarterPackBrowseGroup(source, packs, msg(messages.publicLibraries), trackEvent)]
+	}, [source, msg, trackEvent])
+
 	if (!source) return null
-	return (
-		<LibrariesPanel source={source} menuItems={<TlaBrowseStarterPacksMenuItem source={source} />} />
-	)
+	return <LibrariesPanel source={source} getBrowseGroups={getBrowseGroups} />
 }
 
 export function TlaAddToLibraryMenuItem({ fileId }: { fileId: string }) {
