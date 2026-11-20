@@ -13,6 +13,8 @@ export interface TLLibrariesUiEventMap {
 	'toggle-libraries-panel': { open: boolean }
 	/** An item was placed on the canvas, by clicking its tile or dragging it out of the panel. */
 	'place-library-item': { method: 'click' | 'drag' }
+	/** A dialog for browsing libraries to add was opened. */
+	'open-browse-libraries': null
 	/** An item couldn't be placed. */
 	'library-error': { action: 'place-library-item'; reason: TLLibraryErrorReason }
 }
