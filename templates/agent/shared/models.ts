@@ -54,82 +54,23 @@ export type AgentModelDefinition =
 	| OpenAIModelDefinition
 
 export const AGENT_MODEL_DEFINITIONS = {
-	// Anthropic models
-	'claude-opus-5': {
-		name: 'claude-opus-5',
-		id: 'claude-opus-5',
-		openRouterId: 'anthropic/claude-opus-5',
-		provider: 'anthropic',
-		supportsTemperature: false,
-		thinking: 'adaptive',
-		effort: 'medium',
-	},
-
-	'claude-sonnet-5': {
-		name: 'claude-sonnet-5',
-		id: 'claude-sonnet-5',
-		openRouterId: 'anthropic/claude-sonnet-5',
-		provider: 'anthropic',
-		supportsTemperature: false,
-		thinking: 'adaptive',
-		effort: 'low',
-	},
-
-	'claude-haiku-4-5': {
-		name: 'claude-haiku-4-5',
-		id: 'claude-haiku-4-5',
-		openRouterId: 'anthropic/claude-haiku-4.5',
-		provider: 'anthropic',
-		// Anthropic takes no temperature while the model thinks.
-		supportsTemperature: false,
-		thinking: { budgetTokens: 1024 },
-	},
-
-	// Google models
-	'gemini-3.8-flash': {
-		name: 'gemini-3.8-flash',
-		id: 'gemini-3.8-flash',
-		openRouterId: 'google/gemini-3.8-flash',
+	'gemini-4-hydrogen': {
+		name: 'gemini-4-hydrogen',
+		id: 'gemini-4-hydrogen',
+		openRouterId: 'google/gemini-4-hydrogen',
 		provider: 'google',
 		supportsTemperature: false,
 		thinkingLevel: 'low',
 	},
-
-	// OpenAI models
-	'gpt-5.6-sol': {
-		name: 'gpt-5.6-sol',
-		id: 'gpt-5.6-sol',
-		openRouterId: 'openai/gpt-5.6-sol',
-		provider: 'openai',
-		supportsTemperature: false,
-		reasoningEffort: 'medium',
-	},
-
-	'gpt-5.6-terra': {
-		name: 'gpt-5.6-terra',
-		id: 'gpt-5.6-terra',
-		openRouterId: 'openai/gpt-5.6-terra',
-		provider: 'openai',
-		supportsTemperature: false,
-		reasoningEffort: 'high',
-	},
-
-	'gpt-5.6-luna': {
-		name: 'gpt-5.6-luna',
-		id: 'gpt-5.6-luna',
-		openRouterId: 'openai/gpt-5.6-luna',
-		provider: 'openai',
-		supportsTemperature: false,
-	},
 } as const
 
-export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-5'
+export const DEFAULT_MODEL_NAME: AgentModelName = 'gemini-4-hydrogen'
 
 /**
  * Check if a string is a valid AgentModelName.
  */
 export function isValidModelName(value: string | undefined): value is AgentModelName {
-	return !!value && value in AGENT_MODEL_DEFINITIONS
+	return !!value && Object.hasOwn(AGENT_MODEL_DEFINITIONS, value)
 }
 
 /**
