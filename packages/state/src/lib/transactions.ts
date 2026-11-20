@@ -1,4 +1,4 @@
-import { _Atom } from './Atom'
+import { _Atom, Atom } from './Atom'
 import { GLOBAL_START_EPOCH } from './constants'
 import { singleton } from './helpers'
 import { Child, Signal } from './types'
@@ -248,6 +248,22 @@ export function beforeTransactionCommit(fn: (rollback: () => void) => void) {
 	if (!txn) return
 	if (txn.commitCallbacks) txn.commitCallbacks.push(fn)
 	else txn.commitCallbacks = [fn]
+}
+
+/**
+ * The value `atom` had before the outermost open transaction changed it, which is the value it
+ * goes back to if that transaction rolls back. The atom's current value when no open transaction
+ * has changed it.
+ *
+ * @internal
+ */
+export function getValueBeforeTransaction<T>(atom: Atom<T>): T {
+	let value = atom.__unsafe__getWithoutCapture()
+	for (let txn = inst.currentTransaction; txn; txn = txn.parent) {
+		const initialValues = txn.initialAtomValues
+		if (initialValues.has(atom as any)) value = initialValues.get(atom as any)
+	}
+	return value
 }
 
 /** @internal */

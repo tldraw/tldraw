@@ -21,6 +21,7 @@ export { localStorageAtom } from './lib/localStorageAtom'
 export {
 	beforeTransactionCommit,
 	deferAsyncEffects,
+	getValueBeforeTransaction,
 	onTransactionAbort,
 	transact,
 	transaction,

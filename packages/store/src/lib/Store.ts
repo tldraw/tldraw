@@ -5,6 +5,7 @@ import {
 	atom,
 	beforeTransactionCommit,
 	computed,
+	getValueBeforeTransaction,
 	isUninitialized,
 	onTransactionAbort,
 	reactor,
@@ -402,7 +403,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @internal
 	 */
-	private listeners = new Set<{ onHistory: StoreListener<R>; filters: StoreListenerFilters }>()
+	private listeners = new Set<StoreListenerEntry<R>>()
+	// Listeners added inside an operation. They wait for it to commit like everyone else, and
+	// then must not be handed the part of it that came before they were added.
+	private lateListeners = new Set<StoreListenerEntry<R>>()
 
 	/**
 	 * An array of history entries that have not yet been flushed.
@@ -533,39 +537,74 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	public _flushHistory() {
 		// If we have accumulated history, flush it and update listeners
 		const version = this.history.__unsafe__getWithoutCapture()
-		const entries = this.historyAccumulator.flush(version)
-		if (entries.length > 0) {
-			const errors: unknown[] = []
-			const wasFlushingHistory = this.isFlushingHistory
-			this.isFlushingHistory = true
-			for (const { changes, source } of entries) {
-				// Filtered diffs are computed at most once per scope per entry, and shared by every
-				// listener watching that scope.
-				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
-				for (const { onHistory, filters } of this.listeners) {
-					if (filters.source !== 'all' && filters.source !== source) {
-						continue
+		// Listeners must not hear about an operation that can still roll back, so a flush inside
+		// one stops at the changes made before it started. The rest follow once it commits.
+		const committedVersion = getValueBeforeTransaction(this.history)
+		const taken = this.historyAccumulator.take(version, committedVersion)
+		if (taken.entries.length === 0 && this.lateListeners.size === 0) return
+
+		// Work out what each late listener gets before anything is delivered: a listener that
+		// flushes again from its callback must not change who is late in this flush.
+		const late = new Map<StoreListenerEntry<R>, HistoryEntry<R>[]>()
+		for (const listener of this.lateListeners) {
+			const since = listener.since!
+			let first = 0
+			while (first < taken.versions.length && taken.versions[first] <= since) first++
+			late.set(listener, first === 0 ? taken.entries : taken.entries.slice(first))
+			if (committedVersion >= since) {
+				// everything from before it was added has now been flushed past it
+				listener.since = undefined
+				this.lateListeners.delete(listener)
+			}
+		}
+
+		const errors: unknown[] = []
+		const wasFlushingHistory = this.isFlushingHistory
+		this.isFlushingHistory = true
+		this.deliverHistory(squashHistoryEntries(taken.entries), errors, undefined, late)
+		for (const [listener, entries] of late) {
+			this.deliverHistory(squashHistoryEntries(entries), errors, listener)
+		}
+		this.isFlushingHistory = wasFlushingHistory
+		if (errors.length > 0) throw errors[0]
+	}
+
+	// To `only`, or to every listener that is not in `skip`.
+	private deliverHistory(
+		entries: HistoryEntry<R>[],
+		errors: unknown[],
+		only?: StoreListenerEntry<R>,
+		skip?: Map<StoreListenerEntry<R>, unknown>
+	) {
+		for (const { changes, source } of entries) {
+			// Filtered diffs are computed at most once per scope per entry, and shared by every
+			// listener watching that scope.
+			const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
+			for (const listener of only ? [only] : this.listeners) {
+				if (skip?.has(listener)) continue
+				// `only` was picked before delivery began, and an earlier callback may have removed it
+				if (!this.listeners.has(listener)) continue
+				const { onHistory, filters } = listener
+				if (filters.source !== 'all' && filters.source !== source) {
+					continue
+				}
+				let listenerChanges = changes
+				if (filters.scope !== 'all') {
+					if (!scopedChanges.has(filters.scope)) {
+						scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
 					}
-					let listenerChanges = changes
-					if (filters.scope !== 'all') {
-						if (!scopedChanges.has(filters.scope)) {
-							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
-						}
-						const filtered = scopedChanges.get(filters.scope)
-						if (!filtered) continue
-						listenerChanges = filtered
-					}
-					// The entries are already dequeued, so a listener that throws must not stop the others
-					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
-					try {
-						onHistory({ changes: listenerChanges, source })
-					} catch (error) {
-						errors.push(error)
-					}
+					const filtered = scopedChanges.get(filters.scope)
+					if (!filtered) continue
+					listenerChanges = filtered
+				}
+				// The entries are already dequeued, so a listener that throws must not stop the others
+				// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+				try {
+					onHistory({ changes: listenerChanges, source })
+				} catch (error) {
+					errors.push(error)
 				}
 			}
-			this.isFlushingHistory = wasFlushingHistory
-			if (errors.length > 0) throw errors[0]
 		}
 	}
 
@@ -1091,12 +1130,26 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// flush history so that this listener's history starts from exactly now
 		this._flushHistory()
 
-		const listener = {
+		const listener: StoreListenerEntry<R> = {
 			onHistory,
 			filters: {
 				source: filters?.source ?? 'all',
 				scope: filters?.scope ?? 'all',
 			},
+			since: undefined,
+		}
+
+		const version = this.history.__unsafe__getWithoutCapture()
+		if (getValueBeforeTransaction(this.history) !== version) {
+			// Added inside an operation that has already changed the store. The flush above left
+			// those changes pending, and this listener must not be handed them later.
+			listener.since = version
+			this.lateListeners.add(listener)
+			// a rollback takes some or all of them away, and reuses their versions for what follows
+			onTransactionAbort(() => {
+				if (listener.since === undefined) return
+				listener.since = Math.min(listener.since, this.history.__unsafe__getWithoutCapture())
+			})
 		}
 
 		if (!this.historyReactor.scheduler.isActivelyListening) {
@@ -1120,6 +1173,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 			this.listeners.delete(listener)
+			this.lateListeners.delete(listener)
 
 			if (this.listeners.size === 0) {
 				this.historyReactor.stop()
@@ -1447,6 +1501,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
  * @returns An array of squashed history entries
  * @public
  */
+interface StoreListenerEntry<R extends UnknownRecord> {
+	onHistory: StoreListener<R>
+	filters: StoreListenerFilters
+	// set while the listener is late, see `Store.lateListeners`
+	since: number | undefined
+}
+
 function squashHistoryEntries<T extends UnknownRecord>(
 	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
@@ -1518,14 +1579,24 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	}
 
 	/**
-	 * Flush all accumulated history entries, squashing adjacent entries from the same source.
-	 * Clears the internal history buffer.
+	 * Take the accumulated entries recorded up to `committedVersion` out of the buffer, with the
+	 * version each was recorded at. They are not squashed.
 	 */
-	flush(currentVersion: number) {
+	take(currentVersion: number, committedVersion: number) {
 		this.discardFrom(currentVersion + 1)
-		const history = squashHistoryEntries(this._history)
-		this.clear()
-		return history
+		// entries past `committedVersion` belong to an operation that is still open, and stay
+		let end = this._versions.length
+		while (end > 0 && this._versions[end - 1] > committedVersion) end--
+		const taken = { entries: this._history, versions: this._versions }
+		if (end === this._versions.length) {
+			this.clear()
+			return taken
+		}
+		taken.entries = this._history.slice(0, end)
+		taken.versions = this._versions.slice(0, end)
+		this._history = this._history.slice(end)
+		this._versions = this._versions.slice(end)
+		return taken
 	}
 
 	/**
