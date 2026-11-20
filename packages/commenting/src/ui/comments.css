@@ -419,9 +419,13 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
-	margin-top: 4px;
+	margin-top: -2px;
 	/* Pull the row left by the pill's inline padding so the first emoji lines up with the text above. */
 	margin-left: -6px;
+}
+.tlui-cmt-thread__list:not(:last-child) > :last-child .tlui-cmt-reactions,
+.tlui-cmt-canvas-preview__panel--thread .tlui-cmt-reactions:last-child {
+	margin-bottom: 6px;
 }
 
 .tlui-cmt-reaction {

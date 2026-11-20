@@ -12,6 +12,7 @@ import {
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { replyCountLabel } from '../ui/reply-count'
+import { PreviewCommentReactions } from './comment-reactions'
 import { type CommentingContext } from './context'
 import { useComments } from './hooks'
 import { useCommentingOptions } from './options'
@@ -274,7 +275,14 @@ export function ThreadPreview({
 								<CommentCard
 									{...toCardProps(first, props, options.components, resolveName)}
 									footer={
-										replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
+										<>
+											<PreviewCommentReactions
+												comment={first}
+												currentUserId={props.currentUserId}
+												resolveName={resolveName}
+											/>
+											{replies && <span className="tlui-cmt-card__replies">{replies}</span>}
+										</>
 									}
 								/>
 							</div>
