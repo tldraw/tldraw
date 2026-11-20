@@ -1,4 +1,4 @@
-import type { TLLibrary, TLLibraryId } from 'tldraw'
+import type { TLLibrary } from 'tldraw'
 import type { TLLibraryItem } from '../lib/schema'
 
 /** A query as matched: trimmed and lowercased, empty when there is nothing to search for. */
@@ -36,13 +36,4 @@ export function searchLibraries(
 			: items.filter((item) => nameMatches(item.name, normalized))
 		return matches.length > 0 ? [{ library, items: matches }] : []
 	})
-}
-
-/**
- * The library a search is scoped to, while the panel still shows it, and the libraries the search
- * covers: just that one, or all of them.
- */
-export function getSearchScope(libraries: TLLibrary[], scopeId: TLLibraryId | null) {
-	const scope = libraries.find((library) => library.id === scopeId)
-	return { scope, searched: scope ? [scope] : libraries }
 }

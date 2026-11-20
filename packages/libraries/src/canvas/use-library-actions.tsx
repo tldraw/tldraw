@@ -72,10 +72,10 @@ export interface LibraryActions {
 }
 
 /**
- * A library's rename, delete, removal from the document, search, move and copy, as the source
- * allows them, for its header and its menu, as each section of the {@link LibrariesPanel} uses
- * them. Renaming starts from the menu, or when the library is new, and ends with the header's
- * input. Failures show a toast.
+ * A library's rename, delete, removal from the document, move and copy, as the source allows them,
+ * for its header and its menu, as each section of the {@link LibrariesPanel} uses them. Renaming
+ * starts from the menu, or when the library is new, and ends with the header's input. Failures
+ * show a toast.
  * @public
  */
 export function useLibraryActions(source: LibrarySource, library: TLLibrary): LibraryActions {

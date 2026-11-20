@@ -1,6 +1,6 @@
 import { LibraryRecordType } from 'tldraw'
 import { LibraryItemRecordType, type TLLibraryItem } from '../lib/schema'
-import { getSearchScope, searchLibraries } from './panel-search'
+import { searchLibraries } from './panel-search'
 
 const shapes = LibraryRecordType.create({ name: 'Shapes' })
 const wireframes = LibraryRecordType.create({ name: 'Wireframes' })
@@ -37,16 +37,4 @@ it('leaves out libraries without matches, and finds nothing for an empty query',
 	expect(search('button')).toEqual([{ library: 'Wireframes', items: ['Button', 'Start button'] }])
 	expect(search('   ')).toEqual([])
 	expect(search('nothing like it')).toEqual([])
-})
-
-it('searches only the library the search is scoped to, while the panel shows it', () => {
-	expect(getSearchScope([shapes, wireframes], wireframes.id)).toEqual({
-		scope: wireframes,
-		searched: [wireframes],
-	})
-	expect(getSearchScope([shapes, wireframes], null)).toEqual({
-		scope: undefined,
-		searched: [shapes, wireframes],
-	})
-	expect(getSearchScope([shapes], wireframes.id)).toEqual({ scope: undefined, searched: [shapes] })
 })

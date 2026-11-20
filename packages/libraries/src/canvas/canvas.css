@@ -544,7 +544,6 @@
 	opacity: 1;
 }
 
-/* Laid out like tldraw.com's starter packs dialog. */
 .tlui-libraries-browse {
 	display: flex;
 	flex-direction: column;
@@ -733,36 +732,6 @@
 
 .tlui-libraries-search__clear::after {
 	inset: 4px;
-}
-
-.tlui-libraries-search__scope {
-	flex-shrink: 1;
-	display: flex;
-	align-items: center;
-	min-width: 0;
-	max-width: 50%;
-	height: 22px;
-	padding-inline-start: 6px;
-	border-radius: var(--tl-radius-1);
-	background: var(--tl-color-muted-2);
-	font-weight: 500;
-}
-
-.tlui-libraries-search__scope-name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-button.tlui-libraries-search__scope-clear {
-	width: 22px;
-	height: 22px;
-	min-width: 22px;
-	color: var(--tl-color-text-3);
-}
-
-.tlui-libraries-search__scope-clear::after {
-	inset: 2px;
 }
 
 .tlui-libraries-browse__view {

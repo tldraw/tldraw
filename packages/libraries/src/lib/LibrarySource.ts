@@ -38,7 +38,7 @@ export type TLLibraryPlacement = 'housed' | 'added' | 'default'
 export interface TLLibraryOwner {
 	id: string
 	name: string
-	/** Shown before the name on the owner's tab in the libraries panel. */
+	/** Shown before the owner's name in the libraries panel's menus. */
 	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
 }
 

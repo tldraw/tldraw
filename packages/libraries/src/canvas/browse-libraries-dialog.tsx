@@ -85,7 +85,7 @@ export interface LibraryBrowseEntry {
 	id: string
 	name: string
 	itemCount: number
-	/** Thumbnails of a few of its items. The first four are shown. */
+	/** Thumbnails of a few of its items. The first six are shown. */
 	previews: (TLLibraryThumbnail | undefined)[]
 	/**
 	 * Whether the document already shows it: listed under "In this file" as "Added", and can't be

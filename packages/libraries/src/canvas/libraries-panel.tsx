@@ -24,12 +24,12 @@ import { LibrarySection } from './library-section'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getNewLibraryOwners } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
-import { getSearchScope, normalizeQuery } from './panel-search'
+import { normalizeQuery } from './panel-search'
 import { getEmptyThisFileOffers, getPanelSections } from './panel-sections'
 import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { SearchResults } from './search-results'
-import { librariesPanelOpen, librariesSearchQuery, librariesSearchScope } from './state'
+import { librariesPanelOpen, librariesSearchQuery } from './state'
 import { useCreateLibrary } from './use-create-library'
 import { useLibraryItemDrag, usePlaceLibraryItem } from './use-item-drag'
 import { useLibraries } from './use-libraries'
@@ -132,10 +132,6 @@ function LibrariesPanelContent({
 		() => getEmptyThisFileOffers(sections, getBrowseGroups ? getBrowseGroups() : []),
 		[sections, getBrowseGroups]
 	)
-	const scopeId = useValue('libraries search scope', () => librariesSearchScope.get(editor), [
-		editor,
-	])
-	const { scope, searched } = getSearchScope(libraries, scopeId)
 	const getItemProps = useLibraryItemDrag(source, { placeItem })
 	const placeItemOnClick = usePlaceLibraryItem(source, placeItem)
 	const createLibrary = useCreateLibrary(source)
@@ -159,7 +155,7 @@ function LibrariesPanelContent({
 	}
 
 	if (!librariesEnabled || !open) return null
-	const searching = searched.length > 0 && normalizeQuery(query) !== ''
+	const searching = libraries.length > 0 && normalizeQuery(query) !== ''
 
 	const renderSections = (list: TLLibrary[]) =>
 		list.map((library) => (
@@ -178,7 +174,7 @@ function LibrariesPanelContent({
 			return (
 				<SearchResults
 					source={source}
-					libraries={searched}
+					libraries={libraries}
 					query={query}
 					getItemProps={getItemProps}
 					placeItem={placeItemOnClick}
@@ -186,7 +182,6 @@ function LibrariesPanelContent({
 				/>
 			)
 		}
-		if (scope) return renderSections([scope])
 		return sections ? (
 			<>
 				{renderSections(sections.defaults)}
@@ -222,14 +217,12 @@ function LibrariesPanelContent({
 						create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
 					/>
 				)}
-				{libraries.length > 0 && (
-					<LibrariesSearch placeholder={msg(messages.search)} scope={scope} />
-				)}
+				{libraries.length > 0 && <LibrariesSearch placeholder={msg(messages.search)} />}
 				<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
 					{libraries.length === 0 && NoLibraries && <NoLibraries />}
 					{renderLists()}
 				</div>
-				{!searching && !scope && canBrowse && <AddMoreButton onBrowse={browse} />}
+				{!searching && canBrowse && <AddMoreButton onBrowse={browse} />}
 			</section>
 		</EditorPortal>
 	)

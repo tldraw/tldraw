@@ -1,6 +1,5 @@
 import { LibraryRecordType } from '@tldraw/tlschema'
-import { Tabs } from 'radix-ui'
-import { act, type ComponentProps, type ReactNode } from 'react'
+import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
 	ContainerProvider,
@@ -81,22 +80,13 @@ vi.mock('tldraw', async (importOriginal) => ({
 // Libraries are licensed here; license.test.tsx covers the gate.
 vi.mock('./license', () => ({ useLibrariesEnabled: () => true }))
 
-// Keeps every tab's panel mounted, so a panel that leans on only the open tab being rendered shows it.
-vi.mock('radix-ui', async (importOriginal) => {
-	const original = await importOriginal<typeof import('radix-ui')>()
-	const Content = (props: ComponentProps<typeof Tabs.Content>) => (
-		<original.Tabs.Content {...props} forceMount />
-	)
-	return { ...original, Tabs: { ...original.Tabs, Content } }
-})
-
 let container: HTMLDivElement
 let root: Root
 let editor: Editor
 
 beforeAll(() => {
 	;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
-	// jsdom has no layout, so the tab strip's measuring and scrolling do nothing.
+	// jsdom has no layout, so thumbnail measuring and scrolling into view do nothing.
 	globalThis.ResizeObserver ??= class {
 		observe() {}
 		unobserve() {}
@@ -354,7 +344,6 @@ describe('useLibrariesComponents', () => {
 				'LibraryMenu',
 				'NoLibraries',
 				'LibrariesPanelHeader',
-				'LibraryTabLabel',
 			].sort()
 		)
 	})

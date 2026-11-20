@@ -4,11 +4,8 @@ import {
 	type LibrariesComponents,
 	LibrarySectionHeader,
 	type LibrarySectionHeaderProps,
-	LibraryTabLabel,
-	type LibraryTabLabelProps,
-	type NoLibrariesProps,
 } from '@tldraw/libraries'
-import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiIcon, useValue } from 'tldraw'
+import { TldrawUiIcon, useValue } from 'tldraw'
 import type { Showing } from '../libraries-example'
 import { HomeIcon, PeopleIcon } from '../libraries-owner-icons'
 import { PACKS, packSource } from './pack-source'
@@ -30,15 +27,6 @@ const source = new CompositeLibrarySource({
 	],
 })
 
-function TabLabelWithCount(props: LibraryTabLabelProps) {
-	return (
-		<>
-			<LibraryTabLabel {...props} />
-			<span className="libraries-showcase-count">{props.libraries.length}</span>
-		</>
-	)
-}
-
 function SectionHeaderWithCount(props: LibrarySectionHeaderProps) {
 	const { source, library, collapsed, onToggleCollapsed, menu, isRenaming } = props
 	const count = useValue('library item count', () => source.getItems(library.id).length, [
@@ -58,22 +46,16 @@ function SectionHeaderWithCount(props: LibrarySectionHeaderProps) {
 	)
 }
 
-function WelcomeToLibraries({ owner, newLibrary }: NoLibrariesProps) {
+function WelcomeToLibraries() {
 	return (
 		<div className="libraries-showcase-empty">
-			<strong>{owner ? `Nothing in ${owner.name} yet` : 'No libraries yet'}</strong>
+			<strong>No libraries yet</strong>
 			<p>Libraries keep the shapes you reuse, ready to drag onto any board.</p>
-			{newLibrary && (
-				<TldrawUiButton type="primary" onClick={newLibrary.onCreate}>
-					<TldrawUiButtonLabel>Create your first library</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			)}
 		</div>
 	)
 }
 
 const components: LibrariesComponents = {
-	LibraryTabLabel: TabLabelWithCount,
 	LibrarySectionHeader: SectionHeaderWithCount,
 	NoLibraries: WelcomeToLibraries,
 }

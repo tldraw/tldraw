@@ -22,16 +22,6 @@ const messages = defineMessages({
 })
 
 /**
- * Creates a library from the {@link LibrariesPanel}.
- * @public
- */
-export interface NewLibraryAction {
-	/** "New library", or "New library in …" naming the owner. */
-	label: string
-	onCreate(): void
-}
-
-/**
  * Where the {@link LibrariesPanel}'s "New library" button can create a library.
  * @public
  */
