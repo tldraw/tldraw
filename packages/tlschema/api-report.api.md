@@ -1732,6 +1732,19 @@ export type TLPermission = keyof TLPermissionDataMap & string;
 // @public
 export interface TLPermissionDataMap {
     // (undocumented)
+    'tl:comment-thread:delete': {
+        thread: TLCommentThread;
+    };
+    'tl:comment:create': undefined;
+    // (undocumented)
+    'tl:comment:delete': {
+        comment: TLComment;
+    };
+    // (undocumented)
+    'tl:comment:edit': {
+        comment: TLComment;
+    };
+    // (undocumented)
     'tl:page:create': undefined;
     // (undocumented)
     'tl:page:delete': {

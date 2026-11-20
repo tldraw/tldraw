@@ -2,9 +2,16 @@ import type { UnknownRecord } from '@tldraw/store'
 import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
+	isPageId,
+	isShapeId,
+	type TLAuthorize,
+	type TLAuthorizeContext,
 	type TLComment,
 	type TLCommentReaction,
 	type TLCommentThread,
+	type TLRecord,
+	type TLRecordGetter,
+	type TLShape,
 } from '@tldraw/tlschema'
 import { isEqual } from '@tldraw/utils'
 
@@ -351,4 +358,147 @@ export function createCommentAuthorizers<SessionMeta>(
 		// thread deletion must sweep every reactor's records, not just the caller's own.
 		'comment-reaction': withUserId(authorizeReaction),
 	}
+}
+
+/**
+ * Options for {@link createCommentAuthorize}.
+ *
+ * @public
+ */
+export interface CommentAuthorizeOptions {
+	/**
+	 * Whether a user may write comment records at all. `userId` is `null` for a session with no
+	 * user, which may never comment. Defaults to `true`: in the room, who may comment is the
+	 * session's `objectAccess`, which the room checks before this hook runs. An app with
+	 * permissions can ask them here, for example
+	 * `({ userId }) => permissions.can(userId, 'tl:comment:create')`.
+	 */
+	canComment?(ctx: TLAuthorizeContext): boolean
+	/**
+	 * Who may edit or delete a comment, or delete a thread. Defaults to the record's owner. See
+	 * {@link CommentAuthorizerOptions.canModifyComment}. Read the user from `ctx.userId`.
+	 */
+	canModifyComment?(ctx: CommentModificationAuthContext<TLAuthorizeContext>): boolean
+}
+
+/**
+ * The comment rules as an `authorize.write` hook, to combine with the app's own hooks through
+ * `composeAuthorize`. Pass the same object to the room and to the client, so the editor refuses
+ * a comment write before the room would.
+ *
+ * The rules are the ones {@link createCommentAuthorizers} enforces, with one difference: a write
+ * hook can only allow or refuse, so attribution is checked, not stamped. A comment, thread, or
+ * reaction created in another user's name is refused rather than corrected. The built-in
+ * commenting UI always writes the current user.
+ *
+ * @example
+ * ```ts
+ * const { authorize } = createPermissions()
+ * new TLSocketRoom({ authorize: composeAuthorize(authorize, createCommentAuthorize()) })
+ * ```
+ *
+ * @public
+ */
+export function createCommentAuthorize<R extends UnknownRecord = TLRecord>(
+	opts: CommentAuthorizeOptions = {}
+): TLAuthorize<R> {
+	const { canComment = () => true, canModifyComment } = opts
+	const authorizers = createCommentAuthorizers<TLAuthorizeContext>({
+		getUserId: (session) => session.meta.userId,
+		canComment: (session) => canComment(session.meta),
+		canModifyComment,
+	}) as Record<string, TLRecordAuthorizer<UnknownRecord, TLAuthorizeContext> | undefined>
+
+	return {
+		write: (changes, { userId, before, after }) => {
+			// the room has already dropped writes a read-only session may not make
+			const session = { sessionId: '', isReadonly: false, meta: { userId } }
+			const read = (getter: TLRecordGetter<R>) => (id: string) =>
+				getter.get(id as R['id']) as UnknownRecord | undefined
+			for (const change of changes) {
+				const record = (change.next ?? change.prev) as UnknownRecord
+				const authorizer = authorizers[record.typeName]
+				if (!authorizer) continue
+				if (change.type === 'update' && isMove(change.prev, change.next)) {
+					// the anchor lifecycle writes these for whoever moved or deleted the shape
+					if (isFollow(change.prev, change.next, read(before), read(after))) continue
+				}
+				const result = authorizer({ ...change, session } as any)
+				// a result that differs from the write is one the per-record rules would have
+				// rewritten (stamped attribution), which a write hook can only refuse
+				if (!result || !isEqual(result, record)) return { reason: 'comment-rules' }
+			}
+			return null
+		},
+	}
+}
+
+/**
+ * A move is a location-only update: a thread's `pageId` or `anchor`, or a comment's `pageId`.
+ */
+function isMove(prev: UnknownRecord, next: UnknownRecord): boolean {
+	switch (prev.typeName) {
+		case 'comment-thread': {
+			const thread = prev as TLCommentThread
+			return isEqual({ ...next, pageId: thread.pageId, anchor: thread.anchor }, prev)
+		}
+		case 'comment':
+			return isEqual({ ...next, pageId: (prev as TLComment).pageId }, prev)
+		default:
+			return false
+	}
+}
+
+type Reader = (id: string) => UnknownRecord | undefined
+
+/**
+ * Whether a move is what the commenting plugin's anchor lifecycle writes for a shape change in the
+ * same changes. Those are allowed for anyone who may make the shape change, whoever wrote the
+ * thread; any other move is judged as an edit.
+ *
+ * - shape moved to another page (itself or an ancestor): the thread's `pageId` follows it
+ * - shape deleted: the anchor becomes a point on the same page
+ * - shape created again (undo of a delete): a point anchor attaches to it again
+ * - a comment's `pageId` follows its thread's
+ */
+function isFollow(prev: UnknownRecord, next: UnknownRecord, before: Reader, after: Reader) {
+	if (next.typeName === 'comment') {
+		const comment = next as TLComment
+		const thread = after(comment.threadId) as TLCommentThread | undefined
+		return thread?.pageId === comment.pageId
+	}
+	const was = (prev as TLCommentThread).anchor
+	const thread = next as TLCommentThread
+	const now = thread.anchor
+	if (was.type === 'shape' && isEqual(was, now)) {
+		const page = pageOfShape(after, was.shapeId)
+		return page === thread.pageId && pageOfShape(before, was.shapeId) !== page
+	}
+	if (was.type === 'shape' && now.type === 'point') {
+		return (
+			thread.pageId === (prev as TLCommentThread).pageId &&
+			!!before(was.shapeId) &&
+			!after(was.shapeId)
+		)
+	}
+	if (was.type === 'point' && now.type === 'shape') {
+		if (before(now.shapeId) || !after(now.shapeId)) return false
+		return (
+			thread.pageId === (prev as TLCommentThread).pageId ||
+			thread.pageId === pageOfShape(after, now.shapeId)
+		)
+	}
+	return false
+}
+
+function pageOfShape(read: Reader, shapeId: string): string | undefined {
+	const seen = new Set<string>()
+	let id = shapeId
+	while (isShapeId(id) && !seen.has(id)) {
+		seen.add(id)
+		const shape = read(id) as TLShape | undefined
+		if (!shape) return undefined
+		id = shape.parentId
+	}
+	return isPageId(id) ? id : undefined
 }

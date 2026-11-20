@@ -16,6 +16,7 @@ import {
 import { afterEach, describe, expect, it } from 'vitest'
 import {
 	commitCommentMutation,
+	commitCommentPost,
 	deleteComment,
 	deleteThread,
 	editComment,
@@ -448,5 +449,55 @@ describe('getLiveComments and getLiveCommentThreads', () => {
 
 		expect(getLiveComments(editor)).toHaveLength(1)
 		expect(getLiveCommentThreads(editor)).toEqual([readThread(editor, thread)])
+	})
+})
+
+describe('commitCommentPost', () => {
+	function makeRefusingEditor() {
+		const editor = new Editor({
+			store: createTLStore({
+				schema: createTLSchema({ records: commentSchemaRecords }),
+				authorize: {
+					write: (changes) =>
+						changes.some((c) => (c.next?.typeName as string) === 'comment')
+							? { reason: 'no comments' }
+							: null,
+				},
+			}),
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: defaultTools,
+			getContainer: () => document.body,
+		})
+		editors.push(editor)
+		return editor
+	}
+	const post = (editor: Editor) =>
+		commitCommentPost(editor, ({ put }) => {
+			const thread = createCommentThread({
+				pageId: editor.getCurrentPageId(),
+				anchor: { type: 'point', x: 0, y: 0 },
+				createdBy: 'me',
+			})
+			const comment = tlCreateComment({
+				threadId: thread.id,
+				pageId: thread.pageId,
+				authorId: 'me',
+				body: toRichText('hi'),
+			})
+			put([thread, comment])
+			return comment
+		})
+
+	it('returns the comment once it is stored', () => {
+		const editor = makeEditor()
+		const comment = post(editor)
+		expect(comment && getCommentRecord(editor, comment.id)).toEqual(comment)
+	})
+
+	it("returns null when the editor's authorize.write refused it", () => {
+		const editor = makeRefusingEditor()
+		expect(post(editor)).toBeNull()
+		expect(getComments(editor)).toEqual([])
 	})
 })

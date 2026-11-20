@@ -3,9 +3,11 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 // Server-side logic for tldraw's collaboration features, safe to import from any sync
 // server — no react or client-editor dependencies.
 export {
+	type CommentAuthorizeOptions,
 	type CommentAuthorizerOptions,
 	type CommentModification,
 	type CommentModificationAuthContext,
+	createCommentAuthorize,
 	createCommentAuthorizers,
 } from './comment-authorizers'
 

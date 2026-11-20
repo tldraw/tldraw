@@ -152,8 +152,9 @@ type RequiredPermission = {
 }[TLPermission]
 
 /**
- * The SDK permission one record change needs, or null for records the defaults don't govern
- * (users, comments, app records).
+ * The SDK permission one record change needs, or null for records the defaults don't govern:
+ * users, app records, and comments (`createCommentAuthorizers` in `@tldraw/sync-collaboration`
+ * governs those).
  */
 function getRequiredPermission(
 	change: TLRecordChange,
