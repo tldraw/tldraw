@@ -16,6 +16,7 @@ import {
 	Editor,
 	TAB_ID,
 	TLAssetStore,
+	TLAuthorize,
 	TLPresenceStateInfo,
 	TLRecord,
 	TLStore,
@@ -24,6 +25,7 @@ import {
 	TLThemes,
 	TLUser,
 	TLUserStore,
+	TLWriteRefusal,
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
@@ -41,6 +43,7 @@ import {
 	useEvent,
 	useReactiveEvent,
 	useRefState,
+	useStableAuthorize,
 	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
@@ -211,6 +214,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		authorize: _authorize,
 		themes,
 		...schemaOpts
 	} = opts
@@ -229,6 +233,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	const authorize = useStableAuthorize(_authorize)
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -307,6 +312,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+		const roomUserId = atom<string | null | undefined>('sync user id', undefined)
+		const refusalListeners = new Set<(refusal: TLWriteRefusal) => void>()
 
 		const store = createTLStore({
 			id: storeId,
@@ -317,7 +324,15 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
+				userId: roomUserId,
+				refusals: {
+					subscribe(listener) {
+						refusalListeners.add(listener)
+						return () => refusalListeners.delete(listener)
+					},
+				},
 			},
+			authorize,
 		})
 
 		const presence = createPresenceStateDerivation(currentUser, {
@@ -358,7 +373,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly, objectAccess }) {
+			onAfterConnect(_, { isReadonly, objectAccess, userId }) {
 				// Object-lane (comment) write access is decided per session by the server and can
 				// change on reconnect (e.g. when the file's share tier changes), so surface it on
 				// the returned status for consumers that gate comment UI. This fires before the
@@ -366,6 +381,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState((prev) => ({ ...prev, objectAccess }))
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+					roomUserId.set(userId)
 					// if the server crashes and loses all data it can return an empty document
 					// when it comes back up. This is a safety check to make sure that if something like
 					// that happens, it won't render the app broken and require a restart. The user will
@@ -376,6 +392,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onPushRefused(refusal) {
+				for (const listener of refusalListeners) listener(refusal)
+			},
 			presence,
 			presenceMode,
 		})
@@ -398,6 +417,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		authorize,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -506,6 +526,19 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	onCustomMessageReceived?(data: any): void
+
+	/**
+	 * The authorize hooks, the same object the room gets. The editor runs `authorize.write` on
+	 * each of this user's operations and asks `authorize.can` in {@link tldraw#Editor.can}. The
+	 * hooks get the user id the room sends on connect. When the room refuses a push, the editor
+	 * emits `'refused'` with `source: 'server'`:
+	 *
+	 * @example
+	 * ```ts
+	 * editor.on('refused', ({ reason, source }) => toast(reason))
+	 * ```
+	 */
+	authorize?: TLAuthorize
 
 	/** @internal */
 	onMount?(editor: Editor): void

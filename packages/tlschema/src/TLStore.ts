@@ -7,6 +7,7 @@ import {
 	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
+import { TLAuthorize, TLWriteRefusal } from './authorize'
 import { TLAsset, TLAssetId } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -336,7 +337,24 @@ export interface TLStoreProps {
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/**
+		 * The server's refusals of this user's changes. The editor emits each one as its
+		 * `'refused'` event with `source: 'server'`. Set by sync. A custom transport can set its own.
+		 */
+		refusals?: { subscribe(listener: (refusal: TLWriteRefusal) => void): () => void } | null
+		/**
+		 * The user id the server judges this session with, from the connect reply. It is `null`
+		 * for a session with no user, and `undefined` before the first connect. While it is set,
+		 * the editor's authorize hooks get it as `ctx.userId`, so the editor and the room judge
+		 * the same user. Set by sync.
+		 */
+		userId?: Signal<string | null | undefined> | null
 	}
+	/**
+	 * The authorize hooks the editor enforces on this user's changes. Pass the same hooks to the
+	 * sync room. See {@link TLAuthorize}.
+	 */
+	authorize?: TLAuthorize
 }
 
 /**

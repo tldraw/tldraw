@@ -1,4 +1,5 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import type { TLWriteRefusal } from '@tldraw/tlschema'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
 const TLSYNC_PROTOCOL_VERSION = 8
@@ -125,6 +126,12 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			 * older clients ignore it — no protocol version bump needed.
 			 */
 			objectAccess?: TLObjectStoreAccess
+			/**
+			 * The user the room judges this session as: the `userId` the app passed at connect, or
+			 * `null` for a session with no user. The client's authorize hooks use it, so that both
+			 * sides judge the same user. Rooms without authorize hooks, and older servers, omit it.
+			 */
+			userId?: string | null
 	  }
 	| {
 			type: 'incompatibility_error'
@@ -174,6 +181,8 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** Set on `discard` when the room's `authorize.write` refused the push. Older clients ignore it. */
+			refused?: TLWriteRefusal
 	  }
 
 /**

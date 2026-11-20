@@ -85,6 +85,8 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
 	 */
 	objectAccess: TLObjectStoreAccess
+	/** The user the authorize hooks get as `ctx.userId`, or null for a session with no user. */
+	userId: string | null
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */

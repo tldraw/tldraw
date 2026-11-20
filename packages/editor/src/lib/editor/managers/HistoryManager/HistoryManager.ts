@@ -42,8 +42,9 @@ export class HistoryManager<R extends UnknownRecord> {
 	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
-		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
+		const stopIntercepting = this.store.addHistoryInterceptor((entry, source) => {
 			if (source !== 'user') return
+			if (this.state !== HistoryRecorderState.Paused) this.keepForRefusal()
 
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
@@ -63,6 +64,33 @@ export class HistoryManager<R extends UnknownRecord> {
 					exhaustiveSwitchError(this.state)
 			}
 		})
+		const stopSettling = this.store.onCheckedOperationSettled((outcome) => {
+			const kept = this.keptForRefusal
+			this.keptForRefusal = null
+			// an aborted operation's transaction rolled the stacks back already, but not the pending
+			// diff, which isn't an atom
+			if (outcome !== 'accepted' && kept) {
+				this.stacks.set(kept.stacks)
+				this.pendingDiff.restore(kept.pendingDiff)
+			}
+		})
+		this.dispose = () => {
+			stopIntercepting()
+			stopSettling()
+		}
+	}
+
+	// History as it was when the checked operation in progress first touched it. A refused or
+	// aborted operation leaves no trace in history, so this is put back: a redo stack the edit
+	// cleared, the steps an undo or bail inside an outer operation moved.
+	private keptForRefusal: {
+		stacks: { undos: Stack<TLHistoryEntry<R>>; redos: Stack<TLHistoryEntry<R>> }
+		pendingDiff: RecordsDiff<R>
+	} | null = null
+
+	private keepForRefusal() {
+		if (this.keptForRefusal || !this.store.isInCheckedOperation()) return
+		this.keptForRefusal = { stacks: this.stacks.get(), pendingDiff: this.pendingDiff.copy() }
 	}
 
 	private flushPendingDiff() {
@@ -125,7 +153,20 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	// History
-	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
+	_undo(opts: { pushToRedoStack: boolean; toMark?: string }) {
+		// an undo is judged like any other change; refused, it leaves history where it was
+		this.store.checkAsOneOperation(() => this._undoUnchecked(opts))
+		return this
+	}
+
+	private _undoUnchecked({
+		pushToRedoStack,
+		toMark = undefined,
+	}: {
+		pushToRedoStack: boolean
+		toMark?: string
+	}) {
+		this.keepForRefusal()
 		const previousState = this.state
 		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
@@ -208,6 +249,12 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	redo() {
+		this.store.checkAsOneOperation(() => this._redoUnchecked())
+		return this
+	}
+
+	private _redoUnchecked() {
+		this.keepForRefusal()
 		const previousState = this.state
 		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
@@ -266,6 +313,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	squashToMark(id: string) {
+		this.keepForRefusal()
 		// remove marks between head and the mark
 
 		let top = this.stacks.get().undos
@@ -302,6 +350,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	/** @internal */
 	_mark(id: string) {
+		this.keepForRefusal()
 		transact(() => {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
@@ -309,6 +358,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	clear() {
+		this.keepForRefusal()
 		this.stacks.set({ undos: stack(), redos: stack() })
 		this.pendingDiff.clear()
 	}
@@ -351,6 +401,12 @@ class PendingDiff<R extends UnknownRecord> {
 		const diff = this.diff
 		this.diff = createEmptyRecordsDiff<R>()
 		this.isEmptyAtom.set(true)
+		return diff
+	}
+
+	copy() {
+		const diff = createEmptyRecordsDiff<R>()
+		squashRecordDiffsMutable(diff, [this.diff])
 		return diff
 	}
 

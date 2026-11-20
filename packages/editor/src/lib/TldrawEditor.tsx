@@ -9,7 +9,7 @@ import {
 	registerColorsFromThemes,
 	registerFontsFromThemes,
 } from '@tldraw/tlschema'
-import { annotateError, Required } from '@tldraw/utils'
+import { annotateError, Required, warnOnce } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
 	memo,
@@ -50,6 +50,7 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
+import { useStableAuthorize } from './hooks/useStableAuthorize'
 import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
@@ -312,6 +313,12 @@ export const TldrawEditor = memo(function TldrawEditor({
 	registerColorsFromThemes(resolvedThemes)
 	registerFontsFromThemes(resolvedThemes)
 
+	if (store && 'authorize' in rest && rest.authorize) {
+		warnOnce(
+			'`authorize` is ignored when you pass a `store`. Pass it to the store instead, for example `useSync({ authorize })` or `createTLStore({ authorize })`.'
+		)
+	}
+
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const [portalHost, setPortalHost] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLCurrentUser(), [_user])
@@ -416,6 +423,7 @@ function TldrawEditorWithOwnStore(
 		users,
 		migrations,
 		themes,
+		authorize,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -431,6 +439,7 @@ function TldrawEditorWithOwnStore(
 		users,
 		migrations,
 		themes,
+		authorize: useStableAuthorize(authorize),
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
