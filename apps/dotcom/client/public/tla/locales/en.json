@@ -741,6 +741,9 @@
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}"
   },
+  "bbe650fe4e": {
+    "translation": "Close version history"
+  },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },

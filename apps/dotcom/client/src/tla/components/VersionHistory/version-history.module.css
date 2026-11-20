@@ -16,18 +16,38 @@
 	border-radius: var(--tl-radius-4) var(--tl-radius-4) 0 0;
 }
 
-/* Where the comment rows put an author dot: the live document gets an accent dot. */
+/* Below the top-left bar, where the libraries panel sits. */
+.side {
+	left: 8px;
+	right: auto;
+}
+
+/* Where a version row's byline puts the author dot: the live document gets an accent dot. */
 .currentDot {
 	flex-shrink: 0;
-	width: 14px;
-	height: 14px;
-	margin-top: 2px;
+	width: 12px;
+	height: 12px;
 	border-radius: 50%;
 	background: var(--tl-color-primary);
 }
 
+/* Comment rows always have text under the byline, and their spacing (6px below the row, -4px under
+   the byline) assumes it. A row with only a byline instead centers it in the visible wash, which
+   ::after insets 4px from the row's top. Doubled class: the comments CSS ties on specificity and
+   can load after this file. */
+.bylineOnly.bylineOnly {
+	padding-top: 4px;
+	padding-bottom: 0;
+}
+
+.bylineOnly.bylineOnly :global(.tlui-cmt-head) {
+	min-height: 36px;
+	margin-bottom: 0;
+}
+
+/* Lines a nested row's dot up under its parent's name: 12px padding + 12px dot + 6px gap. */
 .nested {
-	padding-left: 38px;
+	padding-left: 30px;
 }
 
 .expand {

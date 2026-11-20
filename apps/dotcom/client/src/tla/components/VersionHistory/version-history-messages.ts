@@ -2,7 +2,6 @@ import { defineMessages } from 'tldraw'
 
 export const versionHistoryMessages = defineMessages({
 	title: { defaultMessage: 'Version history' },
-	close: { defaultMessage: 'Close' },
 	currentVersion: { defaultMessage: 'Current version' },
 	today: { defaultMessage: 'Today, {time}' },
 	restoredFrom: { defaultMessage: 'Restored from {time}' },

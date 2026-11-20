@@ -1,7 +1,14 @@
+import { createContext } from 'react'
 import { atom } from 'tldraw'
 
 /** True while the file page shows history; hides this user's presence from collaborators. */
 export const historyModeAtom = atom('historyMode', false)
+
+/**
+ * True inside the history preview editor. The live editor stays mounted underneath, so chrome that
+ * belongs only to the preview reads this rather than historyModeAtom.
+ */
+export const HistoryPreviewContext = createContext(false)
 
 export function parseHistoryRoute(pathname: string): { inHistory: boolean; ts: string | null } {
 	const match = pathname.match(/^\/f\/[^/]+\/history(?:\/([^/]+))?\/?$/)

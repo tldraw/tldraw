@@ -13,13 +13,13 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { HistoryPreviewContext } from '../../utils/historyRoute'
 import { fetchVersionSnapshot } from '../../utils/versionHistoryApi'
 import { TlaEditorMenuPanel } from '../TlaEditor/editor-components/TlaEditorMenuPanel'
+import { useFileSyncStore } from '../TlaEditor/fileSyncHostContext'
 import { SneakyDarkModeSync } from '../TlaEditor/sneaky/SneakyDarkModeSync'
 import { TlaEditorWrapper } from '../TlaEditor/TlaEditorWrapper'
-import { useFileSyncStore } from '../TlaEditor/fileSyncHostContext'
 import { applyView, HistoryView } from './applyView'
-import { HistoryTopRightPanel } from './HistoryTopRightPanel'
 import { stripCommentRecords } from './previewSnapshot'
 
 // Rendered like the comments sidebar: from the InFrontOfTheCanvas slot through EditorPortal, so it
@@ -33,7 +33,8 @@ function Overlay() {
 const components: TLComponents = {
 	Dialogs: null,
 	Toasts: null,
-	SharePanel: HistoryTopRightPanel,
+	// Share would act on the preview (e.g. publish the old version); history closes from the top left.
+	SharePanel: null,
 	// The live editor's top-left panel, which leaves room for the sidebar toggle.
 	MenuPanel: TlaEditorMenuPanel,
 	InFrontOfTheCanvas: Overlay,
@@ -119,23 +120,25 @@ export function VersionPreviewEditor({
 	if (!initial) return null
 
 	return (
-		<OverlayContext.Provider value={children}>
-			<TlaEditorWrapper>
-				<Tldraw
-					className="tla-editor"
-					snapshot={initial}
-					assetUrls={assetUrls}
-					shapeUtils={embedShapeUtils}
-					user={app?.tlUser}
-					onMount={handleMount}
-					initialState="hand"
-					components={components}
-					options={{ actionShortcutsLocation: 'toolbar' }}
-				>
-					<ThemeUpdater />
-					<SneakyDarkModeSync />
-				</Tldraw>
-			</TlaEditorWrapper>
-		</OverlayContext.Provider>
+		<HistoryPreviewContext.Provider value>
+			<OverlayContext.Provider value={children}>
+				<TlaEditorWrapper>
+					<Tldraw
+						className="tla-editor"
+						snapshot={initial}
+						assetUrls={assetUrls}
+						shapeUtils={embedShapeUtils}
+						user={app?.tlUser}
+						onMount={handleMount}
+						initialState="hand"
+						components={components}
+						options={{ actionShortcutsLocation: 'toolbar' }}
+					>
+						<ThemeUpdater />
+						<SneakyDarkModeSync />
+					</Tldraw>
+				</TlaEditorWrapper>
+			</OverlayContext.Provider>
+		</HistoryPreviewContext.Provider>
 	)
 }

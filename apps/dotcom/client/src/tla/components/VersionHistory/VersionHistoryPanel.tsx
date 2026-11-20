@@ -1,4 +1,4 @@
-import { Avatar, Byline } from '@tldraw/commenting'
+import { Byline } from '@tldraw/commenting'
 import {
 	HistoryAuthor,
 	HistoryCheckpoint,
@@ -155,9 +155,10 @@ export function VersionHistoryPanel({
 
 	return (
 		<div
-			className={classNames('tlui-cmt-canvas-sidebar', {
-				[styles.sheet]: breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
-			})}
+			className={classNames(
+				'tlui-cmt-canvas-sidebar',
+				breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM ? styles.sheet : styles.side
+			)}
 			onPointerDown={(e) => e.stopPropagation()}
 			onContextMenu={(e) => e.stopPropagation()}
 		>
@@ -190,14 +191,14 @@ export function VersionHistoryPanel({
 					<div className="tlui-cmt-list__items">
 						<button
 							type="button"
-							className={classNames('tlui-cmt-list__item', {
+							className={classNames('tlui-cmt-list__item', styles.bylineOnly, {
 								'tlui-cmt-list__item--selected': selectedTs === null,
 							})}
 							onClick={() => onSelect(null)}
 						>
-							<span className={styles.currentDot} aria-hidden />
 							<div className="tlui-cmt-list__item-body">
 								<div className="tlui-cmt-head">
+									<span className={styles.currentDot} aria-hidden />
 									<span className="tlui-cmt-author">
 										{intl.formatMessage(messages.currentVersion)}
 									</span>
@@ -496,6 +497,7 @@ function VersionRow({
 			{ count }
 		)
 	)
+	const bylineOnly = !name && !preview && !summary && !toggle
 	return (
 		<div
 			role="button"
@@ -503,6 +505,7 @@ function VersionRow({
 			className={classNames('tlui-cmt-list__item', {
 				'tlui-cmt-list__item--selected': selected,
 				[styles.nested]: nested,
+				[styles.bylineOnly]: bylineOnly,
 			})}
 			onClick={() => onSelect(ts)}
 			onKeyDown={(e) => {
@@ -512,7 +515,6 @@ function VersionRow({
 				}
 			}}
 		>
-			<Avatar author={author} />
 			<div className="tlui-cmt-list__item-body">
 				<Byline author={author} date={ts} />
 				{name && <div className={styles.versionName}>{name}</div>}

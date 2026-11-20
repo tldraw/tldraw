@@ -1,7 +1,7 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
 import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
@@ -58,6 +58,7 @@ import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { useVersionHistoryEnabled } from '../../hooks/useVersionHistoryEnabled'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
+import { HistoryPreviewContext } from '../../utils/historyRoute'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -242,6 +243,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 	const app = useApp()
 	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
 	const fileId = useCurrentFileId()
+	const inHistory = useContext(HistoryPreviewContext)
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -301,7 +303,8 @@ function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			{/* Only file editors mount the libraries panel (see TlaEditor); on legacy routes there is
 			    no file and the button would toggle state nothing reads. */}
-			{fileId && <LibrariesPanelButton />}
+			{fileId &&
+				(inHistory ? <CloseVersionHistoryButton fileId={fileId} /> : <LibrariesPanelButton />)}
 			<TlaFileMenu
 				fileId={fileId ?? ''}
 				workspaceId={null}
@@ -571,6 +574,26 @@ function TlaPreferencesGroup() {
 			<KeyboardShortcutsMenuItem />
 			<CommandPaletteMenuItem />
 		</TldrawUiMenuGroup>
+	)
+}
+
+/** Takes the libraries button's spot while history is open; pressed, and clicking it closes history. */
+function CloseVersionHistoryButton({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
+	const navigate = useNavigate()
+	const label = msg(editorMessages.closeVersionHistory)
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topLeftMainMenuTrigger}
+			data-testid="tla-version-history-close"
+			aria-pressed
+			tooltip={label}
+			title={label}
+			onClick={() => navigate(routes.tlaFile(fileId))}
+		>
+			<TlaIcon icon="clock" />
+		</TldrawUiButton>
 	)
 }
 
