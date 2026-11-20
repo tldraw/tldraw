@@ -50,6 +50,8 @@ interface Session {
 	pageId: TLPageId
 	items: ScribbleItem[]
 	state: 'active' | 'stopping' | 'complete'
+	// Implicit sessions (from addScribble) are never stopped, so they end once their scribbles are gone.
+	implicit: boolean
 	options: Required<Omit<ScribbleSessionOptions, 'id'>>
 	idleTimeoutHandle?: number
 	fadeElapsed: number
@@ -66,7 +68,9 @@ export class ScribbleManager {
 
 	/**
 	 * Start a new session for grouping scribbles.
-	 * Returns a session ID that can be used with other session methods.
+	 * Returns a session ID that can be used with other session methods. The session stays active,
+	 * even while it has no scribbles, until {@link ScribbleManager.stopSession},
+	 * {@link ScribbleManager.clearSession} or its idle timeout ends it.
 	 *
 	 * @param options - Session configuration
 	 * @returns Session ID
@@ -79,6 +83,7 @@ export class ScribbleManager {
 			pageId: this.editor.getCurrentPageId(),
 			items: [],
 			state: 'active',
+			implicit: false,
 			options: {
 				selfConsume: options.selfConsume ?? true,
 				idleTimeoutMs: options.idleTimeoutMs ?? 0,
@@ -268,6 +273,7 @@ export class ScribbleManager {
 	 */
 	addScribble(scribble: Partial<TLScribble>, id = uniqueId()): ScribbleItem {
 		const sessionId = this.startSession()
+		this.sessions.get(sessionId)!.implicit = true
 		return this.addScribbleToSession(sessionId, scribble, id)
 	}
 
@@ -425,7 +431,10 @@ export class ScribbleManager {
 
 		// Check if session is complete
 		const hasContent = session.items.some((item) => item.scribble.points.length > 0)
-		if (!hasContent && (session.state === 'stopping' || session.items.length === 0)) {
+		if (
+			!hasContent &&
+			(session.state === 'stopping' || (session.implicit && session.items.length === 0))
+		) {
 			session.state = 'complete'
 		}
 	}
