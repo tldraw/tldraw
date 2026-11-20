@@ -1,4 +1,4 @@
-import { atom, EMPTY_ARRAY, transact } from '@tldraw/state'
+import { atom, EMPTY_ARRAY, onTransactionAbort, transact } from '@tldraw/state'
 import {
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
@@ -344,19 +344,34 @@ const modeToState = {
 } as const
 
 class PendingDiff<R extends UnknownRecord> {
+	// Not an atom, so every write registers how to undo itself. A transaction that rolls back
+	// would otherwise leave its changes here, for undo and redo to replay (#11453).
 	private diff = createEmptyRecordsDiff<R>()
+	// False only while `diff.added` is certainly empty, which saves `apply` a lookup per record.
+	private mayHaveAdded = false
 	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
 
 	clear() {
 		const diff = this.diff
-		this.diff = createEmptyRecordsDiff<R>()
+		this.replace(createEmptyRecordsDiff<R>(), false)
 		this.isEmptyAtom.set(true)
 		return diff
 	}
 
 	restore(diff: RecordsDiff<R>) {
-		this.diff = diff
+		this.replace(diff, true)
 		this.isEmptyAtom.set(isRecordsDiffEmpty(diff))
+	}
+
+	private replace(diff: RecordsDiff<R>, mayHaveAdded: boolean) {
+		const previous = this.diff
+		const previousMayHaveAdded = this.mayHaveAdded
+		this.diff = diff
+		this.mayHaveAdded = mayHaveAdded
+		onTransactionAbort(() => {
+			this.diff = previous
+			this.mayHaveAdded = previousMayHaveAdded
+		})
 	}
 
 	isEmpty() {
@@ -364,13 +379,16 @@ class PendingDiff<R extends UnknownRecord> {
 	}
 
 	apply(diff: RecordsDiff<R>) {
+		const hasAdded = hasAnyKey(diff.added)
+		undoSquashOnAbort(this.diff, diff, this.mayHaveAdded)
+		if (hasAdded) this.mayHaveAdded = true
 		squashRecordDiffsMutable(this.diff, [diff])
 		// Recomputing emptiness from the accumulated diff is O(N) (for-in over a
 		// dictionary-mode object pays an O(N) key-collection prologue), and this runs on
 		// every history interceptor call — e.g. every input tick while resizing many
 		// shapes. Updates can never cancel out existing entries during a squash, so the
 		// full recompute is only needed when the incoming diff adds or removes records.
-		if (hasAnyKey(diff.added) || hasAnyKey(diff.removed)) {
+		if (hasAdded || hasAnyKey(diff.removed)) {
 			this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
 		} else if (this.isEmptyAtom.__unsafe__getWithoutCapture()) {
 			this.isEmptyAtom.set(!hasAnyKey(diff.updated))
@@ -380,6 +398,51 @@ class PendingDiff<R extends UnknownRecord> {
 	debug() {
 		return { diff: this.diff, isEmpty: this.isEmpty() }
 	}
+}
+
+// Squashing `incoming` into `target` only touches the records `incoming` names, so keeping what
+// `target` held for those is enough to undo it. Kept flat: this runs on every store change.
+function undoSquashOnAbort<R extends UnknownRecord>(
+	target: RecordsDiff<R>,
+	incoming: RecordsDiff<R>,
+	targetMayHaveAdded: boolean
+) {
+	// [tuple, to]: an update of a record that has an `updated` tuple and no `added` entry only
+	// overwrites the tuple's `to`, in place. This is every record on every tick of a drag.
+	const overwritten: unknown[] = []
+	// [id, added, updated, removed]: anything else can move the record between the three maps.
+	const moved: unknown[] = []
+	const keep = (id: R['id']) => {
+		moved.push(id, target.added[id], target.updated[id], target.removed[id])
+	}
+	for (const id in incoming.added) keep(id as R['id'])
+	for (const id in incoming.updated) {
+		const tuple = target.updated[id as R['id']]
+		if (tuple && !(targetMayHaveAdded && target.added[id as R['id']])) {
+			overwritten.push(tuple, tuple[1])
+		} else {
+			keep(id as R['id'])
+		}
+	}
+	for (const id in incoming.removed) keep(id as R['id'])
+	if (overwritten.length === 0 && moved.length === 0) return
+
+	onTransactionAbort(() => {
+		for (let i = moved.length - 4; i >= 0; i -= 4) {
+			const id = moved[i] as R['id']
+			setOrDelete(target.added, id, moved[i + 1] as R | undefined)
+			setOrDelete(target.updated, id, moved[i + 2] as [R, R] | undefined)
+			setOrDelete(target.removed, id, moved[i + 3] as R | undefined)
+		}
+		for (let i = overwritten.length - 2; i >= 0; i -= 2) {
+			;(overwritten[i] as [R, R])[1] = overwritten[i + 1] as R
+		}
+	})
+}
+
+function setOrDelete<K extends string, V>(map: Record<K, V>, key: K, value: V | undefined) {
+	if (value === undefined) delete map[key]
+	else map[key] = value
 }
 
 function hasAnyKey(obj: object) {

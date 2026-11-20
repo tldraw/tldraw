@@ -17,6 +17,9 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
+	// See `onTransactionAbort`. Oldest first.
+	abortCallbacks: (() => void)[] | null = null
+
 	commit() {
 		if (this.parent === null) {
 			// For root transactions, flush changed atoms
@@ -30,6 +33,7 @@ class Transaction {
 		// A parent that has recorded nothing yet adopts the map outright: this transaction is
 		// finished with it, and the common nested case is a single inner transaction doing all
 		// the writes.
+		this.giveAbortCallbacksToParent()
 		const parentValues = this.parent!.initialAtomValues
 		if (parentValues.size === 0) {
 			this.parent!.initialAtomValues = this.initialAtomValues
@@ -40,6 +44,18 @@ class Transaction {
 				parentValues.set(atom, value)
 			}
 		})
+	}
+
+	// An outer rollback has to undo what this transaction did outside atoms too.
+	private giveAbortCallbacksToParent() {
+		const callbacks = this.abortCallbacks
+		if (!callbacks) return
+		const parentCallbacks = this.parent!.abortCallbacks
+		if (!parentCallbacks) {
+			this.parent!.abortCallbacks = callbacks
+			return
+		}
+		for (let i = 0; i < callbacks.length; i++) parentCallbacks.push(callbacks[i])
 	}
 
 	/**
@@ -57,7 +73,16 @@ class Transaction {
 			atom.historyBuffer?.clear()
 		})
 
-		this.commit()
+		// Taken off before `commit`, which would otherwise hand them to the parent.
+		const callbacks = this.abortCallbacks
+		this.abortCallbacks = null
+		try {
+			if (callbacks) {
+				for (let i = callbacks.length - 1; i >= 0; i--) callbacks[i]()
+			}
+		} finally {
+			this.commit()
+		}
 	}
 }
 
@@ -161,6 +186,21 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.currentTransaction = outerTxn
 		traverseReactors = undefined! // free memory
 	}
+}
+
+/**
+ * Registers `undo` to run if the current transaction, or a transaction around it, rolls back. For
+ * state kept outside atoms, which a rollback would otherwise leave as it is. Callbacks run newest
+ * first, after the atoms are restored and before effects are flushed, and must not throw. Outside
+ * a transaction nothing can roll back, so this does nothing.
+ *
+ * @internal
+ */
+export function onTransactionAbort(undo: () => void) {
+	const txn = inst.currentTransaction
+	if (!txn) return
+	if (txn.abortCallbacks) txn.abortCallbacks.push(undo)
+	else txn.abortCallbacks = [undo]
 }
 
 /** @internal */
