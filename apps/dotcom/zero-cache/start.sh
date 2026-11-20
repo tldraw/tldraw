@@ -32,6 +32,12 @@ if [ -n "$FLY_MACHINE_ID" ]; then
 		OTEL_RESOURCE_ATTRIBUTES="service.instance.id=$FLY_MACHINE_ID"
 	fi
 	export OTEL_RESOURCE_ATTRIBUTES
+
+	# zero writes ZERO_TASK_ID into the CVR as each client group's owner. Unset, it's a
+	# random ID per process, so an owner can't be traced back to a machine. The timestamp
+	# keeps it unique per process start, since the replication-manager also claims its
+	# replica by task ID.
+	export ZERO_TASK_ID="$FLY_MACHINE_ID-$(date +%s)"
 fi
 
 # Start supervisord which manages both nginx and zero-cache
