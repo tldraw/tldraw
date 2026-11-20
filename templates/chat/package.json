@@ -29,13 +29,13 @@
 		"build-types": "tsc"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^2.0.74",
-		"@ai-sdk/react": "^2.0.15",
+		"@ai-sdk/google": "^4.0.107",
+		"@ai-sdk/react": "^4.0.160",
 		"@google/genai": "^1.17.0",
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"ai": "^5.0.194",
+		"ai": "^7.0.156",
 		"next": "^16.3.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
