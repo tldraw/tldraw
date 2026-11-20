@@ -6,6 +6,7 @@ import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
 	TlaComment,
 	TlaCommentRead,
+	isFileCreatedByUser,
 	TlaFile,
 	TlaFileState,
 	TlaGroup,
@@ -80,6 +81,7 @@ function makeFile(overrides: Partial<TlaFile> & { id: string }): TlaFile {
 		isEmpty: true,
 		isDeleted: false,
 		createSource: null,
+		createdBy: null,
 		...overrides,
 	}
 }
@@ -465,6 +467,15 @@ describe('file mutations', () => {
 		)
 	})
 
+	it('cannot change immutable field (createdBy)', async () => {
+		const s = baseStore()
+		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId, createdBy: userId })
+		s.file.push(f)
+		const { tx } = createMockTx(s)
+		const m = createMutators(userId)
+		await expectForbidden(() => m.file.update(tx, { id: f.id, createdBy: 'user_other123456789' }))
+	})
+
 	it('cannot change immutable field (isDeleted)', async () => {
 		const s = baseStore()
 		const f = makeFile({ id: 'file_aaaa11112222bbbb', owningGroupId: groupId })
@@ -506,6 +517,7 @@ describe('file creation', () => {
 				createSource: null,
 			})
 		)
+		expect(s.file.find((f) => f.id === 'file_aaaa11112222bbbb')?.createdBy).toBe(userId)
 	})
 
 	it('migrated user cannot create file in another workspace', async () => {
@@ -549,6 +561,23 @@ describe('file creation', () => {
 				createSource: null,
 			})
 		)
+	})
+})
+
+describe('isFileCreatedByUser', () => {
+	const me = 'user_aaaa11112222bbbb'
+	const other = 'user_other123456789'
+	const team = 'group_aaa11112222bbb'
+
+	it('uses createdBy when it is set, wherever the board lives', () => {
+		expect(isFileCreatedByUser({ createdBy: me, owningGroupId: team }, me)).toBe(true)
+		expect(isFileCreatedByUser({ createdBy: other, owningGroupId: me }, me)).toBe(false)
+	})
+
+	it('attributes an older board without createdBy to the owner of its home workspace', () => {
+		expect(isFileCreatedByUser({ createdBy: null, owningGroupId: me }, me)).toBe(true)
+		expect(isFileCreatedByUser({ createdBy: null, owningGroupId: other }, me)).toBe(false)
+		expect(isFileCreatedByUser({ createdBy: null, owningGroupId: team }, me)).toBe(false)
 	})
 })
 
