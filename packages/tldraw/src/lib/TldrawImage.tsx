@@ -174,23 +174,28 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		const shapeIds = editor.getCurrentPageShapeIds()
 
 		async function setSvg() {
-			// toImage waits for the required fonts to load (so text is measured correctly) before
-			// it renders, so we don't need to do it here.
-			const imageResult = await editor.toImage([...shapeIds], {
-				bounds,
-				scale,
-				background,
-				padding,
-				darkMode,
-				preserveAspectRatio,
-				format,
-			})
-			if (!imageResult || isCancelled) return
+			try {
+				// toImage waits for the required fonts to load (so text is measured correctly) before
+				// it renders, so we don't need to do it here.
+				const imageResult = await editor.toImage([...shapeIds], {
+					bounds,
+					scale,
+					background,
+					padding,
+					darkMode,
+					preserveAspectRatio,
+					format,
+				})
+				if (!imageResult || isCancelled) return
 
-			const url = URL.createObjectURL(imageResult.blob)
-			setUrl(url)
-
-			editor.dispose()
+				const url = URL.createObjectURL(imageResult.blob)
+				setUrl(url)
+			} finally {
+				// Disposing only once the export settles, rather than in the effect cleanup, avoids
+				// tearing the editor down while toImage is still using it.
+				editor.dispose()
+				tempElm.remove()
+			}
 		}
 
 		setSvg()
