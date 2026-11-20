@@ -36,6 +36,9 @@ export interface AtomOptions<Value, Diff> {
 }
 
 // @internal
+export function beforeTransactionCommit(fn: (rollback: () => void) => void): void;
+
+// @internal
 export interface Child {
     __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
     isActivelyListening: boolean;

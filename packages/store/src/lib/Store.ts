@@ -3,8 +3,10 @@ import {
 	Reactor,
 	Signal,
 	atom,
+	beforeTransactionCommit,
 	computed,
 	isUninitialized,
+	onTransactionAbort,
 	reactor,
 	transact,
 } from '@tldraw/state'
@@ -607,6 +609,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// Set the atom before recording the entry: interceptors run inside `add`, and a flush they
 		// trigger (e.g. via `listen`) would otherwise discard the entry as not yet committed.
 		this.history.set(version, changes)
+		// every write, kept or not: a rolled-back entry's version is reused by the next one.
+		// Before `add`: a write an interceptor makes is kept at a later version, and dropping
+		// after it would lose that write.
+		if (this.uncommitted.length > 0) this.dropUncommittedFrom(version)
+		if (this.commitListeners.size > 0 && !this.isMergingRemoteChanges) {
+			this.keepForCommit(changes, version)
+		}
 		this.historyAccumulator.add(
 			{
 				changes,
@@ -617,6 +626,65 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.listeners.size === 0) {
 			this.historyAccumulator.clear()
 		}
+	}
+
+	private readonly commitListeners = new Set<(changes: RecordsDiff<R>) => void>()
+	// The user changes of the open operation, each with the `history` value it was
+	// recorded at, so that changes a nested transaction rolled back can be told apart and dropped
+	// (see HistoryAccumulator).
+	private uncommitted: { version: number; changes: RecordsDiff<R> }[] = []
+	private willReportUncommitted = false
+
+	/**
+	 * Hear about each operation that changed the store, when it is about to commit. An operation
+	 * is one outermost transaction: an `editor.run`, or a store write made outside one. The
+	 * listener gets all of the operation's user changes, with what its side effects changed,
+	 * before any effect, `listen` listener or sync has seen them. Remote changes are left out,
+	 * and so is an operation that rolls back or whose changes cancel out. What a listener
+	 * changes is part of the same operation, and listeners are called again with it.
+	 *
+	 * A listener can still be called for an operation that does not commit, when something that
+	 * runs after it rolls the operation back. And if the operation also merged remote changes,
+	 * read the current records from the store: the changes given here do not include those.
+	 * A listener added inside an operation can be given changes from before it was added.
+	 *
+	 * @internal
+	 */
+	onBeforeCommit(listener: (changes: RecordsDiff<R>) => void): () => void {
+		this.commitListeners.add(listener)
+		return () => {
+			this.commitListeners.delete(listener)
+		}
+	}
+
+	private keepForCommit(changes: RecordsDiff<R>, version: number) {
+		this.uncommitted.push({ version, changes })
+		if (this.willReportUncommitted) return
+		this.willReportUncommitted = true
+		// the callback below is dropped if the transaction it was registered in rolls back
+		onTransactionAbort(() => {
+			this.willReportUncommitted = false
+			this.dropUncommittedFrom(this.history.__unsafe__getWithoutCapture() + 1)
+		})
+		beforeTransactionCommit(() => {
+			this.willReportUncommitted = false
+			this.dropUncommittedFrom(this.history.__unsafe__getWithoutCapture() + 1)
+			const entries = this.uncommitted
+			this.uncommitted = []
+			if (entries.length === 0) return
+			// a transaction with one write, like a tick of a drag, has nothing to squash
+			const changes =
+				entries.length === 1
+					? entries[0].changes
+					: squashRecordDiffs(entries.map((entry) => entry.changes))
+			if (isRecordsDiffEmpty(changes)) return
+			for (const listener of this.commitListeners) listener(changes)
+		})
+	}
+
+	private dropUncommittedFrom(version: number) {
+		const entries = this.uncommitted
+		while (entries.length && entries[entries.length - 1].version >= version) entries.pop()
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {

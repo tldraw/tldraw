@@ -3,7 +3,7 @@ import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
-import { deferAsyncEffects, transact, transaction } from '../transactions'
+import { beforeTransactionCommit, deferAsyncEffects, transact, transaction } from '../transactions'
 
 // Tests for SPEC.md §12 (async transactions: deferAsyncEffects).
 // Rule IDs like [AT3] in test names refer to that document.
@@ -251,5 +251,25 @@ describe('deferAsyncEffects (AT)', () => {
 
 	it('[AT6] resolves to the return value of the function', async () => {
 		await expect(deferAsyncEffects(async () => 'value')).resolves.toBe('value')
+	})
+})
+
+describe('beforeTransactionCommit in an async transaction (T12)', () => {
+	it('runs when the async transaction settles, and can roll it back', async () => {
+		const a = atom('', 0)
+		const seen: number[] = []
+
+		await deferAsyncEffects(async () => {
+			a.set(1)
+			beforeTransactionCommit((rollback) => {
+				seen.push(a.get())
+				rollback()
+			})
+			await sleep(1)
+			a.set(2)
+		})
+
+		expect(seen).toEqual([2])
+		expect(a.get()).toBe(0)
 	})
 })
