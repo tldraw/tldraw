@@ -38,7 +38,6 @@ import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
-import { copyLibrary } from './routes/tla/copyLibrary'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getBoardPresence } from './routes/tla/getBoardPresence'
@@ -204,7 +203,6 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/uploads/:objectName', upload)
 	.post('/app/libraries/:libraryId/items', addLibraryItems)
-	.post('/app/libraries/:libraryId/copy', copyLibrary)
 	.get('/app/library-items/:itemId/content', getLibraryItemContent)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)

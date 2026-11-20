@@ -1777,6 +1777,14 @@ describe('libraries', () => {
 			() => mutators.library.rename(tx, { id: libraryId, name: 'x' }),
 			() => mutators.library.move(tx, { id: libraryId, owningGroupId: V }),
 			() => mutators.library.delete(tx, { id: libraryId }),
+			() =>
+				mutators.library.copy(tx, {
+					sourceId: libraryId,
+					id: 'coll_bbbb11112222cccc',
+					owningGroupId: V,
+					itemIds: {},
+					time: Date.now(),
+				}),
 			() => mutators.library_item.rename(tx, { id: itemId, name: 'x' }),
 			() => mutators.library_item.move(tx, { id: itemId, libraryId: 'coll_cccc11112222dddd' }),
 			() => mutators.library_item.delete(tx, { id: itemId }),
@@ -1979,6 +1987,108 @@ describe('libraries', () => {
 				mutators.library.move(tx, { id: libraryId, owningGroupId: other })
 			)
 			expect(store.library[0].owningGroupId).toBe(W)
+		})
+	})
+
+	describe('library.copy', () => {
+		const copyId = 'coll_copy11112222cccc'
+		const items = ['item_1111222233334444', 'item_5555666677778888', 'item_9999000011112222']
+		const copyOf = (id: string) => id.replace('item_', 'copy_')
+		const source = () => ({
+			library: [makeLibrary({ id: libraryId, owningGroupId: W, meta: { packId: 'icons' } })],
+			library_item: items.map((id, i) => ({
+				...makeItem(id, libraryId),
+				name: `Button ${i}`,
+				thumbnail: `https://content.test/${id}.png`,
+			})),
+		})
+		const copying = (itemIds = Object.fromEntries(items.map((id) => [id, copyOf(id)]))) => ({
+			sourceId: libraryId,
+			id: copyId,
+			owningGroupId: V,
+			itemIds,
+			time: Date.now(),
+		})
+
+		it('lists the copy and the items I named on the client, in order, from their rows', async () => {
+			const { store, tx, mutators } = setup(source(), 'client')
+			const args = copying({ [items[0]]: copyOf(items[0]), [items[2]]: copyOf(items[2]) })
+			await mutators.library.copy(tx, args)
+			expect(store.library[1]).toEqual({
+				id: copyId,
+				name: 'Shapes',
+				owningGroupId: V,
+				createdBy: me,
+				createdAt: args.time,
+				updatedAt: args.time,
+				meta: { packId: 'icons' },
+			})
+			expect(store.library_item.slice(3)).toEqual(
+				[items[0], items[2]].map((id, i) => ({
+					id: copyOf(id),
+					libraryId: copyId,
+					name: store.library_item.find((item) => item.id === id)!.name,
+					thumbnail: `https://content.test/${id}.png`,
+					createdBy: me,
+					createdAt: args.time + i,
+					updatedAt: args.time,
+				}))
+			)
+		})
+
+		it('inserts the items and the objects they share with raw SQL on the server', async () => {
+			const { store, tx, mutations, mutators } = setup(source())
+			const query = vi.fn(async (sql: string, params: unknown[]) => {
+				if (sql.startsWith('SELECT')) return items.slice(0, 2).map((id) => ({ id }))
+				if (sql.includes('RETURNING')) return (params[4] as string[]).map((id) => ({ id }))
+				return []
+			})
+			;(tx as any).dbTransaction = { query }
+			const args = copying()
+			await mutators.library.copy(tx, args)
+			expect(mutations.map(({ op, table }) => [op, table])).toEqual([['insert', 'library']])
+			expect(store.library[1]).toMatchObject({ id: copyId, owningGroupId: V })
+			const [select, insertItems, insertObjects] = query.mock.calls
+			expect(select).toEqual([expect.stringContaining('FOR KEY SHARE'), [libraryId, items]])
+			const copied = items.slice(0, 2)
+			expect(insertItems).toEqual([
+				expect.stringContaining('INSERT INTO "library_item"'),
+				[copyId, me, args.time, copied, copied.map(copyOf), [args.time, args.time + 1]],
+			])
+			expect(insertObjects).toEqual([
+				expect.stringContaining('INSERT INTO "library_item_object"'),
+				[copied, copied.map(copyOf)],
+			])
+		})
+
+		it('refuses on the server when a copy’s id is taken', async () => {
+			const { tx, mutators } = setup(source())
+			;(tx as any).dbTransaction = {
+				query: async (sql: string) =>
+					sql.startsWith('SELECT') ? items.map((id) => ({ id })) : [{ id: copyOf(items[0]) }],
+			}
+			await expectBadRequest(() => mutators.library.copy(tx, copying()))
+		})
+
+		it.each([
+			['the source is in a workspace I’m not in', { owningGroupId: X }, {}, expectForbidden],
+			['the destination is a workspace I’m not in', {}, { owningGroupId: X }, expectForbidden],
+			['the source doesn’t exist', {}, { sourceId: 'coll_none11112222cccc' }, expectBadRequest],
+			['the copy’s id is a library’s', {}, { id: libraryId }, expectBadRequest],
+			[
+				'two copies share an id',
+				{},
+				{ itemIds: { [items[0]]: copyOf(items[0]), [items[1]]: copyOf(items[0]) } },
+				expectBadRequest,
+			],
+			['a copy’s id is malformed', {}, { itemIds: { [items[0]]: 'x' } }, expectBadRequest],
+		])('refuses when %s', async (_, sourceOverrides, argOverrides, expectRefused) => {
+			const tables = source()
+			Object.assign(tables.library[0], sourceOverrides)
+			const { store, tx, mutators } = setup(tables, 'client')
+			await expectRefused(() => mutators.library.copy(tx, { ...copying(), ...argOverrides }))
+			expect(store.library).toHaveLength(1)
+			expect(store.library_item).toHaveLength(3)
 		})
 	})
 

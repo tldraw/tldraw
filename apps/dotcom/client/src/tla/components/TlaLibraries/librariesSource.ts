@@ -50,14 +50,11 @@ interface StoredItem {
 	thumbnail: TlaLibraryItemThumbnail | null
 }
 
-/**
- * An item being added or copied, under the id its row will have: listed until the row arrives
- * through Zero.
- */
+/** An item being added, under the id its row will have: listed until the row arrives through Zero. */
 interface PendingItem {
 	item: TLLibraryItem
 	loadContent(): Promise<TLLibraryItemContent>
-	/** Whether the row arrived: false when adding or copying failed. */
+	/** Whether the row arrived: false when adding failed. */
 	arrived: Promise<boolean>
 }
 
@@ -72,13 +69,6 @@ interface NewItem {
 	thumbnail: TLLibraryThumbnail | undefined
 	pending: PendingItem
 	settleArrival(arrived: boolean): void
-}
-
-/** A library being copied, under the id its row will have: listed until the row arrives. */
-interface PendingLibrary {
-	library: TLLibrary
-	/** Whether the row arrived: false when copying failed. */
-	arrived: Promise<boolean>
 }
 
 /** A promise and the function that settles it. */
@@ -139,17 +129,16 @@ function splitIntoRequests(items: NewItem[]): NewItem[][] {
  * libraries are kept in its document instead (see editorLibraries).
  *
  * Libraries and item rows come from the app's libraries query and change through mutators.
- * An item's content is stored by the sync worker, which also adds items and copies libraries,
- * and is fetched with the user's token. Its thumbnails are public uploads whose URLs are on its
+ * An item's content is stored by the sync worker, which also adds items, and is fetched with the
+ * user's token. Its thumbnails are public uploads whose URLs are on its
  * row, so they load as ordinary images.
  *
  * Changes are listed as soon as Zero has applied them locally, and the promises resolve then; a
  * change the server rejects is rolled back and the app shows its mutation error. A new item is
- * listed as soon as it's asked for, with the thumbnails it was given, while the worker stores it,
- * and a copy of a library with its source's name and items' thumbnails while the worker copies
- * it; `addItem` resolves once the item is listed. One the worker can't store disappears, with a
- * toast for an item and `copyLibrary` rejecting for a copy. Changes to either wait until its row
- * has arrived.
+ * listed as soon as it's asked for, with the thumbnails it was given, while the worker stores it;
+ * `addItem` resolves once the item is listed. One the worker can't store disappears with a toast.
+ * Changes to it wait until its row has arrived. A copy of a library is a mutation like any other;
+ * until the server confirms it, its items' content is loaded from the items they copy.
  *
  * Items added together are all listed at once and sent in as few requests as the worker allows,
  * one after another, usually one. If a request fails, its items and those after it disappear, with
@@ -158,7 +147,6 @@ function splitIntoRequests(items: NewItem[]): NewItem[][] {
 export class TldrawAppLibrariesSource implements LibrarySource {
 	readonly id = 'dotcom-workspaces'
 
-	private readonly pendingLibraries = atom<PendingLibrary[]>('pending libraries', [])
 	private readonly pendingItems = atom<PendingItem[]>('pending library items', [])
 	// Object URLs of thumbnails added here, by item row id, listed instead of the uploaded copies so
 	// a tile doesn't blank while those load.
@@ -167,10 +155,13 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		new Map()
 	)
 	// Libraries created or copied here that the server hasn't confirmed yet, by row id. The worker
-	// can't add items to them or copy them until it has.
+	// can't add items to them until it has.
 	private readonly unconfirmedLibraries = new Map<string, Promise<boolean>>()
 	// Libraries deleted here that the server hasn't confirmed deleting yet, by row id. If it rejects
 	// the delete, the row returns, and so may the rows of items being stored in it.
+	// Items of copies the server hasn't confirmed yet, by row id, to the items they copy. The
+	// worker can't load their content until it has.
+	private readonly unconfirmedCopies = new Map<string, TLLibraryItemId>()
 	private readonly unconfirmedDeletes = atom<ReadonlySet<string>>(
 		'unconfirmed library deletes',
 		new Set()
@@ -194,14 +185,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		]
 	})
 
-	private readonly libraries$ = computed('workspace libraries', () => {
-		const rows = this.app.getLibraryRows()
-		const rowIds = new Set(rows.map((row) => row.id))
-		const pending = this.pendingLibraries
-			.get()
-			.flatMap(({ library }) => (rowIds.has(rowId(library.id)) ? [] : [library]))
-		return [...rows.map(toLibrary), ...pending]
-	})
+	private readonly libraries$ = computed('workspace libraries', () =>
+		this.app.getLibraryRows().map(toLibrary)
+	)
 
 	private readonly items$ = computed('workspace library items', () => {
 		const localThumbnails = this.localThumbnails.get()
@@ -249,6 +235,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const pending = this.findPendingItem(itemId)
 		if (pending) return pending.loadContent()
+		const copied = this.unconfirmedCopies.get(rowId(itemId))
+		if (copied) return this.getItemContent(copied)
 		const response = await this.request(`/api/app/library-items/${rowId(itemId)}/content`)
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)
@@ -288,13 +276,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const { confirmed } = await this.apply(
 			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta })
 		)
-		this.unconfirmedLibraries.set(
-			id,
-			confirmed.then((accepted) => {
-				this.unconfirmedLibraries.delete(id)
-				return accepted
-			})
-		)
+		this.trackUnconfirmedLibrary(id, confirmed)
 		return LibraryRecordType.create({
 			id: LibraryRecordType.createId(id),
 			name: libraryName(name),
@@ -304,12 +286,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async renameLibrary(libraryId: TLLibraryId, name: string) {
-		const id = await this.getLibraryRowId(libraryId)
+		const id = rowId(libraryId)
 		await this.apply(this.app.z.mutate.library.rename({ id, name }))
 	}
 
 	async deleteLibrary(libraryId: TLLibraryId) {
-		const id = await this.getLibraryRowId(libraryId)
+		const id = rowId(libraryId)
 		const itemIds = this.getItems(libraryId).map((item) => rowId(item.id))
 		this.unconfirmedDeletes.update((all) => new Set(all).add(id))
 		const forget = () =>
@@ -331,7 +313,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
 		const library = this.getLibraries().find((c) => c.id === libraryId)
 		if (!library) throw new LibraryNotFoundError(libraryId)
-		const id = await this.getLibraryRowId(libraryId)
+		const id = rowId(libraryId)
 		await this.apply(this.app.z.mutate.library.move({ id, owningGroupId: ownerId }))
 		return { ...library, ownerId }
 	}
@@ -340,57 +322,45 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const source = this.getLibraries().find((c) => c.id === libraryId)
 		if (!source) throw new LibraryNotFoundError(libraryId)
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
-		const sourceItems = this.getItems(libraryId)
+		// The worker stores added items, so Zero doesn't order them before the copy, which would leave
+		// out those it hadn't stored yet.
+		await this.whenItemsArrive(libraryId)
 
 		const id = uniqueId()
-		const library = LibraryRecordType.create({
+		const itemIds: Record<string, string> = {}
+		const copies = new Map<string, TLLibraryItemId>()
+		for (const item of this.getItems(libraryId)) {
+			if (this.findPendingItem(item.id)) continue
+			const copyId = uniqueId()
+			itemIds[rowId(item.id)] = copyId
+			copies.set(copyId, item.id)
+		}
+		for (const [copyId, sourceItemId] of copies) this.unconfirmedCopies.set(copyId, sourceItemId)
+		const forgetCopies = () => {
+			for (const copyId of copies.keys()) this.unconfirmedCopies.delete(copyId)
+		}
+		try {
+			const { confirmed } = await this.apply(
+				this.app.z.mutate.library.copy({
+					sourceId: rowId(libraryId),
+					id,
+					owningGroupId: ownerId,
+					itemIds,
+					time: Date.now(),
+				})
+			)
+			this.trackUnconfirmedLibrary(id, confirmed)
+			confirmed.then(forgetCopies)
+		} catch (error) {
+			forgetCopies()
+			throw error
+		}
+		return LibraryRecordType.create({
 			id: LibraryRecordType.createId(id),
 			name: source.name,
 			ownerId,
 			meta: source.meta,
 		})
-		const arrival = settleable<boolean>()
-		const copies = new Set<PendingItem>()
-		const itemIds: Record<string, string> = {}
-		for (const sourceItem of sourceItems) {
-			const copy = this.listCopiedItem(sourceItem, library.id, arrival.promise)
-			copies.add(copy)
-			itemIds[rowId(sourceItem.id)] = rowId(copy.item.id)
-		}
-		this.pendingLibraries.update((all) => [...all, { library, arrived: arrival.promise }])
-		this.pendingItems.update((all) => [...all, ...copies])
-		this.unconfirmedLibraries.set(
-			id,
-			arrival.promise.then((arrived) => {
-				this.unconfirmedLibraries.delete(id)
-				return arrived
-			})
-		)
-		const unlist = () => {
-			this.pendingLibraries.update((all) => all.filter((p) => p.library.id !== library.id))
-			this.pendingItems.update((all) => all.filter((p) => !copies.has(p)))
-		}
-
-		try {
-			await this.whenConfirmed(libraryId)
-			await this.whenItemsArrive(libraryId)
-			const response = await this.request(`/api/app/libraries/${rowId(libraryId)}/copy`, {
-				method: 'POST',
-				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ owningGroupId: ownerId, id, itemIds }),
-			})
-			if (!response.ok) throw new Error(`Couldn't copy the library: ${response.status}`)
-		} catch (error) {
-			unlist()
-			arrival.settle(false)
-			throw error
-		}
-
-		this.whenLibraryRowArrives(id).then(() => {
-			unlist()
-			arrival.settle(true)
-		})
-		return library
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
@@ -436,11 +406,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async moveItem(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
-		const [id, libraryId] = await Promise.all([
-			this.getItemRowId(itemId),
-			this.getLibraryRowId(toLibraryId),
-		])
-		await this.apply(this.app.z.mutate.library_item.move({ id, libraryId }))
+		const id = await this.getItemRowId(itemId)
+		await this.apply(this.app.z.mutate.library_item.move({ id, libraryId: rowId(toLibraryId) }))
 	}
 
 	/** Releases the thumbnail URLs this source made for items added here. */
@@ -451,7 +418,6 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		}
 		this.localThumbnails.set(new Map())
 		this.pendingItems.set([])
-		this.pendingLibraries.set([])
 	}
 
 	/** Lists an item being added, under the id its row will have, until the row arrives. */
@@ -620,40 +586,6 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return items
 	}
 
-	/**
-	 * A copy of an item to list, under the id its row will have, with the item's thumbnail. Until the
-	 * copy is stored, its content is loaded from the item: the copy's is the same, but for owning its
-	 * own copies of the uploads it refers to, which a board it's placed on copies again anyway.
-	 */
-	private listCopiedItem(
-		sourceItem: TLLibraryItem,
-		libraryId: TLLibraryId,
-		libraryArrived: Promise<boolean>
-	): PendingItem {
-		const id = uniqueId()
-		const itemId = LibraryItemRecordType.createId(id)
-		const arrived = libraryArrived.then((copied) => copied && this.hasItemRow(id))
-		return {
-			item: LibraryItemRecordType.create({
-				id: itemId,
-				libraryId,
-				...(sourceItem.name === undefined ? {} : { name: sourceItem.name }),
-				...(sourceItem.thumbnail === undefined ? {} : { thumbnail: sourceItem.thumbnail }),
-				createdAt: Date.now(),
-			}),
-			loadContent: async () => {
-				try {
-					return await this.getItemContent(sourceItem.id)
-				} catch (error) {
-					// e.g. the item was deleted after it was copied
-					if (!(await arrived)) throw error
-					return this.getItemContent(itemId)
-				}
-			},
-			arrived,
-		}
-	}
-
 	private findPendingItem(itemId: TLLibraryItemId) {
 		return this.pendingItems.get().find((p) => p.item.id === itemId)
 	}
@@ -665,40 +597,20 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return rowId(itemId)
 	}
 
-	// The mutators need the library's row in the local store, which a copy doesn't have yet.
-	private async getLibraryRowId(libraryId: TLLibraryId) {
-		const pending = this.pendingLibraries.get().find((p) => p.library.id === libraryId)
-		if (pending && !(await pending.arrived)) throw new LibraryNotFoundError(libraryId)
-		return rowId(libraryId)
-	}
-
 	// Settles once the worker has stored, or failed to store, the items being added to a library.
 	private async whenItemsArrive(libraryId: TLLibraryId) {
 		const pending = this.pendingItems.get().filter((p) => p.item.libraryId === libraryId)
 		await Promise.all(pending.map((p) => p.arrived))
 	}
 
-	private hasLibraryRow(id: string) {
-		return this.app.getLibraryRows().some((row) => row.id === id)
-	}
-
-	private whenLibraryRowArrives(id: string) {
-		return this.whenTrue('library row arrives', () => this.hasLibraryRow(id))
-	}
-
-	private hasItemRow(id: string) {
-		return this.app.getLibraryRows().some((row) => row.items.some((item) => item.id === id))
-	}
-
-	private whenTrue(name: string, isTrue: () => boolean) {
-		if (isTrue()) return Promise.resolve()
-		return new Promise<void>((resolve) => {
-			const stop = react(name, () => {
-				if (!isTrue()) return
-				stop()
-				resolve()
+	private trackUnconfirmedLibrary(id: string, confirmed: Promise<boolean>) {
+		this.unconfirmedLibraries.set(
+			id,
+			confirmed.then((accepted) => {
+				this.unconfirmedLibraries.delete(id)
+				return accepted
 			})
-		})
+		)
 	}
 
 	private async whenConfirmed(libraryId: TLLibraryId) {
