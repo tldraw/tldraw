@@ -19,6 +19,19 @@ export class EdgeScrollManager {
 	}
 
 	/**
+	 * Forget the current edge-scroll delay and ramp. Call this when the state that was
+	 * calling {@link EdgeScrollManager.updateEdgeScrolling} exits; otherwise a drag that
+	 * ends inside the edge zone leaves the timer primed, and the next drag that starts
+	 * there scrolls at full speed with no delay or ease-in.
+	 *
+	 * @public
+	 */
+	reset() {
+		this._isEdgeScrolling = false
+		this._edgeScrollDuration = -1
+	}
+
+	/**
 	 * Update the camera position when the mouse is close to the edge of the screen.
 	 * Run this on every tick when in a state where edge scrolling is enabled.
 	 *
