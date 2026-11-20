@@ -301,7 +301,7 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
-// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path, and the landing page around them.
+// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path, and their setup resources.
 // A router of its own rather than routes on the main one, so no API route is reachable through the
 // host and no server's path can collide with one.
 const mcpHostRouter = createRouter<Environment>()
@@ -314,11 +314,15 @@ const mcpHostRouter = createRouter<Environment>()
 	// Discovery paths the host doesn't serve keep this worker's JSON 404, whatever the site does with
 	// an unknown path.
 	.all('/.well-known/*', notFound)
-	// Everything else is the landing page, a static-assets worker reached through the MCP_WEB service
-	// binding, so the page shares the host without any route of its own. Read-only methods only;
-	// unbound environments keep the 404.
+	// Keep the setup text and other static assets available at their existing URLs.
 	.all('*', (req, env) => {
 		if (!env.MCP_WEB || (req.method !== 'GET' && req.method !== 'HEAD')) return notFound()
+		if (new URL(req.url).pathname === '/') {
+			return Response.redirect(
+				'https://tldraw.notion.site/tldraw-MCP-server-41e3e4c324c08115adc1cf0389b40755',
+				302
+			)
+		}
 		return env.MCP_WEB.fetch(req)
 	})
 
