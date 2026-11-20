@@ -79,6 +79,45 @@ export function startEditingShape(
 }
 
 /**
+ * Whether the user may change a shape, as far as the UI can tell: not readonly, not locked, and
+ * `editor.can('tl:shape:edit', { shape })`. Advisory: a gesture it allows can still be refused by
+ * `authorize.write`.
+ *
+ * @internal
+ */
+export function canUpdateShape(editor: Editor, shape: TLShape) {
+	return (
+		!editor.getIsReadonly() &&
+		!editor.isShapeOrAncestorLocked(shape) &&
+		editor.can('tl:shape:edit', { shape })
+	)
+}
+
+/**
+ * Whether the user may delete a shape: not readonly, not locked, and
+ * `editor.can('tl:shape:delete', { shape })`.
+ *
+ * @internal
+ */
+export function canDeleteShape(editor: Editor, shape: TLShape) {
+	return (
+		!editor.getIsReadonly() &&
+		!editor.isShapeOrAncestorLocked(shape) &&
+		editor.can('tl:shape:delete', { shape })
+	)
+}
+
+/**
+ * Whether a drag has anything to move. Shapes the user can't update can still be selected, so a
+ * drag on them must not start.
+ *
+ * @internal
+ */
+export function hasUpdatableSelection(editor: Editor) {
+	return editor.getSelectedShapes().some((shape) => canUpdateShape(editor, shape))
+}
+
+/**
  * Whether a page point is inside the selection's rotated bounding box. The box returned by
  * `getSelectionRotatedPageBounds` is expressed in the rotated frame, so a plain `containsPoint`
  * on it is only meaningful when the selection rotation is zero.

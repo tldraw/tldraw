@@ -4,7 +4,7 @@ import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
-import { useReadonly } from '../../hooks/useReadonly'
+import { useCanStyleShapes, useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
 import { TldrawUiOrientationProvider } from '../primitives/layout'
@@ -47,6 +47,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
+	const canStyleShapes = useCanStyleShapes()
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
 
 	const ref = useRef<HTMLDivElement>(null)
@@ -98,7 +99,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							{children ?? <DefaultToolbarContent />}
 						</OverflowingToolbar>
 					</div>
-					{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
+					{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && canStyleShapes && (
 						<div className="tlui-main-toolbar__tools tlui-main-toolbar__mobile-style-panel">
 							<MobileStylePanel />
 						</div>

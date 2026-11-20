@@ -165,8 +165,10 @@ export class Translating extends StateNode {
 		if (this.isCreating) return
 		const shapeIds = Array.from(this.editor.getSelectedShapeIds())
 
-		// If we can't create the shapes, don't even start cloning
+		// If we can't create the shapes, don't even start cloning; the clones are then dragged, which
+		// updates them
 		if (!this.editor.canCreateShapes(shapeIds)) return
+		if (!this.editor.can('tl:shape:create') || !this.editor.can('tl:shape:edit')) return
 
 		this.isCloning = true
 		this.reset()

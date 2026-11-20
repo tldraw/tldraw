@@ -12,7 +12,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
-import { onMovePage } from './edit-pages-shared'
+import { canDeletePage, canDuplicatePage, canUpdatePage, onMovePage } from './edit-pages-shared'
 
 const messages = defineMessages({
 	pageMenuSubmenuDelete: { id: 'page-menu.submenu.delete', defaultMessage: 'Delete' },
@@ -64,6 +64,11 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 		trackEvent('delete-page', { source: 'page-menu' })
 	}, [editor, item, trackEvent])
 
+	const page = editor.getPage(item.id as TLPageId)
+	const canUpdate = !!page && canUpdatePage(editor, page)
+	const canDuplicate = !!page && canDuplicatePage(editor, page)
+	const canDelete = !!page && canDeletePage(editor, page)
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
 			<TldrawUiDropdownMenuTrigger>
@@ -84,19 +89,21 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="rename"
 								label={messages.pageMenuSubmenuRename.id}
 								onSelect={onRename}
+								disabled={!canUpdate}
 							/>
 						)}
 						<TldrawUiMenuItem
 							id="duplicate"
 							label={messages.pageMenuSubmenuDuplicatePage.id}
 							onSelect={onDuplicate}
-							disabled={listSize >= editor.options.maxPages}
+							disabled={!canDuplicate || listSize >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem
 								id="move-up"
 								onSelect={onMoveUp}
 								label={messages.pageMenuSubmenuMoveUp.id}
+								disabled={!canUpdate}
 							/>
 						)}
 						{index < listSize - 1 && (
@@ -104,6 +111,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="move-down"
 								label={messages.pageMenuSubmenuMoveDown.id}
 								onSelect={onMoveDown}
+								disabled={!canUpdate}
 							/>
 						)}
 					</TldrawUiMenuGroup>
@@ -113,6 +121,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="delete"
 								onSelect={onDelete}
 								label={messages.pageMenuSubmenuDelete.id}
+								disabled={!canDelete}
 							/>
 						</TldrawUiMenuGroup>
 					)}
