@@ -5,8 +5,10 @@ import { LibraryMenu as DefaultLibraryMenu } from '../ui/library-menu'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
 import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-section-header'
+import { useLongPress } from './long-press'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
+import { useIsPhone } from './use-is-phone'
 import { useItemOrdering } from './use-item-ordering'
 import { useLibraryActions } from './use-library-actions'
 import { useLibraryCollapsed } from './use-library-collapsed'
@@ -59,9 +61,23 @@ export function LibrarySection({
 	}, [editor, isActive, libraryId])
 
 	const { ordering, reversed, sort } = useItemOrdering(source, libraryId)
+	const menuId = `libraries-library-menu-${libraryId}`
+	const headerPress = useLongPress(useIsPhone() && !isRenaming && !!LibraryMenu)(() =>
+		editor.menus.addOpenMenu(menuId)
+	)
 
 	return (
-		<section ref={setRef} className="tlui-libraries-section">
+		<section
+			ref={setRef}
+			className="tlui-libraries-section"
+			{...headerPress}
+			onPointerDown={(e) => {
+				const header = e.currentTarget.firstElementChild
+				if (headerPress.onPointerDown && header && header.contains(e.target as Node)) {
+					headerPress.onPointerDown(e)
+				}
+			}}
+		>
 			{LibrarySectionHeader && (
 				<LibrarySectionHeader
 					source={source}
@@ -75,7 +91,7 @@ export function LibrarySection({
 							<LibraryMenu
 								source={source}
 								library={library}
-								id={`libraries-library-menu-${libraryId}`}
+								id={menuId}
 								sort={sort}
 								{...menuActions}
 							/>

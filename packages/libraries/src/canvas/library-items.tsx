@@ -19,7 +19,9 @@ import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
 import { ItemDetailsDialog } from './item-details-dialog'
 import type { TLLibraryItemOrdering } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
+import { useLongPress, withHandlers } from './long-press'
 import type { PrepareItemContent } from './save-shapes'
+import { useIsPhone } from './use-is-phone'
 import { useLibraryCan } from './use-library-can'
 import { useLibraryItemActions } from './use-library-item-actions'
 import { useLibraryItems } from './use-library-items'
@@ -82,15 +84,16 @@ export function LibraryItems({
 	)
 	// Every item has Details, so it has a menu whatever the source allows.
 	const hasItemMenu = ItemMenu !== null
+	const getPressProps = useLongPress(useIsPhone())
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const props = getItemProps(itemId)
 			if (!hasItemMenu) return props
+			const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
 			return {
-				...props,
+				...withHandlers(props, getPressProps(openMenu)),
 				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
 					e.preventDefault()
-					const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
 					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
 					// releasing the button selects whichever item it lands on.
 					if (e.buttons === 0) openMenu()
@@ -98,7 +101,7 @@ export function LibraryItems({
 				},
 			}
 		},
-		[getItemProps, hasItemMenu, editor]
+		[getItemProps, hasItemMenu, editor, getPressProps]
 	)
 	const { saveSelection } = useSaveSelectionToLibrary(source, prepareItemContent)
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [

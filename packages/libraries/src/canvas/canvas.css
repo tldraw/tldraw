@@ -7,7 +7,6 @@
 	--tlui-libraries-tile-width: 86.67px;
 	--tlui-libraries-panel-top: var(--tlui-libraries-panel-inset-top, 48px);
 	--tlui-libraries-panel-side: var(--tlui-libraries-panel-inset-side, 8px);
-	--tlui-libraries-panel-bottom: var(--tlui-libraries-panel-side);
 	position: absolute;
 	top: var(--tlui-libraries-panel-top);
 	left: var(--tlui-libraries-panel-side);
@@ -15,7 +14,7 @@
 	width: calc(3 * var(--tlui-libraries-tile-width) + 20px);
 	max-height: var(
 		--tlui-libraries-panel-max-height,
-		min(calc(100% - var(--tlui-libraries-panel-top) - var(--tlui-libraries-panel-bottom)), 720px)
+		min(calc(100% - var(--tlui-libraries-panel-top) - var(--tlui-libraries-panel-side)), 720px)
 	);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
@@ -43,10 +42,76 @@
 	right: var(--tlui-libraries-panel-side);
 }
 
-/* On phones the toolbar spans the bottom of the canvas, with the quick actions in a row above it. The
-   panel stops above both, as the style panel's popover does. */
-.tl-container:has(.tlui-layout__mobile) .tlui-libraries-panel {
-	--tlui-libraries-panel-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+/* On phones the panel is a modal sheet along the bottom, its top and height set as it moves. It sits
+   over the toolbar and under menus, so the menus opened from it show above it. */
+.tlui-libraries-sheet__overlay {
+	position: absolute;
+	inset: 0;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	background-color: var(--tl-color-overlay);
+	animation: tl-fade-in 0.12s ease-out;
+}
+
+.tlui-libraries-panel.tlui-libraries-sheet {
+	left: 0;
+	right: 0;
+	width: auto;
+	max-height: none;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	border-radius: var(--tl-radius-4) var(--tl-radius-4) 0 0;
+	outline: none;
+	-webkit-touch-callout: none;
+}
+
+.tlui-libraries-sheet__title {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.tlui-libraries-sheet__handle {
+	all: unset;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 20px;
+	touch-action: none;
+	cursor: grab;
+}
+
+.tlui-libraries-sheet__handle::before {
+	content: '';
+	width: 36px;
+	height: 4px;
+	border-radius: 2px;
+	background-color: var(--tl-color-text-3);
+	opacity: 0.5;
+}
+
+.tlui-libraries-sheet__handle:focus-visible::before {
+	opacity: 1;
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+.tlui-libraries-sheet .tlui-libraries-sections {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.tlui-libraries-sheet .tlui-libraries-tile__button {
+	user-select: none;
+}
+
+/* A long press opens the item's menu instead. The button stays for the keyboard. */
+.tlui-libraries-sheet .tlui-libraries-tile__menu:not(:has(:focus-visible)) {
+	opacity: 0;
+	pointer-events: none;
 }
 
 /* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */

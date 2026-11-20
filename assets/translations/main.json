@@ -425,6 +425,7 @@
 	"libraries.search.no-results": "No items found",
 	"libraries.search.placeholder": "Search libraries",
 	"libraries.select-to-add": "Select shapes to add them",
+	"libraries.sheet.resize": "Resize libraries",
 	"libraries.tabs.other": "Other",
 	"libraries.this-file.add": "Add",
 	"libraries.this-file.empty": "No libraries added yet.",

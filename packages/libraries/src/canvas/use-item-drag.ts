@@ -29,6 +29,7 @@ import {
 	placeItemWith,
 } from './place-item'
 import { getLibraryErrorReason } from './ui-events'
+import { useIsPhone } from './use-is-phone'
 
 const messages = defineMessages({
 	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
@@ -77,7 +78,9 @@ type DragState =
  * does. The item's shapes are then placed under the pointer, selected, and follow it until release.
  * A failed click shows a toast. On touch, the browser cancels a drag in any direction a tile's
  * `touch-action` lets it pan, so give tiles one that leaves the drag-out direction to them: the
- * panel's tiles have `pan-y`, scrolling its list vertically and dragging out sideways.
+ * panel's tiles have `pan-y`, scrolling its list vertically and dragging out sideways. On a phone,
+ * below the breakpoint where tldraw's toolbar takes its mobile layout, nothing is dragged out: a
+ * press only places the item when it ends as a click.
  *
  * @example
  * ```tsx
@@ -93,10 +96,11 @@ export function useLibraryItemDrag(
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const onPlace = usePlaceLibraryItem(source, options.placeItem)
+	const isPhone = useIsPhone()
 	// Read through a ref so that new options each render don't drop a drag in progress.
-	const latest = useRef({ options, trackEvent })
+	const latest = useRef({ options, trackEvent, isPhone })
 	useLayoutEffect(() => {
-		latest.current = { options, trackEvent }
+		latest.current = { options, trackEvent, isPhone }
 	})
 
 	return useMemo(() => {
@@ -248,6 +252,7 @@ export function useLibraryItemDrag(
 			onPointerMove(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
 				if (state.name !== 'pointing' || state.itemId !== itemId) return
+				if (latest.current.isPhone) return
 				if (isPastDragDistance(e, state.screenSpaceStart)) {
 					state.region.classList.add('tlui-libraries-dragging')
 				}

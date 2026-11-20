@@ -429,6 +429,7 @@ export type TLUiTranslationKey =
 	| 'libraries.search.no-results'
 	| 'libraries.search.placeholder'
 	| 'libraries.select-to-add'
+	| 'libraries.sheet.resize'
 	| 'libraries.tabs.other'
 	| 'libraries.this-file.add'
 	| 'libraries.this-file.empty'

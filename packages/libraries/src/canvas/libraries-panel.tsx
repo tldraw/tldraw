@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -20,17 +20,19 @@ import {
 } from './libraries-components'
 import { LibrariesPanelHeader as DefaultLibrariesPanelHeader } from './libraries-panel-header'
 import { LibrariesSearch } from './libraries-search'
+import { LibrariesSheet } from './libraries-sheet'
 import { LibrarySection } from './library-section'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getNewLibraryOwners } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
 import { normalizeQuery } from './panel-search'
 import { getEmptyThisFileOffers, getPanelSections } from './panel-sections'
-import type { LibraryItemPlacer } from './place-item'
+import { defaultPlaceLibraryItem, type LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { SearchResults } from './search-results'
 import { librariesPanelOpen, librariesSearchQuery } from './state'
 import { useCreateLibrary } from './use-create-library'
+import { useIsPhone } from './use-is-phone'
 import { useLibraryItemDrag, usePlaceLibraryItem } from './use-item-drag'
 import { useLibraries } from './use-libraries'
 
@@ -80,6 +82,11 @@ export interface LibrariesPanelProps {
  * `uiDragDistanceSquared` option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a
  * tool out of the toolbar does. Set them with `<Tldraw options={{ … }}>`.
  *
+ * On a phone, below the breakpoint where tldraw's toolbar takes its mobile layout, the panel is a
+ * modal sheet along the bottom of the screen instead, at half its height or reaching up to the top
+ * bar. There, a tap on an item places it and closes the sheet, a long press opens an item's or a
+ * library's menu, and items aren't dragged out.
+ *
  * Its size and position follow CSS variables set on the panel or any element around it:
  *
  * - `--tlui-libraries-panel-inset-top`: the gap above the panel. Defaults to `48px`, below the
@@ -87,8 +94,7 @@ export interface LibrariesPanelProps {
  * - `--tlui-libraries-panel-inset-side`: the gap between the panel and its side of the canvas.
  *   Defaults to `8px`.
  * - `--tlui-libraries-panel-max-height`: the tallest the panel grows before it scrolls. Defaults to
- *   the canvas's height less the two insets, at most `720px`. On phones it also stops above the
- *   toolbar along the bottom.
+ *   the canvas's height less the two insets, at most `720px`.
  * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
  *
  * `--tlui-libraries-tile-width` is the width of a tile, `86.67px` by default, and the panel is three
@@ -132,8 +138,18 @@ function LibrariesPanelContent({
 		() => getEmptyThisFileOffers(sections, getBrowseGroups ? getBrowseGroups() : []),
 		[sections, getBrowseGroups]
 	)
-	const getItemProps = useLibraryItemDrag(source, { placeItem })
-	const placeItemOnClick = usePlaceLibraryItem(source, placeItem)
+	const isPhone = useIsPhone()
+	const placeAndClose = useMemo<LibraryItemPlacer | undefined>(() => {
+		if (!isPhone) return placeItem
+		const place = placeItem ?? defaultPlaceLibraryItem
+		return (editor, placement) => {
+			const ids = place(editor, placement)
+			librariesPanelOpen.set(editor, false)
+			return ids
+		}
+	}, [isPhone, placeItem])
+	const getItemProps = useLibraryItemDrag(source, { placeItem: placeAndClose })
+	const placeItemOnClick = usePlaceLibraryItem(source, placeAndClose)
 	const createLibrary = useCreateLibrary(source)
 	const newLibraryOwners = useValue(
 		'new library owners',
@@ -203,6 +219,25 @@ function LibrariesPanelContent({
 		)
 	}
 
+	const contents = (
+		<>
+			{LibrariesPanelHeader && (
+				<LibrariesPanelHeader
+					menuItems={menuItems}
+					create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
+				/>
+			)}
+			{libraries.length > 0 && <LibrariesSearch placeholder={msg(messages.search)} />}
+			<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
+				{libraries.length === 0 && NoLibraries && <NoLibraries />}
+				{renderLists()}
+			</div>
+			{!searching && canBrowse && <AddMoreButton onBrowse={browse} />}
+		</>
+	)
+
+	if (isPhone) return <LibrariesSheet label={msg(messages.title)}>{contents}</LibrariesSheet>
+
 	return (
 		<EditorPortal>
 			<section
@@ -211,18 +246,7 @@ function LibrariesPanelContent({
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				{LibrariesPanelHeader && (
-					<LibrariesPanelHeader
-						menuItems={menuItems}
-						create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
-					/>
-				)}
-				{libraries.length > 0 && <LibrariesSearch placeholder={msg(messages.search)} />}
-				<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
-					{libraries.length === 0 && NoLibraries && <NoLibraries />}
-					{renderLists()}
-				</div>
-				{!searching && canBrowse && <AddMoreButton onBrowse={browse} />}
+				{contents}
 			</section>
 		</EditorPortal>
 	)

@@ -1,7 +1,15 @@
 import { librarySchemaRecords } from '@tldraw/tlschema'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { createTLSchema, createTLStore, Editor, LibraryRecordType, Tldraw, useEditor } from 'tldraw'
+import {
+	Box,
+	createTLSchema,
+	createTLStore,
+	Editor,
+	LibraryRecordType,
+	Tldraw,
+	useEditor,
+} from 'tldraw'
 import { afterEach, beforeAll, expect, it, vi } from 'vitest'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibraryBrowseGroup } from './browse-libraries-dialog'
@@ -70,6 +78,8 @@ async function renderPanel(
 		)
 	})
 	await vi.waitFor(() => expect(mounted).toBeDefined())
+	// jsdom lays nothing out, so the editor would measure a 1px viewport and show the phone sheet.
+	act(() => mounted!.updateViewportScreenBounds(new Box(0, 0, 1280, 800)))
 	act(() => librariesPanelOpen.set(mounted!, true))
 	await vi.waitFor(() => expect(container!.querySelector('.tlui-libraries-panel')).not.toBeNull())
 	return container
