@@ -75,7 +75,9 @@ type DragState =
  * {@link LibraryItemDragOptions.getDragRegion}) and moved past the editor's `uiDragDistanceSquared`
  * option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a tool out of the toolbar
  * does. The item's shapes are then placed under the pointer, selected, and follow it until release.
- * A failed click shows a toast.
+ * A failed click shows a toast. On touch, the browser cancels a drag in any direction a tile's
+ * `touch-action` lets it pan, so give tiles one that leaves the drag-out direction to them: the
+ * panel's tiles have `pan-y`, scrolling its list vertically and dragging out sideways.
  *
  * @example
  * ```tsx

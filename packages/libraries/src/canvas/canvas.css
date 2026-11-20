@@ -7,6 +7,7 @@
 	--tlui-libraries-tile-width: 86.67px;
 	--tlui-libraries-panel-top: var(--tlui-libraries-panel-inset-top, 48px);
 	--tlui-libraries-panel-side: var(--tlui-libraries-panel-inset-side, 8px);
+	--tlui-libraries-panel-bottom: var(--tlui-libraries-panel-side);
 	position: absolute;
 	top: var(--tlui-libraries-panel-top);
 	left: var(--tlui-libraries-panel-side);
@@ -14,7 +15,7 @@
 	width: calc(3 * var(--tlui-libraries-tile-width) + 20px);
 	max-height: var(
 		--tlui-libraries-panel-max-height,
-		min(calc(100% - var(--tlui-libraries-panel-top) - var(--tlui-libraries-panel-side)), 720px)
+		min(calc(100% - var(--tlui-libraries-panel-top) - var(--tlui-libraries-panel-bottom)), 720px)
 	);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
@@ -40,6 +41,12 @@
 .tlui-libraries-panel[data-side='right'] {
 	left: auto;
 	right: var(--tlui-libraries-panel-side);
+}
+
+/* On phones the toolbar spans the bottom of the canvas, with the quick actions in a row above it. The
+   panel stops above both, as the style panel's popover does. */
+.tl-container:has(.tlui-layout__mobile) .tlui-libraries-panel {
+	--tlui-libraries-panel-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */
@@ -212,6 +219,9 @@
 	width: 100%;
 	padding: 4px;
 	cursor: pointer;
+	/* A vertical swipe scrolls the list; any other touch drag is left to the tile, to pull the item
+	   out. With the browser free to pan either way, it cancels the drag as it starts. */
+	touch-action: pan-y;
 }
 
 .tlui-libraries-dragging,
@@ -262,6 +272,19 @@
 
 .tlui-libraries-tile__menu-button::after {
 	content: none;
+}
+
+@media (pointer: coarse) {
+	.tlui-libraries-tile__menu {
+		top: 0;
+		right: 0;
+	}
+
+	.tlui-libraries-tile__menu-button {
+		height: 40px;
+		width: 40px;
+		min-width: 40px;
+	}
 }
 
 .tlui-libraries-tile__thumbnail {
@@ -339,6 +362,7 @@
 .tlui-libraries-menu,
 .tlui-libraries-menu__submenu {
 	min-width: 100px;
+	max-height: var(--radix-dropdown-menu-content-available-height);
 	padding: 4px;
 }
 
@@ -771,6 +795,10 @@
 	margin: 0;
 	padding: 0;
 	list-style: none;
+}
+
+.tl-container:has(.tlui-layout__mobile) .tlui-libraries-browse .tlui-libraries-browse__items {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .tlui-libraries-browse__item {

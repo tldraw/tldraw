@@ -87,7 +87,8 @@ export interface LibrariesPanelProps {
  * - `--tlui-libraries-panel-inset-side`: the gap between the panel and its side of the canvas.
  *   Defaults to `8px`.
  * - `--tlui-libraries-panel-max-height`: the tallest the panel grows before it scrolls. Defaults to
- *   the canvas's height less the two insets, at most `720px`.
+ *   the canvas's height less the two insets, at most `720px`. On phones it also stops above the
+ *   toolbar along the bottom.
  * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
  *
  * `--tlui-libraries-tile-width` is the width of a tile, `86.67px` by default, and the panel is three
