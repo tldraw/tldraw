@@ -1,6 +1,6 @@
 import { Editor } from 'tldraw'
 import { LibrariesExample, type Showing } from '../libraries-example'
-import { customTabsAndStates } from './custom-tabs-and-states'
+import { customPieces } from './custom-pieces'
 import { extraActions } from './extra-actions'
 import { listLayout } from './list-layout'
 import { readOnlyGallery } from './read-only-gallery'
@@ -15,7 +15,7 @@ const SHOWINGS = {
 	'Rich tiles': richTiles,
 	'List layout': listLayout,
 	'Extra actions': extraActions,
-	'Custom tabs and states': customTabsAndStates,
+	'Custom pieces': customPieces,
 } satisfies Record<string, Showing>
 
 type PageName = keyof typeof SHOWINGS
