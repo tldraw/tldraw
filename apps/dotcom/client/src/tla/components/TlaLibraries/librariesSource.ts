@@ -189,6 +189,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	// Libraries created or copied here that the server hasn't confirmed yet, by row id. The worker
 	// can't add items to them or copy them until it has.
 	private readonly unconfirmedLibraries = new Map<string, Promise<boolean>>()
+	// Starter packs' copies made here whose items haven't been added yet. The first items added to
+	// one are the pack's, sent so the worker keeps the copy's packId; any later ones change it.
+	private readonly unfilledPackCopies = new Set<string>()
 	// Libraries deleted here that the server hasn't confirmed deleting yet, by row id. If it rejects
 	// the delete, the row returns, and so may the rows of items being stored in it.
 	private readonly unconfirmedDeletes = atom<ReadonlySet<string>>(
@@ -354,6 +357,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const id = uniqueId()
 		const meta = options.meta ?? {}
+		if (meta.packId !== undefined) this.unfilledPackCopies.add(id)
 		const { confirmed } = await this.apply(
 			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }),
 			'create-library',
@@ -485,7 +489,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		)
 		this.pendingItems.update((all) => [...all, ...adding.map((a) => a.pending)])
 		const items = adding.map((a) => a.pending.item)
-		const stored = this.storeNewItems(libraryId, adding)
+		const fillsPackCopy = this.unfilledPackCopies.delete(rowId(libraryId))
+		const stored = this.storeNewItems(libraryId, adding, fillsPackCopy)
 		trackItemsStoring(
 			items.map((item) => item.id),
 			stored
@@ -662,12 +667,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	// Unlists the items of a request that fails, and those after it.
-	private async storeNewItems(libraryId: TLLibraryId, adding: NewItem[]) {
+	private async storeNewItems(libraryId: TLLibraryId, adding: NewItem[], fillsPackCopy: boolean) {
 		let storedCount = 0
 		try {
 			await this.whenConfirmed(libraryId)
 			for (const request of splitIntoRequests(adding)) {
-				const stored = await this.storeItems(libraryId, request)
+				const stored = await this.storeItems(libraryId, request, fillsPackCopy)
 				this.listStoredItems(libraryId, request, stored)
 				storedCount += request.length
 			}
@@ -677,8 +682,13 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		}
 	}
 
-	private async storeItems(libraryId: TLLibraryId, adding: NewItem[]): Promise<StoredItem[]> {
+	private async storeItems(
+		libraryId: TLLibraryId,
+		adding: NewItem[],
+		fillsPackCopy: boolean
+	): Promise<StoredItem[]> {
 		const form = new FormData()
+		if (fillsPackCopy) form.set('fillsPackCopy', 'true')
 		form.set(
 			'items',
 			JSON.stringify(

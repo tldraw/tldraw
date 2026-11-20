@@ -178,31 +178,31 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 	}
 
 	/**
-	 * Whether removing the library from the file asks to delete it too: it looks empty, so nothing
-	 * is lost, and the user may delete it. Never the user's default, which can't be deleted. Only
-	 * once the libraries have synced, since until then a library's items may not have arrived. The
-	 * server checks again, and keeps the library if an item has been added since.
+	 * Whether removing the library from the file asks to delete it too, as deleting it loses
+	 * nothing: it looks empty, or it's a starter pack's copy nobody has changed that no other file
+	 * shows. Only when the user may delete it, so never their default, and only once the libraries
+	 * have synced, since until then a library's items may not have arrived. The server checks
+	 * again, and keeps the library if it has changed since.
 	 */
 	deletesOnRemove(libraryId: TLLibraryId) {
-		return (
-			this.app.areLibrariesLoaded() &&
-			this.getItems(libraryId).length === 0 &&
-			this.can('deleteLibrary', libraryId)
-		)
+		if (!this.app.areLibrariesLoaded() || !this.can('deleteLibrary', libraryId)) return false
+		if (this.getItems(libraryId).length === 0) return true
+		const row = this.watch.rows.get().find((r) => r.id === rowId(libraryId))
+		return !!row && row.meta.packId !== undefined && row.fileCount <= 1
 	}
 
 	async removeLibraryFromDocument(libraryId: TLLibraryId) {
 		if (!this.can('removeLibraryFromDocument', libraryId)) {
 			throw new LibraryPermissionError('removeLibraryFromDocument', libraryId)
 		}
-		const deleteIfEmpty = this.deletesOnRemove(libraryId)
+		const deleteIfDisposable = this.deletesOnRemove(libraryId)
 		await this.libraries.apply(
 			this.app.z.mutate.file_library.remove({
 				fileId: this.fileId,
 				libraryId: rowId(libraryId),
-				deleteIfEmpty,
+				deleteIfDisposable,
 			}),
-			deleteIfEmpty ? 'delete-library' : 'remove-library-from-file'
+			deleteIfDisposable ? 'delete-library' : 'remove-library-from-file'
 		)
 	}
 

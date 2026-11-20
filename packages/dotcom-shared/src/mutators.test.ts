@@ -2050,6 +2050,44 @@ describe('libraries', () => {
 			expect(store.library_item).toEqual([])
 		})
 
+		describe('on a pack copy', () => {
+			const packCopy = (id: string) =>
+				makeLibrary({ id, owningGroupId: W, meta: { packId: 'math', packVersion: 2 } })
+			const changes: [string, (m: ReturnType<typeof setup>) => Promise<void>][] = [
+				[
+					'renaming an item',
+					(m) => m.mutators.library_item.update(m.tx, { id: itemId, name: 'x' }),
+				],
+				[
+					"changing an item's meta",
+					(m) => m.mutators.library_item.update(m.tx, { id: itemId, meta: { starred: true } }),
+				],
+				['deleting an item', (m) => m.mutators.library_item.delete(m.tx, { id: itemId })],
+				[
+					'renaming the library',
+					(m) => m.mutators.library.rename(m.tx, { id: libraryId, name: 'x' }),
+				],
+			]
+
+			it.each(changes)('%s makes it an ordinary library', async (_, change) => {
+				const m = setup({
+					library: [packCopy(libraryId)],
+					library_item: [makeItem(itemId, libraryId)],
+				})
+				await change(m)
+				expect(m.store.library[0].meta).toEqual({ packVersion: 2 })
+			})
+
+			it('moving an item between two copies makes both ordinary libraries', async () => {
+				const m = setup({
+					library: [packCopy(libraryId), packCopy(otherLibrary)],
+					library_item: [makeItem(itemId, libraryId)],
+				})
+				await m.mutators.library_item.move(m.tx, { id: itemId, libraryId: otherLibrary })
+				expect(m.store.library.map((l) => l.meta)).toEqual([{ packVersion: 2 }, { packVersion: 2 }])
+			})
+		})
+
 		it('updates an item’s name, its meta, or both, merging meta key by key', async () => {
 			const { store, tx, mutators } = setup({
 				library: [makeLibrary({ id: libraryId, owningGroupId: W })],
@@ -2247,12 +2285,14 @@ describe('libraries', () => {
 			expect(store.file_library.map((r) => r.fileId)).toEqual([fileShared])
 		})
 
-		describe('removing with deleteIfEmpty', () => {
+		describe('removing with deleteIfDisposable', () => {
 			const remove = (
 				mutators: ReturnType<typeof createMutators>,
 				tx: Transaction<TlaSchema>,
 				id: string
-			) => mutators.file_library.remove(tx, { fileId: fileW, libraryId: id, deleteIfEmpty: true })
+			) =>
+				mutators.file_library.remove(tx, { fileId: fileW, libraryId: id, deleteIfDisposable: true })
+			const packCopy = makeLibrary({ id: libraryId, owningGroupId: W, meta: { packId: 'math' } })
 
 			it('deletes the library when it has no items', async () => {
 				const { store, tx, mutations, mutators } = setupFiles({
@@ -2287,6 +2327,57 @@ describe('libraries', () => {
 				await remove(mutators, tx, libraryId)
 				expect(store.file_library).toEqual([])
 				expect(store.library).toHaveLength(1)
+			})
+
+			it('deletes an unchanged pack copy when no other file shows it', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [packCopy],
+					file_library: [{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 }],
+					library_item: [makeItem('item_1111222233334444', libraryId)],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library).toEqual([])
+				expect(store.library).toEqual([])
+			})
+
+			it('only removes an unchanged pack copy from the file when another file shows it', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [packCopy],
+					file_library: [
+						{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 },
+						{ fileId: fileShared, libraryId, addedBy: other, addedAt: 1 },
+					],
+					library_item: [makeItem('item_1111222233334444', libraryId)],
+				})
+				await remove(mutators, tx, libraryId)
+				expect(store.file_library.map((r) => r.fileId)).toEqual([fileShared])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId])
+			})
+
+			it('only removes a changed pack copy, or my default, from the file', async () => {
+				const { store, tx, mutators } = setupFiles({
+					library: [
+						makeLibrary({ id: libraryId, owningGroupId: W, meta: { packVersion: 1 } }),
+						makeLibrary({
+							id: libraryX,
+							owningGroupId: me,
+							isDefault: true,
+							meta: { packId: 'math' },
+						}),
+					],
+					file_library: [
+						{ fileId: fileW, libraryId, addedBy: me, addedAt: 1 },
+						{ fileId: fileW, libraryId: libraryX, addedBy: me, addedAt: 1 },
+					],
+					library_item: [
+						makeItem('item_1111222233334444', libraryId),
+						makeItem('item_5555666677778888', libraryX),
+					],
+				})
+				await remove(mutators, tx, libraryId)
+				await remove(mutators, tx, libraryX)
+				expect(store.file_library).toEqual([])
+				expect(store.library.map((l) => l.id)).toEqual([libraryId, libraryX])
 			})
 
 			it("only removes a library from a workspace I'm not in from the file", async () => {

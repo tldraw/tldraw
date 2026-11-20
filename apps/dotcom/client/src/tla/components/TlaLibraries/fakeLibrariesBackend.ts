@@ -108,6 +108,15 @@ export function createFakeLibrariesBackend({
 	}
 	const updateRow = (id: string, change: (row: Row) => Row) =>
 		rows.update((all) => all.map((row) => (row.id === id ? change(row) : row)))
+	// A starter pack's copy becomes an ordinary library once it changes, as the mutators make it.
+	const withoutPackId = (row: Row): Row => {
+		if (row.meta.packId === undefined) return row
+		const { packId: _packId, ...meta } = row.meta
+		return { ...row, meta }
+	}
+	const clearPackId = (id: string) => updateRow(id, withoutPackId)
+	const libraryOfItem = (id: string) =>
+		rows.get().find((row) => row.items.some((i) => i.id === id))?.id
 	const updateItem = (id: string, change: (item: TlaLibraryItem) => TlaLibraryItem) =>
 		rows.update((all) =>
 			all.map((row) => ({ ...row, items: row.items.map((i) => (i.id === id ? change(i) : i)) }))
@@ -134,7 +143,11 @@ export function createFakeLibrariesBackend({
 					])
 				)
 			},
-			rename: ({ id, name }: any) => change(() => updateRow(id, (row) => ({ ...row, name }))),
+			rename: ({ id, name }: any) =>
+				change(() => {
+					updateRow(id, (row) => ({ ...row, name }))
+					clearPackId(id)
+				}),
 			delete: ({ id }: any) =>
 				change(() => {
 					rows.update((all) => all.filter((row) => row.id !== id))
@@ -181,15 +194,18 @@ export function createFakeLibrariesBackend({
 					])
 				)
 			},
-			remove: ({ fileId, libraryId, deleteIfEmpty }: any) => {
+			remove: ({ fileId, libraryId, deleteIfDisposable }: any) => {
 				if (readOnlyFiles.has(fileId)) return rejected()
 				const row = rows.get().find((r) => r.id === libraryId)
+				const inOtherFiles = fileLibraries
+					.get()
+					.some((fl) => fl.libraryId === libraryId && fl.fileId !== fileId)
 				const deletes =
-					deleteIfEmpty &&
+					deleteIfDisposable &&
 					row &&
 					!row.isDefault &&
 					isMember(row.owningGroupId) &&
-					row.items.length === 0
+					(row.items.length === 0 || (row.meta.packId !== undefined && !inOtherFiles))
 				return change(() => {
 					fileLibraries.update((all) =>
 						all.filter((fl) => !(fl.fileId === fileId && fl.libraryId === libraryId))
@@ -200,25 +216,29 @@ export function createFakeLibrariesBackend({
 		},
 		library_item: {
 			update: ({ id, name, meta }: any) =>
-				change(() =>
+				change(() => {
+					const libraryId = libraryOfItem(id)
 					updateItem(id, (item) => ({
 						...item,
 						...(name === undefined ? {} : { name }),
 						...(meta === undefined ? {} : { meta: { ...item.meta, ...meta } }),
 					}))
-				),
+					if (libraryId) clearPackId(libraryId)
+				}),
 			delete: ({ id }: any) =>
-				change(() =>
+				change(() => {
+					const libraryId = libraryOfItem(id)
 					rows.update((all) =>
 						all.map((row) => ({ ...row, items: row.items.filter((i) => i.id !== id) }))
 					)
-				),
+					if (libraryId) clearPackId(libraryId)
+				}),
 			move: ({ id, libraryId }: any) => {
 				const item = rows
 					.get()
 					.flatMap((row) => row.items)
 					.find((i) => i.id === id)!
-				return change(() =>
+				return change(() => {
 					rows.update((all) =>
 						all.map((row) => ({
 							...row,
@@ -228,7 +248,9 @@ export function createFakeLibrariesBackend({
 									: row.items.filter((i) => i.id !== id),
 						}))
 					)
-				)
+					clearPackId(item.libraryId)
+					clearPackId(libraryId)
+				})
 			},
 		},
 	}
@@ -275,7 +297,15 @@ export function createFakeLibrariesBackend({
 				),
 				createdAt: now + index,
 			}))
-			insertRows(() => updateRow(libraryId, (row) => ({ ...row, items: [...row.items, ...items] })))
+			const keepsPackId =
+				form.get('fillsPackCopy') === 'true' &&
+				rows.get().find((row) => row.id === libraryId)?.createdBy === userId
+			insertRows(() =>
+				updateRow(libraryId, (row) => {
+					const filled = { ...row, items: [...row.items, ...items] }
+					return keepsPackId ? filled : withoutPackId(filled)
+				})
+			)
 			for (const item of items) contents.set(item.id, form.get(`content:${item.id}`) as string)
 			return Response.json({
 				items: items.map(({ id, createdAt, thumbnail }) => ({ id, createdAt, thumbnail })),

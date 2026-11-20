@@ -2,7 +2,9 @@ import {
 	addPackToDocument,
 	copyLibrary,
 	whenItemsStored,
+	type LibraryPack,
 	type TLLibraryItem,
+	type TLLibraryItemContent,
 } from '@tldraw/libraries'
 import {
 	AssetRecordType,
@@ -182,32 +184,70 @@ describe('getEditorLibraries', () => {
 		expect(boardOrder).toHaveLength(names.length)
 	})
 
-	it("copies a starter pack to the file's workspace, not the board, and adds that copy again", async () => {
-		const { editor, source } = setUp()
-		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
-		const summary = { id: 'doodles', name: 'Doodles', version: 2, itemCount: 0, previews: [] }
-		const entry = () => getStarterPackBrowseGroup(source, [summary], 'Public', () => {}).entries[0]
-		expect(entry().added).toBe(false)
+	describe('a starter pack', () => {
+		function setUpPack() {
+			const setup = setUp()
+			const { editor, source } = setup
+			const shapeId = createShapeId()
+			editor.createShape({ id: shapeId, type: 'geo' })
+			const content: TLLibraryItemContent = {
+				formatVersion: 1,
+				content: editor.getContentFromCurrentPage([shapeId])!,
+			}
+			editor.deleteShape(shapeId)
+			const pack: LibraryPack = {
+				id: 'doodles',
+				name: 'Doodles',
+				version: 2,
+				items: [{ id: 'a', content }],
+			}
+			const summary = { id: 'doodles', name: 'Doodles', version: 2, itemCount: 1, previews: [] }
+			const entry = () =>
+				getStarterPackBrowseGroup(source, [summary], 'Public', () => {}).entries[0]
+			const add = () =>
+				addPackToDocument(source, 'doodles', async () => pack, {
+					ownerId: getStarterPackOwnerId(source),
+				})
+			return { ...setup, content, entry, add }
+		}
 
-		const ownerId = getStarterPackOwnerId(source)
-		expect(ownerId).toBe('acme')
-		const id = await addPackToDocument(source, 'doodles', async () => pack, { ownerId })
-		const copy = source.getLibraries().find((library) => library.id === id)
-		expect(copy).toMatchObject({ ownerId: 'acme', meta: { packId: 'doodles', packVersion: 2 } })
-		expect(ofType(editor, 'library')).toEqual([])
-		expect(source.getLibraryPlacement!(id)).toBe('added')
-		expect(entry().added).toBe(true)
+		it("is copied to the file's workspace, not the board, and keeps its packId while filled", async () => {
+			const { editor, source, entry, add } = setUpPack()
+			expect(entry().added).toBe(false)
+			expect(getStarterPackOwnerId(source)).toBe('acme')
+			const id = await add()
+			await vi.waitFor(() => expect(source.getItems(id)).toHaveLength(1))
+			const copy = source.getLibraries().find((library) => library.id === id)
+			expect(copy).toMatchObject({ ownerId: 'acme', meta: { packId: 'doodles', packVersion: 2 } })
+			expect(ofType(editor, 'library')).toEqual([])
+			expect(source.getLibraryPlacement!(id)).toBe('added')
+			expect(entry().added).toBe(true)
+		})
 
-		const shapeId = createShapeId()
-		editor.createShape({ id: shapeId, type: 'geo' })
-		await added(
-			source.addItem(id, {
-				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([shapeId])! },
-			})
-		)
-		await source.removeLibraryFromDocument!(id)
-		expect(entry().added).toBe(false)
-		expect(await entry().add()).toBe(id)
-		expect(source.getLibraryPlacement!(id)).toBe('added')
+		it('deletes an unchanged copy when it leaves its last file, and adds a fresh copy again', async () => {
+			const { source, entry, add } = setUpPack()
+			const id = await add()
+			await vi.waitFor(() => expect(source.getItems(id)).toHaveLength(1))
+			await source.removeLibraryFromDocument!(id)
+			expect(entry().added).toBe(false)
+			expect(source.getAvailableLibraries!().map((library) => library.id)).not.toContain(id)
+			const again = await add()
+			expect(again).not.toBe(id)
+			expect(entry().added).toBe(true)
+		})
+
+		it('keeps a changed copy as an ordinary library, and copies the pack afresh', async () => {
+			const { source, content, entry, add } = setUpPack()
+			const id = await add()
+			await vi.waitFor(() => expect(source.getItems(id)).toHaveLength(1))
+			await added(source.addItem(id, { content }))
+			const copy = () => source.getLibraries().find((library) => library.id === id)
+			expect(copy()!.meta).toEqual({ packVersion: 2 })
+			expect(entry().added).toBe(false)
+			await source.removeLibraryFromDocument!(id)
+			expect(source.getAvailableLibraries!().map((library) => library.id)).toContain(id)
+			const again = await add()
+			expect(again).not.toBe(id)
+		})
 	})
 })

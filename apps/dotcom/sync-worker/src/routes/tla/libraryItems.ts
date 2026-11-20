@@ -10,7 +10,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import type { JsonObject } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { Kysely } from 'kysely'
+import { Kysely, sql } from 'kysely'
 import { AssetToReplace } from '../../assetAssociation'
 import { LibraryItemObject, queueLibraryObjectDeletes } from '../../libraryEffects'
 import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
@@ -186,6 +186,10 @@ async function readItems(form: FormData): Promise<NewItem[] | Response> {
  * the pair) and `meta:<id>` (optional, a JSON object of at most MAX_LIBRARY_META_LENGTH
  * characters). At most MAX_LIBRARY_ITEMS_PER_REQUEST items, of at most
  * MAX_LIBRARY_ITEMS_REQUEST_BYTES of content and thumbnails together.
+ *
+ * Adding items changes a starter pack's copy, so the library's `meta` loses the pack's `packId`
+ * (see clearPackId in the mutators), unless `fillsPackCopy` is `true`: the items are the pack's
+ * own, sent as the user copies it. That's taken only from the library's creator, whose copy it is.
  */
 export async function addLibraryItems(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -210,6 +214,9 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 		if (!can(access.role, 'manageLibraries')) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
+
+		const fillsPackCopy =
+			form.get('fillsPackCopy') === 'true' && access.library.createdBy === auth.userId
 
 		const ids = items.map((item) => item.id)
 		if (await isAnyItemIdTaken(db, ids)) {
@@ -256,6 +263,14 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 					.execute()
 				if (inserted.length < rows.length) throw new IdTakenError()
 				await tx.insertInto('library_item_object').values(objects).execute()
+				if (!fillsPackCopy) {
+					await tx
+						.updateTable('library')
+						.set({ meta: sql`"meta" - 'packId'` })
+						.where('id', '=', libraryId)
+						.where(sql<boolean>`"meta" ? 'packId'`)
+						.execute()
+				}
 			})
 		} catch (error) {
 			if (error instanceof IdTakenError) return conflict()

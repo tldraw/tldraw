@@ -111,6 +111,33 @@ describe('TldrawAppFileLibrariesSource', () => {
 		expect(backend.fileLibraries.get()).toEqual([])
 	})
 
+	it('deletes an unchanged pack copy instead of removing it, once no other file shows it', async () => {
+		const { backend, libraries, source } = setUp()
+		const kit = await libraries.createLibrary('Kit', { ownerId: 'acme', meta: { packId: 'math' } })
+		addStoredItem(backend, kit)
+		await source.addLibraryToDocument(kit.id)
+		const elsewhere = { fileId: 'file-b', libraryId: rowId(kit), addedBy: 'user_me', addedAt: 0 }
+		backend.fileLibraries.update((all) => [...all, elsewhere])
+		expect(source.deletesOnRemove(kit.id)).toBe(false)
+
+		backend.fileLibraries.update((all) => all.filter((fl) => fl !== elsewhere))
+		expect(source.deletesOnRemove(kit.id)).toBe(true)
+		await source.removeLibraryFromDocument(kit.id)
+		expect(backend.rows.get()).toEqual([])
+	})
+
+	it('removes a changed pack copy from the file and keeps it', async () => {
+		const { backend, libraries, source } = setUp()
+		const kit = await libraries.createLibrary('Kit', { ownerId: 'acme', meta: { packId: 'math' } })
+		addStoredItem(backend, kit)
+		await source.addLibraryToDocument(kit.id)
+		await libraries.renameLibrary(kit.id, 'My kit')
+		expect(backend.rows.get()[0].meta).toEqual({})
+		expect(source.deletesOnRemove(kit.id)).toBe(false)
+		await source.removeLibraryFromDocument(kit.id)
+		expect(names(source.getAvailableLibraries())).toEqual(['My kit'])
+	})
+
 	it("removes an empty library it can't delete, or before the libraries have synced", async () => {
 		const { backend, libraries, source } = setUp()
 		const kit = await libraries.createLibrary('Kit', { ownerId: 'acme' })

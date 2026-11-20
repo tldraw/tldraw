@@ -242,19 +242,35 @@ async function deleteLibrary(tx: Tx, id: string) {
 }
 
 /**
- * Whether the user may delete the library and it has no items, so deleting it loses nothing. On
- * the server the library's row is locked first: an item added concurrently either commits before
- * the check, which then sees it, or waits for the delete and fails its foreign key. Without the
- * lock the delete's cascade would take an item committed after the check.
+ * Whether the user may delete the library and deleting it loses nothing: it has no items, or it's
+ * a starter pack's copy nobody has changed (its `meta` still has the pack's `packId`) and no file
+ * shows it any more. On the server the library's row is locked first: an item or a file link added
+ * concurrently either commits before the check, which then sees it, or waits for the delete and
+ * fails its foreign key. Without the lock the delete's cascade would take a row committed after
+ * the check.
  */
-async function canDeleteEmptyLibrary(tx: Tx, userId: string, libraryId: string) {
+async function canDeleteDisposableLibrary(tx: Tx, userId: string, libraryId: string) {
 	if (tx.location === 'server') {
 		await tx.dbTransaction.query(`select 1 from "library" where "id" = $1 for update`, [libraryId])
 	}
 	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
 	if (!library || library.isDefault) return false
 	if (!can(await getRole(tx, userId, library.owningGroupId), 'manageLibraries')) return false
-	return !(await tx.run(zql.library_item.where('libraryId', '=', libraryId).one()))
+	if (!(await tx.run(zql.library_item.where('libraryId', '=', libraryId).one()))) return true
+	if (library.meta.packId === undefined) return false
+	return !(await tx.run(zql.file_library.where('libraryId', '=', libraryId).one()))
+}
+
+/**
+ * Makes a starter pack's copy an ordinary library once it's changed, by dropping the `packId` its
+ * `meta` records: the pack then offers a fresh copy, and removing this one from its last file keeps
+ * it.
+ */
+async function clearPackId(tx: Tx, libraryId: string) {
+	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+	if (!library || library.meta.packId === undefined) return
+	const { packId: _packId, ...meta } = library.meta
+	await tx.mutate.library.update({ id: libraryId, meta })
 }
 
 /**
@@ -406,6 +422,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				await assertLibrariesEnabled(tx, options)
 				await assertCanManageLibrary(tx, userId, id)
 				await tx.mutate.library.update({ id, name: libraryName(name), updatedAt: Date.now() })
+				await clearPackId(tx, id)
 			},
 			/** Deletes a library with its items. The user's default library is never deleted. */
 			delete: async (tx: Tx, { id }: { id: string }) => {
@@ -444,19 +461,23 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					...(merged === undefined ? {} : { meta: merged }),
 					updatedAt: Date.now(),
 				})
+				await clearPackId(tx, item.libraryId)
 			},
 			delete: async (tx: Tx, { id }: { id: string }) => {
 				await assertLibrariesEnabled(tx, options)
-				await assertCanManageLibraryItem(tx, userId, id)
+				const { libraryId } = await assertCanManageLibraryItem(tx, userId, id)
 				await tx.mutate.library_item.delete({ id })
+				await clearPackId(tx, libraryId)
 			},
 			/** Moves an item to another library, which may belong to another workspace. */
 			move: async (tx: Tx, { id, libraryId }: { id: string; libraryId: string }) => {
 				await assertLibrariesEnabled(tx, options)
-				const item = await assertCanManageLibraryItem(tx, userId, id)
-				if (item.libraryId === libraryId) return
+				const { libraryId: fromLibraryId } = await assertCanManageLibraryItem(tx, userId, id)
+				if (fromLibraryId === libraryId) return
 				await assertCanManageLibrary(tx, userId, libraryId)
 				await tx.mutate.library_item.update({ id, libraryId, updatedAt: Date.now() })
+				await clearPackId(tx, fromLibraryId)
+				await clearPackId(tx, libraryId)
 			},
 		},
 
@@ -482,22 +503,23 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				})
 			},
 			/**
-			 * Removes a library from a file. With `deleteIfEmpty`, also deletes the library if it has
-			 * no items and the user may delete it; otherwise only the link goes.
+			 * Removes a library from a file. With `deleteIfDisposable`, also deletes the library if
+			 * that loses nothing and the user may delete it (see canDeleteDisposableLibrary); otherwise
+			 * only the link goes.
 			 */
 			remove: async (
 				tx: Tx,
 				{
 					fileId,
 					libraryId,
-					deleteIfEmpty = false,
-				}: { fileId: string; libraryId: string; deleteIfEmpty?: boolean }
+					deleteIfDisposable = false,
+				}: { fileId: string; libraryId: string; deleteIfDisposable?: boolean }
 			) => {
 				await assertLibrariesEnabled(tx, options)
 				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				await assertUserCanUpdateFile(tx, userId, file!)
 				await tx.mutate.file_library.delete({ fileId, libraryId })
-				if (deleteIfEmpty && (await canDeleteEmptyLibrary(tx, userId, libraryId))) {
+				if (deleteIfDisposable && (await canDeleteDisposableLibrary(tx, userId, libraryId))) {
 					await deleteLibrary(tx, libraryId)
 				}
 			},

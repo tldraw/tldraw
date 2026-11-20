@@ -113,7 +113,8 @@ export function addStarterPack(
  * The starter packs as a group to browse: each is added once the document shows a copy of it.
  * Adding one adds a copy the user already has available, or copies the pack to
  * {@link getStarterPackOwnerId}, and reports `add-starter-pack`, or `library-error` if it fails.
- * Removing one takes the copy it shows out of the document, and keeps the copy itself.
+ * Removing one takes the copy it shows out of the document, deleting the copy if it's unchanged
+ * and no other file shows it.
  */
 export function getStarterPackBrowseGroup(
 	source: LibrarySource,

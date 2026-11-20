@@ -94,7 +94,13 @@ function resolveRole(owningGroupId: string, userId: string, role: Role | null | 
 export async function getLibraryAccess(db: Kysely<DB>, userId: string, libraryId: string) {
 	const row = await db
 		.selectFrom('library')
-		.select(['library.id', 'library.name', 'library.owningGroupId', 'library.meta'])
+		.select([
+			'library.id',
+			'library.name',
+			'library.owningGroupId',
+			'library.meta',
+			'library.createdBy',
+		])
 		.select((eb) =>
 			eb
 				.selectFrom('group_user')
