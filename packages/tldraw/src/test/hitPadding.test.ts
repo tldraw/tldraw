@@ -352,27 +352,36 @@ describe('candidate lookup', () => {
 		zoomTo400()
 	})
 
-	it('clicks the outer ink edge outside the page bounds', () => {
-		geo(ids.a, {})
-		expect(click(95.5, 200)).toBe(ids.a)
-	})
-
-	it('indexes the outer ink at the extremum of a rotated curved arrow', () => {
-		editor.createShape({
-			id: ids.a,
-			type: 'arrow',
-			x: 100,
-			y: 100,
-			rotation: Math.PI / 6,
-			props: { size: 'xl', start: { x: 0, y: 0 }, end: { x: 200, y: 0 }, bend: 60 },
-		})
-		const { center, radius } = arcProbe(ids.a)
-		const bottom = Vec.Add(editor.getShapePageTransform(ids.a).applyToPoint(center), {
-			x: 0,
-			y: radius + 4.9,
-		})
-		expect(editor.isPointInShape(ids.a, bottom)).toBe(true)
-		expect(editor.getShapesAtPoint(bottom).map((s) => s.id)).toEqual([ids.a])
+	it.each([
+		[
+			'a geo edge',
+			() => {
+				geo(ids.a, {})
+				return { x: 95.5, y: 200 }
+			},
+		],
+		[
+			'the extremum of a rotated curved arrow',
+			() => {
+				editor.createShape({
+					id: ids.a,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					rotation: Math.PI / 6,
+					props: { size: 'xl', start: { x: 0, y: 0 }, end: { x: 200, y: 0 }, bend: 60 },
+				})
+				const { center, radius } = arcProbe(ids.a)
+				return Vec.Add(editor.getShapePageTransform(ids.a).applyToPoint(center), {
+					x: 0,
+					y: radius + 4.9,
+				})
+			},
+		],
+	])('indexes the outer ink past the page bounds of %s', (_, create) => {
+		const point = create()
+		expect(editor.isPointInShape(ids.a, point)).toBe(true)
+		expect(editor.getShapesAtPoint(point).map((s) => s.id)).toEqual([ids.a])
 	})
 
 	// xl lines are 20 wide (ink 10 either side) after either change

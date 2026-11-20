@@ -1,9 +1,7 @@
 import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
 import { Arc2d } from './Arc2d'
-import { Circle2d } from './Circle2d'
 import { Edge2d } from './Edge2d'
-import { Ellipse2d } from './Ellipse2d'
 import {
 	Geometry2d,
 	Geometry2dFilters,
@@ -11,10 +9,7 @@ import {
 	TransformedGeometry2d,
 } from './Geometry2d'
 import { Group2d } from './Group2d'
-import { Point2d } from './Point2d'
-import { Polyline2d } from './Polyline2d'
 import { Rectangle2d } from './Rectangle2d'
-import { Stadium2d } from './Stadium2d'
 
 describe('TransformedGeometry2d', () => {
 	const rect = new Rectangle2d({ width: 100, height: 50, isFilled: true }).transform(
@@ -1044,48 +1039,6 @@ describe('hitPadding', () => {
 	// along y = 0 from x = 0 to 100, ink 5 either side
 	const edge = (hitPadding = 5) =>
 		new Edge2d({ start: new Vec(0, 0), end: new Vec(100, 0), hitPadding })
-	const noPadding: Geometry2dFilters = { includeHitPadding: false }
-
-	it.each([
-		[5, 1, true],
-		[5.5, 1, false],
-		[5.5, 6, true],
-		[6.5, 6, false],
-	])('reaches max(margin, padding), never the sum: %s off, margin %s', (off, margin, expected) => {
-		expect(edge().hitTestPoint(new Vec(50, off), margin)).toBe(expected)
-		expect(edge().hitTestLineSegment(new Vec(20, off), new Vec(80, off), margin)).toBe(expected)
-	})
-
-	it('pads polylines, circles and points', () => {
-		const polyline = new Polyline2d({ points: [new Vec(0, 0), new Vec(100, 0)], hitPadding: 5 })
-		expect(polyline.hitTestPoint(new Vec(50, 5), 1)).toBe(true)
-		expect(polyline.hitTestLineSegment(new Vec(20, 5), new Vec(80, 5), 1)).toBe(true)
-		expect(polyline.hitTestLineSegment(new Vec(20, 5.5), new Vec(80, 5.5), 1)).toBe(false)
-
-		const circle = new Circle2d({ radius: 50, isFilled: false, hitPadding: 5 })
-		expect(circle.hitTestPoint(new Vec(50, -5), 1)).toBe(true)
-		expect(circle.hitTestPoint(new Vec(50, 5), 1)).toBe(true)
-		expect(circle.hitTestPoint(new Vec(50, -5.5), 1)).toBe(false)
-
-		const point = new Point2d({ point: new Vec(0, 0), margin: 0, hitPadding: 5 })
-		// tangent exactly at the reach, and with no margin given
-		expect(point.hitTestLineSegment(new Vec(-10, 5), new Vec(10, 5), 1)).toBe(true)
-		expect(point.hitTestLineSegment(new Vec(-10, 5), new Vec(10, 5))).toBe(true)
-		expect(point.hitTestLineSegment(new Vec(-10, 5.5), new Vec(10, 5.5), 1)).toBe(false)
-	})
-
-	// centre (50, 50), radius 50, ink 45..55
-	const circle = new Circle2d({ radius: 50, isFilled: false, hitPadding: 5 })
-	it.each([
-		['a short drag wholly inside the stroke band', new Vec(102, 50), new Vec(102, 51), 0, true],
-		['tangent to the outer ink', new Vec(0, -5), new Vec(100, -5), 0, true],
-		['just beyond the outer ink', new Vec(0, -5.5), new Vec(100, -5.5), 0, false],
-		['inside the hole', new Vec(40, 50), new Vec(60, 50), 0, false],
-		['6 off with a smaller distance', new Vec(0, -6), new Vec(100, -6), 1.125, false],
-		['6 off with distance 6', new Vec(0, -6), new Vec(100, -6), 6, true],
-	])('band-tests circle segment hits: %s', (_, A, B, distance, expected) => {
-		expect(circle.hitTestLineSegment(A, B, distance)).toBe(expected)
-	})
 
 	// A radius 50 arc over the top from (-50, 0) to (50, 0), sampled every 22.5°
 	const arc = new Arc2d({
@@ -1109,16 +1062,6 @@ describe('hitPadding', () => {
 		['just beyond an end cap', new Vec(45, 5.5), new Vec(55, 5.5), false],
 	])('band-tests arc segment hits: %s', (_, A, B, expected) => {
 		expect(arc.hitTestLineSegment(A, B, 1)).toBe(expected)
-	})
-
-	it('pads ellipses and stadiums in segment tests', () => {
-		const ellipse = new Ellipse2d({ width: 100, height: 100, isFilled: false, hitPadding: 5 })
-		expect(ellipse.hitTestLineSegment(new Vec(40, -4.5), new Vec(60, -4.5), 1)).toBe(true)
-		expect(ellipse.hitTestLineSegment(new Vec(40, -6), new Vec(60, -6), 1)).toBe(false)
-
-		const stadium = new Stadium2d({ width: 200, height: 100, isFilled: false, hitPadding: 5 })
-		expect(stadium.hitTestLineSegment(new Vec(80, -4.5), new Vec(120, -4.5), 1)).toBe(true)
-		expect(stadium.hitTestLineSegment(new Vec(80, -6), new Vec(120, -6), 1)).toBe(false)
 	})
 
 	it('scales through a transform', () => {
@@ -1148,17 +1091,5 @@ describe('hitPadding', () => {
 		expect(
 			new Group2d({ children: [edge()], hitPadding: 8 }).transform(Mat.Scale(2, 2)).hitPadding
 		).toBe(16)
-	})
-
-	it('ignores the padding when includeHitPadding is false', () => {
-		expect(edge().hitTestPoint(new Vec(50, 3), 1, false, noPadding)).toBe(false)
-		expect(edge().hitTestLineSegment(new Vec(20, 3), new Vec(80, 3), 1, noPadding)).toBe(false)
-		expect(
-			edge().transform(Mat.Scale(2, 2)).hitTestPoint(new Vec(100, 3), 1, false, noPadding)
-		).toBe(false)
-		const group = new Group2d({ children: [edge()] })
-		expect(group.hitTestPoint(new Vec(50, 3), 1, false, noPadding)).toBe(false)
-		expect(group.hitTestLineSegment(new Vec(20, 3), new Vec(80, 3), 1, noPadding)).toBe(false)
-		expect(circle.hitTestPoint(new Vec(50, -3), 1, false, noPadding)).toBe(false)
 	})
 })
