@@ -292,7 +292,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const { confirmed } = await this.apply(
 			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }),
 			'create-library',
-			'createLibrary'
+			'new',
+			{ action: 'createLibrary' }
 		)
 		this.unconfirmedLibraries.set(
 			id,
@@ -458,8 +459,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		await this.apply(
 			this.app.z.mutate.library_item.move({ id, libraryId }),
 			'move-library-item',
-			'addItem',
-			toLibraryId
+			undefined,
+			{ action: 'addItem', libraryId: toLibraryId }
 		)
 	}
 
@@ -747,26 +748,31 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	 * Resolves once Zero has applied a mutation locally, with whether the server goes on to accept
 	 * it; if it doesn't, Zero rolls the change back and the app shows why. A mutation that fails
 	 * locally rejects, and fails on the server with the same error. A rejection is reported as
-	 * `library-error` for `action`. Refused locally for taking a workspace or library past its
-	 * limit, it rejects with a LibraryPermissionError for `limitAction`.
+	 * `library-error` for `action`, with `method` for a create. Refused locally for taking a
+	 * workspace or library past its limit, it rejects with a LibraryPermissionError for `limit`.
 	 */
 	private async apply(
 		mutation: MutatorResult,
 		action: TLAppLibraryAction | undefined,
-		limitAction?: TLLibraryAction,
-		libraryId?: TLLibraryId
+		method?: 'new',
+		limit?: { action: TLLibraryAction; libraryId?: TLLibraryId }
 	): Promise<{ confirmed: Promise<boolean> }> {
 		const applied = await mutation.client
 		if (applied.type === 'error') {
-			if (limitAction && applied.error.type === 'app') {
-				this.throwIfAtLimit(applied.error.message, limitAction, libraryId)
+			if (limit && applied.error.type === 'app') {
+				this.throwIfAtLimit(applied.error.message, limit.action, limit.libraryId)
 			}
 			throw new Error('The change was rejected', { cause: applied.error })
 		}
 		const confirmed = mutation.server.then((result) => {
 			if (result.type === 'success') return true
 			if (action) {
-				this.app.trackEvent('library-error', { source: 'libraries', action, reason: 'rejected' })
+				this.app.trackEvent('library-error', {
+					source: 'libraries',
+					action,
+					...(method ? { method } : {}),
+					reason: 'rejected',
+				})
 			}
 			this.app.showMutationRejectionToast(result.error)
 			return false

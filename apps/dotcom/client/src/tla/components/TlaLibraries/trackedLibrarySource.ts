@@ -14,13 +14,10 @@ import {
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import type { TldrawApp } from '../../app/TldrawApp'
-import type {
-	TLAppLibraryAction,
-	TLAppUiEventMap,
-	TLAppUiEventSource,
-} from '../../utils/app-ui-events'
+import type { TLAppUiEventMap, TLAppUiEventSource } from '../../utils/app-ui-events'
 
 type OwnerKind = TLAppUiEventMap['create-library']['owner']
+type ErrorDetails = Pick<TLAppUiEventMap['library-error'], 'action' | 'method'>
 
 /**
  * A library source that reports the user's changes to it to PostHog, without names or content:
@@ -62,12 +59,14 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.addItems) {
 			const addItems = source.addItems.bind(source)
 			this.addItems = async (libraryId, newItems) =>
-				this.reportAdded(await this.watch('add-to-library', addItems(libraryId, newItems)))
+				this.reportAdded(
+					await this.watch({ action: 'add-to-library' }, addItems(libraryId, newItems))
+				)
 		}
 		if (source.moveItem) {
 			const moveItem = source.moveItem.bind(source)
 			this.moveItem = async (itemId, toLibraryId) => {
-				await this.watch('move-library-item', moveItem(itemId, toLibraryId))
+				await this.watch({ action: 'move-library-item' }, moveItem(itemId, toLibraryId))
 				this.track('move-library-item')
 			}
 		}
@@ -75,7 +74,10 @@ export class TrackedLibrarySource implements LibrarySource {
 			const copyLibrary = source.copyLibrary.bind(source)
 			this.copyLibrary = async (libraryId, ownerId, options) => {
 				const itemCount = source.getItems(libraryId).length
-				const library = await this.watch('copy-library', copyLibrary(libraryId, ownerId, options))
+				const library = await this.watch(
+					{ action: 'create-library', method: 'copy' },
+					copyLibrary(libraryId, ownerId, options)
+				)
 				this.app.trackEvent('create-library', {
 					source: this.eventSource,
 					owner: this.getOwnerKind(library),
@@ -114,7 +116,10 @@ export class TrackedLibrarySource implements LibrarySource {
 	}
 
 	async createLibrary(name: string, options?: TLNewLibraryOptions) {
-		const library = await this.watch('create-library', this.untracked.createLibrary(name, options))
+		const library = await this.watch(
+			{ action: 'create-library', method: 'new' },
+			this.untracked.createLibrary(name, options)
+		)
 		this.app.trackEvent('create-library', {
 			source: this.eventSource,
 			owner: this.getOwnerKind(library),
@@ -124,29 +129,32 @@ export class TrackedLibrarySource implements LibrarySource {
 	}
 
 	async renameLibrary(libraryId: TLLibraryId, name: string) {
-		await this.watch('rename-library', this.untracked.renameLibrary(libraryId, name))
+		await this.watch({ action: 'rename-library' }, this.untracked.renameLibrary(libraryId, name))
 		this.track('rename-library')
 	}
 
 	async deleteLibrary(libraryId: TLLibraryId) {
-		await this.watch('delete-library', this.untracked.deleteLibrary(libraryId))
+		await this.watch({ action: 'delete-library' }, this.untracked.deleteLibrary(libraryId))
 		this.track('delete-library')
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
-		const item = await this.watch('add-to-library', this.untracked.addItem(libraryId, newItem))
+		const item = await this.watch(
+			{ action: 'add-to-library' },
+			this.untracked.addItem(libraryId, newItem)
+		)
 		this.reportAdded([item])
 		return item
 	}
 
 	async updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial) {
 		if (partial.name === undefined) return this.untracked.updateItem(itemId, partial)
-		await this.watch('rename-library-item', this.untracked.updateItem(itemId, partial))
+		await this.watch({ action: 'rename-library-item' }, this.untracked.updateItem(itemId, partial))
 		this.track('rename-library-item')
 	}
 
 	async deleteItem(itemId: TLLibraryItemId) {
-		await this.watch('delete-library-item', this.untracked.deleteItem(itemId))
+		await this.watch({ action: 'delete-library-item' }, this.untracked.deleteItem(itemId))
 		this.track('delete-library-item')
 	}
 
@@ -161,21 +169,21 @@ export class TrackedLibrarySource implements LibrarySource {
 		this.app.trackEvent(name, { source: this.eventSource })
 	}
 
-	/** Reports `library-error` for `action` if `operation` rejects. */
-	private async watch<T>(action: TLAppLibraryAction, operation: Promise<T>) {
+	/** Reports `library-error` if `operation` rejects. */
+	private async watch<T>(details: ErrorDetails, operation: Promise<T>) {
 		try {
 			return await operation
 		} catch (error) {
 			const reason = getLibraryErrorReason(error)
-			this.app.trackEvent('library-error', { source: this.eventSource, action, reason })
-			if (reason === 'failed') captureException(error, { tags: { operation: action } })
+			this.app.trackEvent('library-error', { source: this.eventSource, ...details, reason })
+			if (reason === 'failed') captureException(error, { tags: { operation: details.action } })
 			throw error
 		}
 	}
 
 	// Items are listed before they're stored, and storing them can still fail.
 	private reportAdded<T extends TLLibraryItem[]>(items: T) {
-		this.watch('add-to-library', whenItemsStored(items.map((item) => item.id))).then(
+		this.watch({ action: 'add-to-library' }, whenItemsStored(items.map((item) => item.id))).then(
 			() =>
 				this.app.trackEvent('add-to-library', {
 					source: this.eventSource,
