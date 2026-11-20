@@ -222,14 +222,15 @@ editor.on('crash', ({ error }) => {
 
 ### UI and camera events
 
-| Event                   | Payload                   | Description                            |
-| ----------------------- | ------------------------- | -------------------------------------- |
-| `resize`                | `BoxModel`                | Viewport dimensions changed            |
-| `stop-camera-animation` | None                      | Camera animation interrupted           |
-| `stop-following`        | None                      | Stopped following another user         |
-| `select-all-text`       | `{ shapeId: TLShapeId }`  | Editing started with all text selected |
-| `place-caret`           | `{ shapeId, point }`      | Text caret positioned                  |
-| `max-shapes`            | `{ name, pageId, count }` | Page reached shape limit               |
+| Event                   | Payload                   | Description                                                         |
+| ----------------------- | ------------------------- | ------------------------------------------------------------------- |
+| `resize`                | `BoxModel`                | Viewport dimensions changed                                         |
+| `stop-camera-animation` | None                      | Camera animation interrupted                                        |
+| `stop-following`        | None                      | Stopped following another user                                      |
+| `select-all-text`       | `{ shapeId: TLShapeId }`  | Editing started with all text selected                              |
+| `place-caret`           | `{ shapeId, point }`      | Text caret positioned                                               |
+| `max-shapes`            | `{ name, pageId, count }` | Page reached shape limit                                            |
+| `confirm-open-link`     | `{ url: string }`         | Unknown app link needs confirming; it won't open without a listener |
 
 ```tsx
 editor.on('resize', (bounds) => {
@@ -238,6 +239,16 @@ editor.on('resize', (bounds) => {
 
 editor.on('max-shapes', ({ pageId, count }) => {
 	showWarning(`Page has reached the ${count} shape limit`)
+})
+```
+
+The default UI answers `confirm-open-link` with a dialog. Without it, for example with `hideUi` or a bare `TldrawEditor`, links into apps tldraw doesn't recognize don't open. To open them, add your own listener:
+
+```tsx
+import { openWindow } from 'tldraw'
+
+editor.on('confirm-open-link', async ({ url }) => {
+	if (await askUser(`Open ${url}?`)) openWindow(url, '_blank')
 })
 ```
 

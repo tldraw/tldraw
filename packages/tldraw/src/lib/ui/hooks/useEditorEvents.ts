@@ -1,11 +1,14 @@
 import { useEditor } from '@tldraw/editor'
-import { useEffect } from 'react'
+import { createElement, useEffect } from 'react'
+import { ConfirmOpenLinkDialog } from '../components/ConfirmOpenLinkDialog'
+import { useDialogs } from '../context/dialogs'
 import { useToasts } from '../context/toasts'
 
 /** @internal */
 export function useEditorEvents() {
 	const editor = useEditor()
 	const { addToast } = useToasts()
+	const { addDialog } = useDialogs()
 
 	useEffect(() => {
 		function handleMaxShapes({ name, count }: { name: string; pageId: string; count: number }) {
@@ -16,9 +19,18 @@ export function useEditorEvents() {
 			})
 		}
 
+		function handleConfirmOpenLink({ url }: { url: string }) {
+			addDialog({
+				id: 'confirm-open-link',
+				component: ({ onClose }) => createElement(ConfirmOpenLinkDialog, { url, onClose }),
+			})
+		}
+
 		editor.addListener('max-shapes', handleMaxShapes)
+		editor.addListener('confirm-open-link', handleConfirmOpenLink)
 		return () => {
 			editor.removeListener('max-shapes', handleMaxShapes)
+			editor.removeListener('confirm-open-link', handleConfirmOpenLink)
 		}
-	}, [editor, addToast])
+	}, [editor, addToast, addDialog])
 }

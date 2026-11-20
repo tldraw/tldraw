@@ -139,6 +139,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	AddFlipProps: 4,
 	AddAltText: 5,
 	AllowAppLinkUrls: 6,
+	BlockMoreLinkProtocols: 7,
 })
 
 /**
@@ -214,6 +215,17 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 				if (!isPreAppLinkUrl(props.url)) {
 					props.url = ''
 				}
+			},
+		},
+		{
+			id: Versions.BlockMoreLinkProtocols,
+			up: (props) => {
+				if (!T.linkUrl.isValid(props.url)) {
+					props.url = ''
+				}
+			},
+			down: (_props) => {
+				// noop
 			},
 		},
 	],

@@ -4,7 +4,6 @@ import {
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
-	openWindow,
 	preventDefault,
 	resolveLineHeightPx,
 	useEditor,
@@ -13,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
+import { openLink } from '../../utils/openLink'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
 import { isLegacyAlign } from './legacyProps'
@@ -115,12 +115,26 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				if (e.name !== 'pointer_up' || !link) return
 
 				if (!isDragging.current) {
-					openWindow(link, '_blank', false)
+					openLink(editor, link)
 				}
 				editor.off('event', handlePointerUp)
 			}
 			editor.on('event', handlePointerUp)
 		}
+	}
+
+	// Mouse presses on a link are handled in handlePointerDown, since the canvas captures the pointer
+	// and the anchor never gets their click. A click that does reach it (Enter on a focused link)
+	// would follow the href and skip openLink's check, so route it through openLink here.
+	const handleLinkClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		if (e.type === 'auxclick' && e.button !== 1) return
+		const HTMLElementCtor = editor.getContainerWindow().HTMLElement
+		if (!(e.target instanceof HTMLElementCtor)) return
+		const anchor = e.target.closest('a')
+		if (!anchor) return
+		preventDefault(e)
+		// A mouse click that gets here was already opened on pointer up; only open keyboard clicks.
+		if (e.detail === 0) openLink(editor, anchor.getAttribute('href') ?? '')
 	}
 
 	// Should be guarded higher up so that this doesn't render... but repeated here. This should never be true.
@@ -182,6 +196,8 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 							// todo: see if I can abuse this
 							dangerouslySetInnerHTML={{ __html: html || '' }}
 							onPointerDown={handlePointerDown}
+							onClick={handleLinkClick}
+							onAuxClick={handleLinkClick}
 							data-is-ready-for-editing={isReadyForEditing}
 						/>
 					)}

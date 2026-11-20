@@ -1827,6 +1827,16 @@ tldraw? probably.
 	padding: 0px var(--tl-space-4);
 }
 
+/* Confirm Open Link Dialog */
+
+.tlui-confirm-open-link-dialog__url {
+	margin-top: var(--tl-space-4);
+	padding: var(--tl-space-3) var(--tl-space-4);
+	border-radius: var(--tl-radius-2);
+	background-color: var(--tl-color-muted-2);
+	font-family: var(--tl-font-mono);
+}
+
 /* Embed Dialog */
 
 .tlui-embed__spacer {

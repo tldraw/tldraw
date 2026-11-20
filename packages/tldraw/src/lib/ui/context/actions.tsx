@@ -29,6 +29,7 @@ import { defaultHandleExternalTextContent } from '../../defaultExternalContentHa
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
+import { openLink } from '../../utils/openLink'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -683,7 +684,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 
-					openWindow(shape.props.url, '_blank')
+					openLink(editor, shape.props.url)
 				},
 			},
 			{

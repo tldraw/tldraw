@@ -1448,6 +1448,38 @@ describe('Allow app link urls for all the shapes', () => {
 	}
 })
 
+describe('Block more link protocols for all the shapes', () => {
+	const migrations = [
+		['bookmark shape', getTestMigration(bookmarkShapeVersions.BlockMoreLinkProtocols)],
+		['geo shape', getTestMigration(geoShapeVersions.BlockMoreLinkProtocols)],
+		['image shape', getTestMigration(imageShapeVersions.BlockMoreLinkProtocols)],
+		['note shape', getTestMigration(noteShapeVersions.BlockMoreLinkProtocols)],
+		['video shape', getTestMigration(videoShapeVersions.BlockMoreLinkProtocols)],
+	] as const
+
+	for (const [shapeName, { up, down }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			for (const url of [
+				'smb://evil/share',
+				'ms-word:ofe|u|https://evil/x.docx',
+				'STEAM://run/1',
+			]) {
+				expect(up({ props: { url } })).toEqual({ props: { url: '' } })
+				expect(down({ props: { url } })).toEqual({ props: { url } })
+			}
+			for (const url of [
+				'',
+				'https://example.com',
+				'mailto:a@b.com',
+				'codex://threads/1',
+				'/foo',
+			]) {
+				expect(up({ props: { url } })).toEqual({ props: { url } })
+			}
+		})
+	}
+})
+
 describe('Add rich text', () => {
 	const migrations = [
 		['text shape', getTestMigration(textShapeVersions.AddRichText)],
