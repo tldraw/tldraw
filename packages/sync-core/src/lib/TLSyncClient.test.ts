@@ -570,6 +570,25 @@ describe('TLSyncClient', () => {
 			expect(pushWithPresence!.presence).toEqual([RecordOpType.Put, presenceRecord])
 		})
 
+		it('[CL7] sends document changes made while connecting no later than presence', () => {
+			const newPage = PageRecordType.create({
+				id: PageRecordType.createId('made_on_connect'),
+				name: 'Made on connect',
+				index: 'a2' as any,
+			})
+			client = createClient({ onAfterConnect: () => store.put([newPage]) })
+			presence.set({ id: 'presence:user1', typeName: 'instance_presence' } as any)
+			socket.clearSentMessages()
+
+			socket.mockServerMessage(createConnectMessage())
+
+			const pushes = getSentPushes()
+			const withPage = pushes.findIndex((push) => push.diff && newPage.id in push.diff)
+			const withPresence = pushes.findIndex((push) => push.presence)
+			expect(withPage).toBeGreaterThanOrEqual(0)
+			expect(withPresence).toBeGreaterThanOrEqual(withPage)
+		})
+
 		it('[CL8] removes presence records from the store when the socket goes offline', () => {
 			connectClient()
 

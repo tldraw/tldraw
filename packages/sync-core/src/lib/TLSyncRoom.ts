@@ -1269,16 +1269,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		const addDocument = (
+		// One change of a push, worked out in full (migrated, authorized, validated) but not yet
+		// written. A push stages all of its document changes before it writes the first one, so
+		// there is a point where the whole push is known and storage is still untouched.
+		type StagedChange =
+			| { type: 'create'; id: string; prev: null; next: R }
+			| { type: 'update'; id: string; prev: R; next: R; diff: ObjectDiff }
+			| { type: 'delete'; id: string; prev: R; next: null }
+
+		const stagePut = (
 			storage: MinimalDocStore<R>,
-			changes: ActualChanges,
 			id: string,
 			_state: R,
 			authorize?: (prev: R | null, next: R) => R | null,
 			// The existing document if the caller already fetched it; `null` for fetched-and-absent,
 			// `undefined` for not fetched. Saves a second SELECT + JSON.parse on the push hot path.
 			prevDoc?: R | null
-		): Result<void, void> => {
+		): StagedChange | null => {
 			const res = session
 				? this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
 				: { type: 'success' as const, value: _state }
@@ -1294,7 +1301,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// so no later migration can clobber stamped fields.
 			if (authorize) {
 				const result = authorize(doc ?? null, state)
-				if (!result) return Result.ok(undefined) // vetoed: skip the op, the client self-corrects
+				if (!result) return null // vetoed: skip the op, the client self-corrects
 				if (!doc) state = result // create: store the authorizer's (stamped) record
 			}
 
@@ -1303,35 +1310,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// but propagate a diff rather than the entire value
 				const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
 				const diff = diffAndValidateRecord(doc, state, recordType, legacyAppendMode)
-				if (diff) {
-					storage.set(id, state)
-					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, state)
-				}
-			} else {
-				// Otherwise, if we don't already have a document with this id
-				// create the document and propagate the put op
-				// set automatically clears tombstones if they exist
-				const recordType = assertExists(getOwnProperty(this.schema.types, state.typeName))
-				validateRecord(state, recordType)
-				storage.set(id, state)
-				propagateOp(changes, id, [RecordOpType.Put, state], undefined, undefined)
+				return diff ? { type: 'update', id, prev: doc, next: state, diff } : null
 			}
-
-			return Result.ok(undefined)
+			// Otherwise, if we don't already have a document with this id
+			// create the document and propagate the put op
+			const recordType = assertExists(getOwnProperty(this.schema.types, state.typeName))
+			validateRecord(state, recordType)
+			return { type: 'create', id, prev: null, next: state }
 		}
 
-		const patchDocument = (
+		const stagePatch = (
 			storage: MinimalDocStore<R>,
-			changes: ActualChanges,
 			id: string,
 			patch: ObjectDiff,
 			authorize?: (prev: R, next: R) => R | null,
-			// The existing document if the caller already fetched it (see `addDocument`).
+			// The existing document if the caller already fetched it (see `stagePut`).
 			prevDoc?: R
-		) => {
+		): StagedChange | null => {
 			// if it was already deleted, there's no need to apply the patch
 			const doc = prevDoc ?? (storage.get(id) as R | undefined)
-			if (!doc) return
+			if (!doc) return null
 
 			const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
 			// If the client's version of the record is older than ours,
@@ -1346,33 +1344,59 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (downgraded.value === doc) {
 				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
-				if (diff) {
-					// Authorize on the committed candidate — the record that will actually be stored.
-					if (authorize && !authorize(doc, diff[1])) return
-					storage.set(id, diff[1])
-					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
-				}
-			} else {
-				// need to apply the patch to the downgraded version and then upgrade it
+				if (!diff) return null
+				// Authorize on the committed candidate — the record that will actually be stored.
+				if (authorize && !authorize(doc, diff[1])) return null
+				return { type: 'update', id, prev: doc, next: diff[1], diff: diff[0] }
+			}
+			// need to apply the patch to the downgraded version and then upgrade it
 
-				// apply the patch to the downgraded version
-				const patched = applyObjectDiff(downgraded.value, patch)
-				// then upgrade the patched version and use that as the new state
-				const upgraded = session
-					? this.schema.migratePersistedRecord(patched, session.serializedSchema, 'up')
-					: { type: 'success' as const, value: patched }
-				// If the client's version is too old, we'll hit an error
-				if (upgraded.type === 'error') {
-					throw new TLSyncError(upgraded.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
-				}
-				// replace the state with the upgraded version and propagate the patch op
-				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
-				if (diff) {
-					// Authorize on the committed candidate — the upgraded record, not a raw preview.
-					if (authorize && !authorize(doc, upgraded.value)) return
-					storage.set(id, upgraded.value)
-					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
-				}
+			// apply the patch to the downgraded version
+			const patched = applyObjectDiff(downgraded.value, patch)
+			// then upgrade the patched version and use that as the new state
+			const upgraded = session
+				? this.schema.migratePersistedRecord(patched, session.serializedSchema, 'up')
+				: { type: 'success' as const, value: patched }
+			// If the client's version is too old, we'll hit an error
+			if (upgraded.type === 'error') {
+				throw new TLSyncError(upgraded.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			}
+			// replace the state with the upgraded version and propagate the patch op
+			const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
+			if (!diff) return null
+			// Authorize on the committed candidate — the upgraded record, not a raw preview.
+			if (authorize && !authorize(doc, upgraded.value)) return null
+			return { type: 'update', id, prev: doc, next: upgraded.value, diff }
+		}
+
+		const applyChange = (
+			storage: MinimalDocStore<R>,
+			changes: ActualChanges,
+			change: StagedChange
+		) => {
+			switch (change.type) {
+				case 'create':
+					// set automatically clears tombstones if they exist
+					storage.set(change.id, change.next)
+					propagateOp(changes, change.id, [RecordOpType.Put, change.next], undefined, undefined)
+					break
+				case 'update':
+					storage.set(change.id, change.next)
+					propagateOp(
+						changes,
+						change.id,
+						[RecordOpType.Patch, change.diff],
+						change.prev,
+						change.next
+					)
+					break
+				case 'delete':
+					// delete automatically creates tombstones
+					storage.delete(change.id)
+					propagateOp(changes, change.id, [RecordOpType.Remove], change.prev, undefined)
+					break
+				default:
+					exhaustiveSwitchError(change)
 			}
 		}
 
@@ -1394,20 +1418,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					switch (type) {
 						case RecordOpType.Put: {
 							// Try to put the document. If it fails, stop here.
-							addDocument(this.presenceStore, presenceChanges, id, {
-								...val,
-								id,
-								typeName,
-							})
+							const change = stagePut(this.presenceStore, id, { ...val, id, typeName })
+							if (change) applyChange(this.presenceStore, presenceChanges, change)
 							break
 						}
 						case RecordOpType.Patch: {
 							// Try to patch the document. If it fails, stop here.
-							patchDocument(this.presenceStore, presenceChanges, id, {
+							const change = stagePatch(this.presenceStore, id, {
 								...val,
 								id: [ValueOpType.Put, id],
 								typeName: [ValueOpType.Put, typeName],
 							})
+							if (change) applyChange(this.presenceStore, presenceChanges, change)
 							break
 						}
 					}
@@ -1427,6 +1449,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (message.diff) {
 					// The push request was for the document scope.
+					const staged: StagedChange[] = []
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
 						switch (op[0]) {
 							case RecordOpType.Put: {
@@ -1454,7 +1477,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// also keys off the incoming typeName while the replace path validates
 								// against the stored one, so a swap would consult the wrong authorizer (or
 								// none). Skip it like a veto; the client self-corrects.
-								// `undefined` (no session) means the guard didn't fetch, so addDocument will.
+								// `undefined` (no session) means the guard didn't fetch, so stagePut will.
 								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
 								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
 									this.log?.warn?.(
@@ -1467,7 +1490,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									continue
 								}
 								// Per-type authorizer: stamp/veto the write from the session's identity.
-								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
+								// Client pushes only; runs inside `stagePut`, on the up-migrated record.
 								let authorize: ((prev: R | null, next: R) => R | null) | undefined
 								if (session && this.authorizeRecord) {
 									const authorizePut = this.authorizerFor(record.typeName)
@@ -1494,7 +1517,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									}
 								}
 								// The guard above already fetched this, so don't hit storage again.
-								addDocument(txn, docChanges, id, record, authorize, prevRecord)
+								const change = stagePut(txn, id, record, authorize, prevRecord)
+								if (change) staged.push(change)
 								break
 							}
 							case RecordOpType.Patch: {
@@ -1502,7 +1526,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
-								// Per-type authorizer (update, allow/veto only): runs inside `patchDocument`
+								// Per-type authorizer (update, allow/veto only): runs inside `stagePatch`
 								// on the committed candidate, never on a raw client-version preview.
 								const authorizePatch = session && this.authorizerFor(doc.typeName)
 								const authorize = authorizePatch
@@ -1527,7 +1551,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
 								// already fetched the record, so pass it through.
-								patchDocument(txn, docChanges, id, op[1], authorize, doc)
+								const change = stagePatch(txn, id, op[1], authorize, doc)
+								if (change) staged.push(change)
 								break
 							}
 							case RecordOpType.Remove: {
@@ -1554,14 +1579,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									continue
 								}
 
-								// Delete the document and propagate the delete op
-								// delete automatically creates tombstones
-								txn.delete(id)
-								propagateOp(docChanges, id, op, doc, undefined)
+								staged.push({ type: 'delete', id, prev: doc, next: null })
 								break
 							}
 						}
 					}
+					// the whole push is staged and nothing has been written
+					for (let i = 0; i < staged.length; i++) applyChange(txn, docChanges, staged[i])
 				}
 
 				return { docChanges, presenceChanges }

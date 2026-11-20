@@ -1,3 +1,4 @@
+import { transact, transaction } from '@tldraw/state'
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import { vi } from 'vitest'
 import { TLHistoryBatchOptions } from '../../types/history-types'
@@ -938,5 +939,88 @@ describe('HistoryManager error scenarios and edge cases', () => {
 			manager.undo()
 			expect(store.get(ids.a)!.value).toBe(initialValue)
 		})
+	})
+})
+
+describe('HistoryManager and rolled-back transactions', () => {
+	let store: Store<TestRecord>
+	let manager: HistoryManager<TestRecord>
+	const set = (id: TestRecordId, value: number) => store.update(id, (r) => ({ ...r, value }))
+	const boom = () => {
+		throw new Error('boom')
+	}
+
+	beforeEach(() => {
+		store = new Store({ schema: testSchema, props: null })
+		store.put([
+			testSchema.types.test.create({ id: ids.a, value: 0 }),
+			testSchema.types.test.create({ id: ids.b, value: 0 }),
+		])
+		manager = new HistoryManager({ store })
+	})
+
+	const rollbacks: [string, (change: () => void) => void][] = [
+		['a batch that throws', (change) => manager.batch(() => (change(), boom()))],
+		[
+			'a transaction around a change that went through',
+			(change) => transact(() => (change(), boom())),
+		],
+		[
+			'a transaction around one that committed',
+			(change) => transaction(() => (transaction(change), boom())),
+		],
+	]
+
+	it.each(rollbacks)('keeps changes out of undo and redo after %s', (_name, rollBack) => {
+		manager._mark('start')
+		expect(() => rollBack(() => set(ids.a, 1))).toThrow('boom')
+		expect(store.get(ids.a)!.value).toBe(0)
+
+		manager._mark('next')
+		set(ids.b, 1)
+		manager.undo().undo().redo().redo()
+
+		expect(store.get(ids.a)!.value).toBe(0)
+		expect(store.get(ids.b)!.value).toBe(1)
+	})
+
+	const create = (id: TestRecordId) => store.put([testSchema.types.test.create({ id, value: 5 })])
+	it.each<[string, () => void, () => void]>([
+		['an update of an updated record', () => set(ids.a, 1), () => set(ids.a, 2)],
+		['a delete of an updated record', () => set(ids.a, 1), () => store.remove([ids.a])],
+		['an update of a created record', () => create(ids.count), () => set(ids.count, 6)],
+		['a delete of a created record', () => create(ids.count), () => store.remove([ids.count])],
+		['a create of a deleted record', () => store.remove([ids.a]), () => create(ids.a)],
+		[
+			// the unrecorded delete leaves the record in both `updated` and `added`
+			'an update of a record re-created after an unrecorded delete',
+			() => {
+				set(ids.a, 1)
+				manager.batch(() => store.remove([ids.a]), { history: 'ignore' })
+				create(ids.a)
+			},
+			() => set(ids.a, 9),
+		],
+	])('puts the pending diff back after rolling back %s', (_name, pending, rolledBack) => {
+		pending()
+		const before = structuredClone(manager.debug().pendingDiff)
+
+		expect(() => transact(() => (rolledBack(), boom()))).toThrow('boom')
+
+		expect(manager.debug().pendingDiff).toEqual(before)
+	})
+
+	it('keeps earlier changes undoable when a mark is rolled back', () => {
+		set(ids.a, 1)
+		expect(() =>
+			transact(() => {
+				manager._mark('mark')
+				boom()
+			})
+		).toThrow('boom')
+
+		manager.undo()
+
+		expect(store.get(ids.a)!.value).toBe(0)
 	})
 })

@@ -1,7 +1,13 @@
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
-import { getGlobalEpoch, transact, transaction } from '../transactions'
+import {
+	beforeTransactionCommit,
+	getGlobalEpoch,
+	onTransactionAbort,
+	transact,
+	transaction,
+} from '../transactions'
 
 // Tests for SPEC.md §11 (transactions), plus rule EP6.
 // Rule IDs like [T4] in test names refer to that document.
@@ -261,5 +267,96 @@ describe('transact (T)', () => {
 		expect(a.get()).toBe('c')
 
 		expect.assertions(3)
+	})
+})
+
+describe('beforeTransactionCommit (T12)', () => {
+	it('runs once when the outermost transaction is about to commit, before effects', () => {
+		const a = atom('', 0)
+		const seenByEffect: number[] = []
+		react('', () => void seenByEffect.push(a.get()))
+		const log: string[] = []
+
+		transaction(() => {
+			transaction(() => {
+				a.set(1)
+				beforeTransactionCommit(() => log.push(`commit ${a.get()}, effect saw ${seenByEffect}`))
+			})
+			log.push('inner committed')
+			a.set(2)
+		})
+
+		expect(log).toEqual(['inner committed', 'commit 2, effect saw 0'])
+		expect(seenByEffect).toEqual([0, 2])
+	})
+
+	it('does not run callbacks from a transaction that aborts', () => {
+		const ran = vi.fn()
+		transaction(() => {
+			transaction((rollback) => {
+				beforeTransactionCommit(ran)
+				rollback()
+			})
+		})
+		expect(() =>
+			transaction(() => {
+				beforeTransactionCommit(ran)
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect(ran).not.toHaveBeenCalled()
+	})
+
+	it('runs callbacks registered by a callback, and commits what callbacks change', () => {
+		const a = atom('', 0)
+		transaction(() => {
+			beforeTransactionCommit(() => {
+				a.set(1)
+				beforeTransactionCommit(() => a.set(a.get() + 1))
+			})
+		})
+		expect(a.get()).toBe(2)
+	})
+
+	it.each([
+		['rollback', (rollback: () => void) => rollback(), undefined],
+		[
+			'a throw',
+			() => {
+				throw new Error('boom')
+			},
+			'boom',
+		],
+	])('aborts the whole transaction on %s', (_name, refuse, error) => {
+		const a = atom('', 0)
+		const aborted = vi.fn()
+		const later = vi.fn()
+		const run = () =>
+			transaction(() => {
+				a.set(1)
+				onTransactionAbort(aborted)
+				beforeTransactionCommit(refuse)
+				beforeTransactionCommit(later)
+				return 'result'
+			})
+
+		if (error) expect(run).toThrow(error)
+		else expect(run()).toBe('result')
+
+		expect(a.get()).toBe(0)
+		expect(aborted).toHaveBeenCalledTimes(1)
+		expect(later).not.toHaveBeenCalled()
+	})
+
+	it("aborts when a callback calls the transaction's own rollback", () => {
+		const a = atom('', 0)
+		const later = vi.fn()
+		transaction((rollback) => {
+			a.set(1)
+			beforeTransactionCommit(() => rollback())
+			beforeTransactionCommit(later)
+		})
+		expect(a.get()).toBe(0)
+		expect(later).toHaveBeenCalledTimes(1)
 	})
 })

@@ -1,4 +1,4 @@
-import { _Atom } from './Atom'
+import { _Atom, Atom } from './Atom'
 import { GLOBAL_START_EPOCH } from './constants'
 import { singleton } from './helpers'
 import { Child, Signal } from './types'
@@ -17,6 +17,12 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
+	// See `onTransactionAbort`. Oldest first.
+	abortCallbacks: (() => void)[] | null = null
+
+	// See `beforeTransactionCommit`. Oldest first.
+	commitCallbacks: CommitCallback[] | null = null
+
 	commit() {
 		if (this.parent === null) {
 			// For root transactions, flush changed atoms
@@ -30,6 +36,9 @@ class Transaction {
 		// A parent that has recorded nothing yet adopts the map outright: this transaction is
 		// finished with it, and the common nested case is a single inner transaction doing all
 		// the writes.
+		const parent = this.parent!
+		parent.abortCallbacks = concatCallbacks(parent.abortCallbacks, this.abortCallbacks)
+		parent.commitCallbacks = concatCallbacks(parent.commitCallbacks, this.commitCallbacks)
 		const parentValues = this.parent!.initialAtomValues
 		if (parentValues.size === 0) {
 			this.parent!.initialAtomValues = this.initialAtomValues
@@ -40,6 +49,32 @@ class Transaction {
 				parentValues.set(atom, value)
 			}
 		})
+	}
+
+	/**
+	 * Run the callbacks registered with `beforeTransactionCommit`, including any that they
+	 * register. Only a root transaction has a commit of its own to prepare for: a nested one hands
+	 * its callbacks to its parent. Returns true if a callback asked for a rollback.
+	 */
+	prepare(): boolean {
+		if (this.parent !== null) return false
+		let rollback = false
+		const requestRollback = () => {
+			rollback = true
+		}
+		let passes = 0
+		while (this.commitCallbacks) {
+			if (passes++ > 100) {
+				throw new Error('Commit callback depth limit exceeded')
+			}
+			const callbacks = this.commitCallbacks
+			this.commitCallbacks = null
+			for (let i = 0; i < callbacks.length; i++) {
+				callbacks[i](requestRollback)
+				if (rollback) return true
+			}
+		}
+		return false
 	}
 
 	/**
@@ -57,8 +92,27 @@ class Transaction {
 			atom.historyBuffer?.clear()
 		})
 
-		this.commit()
+		// Taken off before `commit`, which would otherwise hand them to the parent.
+		const callbacks = this.abortCallbacks
+		this.abortCallbacks = null
+		this.commitCallbacks = null
+		try {
+			if (callbacks) {
+				for (let i = callbacks.length - 1; i >= 0; i--) callbacks[i]()
+			}
+		} finally {
+			this.commit()
+		}
 	}
+}
+
+type CommitCallback = (rollback: () => void) => void
+
+function concatCallbacks<T>(parent: T[] | null, child: T[] | null): T[] | null {
+	if (!child) return parent
+	if (!parent) return child
+	for (let i = 0; i < child.length; i++) parent.push(child[i])
+	return parent
 }
 
 const inst = singleton('transactions', () => ({
@@ -161,6 +215,55 @@ function flushChanges(atoms: Iterable<_Atom>) {
 		inst.currentTransaction = outerTxn
 		traverseReactors = undefined! // free memory
 	}
+}
+
+/**
+ * Registers `undo` to run if the current transaction, or a transaction around it, rolls back. For
+ * state kept outside atoms, which a rollback would otherwise leave as it is. Callbacks run newest
+ * first, after the atoms are restored and before effects are flushed. They must not throw, and
+ * must not change atoms or register callbacks: the transaction is already ending. Outside
+ * a transaction nothing can roll back, so this does nothing.
+ *
+ * @internal
+ */
+export function onTransactionAbort(undo: () => void) {
+	const txn = inst.currentTransaction
+	if (!txn) return
+	if (txn.abortCallbacks) txn.abortCallbacks.push(undo)
+	else txn.abortCallbacks = [undo]
+}
+
+/**
+ * Registers `fn` to run when the outermost transaction is about to commit: every change is made,
+ * no effect has run, and nothing outside the transaction has seen it. For checks on a transaction
+ * as a whole. `fn` may change atoms and register further callbacks, which run before the same
+ * commit. Calling `rollback` aborts the transaction and skips the callbacks that are left, and a
+ * throw aborts it and propagates. Callbacks from a transaction that aborts never run. Outside a
+ * transaction this does nothing.
+ *
+ * @internal
+ */
+export function beforeTransactionCommit(fn: (rollback: () => void) => void) {
+	const txn = inst.currentTransaction
+	if (!txn) return
+	if (txn.commitCallbacks) txn.commitCallbacks.push(fn)
+	else txn.commitCallbacks = [fn]
+}
+
+/**
+ * The value `atom` had before the outermost open transaction changed it, which is the value it
+ * goes back to if that transaction rolls back. The atom's current value when no open transaction
+ * has changed it.
+ *
+ * @internal
+ */
+export function getValueBeforeTransaction<T>(atom: Atom<T>): T {
+	let value = atom.__unsafe__getWithoutCapture()
+	for (let txn = inst.currentTransaction; txn; txn = txn.parent) {
+		const initialValues = txn.initialAtomValues
+		if (initialValues.has(atom as any)) value = initialValues.get(atom as any)
+	}
+	return value
 }
 
 /** @internal */
@@ -285,6 +388,16 @@ export function transaction<T>(fn: (rollback: () => void) => T) {
 			throw new Error('Transaction boundaries overlap')
 		}
 
+		if (!rollback) {
+			try {
+				// Never assign: a callback can call `fn`'s own `rollback`, which `prepare` can't see.
+				if (txn.prepare()) rollback = true
+			} catch (e) {
+				txn.abort()
+				throw e
+			}
+		}
+
 		if (rollback) {
 			txn.abort()
 		} else {
@@ -402,14 +515,22 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	// first made every restoring set inside `abort()` flush effects on its own, so effects
 	// observed half-restored state.
 	try {
+		let rollback = false
+		if (typeof error === 'undefined') {
+			try {
+				rollback = txn.prepare()
+			} catch (e) {
+				error = e ?? null
+			}
+		}
 		if (typeof error !== 'undefined') {
 			// If the rollback was triggered, abort the transaction.
 			txn.abort()
 			throw error
-		} else {
-			txn.commit()
-			return result
 		}
+		if (rollback) txn.abort()
+		else txn.commit()
+		return result
 	} finally {
 		inst.currentTransaction = null
 	}
