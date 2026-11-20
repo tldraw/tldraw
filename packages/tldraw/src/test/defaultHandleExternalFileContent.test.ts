@@ -136,6 +136,74 @@ describe('defaultHandleExternalFileContent', () => {
 	})
 })
 
+describe('uploads that finish after the drop', () => {
+	function deferUpload() {
+		let finish!: () => void
+		const uploaded = new Promise<void>((resolve) => (finish = resolve))
+		vi.spyOn(editor, 'getAssetForExternalContent').mockImplementation(async (info) => {
+			if (info.type !== 'file') return undefined
+			const asset = await getAssetInfo(editor, info.file)
+			await uploaded
+			return { ...asset!, props: { ...asset!.props, src: 'https://uploaded' } } as any
+		})
+		return async () => {
+			finish()
+			for (let i = 0; i < 10; i++) await Promise.resolve()
+		}
+	}
+
+	it('does not add the asset when the page is full', async () => {
+		editor.dispose()
+		editor = new TestEditor({ assetUtils: defaultAssetUtils, options: { maxShapesPerPage: 1 } })
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 100, h: 50, pixelRatio: 1 })
+		editor.createShapes([{ type: 'geo' }])
+		const finishUpload = deferUpload()
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [new File(['png'], 'a.png', { type: 'image/png' })] },
+			makeOptions()
+		)
+		await finishUpload()
+
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'image')).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	it('does not re-create an asset removed before its upload finished', async () => {
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 100, h: 50, pixelRatio: 1 })
+		const finishUpload = deferUpload()
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [new File(['png'], 'a.png', { type: 'image/png' })] },
+			makeOptions()
+		)
+		const image = editor.getCurrentPageShapes()[0] as TLImageShape
+		editor.deleteShapes([image])
+		editor.deleteAssets([image.props.assetId!])
+		await finishUpload()
+
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	it('saves the uploaded asset when its shape still exists', async () => {
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 100, h: 50, pixelRatio: 1 })
+		const finishUpload = deferUpload()
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [new File(['png'], 'a.png', { type: 'image/png' })] },
+			makeOptions()
+		)
+		await finishUpload()
+
+		const image = editor.getCurrentPageShapes()[0] as TLImageShape
+		expect(editor.getAsset(image.props.assetId!)?.props.src).toBe('https://uploaded')
+	})
+})
+
 describe('createShapesForAssets', () => {
 	it('skips assets with no size and still places the others', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
