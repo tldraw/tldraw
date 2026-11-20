@@ -141,7 +141,6 @@ export interface TLAppUiEventMap {
 	'rename-library-item': null
 	'delete-library-item': null
 	'move-library-item': null
-	'open-starter-packs': null
 	'add-starter-pack': { pack_id: string }
 	'library-error': {
 		action: TLAppLibraryAction

@@ -21,6 +21,7 @@ import {
 	useEditor,
 	useToasts,
 	useTranslation,
+	useUiEvents,
 	useValue,
 } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -52,12 +53,12 @@ const messages = defineMessages({
 export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySource }) {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
-	const trackEvent = useTldrawAppUiEvents()
+	const trackEvent = useUiEvents()
 	return (
 		<LibraryMenuItem
 			label={msg(messages.browse)}
 			onClick={() => {
-				trackEvent('open-starter-packs', { source: 'libraries' })
+				trackEvent('open-browse-libraries', { source: 'libraries' })
 				addDialog({
 					component: () => <TlaStarterPacksDialog source={source} />,
 				})
