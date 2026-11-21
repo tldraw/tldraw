@@ -12,6 +12,7 @@ import {
 	createShapeId,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { getArrowInfo } from '../lib/shapes/arrow/getArrowInfo'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TranslatingInfo } from '../lib/tools/SelectTool/childStates/Translating'
 import { getSnapLines } from './getSnapLines'
@@ -1818,6 +1819,78 @@ describe('translating a shape with a bound shape', () => {
 		expect(getArrowBindings(editor, newArrow)).toMatchObject({
 			start: { type: 'arrow' },
 			end: undefined,
+		})
+	})
+
+	describe('after pressing and releasing alt to stop cloning', () => {
+		const arrow1 = createShapeId('arrow1')
+
+		beforeEach(() => {
+			editor
+				.createShapes([
+					{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 200, h: 200 } },
+					{
+						id: arrow1,
+						type: 'arrow',
+						x: -100,
+						y: 100,
+						// Not the box's centre the binding aims at, so a stale end shows once the arrow unbinds
+						props: { start: { x: 0, y: 0 }, end: { x: 360, y: 150 } },
+					},
+				])
+				.createBinding({
+					type: 'arrow',
+					fromId: arrow1,
+					toId: ids.box1,
+					props: {
+						terminal: 'end',
+						isExact: false,
+						normalizedAnchor: { x: 0.8, y: 0.75 },
+						isPrecise: false,
+					},
+				})
+		})
+
+		function getTerminalPagePoints() {
+			const arrow = editor.getShape<TLArrowShape>(arrow1)!
+			const info = getArrowInfo(editor, arrow)!
+			const pageTransform = editor.getShapePageTransform(arrow)
+			return {
+				start: pageTransform.applyToPoint(info.start.handle),
+				end: pageTransform.applyToPoint(info.end.handle),
+			}
+		}
+
+		it('keeps an arrow pointing the same way once it unbinds', () => {
+			expect(getTerminalPagePoints()).toCloselyMatchObject({
+				start: { x: -100, y: 100 },
+				end: { x: 200, y: 200 },
+			})
+
+			editor.select(arrow1).pointerDown(-70, 110, arrow1).pointerMove(-60, 110)
+			editor.keyDown('Alt').pointerMove(-50, 110)
+			editor.keyUp('Alt')
+			vi.advanceTimersByTime(500)
+			// Far enough that the arrow's end leaves the box and it unbinds
+			editor.pointerMove(60, 110)
+
+			expect(getArrowBindings(editor, editor.getShape<TLArrowShape>(arrow1)!).end).toBeUndefined()
+			expect(getTerminalPagePoints()).toCloselyMatchObject({
+				start: { x: 30, y: 100 },
+				end: { x: 330, y: 200 },
+			})
+		})
+
+		it('keeps an arrow pointing the same way when alt was held as the drag started', () => {
+			editor.select(arrow1).pointerDown(-70, 110, arrow1).keyDown('Alt').pointerMove(-60, 110)
+			editor.keyUp('Alt')
+			vi.advanceTimersByTime(500)
+			editor.pointerMove(-40, 110)
+
+			expect(getTerminalPagePoints()).toCloselyMatchObject({
+				start: { x: -70, y: 100 },
+				end: { x: 230, y: 200 },
+			})
 		})
 	})
 })
