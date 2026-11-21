@@ -1909,6 +1909,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getEmbedDefinitions(): readonly TLEmbedDefinition[];
     // (undocumented)
+    getFontFaces(): TLFontFace[];
+    // (undocumented)
     getGeometry(shape: TLEmbedShape): Geometry2d;
     // (undocumented)
     getIndicatorPath(shape: TLEmbedShape): Path2D;
@@ -1931,6 +1933,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     resolveAspectRatio(shape: TLEmbedShape): Promise<void>;
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
+    // (undocumented)
+    toSvg(shape: TLEmbedShape, ctx: SvgExportContext): JSX.Element;
     // (undocumented)
     static type: 'embed';
 }
