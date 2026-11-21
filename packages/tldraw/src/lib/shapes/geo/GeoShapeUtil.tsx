@@ -276,7 +276,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { scale } = props
 		const dv = getDisplayValues(this, shape)
 		const path = getGeoShapePath(shape, dv.strokeWidth, this.options.customGeoTypes)
-		const pathGeometry = path.toGeometry()
+		const pathGeometry = path.toGeometry({
+			// dash none draws no stroke, so there is no ink to hit
+			hitPadding: props.dash === 'none' ? 0 : (dv.strokeWidth * scale) / 2,
+		})
 
 		const scaledW = Math.max(1, props.w)
 		const scaledH = Math.max(1, props.h + props.growY)

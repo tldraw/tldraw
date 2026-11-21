@@ -7,11 +7,15 @@ import {
 } from '@tldraw/state'
 import type { RecordsDiff } from '@tldraw/store'
 import { TLPageId, TLShape, TLShapeId, isBinding, isPageId, isShape } from '@tldraw/tlschema'
-import type { TLRecord } from '@tldraw/tlschema'
+import type { TLRecord, TLTheme } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
+
+// Sampled curves cut inside their true outline by up to ~2 units (arcs sample every 20 units),
+// so padded shapes get this much extra room in the index.
+const CURVE_SAMPLING_SLACK = 2
 
 /**
  * Manages spatial indexing for efficient shape location queries.
@@ -42,6 +46,8 @@ export class SpatialIndexManager {
 	private spatialIndexComputed: Computed<number>
 	private lastPageId: TLPageId | null = null
 	private lastFontLoadEpoch = -1
+	private lastTheme: TLTheme | null = null
+	private lastColorMode: 'light' | 'dark' | null = null
 
 	// Bumps only when the rbush content may have changed. Consumers subscribe
 	// via the computed; a stable epoch lets prop-only diffs skip downstream
@@ -67,11 +73,9 @@ export class SpatialIndexManager {
 		const bindingHistory = this.editor.store.query.filterHistory('binding')
 
 		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
-			// These four reads are the computed's only tracked dependencies: shape
-			// and binding record changes, plus font loads (measured text resizes
-			// when its font swaps in). Theme changes that resize shapes without a
-			// record diff (e.g. `updateTheme({ fontSize })`) are not tracked, so
-			// the index stays stale for those until the next rebuild.
+			// Tracked dependencies: shape and binding changes, font loads, and the
+			// theme and color mode, which resize shapes and their stroke padding
+			// without a record diff.
 			// The rebuild/update paths below run without capture to avoid
 			// registering a dependency per checked shape on every update (and
 			// ~page-size dependencies on every rebuild).
@@ -79,6 +83,8 @@ export class SpatialIndexManager {
 			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
 			const currentPageId = this.editor.getCurrentPageId()
 			const fontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
+			const theme = this.editor.getCurrentTheme()
+			const colorMode = this.editor.getColorMode()
 
 			if (
 				isUninitialized(_prevValue) ||
@@ -88,7 +94,10 @@ export class SpatialIndexManager {
 				// Which shapes a font load resizes isn't known without visiting
 				// every shape, so rebuild; loads are rare and bounded by the
 				// number of distinct fonts.
-				this.lastFontLoadEpoch !== fontLoadEpoch
+				this.lastFontLoadEpoch !== fontLoadEpoch ||
+				// Theme and color mode changes are rare too
+				this.lastTheme !== theme ||
+				this.lastColorMode !== colorMode
 			) {
 				return unsafe__withoutCapture(() => this.rebuildAndBumpEpoch())
 			}
@@ -106,10 +115,12 @@ export class SpatialIndexManager {
 		this.rbush.clear()
 		this.lastPageId = this.editor.getCurrentPageId()
 		this.lastFontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
+		this.lastTheme = this.editor.getCurrentTheme()
+		this.lastColorMode = this.editor.getColorMode()
 
 		const elements: SpatialElement[] = []
 		for (const shape of this.editor.getCurrentPageShapes()) {
-			const bounds = this.editor.getShapePageBounds(shape.id)
+			const bounds = this.getIndexedBounds(shape.id)
 			if (bounds && bounds.isValid()) {
 				elements.push({
 					minX: bounds.minX,
@@ -258,7 +269,7 @@ export class SpatialIndexManager {
 				continue
 			}
 
-			const bounds = this.editor.getShapePageBounds(id)
+			const bounds = this.getIndexedBounds(id)
 			if (bounds && bounds.isValid()) {
 				if (!this.areBoundsEqualToSpatialElement(bounds, indexedElement)) {
 					pendingRemoves.delete(id)
@@ -281,6 +292,14 @@ export class SpatialIndexManager {
 		return true
 	}
 
+	/** Page bounds grown by stroke padding, so shapes are found where their ink is. */
+	private getIndexedBounds(id: TLShapeId): Box | undefined {
+		const bounds = this.editor.getShapePageBounds(id)
+		if (!bounds) return bounds
+		const pad = this.editor.getShapeGeometry(id).hitPadding
+		return pad > 0 ? bounds.clone().expandBy(pad + CURVE_SAMPLING_SLACK) : bounds
+	}
+
 	private areBoundsEqualToSpatialElement(
 		a: Box | undefined,
 		b: SpatialElement | undefined
@@ -292,7 +311,7 @@ export class SpatialIndexManager {
 
 	/**
 	 * Get shape IDs within the given bounds.
-	 * Optimized for viewport culling queries.
+	 * Optimized for viewport culling queries. Indexed bounds include each shape's stroke padding.
 	 *
 	 * Note: Results are unordered. If you need z-order, combine with sorted shapes:
 	 * ```ts

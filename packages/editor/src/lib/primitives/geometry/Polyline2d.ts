@@ -1,7 +1,7 @@
 import { pointInPolygon } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { Edge2d } from './Edge2d'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class Polyline2d extends Geometry2d {
@@ -93,8 +93,13 @@ export class Polyline2d extends Geometry2d {
 		return new Vec(bestX, bestY)
 	}
 
-	override hitTestPoint(point: VecLike, margin = 0, hitInside = false): boolean {
-		return this.distanceToPoint(point, hitInside) <= margin
+	override hitTestPoint(
+		point: VecLike,
+		margin = 0,
+		hitInside = false,
+		filters?: Geometry2dFilters
+	): boolean {
+		return this.distanceToPoint(point, hitInside) <= getHitReach(this, margin, filters)
 	}
 
 	override distanceToPoint(point: VecLike, hitInside = false): number {
@@ -110,10 +115,16 @@ export class Polyline2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0): boolean {
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
 		const { segments } = this
+		const reach = getHitReach(this, distance, filters)
 		for (let i = 0, n = segments.length; i < n; i++) {
-			if (segments[i].hitTestLineSegment(A, B, distance)) {
+			if (segments[i].hitTestLineSegment(A, B, reach)) {
 				return true
 			}
 		}

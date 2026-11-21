@@ -1,5 +1,6 @@
 import { Mat } from '../Mat'
 import { Vec, VecLike } from '../Vec'
+import { Arc2d } from './Arc2d'
 import { Edge2d } from './Edge2d'
 import {
 	Geometry2d,
@@ -671,17 +672,17 @@ describe('Geometry2d.distanceToLineSegment', () => {
 		expect(square().distanceToLineSegment(new Vec(150, -50), new Vec(150, 50))).toBe(50)
 	})
 
-	// Locks in current behaviour, see #10556.
-	it('measures from the polygon vertices, not its edges', () => {
-		// the segment is 5 units above the middle of the top edge, but 50.25 from the nearest vertex
-		expect(square().distanceToLineSegment(new Vec(50, -10), new Vec(50, -5))).toBeCloseTo(
-			Math.hypot(50, 5)
-		)
+	// #10556
+	it('measures to the edges, not just the vertices', () => {
+		// the segment is 5 units above the middle of the top edge, and 50.25 from the nearest vertex
+		expect(square().distanceToLineSegment(new Vec(50, -10), new Vec(50, -5))).toBe(5)
+		// parallel to the top edge, between its vertices
+		expect(square().distanceToLineSegment(new Vec(30, -3), new Vec(70, -3))).toBe(3)
 	})
 
 	it('is negative when the nearest point lies inside a filled shape', () => {
 		const d = square().distanceToLineSegment(new Vec(40, 50), new Vec(60, 50))
-		expect(d).toBeCloseTo(Math.hypot(40, 50))
+		expect(d).toBe(40)
 		expect(filledSquare().distanceToLineSegment(new Vec(40, 50), new Vec(60, 50))).toBe(-d)
 	})
 
@@ -1031,5 +1032,64 @@ describe('TransformedGeometry2d delegation', () => {
 		expect(() => rect().getSvgPathData(true)).toThrow(
 			'Cannot get SVG path data for transformed geometry.'
 		)
+	})
+})
+
+describe('hitPadding', () => {
+	// along y = 0 from x = 0 to 100, ink 5 either side
+	const edge = (hitPadding = 5) =>
+		new Edge2d({ start: new Vec(0, 0), end: new Vec(100, 0), hitPadding })
+
+	// A radius 50 arc over the top from (-50, 0) to (50, 0), sampled every 22.5°
+	const arc = new Arc2d({
+		center: new Vec(0, 0),
+		start: new Vec(-50, 0),
+		end: new Vec(50, 0),
+		sweepFlag: 1,
+		largeArcFlag: 0,
+		hitPadding: 5,
+	})
+	// A short drag tangent to the circle of radius r, halfway between two samples
+	const tangentAt = (r: number) => {
+		const u = Vec.FromAngle((-78.75 * Math.PI) / 180)
+		const p = Vec.Mul(u, r)
+		return [Vec.Add(p, Vec.Per(u).mul(2)), Vec.Sub(p, Vec.Per(u).mul(2))] as const
+	}
+	it.each([
+		['tangent to the outer ink', ...tangentAt(54.8), true],
+		['in the hollow past the inner ink', ...tangentAt(44.4), false],
+		['within reach of an end', new Vec(45, 4.5), new Vec(55, 4.5), true],
+		['just beyond an end cap', new Vec(45, 5.5), new Vec(55, 5.5), false],
+	])('band-tests arc segment hits: %s', (_, A, B, expected) => {
+		expect(arc.hitTestLineSegment(A, B, 1)).toBe(expected)
+	})
+
+	it('scales through a transform', () => {
+		const g = edge().transform(Mat.Scale(2, 2))
+		expect(g.hitPadding).toBe(10)
+		expect(g.hitTestPoint(new Vec(100, 10), 1)).toBe(true)
+		expect(g.hitTestPoint(new Vec(100, 11), 1)).toBe(false)
+	})
+
+	it('pads each group child by its own padding', () => {
+		const g = new Group2d({
+			children: [edge(), new Edge2d({ start: new Vec(0, 50), end: new Vec(100, 50) })],
+		})
+		expect(g.hitTestPoint(new Vec(50, 5), 1, false)).toBe(true)
+		// 5 from the unpadded child
+		expect(g.hitTestPoint(new Vec(50, 45), 1, false)).toBe(false)
+		expect(g.hitTestLineSegment(new Vec(20, 5), new Vec(80, 5), 1)).toBe(true)
+		expect(g.hitTestLineSegment(new Vec(20, 45), new Vec(80, 45), 1)).toBe(false)
+	})
+
+	it("gives a group its widest non-label child's padding, at least", () => {
+		const label = new Rectangle2d({ width: 10, height: 10, isFilled: true, isLabel: true })
+		label.hitPadding = 20
+		expect(new Group2d({ children: [edge(), edge(2), label] }).hitPadding).toBe(5)
+		expect(new Group2d({ children: [edge()], hitPadding: 8 }).hitPadding).toBe(8)
+		expect(new Group2d({ children: [edge()], hitPadding: 2 }).hitPadding).toBe(5)
+		expect(
+			new Group2d({ children: [edge()], hitPadding: 8 }).transform(Mat.Scale(2, 2)).hitPadding
+		).toBe(16)
 	})
 })

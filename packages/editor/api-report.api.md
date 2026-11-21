@@ -138,7 +138,7 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
 }
@@ -502,9 +502,9 @@ export class Circle2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(point: VecLike): Vec;
 }
@@ -627,7 +627,7 @@ export class CubicSpline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
@@ -853,7 +853,7 @@ export const EASINGS: {
 
 // @public (undocumented)
 export class Edge2d extends Geometry2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         end: Vec;
         start: Vec;
     });
@@ -1799,7 +1799,7 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     getVertices(): any[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
 }
@@ -1903,10 +1903,11 @@ export abstract class Geometry2d {
     abstract getSvgPathData(first: boolean): string;
     // (undocumented)
     abstract getVertices(filters: Geometry2dFilters): Vec[];
+    hitPadding: number;
     // (undocumented)
     hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, _filters?: Geometry2dFilters): boolean;
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     ignore?: boolean;
     ignoreHit(_point: VecLike): boolean;
@@ -1950,6 +1951,7 @@ export abstract class Geometry2d {
 
 // @public
 export interface Geometry2dFilters {
+    readonly includeHitPadding?: boolean;
     // (undocumented)
     readonly includeInternal?: boolean;
     // (undocumented)
@@ -1966,6 +1968,7 @@ export const Geometry2dFilters: {
 
 // @public (undocumented)
 export interface Geometry2dOptions extends TransformedGeometry2dOptions {
+    hitPadding?: number;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -2821,7 +2824,7 @@ export class Point2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, margin: number): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, margin?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(): Vec;
 }
@@ -2866,9 +2869,9 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
-    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: VecLike, margin?: number, hitInside?: boolean, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
     // (undocumented)
@@ -3279,7 +3282,7 @@ export class Stadium2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec[];
     // (undocumented)
-    hitTestLineSegment(A: VecLike, B: VecLike): boolean;
+    hitTestLineSegment(A: VecLike, B: VecLike, distance?: number, filters?: Geometry2dFilters): boolean;
     // (undocumented)
     nearestPoint(A: VecLike): Vec;
 }
@@ -3919,7 +3922,6 @@ export interface TldrawOptions {
     }[];
     // (undocumented)
     readonly handleRadius: number;
-    // (undocumented)
     readonly hitTestMargin: number;
     // (undocumented)
     readonly laserDelayMs: number;

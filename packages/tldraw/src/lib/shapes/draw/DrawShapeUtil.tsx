@@ -143,11 +143,18 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			getFreehandOptions(shape.props, sw, shape.props.isPen, true)
 		).map((p) => p.point)
 
+		// Half the nominal width. Freehand width varies along the stroke, so this is approximate.
+		const hitPadding =
+			shape.props.dash === 'none'
+				? 0
+				: (shape.props.isPen && shape.props.dash === 'draw' ? 1 + sw * 1.2 : sw) / 2
+
 		// A closed draw stroke
 		if (shape.props.isClosed && strokePoints.length > 2) {
 			return new Polygon2d({
 				points: strokePoints,
 				isFilled: shape.props.fill !== 'none',
+				hitPadding,
 			})
 		}
 
@@ -163,6 +170,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		// An open draw stroke
 		return new Polyline2d({
 			points: strokePoints,
+			hitPadding,
 		})
 	}
 

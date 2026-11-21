@@ -1,5 +1,5 @@
 import { Vec, VecLike } from '../Vec'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Edge2d extends Geometry2d {
@@ -9,7 +9,7 @@ export class Edge2d extends Geometry2d {
 	private _dy: number
 	private _len2: number
 
-	constructor(config: { start: Vec; end: Vec }) {
+	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { start: Vec; end: Vec }) {
 		super({ ...config, isClosed: false, isFilled: false })
 		const { start, end } = config
 

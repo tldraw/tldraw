@@ -77,8 +77,9 @@ it('lists shapes in viewport', () => {
 	// D is outside of the viewport, so it's clipped
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.D]))
 
-	// Move the camera 201 pixels to the right and 201 pixels down
-	editor.pan({ x: -201, y: -201 })
+	// Move the camera 205 pixels to the right and 205 pixels down, past A's stroke, which reaches
+	// 1.75 past its geometry, and the index's 2 units of slack for curves
+	editor.pan({ x: -205, y: -205 })
 	vi.advanceTimersByTime(500)
 
 	// A is now outside of the viewport, like D

@@ -159,7 +159,9 @@ describe('with hitLabels=true', () => {
 			type: 'geo',
 			props: { richText: toRichText('hello') },
 		})
-		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, opts)?.id).toBe(ids.box2)
+		// with margin 0, box3's stroke reaches further than the margin and is drawn over the label
+		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, opts)?.id).toBe(ids.box3)
+		expect(editor.getShapeAtPoint({ x: 355, y: 355 }, opts)?.id).toBe(ids.box2)
 	})
 })
 

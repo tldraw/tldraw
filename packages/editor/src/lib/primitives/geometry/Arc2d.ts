@@ -1,8 +1,8 @@
 import { intersectLineSegmentCircle } from '../intersect'
-import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
+import { PI2, getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -69,21 +69,48 @@ export class Arc2d extends Geometry2d {
 		return new Vec(_center.x + dx * scale, _center.y + dy * scale)
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		const {
-			_center,
-			_radius: radius,
-			_measure: measure,
-			_angleStart: angleStart,
-			_angleEnd: angleEnd,
-		} = this
-		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
-		if (intersection === null) return false
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
+		// Hit if AB comes within reach of either end, or enters [radius - reach, radius + reach] at
+		// an angle the arc spans. Sampled vertices would miss tangent drags between samples.
+		const { _center, _radius: radius, _start, _end } = this
+		const reach = getHitReach(this, distance, filters)
+		if (
+			Vec.DistanceToLineSegment(A, B, _start) <= reach ||
+			Vec.DistanceToLineSegment(A, B, _end) <= reach ||
+			this.isInBand(A, reach) ||
+			this.isInBand(B, reach) ||
+			// a tangent touch, which the circle intersections below don't report
+			this.isInBand(Vec.NearestPointOnLineSegment(A, B, _center, true), reach)
+		) {
+			return true
+		}
+		// Otherwise AB can only enter the band across one of its arcs: its radial sides lie within
+		// reach of the ends
+		for (const r of [radius + reach, radius - reach]) {
+			if (r <= 0) continue
+			if (intersectLineSegmentCircle(A, B, _center, r)?.some((p) => this.spansAngleOf(p))) {
+				return true
+			}
+		}
+		return false
+	}
 
-		return intersection.some((p) => {
-			const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
-			return result >= 0 && result <= 1
-		})
+	private spansAngleOf(point: VecLike) {
+		// Not getPointInArcT: it clamps angles outside the arc to its ends
+		const { _measure: measure } = this
+		const a = (this._center.angle(point) - this._angleStart) * Math.sign(measure)
+		return ((a % PI2) + PI2) % PI2 <= Math.abs(measure)
+	}
+
+	private isInBand(point: VecLike, reach: number) {
+		return (
+			Math.abs(Vec.Dist(this._center, point) - this._radius) <= reach && this.spansAngleOf(point)
+		)
 	}
 
 	getVertices(): Vec[] {
