@@ -14,6 +14,7 @@ export {
 export { blockUnknownOrigins, isAllowedOrigin } from './origins'
 export { createSentry, type SentryEnvironment } from './sentry'
 export {
+	MAX_UPLOAD_SIZE_BYTES,
 	TRANSIENT_RETRY_OPTIONS,
 	handleUserAssetGet,
 	handleUserAssetUpload,
