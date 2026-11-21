@@ -43,8 +43,8 @@ export async function submitFeedback(req: IRequest, env: Environment) {
 	let plainThreadUrl: string | null = null
 	if (env.PLAIN_API_KEY) {
 		try {
-			const email = allowContact ? userId : null
-			plainThreadUrl = await createPlainThread(env, { description, url, email })
+			const contact = allowContact ? { email: userId, userId: auth.userId } : null
+			plainThreadUrl = await createPlainThread(env, { description, url, contact })
 		} catch (e) {
 			console.error('Failed to create Plain thread:', e)
 		}
@@ -168,15 +168,23 @@ async function plainMutation<T extends PlainMutationResult>(
 	return result
 }
 
-async function upsertPlainCustomer(env: Environment, email: string): Promise<string> {
+async function upsertPlainCustomer(
+	env: Environment,
+	email: string,
+	externalId: string | null
+): Promise<string> {
 	const result = await plainMutation<PlainMutationResult & { customer?: { id: string } }>(
 		env,
 		UPSERT_CUSTOMER_MUTATION,
 		{
 			input: {
 				identifier: { emailAddress: email },
-				onCreate: { fullName: email, email: { email, isVerified: false } },
-				onUpdate: {},
+				onCreate: {
+					fullName: email,
+					email: { email, isVerified: false },
+					...(externalId && { externalId }),
+				},
+				onUpdate: externalId ? { externalId: { value: externalId } } : {},
 			},
 		},
 		'upsertCustomer'
@@ -190,10 +198,22 @@ async function upsertPlainCustomer(env: Environment, email: string): Promise<str
 
 async function createPlainThread(
 	env: Environment,
-	{ description, url, email }: { description: string; url: string; email: string | null }
+	{
+		description,
+		url,
+		contact,
+	}: { description: string; url: string; contact: { email: string; userId: string } | null }
 ): Promise<string> {
-	const customerEmail = email ?? 'anonymous-feedback@tldraw.com'
-	const customerId = await upsertPlainCustomer(env, customerEmail)
+	const customerId = contact
+		? await upsertPlainCustomer(env, contact.email, contact.userId)
+		: await upsertPlainCustomer(env, 'anonymous-feedback@tldraw.com', null)
+	const text = [
+		description,
+		url ? `URL: ${url}` : null,
+		contact ? `User ID: ${contact.userId}` : null,
+	]
+		.filter(Boolean)
+		.join('\n\n')
 
 	const result = await plainMutation<PlainMutationResult & { thread?: { id: string } }>(
 		env,
@@ -203,9 +223,7 @@ async function createPlainThread(
 				customerIdentifier: { customerId },
 				title: 'tldraw.com feedback',
 				description: description.length > 200 ? description.slice(0, 200) + '…' : description,
-				components: [
-					{ componentText: { text: url ? `${description}\n\nURL: ${url}` : description } },
-				],
+				components: [{ componentText: { text } }],
 				...(env.PLAIN_LABEL_TYPE_ID && { labelTypeIds: [env.PLAIN_LABEL_TYPE_ID] }),
 			},
 		},
