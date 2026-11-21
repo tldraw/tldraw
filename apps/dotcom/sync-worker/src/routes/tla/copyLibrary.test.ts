@@ -16,6 +16,8 @@ const ME = 'user_aaaa11112222bbbb'
 const W = 'group_www11112222www'
 const V = 'group_vvv11112222vvv'
 const LIBRARY_ID = 'coll_aaaa11112222bbbb'
+const NEW_ID = 'coll_new_111122223333'
+const newItemId = (n: number) => `copy_${String(n).padStart(16, '0')}`
 
 const access = (role: string | null) => ({
 	id: LIBRARY_ID,
@@ -24,16 +26,23 @@ const access = (role: string | null) => ({
 	meta: { packId: 'icons', packVersion: 1 },
 	role,
 })
+const contentKey = (id: string) => `library-items/content_${id}/content.json`
 const item = (id: string, thumbnail: string | { light: string; dark: string } | null) => ({
 	id,
 	libraryId: LIBRARY_ID,
-	name: 'Button',
+	name: `Button ${id}`,
 	thumbnail,
-	contentKey: `library-items/content_${id}/content.json`,
+	contentKey: contentKey(id),
 	createdBy: 'user_cccc11112222dddd',
 	createdAt: 1,
 	updatedAt: 1,
 })
+type Item = ReturnType<typeof item>
+interface ObjectRow {
+	itemId: string
+	bucket: string
+	objectName: string
+}
 
 const url = (objectName: string) => `https://content.test/${objectName}`
 
@@ -51,15 +60,37 @@ function mockPool(resultSets: unknown[][]) {
 	return fake
 }
 
-function request(owningGroupId: string) {
+// The library and my role in it, my role in the destination, the source's items, the inserted
+// library's id, the inserted items' ids, then the source items' objects.
+function copying(
+	items: Item[],
+	copied = items.map((_, i) => newItemId(i)),
+	objects: ObjectRow[] = []
+) {
+	return [
+		[access('member')],
+		[{ role: 'member' }],
+		items,
+		[{ id: NEW_ID }],
+		copied.map((id) => ({ id })),
+		objects,
+	]
+}
+
+const itemIdsFor = (ids: string[]) => Object.fromEntries(ids.map((id, i) => [id, newItemId(i)]))
+
+function request(owningGroupId: string, body: Record<string, unknown> = {}) {
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/copy`, {
 			method: 'POST',
-			body: JSON.stringify({ owningGroupId }),
+			body: JSON.stringify({ owningGroupId, id: NEW_ID, itemIds: {}, ...body }),
 		}),
 		{ params: { libraryId: LIBRARY_ID } }
 	) as any
 }
+
+const insertOf = (fake: ReturnType<typeof mockPool>, table: string) =>
+	fake.queries.find((q) => q.sql.startsWith(`insert into "${table}" `))
 
 beforeEach(() => {
 	vi.mocked(requireAuth).mockResolvedValue({ userId: ME } as any)
@@ -69,53 +100,75 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks())
 
 describe('copyLibrary', () => {
-	it("inserts the rows, each copied item naming its source's content and thumbnail", async () => {
-		const env = makeEnv()
+	it("inserts the rows under the ids I picked, each naming its source's content and thumbnail", async () => {
 		const pair = { light: url('light_b-png'), dark: url('dark_b-png') }
-		const fake = mockPool([
-			[access('member')],
-			[{ role: 'member' }],
-			[item('item_a', url('thumb_a-png')), item('item_b', pair), item('item_c', null)],
-		])
+		const items = [item('item_a', url('thumb_a-png')), item('item_b', pair), item('item_c', null)]
+		const fake = mockPool(copying(items))
 
-		const response = await copyLibrary(request(V), env)
+		const response = await copyLibrary(
+			request(V, { itemIds: itemIdsFor(['item_a', 'item_b', 'item_c']) }),
+			makeEnv()
+		)
 
 		expect(response.status).toBe(200)
-		const { id } = (await response.json()) as { id: string }
-		const libraryInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library"'))!
-		expect(libraryInsert.parameters).toEqual(
-			expect.arrayContaining([id, 'Shapes', V, ME, { packId: 'icons', packVersion: 1 }])
+		expect(await response.json()).toEqual({ id: NEW_ID })
+		expect(insertOf(fake, 'library')!.parameters).toEqual(
+			expect.arrayContaining([NEW_ID, 'Shapes', V, ME, { packId: 'icons', packVersion: 1 }])
 		)
-		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
-		const params = itemInsert.parameters
-		for (const source of ['item_a', 'item_b', 'item_c']) {
-			expect(params).toContain(`library-items/content_${source}/content.json`)
-			expect(params).not.toContain(source)
-		}
-		expect(params).toContain(JSON.stringify(url('thumb_a-png')))
-		expect(params).toContain(JSON.stringify(pair))
+		const params = insertOf(fake, 'library_item')!.parameters
+		expect(params).toEqual(
+			expect.arrayContaining([
+				newItemId(0),
+				newItemId(1),
+				newItemId(2),
+				NEW_ID,
+				contentKey('item_a'),
+				contentKey('item_b'),
+				contentKey('item_c'),
+				JSON.stringify(url('thumb_a-png')),
+				JSON.stringify(pair),
+			])
+		)
+		for (const source of ['item_a', 'item_b', 'item_c']) expect(params).not.toContain(source)
 	})
 
-	it("names the source items' objects for each copied item, in one transaction", async () => {
-		const env = makeEnv()
-		const fake = mockPool([
-			[access('member')],
-			[{ role: 'member' }],
-			[item('item_a', url('thumb_a-png'))],
-			[],
-			[],
-			[
-				{
-					itemId: 'item_a',
-					bucket: 'rooms',
-					objectName: 'library-items/content_item_a/content.json',
-				},
-				{ itemId: 'item_a', bucket: 'uploads', objectName: 'thumb_a-png' },
-				{ itemId: 'item_a', bucket: 'uploads', objectName: 'owned_a-png' },
-			],
-		])
+	it('copies only the items I named, and leaves out ones the library no longer has', async () => {
+		const fake = mockPool(copying([item('item_a', null), item('item_b', null)], [newItemId(0)]))
 
-		expect((await copyLibrary(request(V), env)).status).toBe(200)
+		const response = await copyLibrary(
+			request(V, { itemIds: { item_a: newItemId(0), item_gone: newItemId(1) } }),
+			makeEnv()
+		)
+
+		expect(response.status).toBe(200)
+		const params = insertOf(fake, 'library_item')!.parameters
+		expect(params).toContain(newItemId(0))
+		expect(params).not.toContain(newItemId(1))
+		expect(params).not.toContain(contentKey('item_b'))
+	})
+
+	it('gives the copies increasing createdAt values, in the library order', async () => {
+		const fake = mockPool(copying([item('item_a', null), item('item_b', null)]))
+		await copyLibrary(request(V, { itemIds: itemIdsFor(['item_a', 'item_b']) }), makeEnv())
+		const params = insertOf(fake, 'library_item')!.parameters
+		// createdAt, then updatedAt, for each row
+		const [firstCreatedAt, , secondCreatedAt] = params.filter(
+			(p): p is number => typeof p === 'number'
+		)
+		expect(secondCreatedAt).toBe(firstCreatedAt + 1)
+	})
+
+	it("names the source items' objects for each copy, in one transaction", async () => {
+		const objects = [
+			{ itemId: 'item_a', bucket: 'rooms', objectName: contentKey('item_a') },
+			{ itemId: 'item_a', bucket: 'uploads', objectName: 'thumb_a-png' },
+			{ itemId: 'item_a', bucket: 'uploads', objectName: 'owned_a-png' },
+		]
+		const fake = mockPool(copying([item('item_a', url('thumb_a-png'))], undefined, objects))
+
+		expect(
+			(await copyLibrary(request(V, { itemIds: itemIdsFor(['item_a']) }), makeEnv())).status
+		).toBe(200)
 
 		const sqls = fake.queries.map((q) => q.sql)
 		const begin = sqls.indexOf('begin')
@@ -125,17 +178,15 @@ describe('copyLibrary', () => {
 		expect(lock).toBeGreaterThan(begin)
 		expect(objectsInsert).toBeGreaterThan(lock)
 		expect(sqls.indexOf('commit')).toBeGreaterThan(objectsInsert)
-
-		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
-		const newItemId = itemInsert.parameters[0]
+		const copy = newItemId(0)
 		expect(fake.queries[objectsInsert].parameters).toEqual([
-			newItemId,
+			copy,
 			'rooms',
-			'library-items/content_item_a/content.json',
-			newItemId,
+			contentKey('item_a'),
+			copy,
 			'uploads',
 			'thumb_a-png',
-			newItemId,
+			copy,
 			'uploads',
 			'owned_a-png',
 		])
@@ -143,48 +194,62 @@ describe('copyLibrary', () => {
 
 	it('reads and writes nothing in R2', async () => {
 		const env = makeEnv()
-		const buckets = [env.ROOMS, env.UPLOADS]
-		const spies = buckets.flatMap((bucket) =>
+		const spies = [env.ROOMS, env.UPLOADS].flatMap((bucket) =>
 			(['get', 'head', 'put', 'delete'] as const).map((method) => vi.spyOn(bucket, method))
 		)
-		mockPool([
-			[access('member')],
-			[{ role: 'member' }],
-			[item('item_a', url('thumb_a-png'))],
-			[],
-			[],
-			[{ itemId: 'item_a', bucket: 'uploads', objectName: 'thumb_a-png' }],
-		])
+		mockPool(
+			copying([item('item_a', url('thumb_a-png'))], undefined, [
+				{ itemId: 'item_a', bucket: 'uploads', objectName: 'thumb_a-png' },
+			])
+		)
 
-		expect((await copyLibrary(request(V), env)).status).toBe(200)
+		expect((await copyLibrary(request(V, { itemIds: itemIdsFor(['item_a']) }), env)).status).toBe(
+			200
+		)
 		for (const spy of spies) expect(spy).not.toHaveBeenCalled()
 	})
 
-	it('copies an empty library as the library row alone', async () => {
-		const fake = mockPool([[access('member')], [{ role: 'member' }], []])
+	it('copies a library whose items I named none of as the library row alone', async () => {
+		const fake = mockPool(copying([item('item_a', null)], []))
 		expect((await copyLibrary(request(V), makeEnv())).status).toBe(200)
 		const inserts = fake.queries.filter((q) => q.sql.startsWith('insert'))
 		expect(inserts.map((q) => q.sql.split(' (')[0])).toEqual(['insert into "library"'])
 	})
 
-	it('inserts nothing when the transaction fails', async () => {
+	it.each([
+		['no library id', { id: undefined }],
+		['a library id uniqueId would not make', { id: 'coll_1' }],
+		['item ids that are not a map', { itemIds: [newItemId(0)] }],
+		['an item id uniqueId would not make', { itemIds: { item_a: 'copy/../1' } }],
+		['the same item id twice', { itemIds: { item_a: newItemId(0), item_b: newItemId(0) } }],
+	])('refuses %s', async (_, body) => {
+		const fake = mockPool(copying([item('item_a', null)]))
+		expect((await copyLibrary(request(V, body), makeEnv())).status).toBe(400)
+		expect(fake.queries).toEqual([])
+	})
+
+	it.each([
+		['the library id', [[]]],
+		['an item id', [[{ id: NEW_ID }], [{ id: newItemId(1) }]]],
+	])('answers 409 and rolls back when another request has %s', async (_, insertResults) => {
 		const fake = mockPool([
 			[access('member')],
 			[{ role: 'member' }],
-			[item('item_a', url('thumb_a-png'))],
+			[item('item_a', null), item('item_b', null)],
+			...insertResults,
 		])
-		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
-			throw new Error('insert failed')
-		})
-
-		await expect(copyLibrary(request(V), makeEnv())).rejects.toThrow('insert failed')
-		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
+		const response = await copyLibrary(
+			request(V, { itemIds: itemIdsFor(['item_a', 'item_b']) }),
+			makeEnv()
+		)
+		expect(response.status).toBe(409)
+		expect(fake.queries.at(-1)!.sql).toBe('rollback')
+		expect(insertOf(fake, 'library_item_object')).toBeUndefined()
 	})
 
 	it("answers 404 when I'm not a member of the library's workspace", async () => {
 		mockPool([[access(null)]])
-		const env = makeEnv()
-		expect((await copyLibrary(request(V), env)).status).toBe(404)
+		expect((await copyLibrary(request(V), makeEnv())).status).toBe(404)
 	})
 
 	it('answers 404 without reading anything when the libraries flag is off for me', async () => {
@@ -197,14 +262,12 @@ describe('copyLibrary', () => {
 
 	it("answers 403 when I'm not a member of the destination", async () => {
 		const fake = mockPool([[access('member')], []])
-		const env = makeEnv()
-		expect((await copyLibrary(request(V), env)).status).toBe(403)
+		expect((await copyLibrary(request(V), makeEnv())).status).toBe(403)
 		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
 	it('copies into my home workspace, which may have no group_user row', async () => {
-		mockPool([[access('member')], [], []])
-		const env = makeEnv()
-		expect((await copyLibrary(request(ME), env)).status).toBe(200)
+		mockPool([[access('member')], [], [], [{ id: NEW_ID }]])
+		expect((await copyLibrary(request(ME), makeEnv())).status).toBe(200)
 	})
 })
