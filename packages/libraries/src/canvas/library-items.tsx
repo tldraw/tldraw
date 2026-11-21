@@ -1,13 +1,23 @@
 import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
-import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	useDialogs,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemId,
+} from 'tldraw'
 import { copyItem } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '../lib/schema'
 import { ItemGrid, ItemGridTile } from '../ui/item-grid'
 import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
 import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { getContentTooNewToast } from './content-too-new-toast'
 import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
 import { type ItemOrdering, sortItems } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
@@ -197,7 +207,11 @@ export function LibraryItems({
 						],
 					})
 				},
-				() => showChangeError(msg(messages.copyErrorTitle))
+				(error) => {
+					const tooNew = getContentTooNewToast(error, msg)
+					if (tooNew) addToast(tooNew)
+					else showChangeError(msg(messages.copyErrorTitle))
+				}
 			)
 		},
 		[editor, source, items, copyTargets, addToast, msg, showChangeError]

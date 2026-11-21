@@ -1,9 +1,13 @@
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import { LibraryNotFoundError } from './LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType, type TLLibraryItemContent } from './schema'
+import {
+	LibraryItemContentTooNewError,
+	LibraryItemRecordType,
+	type TLLibraryItemContent,
+} from './schema'
 
 const shapeId = createShapeId('box')
 const owners = [
@@ -98,6 +102,19 @@ describe('copyLibrary', () => {
 		await source.addItem(original.id, { content: content() })
 		vi.spyOn(source, 'getItemContent').mockRejectedValue(new Error('offline'))
 		await expect(copyLibrary(source, original.id, 'acme')).rejects.toThrow('offline')
+		expect(source.getLibraries().map((c) => c.id)).toEqual([original.id])
+	})
+
+	it('deletes the partial copy when an item was made with a newer version of tldraw', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		await source.addItem(original.id, { content: content() })
+		vi.spyOn(source, 'getItemContent').mockRejectedValue(
+			new LibraryItemContentTooNewError({ message: 'newer shapes' })
+		)
+		await expect(copyLibrary(source, original.id, 'acme')).rejects.toThrow(
+			LibraryItemContentTooNewError
+		)
 		expect(source.getLibraries().map((c) => c.id)).toEqual([original.id])
 	})
 

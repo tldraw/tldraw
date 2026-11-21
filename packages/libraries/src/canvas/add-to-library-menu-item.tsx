@@ -6,9 +6,9 @@ import {
 	useEditor,
 	useTranslation,
 	useValue,
+	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId } from '../lib/schema'
 import { InContextMenu, MenuItem, MenuTargetItems } from '../ui/menu-items'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import { canCreateNewLibrary } from './new-library'

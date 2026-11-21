@@ -1,6 +1,5 @@
-import type { Editor } from 'tldraw'
+import type { Editor, TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryItemId } from '../lib/schema'
 
 /**
  * Places a copy of an item at the centre of the viewport and selects it, the same way pasting
