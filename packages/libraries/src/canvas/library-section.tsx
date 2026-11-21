@@ -2,13 +2,15 @@ import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } f
 import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryMenu as DefaultLibraryMenu } from '../ui/library-menu'
-import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
+import { getItemOrdering, itemOrderings } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
 import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-section-header'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
 import { useLibraryActions } from './use-library-actions'
+import { useLibraryCollapsed } from './use-library-collapsed'
+import { useLibraryItemOrder } from './use-library-item-order'
 
 /** Unfolds and scrolls into view when it becomes the active library, e.g. from a toast's "Open". */
 export function LibrarySection({
@@ -38,16 +40,7 @@ export function LibrarySection({
 		setElement(el)
 	}, [])
 	const libraryId = library.id
-	const collapsed = useValue(
-		'library collapsed',
-		() => collapsedLibraryIds.get(editor).includes(libraryId),
-		[editor, libraryId]
-	)
-	const setCollapsed = (shut: boolean) =>
-		collapsedLibraryIds.update(editor, (ids) => {
-			const rest = ids.filter((id) => id !== libraryId)
-			return shut ? [...rest, libraryId] : rest
-		})
+	const [collapsed, setCollapsed] = useLibraryCollapsed(libraryId)
 	const isActive = useValue('library active', () => activeLibraryId.get(editor) === libraryId, [
 		editor,
 		libraryId,
@@ -59,19 +52,13 @@ export function LibrarySection({
 		activeLibraryId.set(editor, null)
 	}, [editor, isActive, libraryId])
 
-	const choice = useValue('item order', () => getItemOrderChoice(source.id, libraryId), [
-		source,
-		libraryId,
-	])
-	const ordering = itemOrderings.find((o) => o.id === choice.orderingId) ?? itemOrderings[0]
+	const order = useLibraryItemOrder(source, libraryId)
 	const sort = {
 		options: itemOrderings.map(({ id, label }) => ({ id, label })),
-		value: ordering.id,
-		onValueChange: (orderingId: string) =>
-			setItemOrderChoice(source.id, libraryId, { ...choice, orderingId }),
-		reversed: choice.reversed,
-		onReversedChange: (reversed: boolean) =>
-			setItemOrderChoice(source.id, libraryId, { ...choice, reversed }),
+		value: order.ordering,
+		onValueChange: (orderingId: string) => order.setOrdering(getItemOrdering(orderingId).id),
+		reversed: order.reversed,
+		onReversedChange: order.setReversed,
 	}
 
 	return (
@@ -106,8 +93,8 @@ export function LibrarySection({
 					library={library}
 					container={element}
 					getItemProps={getItemProps}
-					ordering={ordering}
-					reversed={choice.reversed}
+					ordering={order.ordering}
+					reversed={order.reversed}
 					prepareItemContent={prepareItemContent}
 				/>
 			)}

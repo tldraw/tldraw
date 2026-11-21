@@ -35,14 +35,30 @@ function showLibrary(editor: Editor, libraryId: TLLibraryId) {
 	librariesPanelOpen.set(editor, true)
 }
 
+/** @public */
+export interface SaveSelectionToLibrary {
+	/**
+	 * Saves the selected shapes to a library as one item. With the {@link LibrariesPanel} open, the
+	 * panel brings that library into view; otherwise a toast confirms the save and can open it.
+	 */
+	saveSelection(libraryId: TLLibraryId): void
+	/**
+	 * Creates a library named "New library" (or the next free variant), saves the selected shapes
+	 * into it, and opens the panel with the new name ready to edit.
+	 */
+	saveToNewLibrary(): void
+}
+
 /**
- * Returns functions that save the current selection. `saveSelection` saves to an existing
- * library: with the panel open, the panel brings that library into view; otherwise a toast
- * confirms the save and can open it. `saveToNewLibrary` creates a library named "New
- * library" (or the next free variant), saves into it, and opens the panel with the new name
- * ready to edit. Failures show a toast; the source reports one saving the item after it was listed.
+ * Functions that save the current selection to a library, as the panel's + tile and
+ * {@link AddToLibraryMenuItem} do. Both do nothing without a selection. Failures show a toast;
+ * the source reports one saving the item after it was listed.
+ * @public
  */
-export function useSaveSelection(source: LibrarySource, prepareItemContent?: PrepareItemContent) {
+export function useSaveSelectionToLibrary(
+	source: LibrarySource,
+	prepareItemContent?: PrepareItemContent
+): SaveSelectionToLibrary {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
