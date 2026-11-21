@@ -13,6 +13,7 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TAB_FROZEN_CLOSE_CODE,
 	TAB_RENDER_PARAM,
 	TLCustomServerEvent,
 	TabRenderReply,
@@ -145,6 +146,7 @@ import {
 import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { evaluateFlagForUser, getFeatureFlagValue } from './utils/featureFlags'
 import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
@@ -178,6 +180,10 @@ import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
+
+// How long a frozen tab still explains a missing one. A tab that stays frozen this long has likely
+// been closed or discarded, and "ask the user to open the board" is the better advice by then.
+const TAB_SUSPENDED_MEMORY_MS = 24 * 60 * 60 * 1000
 
 // Cloudflare allows at most six simultaneous open connections. We funnel every R2 operation the
 // durable object makes — asset copies during association passes AND snapshot uploads during
@@ -776,7 +782,13 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	override async webSocketClose(ws: WebSocket) {
+	override async webSocketClose(ws: WebSocket, code: number) {
+		if (code === TAB_FROZEN_CLOSE_CODE) {
+			const attachment = this.getSocketAttachment(ws)
+			if (attachment?.tabRenderConnectedAt && attachment.meta.userId) {
+				this.suspendedTabRenders.set(attachment.meta.userId, Date.now())
+			}
+		}
 		await this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
@@ -1240,6 +1252,9 @@ export class TLFileDurableObject extends DurableObject {
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
+			if (attachment.tabRenderConnectedAt && meta.userId) {
+				this.suspendedTabRenders.delete(meta.userId)
+			}
 
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
@@ -3499,6 +3514,21 @@ export class TLFileDurableObject extends DurableObject {
 
 	private tabRenders = new TabRenderBroker()
 
+	/**
+	 * When each user's tab last left because the browser froze it, until one of their tabs connects
+	 * again. In memory only: once the object is evicted, the agent hears the board isn't open, which
+	 * is what it would have heard before this existed.
+	 */
+	private suspendedTabRenders = new Map<string, number>()
+
+	/** No tab can take the job: say whether that's because the browser suspended the user's tab. */
+	private noTabOutcome(userId: string, now: number): TabRenderResponse {
+		const suspendedAt = this.suspendedTabRenders.get(userId)
+		return suspendedAt !== undefined && now - suspendedAt < TAB_SUSPENDED_MEMORY_MS
+			? { status: 'tab_suspended' }
+			: { status: 'no_tab' }
+	}
+
 	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
 	private getTabRenderSockets() {
 		const sockets: (TabRenderSocket & { isReadonly: boolean })[] = []
@@ -3550,7 +3580,9 @@ export class TLFileDurableObject extends DurableObject {
 		const isWrite = request.mode === 'apply_ops'
 		const sockets = this.getTabRenderSockets()
 		const now = Date.now()
-		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
+		if (pickTabRenderSessions(sockets, userId, now).length === 0) {
+			return this.noTabOutcome(userId, now)
+		}
 		// The tab applies a write as its own session, which is what the room authorizes. The access
 		// check above is current, but a session keeps the mode it connected with until it reconnects,
 		// so a tab opened before the user could edit has to be reloaded.
@@ -3577,7 +3609,7 @@ export class TLFileDurableObject extends DurableObject {
 				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
 			}
 		})
-		if (deliverable.length === 0) return { status: 'no_tab', stats }
+		if (deliverable.length === 0) return { ...this.noTabOutcome(userId, now), stats }
 
 		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
 		// presence, says which one they're in.
@@ -3587,13 +3619,23 @@ export class TLFileDurableObject extends DurableObject {
 		}).slice(0, jobIds.length)
 
 		stats.tabs = targets.length
+		const hiddenTab = evaluateFlagForUser(
+			await getFeatureFlagValue(this.env, 'mcp_hidden_tab'),
+			'mcp_hidden_tab',
+			userId
+		)
 		const sentAt = Date.now()
 		const outcome = await this.tabRenders.dispatch(
 			targets,
 			request,
 			jobIds,
 			(sessionId, jobId) => {
-				const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+				const event: TLCustomServerEvent = {
+					type: 'mcp_tab_render',
+					jobId,
+					request,
+					hiddenTab,
+				}
 				room.sendCustomMessage(sessionId, event)
 			},
 			() => (stats.ackMs = Date.now() - sentAt)

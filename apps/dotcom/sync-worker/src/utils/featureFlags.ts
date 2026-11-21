@@ -82,6 +82,12 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
 		},
+		mcp_hidden_tab: {
+			type: 'boolean',
+			enabled: true,
+			description:
+				'MCP tools work through a board tab the user has in the background. Turning it off is the kill switch: a hidden tab declines every job, and agents ask the user to bring the board into view. A change lands within about a minute',
+		},
 	}
 }
 
