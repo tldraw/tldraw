@@ -1,5 +1,6 @@
-import { TLArrowShape, TLShapeId, Vec, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, Vec, createShapeId, toRichText } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
@@ -769,6 +770,32 @@ describe('Moving a bound arrow', () => {
 	})
 })
 
+const createBoxAndArrow = () => {
+	editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+	editor.createShape({
+		id: ids.arrow1,
+		type: 'arrow',
+		x: 200,
+		y: 50,
+		props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
+	})
+}
+
+const bindArrowEnd = (
+	normalizedAnchor: { x: number; y: number },
+	isPrecise = true,
+	toId: TLShapeId = ids.box1
+) => {
+	editor.createBinding({
+		type: 'arrow',
+		fromId: ids.arrow1,
+		toId,
+		props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
+	})
+}
+
+const endBinding = () => getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!
+
 describe('When the bound shape changes geometry', () => {
 	// the local point that a precise binding's anchor maps to within the bound shape's geometry
 	const getAnchorLocalPoint = (toId: TLShapeId, normalizedAnchor: { x: number; y: number }) => {
@@ -782,27 +809,7 @@ describe('When the bound shape changes geometry', () => {
 		return geometry.hitTestPoint(getAnchorLocalPoint(toId, normalizedAnchor), 0, true)
 	}
 
-	beforeEach(() => {
-		editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
-		editor.createShape({
-			id: ids.arrow1,
-			type: 'arrow',
-			x: 200,
-			y: 50,
-			props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
-		})
-	})
-
-	const bindArrowEnd = (normalizedAnchor: { x: number; y: number }, isPrecise = true) => {
-		editor.createBinding({
-			type: 'arrow',
-			fromId: ids.arrow1,
-			toId: ids.box1,
-			props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
-		})
-	}
-
-	const endBinding = () => getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!
+	beforeEach(createBoxAndArrow)
 
 	it('re-snaps a precise anchor that ends up outside the new geometry', () => {
 		// anchor near the top-left corner: inside a rectangle, but outside a triangle
@@ -848,5 +855,165 @@ describe('When the bound shape changes geometry', () => {
 
 		editor.redo()
 		expect(endBinding().props.normalizedAnchor).toMatchObject(resnapped)
+	})
+})
+
+describe('When the bound shape changes size', () => {
+	beforeEach(createBoxAndArrow)
+
+	const endAnchor = () => endBinding().props.normalizedAnchor
+
+	const resizeBox = (w: number, h: number) =>
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { w, h } })
+
+	it('keeps a precise anchor the same distance from its nearest corner', () => {
+		// 10px from the left and top edges
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 10 / 200, y: 10 / 400 })
+	})
+
+	it('measures from the far edges when the anchor is nearer to them', () => {
+		// 10px from the right edge, 20px from the bottom edge
+		bindArrowEnd({ x: 0.9, y: 0.8 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 1 - 10 / 200, y: 1 - 20 / 400 })
+	})
+
+	it('keeps an anchor in the middle of an axis in the middle', () => {
+		bindArrowEnd({ x: 0.5, y: 0.1 })
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 0.5, y: 10 / 400 })
+	})
+
+	it('stops at the middle when the shape shrinks past the anchor', () => {
+		// 40px from the left edge, which is past the middle of a 60px wide shape
+		bindArrowEnd({ x: 0.4, y: 0.1 })
+		resizeBox(60, 100)
+		expect(endAnchor()).toEqual({ x: 0.5, y: 0.1 })
+	})
+
+	it('keeps an anchor near the top in place when a label grows the shape', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { growY: 100 } })
+		expect(endAnchor()).toEqual({ x: 0.1, y: 10 / 200 })
+	})
+
+	it('does not touch the anchor when the shape is moved', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.updateShape({ id: ids.box1, type: 'geo', x: 300, y: 300, rotation: 1 })
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('scales the anchor proportionally when the shape is scaled', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { w: 200, h: 200, scale: 2 } })
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('scales the anchor proportionally on a stroke', () => {
+		editor.createShape({ id: ids.box2, type: 'line', x: 0, y: 300 })
+		bindArrowEnd({ x: 0.2, y: 0.2 }, true, ids.box2)
+		editor.resizeShape(ids.box2, { x: 3, y: 1 })
+		expect(endAnchor()).toEqual({ x: 0.2, y: 0.2 })
+	})
+
+	it('does not touch imprecise anchors', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 }, false)
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('does not adjust anchors for remote changes', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.store.mergeRemoteChanges(() => resizeBox(200, 400))
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+	})
+
+	it('restores the original anchor on undo', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+
+		editor.markHistoryStoppingPoint()
+		resizeBox(200, 400)
+		expect(endAnchor()).toEqual({ x: 10 / 200, y: 10 / 400 })
+
+		editor.undo()
+		expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+
+		editor.redo()
+		expect(endAnchor()).toEqual({ x: 10 / 200, y: 10 / 400 })
+	})
+
+	it('keeps the anchor in place through an interactive resize', () => {
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.select(ids.box1)
+		editor.pointerDown(100, 100, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(150, 150)
+		editor.pointerMove(300, 500)
+		editor.pointerUp()
+		expect(editor.getShapePageBounds(ids.box1)!.w).toBeCloseTo(300)
+		expect(endAnchor().x).toBeCloseTo(10 / 300)
+		expect(endAnchor().y).toBeCloseTo(10 / 500)
+	})
+
+	it('keeps the anchor in place when the arrow is resized along with the shape', () => {
+		// arrow1 runs from (200, 50) to the box, so the selection is 200 wide and 100 tall
+		bindArrowEnd({ x: 0.1, y: 0.1 })
+		editor.select(ids.box1, ids.arrow1)
+		editor.pointerDown(200, 100, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(250, 150)
+		editor.pointerMove(400, 300)
+		editor.pointerUp()
+		const { w, h } = editor.getShapePageBounds(ids.box1)!
+		expect(w).toBeCloseTo(200)
+		expect(endAnchor().x * w).toBeCloseTo(10)
+		expect(endAnchor().y * h).toBeCloseTo(10)
+	})
+
+	it('still mirrors the anchor when the arrow and shape are flipped together', () => {
+		bindArrowEnd({ x: 0.1, y: 0.5 })
+		editor.select(ids.box1, ids.arrow1)
+		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+		expect(endAnchor().x).toBeCloseTo(0.9)
+		expect(endAnchor().y).toBeCloseTo(0.5)
+	})
+
+	it('keeps an anchor in place when an auto-sized text shape grows', () => {
+		editor.createShape({
+			id: ids.box2,
+			type: 'text',
+			x: 0,
+			y: 300,
+			props: { richText: toRichText('hi'), autoSize: true },
+		})
+		const before = editor.getShapeGeometry(ids.box2).bounds
+		bindArrowEnd({ x: 0.1, y: 0.1 }, true, ids.box2)
+
+		editor.updateShape({
+			id: ids.box2,
+			type: 'text',
+			props: { richText: toRichText('hello there\nsecond line') },
+		})
+
+		const after = editor.getShapeGeometry(ids.box2).bounds
+		expect(after.w).toBeGreaterThan(before.w)
+		expect(after.h).toBeGreaterThan(before.h)
+		expect(endAnchor().x * after.w).toBeCloseTo(0.1 * before.w)
+		expect(endAnchor().y * after.h).toBeCloseTo(0.1 * before.h)
+	})
+
+	describe('with preciseAnchorResizeBehavior: proportional', () => {
+		beforeEach(() => {
+			editor = new TestEditor({
+				shapeUtils: [ArrowShapeUtil.configure({ preciseAnchorResizeBehavior: 'proportional' })],
+			})
+			createBoxAndArrow()
+		})
+
+		it('keeps the anchor proportional', () => {
+			bindArrowEnd({ x: 0.1, y: 0.1 })
+			resizeBox(200, 400)
+			expect(endAnchor()).toEqual({ x: 0.1, y: 0.1 })
+		})
 	})
 })
