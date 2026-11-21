@@ -18,11 +18,9 @@ import {
 	ThumbnailBoardKind,
 	ThumbnailBoardRef,
 	ThumbnailRenderSurface,
-	envFlagWord,
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
-import { evaluateFlagForUser, getFeatureFlagValue } from '../../utils/featureFlags'
 import {
 	RenderPageReach,
 	ThumbnailRenderJob,
@@ -195,8 +193,8 @@ async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob
 
 /**
  * How a session's page gets its records. `push` sends them in the screenshot request, so the page
- * never fetches. `pull` leaves the page to fetch them with its token: push is off, the caller had no
- * snapshot, or the job is an error the snapshot route reports.
+ * never fetches. `pull` leaves the page to fetch them with its token: the caller had no snapshot, or
+ * the job is an error the snapshot route reports.
  */
 type RenderTransport =
 	| { kind: 'pull'; pushChars: number }
@@ -204,12 +202,11 @@ type RenderTransport =
 
 const PULL: RenderTransport = { kind: 'pull', pushChars: 0 }
 
-async function renderTransportFor(
-	env: Environment,
+function renderTransportFor(
 	snapshot: RoomSnapshot | undefined,
 	job: ThumbnailRenderJob
-): Promise<RenderTransport> {
-	if (!snapshot || !(await isPushRolledOutFor(env, job))) return PULL
+): RenderTransport {
+	if (!snapshot) return PULL
 	// Built by the snapshot route's own function, so a pushed render and a fetched one cannot differ.
 	const body = thumbnailSnapshotBodyFor(snapshot, job)
 	if (body.error) return PULL
@@ -218,21 +215,6 @@ async function renderTransportFor(
 	// sets the script's text rather than parsing it as HTML, so board text cannot close the tag early.
 	const script = `window.${THUMBNAIL_RENDER_GLOBAL}=JSON.parse(${JSON.stringify(JSON.stringify(body))})`
 	return { kind: 'push', pushChars: script.length, script }
-}
-
-// The OG percentage is bucketed per board, not per render: otherwise a board's retries would flip
-// between transports.
-async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
-	if (envFlagWord(env.THUMBNAIL_RENDER_PUSH) === 'true') return true
-	if (job.surface === 'mcp') {
-		return evaluateFlagForUser(
-			await getFeatureFlagValue(env, 'mcp_render_push'),
-			'mcp_render_push',
-			null
-		)
-	}
-	const flag = await getFeatureFlagValue(env, 'thumbnail_render_push')
-	return evaluateFlagForUser(flag, 'thumbnail_render_push', `${job.kind}/${job.slug}`)
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
@@ -341,7 +323,7 @@ export async function captureThumbnailScreenshot(
 					reason: telemetry.reason,
 					capture,
 				},
-				transport: await renderTransportFor(env, snapshot, job),
+				transport: renderTransportFor(snapshot, job),
 				content,
 				pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
 			}

@@ -146,10 +146,6 @@ export interface Environment {
 	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
-	// 'true' pushes the board's records into the render page with the screenshot request, instead of
-	// the page fetching them back from the snapshot route, for every board. Where it is unset
-	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
-	THUMBNAIL_RENDER_PUSH: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

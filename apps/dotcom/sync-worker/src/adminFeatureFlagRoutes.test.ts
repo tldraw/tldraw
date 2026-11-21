@@ -3,9 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminRoutes } from './adminRoutes'
 import { Environment } from './types'
 
-// The admin feature-flag routes, which are now the only way onto the `mcp_server_access` allowlist —
-// the bespoke KV list this PR deleted was the other one. adminRoutes.ts had no test file at all, so
-// nothing covered the path that decides who may drive the MCP server.
+// The admin feature-flag routes, which are the only way onto an allowlist flag.
 //
 // Postgres and Clerk are mocked; the flag store is a real in-memory KV stand-in, so what a save
 // actually writes is what the assertions read back.
@@ -81,15 +79,13 @@ describe('POST /app/admin/feature-flags', () => {
 		mockUsers([{ id: 'user_1', email: 'One@tldraw.com' }])
 
 		const response = await post(env, {
-			flag: 'mcp_server_access',
+			flag: 'libraries',
 			emails: 'one@tldraw.com',
 		})
 
 		expect(response.status).toBe(200)
 		// The address as the database has it, not as the admin typed it, so the panel shows the real one.
-		expect(storedFlag('mcp_server_access').users).toEqual([
-			{ userId: 'user_1', email: 'One@tldraw.com' },
-		])
+		expect(storedFlag('libraries').users).toEqual([{ userId: 'user_1', email: 'One@tldraw.com' }])
 	})
 
 	// The server's parser, not the client's: a comma-separated paste is one line and several people.
@@ -101,9 +97,9 @@ describe('POST /app/admin/feature-flags', () => {
 			{ id: 'user_2', email: 'two@tldraw.com' },
 		])
 
-		await post(env, { flag: 'mcp_server_access', emails: 'one@tldraw.com, two@tldraw.com' })
+		await post(env, { flag: 'libraries', emails: 'one@tldraw.com, two@tldraw.com' })
 
-		expect(storedFlag('mcp_server_access').users).toHaveLength(2)
+		expect(storedFlag('libraries').users).toHaveLength(2)
 	})
 
 	// An address with no account would be stored as an entry that looks like a grant and matches
@@ -112,20 +108,20 @@ describe('POST /app/admin/feature-flags', () => {
 		const env = makeEnv()
 		mockUsers([])
 
-		const response = await post(env, { flag: 'mcp_server_access', emails: 'ghost@tldraw.com' })
+		const response = await post(env, { flag: 'libraries', emails: 'ghost@tldraw.com' })
 
 		expect(response.status).toBe(400)
 		expect(await response.text()).toContain('ghost@tldraw.com')
-		expect(kv.has('mcp_server_access')).toBe(false)
+		expect(kv.has('libraries')).toBe(false)
 	})
 
 	it('refuses input that is not an email address at all', async () => {
 		const env = makeEnv()
 
-		const response = await post(env, { flag: 'mcp_server_access', emails: 'tldraw.com' })
+		const response = await post(env, { flag: 'libraries', emails: 'tldraw.com' })
 
 		expect(response.status).toBe(400)
-		expect(kv.has('mcp_server_access')).toBe(false)
+		expect(kv.has('libraries')).toBe(false)
 	})
 
 	// The field means nothing for a percentage flag. It used to be dropped in silence while the
@@ -144,10 +140,10 @@ describe('POST /app/admin/feature-flags', () => {
 	it('refuses a percentage sent for an allowlist flag', async () => {
 		const env = makeEnv()
 
-		const response = await post(env, { flag: 'mcp_server_access', percentage: 50 })
+		const response = await post(env, { flag: 'libraries', percentage: 50 })
 
 		expect(response.status).toBe(400)
-		expect(kv.has('mcp_server_access')).toBe(false)
+		expect(kv.has('libraries')).toBe(false)
 	})
 
 	it('refuses an unknown flag', async () => {
@@ -163,14 +159,12 @@ describe('POST /app/admin/feature-flags', () => {
 			{ id: 'user_1', email: 'one@tldraw.com' },
 			{ id: 'user_2', email: 'two@tldraw.com' },
 		])
-		await post(env, { flag: 'mcp_server_access', emails: 'one@tldraw.com\ntwo@tldraw.com' })
+		await post(env, { flag: 'libraries', emails: 'one@tldraw.com\ntwo@tldraw.com' })
 
 		mockUsers([{ id: 'user_2', email: 'two@tldraw.com' }])
-		await post(env, { flag: 'mcp_server_access', emails: 'two@tldraw.com' })
+		await post(env, { flag: 'libraries', emails: 'two@tldraw.com' })
 
-		expect(storedFlag('mcp_server_access').users).toEqual([
-			{ userId: 'user_2', email: 'two@tldraw.com' },
-		])
+		expect(storedFlag('libraries').users).toEqual([{ userId: 'user_2', email: 'two@tldraw.com' }])
 	})
 
 	// The list lives in one KV value that every evaluation reads, so a pasted address book is worth
@@ -179,10 +173,10 @@ describe('POST /app/admin/feature-flags', () => {
 		const env = makeEnv()
 		const emails = Array.from({ length: 201 }, (_, i) => `user${i}@tldraw.com`).join('\n')
 
-		const response = await post(env, { flag: 'mcp_server_access', emails })
+		const response = await post(env, { flag: 'libraries', emails })
 
 		expect(response.status).toBe(400)
-		expect(kv.has('mcp_server_access')).toBe(false)
+		expect(kv.has('libraries')).toBe(false)
 	})
 
 	// Allowlists have no master toggle. Refused rather than dropped, like the other type mismatches
@@ -190,12 +184,12 @@ describe('POST /app/admin/feature-flags', () => {
 	it('refuses enabled for an allowlist flag, leaving the list alone', async () => {
 		const env = makeEnv()
 		mockUsers([{ id: 'user_1', email: 'one@tldraw.com' }])
-		await post(env, { flag: 'mcp_server_access', emails: 'one@tldraw.com' })
+		await post(env, { flag: 'libraries', emails: 'one@tldraw.com' })
 
-		const response = await post(env, { flag: 'mcp_server_access', enabled: false })
+		const response = await post(env, { flag: 'libraries', enabled: false })
 
 		expect(response.status).toBe(400)
-		expect(storedFlag('mcp_server_access')).toMatchObject({
+		expect(storedFlag('libraries')).toMatchObject({
 			users: [{ userId: 'user_1', email: 'one@tldraw.com' }],
 		})
 	})
@@ -215,7 +209,7 @@ describe('GET /app/admin/feature-flags', () => {
 	it('refreshes the email labels from the database', async () => {
 		const env = makeEnv()
 		kv.set(
-			'mcp_server_access',
+			'libraries',
 			JSON.stringify({
 				type: 'allowlist',
 				enabled: true,
@@ -226,9 +220,7 @@ describe('GET /app/admin/feature-flags', () => {
 
 		const flags = await get(env)
 
-		expect(flags.mcp_server_access.users).toEqual([
-			{ userId: 'user_1', email: 'new-address@tldraw.com' },
-		])
+		expect(flags.libraries.users).toEqual([{ userId: 'user_1', email: 'new-address@tldraw.com' }])
 	})
 
 	// A deleted account leaves an entry that still looks like a live grant and matches nobody, and
@@ -236,7 +228,7 @@ describe('GET /app/admin/feature-flags', () => {
 	it('marks an entry whose user id no longer resolves', async () => {
 		const env = makeEnv()
 		kv.set(
-			'mcp_server_access',
+			'libraries',
 			JSON.stringify({
 				type: 'allowlist',
 				enabled: true,
@@ -247,7 +239,7 @@ describe('GET /app/admin/feature-flags', () => {
 
 		const flags = await get(env)
 
-		expect(flags.mcp_server_access.users).toEqual([
+		expect(flags.libraries.users).toEqual([
 			{ userId: 'user_gone', email: 'gone@tldraw.com', missing: true },
 		])
 	})
@@ -256,10 +248,10 @@ describe('GET /app/admin/feature-flags', () => {
 	// must not reach the panel — or the request path — as a shape neither of them recognises.
 	it('reports the type from the defaults, not from KV', async () => {
 		const env = makeEnv()
-		kv.set('mcp_server_access', JSON.stringify({ type: 'allowList', enabled: true }))
+		kv.set('libraries', JSON.stringify({ type: 'allowList', enabled: true }))
 
 		const flags = await get(env)
 
-		expect(flags.mcp_server_access.type).toBe('allowlist')
+		expect(flags.libraries.type).toBe('allowlist')
 	})
 })

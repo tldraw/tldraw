@@ -1,6 +1,11 @@
 import { ClerkAPIResponseError } from '@clerk/backend/errors'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ensureUser, handleInitUser } from './initUser'
+import {
+	ensureMcpUserRows,
+	ensureUser,
+	handleInitUser,
+	resetMcpUsersWithRowsForTests,
+} from './initUser'
 
 const getUser = vi.fn()
 vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
@@ -19,6 +24,7 @@ const { writeDataPoint } = await import('../../utils/analytics')
 function makeDb(existingEmail?: string, { hasHomeGroup = true } = {}) {
 	const inserted: { table: string; row: Record<string, unknown> }[] = []
 	const db = {
+		destroy: async () => {},
 		selectFrom: () => ({
 			leftJoin: () => ({
 				where: () => ({
@@ -125,6 +131,62 @@ describe('ensureUser', () => {
 		expect(await ensureUser(makeEnv(true), db, 'user-1')).toEqual({ outcome: 'rate_limited' })
 		expect(getUser).not.toHaveBeenCalled()
 		expect(inserted).toEqual([])
+	})
+})
+
+describe('ensureMcpUserRows', () => {
+	beforeEach(() => {
+		getUser.mockReset()
+		resetMcpUsersWithRowsForTests()
+	})
+
+	it('creates the rows of an account first seen on an access token', async () => {
+		getUser.mockResolvedValue(clerkUser('someone@example.com'))
+		const { db, inserted } = makeDb()
+		pool.current = db
+
+		await ensureMcpUserRows(makeEnv(), 'user-1')
+
+		expect(inserted.map((row) => row.table)).toContain('user')
+	})
+
+	it('ensures the rows once per isolate', async () => {
+		const { db } = makeDb('someone@example.com')
+		const selectFrom = vi.spyOn(db, 'selectFrom')
+		pool.current = db
+
+		await ensureMcpUserRows(makeEnv(), 'user-1')
+		await ensureMcpUserRows(makeEnv(), 'user-1')
+
+		expect(selectFrom).toHaveBeenCalledTimes(1)
+	})
+
+	// The rows are best effort: a database blip must not refuse an otherwise valid caller.
+	it('swallows a failure and tries again on the next request', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { db } = makeDb('someone@example.com')
+		const selectFrom = vi.spyOn(db, 'selectFrom').mockImplementationOnce(() => {
+			throw new Error('Postgres down')
+		})
+		pool.current = db
+
+		await expect(ensureMcpUserRows(makeEnv(), 'user-1')).resolves.toBeUndefined()
+		await ensureMcpUserRows(makeEnv(), 'user-1')
+
+		expect(selectFrom).toHaveBeenCalledTimes(2)
+		consoleSpy.mockRestore()
+	})
+
+	it('does not cache an account Clerk no longer has', async () => {
+		getUser.mockRejectedValue(new ClerkAPIResponseError('Not Found', { data: [], status: 404 }))
+		const { db } = makeDb()
+		const selectFrom = vi.spyOn(db, 'selectFrom')
+		pool.current = db
+
+		await ensureMcpUserRows(makeEnv(), 'user-1')
+		await ensureMcpUserRows(makeEnv(), 'user-1')
+
+		expect(selectFrom).toHaveBeenCalledTimes(2)
 	})
 })
 
