@@ -79,6 +79,9 @@ vi.mock('tldraw', async (importOriginal) => ({
 	EditorPortal: ({ children }: { children: ReactNode }) => children,
 }))
 
+// Libraries are licensed here; license.test.tsx covers the gate.
+vi.mock('./license', () => ({ useLibrariesEnabled: () => true }))
+
 // Keeps every tab's panel mounted, so a panel that leans on only the open tab being rendered shows it.
 vi.mock('radix-ui', async (importOriginal) => {
 	const original = await importOriginal<typeof import('radix-ui')>()
