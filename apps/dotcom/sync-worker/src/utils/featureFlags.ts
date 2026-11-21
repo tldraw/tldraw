@@ -300,6 +300,15 @@ async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean
 	}
 }
 
+/**
+ * Whether a caller may reach the libraries routes and mutators: the `libraries` flag, which also
+ * decides whether the client shows them. Read without the stale value, like `canUseMcpServer`, so a
+ * removal from the list lands even while KV is failing.
+ */
+export async function canUseLibraries(env: Environment, userId: string): Promise<boolean> {
+	return await isFeatureFlagEnabledForUser(env, 'libraries', userId, { staleOnError: false })
+}
+
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
