@@ -34,22 +34,25 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
 		})
 
 		const container = ref.current
-		let scrollingParent: HTMLElement | Document | null = null
+		let scrollingAncestors: Array<HTMLElement | Document> = []
 
 		if (container) {
 			// When the container's size changes, update the bounds
 			resizeObserver.observe(container)
 
-			// When the container's nearest scrollable parent scrolls, update the bounds
-			scrollingParent = getNearestScrollableContainer(container)
-			scrollingParent.addEventListener('scroll', updateBounds)
+			scrollingAncestors = getScrollableAncestors(container)
+			for (const ancestor of scrollingAncestors) {
+				ancestor.addEventListener('scroll', updateBounds)
+			}
 		}
 
 		return () => {
 			clearInterval(interval)
 			win.removeEventListener('resize', updateBounds)
 			resizeObserver.disconnect()
-			scrollingParent?.removeEventListener('scroll', updateBounds)
+			for (const ancestor of scrollingAncestors) {
+				ancestor.removeEventListener('scroll', updateBounds)
+			}
 			updateBounds.cancel()
 		}
 	}, [editor, ref])
@@ -60,23 +63,25 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {
  * MIT License: https://github.com/excalidraw/excalidraw/blob/master/LICENSE
  * https://github.com/excalidraw/excalidraw/blob/48c3465b19f10ec755b3eb84e21a01a468e96e43/packages/excalidraw/utils.ts#L600
  */
-const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
+export function getScrollableAncestors(element: HTMLElement): Array<HTMLElement | Document> {
 	const doc = element.ownerDocument
 	const win = getOwnerWindow(element)
+	const ancestors: Array<HTMLElement | Document> = []
 	let parent = element.parentElement
-	while (parent) {
-		if (parent === doc.body) {
-			return doc
-		}
-		const { overflowY } = win.getComputedStyle(parent)
-		const hasScrollableContent = parent.scrollHeight > parent.clientHeight
-		if (
-			hasScrollableContent &&
-			(overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')
-		) {
-			return parent
+	while (parent && parent !== doc.body) {
+		const { overflowX, overflowY } = win.getComputedStyle(parent)
+		const hasScrollableContent =
+			(parent.scrollWidth > parent.clientWidth && isScrollableOverflow(overflowX)) ||
+			(parent.scrollHeight > parent.clientHeight && isScrollableOverflow(overflowY))
+		if (hasScrollableContent) {
+			ancestors.push(parent)
 		}
 		parent = parent.parentElement
 	}
-	return doc
+	ancestors.push(doc)
+	return ancestors
+}
+
+function isScrollableOverflow(overflow: string) {
+	return overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay'
 }
