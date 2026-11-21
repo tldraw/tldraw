@@ -9,6 +9,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import {
+	MAX_LIBRARY_META_LENGTH,
 	MAX_LIBRARY_NAME_LENGTH,
 	MAX_NUMBER_OF_WORKSPACES,
 	MAX_WORKSPACE_NAME_LENGTH,
@@ -197,8 +198,6 @@ export function libraryName(name: string) {
 	return clamped
 }
 
-const MAX_LIBRARY_META_LENGTH = 4096
-
 function assertValidLibraryMeta(meta: JsonObject) {
 	assert(meta && typeof meta === 'object' && !Array.isArray(meta), ZErrorCode.bad_request)
 	assert(JSON.stringify(meta).length <= MAX_LIBRARY_META_LENGTH, ZErrorCode.bad_request)
@@ -378,12 +377,20 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 		},
 
 		library_item: {
-			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+			/** Changes an item's name or meta. Meta is merged key by key, as the editor merges a shape's. */
+			update: async (
+				tx: Tx,
+				{ id, name, meta }: { id: string; name?: string; meta?: JsonObject }
+			) => {
 				await assertLibrariesEnabled(tx, options)
-				await assertCanManageLibraryItem(tx, userId, id)
+				const item = await assertCanManageLibraryItem(tx, userId, id)
+				if (meta !== undefined) assertValidLibraryMeta(meta)
+				const merged = meta === undefined ? undefined : { ...item.meta, ...meta }
+				if (merged) assertValidLibraryMeta(merged)
 				await tx.mutate.library_item.update({
 					id,
-					name: libraryName(name),
+					...(name === undefined ? {} : { name: libraryName(name) }),
+					...(merged === undefined ? {} : { meta: merged }),
 					updatedAt: Date.now(),
 				})
 			},

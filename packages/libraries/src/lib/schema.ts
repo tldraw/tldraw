@@ -58,23 +58,38 @@ export interface TLLibraryItem extends BaseRecord<'library-item', TLLibraryItemI
 	meta: JsonObject
 }
 
-const nonEmptyString = T.string.check((value) => {
+export const nonEmptyString = T.string.check((value) => {
 	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
 })
+
+/** A thumbnail: one image's URL, or a light and a dark one. */
+export const libraryThumbnailValidator: T.Validator<TLLibraryThumbnail> = T.or(
+	nonEmptyString,
+	T.object({ light: nonEmptyString, dark: nonEmptyString })
+)
 
 export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
 	id: idValidator<TLLibraryItemId>('library-item'),
 	typeName: T.literal('library-item'),
 	libraryId: idValidator<TLLibraryId>('library'),
 	name: nonEmptyString.optional(),
-	thumbnail: T.or(
-		nonEmptyString,
-		T.object({ light: nonEmptyString, dark: nonEmptyString })
-	).optional(),
+	thumbnail: libraryThumbnailValidator.optional(),
 	createdAt: T.number.optional(),
 	version: T.positiveInteger,
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
+
+/** The item with an `updateItem` partial applied: meta merged key by key, as shapes' is. */
+export function applyLibraryItemPartial<T extends TLLibraryItem>(
+	item: T,
+	partial: Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
+): T {
+	return {
+		...item,
+		...(partial.name === undefined ? {} : { name: partial.name }),
+		...(partial.meta === undefined ? {} : { meta: { ...item.meta, ...partial.meta } }),
+	}
+}
 
 export const LibraryItemRecordType = createRecordType<TLLibraryItem>('library-item', {
 	validator: libraryItemValidator,

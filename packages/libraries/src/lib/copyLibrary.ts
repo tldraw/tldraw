@@ -109,6 +109,7 @@ async function loadCopy(from: LibrarySource, item: TLLibraryItem): Promise<TLNew
 		...(item.name === undefined ? {} : { name: item.name }),
 		content,
 		...(thumbnail === undefined ? {} : { thumbnail }),
+		meta: item.meta,
 	}
 }
 

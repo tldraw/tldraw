@@ -111,6 +111,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 					// Items are listed by createdAt, so each copy's is a step later to keep their order.
 					createdAt: now + index,
 					updatedAt: now,
+					meta: item.meta,
 				}))
 				const inserted = await tx
 					.insertInto('library_item')

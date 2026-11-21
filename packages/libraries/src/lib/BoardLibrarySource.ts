@@ -24,12 +24,14 @@ import {
 	type LibrarySource,
 	type TLLibraryAction,
 	type TLLibraryThumbnailContext,
+	type TLLibraryItemPartial,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
 import { mapConcurrently } from './mapConcurrently'
 import { saveErrorMessages } from './saveErrorMessages'
 import {
+	applyLibraryItemPartial,
 	LibraryItemRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	getThumbnailForColorMode,
@@ -268,7 +270,7 @@ export class BoardLibrarySource implements LibrarySource {
 				...(thumbnail ? { thumbnail: mapThumbnail(thumbnail, ({ asset }) => asset.id) } : {}),
 				createdAt: now + index,
 				version: 1,
-				meta: {},
+				meta: newItem.meta === undefined ? {} : structuredClone(newItem.meta),
 			}
 			const contentRecord = LibraryItemContentRecordType.create({
 				id: createLibraryItemContentId(item.id),
@@ -301,10 +303,10 @@ export class BoardLibrarySource implements LibrarySource {
 		return records.map(({ item }) => this.toListedItem(item))
 	}
 
-	async renameItem(itemId: TLLibraryItemId, name: string) {
+	async updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial) {
 		const item = this.getItem(itemId)
-		this.assertCan('renameItem', item.libraryId)
-		this.write([{ ...item, name }])
+		this.assertCan('updateItem', item.libraryId)
+		this.write([structuredClone(applyLibraryItemPartial(item, partial))])
 	}
 
 	async deleteItem(itemId: TLLibraryItemId) {
