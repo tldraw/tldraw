@@ -8,7 +8,15 @@ import {
 	type TLLibraryAction,
 	type TLLibraryTarget,
 } from './LibrarySource'
-import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
+import { LibraryItemRecordType, type TLLibraryItem, type TLLibraryItemContent } from './schema'
+import { whenItemsStored } from './whenItemsStored'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 const shapeId = createShapeId('box')
 const pack = LibraryRecordType.createId('pack')
@@ -55,10 +63,12 @@ describe('InMemoryLibrarySource', () => {
 	it('adds items and serves their content separately from the listing', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, {
-			name: 'Card',
-			content: content(),
-		})
+		const item = await added(
+			source.addItem(library.id, {
+				name: 'Card',
+				content: content(),
+			})
+		)
 
 		expect(item).toMatchObject({ libraryId: library.id, name: 'Card', version: 1 })
 		expect(source.getItems(library.id)).toEqual([item])
@@ -68,7 +78,7 @@ describe('InMemoryLibrarySource', () => {
 	it('adds an item without a name', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, { content: content() })
+		const item = await added(source.addItem(library.id, { content: content() }))
 		expect(item.libraryId).toBe(library.id)
 		expect(item).not.toHaveProperty('name')
 	})
@@ -76,11 +86,13 @@ describe('InMemoryLibrarySource', () => {
 	it('gives each image of a light and dark pair its own url', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, {
-			name: 'Card',
-			content: content(),
-			thumbnail: { light: png(), dark: png() },
-		})
+		const item = await added(
+			source.addItem(library.id, {
+				name: 'Card',
+				content: content(),
+				thumbnail: { light: png(), dark: png() },
+			})
+		)
 		expect(item.thumbnail).toEqual({
 			light: expect.stringMatching(/^blob:/),
 			dark: expect.stringMatching(/^blob:/),
@@ -92,14 +104,14 @@ describe('InMemoryLibrarySource', () => {
 	it('keeps a single thumbnail a single url', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, { content: content(), thumbnail: png() })
+		const item = await added(source.addItem(library.id, { content: content(), thumbnail: png() }))
 		expect(item.thumbnail).toMatch(/^blob:/)
 	})
 
 	it('renames items and rejects blank names', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, { name: 'Card', content: content() })
+		const item = await added(source.addItem(library.id, { name: 'Card', content: content() }))
 
 		await source.renameItem(item.id, 'Header')
 		expect(source.getItems(library.id)).toEqual([{ ...item, name: 'Header' }])
@@ -113,6 +125,53 @@ describe('InMemoryLibrarySource', () => {
 		await expect(source.deleteItem(missingItem)).rejects.toThrow(LibraryNotFoundError)
 	})
 
+	it('adds several items together, in the order given', async () => {
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Wireframes')
+		const listings: string[][] = []
+		const stop = react('listing', () => {
+			listings.push(
+				source
+					.getItems(library.id)
+					.map((item) => item.name ?? '')
+					.sort()
+			)
+		})
+
+		const items = await added(
+			source.addItems(library.id, [
+				{ name: 'Button', content: content() },
+				{ name: 'Card', content: content(), thumbnail: png() },
+				{ name: 'Input', content: content() },
+			])
+		)
+		stop()
+
+		expect(items.map((item) => item.name)).toEqual(['Button', 'Card', 'Input'])
+		expect(source.getItems(library.id)).toHaveLength(3)
+		expect(source.getItems(library.id)).toEqual(expect.arrayContaining(items))
+		expect(listings).toEqual([[], ['Button', 'Card', 'Input']])
+		expect(items[0].createdAt).toBeLessThan(items[1].createdAt!)
+		expect(items[1].createdAt).toBeLessThan(items[2].createdAt!)
+		expect(items[1].thumbnail).toMatch(/^blob:/)
+		expect(await source.getItemContent(items[2].id)).toEqual(content())
+	})
+
+	it('adds none of the items when one is refused', async () => {
+		const create = vi.spyOn(URL, 'createObjectURL')
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Wireframes')
+		await expect(
+			source.addItems(library.id, [
+				{ name: 'Button', content: content(), thumbnail: png() },
+				{ name: ' ', content: content() },
+			])
+		).rejects.toThrow()
+		expect(source.getItems(library.id)).toEqual([])
+		expect(create).not.toHaveBeenCalled()
+		create.mockRestore()
+	})
+
 	describe('thumbnail urls', () => {
 		afterEach(() => vi.restoreAllMocks())
 
@@ -120,10 +179,12 @@ describe('InMemoryLibrarySource', () => {
 			const revoke = vi.spyOn(URL, 'revokeObjectURL')
 			const source = new InMemoryLibrarySource()
 			const library = await source.createLibrary('Wireframes')
-			const item = await source.addItem(library.id, {
-				content: content(),
-				thumbnail: { light: png(), dark: png() },
-			})
+			const item = await added(
+				source.addItem(library.id, {
+					content: content(),
+					thumbnail: { light: png(), dark: png() },
+				})
+			)
 			await source.deleteItem(item.id)
 			const { light, dark } = item.thumbnail as { light: string; dark: string }
 			expect(revoke).toHaveBeenCalledWith(light)
@@ -148,10 +209,12 @@ describe('InMemoryLibrarySource', () => {
 	it('deletes items and their content', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, {
-			name: 'Card',
-			content: content(),
-		})
+		const item = await added(
+			source.addItem(library.id, {
+				name: 'Card',
+				content: content(),
+			})
+		)
 
 		await source.deleteItem(item.id)
 		expect(source.getItems(library.id)).toEqual([])
@@ -162,7 +225,7 @@ describe('InMemoryLibrarySource', () => {
 		const source = new InMemoryLibrarySource()
 		const from = await source.createLibrary('Wireframes')
 		const to = await source.createLibrary('Icons')
-		const item = await source.addItem(from.id, { name: 'Card', content: content() })
+		const item = await added(source.addItem(from.id, { name: 'Card', content: content() }))
 		await source.moveItem(item.id, to.id)
 		expect(source.getItems(from.id)).toEqual([])
 		expect(source.getItems(to.id).map((i) => i.id)).toEqual([item.id])
@@ -175,7 +238,7 @@ describe('InMemoryLibrarySource', () => {
 			can: (_, libraryId) => libraryId !== pack,
 		})
 		const writable = await source.createLibrary('Mine')
-		const item = await source.addItem(writable.id, { content: content() })
+		const item = await added(source.addItem(writable.id, { content: content() }))
 		await expect(source.moveItem(item.id, pack)).rejects.toThrow(LibraryPermissionError)
 		await expect(source.moveItem(item.id, missingLibrary)).rejects.toThrow(LibraryNotFoundError)
 	})
@@ -240,13 +303,14 @@ describe('InMemoryLibrarySource', () => {
 		it('moves a library to another owner, keeping its items', async () => {
 			const source = new InMemoryLibrarySource({ owners })
 			const library = await source.createLibrary('Wireframes')
-			const item = await source.addItem(library.id, { name: 'Card', content: content() })
+			const item = await added(source.addItem(library.id, { name: 'Card', content: content() }))
 			const seen: (string | undefined)[] = []
 			const stop = react('owner', () => {
 				seen.push(source.getLibraries()[0].ownerId)
 			})
-			await source.moveLibrary(library.id, 'acme')
+			const moved = await source.moveLibrary(library.id, 'acme')
 			stop()
+			expect(moved).toEqual({ ...library, ownerId: 'acme' })
 			expect(seen).toEqual(['home', 'acme'])
 			expect(source.getLibraries()).toEqual([{ ...library, ownerId: 'acme' }])
 			expect(source.getItems(library.id).map((i) => i.id)).toEqual([item.id])
@@ -280,11 +344,13 @@ describe('InMemoryLibrarySource', () => {
 		const source = new InMemoryLibrarySource()
 		const keep = await source.createLibrary('Keep')
 		const drop = await source.createLibrary('Drop')
-		const kept = await source.addItem(keep.id, { name: 'A', content: content() })
-		const dropped = await source.addItem(drop.id, {
-			name: 'B',
-			content: content(),
-		})
+		const kept = await added(source.addItem(keep.id, { name: 'A', content: content() }))
+		const dropped = await added(
+			source.addItem(drop.id, {
+				name: 'B',
+				content: content(),
+			})
+		)
 
 		await source.deleteLibrary(drop.id)
 		expect(source.getLibraries()).toEqual([keep])
@@ -430,9 +496,9 @@ describe('InMemoryLibrarySource', () => {
 			runs++
 		})
 
-		await source.addItem(b.id, { name: 'In B', content: content() })
+		await added(source.addItem(b.id, { name: 'In B', content: content() }))
 		expect(runs).toBe(1)
-		await source.addItem(a.id, { name: 'In A', content: content() })
+		await added(source.addItem(a.id, { name: 'In A', content: content() }))
 		expect(runs).toBe(2)
 		stop()
 	})
@@ -473,7 +539,7 @@ describe('InMemoryLibrarySource', () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
 		const passed = content()
-		const item = await source.addItem(library.id, { content: passed })
+		const item = await added(source.addItem(library.id, { content: passed }))
 
 		passed.content.rootShapeIds.length = 0
 		const loaded = await source.getItemContent(item.id)
@@ -486,10 +552,12 @@ describe('InMemoryLibrarySource', () => {
 		const revoke = vi.spyOn(URL, 'revokeObjectURL')
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')
-		const item = await source.addItem(library.id, {
-			content: content(),
-			thumbnail: { light: png(), dark: png() },
-		})
+		const item = await added(
+			source.addItem(library.id, {
+				content: content(),
+				thumbnail: { light: png(), dark: png() },
+			})
+		)
 		source.dispose()
 		const { light, dark } = item.thumbnail as { light: string; dark: string }
 		expect(revoke).toHaveBeenCalledWith(light)

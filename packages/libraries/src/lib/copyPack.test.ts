@@ -1,5 +1,5 @@
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { copyPack } from './copyPack'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import type { LibraryPack } from './LibraryPack'
@@ -45,6 +45,26 @@ describe('copyPack', () => {
 		expect(await source.getItemContent(items[0].id)).toEqual(content('button'))
 		expect(source.can('renameLibrary', copy.id)).toBe(true)
 		expect(source.can('addItem', copy.id)).toBe(true)
+	})
+
+	it("adds the pack's items together, in the pack's order", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const addItems = vi.spyOn(source, 'addItems')
+		const addItem = vi.spyOn(source, 'addItem')
+		const copy = await copyPack(source, pack)
+		expect(addItems).toHaveBeenCalledTimes(1)
+		expect(addItem).not.toHaveBeenCalled()
+		const byCreation = [...source.getItems(copy.id)]
+			.sort((a, b) => a.createdAt! - b.createdAt!)
+			.map((item) => item.name)
+		expect(byCreation).toEqual(['Button', undefined])
+	})
+
+	it('deletes the copy when its items cannot be added', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		vi.spyOn(source, 'addItems').mockRejectedValue(new Error('offline'))
+		await expect(copyPack(source, pack)).rejects.toThrow('offline')
+		expect(source.getLibraries()).toEqual([])
 	})
 
 	it("uses the source's default owner and records only the pack unless told otherwise", async () => {
