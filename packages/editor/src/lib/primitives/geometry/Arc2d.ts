@@ -1,5 +1,14 @@
 import { intersectLineSegmentCircle } from '../intersect'
-import { getArcMeasure, getPointInArcT, getPointOnCircle } from '../utils'
+import {
+	approximately,
+	approximatelyLte,
+	clockwiseAngleDist,
+	counterClockwiseAngleDist,
+	getArcMeasure,
+	getPointInArcT,
+	getPointOnCircle,
+	PI2,
+} from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { getVerticesCountForArcLength } from './geometry-constants'
 import { Geometry2d, Geometry2dOptions } from './Geometry2d'
@@ -70,19 +79,21 @@ export class Arc2d extends Geometry2d {
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		const {
-			_center,
-			_radius: radius,
-			_measure: measure,
-			_angleStart: angleStart,
-			_angleEnd: angleEnd,
-		} = this
+		const { _center, _radius: radius, _measure: measure, _angleStart: angleStart } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false
 
+		// Don't use getPointInArcT here: it clamps angles outside the arc's range to the nearest
+		// end point, which would turn crossings on the complementary part of the circle into
+		// hits (#10554). Measure the swept angle from the start instead.
 		return intersection.some((p) => {
-			const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
-			return result >= 0 && result <= 1
+			const sweptAngle =
+				measure > 0
+					? clockwiseAngleDist(angleStart, _center.angle(p))
+					: counterClockwiseAngleDist(angleStart, _center.angle(p))
+			// counterClockwiseAngleDist reports a crossing at the start point itself as a full
+			// turn rather than zero, so accept ~PI2 as well
+			return approximatelyLte(sweptAngle, Math.abs(measure)) || approximately(sweptAngle, PI2)
 		})
 	}
 

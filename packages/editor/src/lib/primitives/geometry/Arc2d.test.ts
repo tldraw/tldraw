@@ -193,10 +193,17 @@ describe('Arc2d.hitTestLineSegment', () => {
 		expect(quarter().hitTestLineSegment(new Vec(1, 1), new Vec(2, 2))).toBe(false)
 	})
 
-	// Locks in current behaviour, see #10555.
-	it('hits crossings just beyond the end points (known quirk)', () => {
-		// (5, -8.66) is at -60°, off the quarter arc, but getPointInArcT clamps it to the start
-		expect(quarter().hitTestLineSegment(new Vec(5, -20), new Vec(5, 0))).toBe(true)
+	it('misses crossings just beyond the end points', () => {
+		// (5, -8.66) is at -60°, off the quarter arc (#10554)
+		expect(quarter().hitTestLineSegment(new Vec(5, -20), new Vec(5, 0))).toBe(false)
+	})
+
+	it('hits crossings exactly at the end points', () => {
+		// through the shared start point (10, 0) of both arcs
+		expect(quarter().hitTestLineSegment(new Vec(5, -5), new Vec(15, 5))).toBe(true)
+		expect(threeQuarter().hitTestLineSegment(new Vec(5, -5), new Vec(15, 5))).toBe(true)
+		// through the end point (0, 10)
+		expect(quarter().hitTestLineSegment(new Vec(-5, 5), new Vec(5, 15))).toBe(true)
 	})
 
 	it('checks both directions of the long arc', () => {
