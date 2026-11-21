@@ -1,7 +1,14 @@
-import { type LibraryPack, type LibraryPackItem, InMemoryLibrarySource } from '@tldraw/libraries'
+import {
+	type LibraryPack,
+	type LibraryPackItem,
+	InMemoryLibrarySource,
+	whenItemsStored,
+} from '@tldraw/libraries'
 import { createTLSchema, type SerializedStore, type TLRecord } from 'tldraw'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
+import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
+import { TldrawAppLibrariesSource } from './librariesSource'
 import {
 	addStarterPack,
 	canAddStarterPack,
@@ -104,6 +111,33 @@ describe('starter pack content', () => {
 			content: { ...content.content, shapes: [{ ...shape, x: 'left' } as any, ...shapes] },
 		}
 		expect(() => migrateAndValidate(broken)).toThrow()
+	})
+})
+
+describe('starter packs in tldraw.com workspaces', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+		vi.restoreAllMocks()
+	})
+
+	it("stores each item's category and tags with its copy", async () => {
+		const backend = createFakeLibrariesBackend()
+		vi.stubGlobal('fetch', backend.fetch)
+		vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:local')
+		vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+		const source = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		const math = await loadStarterPack('math')
+
+		const copy = await addStarterPack(source, math)
+		await whenItemsStored(source.getItems(copy.id).map((item) => item.id))
+
+		const rows = backend.rows.get().find((row) => row.id === copy.id.split(':')[1])!.items
+		expect(rows.map((row) => row.meta)).toEqual(math.items.map((item) => item.meta))
+		expect(rows[0].meta).toEqual({
+			category: 'Operators and relations',
+			tags: ['Plus', 'plus', 'Operators and relations'],
+			source: 'tldraw',
+		})
 	})
 })
 
