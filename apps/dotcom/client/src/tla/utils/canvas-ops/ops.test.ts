@@ -17,10 +17,16 @@ import {
 	type TLMeasureTextOpts,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { describeShapes, hasAppliedBatch, markSelectionSeen, runBatch } from './actions'
+import {
+	describeShapes,
+	hasAppliedBatch,
+	isRunInAnotherTab,
+	markSelectionSeen,
+	runBatch,
+} from './actions'
 import { applyOps } from './ops'
 import { createCanvasOpsReceiver } from './receiver'
-import type { CanvasAction } from './schema'
+import type { CanvasAction, CanvasOp } from './schema'
 
 /** A headless editor whose text measurement is deterministic: 16 units per character and 32 per line at 24px, scaled by font size. */
 function createTestEditor(): Editor {
@@ -150,11 +156,11 @@ describe('references', () => {
 
 	// The user's other tab closed mid-run and this one took over: its selection isn't what the agent saw.
 	describe('a run that moved here from another tab', () => {
-		const stampAsOtherTabs = (runId: string, userId: string) =>
-			editor.updateShape({
-				id: id('db'),
-				type: 'geo',
-				meta: { agent: { batchId: 'elsewhere', at: '', runId, userId } },
+		const claimForOtherTab = (runId: string, userId: string) =>
+			editor.updateDocumentSettings({
+				meta: {
+					[`agentRunTab:${JSON.stringify([userId, runId])}`]: { tab: 'other-tab', at: Date.now() },
+				},
 			})
 		const restyleSelected = (attribution: { runId?: string; userId?: string }) =>
 			applyOps(
@@ -162,13 +168,13 @@ describe('references', () => {
 				[{ op: 'restyle', targets: { selected: true }, color: 'black' }],
 				attribution
 			)
+		const run = { runId: 'run-1', userId: 'u1' }
 
 		// A batch naming shapes by id says nothing about whether the agent saw this tab's selection.
 		it('refuses the selection until the agent reads it, whatever batches come between', () => {
 			seedDiagram()
-			stampAsOtherTabs('run-1', 'u1')
+			claimForOtherTab('run-1', 'u1')
 			editor.select(id('heart'))
-			const run = { runId: 'run-1', userId: 'u1' }
 
 			expect(restyleSelected(run).errors).toEqual([
 				expect.stringContaining('different browser tab'),
@@ -179,7 +185,7 @@ describe('references', () => {
 			])
 			expect(editor.getShape<TLGeoShape>(id('heart'))!.props.color).not.toBe('black')
 
-			markSelectionSeen(editor, 'run-1')
+			markSelectionSeen(editor, run)
 			expect(restyleSelected(run).errors).toEqual([])
 			expect(editor.getShape<TLGeoShape>(id('heart'))!.props.color).toBe('black')
 		})
@@ -187,41 +193,66 @@ describe('references', () => {
 		// Two agents of one user: one reading the selection says nothing about what the other saw.
 		it("keeps refusing for a run whose agent didn't read the selection", () => {
 			seedDiagram()
-			stampAsOtherTabs('run-1', 'u1')
+			claimForOtherTab('run-1', 'u1')
 			editor.select(id('heart'))
 
-			markSelectionSeen(editor, 'run-2')
+			markSelectionSeen(editor, { runId: 'run-2', userId: 'u1' })
 
-			expect(restyleSelected({ runId: 'run-1', userId: 'u1' }).errors).toEqual([
+			expect(restyleSelected(run).errors).toEqual([
 				expect.stringContaining('different browser tab'),
 			])
 		})
 
-		it('trusts the selection read before the run first reached this tab', () => {
-			seedDiagram()
-			stampAsOtherTabs('run-1', 'u1')
-			editor.select(id('heart'))
-
-			markSelectionSeen(editor, 'run-1')
-
-			expect(restyleSelected({ runId: 'run-1', userId: 'u1' }).errors).toEqual([])
-		})
-
 		it("ignores another user's run with the same id", () => {
 			seedDiagram()
-			stampAsOtherTabs('run-1', 'u2')
+			claimForOtherTab('run-1', 'u2')
 			editor.select(id('heart'))
 
-			expect(restyleSelected({ runId: 'run-1', userId: 'u1' }).errors).toEqual([])
+			expect(restyleSelected(run).errors).toEqual([])
 		})
 
 		it('trusts the selection in a run that started here', () => {
 			seedDiagram()
 			editor.select(id('heart'))
 
-			expect(restyleSelected({ runId: 'run-1', userId: 'u1' }).errors).toEqual([])
-			expect(restyleSelected({ runId: 'run-1', userId: 'u1' }).errors).toEqual([])
+			expect(restyleSelected(run).errors).toEqual([])
+			expect(restyleSelected(run).errors).toEqual([])
 		})
+
+		// A delete leaves no shape behind, so the claim can't come from shape stamps.
+		it('claims the run for this tab on a batch that only deletes', () => {
+			seedDiagram()
+			applyOps(editor, [{ op: 'remove', targets: ['n1'] }], run)
+
+			expect(isRunInAnotherTab(editor, run)).toBe(false)
+			expect(
+				editor.getDocumentSettings().meta[`agentRunTab:${JSON.stringify(['u1', 'run-1'])}`]
+			).toMatchObject({ tab: expect.any(String) })
+		})
+	})
+
+	// The first tab's copy of a keyed batch replays on reconnect after a second tab applied the resend.
+	it("gives a keyed batch's new shapes and bindings the same ids in every tab", () => {
+		const other = createTestEditor()
+		const ops: CanvasOp[] = [
+			{ op: 'add', kind: 'box', text: 'A', at: { x: 0, y: 0 } },
+			{ op: 'add', kind: 'box', text: 'B', at: { x: 400, y: 0 } },
+			{ op: 'connect', from: { created: 0 }, to: { created: 1 } },
+		]
+		const attribution = { userId: 'u1', batchKey: 'k1' }
+		const records = (tab: Editor) =>
+			tab.store
+				.allRecords()
+				.filter((r) => r.typeName === 'shape' || r.typeName === 'binding')
+				.map((r) => r.id)
+				.sort()
+
+		applyOps(editor, ops, attribution)
+		applyOps(other, ops, attribution)
+
+		expect(records(editor)).toHaveLength(5)
+		expect(records(other)).toEqual(records(editor))
+		other.dispose()
 	})
 
 	// Two tabs record keys at once and the server applies both pushes to its copy of the document.

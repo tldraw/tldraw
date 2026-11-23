@@ -131,12 +131,20 @@ function doWork(
 		case 'apply_ops':
 			return queueApplyOps(editor, flushChanges, request, receivedAt)
 		case 'user_state':
-			return readUserState(editor, request.runId)
+			return readUserState(editor, flushChanges, request.run)
 	}
 }
 
-async function readUserState(editor: Editor, runId: string | undefined): Promise<TabRenderReply> {
-	if (runId) markSelectionSeen(editor, runId)
+async function readUserState(
+	editor: Editor,
+	flushChanges: FlushChanges | null,
+	run: { userId: string; runId: string } | undefined
+): Promise<TabRenderReply> {
+	if (run && !editor.getIsReadonly()) {
+		markSelectionSeen(editor, run)
+		// So the run's next batch sees the move here even if it reaches another of the user's tabs.
+		void flushChanges?.()
+	}
 	const page = editor.getCurrentPage()
 	const { x, y, w, h } = editor.getViewportPageBounds()
 	return {

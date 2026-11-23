@@ -2384,7 +2384,10 @@ describe('presence', () => {
 			'user_tab'
 		)
 
-		expect(tab).toHaveBeenCalledWith('user_tab', { mode: 'user_state', runId: 'run-1' })
+		expect(tab).toHaveBeenCalledWith('user_tab', {
+			mode: 'user_state',
+			run: { userId: 'user_tab', runId: 'run-1' },
+		})
 	})
 
 	// A hibernating room clears selections from presence, so presence would read as nothing selected.

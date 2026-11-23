@@ -1,4 +1,4 @@
-import { structuredClone } from '@tldraw/utils'
+import { getHashForString, structuredClone } from '@tldraw/utils'
 import {
 	areAnglesCompatible,
 	createBindingId,
@@ -13,6 +13,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TAB_ID,
 	TLTextShape,
 	toRichText,
 	uniqueId,
@@ -120,6 +121,13 @@ function resolveTerminal(
 export interface BatchJournal {
 	stamp: AgentShapeMeta
 	created: TLShapeId[]
+	/**
+	 * Set when the batch has a key, so a shape it makes without an id gets one derived from the key.
+	 * A resend that lands in a second tab while the first tab's copy waits to reconnect then writes
+	 * the same records as that copy, instead of a second set of shapes.
+	 */
+	idSeed?: string
+	derivedIds: number
 }
 
 /**
@@ -128,41 +136,16 @@ export interface BatchJournal {
  */
 export interface RunMemory {
 	created: TLShapeId[]
-	/**
-	 * The run's earlier batches went to another of the user's tabs, so this tab's selection isn't the
-	 * one the agent last saw. Stays set until the agent reads this tab's selection.
-	 */
-	joinedMidRun: boolean
 }
 const runMemories = new WeakMap<Editor, Map<string, RunMemory>>()
-function runMemory(editor: Editor, attribution: Attribution): RunMemory {
-	const { runId, userId } = attribution
+function runMemory(editor: Editor, runId?: string): RunMemory {
 	// A batch that names no run remembers nothing past itself, and isn't kept.
-	if (!runId) return { created: [], joinedMidRun: false }
+	if (!runId) return { created: [] }
 	let byRun = runMemories.get(editor)
 	if (!byRun) runMemories.set(editor, (byRun = new Map()))
 	let memory = byRun.get(runId)
-	if (!memory) {
-		// Checked before this batch stamps anything, or its own shapes would count as another tab's.
-		const joinedMidRun = someShapeStamped(
-			editor,
-			(stamp) => stamp.runId === runId && stamp.userId === userId
-		)
-		byRun.set(runId, (memory = { created: [], joinedMidRun }))
-	}
+	if (!memory) byRun.set(runId, (memory = { created: [] }))
 	return memory
-}
-
-/**
- * The run's agent has read this tab's selection (`get_user_state`), so the run can use it. Only that
- * run: another agent of the same user hasn't seen it. Kept even before the run's first batch here.
- */
-export function markSelectionSeen(editor: Editor, runId: string) {
-	let byRun = runMemories.get(editor)
-	if (!byRun) runMemories.set(editor, (byRun = new Map()))
-	const memory = byRun.get(runId)
-	if (memory) memory.joinedMidRun = false
-	else byRun.set(runId, { created: [], joinedMidRun: false })
 }
 
 function applyAction(
@@ -180,8 +163,12 @@ function applyAction(
 		createdIds.push(fromShapeId(id))
 	}
 	const newId = (id: string | undefined) => {
-		const shapeId = id ? toShapeId(id) : createShapeId()
-		if (id && editor.getShape(shapeId))
+		if (!id) {
+			const derived = journal.idSeed && createShapeId(`${journal.idSeed}-${journal.derivedIds++}`)
+			return derived && !editor.getShape(derived) ? derived : createShapeId()
+		}
+		const shapeId = toShapeId(id)
+		if (editor.getShape(shapeId))
 			throw new Error(`Shape "${fromShapeId(shapeId)}" already exists; use a new id`)
 		return shapeId
 	}
@@ -320,7 +307,8 @@ function applyAction(
 			] as const) {
 				if (!target.shapeId) continue
 				bindings.push({
-					id: createBindingId(),
+					// From the arrow's id, for the same reason as `idSeed`.
+					id: createBindingId(`${fromShapeId(id)}-${terminal}`),
 					typeName: 'binding',
 					type: 'arrow',
 					fromId: id,
@@ -452,37 +440,29 @@ export interface BatchContext {
 	editor: Editor
 	journal: BatchJournal
 	memory: RunMemory
+	/** The run belongs to another tab, so this tab's selection isn't the one its agent saw. */
+	joinedMidRun: boolean
 	/** Apply one bare action now; returns the short ids it created. Throws on failure. */
 	apply(action: CanvasAction): string[]
 }
 
-// Stamps are matched with the user too, since agents pick their own run ids and two people's agents
-// can pick the same one.
-function someShapeStamped(editor: Editor, isMatch: (stamp: Partial<AgentShapeMeta>) => boolean) {
-	const matches = (stamp: unknown) => !!stamp && isMatch(stamp as Partial<AgentShapeMeta>)
-	return editor.store
-		.allRecords()
-		.some(
-			(record) =>
-				record.typeName === 'shape' &&
-				(matches(record.meta.agent) || matches(record.meta.agentEdit))
-		)
+// Batch keys and run handoffs are kept on the document record rather than on shapes: a batch that
+// only deletes leaves no shape to stamp, and a later edit overwrites a shape's stamp. Each is its own
+// `meta` entry, because sync patches `meta` one entry deep: a shared map would be sent whole, and two
+// tabs writing at once would erase each other's entries. Entries are per user, since agents pick
+// their own keys and run ids, and JSON-named, so a ':' in either part can't make two collide. They
+// drop off after a day: a resend comes moments after the first attempt, and the margin absorbs tabs
+// on other devices pruning with their own clocks.
+const BATCH_KEY_PREFIX = 'agentBatchKey:'
+const RUN_TAB_PREFIX = 'agentRunTab:'
+const AGENT_META_TTL_MS = 24 * 60 * 60 * 1000
+
+function batchKeyEntry({ batchKey, userId = '' }: Attribution) {
+	return batchKey ? BATCH_KEY_PREFIX + JSON.stringify([userId, batchKey]) : null
 }
 
-// Batch keys are kept on the document record rather than on shapes: a batch that only deletes
-// leaves no shape to stamp, and a later edit overwrites a shape's stamp, and either would let a
-// resend apply twice. Each key is its own `meta` entry, valued with when it was used, because sync
-// patches `meta` one entry deep: a shared map would be sent whole, and two tabs writing at once would
-// erase each other's keys. Old keys drop off: a resend comes moments after the first attempt. The
-// expiry is long because tabs on other devices write with their own clocks, and a fast one must not
-// expire a key another tab wrote moments ago.
-const BATCH_KEY_PREFIX = 'agentBatchKey:'
-const BATCH_KEY_TTL_MS = 24 * 60 * 60 * 1000
-
-// Per user, since agents pick their own keys. JSON, so a ':' in either part can't make two pairs collide.
-function batchKeyEntry(attribution: Attribution) {
-	const { batchKey, userId = '' } = attribution
-	return batchKey ? BATCH_KEY_PREFIX + JSON.stringify([userId, batchKey]) : null
+function runTabEntry({ runId, userId = '' }: Attribution) {
+	return runId ? RUN_TAB_PREFIX + JSON.stringify([userId, runId]) : null
 }
 
 /** Whether a batch with this sender's batch key has already been applied to the board. */
@@ -491,19 +471,37 @@ export function hasAppliedBatch(editor: Editor, attribution: Attribution) {
 	return !!entry && Object.hasOwn(editor.getDocumentSettings().meta, entry)
 }
 
-function recordBatchKey(editor: Editor, attribution: Attribution) {
-	const entry = batchKeyEntry(attribution)
-	if (!entry) return
+/**
+ * Whether the run belongs to another of the user's tabs: its agent last worked in that tab's
+ * selection, not this one's. A run is claimed by the first tab it edits in and moves only when its
+ * agent reads a tab's selection, so a batch that names shapes by id doesn't move it. TAB_ID survives
+ * a reload, so reloading doesn't make a tab a stranger to its own run.
+ */
+export function isRunInAnotherTab(editor: Editor, attribution: Attribution) {
+	const entry = runTabEntry(attribution)
+	if (!entry) return false
+	const claim = editor.getDocumentSettings().meta[entry] as { tab?: unknown } | undefined
+	return !!claim && claim.tab !== TAB_ID
+}
+
+/** The run's agent has read this tab's selection (`get_user_state`), so the run can use it. */
+export function markSelectionSeen(editor: Editor, attribution: Attribution) {
+	writeAgentMeta(editor, { run: attribution })
+}
+
+function writeAgentMeta(editor: Editor, { key, run }: { key?: Attribution; run?: Attribution }) {
+	const keyEntry = key && batchKeyEntry(key)
+	const runEntry = run && runTabEntry(run)
+	if (!keyEntry && !runEntry) return
 	const now = Date.now()
 	const meta = { ...editor.getDocumentSettings().meta }
-	for (const [key, usedAt] of Object.entries(meta)) {
-		if (
-			key.startsWith(BATCH_KEY_PREFIX) &&
-			!(typeof usedAt === 'number' && now - usedAt < BATCH_KEY_TTL_MS)
-		)
-			delete meta[key]
+	for (const [name, value] of Object.entries(meta)) {
+		if (!name.startsWith(BATCH_KEY_PREFIX) && !name.startsWith(RUN_TAB_PREFIX)) continue
+		const at = typeof value === 'number' ? value : (value as { at?: unknown } | null)?.at
+		if (!(typeof at === 'number' && now - at < AGENT_META_TTL_MS)) delete meta[name]
 	}
-	meta[entry] = now
+	if (keyEntry) meta[keyEntry] = now
+	if (runEntry) meta[runEntry] = { tab: TAB_ID, at: now }
 	// Out of history, so undoing the batch doesn't make its key look unused to a resend.
 	editor.updateDocumentSettings({ meta })
 }
@@ -512,6 +510,12 @@ function recordBatchKey(editor: Editor, attribution: Attribution) {
  * Run a batch: one history entry and one batch id, stamped on every shape it creates or changes.
  * The body applies actions through `ctx.apply`. Returns the batch id.
  */
+// Two hashes of the pair, since one 32-bit hash would let two batches' ids collide on a busy board.
+function agentIdSeed(userId: string, batchKey: string) {
+	const pair = JSON.stringify([userId, batchKey])
+	return `b${getHashForString(pair)}${getHashForString(pair + '#')}`.replace(/-/g, '')
+}
+
 export function runBatch(
 	editor: Editor,
 	attribution: Attribution,
@@ -521,12 +525,24 @@ export function runBatch(
 	const stamp: AgentShapeMeta = { batchId, at: new Date().toISOString() }
 	if (attribution.runId) stamp.runId = attribution.runId
 	if (attribution.userId) stamp.userId = attribution.userId
-	const journal: BatchJournal = { stamp, created: [] }
-	const memory = runMemory(editor, attribution)
+	const { batchKey, userId = '' } = attribution
+	const journal: BatchJournal = {
+		stamp,
+		created: [],
+		idSeed: batchKey && agentIdSeed(userId, batchKey),
+		derivedIds: 0,
+	}
+	const memory = runMemory(editor, attribution.runId)
+	// Read before this batch claims the run for this tab.
+	const joinedMidRun = isRunInAnotherTab(editor, attribution)
+	const claimsRun =
+		!!attribution.runId &&
+		!Object.hasOwn(editor.getDocumentSettings().meta, runTabEntry(attribution)!)
 	const ctx: BatchContext = {
 		editor,
 		journal,
 		memory,
+		joinedMidRun,
 		apply(action) {
 			const created: string[] = []
 			applyAction(editor, action, journal, created)
@@ -539,7 +555,10 @@ export function runBatch(
 	// The key goes in the same transaction as the batch, so the server commits both or neither.
 	editor.run(
 		() => {
-			recordBatchKey(editor, attribution)
+			writeAgentMeta(editor, {
+				key: attribution,
+				run: claimsRun ? attribution : undefined,
+			})
 			body(ctx)
 		},
 		{ history: 'record' }

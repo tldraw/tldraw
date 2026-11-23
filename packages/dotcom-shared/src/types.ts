@@ -224,8 +224,11 @@ export type TabRenderRequest =
 	| TabRenderReadRequest
 	| TabRenderScreenshotRequest
 	| TabRenderApplyOpsRequest
-	/** `runId` is the agent's run, which may now use this tab's selection: see `joinedMidRun`. */
-	| { mode: 'user_state'; runId?: string }
+	/**
+	 * `run` is the agent's run, which may now use this tab's selection: see `isRunInAnotherTab`.
+	 * `userId` comes from the verified token.
+	 */
+	| { mode: 'user_state'; run?: { userId: string; runId: string } }
 
 /**
  * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to

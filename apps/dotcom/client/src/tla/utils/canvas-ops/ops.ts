@@ -1425,7 +1425,7 @@ export function applyOps(
 	const batchId = runBatch(editor, attribution, (batch) => {
 		const ctx: OpContext = {
 			...batch,
-			refs: { created: batch.memory.created, selected, joinedMidRun: batch.memory.joinedMidRun },
+			refs: { created: batch.memory.created, selected, joinedMidRun: batch.joinedMidRun },
 		}
 		for (const [index, op] of ops.entries()) results.push(runOp(ctx, op, index, errors))
 	})

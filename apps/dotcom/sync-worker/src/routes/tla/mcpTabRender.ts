@@ -301,7 +301,9 @@ export function readUserStateInOpenTab(
 	runId: string | null,
 	context: TabRenderContext
 ) {
-	const job: TabRenderRequest = runId ? { mode: 'user_state', runId } : { mode: 'user_state' }
+	const job: TabRenderRequest = runId
+		? { mode: 'user_state', run: { userId, runId } }
+		: { mode: 'user_state' }
 	return runInOpenTab(env, fileId, userId, job, ['user_state'] as const, context)
 }
 
