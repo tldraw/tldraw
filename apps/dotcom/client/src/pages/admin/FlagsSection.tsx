@@ -504,7 +504,7 @@ function PercentageInput({
 				value={pct}
 				onChange={(e) => {
 					const n = Number(e.target.value)
-					if (!Number.isNaN(n)) setPct(Math.max(0, Math.min(100, n)))
+					if (!Number.isNaN(n)) setPct(Math.max(0, Math.min(100, Math.round(n))))
 				}}
 				disabled={isSaving || disabled}
 				aria-label={label}
