@@ -551,6 +551,7 @@ describe('getAllFeatureFlagValues', () => {
 		expect(Object.keys(flags).sort()).toEqual([
 			'libraries',
 			'load_rum',
+			'mcp_hidden_tab',
 			'mcp_render_push',
 			'mcp_server_access',
 			'rum_enabled',
