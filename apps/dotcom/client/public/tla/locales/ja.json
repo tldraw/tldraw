@@ -77,6 +77,9 @@
   "181b90f889": {
     "translation": "ファイルを作成"
   },
+  "1914dedd04": {
+    "translation": "私が作成しました"
+  },
   "1a7222b4e5": {
     "translation": "移動"
   },
@@ -124,6 +127,9 @@
   },
   "2e9856a31e": {
     "translation": "招待リンクを再生成する"
+  },
+  "2f42560ef5": {
+    "translation": "{name}（あなた）"
   },
   "31246941ad": {
     "translation": "このファイルを閲覧するにはサインインしてください。"
@@ -176,6 +182,9 @@
   "42e53c47c1": {
     "translation": "所有者へ連絡して、アクセスを依頼してください。"
   },
+  "42ff290cc4": {
+    "translation": "行動…"
+  },
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
@@ -196,6 +205,12 @@
   },
   "47f493a590": {
     "translation": "ピンファイル"
+  },
+  "4970317944": {
+    "translation": "物体"
+  },
+  "49800157c1": {
+    "translation": "編集済み {time}"
   },
   "49ee308734": {
     "translation": "名前"
@@ -223,6 +238,12 @@
   },
   "517bb809d9": {
     "translation": "ページメニュー"
+  },
+  "517f5f3544": {
+    "translation": "まだファイルはありません。"
+  },
+  "536b51486d": {
+    "translation": "輸出…"
   },
   "53770fd374": {
     "translation": "未読"
@@ -254,6 +275,9 @@
   "56c34c6410": {
     "translation": "プライバシーポリシー"
   },
+  "56cabd57d5": {
+    "translation": "アーカイブされたファイルはここに表示されます。"
+  },
   "5a95a425f7": {
     "translation": "共有"
   },
@@ -284,6 +308,9 @@
   "61057a0c84": {
     "translation": "後で"
   },
+  "623cddd380": {
+    "translation": "最近"
+  },
   "625fd29749": {
     "translation": "より古い"
   },
@@ -313,6 +340,9 @@
   },
   "694f82ed9d": {
     "translation": "ワークスペースを削除"
+  },
+  "697c59072d": {
+    "translation": "ログインして保存"
   },
   "69ce6a28fb": {
     "translation": "{count, plural, other {# 人々の反応}}"
@@ -383,6 +413,9 @@
   "797799f35e": {
     "translation": "GitHubで問題を提出する"
   },
+  "797c5be9a7": {
+    "translation": "・現在この掲示板に掲載されています"
+  },
   "7a1920d611": {
     "translation": "デフォルト"
   },
@@ -395,8 +428,14 @@
   "7c0747a5df": {
     "translation": "tldrawを開く"
   },
+  "7c10d4771a": {
+    "translation": "プロフィール設定を編集するにはサインインしてください"
+  },
   "7cb5f8b4a5": {
     "translation": "無視する"
+  },
+  "7d69b3cb4c": {
+    "translation": "アーカイブ済み"
   },
   "7daeced9ff": {
     "translation": "変更内容を公開"
@@ -428,6 +467,9 @@
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
+  "8718bcf921": {
+    "translation": "無題のワークスペース"
+  },
   "87fdb09de6": {
     "translation": "あなたは既にこのワークスペースのメンバーです"
   },
@@ -439,6 +481,9 @@
   },
   "8c2d3d730c": {
     "translation": "確認コードをメールで確認してください。"
+  },
+  "8cf04a9734": {
+    "translation": "家"
   },
   "8eb2c00e96": {
     "translation": "あなたと共有しました"
@@ -484,6 +529,9 @@
   },
   "9983381c21": {
     "translation": "検索をクリアする"
+  },
+  "9ac3b80777": {
+    "translation": "保存されていないファイル"
   },
   "9b33f5c63c": {
     "translation": "コードが届きませんか？ <resend>再送信</resend>"
@@ -591,6 +639,9 @@
   "b357b524e7": {
     "translation": "電子メールアドレス"
   },
+  "b3d7c37eb8": {
+    "translation": "グリッド表示"
+  },
   "b48becc771": {
     "translation": "招待を有効にする"
   },
@@ -620,6 +671,9 @@
   },
   "bd8aac2696": {
     "translation": "現在のファイル"
+  },
+  "bf9c7b5670": {
+    "translation": "検索…"
   },
   "c17466812d": {
     "translation": "ワークスペースを管理する"
@@ -705,6 +759,9 @@
   "dbf9b24193": {
     "translation": "ワークスペースを離れる"
   },
+  "dfdb78a4e4": {
+    "translation": "アプリのデバッグフラグ"
+  },
   "e0aa021e21": {
     "translation": "わかりました"
   },
@@ -738,6 +795,9 @@
   "ec611e9a08": {
     "translation": "アカウントメニュー"
   },
+  "ed6241a422": {
+    "translation": "検索条件に一致するファイルは見つかりませんでした。"
+  },
   "ed75712b0e": {
     "translation": "複製する"
   },
@@ -753,11 +813,17 @@
   "ef7de3f485": {
     "translation": "選択された"
   },
+  "f07e75296c": {
+    "translation": "私と共有しました"
+  },
   "f09b16bc5f": {
     "translation": "弊社では、ログイン状態を維持し、ファイルを同期し、tldraw を改善するための分析情報を収集するために Cookie を使用します。"
   },
   "f0e8bff6f9": {
     "translation": "ユーザー設定"
+  },
+  "f13001876b": {
+    "translation": "リストビュー"
   },
   "f2569594b2": {
     "translation": "これらの Cookie は、ファイルと設定を保存するために使用されます。"

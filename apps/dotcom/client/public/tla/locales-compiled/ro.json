@@ -193,6 +193,12 @@
       "value": "Creați fișier"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Creat de mine"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -307,6 +313,16 @@
       "value": "Regenerați linkul de invitație"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (tu)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -409,6 +425,12 @@
       "value": "Contactați proprietarul pentru a solicita acces."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Acțiuni…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -463,6 +485,22 @@
     {
       "type": 0,
       "value": "Fișier fixat"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Obiect"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Editat "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -527,6 +565,18 @@
     {
       "type": 0,
       "value": "Meniul paginii"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Încă nu există fișiere aici."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Export…"
     }
   ],
   "53770fd374": [
@@ -599,6 +649,12 @@
       "value": "Politica de confidențialitate"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Fișierele arhivate vor apărea aici."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -657,6 +713,12 @@
     {
       "type": 0,
       "value": "Mai târziu"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Recente"
     }
   ],
   "625fd29749": [
@@ -775,6 +837,12 @@
     {
       "type": 0,
       "value": "Șterge spațiul de lucru"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Conectați-vă pentru a salva"
     }
   ],
   "69ce6a28fb": [
@@ -946,6 +1014,12 @@
       "value": "Trimiteți o problemă pe GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Pe acest forum acum"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -970,10 +1044,22 @@
       "value": "Deschideți tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Conectați-vă pentru a edita setările profilului"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Uita"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Arhivat"
     }
   ],
   "7daeced9ff": [
@@ -1078,6 +1164,12 @@
       "value": "Redenumiți fișierul"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Spațiu de lucru fără titlu"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1144,6 +1236,12 @@
     {
       "type": 0,
       "value": "Verifică-ți e-mailul pentru un cod de verificare."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Acasă"
     }
   ],
   "8eb2c00e96": [
@@ -1258,6 +1356,12 @@
     {
       "type": 0,
       "value": "Șterge căutarea"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Fișier nesalvat"
     }
   ],
   "9b33f5c63c": [
@@ -1551,6 +1655,12 @@
       "value": "Adresa de e-mail"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Vizualizare grilă"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1673,6 +1783,12 @@
     {
       "type": 0,
       "value": "Fișier curent"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Căutare…"
     }
   ],
   "c17466812d": [
@@ -1920,6 +2036,12 @@
       "value": "Părăsiți spațiul de lucru"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Indicatori de depanare a aplicațiilor"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1986,6 +2108,12 @@
       "value": "meniul cont"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Niciun fișier nu corespunde căutării dvs."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -2030,6 +2158,12 @@
       "value": "selectat"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Distribuit cu mine"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -2040,6 +2174,12 @@
     {
       "type": 0,
       "value": "Setări utilizator"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Vizualizare listă"
     }
   ],
   "f2569594b2": [
