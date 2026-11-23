@@ -58,8 +58,8 @@ binding = "BROWSER"
 #################### browser_run_session spend ledger ####################
 # The SAME MEASURE dataset sync-worker writes to, so a session row lands alongside the request-level
 # events (the dataset defaults to the binding name, as in sync-worker). This worker writes ONLY
-# `browser_run_session`, and it carries no board identity — so this binding does not widen the
-# identity surface. Note: the event's worker-name blob becomes this worker's name, not sync-worker's.
+# `browser_run_session` and `render_shadow_compare`, and neither carries board identity — so this
+# binding does not widen the identity surface. Note: the event's worker-name blob becomes this worker's name, not sync-worker's.
 
 [[env.dev.analytics_engine_datasets]]
 binding = "MEASURE"

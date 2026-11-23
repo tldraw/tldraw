@@ -19,9 +19,8 @@ export interface Environment extends SentryEnvironment {
 	// closed there unless LOCAL_SCREENSHOT_SERVICE_URL is set.
 	BROWSER: BrowserBinding | undefined
 
-	// The browser_run_session spend ledger — the one event this worker writes, to the same MEASURE
-	// dataset sync-worker uses. Carries no board identity, only the session's numbers. Undefined in
-	// tests.
+	// The browser_run_session spend ledger and the screenshot shadow's render_shadow_compare, in the
+	// same MEASURE dataset sync-worker uses. Neither carries board identity. Undefined in tests.
 	MEASURE: AnalyticsEngineDataset | undefined
 
 	// The headless editor's worker, for the screenshot shadow (headlessShadow.ts). Deployed from the
