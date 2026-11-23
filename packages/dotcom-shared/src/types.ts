@@ -177,6 +177,14 @@ export interface ThumbnailShapeMeasurement {
  */
 export const TAB_RENDER_PARAM = 'tabRender'
 
+/**
+ * The close code a tab's sync socket uses when the browser is about to freeze the tab. A frozen tab
+ * can't answer jobs, so it leaves rather than letting them time out, and the room remembers why, so an
+ * agent can be told the tab was suspended rather than that the board isn't open. It reconnects when
+ * the browser resumes it.
+ */
+export const TAB_FROZEN_CLOSE_CODE = 4090
+
 export interface TabRenderScreenshotRequest {
 	mode: 'screenshot'
 	pageId: string
@@ -222,6 +230,8 @@ export interface TabRenderServerEvent {
 	type: 'mcp_tab_render'
 	jobId: string
 	request: TabRenderRequest
+	/** Whether a hidden tab may take the job: the `mcp_hidden_tab` kill switch. Absent means no. */
+	hiddenTab?: boolean
 }
 
 /**
@@ -422,6 +432,7 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_render_push',
 	'headless_shadow',
 	'ui_v3',
+	'mcp_hidden_tab',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
