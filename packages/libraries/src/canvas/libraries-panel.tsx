@@ -39,10 +39,6 @@ const messages = defineMessages({
 	newLibrary: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	newLibraryIn: { id: 'libraries.group.new-library', defaultMessage: 'New library in {name}' },
 	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
-	placeErrorDescription: {
-		id: 'libraries.place-error.description',
-		defaultMessage: 'It may have been deleted. Try again, or pick another item.',
-	},
 })
 
 /** @public */
@@ -97,7 +93,6 @@ function LibrariesPanelContent({
 			placeLibraryItem(editor, source, itemId).catch(() => {
 				addToast({
 					title: msg(messages.placeErrorTitle),
-					description: msg(messages.placeErrorDescription),
 					severity: 'error',
 				})
 			})

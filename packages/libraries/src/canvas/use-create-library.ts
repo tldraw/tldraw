@@ -8,11 +8,7 @@ const messages = defineMessages({
 	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
 	changeErrorTitle: {
 		id: 'libraries.library-error.title',
-		defaultMessage: "Couldn't change libraries",
-	},
-	changeErrorDescription: {
-		id: 'libraries.library-error.description',
-		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
+		defaultMessage: "Couldn't change library",
 	},
 })
 
@@ -38,7 +34,6 @@ export function useCreateLibrary(source: LibrarySource) {
 				() =>
 					addToast({
 						title: msg(messages.changeErrorTitle),
-						description: msg(messages.changeErrorDescription),
 						severity: 'error',
 					})
 			)
