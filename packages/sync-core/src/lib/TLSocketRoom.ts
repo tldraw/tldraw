@@ -1,5 +1,5 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
+import { createTLSchema, TLCheckDiff, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -81,6 +81,8 @@ export interface SessionStateSnapshot {
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
 	supportsStringAppend: boolean
+	/** Optional so snapshots persisted before this field existed resume as before. */
+	userId?: string | null
 }
 
 /**
@@ -148,8 +150,16 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
 	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 *
+	 * @deprecated Use `checkDiff`.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * Your diff check. The room runs it on the document changes of each client push, after
+	 * `isReadonly` and `objectAccess`. If it rejects, the room stores and sends nothing from the
+	 * push, and tells the client why. A check that throws rejects, with reason `'error'`.
+	 */
+	checkDiff?: TLCheckDiff<R>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -280,7 +290,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			authorizeRecord: opts.authorizeRecord,
+			checkDiff: opts.checkDiff,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -323,6 +335,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write').
 	 *     Independent of isReadonly, so a session can be allowed to write objects (e.g. comments)
 	 *     without being allowed to edit the document.
+	 *   - userId - The signed-in user, for `checkDiff` (defaults to null)
 	 *   - meta - Additional session metadata (required if SessionMeta is not void)
 	 *
 	 * @example
@@ -349,11 +362,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		opts: {
 			sessionId: string
 			socket: WebSocketMinimal
+			userId?: string | null
 			isReadonly?: boolean
 			objectAccess?: TLObjectStoreAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		const { sessionId, socket, userId = null, isReadonly = false, objectAccess = 'write' } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)
@@ -373,6 +387,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleNewSession({
 			sessionId,
+			userId,
 			isReadonly,
 			objectAccess,
 			socket: new ServerSocketAdapter({
@@ -625,6 +640,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleResumedSession({
 			sessionId,
+			userId: snapshot.userId ?? null,
 			isReadonly: snapshot.isReadonly,
 			// snapshots persisted before this field existed fail closed — those sessions predate
 			// the record types gated by objectAccess, so they have nothing to write anyway
@@ -689,6 +705,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
+			userId: session.userId,
 		}
 	}
 

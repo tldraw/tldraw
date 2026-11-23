@@ -667,7 +667,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
-	private readonly commitListeners = new Set<(changes: RecordsDiff<R>) => void>()
+	private readonly commitListeners = new Set<
+		(changes: RecordsDiff<R>, rollback: () => void) => void
+	>()
 	// The user changes of the open operation, each with the `history` value it was
 	// recorded at, so that changes a nested transaction rolled back can be told apart and dropped
 	// (see HistoryAccumulator).
@@ -687,9 +689,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * read the current records from the store: the changes given here do not include those.
 	 * A listener added inside an operation can be given changes from before it was added.
 	 *
+	 * Calling `rollback` cancels the whole operation, and the listeners that are left are not
+	 * called.
+	 *
 	 * @internal
 	 */
-	onBeforeCommit(listener: (changes: RecordsDiff<R>) => void): () => void {
+	onBeforeCommit(listener: (changes: RecordsDiff<R>, rollback: () => void) => void): () => void {
 		this.commitListeners.add(listener)
 		return () => {
 			this.commitListeners.delete(listener)
@@ -705,7 +710,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.willReportUncommitted = false
 			this.dropUncommittedFrom(this.history.__unsafe__getWithoutCapture() + 1)
 		})
-		beforeTransactionCommit(() => {
+		beforeTransactionCommit((rollback) => {
 			this.willReportUncommitted = false
 			this.dropUncommittedFrom(this.history.__unsafe__getWithoutCapture() + 1)
 			const entries = this.uncommitted
@@ -717,7 +722,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					? entries[0].changes
 					: squashRecordDiffs(entries.map((entry) => entry.changes))
 			if (isRecordsDiffEmpty(changes)) return
-			for (const listener of this.commitListeners) listener(changes)
+			let didRollback = false
+			const requestRollback = () => {
+				didRollback = true
+				rollback()
+			}
+			for (const listener of this.commitListeners) {
+				listener(changes, requestRollback)
+				if (didRollback) {
+					return
+				}
+			}
 		})
 	}
 

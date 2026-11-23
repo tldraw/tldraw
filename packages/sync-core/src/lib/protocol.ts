@@ -1,4 +1,5 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import { TLCheckRejection } from '@tldraw/tlschema'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
 const TLSYNC_PROTOCOL_VERSION = 8
@@ -174,6 +175,8 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** Set with `action: 'discard'` when the room's diff check rejected the push. */
+			rejection?: TLCheckRejection
 	  }
 
 /**

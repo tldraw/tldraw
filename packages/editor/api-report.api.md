@@ -59,6 +59,9 @@ import { TLBindingId } from '@tldraw/tlschema';
 import { TLBindingUpdate } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCheckDiff } from '@tldraw/tlschema';
+import { TLCheckRejection } from '@tldraw/tlschema';
+import { TLCheckResult } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
@@ -588,7 +591,7 @@ export function createTLCurrentUser(opts?: {
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, themes, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, themes, checkDiff, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -930,6 +933,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
+    checkCapability(capability: TLCapability): null | TLCheckRejection;
     // (undocumented)
     clearHistory(): this;
     // @internal
@@ -1551,6 +1555,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         force?: boolean;
     }): Promise<void>;
     redo(): this;
+    registerCapabilityCheck(capability: TLCapability, handler: () => TLCheckResult): () => void;
     registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
     registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
         type: T;
@@ -3620,6 +3625,25 @@ export interface TLCanvasComponentProps {
     className?: string;
 }
 
+// @public
+export interface TLCapabilities {
+    // (undocumented)
+    'create-page': null;
+    // (undocumented)
+    'create-shape': null;
+    // (undocumented)
+    'delete-page': null;
+    // (undocumented)
+    'delete-shape': null;
+    // (undocumented)
+    'edit-page': null;
+    // (undocumented)
+    'edit-shape': null;
+}
+
+// @public (undocumented)
+export type TLCapability = keyof TLCapabilities;
+
 // @public (undocumented)
 export type TLClickEvent = (info: TLClickEventInfo) => void;
 
@@ -4211,6 +4235,11 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    // (undocumented)
+    rejected: [{
+        reason: string;
+        source: 'local' | 'server';
+    }];
     // (undocumented)
     resize: [BoxModel];
     // (undocumented)
@@ -4851,6 +4880,7 @@ export interface TLStateNodeConstructor {
 // @public (undocumented)
 export interface TLStoreBaseOptions {
     assets?: TLAssetStore;
+    checkDiff?: TLCheckDiff;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;

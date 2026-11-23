@@ -1,10 +1,12 @@
 import { Signal, computed } from '@tldraw/state'
 import {
+	RecordsDiff,
 	SerializedStore,
 	Store,
 	StoreSchema,
 	StoreSnapshot,
 	StoreValidationFailure,
+	UnknownRecord,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
 import { TLAsset, TLAssetId } from './records/TLAsset'
@@ -330,6 +332,8 @@ export interface TLStoreProps {
 	 * @returns Optional cleanup function
 	 */
 	onMount(editor: unknown): void | (() => void)
+	/** The diff check that an editor runs on each operation in this store. */
+	checkDiff?: TLCheckDiff
 	/** Optional collaboration configuration for multiplayer features */
 	collaboration?: {
 		/** Signal indicating online/offline collaboration status */
@@ -338,6 +342,38 @@ export interface TLStoreProps {
 		mode?: Signal<'readonly' | 'readwrite'> | null
 	}
 }
+
+/**
+ * Why a check rejected a change or a capability.
+ *
+ * @public
+ */
+export interface TLCheckRejection {
+	reason: string
+}
+
+/**
+ * What a check returns. Nothing, `null` or `true` allows. `false` or a {@link TLCheckRejection}
+ * rejects.
+ *
+ * @public
+ */
+export type TLCheckResult = void | null | boolean | TLCheckRejection
+
+/**
+ * A diff check. It gets every document change of one operation in the editor, or of one push in
+ * the room, and allows or rejects all of them. `get` reads a record as it was before the change.
+ *
+ * @public
+ */
+export type TLCheckDiff<R extends UnknownRecord = TLRecord> = (
+	diff: RecordsDiff<R>,
+	context: {
+		sessionId: string
+		userId: string | null
+		get(id: string): R | undefined
+	}
+) => TLCheckResult
 
 /**
  * The main tldraw store type, representing a reactive database of tldraw records

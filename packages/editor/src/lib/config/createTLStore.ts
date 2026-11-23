@@ -4,6 +4,7 @@ import {
 	CustomRecordInfo,
 	SchemaPropsInfo,
 	TLAssetStore,
+	TLCheckDiff,
 	TLRecord,
 	TLStore,
 	TLStoreProps,
@@ -53,6 +54,12 @@ export interface TLStoreBaseOptions {
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
+
+	/**
+	 * Your diff check. The editor runs it on the document changes of each operation, and reverts
+	 * an operation that it rejects.
+	 */
+	checkDiff?: TLCheckDiff
 }
 
 /** @public */
@@ -152,6 +159,7 @@ export function createTLStore({
 	onMount,
 	collaboration,
 	themes,
+	checkDiff,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const resolvedThemes = resolveThemes(themes)
@@ -184,6 +192,7 @@ export function createTLStore({
 				return onMount?.(editor)
 			},
 			collaboration,
+			checkDiff,
 		},
 	})
 

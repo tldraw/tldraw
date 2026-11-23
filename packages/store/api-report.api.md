@@ -432,7 +432,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     mergeRemoteChanges(fn: () => void): void;
     migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R>;
     // @internal
-    onBeforeCommit(listener: (changes: RecordsDiff<R>) => void): () => void;
+    onBeforeCommit(listener: (changes: RecordsDiff<R>, rollback: () => void) => void): () => void;
     readonly props: Props;
     put(records: R[], phaseOverride?: 'initialize'): void;
     readonly query: StoreQueries<R>;

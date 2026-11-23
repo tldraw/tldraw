@@ -12,6 +12,7 @@ import {
 	RecordType,
 	StoreSideEffects,
 	StoreSnapshot,
+	RecordsDiff,
 	UnknownRecord,
 	reverseRecordsDiff,
 } from '@tldraw/store'
@@ -29,6 +30,8 @@ import {
 	TLBindingId,
 	TLBindingUpdate,
 	TLCamera,
+	TLCheckRejection,
+	TLCheckResult,
 	TLCreateShapePartial,
 	TLCursor,
 	TLCursorType,
@@ -108,6 +111,7 @@ import {
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
 import { TLI18nAdapter, defaultI18n } from '../config/TLI18n'
+import { TAB_ID } from '../config/TLSessionStateSnapshot'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -189,6 +193,7 @@ import {
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
+import { TLCapability } from './types/capability-types'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
@@ -989,6 +994,99 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			})
 		)
+
+		const { checkDiff } = this.store.props
+		if (checkDiff) {
+			this.disposables.add(
+				this.store.onBeforeCommit((changes, rollback) => {
+					const diff = this.store.filterChangesByScope(changes, 'document')
+					if (!diff) {
+						return
+					}
+					const user = this.store.props.users.currentUser.__unsafe__getWithoutCapture()
+					const rejection = runCheck(() =>
+						checkDiff(diff, {
+							sessionId: TAB_ID,
+							userId: user ? UserRecordType.parseId(user.id) : null,
+							get: (id) => getRecordBeforeDiff(this.store, diff, id),
+						})
+					)
+					if (rejection) {
+						rollback()
+						this.emit('rejected', { reason: rejection.reason, source: 'local' })
+					}
+				})
+			)
+		}
+	}
+
+	private readonly _capabilityChecks = atom(
+		'capability checks',
+		new Map<TLCapability, (() => TLCheckResult)[]>()
+	)
+
+	/**
+	 * Register a check for a capability. The default UI asks it, through
+	 * {@link Editor.checkCapability}, before it offers an action. It is advisory and never stops
+	 * a write: the diff check does that. If more than one check is registered for a capability,
+	 * the first rejection wins.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerCapabilityCheck('create-shape', () => {
+	 *   if (!myPages.has(editor.getCurrentPageId())) {
+	 *     return { reason: 'This page is read only' }
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * @param capability - The capability to check.
+	 * @param handler - Returns nothing, `null` or `true` to allow, and `false` or a rejection to
+	 * reject.
+	 * @returns A function that removes the check.
+	 *
+	 * @public
+	 */
+	registerCapabilityCheck(capability: TLCapability, handler: () => TLCheckResult): () => void {
+		this._capabilityChecks.update((checks) => {
+			const next = new Map(checks)
+			next.set(capability, [...(checks.get(capability) ?? []), handler])
+			return next
+		})
+		return () => {
+			this._capabilityChecks.update((checks) => {
+				const next = new Map(checks)
+				const handlers = (checks.get(capability) ?? []).filter((h) => h !== handler)
+				if (handlers.length) {
+					next.set(capability, handlers)
+				} else {
+					next.delete(capability)
+				}
+				return next
+			})
+		}
+	}
+
+	/**
+	 * Ask the checks registered for a capability. A readonly editor rejects every capability. A
+	 * capability with no registered check is allowed. Reactive.
+	 *
+	 * @param capability - The capability to check.
+	 * @returns `null` if allowed, or the rejection.
+	 *
+	 * @public
+	 */
+	checkCapability(capability: TLCapability): TLCheckRejection | null {
+		if (this.getIsReadonly()) {
+			return { reason: 'readonly' }
+		}
+		for (const handler of this._capabilityChecks.get().get(capability) ?? EMPTY_ARRAY) {
+			const rejection = runCheck(handler)
+			if (rejection) {
+				return rejection
+			}
+		}
+		return null
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
@@ -11800,4 +11898,39 @@ function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
 	const zx = (vsb.w - px * 2) / bounds.w
 	const zy = (vsb.h - py * 2) / bounds.h
 	return { zx, zy }
+}
+
+function runCheck(check: () => TLCheckResult): TLCheckRejection | null {
+	let result: TLCheckResult
+	try {
+		result = check()
+	} catch (error) {
+		console.error(error)
+		return { reason: 'error' }
+	}
+	if (result === undefined || result === null || result === true) {
+		return null
+	}
+	if (result === false) {
+		return { reason: 'rejected' }
+	}
+	return result
+}
+
+function getRecordBeforeDiff(
+	store: TLStore,
+	diff: RecordsDiff<TLRecord>,
+	id: string
+): TLRecord | undefined {
+	const key = id as TLRecord['id']
+	if (key in diff.added) {
+		return undefined
+	}
+	if (key in diff.updated) {
+		return diff.updated[key][0]
+	}
+	if (key in diff.removed) {
+		return diff.removed[key]
+	}
+	return store.unsafeGetWithoutCapture(key)
 }
