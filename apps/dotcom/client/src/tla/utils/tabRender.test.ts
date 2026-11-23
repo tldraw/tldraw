@@ -574,6 +574,27 @@ describe('answerTabRender', () => {
 				editor.dispose()
 			})
 
+			it('names the page the batch landed on, even if the user leaves it while the server confirms', async () => {
+				const { editor, firstPageId, otherPageId } = setupEditor()
+				let calls = 0
+				const flushChanges = async () => {
+					if (++calls === 3) editor.setCurrentPage(otherPageId)
+					return true
+				}
+				const firstPageName = editor.getCurrentPage().name
+
+				await answerTabRender(editor, flushChanges, 'file-1', applyOps())
+
+				expect(editor.getShape(hello)?.parentId).toBe(firstPageId)
+				expect(replies.at(-1)).toEqual({
+					status: 'applied',
+					pageId: firstPageId,
+					pageName: firstPageName,
+					result: expect.objectContaining({ applied: 1, errors: [] }),
+				})
+				editor.dispose()
+			})
+
 			it('applies nothing when it cannot catch up first', async () => {
 				const { editor } = setupEditor()
 

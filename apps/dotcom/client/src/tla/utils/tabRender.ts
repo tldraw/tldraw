@@ -246,12 +246,13 @@ function queueApplyOps(
 			console.error('A batch of ops failed partway', error)
 			return { status: 'declined', reason: 'apply_failed' }
 		}
+		// Before the wait below, during which the user can switch pages.
+		const page = editor.getCurrentPage()
 		// Applied here isn't applied for anyone else until the server commits it. If it doesn't, the
 		// edits may still land when the tab reconnects, so the agent must check before resending.
 		if (flushChanges && !(await flushChanges())) {
 			return { status: 'declined', reason: 'apply_failed' }
 		}
-		const page = editor.getCurrentPage()
 		return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 	})
 }

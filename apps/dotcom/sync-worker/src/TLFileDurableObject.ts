@@ -3599,6 +3599,13 @@ export class TLFileDurableObject extends DurableObject {
 		const room = await this.getRoomForTabRender()
 		const stats: TabRenderStats = { tabs: 0, roomMs: Date.now() - roomStartedAt, ackMs: -1 }
 		if (!room) return { status: 'room_timeout', stats }
+		// Ahead of the ownership check below: an await after it would let a session change hands (an
+		// account switch on a known session id) before the job and its reply token are sent.
+		const hiddenTab = evaluateFlagForUser(
+			await getFeatureFlagValue(this.env, 'mcp_hidden_tab'),
+			'mcp_hidden_tab',
+			userId
+		)
 		// Only now: sessionIdToWs is filled in as the room boots.
 		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
 			const ws = this.sessionIdToWs.get(sessionId)
@@ -3619,11 +3626,6 @@ export class TLFileDurableObject extends DurableObject {
 		}).slice(0, jobIds.length)
 
 		stats.tabs = targets.length
-		const hiddenTab = evaluateFlagForUser(
-			await getFeatureFlagValue(this.env, 'mcp_hidden_tab'),
-			'mcp_hidden_tab',
-			userId
-		)
 		const sentAt = Date.now()
 		const outcome = await this.tabRenders.dispatch(
 			targets,
