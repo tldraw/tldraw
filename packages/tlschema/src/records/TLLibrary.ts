@@ -33,6 +33,12 @@ export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
 	 * sources that don't track owners.
 	 */
 	ownerId?: string
+	/**
+	 * The library this one is inside, which holds it alongside its own items. Left out for a
+	 * library at the top level. A library and everything inside it share one owner, and a library
+	 * is never inside itself.
+	 */
+	parentId?: TLLibraryId
 	meta: JsonObject
 }
 
@@ -137,6 +143,7 @@ export const libraryValidator: T.Validator<TLLibrary> = T.object({
 	typeName: T.literal('library'),
 	name: nonEmptyString,
 	ownerId: nonEmptyString.optional(),
+	parentId: idValidator<TLLibraryId>('library').optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
