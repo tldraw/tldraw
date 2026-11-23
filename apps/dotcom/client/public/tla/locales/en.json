@@ -14,9 +14,6 @@
   "04a2dd56d6": {
     "translation": "Invite teammates"
   },
-  "05237cd80d": {
-    "translation": "Couldn't change the library"
-  },
   "05b2656486": {
     "translation": "<name>{author}</name> mentioned you"
   },
@@ -130,9 +127,6 @@
   },
   "2e2b3c700b": {
     "translation": "Include link to current file"
-  },
-  "2e5ca5c344": {
-    "translation": "You may not be allowed to, or the library no longer exists."
   },
   "2e9856a31e": {
     "translation": "Regenerate invite link"
@@ -422,6 +416,9 @@
   "7827371d1a": {
     "translation": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
   },
+  "7897a855d3": {
+    "translation": "No libraries yet."
+  },
   "78e9815992": {
     "translation": "Got it"
   },
@@ -521,9 +518,6 @@
   "91f3a2c0e4": {
     "translation": "Files"
   },
-  "92e423b077": {
-    "translation": "Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay."
-  },
   "930390d222": {
     "translation": "Copied invite link"
   },
@@ -571,6 +565,9 @@
   },
   "9ceb927baa": {
     "translation": "Publish this file"
+  },
+  "9d102330ee": {
+    "translation": "Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}?"
   },
   "9e076f5885": {
     "translation": "Not found"
@@ -792,6 +789,9 @@
   "e0aa021e21": {
     "translation": "OK"
   },
+  "e1cbe6f097": {
+    "translation": "Couldn't change library"
+  },
   "e2198d6228": {
     "translation": "Copy invite link"
   },
@@ -872,9 +872,6 @@
   },
   "fb15c53f22": {
     "translation": "Viewer"
-  },
-  "fbbee7cbb5": {
-    "translation": "No libraries in this workspace yet."
   },
   "fc9d47046b": {
     "translation": "Are you sure you want to leave this workspace?"

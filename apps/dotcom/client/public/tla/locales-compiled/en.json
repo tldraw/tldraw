@@ -53,12 +53,6 @@
       "value": "Invite teammates"
     }
   ],
-  "05237cd80d": [
-    {
-      "type": 0,
-      "value": "Couldn't change the library"
-    }
-  ],
   "05b2656486": [
     {
       "children": [
@@ -321,12 +315,6 @@
     {
       "type": 0,
       "value": "Include link to current file"
-    }
-  ],
-  "2e5ca5c344": [
-    {
-      "type": 0,
-      "value": "You may not be allowed to, or the library no longer exists."
     }
   ],
   "2e9856a31e": [
@@ -1032,6 +1020,12 @@
       "value": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "No libraries yet."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1330,60 +1324,6 @@
       "value": "Files"
     }
   ],
-  "92e423b077": [
-    {
-      "type": 0,
-      "value": "Delete "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "name"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": " and its "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " item"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " items"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": "? Copies already placed on canvases stay."
-    }
-  ],
   "930390d222": [
     {
       "type": 0,
@@ -1528,6 +1468,60 @@
     {
       "type": 0,
       "value": "Publish this file"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " and its "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -2126,6 +2120,12 @@
       "value": "OK"
     }
   ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Couldn't change library"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2322,12 +2322,6 @@
     {
       "type": 0,
       "value": "Viewer"
-    }
-  ],
-  "fbbee7cbb5": [
-    {
-      "type": 0,
-      "value": "No libraries in this workspace yet."
     }
   ],
   "fc9d47046b": [

@@ -30,10 +30,7 @@ const messages = defineMessages({
 	libraryMenu: { defaultMessage: 'Library menu' },
 	rename: { defaultMessage: 'Rename' },
 	delete: { defaultMessage: 'Delete' },
-	changeError: { defaultMessage: "Couldn't change the library" },
-	changeErrorDescription: {
-		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
-	},
+	changeError: { defaultMessage: "Couldn't change library" },
 })
 
 export function WorkspaceLibrariesList({
@@ -66,7 +63,6 @@ export function WorkspaceLibrariesList({
 	const showError = () => {
 		addToast({
 			title: msg(messages.changeError),
-			description: msg(messages.changeErrorDescription),
 			severity: 'error',
 		})
 	}
@@ -85,7 +81,7 @@ export function WorkspaceLibrariesList({
 					title={<F defaultMessage="Delete library" />}
 					description={
 						<F
-							defaultMessage="Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay."
+							defaultMessage="Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}?"
 							values={{
 								name: library.name,
 								count: itemCount,
@@ -106,7 +102,7 @@ export function WorkspaceLibrariesList({
 	if (rows.length === 0) {
 		return (
 			<p className={styles.librariesEmpty}>
-				<F defaultMessage="No libraries in this workspace yet." />
+				<F defaultMessage="No libraries yet." />
 			</p>
 		)
 	}
