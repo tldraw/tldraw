@@ -1,5 +1,6 @@
 import {
 	type ButtonHTMLAttributes,
+	type CSSProperties,
 	type SyntheticEvent,
 	useCallback,
 	useEffect,
@@ -24,12 +25,15 @@ import { useLibraryCollapsed } from './use-library-collapsed'
 export function LibrarySection({
 	source,
 	library,
+	depth = 0,
 	getItemProps,
 	placeItem,
 	prepareItemContent,
 }: {
 	source: LibrarySource
 	library: TLLibrary
+	/** How many libraries it's inside, which indents it. */
+	depth?: number
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	placeItem(itemId: TLLibraryItemId): void
 	prepareItemContent?: PrepareItemContent
@@ -97,6 +101,7 @@ export function LibrarySection({
 		<section
 			ref={setRef}
 			className="tlui-libraries-section"
+			style={depth > 0 ? ({ '--tlui-libraries-section-depth': depth } as CSSProperties) : undefined}
 			{...headerPress}
 			onPointerDown={(e) => {
 				if (headerPress.onPointerDown && inHeader(e)) headerPress.onPointerDown(e)

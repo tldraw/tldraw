@@ -38,12 +38,13 @@ export interface BrowseSections {
 /**
  * The libraries to browse, by whether the document has them: first those it has added, from the
  * source and the host alike, then the source's libraries available to add, a group per owner, then
- * the host's groups' entries not yet added. A host entry added as one of the source's libraries is
- * listed once, as that library, so it has the library's own actions; one whose library the source
- * doesn't list is listed as the entry. The user's default isn't listed: it's shown in every
- * document, never added or removed. The default owner's group comes first, then the others in the
- * owners' order, then libraries without a known owner. Empty groups are left out, and so are the
- * source's libraries for a source without `getAvailableLibraries`.
+ * the host's groups' entries not yet added. Only top-level libraries are listed, as only they are
+ * added. A host entry added as one of the source's libraries is listed once, as that library, so
+ * it has the library's own actions; one whose library the source doesn't list is listed as the
+ * entry. The user's default isn't listed: it's shown in every document, never added or removed.
+ * The default owner's group comes first, then the others in the owners' order, then libraries
+ * without a known owner. Empty groups are left out, and so are the source's libraries for a source
+ * without `getAvailableLibraries`.
  */
 export function getBrowseSections(
 	source: LibrarySource,
@@ -63,6 +64,7 @@ export function getBrowseSections(
 	const addedLibraries = source.getAvailableLibraries
 		? shown.filter(
 				(library) =>
+					library.parentId === undefined &&
 					!listedAsEntry.has(library.id) &&
 					source.getLibraryPlacement !== undefined &&
 					source.getLibraryPlacement(library.id) === 'added'
@@ -100,6 +102,7 @@ function getOwnerGroups(source: LibrarySource): BrowseOwnerGroup[] {
 		groups.set(owner.id, { ownerId: owner.id, ownerName: owner.name, libraries: [] })
 	}
 	for (const library of source.getAvailableLibraries()) {
+		if (library.parentId !== undefined) continue
 		const key =
 			library.ownerId !== undefined && groups.has(library.ownerId) ? library.ownerId : undefined
 		let group = groups.get(key)

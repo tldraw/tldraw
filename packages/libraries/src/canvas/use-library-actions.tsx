@@ -82,6 +82,7 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 	)
 	const stopRenaming = () => renamingLibraryId.set(editor, null)
 
+	const isNested = library.parentId !== undefined
 	const can = useValue(
 		'library permissions',
 		() => {
@@ -92,13 +93,12 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 				rename: source.can('renameLibrary', libraryId),
 				delete:
 					source.can('deleteLibrary', libraryId) &&
-					placement !== 'added' &&
-					placement !== 'default',
+					(isNested || (placement !== 'added' && placement !== 'default')),
 				removeFromDocument:
 					!!source.removeLibraryFromDocument && source.can('removeLibraryFromDocument', libraryId),
 			}
 		},
-		[source, libraryId]
+		[source, libraryId, isNested]
 	)
 	const copyOwners = useValue('library copy owners', () => getCopyOwners(source, library.ownerId), [
 		source,

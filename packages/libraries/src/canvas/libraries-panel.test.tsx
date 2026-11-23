@@ -968,3 +968,37 @@ it("treats a host's added entry as the source's library it's added as, with that
 		)
 	)
 })
+
+describe('libraries inside others', () => {
+	function makeNestedLibrary(
+		name: string,
+		itemNames: string[],
+		parent: ReturnType<typeof makeLibrary>
+	) {
+		const made = makeLibrary(name, itemNames)
+		return { ...made, library: { ...made.library, parentId: parent.library.id } }
+	}
+
+	const depths = (container: Element) =>
+		[...container.querySelectorAll<HTMLElement>('.tlui-libraries-section')].map(
+			(section) =>
+				`${section.querySelector('.tlui-libraries-panel__toggle')!.textContent}:${
+					section.style.getPropertyValue('--tlui-libraries-section-depth') || '0'
+				}`
+		)
+
+	it('lists each library after the one it is in, indented a level for each, top levels in order', async () => {
+		const kit = makeLibrary('Kit', ['Box'])
+		const icons = makeNestedLibrary('Icons', ['Arrow'], kit)
+		const arrows = makeNestedLibrary('Arrows', ['Left'], icons)
+		const other = makeLibrary('Other', ['Star'])
+		const container = await renderPanel(
+			makeSource(InMemoryLibrarySource, [arrows, other, icons, kit])
+		)
+
+		await vi.waitFor(() =>
+			expect(depths(container)).toEqual(['Other:0', 'Kit:0', 'Icons:1', 'Arrows:2'])
+		)
+		expect(tileLabels(container)).toEqual(['Star', 'Box', 'Arrow', 'Left'])
+	})
+})
