@@ -13,11 +13,14 @@ const WORKER_URL = `http://localhost:5858`
 // In this example, the room ID is hard-coded. You can set this however you like though.
 const roomId = 'test-room'
 
+// Open the app with ?user=teacher or ?user=sam. See src/server/permissions.ts.
+const user = new URLSearchParams(window.location.search).get('user') ?? 'teacher'
+
 function App() {
 	// Create a store connected to multiplayer.
 	const store = useSync({
 		// We need to know the websocket's URI...
-		uri: `${WORKER_URL}/connect/${roomId}`,
+		uri: `${WORKER_URL}/connect/${roomId}?user=${encodeURIComponent(user)}`,
 		// ...and how to handle static assets like images & videos
 		assets: multiplayerAssets,
 	})
@@ -33,6 +36,8 @@ function App() {
 					window.editor = editor
 					// when the editor is ready, we need to register out bookmark unfurling service
 					editor.registerExternalAssetHandler('url', unfurlBookmarkUrl)
+					// the server reverts a change that its checkDiff rejects, and tells us why
+					editor.on('rejected', ({ reason }) => console.warn(reason))
 				}}
 			/>
 		</div>
