@@ -17,6 +17,7 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	TldrawUiMenuItem,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -59,6 +60,25 @@ export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySourc
 			label={msg(messages.browse)}
 			onClick={() => {
 				trackEvent('open-browse-libraries', { source: 'libraries' })
+				addDialog({
+					component: () => <TlaStarterPacksDialog source={source} />,
+				})
+			}}
+		/>
+	)
+}
+
+export function TlaBrowseStarterPacksCommandPaletteItem({ source }: { source: LibrarySource }) {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const trackEvent = useUiEvents()
+	return (
+		<TldrawUiMenuItem
+			id="tla-browse-starter-packs"
+			label={msg(messages.browse)}
+			readonlyOk
+			onSelect={(eventSource) => {
+				trackEvent('open-browse-libraries', { source: eventSource })
 				addDialog({
 					component: () => <TlaStarterPacksDialog source={source} />,
 				})
