@@ -75,7 +75,7 @@ binding = "MEASURE"
 binding = "MEASURE"
 
 #################### Headless editor (screenshot shadow) ####################
-# Deployed from the tldraw-headless repo, so it must exist before this worker deploys. Staging only:
+# Deployed separately, so it must exist before this worker deploys. Staging only:
 # there is no dev or production headless worker, and binding a service that does not exist fails the
 # deploy. Whether a render is compared is sync-worker's `headless_screenshot_shadow` flag.
 

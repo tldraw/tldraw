@@ -12,7 +12,7 @@ import { Environment } from './types'
 // change or delay a render. Inert unless HEADLESS_WORKER is bound (staging only) and sync-worker's
 // `headless_screenshot_shadow` flag picked the board.
 
-/** The headless worker's `compare` call, copied from its contract (tldraw/tldraw-headless). */
+/** The headless worker's `compare` call, copied from its own contract. Keep them in step by hand. */
 export interface HeadlessCompareRequest {
 	payload: RenderPayload
 	/** Browser Run's PNG. Absent when it failed, so only the outcomes are compared. */

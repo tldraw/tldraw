@@ -23,8 +23,8 @@ export interface Environment extends SentryEnvironment {
 	// same MEASURE dataset sync-worker uses. Neither carries board identity. Undefined in tests.
 	MEASURE: AnalyticsEngineDataset | undefined
 
-	// The headless editor's worker, for the screenshot shadow (headlessShadow.ts). Deployed from the
-	// tldraw-headless repo and bound on staging only; unbound, the shadow never runs.
+	// The headless editor's worker, for the screenshot shadow (headlessShadow.ts). Deployed separately
+	// and bound on staging only; unbound, the shadow never runs.
 	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
 
 	// Origin serving the render page (THUMBNAIL_RENDER_PATH). For now the client origin, same as
