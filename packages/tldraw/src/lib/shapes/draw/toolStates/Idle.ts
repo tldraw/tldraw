@@ -8,6 +8,9 @@ export class Idle extends StateNode {
 			this.editor.setCurrentTool('eraser.pointing', { ...info, onInteractionEnd: this.parent.id })
 			return
 		}
+		if (this.editor.checkCapability('create-shape') || this.editor.checkCapability('edit-shape')) {
+			return
+		}
 
 		this.parent.transition('drawing', info)
 	}

@@ -1131,6 +1131,15 @@
 	margin-top: 8px;
 }
 
+.tlui-style-panel__fieldset {
+	display: contents;
+}
+
+.tlui-style-panel__fieldset:disabled > * {
+	opacity: 0.5;
+	pointer-events: none;
+}
+
 .tlui-style-panel {
 	position: relative;
 	z-index: var(--tl-layer-panels);

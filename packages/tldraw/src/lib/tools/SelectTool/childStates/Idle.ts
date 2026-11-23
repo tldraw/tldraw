@@ -172,7 +172,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getIsReadonly()) break
+				if (this.editor.checkCapability('edit-shape')) break
 				if (this.editor.inputs.getAltKey()) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -449,7 +449,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getIsReadonly()) break
+				if (this.editor.checkCapability('edit-shape')) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -704,7 +704,9 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.getIsReadonly()) return
+		if (this.editor.checkCapability('create-shape') || this.editor.checkCapability('edit-shape')) {
+			return
+		}
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 
@@ -747,6 +749,7 @@ export class Idle extends StateNode {
 		// events still reach this state, so without this guard the selection also
 		// moves one unit (#10397)
 		if (info.altKey || this.editor.inputs.getIsSpacebarPanning()) return
+		if (this.editor.checkCapability('edit-shape')) return
 
 		// We want to use the "actual" shift key state,
 		// not the one that's in the editor.inputs.shiftKey,

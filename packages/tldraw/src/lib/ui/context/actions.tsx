@@ -11,6 +11,7 @@ import {
 	StyleProp,
 	TLEmbedShape,
 	TLImageShape,
+	TLCapability,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -372,6 +373,84 @@ export interface ActionsProviderProps {
 
 function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
+}
+
+const EDIT: TLCapability[] = ['edit-shape']
+const CREATE: TLCapability[] = ['create-shape']
+const DELETE: TLCapability[] = ['delete-shape']
+
+// The capabilities each default action needs. An action is disabled while any of them is rejected.
+const ACTION_CAPABILITIES: Record<string, TLCapability[]> = {
+	'edit-link': EDIT,
+	'toggle-auto-size': EDIT,
+	'convert-to-bookmark': EDIT,
+	'convert-to-embed': EDIT,
+	group: ['create-shape', 'edit-shape'],
+	ungroup: ['delete-shape', 'edit-shape'],
+	'toggle-group': ['create-shape', 'delete-shape', 'edit-shape'],
+	'frame-selection': ['create-shape', 'edit-shape'],
+	'remove-frame': ['delete-shape', 'edit-shape'],
+	'toggle-frame': ['create-shape', 'delete-shape', 'edit-shape'],
+	'fit-frame-to-content': EDIT,
+	'align-left': EDIT,
+	'align-center-horizontal': EDIT,
+	'align-right': EDIT,
+	'align-center-vertical': EDIT,
+	'align-top': EDIT,
+	'align-bottom': EDIT,
+	'distribute-horizontal': EDIT,
+	'distribute-vertical': EDIT,
+	'stretch-horizontal': EDIT,
+	'stretch-vertical': EDIT,
+	'flip-horizontal': EDIT,
+	'flip-vertical': EDIT,
+	pack: EDIT,
+	'stack-vertical': EDIT,
+	'stack-horizontal': EDIT,
+	'bring-to-front': EDIT,
+	'bring-forward': EDIT,
+	'send-backward': EDIT,
+	'send-to-back': EDIT,
+	'rotate-cw': EDIT,
+	'rotate-ccw': EDIT,
+	'toggle-lock': EDIT,
+	'unlock-all': EDIT,
+	'move-to-new-page': ['create-page', 'edit-shape'],
+	'flatten-to-image': ['create-shape', 'delete-shape'],
+	'adjust-shape-styles': EDIT,
+	'enlarge-shapes': EDIT,
+	'shrink-shapes': EDIT,
+	'crop-image': EDIT,
+	'image-replace': EDIT,
+	'video-replace': EDIT,
+	'select-white-color': EDIT,
+	'select-fill-fill': EDIT,
+	'select-fill-lined-fill': EDIT,
+	duplicate: CREATE,
+	paste: CREATE,
+	'paste-at-cursor': CREATE,
+	'paste-plain-text-at-cursor': CREATE,
+	'insert-embed': CREATE,
+	'insert-media': CREATE,
+	cut: DELETE,
+	delete: DELETE,
+}
+
+function withCapabilities(action: TLUiActionItem): TLUiActionItem {
+	const capabilities = ACTION_CAPABILITIES[action.id]
+	if (!capabilities) {
+		return action
+	}
+	const { isEnabled } = action
+	return {
+		...action,
+		isEnabled(editor) {
+			if (capabilities.some((capability) => editor.checkCapability(capability))) {
+				return false
+			}
+			return !isEnabled || isEnabled(editor)
+		},
+	}
 }
 
 /**
@@ -2364,7 +2443,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
-		const actions = makeActions(actionItems)
+		const actions = makeActions(actionItems.map(withCapabilities))
 		const overriddenActions = overrides ? overrides(editor, actions, helpers) : actions
 		finalActions.current = gateActions(editor, overriddenActions)
 		return finalActions.current

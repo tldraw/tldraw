@@ -2939,7 +2939,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
-		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		// includes readonly
+		if (this.checkCapability('edit-shape') && !util.canEditInReadonly(_shape)) return false
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -9704,7 +9705,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		// includes readonly. Without this, an upload could start before the diff check sees a record.
+		if (!opts.force && this.checkCapability('create-shape')) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}

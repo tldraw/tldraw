@@ -123,6 +123,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
 
 	const isReadonlyMode = useReadonly()
+	const cannotCreatePage = useValue(
+		'cannot create page',
+		() => editor.checkCapability('create-page'),
+		[editor]
+	)
+	const cannotEditPage = useValue('cannot edit page', () => editor.checkCapability('edit-page'), [
+		editor,
+	])
 
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
@@ -493,9 +501,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [isOpen, resetDrag])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
-	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
+	const shouldUseDragHandle = !cannotEditPage && isCoarsePointer
 	const rowDragHandlers =
-		isReadonlyMode || isCoarsePointer
+		cannotEditPage || isCoarsePointer
 			? undefined
 			: {
 					onPointerDown: handlePointerDown,
@@ -506,7 +514,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
-			if (isReadonlyMode) return
+			if (cannotEditPage) return
 			if (shouldUseWindowPrompt) {
 				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
@@ -517,11 +525,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			}
 			setEditingPageId(id)
 		},
-		[editor, msg, isReadonlyMode, shouldUseWindowPrompt, trackEvent]
+		[editor, msg, cannotEditPage, shouldUseWindowPrompt, trackEvent]
 	)
 
 	const handleCreatePageClick = useCallback(() => {
-		if (isReadonlyMode) return
+		if (cannotCreatePage) return
 
 		const newPageId = PageRecordType.createId()
 		const initialName = msg(messages.pageMenuNewPageInitialName)
@@ -543,7 +551,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			startRenamingPage(newPageId, initialName)
 		}
 		trackEvent('new-page', { source: 'page-menu' })
-	}, [editor, msg, isReadonlyMode, shouldUseWindowPrompt, startRenamingPage, trackEvent])
+	}, [editor, msg, cannotCreatePage, shouldUseWindowPrompt, startRenamingPage, trackEvent])
 
 	const changePage = useCallback(
 		(id: TLPageId) => {
@@ -715,7 +723,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						data-testid="page-menu.create"
 						tooltip={createPageButtonLabel}
 						title={createPageButtonLabel}
-						disabled={isReadonlyMode || hasReachedMaxPages}
+						disabled={!!cannotCreatePage || hasReachedMaxPages}
 						onClick={handleCreatePageClick}
 					>
 						<TldrawUiButtonLabel>{createPageButtonLabel}</TldrawUiButtonLabel>
