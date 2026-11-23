@@ -3,15 +3,19 @@ import { LibraryItemContentTooNewError } from '../lib/schema'
 
 /**
  * The UI events the libraries UI reports through tldraw's `onUiEvent`, each with
- * `source: 'libraries'`. Importing `@tldraw/libraries` adds them to `TLUiEventMap`. Writes to a
- * library aren't among them: a host sees those through its {@link LibrarySource}.
+ * `source: 'libraries'`, or `source: 'command-palette'` from {@link CommandPaletteLibrariesGroup}.
+ * Importing `@tldraw/libraries` adds them to `TLUiEventMap`. Writes to a library aren't among them:
+ * a host sees those through its {@link LibrarySource}.
  *
  * @public
  */
 export interface TLLibrariesUiEventMap {
-	/** A libraries panel button opened or closed the panel. */
+	/** A libraries panel button, or the command palette, opened or closed the panel. */
 	'toggle-libraries-panel': { open: boolean }
-	/** An item was placed on the canvas, by clicking its tile or dragging it out of the panel. */
+	/**
+	 * An item was placed on the canvas, by clicking its tile or dragging it out of the panel. Picking
+	 * it in the command palette counts as a click.
+	 */
 	'place-library-item': { method: 'click' | 'drag' }
 	/** A dialog for browsing libraries to add was opened. */
 	'open-browse-libraries': null
