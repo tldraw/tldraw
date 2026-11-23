@@ -188,7 +188,9 @@ function LibrariesPanelContent({
 						))}
 					</LibraryTabs>
 				) : (
-					<div className="tlui-libraries-sections">{renderSections(libraries)}</div>
+					<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
+						{renderSections(libraries)}
+					</div>
 				)}
 			</section>
 		</EditorPortal>
