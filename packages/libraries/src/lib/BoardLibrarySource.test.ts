@@ -949,3 +949,40 @@ describe('BoardLibrarySource', () => {
 		})
 	})
 })
+
+describe('BoardLibrarySource nesting', () => {
+	it('creates and deletes libraries inside others, everything inside going along', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor)
+		const kit = await source.createLibrary('Kit')
+		const icons = await source.createLibrary('Icons', { parentId: kit.id })
+		const arrows = await source.createLibrary('Arrows', { parentId: icons.id })
+		await source.createLibrary('Other')
+		const item = await added(
+			source.addItem(arrows.id, { content: contentOf(editor, [addImage(editor)]) })
+		)
+		expect(arrows.parentId).toBe(icons.id)
+
+		await source.deleteLibrary(icons.id)
+		expect(
+			source
+				.getLibraries()
+				.map((c) => c.name)
+				.sort()
+		).toEqual(['Kit', 'Other'])
+		expect(editor.store.has(item.id as any)).toBe(false)
+		expect(allOfType(editor, 'library-item-content')).toEqual([])
+	})
+})
+
+describe("the document's own library stays flat", () => {
+	it('allows no library inside it', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor, { documentLibrary: { name: 'This file' } })
+		const [own] = source.getLibraries()
+		expect(source.can('createLibrary', own.id)).toBe(false)
+		await expect(source.createLibrary('Inside', { parentId: own.id })).rejects.toThrow(
+			LibraryPermissionError
+		)
+	})
+})

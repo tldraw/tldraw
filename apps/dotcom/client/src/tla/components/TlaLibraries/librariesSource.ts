@@ -402,6 +402,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
 		const changesDefault = action === 'deleteLibrary' || action === 'renameLibrary'
 		if (changesDefault && typeof target === 'string' && this.isDefaultLibrary(target)) return false
+		if (action === 'createLibrary' && typeof target === 'string') return false
 		// Otherwise every member of a workspace can manage its libraries, so the action doesn't matter.
 		const ownerId = this.getTargetOwnerId(target)
 		return ownerId !== undefined && this.canManageIn(ownerId)

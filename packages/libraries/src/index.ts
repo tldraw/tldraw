@@ -99,6 +99,7 @@ export {
 } from './ui/menu-items'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'
 export {
+	LibraryNestingError,
 	LibraryNotFoundError,
 	LibraryPermissionError,
 	type LibrarySource,
@@ -114,6 +115,7 @@ export {
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
 export { addItemsToLibrary } from './lib/addItemsToLibrary'
+export { getLibraryTree, type TLLibraryTreeNode } from './lib/libraryTree'
 export { saveErrorMessages } from './lib/saveErrorMessages'
 export { trackItemsStoring, whenItemsStored } from './lib/whenItemsStored'
 export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
