@@ -2,6 +2,9 @@ import {
 	ItemMenu,
 	type ItemMenuProps,
 	type LibrariesComponents,
+	LibrariesPanel,
+	librariesPanelOpen,
+	LibrariesQuickActions,
 	LibraryMenu,
 	LibraryMenuItem,
 	type LibraryMenuProps,
@@ -9,9 +12,12 @@ import {
 	type TLLibrary,
 	type TLLibraryItem,
 } from '@tldraw/libraries'
-import { useToasts } from 'tldraw'
-import type { Showing } from '../libraries-example'
-import { PACKS, packSource } from './pack-source'
+import { TLComponents, Tldraw, useToasts } from 'tldraw'
+import '@tldraw/libraries/libraries.css'
+import 'tldraw/tldraw.css'
+import { PACKS, packSource } from '../../../libraries-fixtures/packs'
+
+const source = packSource('libraries-menu-actions', [PACKS.wireframing, PACKS.diagramming])
 
 function useCopy() {
 	const { addToast } = useToasts()
@@ -22,6 +28,7 @@ function useCopy() {
 		)
 }
 
+// [1]
 function LibraryMenuWithExport(
 	props: LibraryMenuProps & { source: LibrarySource; library: TLLibrary }
 ) {
@@ -69,12 +76,32 @@ function ItemMenuWithExport(props: ItemMenuProps & { item: TLLibraryItem }) {
 	)
 }
 
-const components: LibrariesComponents = {
+const librariesComponents: LibrariesComponents = {
 	LibraryMenu: LibraryMenuWithExport,
 	ItemMenu: ItemMenuWithExport,
 }
 
-export const extraActions: Showing = {
-	source: packSource('showcase-extra-actions', [PACKS.wireframing, PACKS.diagramming]),
-	components,
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => <LibrariesPanel source={source} components={librariesComponents} />,
+	QuickActions: LibrariesQuickActions,
 }
+
+export default function LibrariesMenuActionsExample() {
+	return (
+		<div className="tldraw__editor">
+			<Tldraw
+				components={components}
+				onMount={(editor) => {
+					librariesPanelOpen.set(editor, true)
+				}}
+			/>
+		</div>
+	)
+}
+
+/*
+[1]
+`LibraryMenu` and `ItemMenu` are the default ⋯ menus. Children passed to them join the default
+items, so an override that renders the default with children of its own keeps rename, delete and
+the rest.
+*/

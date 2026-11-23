@@ -9,14 +9,16 @@ import {
 	type TLLibraryItemContent,
 	type TLLibraryItemId,
 } from '@tldraw/libraries'
-import diagramming from '../libraries-pack-diagramming.json'
-import tldrawCharacters from '../libraries-pack-tldraw-characters.json'
-import wireframing from '../libraries-pack-wireframing.json'
+import diagramming from './packs/diagramming.json'
+import doodles from './packs/doodles.json'
+import tldrawCharacters from './packs/tldraw-characters.json'
+import wireframing from './packs/wireframing.json'
 
 export const PACKS = {
 	wireframing: wireframing as unknown as LibraryPack,
 	diagramming: diagramming as unknown as LibraryPack,
 	tldrawCharacters: tldrawCharacters as unknown as LibraryPack,
+	doodles: doodles as unknown as LibraryPack,
 }
 
 export interface PackSourceOptions {
