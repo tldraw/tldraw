@@ -509,7 +509,7 @@ function PercentageInput({
 				disabled={isSaving || disabled}
 				aria-label={label}
 				className={styles.searchInput}
-				style={{ width: 60 }}
+				style={{ width: 60, flex: 'none' }}
 			/>
 			<span className={disabled ? styles.featureFlagDisabled : ''}>%</span>
 			<AdminButton
