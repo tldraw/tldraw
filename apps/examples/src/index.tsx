@@ -60,6 +60,13 @@ const router = createBrowserRouter([
 			return { element: <LibrariesStress /> }
 		},
 	},
+	{
+		path: 'libraries-nested-drill-in',
+		lazy: async () => {
+			const { default: LibrariesNestedDrillIn } = await import('./misc/libraries-nested-drill-in')
+			return { element: <LibrariesNestedDrillIn /> }
+		},
+	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
 			{
