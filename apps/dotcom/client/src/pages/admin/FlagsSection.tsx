@@ -107,7 +107,9 @@ function FeatureFlags() {
 				// stores resolved { userId, email } entries, and the response carries them back.
 				const { success: _success, flag: _flag, ...stored } = await res.json()
 				setFlags((prev) => ({ ...prev, [flag]: { ...prev[flag], ...stored } }))
-				if (update.percentage !== undefined) {
+				if (update.percentage !== undefined && flags[flag]?.type === 'allowlist') {
+					setSuccessMessage(`${flag} set to the user list plus ${update.percentage}% of users`)
+				} else if (update.percentage !== undefined) {
 					setSuccessMessage(
 						update.percentage === 0
 							? `${flag} disabled (0%)`
@@ -132,7 +134,7 @@ function FeatureFlags() {
 				setIsSaving(false)
 			}
 		},
-		[setSuccessMessage]
+		[flags, setSuccessMessage]
 	)
 
 	const renderFlag = (flagName: string, flagValue: FeatureFlagValue) => {
@@ -179,6 +181,14 @@ function FeatureFlags() {
 							return
 						}
 						saveFlag(flagName, { allowEveryone })
+					}}
+					onSavePercentage={(pct) => {
+						if (
+							!window.confirm(`Set "${flagName}" to the user list plus ${pct}% of everyone else?`)
+						) {
+							return
+						}
+						saveFlag(flagName, { percentage: pct })
 					}}
 					onSaveEmails={(emails) => {
 						if (
@@ -244,9 +254,9 @@ function FeatureFlags() {
 			</p>
 			<p className={styles.featureFlagsDescription}>
 				Boolean flags toggle on/off for everyone. Percentage flags roll out to X% of users
-				(evaluated server-side per userId). Allowlist flags are on only for the people named, which
-				is the one thing a percentage cannot do — it picks its own subset. Their lists are edited as
-				emails and stored as user ids.
+				(evaluated server-side per userId). Allowlist flags are on for the people named, which a
+				percentage cannot do — it picks its own subset — plus their own percentage of everyone else,
+				bucketed the same way. Their lists are edited as emails and stored as user ids.
 			</p>
 
 			{isLoading ? (
@@ -283,6 +293,7 @@ function AllowlistFlag({
 	isSaving,
 	implicitAccess,
 	onSaveEmails,
+	onSavePercentage,
 	onSetAllowEveryone,
 }: {
 	flagName: string
@@ -291,6 +302,7 @@ function AllowlistFlag({
 	isSaving: boolean
 	implicitAccess: string | undefined
 	onSaveEmails(emails: string[]): void
+	onSavePercentage(percentage: number): void
 	onSetAllowEveryone(allowEveryone: boolean): void
 }) {
 	const currentEmails = (flagValue.users ?? []).map((entry) => entry.email)
@@ -360,6 +372,16 @@ function AllowlistFlag({
 					{implicitAccess && <span style={{ opacity: 0.7 }}>{implicitAccess}</span>}
 				</div>
 				<span className={flagValue.allowEveryone === true ? styles.featureFlagDisabled : ''}>
+					Plus
+				</span>
+				<PercentageInput
+					label={`${label} percentage of everyone else`}
+					value={flagValue.percentage ?? 0}
+					disabled={flagValue.allowEveryone === true}
+					isSaving={isSaving}
+					onSave={onSavePercentage}
+				/>
+				<span className={flagValue.allowEveryone === true ? styles.featureFlagDisabled : ''}>
 					{currentEmails.length} user(s)
 				</span>
 				<AdminButton
@@ -422,13 +444,6 @@ function PercentageFlag({
 	onToggle(enabled: boolean): void
 	onSavePercentage(percentage: number): void
 }) {
-	const currentPct = flagValue.percentage
-	const [pct, setPct] = useState(currentPct)
-
-	useEffect(() => {
-		setPct(currentPct)
-	}, [currentPct])
-
 	return (
 		<div className={styles.featureFlagItem}>
 			<div className={styles.featureFlagLabel}>
@@ -448,29 +463,62 @@ function PercentageFlag({
 						<strong>{label}</strong>
 					</span>
 				</label>
-				<input
-					type="text"
-					value={pct}
-					onChange={(e) => {
-						const n = Number(e.target.value)
-						if (!Number.isNaN(n)) setPct(Math.max(0, Math.min(100, n)))
-					}}
-					disabled={isSaving || !flagValue.enabled}
-					className={styles.searchInput}
-					style={{ width: 60 }}
+				<PercentageInput
+					label={`${label} percentage`}
+					value={flagValue.percentage}
+					disabled={!flagValue.enabled}
+					isSaving={isSaving}
+					onSave={onSavePercentage}
 				/>
-				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>%</span>
-				<AdminButton
-					onClick={() => onSavePercentage(pct)}
-					variant="primary"
-					disabled={isSaving || !flagValue.enabled || pct === currentPct}
-				>
-					Save
-				</AdminButton>
 			</div>
 			{flagValue.description && (
 				<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
 			)}
 		</div>
+	)
+}
+
+function PercentageInput({
+	label,
+	value,
+	disabled,
+	isSaving,
+	onSave,
+}: {
+	label: string
+	value: number
+	disabled: boolean
+	isSaving: boolean
+	onSave(percentage: number): void
+}) {
+	const [pct, setPct] = useState(value)
+
+	useEffect(() => {
+		setPct(value)
+	}, [value])
+
+	return (
+		<>
+			<input
+				type="text"
+				value={pct}
+				onChange={(e) => {
+					const n = Number(e.target.value)
+					if (!Number.isNaN(n)) setPct(Math.max(0, Math.min(100, n)))
+				}}
+				disabled={isSaving || disabled}
+				aria-label={label}
+				className={styles.searchInput}
+				style={{ width: 60 }}
+			/>
+			<span className={disabled ? styles.featureFlagDisabled : ''}>%</span>
+			<AdminButton
+				onClick={() => onSave(pct)}
+				variant="primary"
+				disabled={isSaving || disabled || pct === value}
+			>
+				Save
+			</AdminButton>
+		</>
 	)
 }
