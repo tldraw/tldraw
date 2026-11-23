@@ -61,6 +61,14 @@ const router = createBrowserRouter([
 		},
 	},
 	{
+		path: 'libraries-custom-components',
+		lazy: async () => {
+			const { default: LibrariesCustomComponents } =
+				await import('./misc/libraries-custom-components')
+			return { element: <LibrariesCustomComponents /> }
+		},
+	},
+	{
 		path: 'libraries-stress',
 		lazy: async () => {
 			const { default: LibrariesStress } = await import('./misc/libraries-stress')

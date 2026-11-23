@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import { defineMessages, TldrawUiIcon, useTranslation } from 'tldraw'
+import { getDotDevUrl } from '../../../../utils/appOriginLinks'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
 import styles from '../sidebar.module.css'
 
@@ -13,7 +14,7 @@ export function TlaSidebarDotDevLink() {
 	return (
 		<ExternalLink
 			className={classNames(styles.sidebarLinkButton, styles.hoverable, 'tla-text_ui__regular')}
-			to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link"
+			to={getDotDevUrl('sidebar-link')}
 			data-testid="tla-sidebar-dotdev-link"
 			eventName="sidebar-dotdev-link-clicked"
 		>

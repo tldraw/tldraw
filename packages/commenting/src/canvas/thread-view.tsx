@@ -423,9 +423,8 @@ export const ThreadView = memo(function ThreadView({
 	const canReply = canComment && !thread.resolved
 	const container = useContainer()
 
-	// Escape in a reply box with text clears the text and keeps the thread open; an empty one falls
-	// through to the layer's Escape, which closes the thread. On the window, in the capture phase,
-	// so it runs ahead of that document-level handler.
+	// Clear the reply before the document-level Escape handler closes the thread, so reopening
+	// it doesn't restore the discarded draft. Let the event continue to that handler.
 	const replyRef = useRef(reply)
 	replyRef.current = reply
 	useEffect(() => {
@@ -439,8 +438,6 @@ export const ThreadView = memo(function ThreadView({
 			if (isCommentEmpty(replyRef.current)) return
 			setReply(EMPTY_COMMENT)
 			clearCommentDraft(replyDraftSlot(thread.id))
-			e.preventDefault()
-			e.stopPropagation()
 		}
 		win.addEventListener('keydown', onKeyDown, true)
 		return () => win.removeEventListener('keydown', onKeyDown, true)

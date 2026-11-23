@@ -3,6 +3,7 @@ import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_FEEDBACK_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_TAB_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
@@ -22,6 +23,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
 	COMMENT_CURSOR_WRONG_PAGE_MESSAGE,
+	CommentTarget,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
@@ -33,6 +35,7 @@ import {
 	McpPageRead,
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
+	SEND_FEEDBACK_TOOL_NAME,
 	ToolResult,
 	USER_STATE_TOOL_NAME,
 	WRITE_COMMENT_TOOL_NAME,
@@ -47,6 +50,7 @@ import {
 	getPageCommentsResult,
 	getPageInfo,
 	getPeerStateResult,
+	getTextMentionIds,
 	getToolDefinitions,
 	getWrittenCommentResult,
 	getWorkspaceListResult,
@@ -61,6 +65,7 @@ import {
 	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseSendFeedbackInput,
 	pageLookupFailure,
 	resolveSnapshotPage,
 	parseUserStateInput,
@@ -71,10 +76,13 @@ import {
 	toolPageResult,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
+import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
+import { feedbackErrorContext, isMcpFeedbackConfigured, sendMcpFeedback } from './mcpFeedback'
 import {
 	PUBLISHED_BOARD_FAILURE,
+	TabRenderContext,
 	applyOpsInOpenTab,
 	captureInOpenTab,
 	readBoardUsers,
@@ -172,6 +180,10 @@ function tabRateLimitKey(userId: string) {
 	return `tab:${userId}`
 }
 
+function feedbackRateLimitKey(userId: string) {
+	return `feedback:${userId}`
+}
+
 async function isRateLimited(
 	limiter: RateLimit | undefined,
 	key: string,
@@ -251,10 +263,16 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 // and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
 // unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
 // truncated raw name for spotting families worth adding here. Order matters where strings overlap —
-// a Claude UA also says Mozilla, so `mozilla` sits last.
+// a Claude UA also says Mozilla, so `mozilla` sits below it, and the codex plugin's UA also says codex.
+//
+// `codex-plugin` is the codex plugin's proxy worker, which forwards a few board tools for every
+// Codex user and names itself in its User-Agent. A Worker's fetch sends no User-Agent of its own, so
+// without that header its calls are `none`.
 const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['tldraw-codex-plugin', 'codex-plugin'],
 	['claude', 'claude'],
 	['anthropic', 'claude'],
+	['codex', 'codex'],
 	['chatgpt', 'openai'],
 	['openai', 'openai'],
 	['cursor', 'cursor'],
@@ -265,6 +283,7 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['undici', 'node'],
 	['curl', 'curl'],
 	['mozilla', 'browser'],
+	['opencode', 'opencode'],
 ]
 
 // The name an agent goes by on a board when write_comment isn't told one: its client's family, which
@@ -320,6 +339,14 @@ export function normalizeMcpClient(value: unknown): string {
 	return 'other'
 }
 
+function tabContext(
+	request: Request,
+	ctx: ExecutionContext | undefined,
+	tool: string
+): TabRenderContext {
+	return { request, ctx, tool, client: normalizeMcpClient(request.headers.get('user-agent')) }
+}
+
 // One datapoint per tools/call dispatch, whatever the tool did: the render path's
 // mcp_shared_board_screenshot event only fires when a screenshot is attempted, so without this the
 // info tools (and every early failure) are invisible. Written at the dispatcher rather than inside
@@ -337,6 +364,24 @@ function writeMcpToolCallTelemetry(
 			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
 		],
 		doubles: [data.durationMs],
+	})
+}
+
+// One datapoint per comment that landed. The tool call event says a write succeeded but not what it
+// was, and a `queued` write is a success that read_page_comments can't see yet: the one outcome an
+// agent may answer by posting the comment again.
+function writeCommentWriteTelemetry(
+	env: Environment,
+	request: Request,
+	data: { target: CommentTarget['kind']; queued: boolean; mentions: number }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_comment_write', {
+		blobs: [
+			`target:${data.target}`,
+			`stored:${data.queued ? 'queued' : 'saved'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.mentions],
 	})
 }
 
@@ -412,6 +457,7 @@ const TOOL_HANDLERS = new Map<
 	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
 	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
 	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
+	[SEND_FEEDBACK_TOOL_NAME, callSendFeedbackTool],
 ])
 
 export async function mcpServer(
@@ -927,6 +973,11 @@ async function callWriteCommentTool(
 			agentClient,
 		})
 		if (!written.ok) return withTelemetryReason(written.result, written.reason)
+		writeCommentWriteTelemetry(env, request, {
+			target: input.target.kind,
+			queued: written.queued,
+			mentions: getTextMentionIds(input.text).length,
+		})
 		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
 		return getWrittenCommentResult({
 			boardId: input.boardId,
@@ -948,6 +999,51 @@ async function callWriteCommentTool(
 			extras: { boardId: input.boardId, target: input.target.kind },
 			summary: 'Could not post the comment',
 			recordAs: () => 'comment_write_error',
+		})
+	}
+}
+
+async function callSendFeedbackTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext,
+	clientId: string | null = null
+) {
+	const parsed = parseToolInput(() => parseSendFeedbackInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+	if (!isMcpFeedbackConfigured(env)) {
+		return toolError(
+			'Feedback is not set up on this deployment, so it was not sent.',
+			'feedback_not_configured'
+		)
+	}
+
+	try {
+		const refusal = await checkFeedbackRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const userAgent = request.headers.get('user-agent')
+		await sendMcpFeedback(env, input, {
+			userId,
+			agentClient: getMcpAgentClient(clientId),
+			clientId,
+			userAgent,
+			viaCodexApp: normalizeMcpClient(userAgent) === 'codex-plugin',
+		})
+		return toolJsonResult({ sent: true, type: input.type })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_feedback',
+			// The message is something the caller wrote, so it stays off the Sentry event.
+			extras: { type: input.type, ...feedbackErrorContext(error) },
+			summary: 'Could not send the feedback',
+			recordAs: () => 'feedback_send_error',
 		})
 	}
 }
@@ -1025,6 +1121,7 @@ async function callPageInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: PAGE_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		telemetry({})
@@ -1121,12 +1218,14 @@ async function readBoardPage(
 		telemetry,
 		request,
 		ctx,
+		tool,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		tool: string
 	}
 ): Promise<BoardPageRead> {
 	const fail = (reason: string, result: ToolCallResult): BoardPageRead => {
@@ -1140,11 +1239,23 @@ async function readBoardPage(
 	const refusal = await refuseUnlessFile(env, boardId, userId)
 	if (refusal) return fail(refusal.reason, refusal.result)
 
-	const tab = await readPageInOpenTab(env, boardId, userId, page, clusterIds, { request, ctx })
+	const tab = await readPageInOpenTab(
+		env,
+		boardId,
+		userId,
+		page,
+		clusterIds,
+		tabContext(request, ctx, tool)
+	)
 	if (!tab.ok) return fail(tab.reason, toolError(tab.message, tab.reason))
 	if (!tab.value.found) {
 		const failure = pageLookupFailure(tab.value.lookup, page)
 		return fail(failure.reason, withTelemetryReason(failure.result, failure.reason))
+	}
+	// get_page_info reads the whole page (no cluster ids named); shadow-compare that clustering against
+	// the headless editor, off the critical path. Inert until HEADLESS_WORKER is bound — see headlessShadow.ts.
+	if (clusterIds.length === 0 && ctx && env.HEADLESS_WORKER) {
+		ctx.waitUntil(compareMeasureInShadow(env, { boardId, userId, read: tab.value.read }))
 	}
 	return { ok: true, read: tab.value.read }
 }
@@ -1270,6 +1381,30 @@ async function checkRenameRateLimit(
 	)
 }
 
+/** The per-caller ceiling on `send_feedback`, which keeps a looping agent from flooding the channel. */
+async function checkFeedbackRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_FEEDBACK_RATE_LIMITER, feedbackRateLimitKey(userId), {
+			fallbackLimit: MCP_FEEDBACK_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_feedback',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Feedback is limited to about ${MCP_FEEDBACK_PER_USER_RATE_LIMIT} reports per minute per account.`,
+		'rate_limited_feedback'
+	)
+}
+
 async function callClusterInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1289,6 +1424,7 @@ async function callClusterInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const info = getClusterInfo(page.read, input.clusterIds, input.page, input.cursor)
@@ -1337,6 +1473,7 @@ async function callClusterScreenshotTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_SCREENSHOT_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const picked = pickClusterShapes(page.read.details, input.clusterIds, input.page)
@@ -1360,7 +1497,7 @@ async function callClusterScreenshotTool(
 				width: size.width,
 				height: size.height,
 			},
-			{ request, ctx }
+			tabContext(request, ctx, CLUSTER_SCREENSHOT_TOOL_NAME)
 		)
 		if (!image.ok) {
 			telemetry({ failureReason: image.reason })
@@ -1418,7 +1555,7 @@ async function callApplyOpsTool(
 				page: input.page ?? undefined,
 				attribution: { userId, runId: input.runId ?? undefined },
 			},
-			{ request, ctx }
+			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)
 		if (!applied.ok) return toolError(applied.message, applied.reason)
 		const { pageId, pageName, result } = applied.value
@@ -1456,13 +1593,18 @@ async function callUserStateTool(
 		if (refusal) return refusal.result
 
 		if (input.userId === null || input.userId === userId) {
-			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			const state = await readUserStateInOpenTab(
+				env,
+				input.boardId,
+				userId,
+				tabContext(request, ctx, USER_STATE_TOOL_NAME)
+			)
 			if (!state.ok) return toolError(state.message, state.reason)
 			const { pageId, pageName, selectedShapeIds, viewport } = state.value
 			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
 		}
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
 		if (!user) {
@@ -1503,7 +1645,7 @@ async function callBoardUsersTool(
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		return getBoardUsersResult(users.value, Date.now())
 	} catch (error) {

@@ -10,6 +10,7 @@ import {
 	PageSelector,
 	ShapeCluster,
 	ShapeMeasurement,
+	TAB_RENDER_MAX_EXPORT_TEXT_SHAPES,
 	can,
 	findMcpPage,
 	getShapeText,
@@ -71,10 +72,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. send_feedback sends a bug report or other feedback about this server to the tldraw team. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. send_feedback sends a bug report or other feedback about this server to the tldraw team. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -89,6 +90,7 @@ export const USER_STATE_TOOL_NAME = 'get_user_state'
 export const BOARD_USERS_TOOL_NAME = 'get_board_users'
 export const READ_PAGE_COMMENTS_TOOL_NAME = 'read_page_comments'
 export const WRITE_COMMENT_TOOL_NAME = 'write_comment'
+export const SEND_FEEDBACK_TOOL_NAME = 'send_feedback'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
@@ -104,6 +106,7 @@ export const TOOL_NAMES = [
 	BOARD_USERS_TOOL_NAME,
 	READ_PAGE_COMMENTS_TOOL_NAME,
 	WRITE_COMMENT_TOOL_NAME,
+	SEND_FEEDBACK_TOOL_NAME,
 ] as const
 
 // What a model is told when the board id it was given leads nowhere. The route decides *whether* a
@@ -1797,6 +1800,40 @@ export function parseWriteCommentInput(input: unknown): {
 	return { boardId, text, agentName, target: { kind: 'point', pageId: page, x, y } }
 }
 
+export const FEEDBACK_TYPES = ['bug', 'feature_request', 'other'] as const
+export type FeedbackType = (typeof FEEDBACK_TYPES)[number]
+// Discord caps an embed's description at 4096 characters and the whole embed at 6000, and the
+// message is the description, with the metadata fields alongside it.
+export const FEEDBACK_MESSAGE_MAX_LENGTH = 3500
+export const FEEDBACK_AGENT_MAX_LENGTH = 200
+
+export interface FeedbackInput {
+	type: FeedbackType
+	message: string
+	/** What the agent says it is. Null when it didn't say; the route still reports its client. */
+	agent: string | null
+}
+
+export function parseSendFeedbackInput(input: unknown): FeedbackInput {
+	const value = requireArgumentsObject(input)
+	const type = value.type ?? 'bug'
+	if (!(FEEDBACK_TYPES as readonly unknown[]).includes(type)) {
+		throw new Error(`type must be one of ${FEEDBACK_TYPES.map((t) => `'${t}'`).join(', ')}`)
+	}
+	if (typeof value.message !== 'string' || !value.message.trim()) {
+		throw new Error('message is required: what happened, and what you expected instead')
+	}
+	const message = value.message.trim()
+	if (message.length > FEEDBACK_MESSAGE_MAX_LENGTH) {
+		throw new Error(`message must be at most ${FEEDBACK_MESSAGE_MAX_LENGTH} characters`)
+	}
+	const agent = optionalString(value.agent, 'agent')
+	if (agent !== null && agent.length > FEEDBACK_AGENT_MAX_LENGTH) {
+		throw new Error(`agent must be at most ${FEEDBACK_AGENT_MAX_LENGTH} characters`)
+	}
+	return { type: type as FeedbackType, message, agent }
+}
+
 // A blank string means the same as absent, for the model that fills every field in the schema.
 function optionalString(value: unknown, name: string): string | null {
 	if (value === undefined || value === null || value === '') return null
@@ -2064,6 +2101,7 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 		getBoardUsersToolDefinition(),
 		getReadPageCommentsToolDefinition(),
 		getWriteCommentToolDefinition(),
+		getSendFeedbackToolDefinition(),
 	]
 }
 
@@ -2306,7 +2344,7 @@ function getClusterScreenshotToolDefinition() {
 	return {
 		name: CLUSTER_SCREENSHOT_TOOL_NAME,
 		title: 'Get tldraw cluster screenshot',
-		description: `Get a screenshot of one or more clusters from get_page_info. The clusters will render together in a single image in their relative positions on the board. The board and page in question must be open in the user’s browser tab: if they are not, ask them to open it or switch to it. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. Use get_cluster_info only when the individual shapes matter.`,
+		description: `Get a screenshot of one or more clusters from get_page_info. The clusters will render together in a single image in their relative positions on the board. The board and page in question must be open in the user’s browser tab: if they are not, ask them to open it or switch to it. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. One screenshot fits about ${TAB_RENDER_MAX_EXPORT_TEXT_SHAPES} shapes with text (shapes without text count for far less), so split a text-heavy page across calls. Use get_cluster_info only when the individual shapes matter.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2513,6 +2551,45 @@ function getWriteCommentToolDefinition() {
 			readOnlyHint: false,
 			idempotentHint: false,
 			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+function getSendFeedbackToolDefinition() {
+	return {
+		name: SEND_FEEDBACK_TOOL_NAME,
+		title: 'Send feedback to tldraw',
+		description:
+			"Send a bug report, feature request or other feedback about this MCP server to the tldraw team. Use it when a tool fails in a way that looks like a fault in tldraw rather than in your input, returns something wrong or confusing, or when the user asks you to pass feedback on. Say which tool you called with what, what you expected, and what happened instead. Leave out personal information and board content that isn't needed to understand the problem. Nobody replies through this tool; tell the user what you sent.",
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				type: {
+					type: 'string',
+					enum: FEEDBACK_TYPES,
+					description: "What kind of feedback this is. Defaults to 'bug'.",
+				},
+				message: {
+					type: 'string',
+					maxLength: FEEDBACK_MESSAGE_MAX_LENGTH,
+					description:
+						'The report: what you were trying to do, what you called, what you expected, and what happened, including any error message verbatim.',
+				},
+				agent: {
+					type: 'string',
+					maxLength: FEEDBACK_AGENT_MAX_LENGTH,
+					description:
+						'Which agent you are: the app or harness you are running in and your model, for example "Claude Code, Claude Opus 5.5".',
+				},
+			},
+			required: ['message'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: true,
 			destructiveHint: false,
 		},
 	}

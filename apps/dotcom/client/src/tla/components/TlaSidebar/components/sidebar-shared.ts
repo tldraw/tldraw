@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom'
 import { defineMessages, tltime, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
+import type { TldrawApp } from '../../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
-import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { toggleMobileSidebar } from '../../../utils/local-session-state'
 
@@ -32,6 +33,12 @@ export function useHideSidebarToggle() {
 	])
 }
 
+/** Opens a new file's name for editing in the sidebar. v3 has no sidebar, so there it does nothing. */
+export function startSidebarRename(app: TldrawApp, fileId: string, workspaceId: string) {
+	if (app.isUiV3Enabled) return
+	app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, workspaceId } }))
+}
+
 export function useHandleSidebarCreateFile() {
 	const app = useApp()
 	const navigate = useNavigate()
@@ -42,35 +49,37 @@ export function useHandleSidebarCreateFile() {
 
 	const rCanCreate = useRef(true)
 
-	return useCallback(async () => {
-		if (!rCanCreate.current) return
-		// Block repeat clicks while the create is in flight, not just after it resolves, or a
-		// double click makes two files.
-		rCanCreate.current = false
-		let fileId: string
-		try {
-			const res = await app.createFile({ workspaceId: activeWorkspaceId })
-			if (!res.ok) {
+	// A given name skips the rename that otherwise follows.
+	return useCallback(
+		async ({ name, source = 'sidebar' }: { name?: string; source?: TLAppUiEventSource } = {}) => {
+			if (!rCanCreate.current) return
+			// Block repeat clicks while the create is in flight, not just after it resolves, or a
+			// double click makes two files.
+			rCanCreate.current = false
+			let fileId: string
+			try {
+				const res = await app.createFile({
+					workspaceId: activeWorkspaceId,
+					name: name || undefined,
+				})
+				if (!res.ok) {
+					rCanCreate.current = true
+					return
+				}
+				fileId = res.value.fileId
+			} catch (e) {
 				rCanCreate.current = true
-				return
+				throw e
 			}
-			fileId = res.value.fileId
-		} catch (e) {
-			rCanCreate.current = true
-			throw e
-		}
-		const isMobile = getIsCoarsePointer()
-		if (!isMobile) {
-			app.sidebarState.update((prev) => ({
-				...prev,
-				renameState: { fileId, workspaceId: activeWorkspaceId },
-			}))
-		}
-		navigate(routes.tlaFile(fileId))
-		trackEvent('create-file', { source: 'sidebar' })
-		tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
-		if (isMobile) {
-			toggleMobileSidebar(false)
-		}
-	}, [app, navigate, trackEvent, activeWorkspaceId])
+			const isMobile = getIsCoarsePointer()
+			if (!isMobile && !name) startSidebarRename(app, fileId, activeWorkspaceId)
+			navigate(routes.tlaFile(fileId))
+			trackEvent('create-file', { source })
+			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
+			if (isMobile) {
+				toggleMobileSidebar(false)
+			}
+		},
+		[app, navigate, trackEvent, activeWorkspaceId]
+	)
 }

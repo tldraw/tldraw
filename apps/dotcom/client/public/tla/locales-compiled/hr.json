@@ -139,6 +139,12 @@
       "value": "Pošalji povratne informacije"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Označi sve obavijesti kao pročitane"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -173,6 +179,12 @@
     {
       "type": 0,
       "value": "Opcije obavijesti"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Promijeni radni prostor"
     }
   ],
   "181b90f889": [
@@ -237,26 +249,20 @@
       "value": "O tldrawu"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " je komentirao/la vašu ploču"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Nije moguće poslati povratne informacije"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "U ime "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -319,10 +325,22 @@
       "value": "Natrag na tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Duplikat datoteke"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Pokušajte osvježiti stranicu."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Naziv datoteke"
     }
   ],
   "344a7f427f": [
@@ -423,6 +441,12 @@
       "value": "Hvala što nam pomažete poboljšati tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Premjesti datoteku u"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -445,6 +469,28 @@
     {
       "type": 0,
       "value": "Ime"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Kopiraj objavljenu poveznicu"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " je komentirao/la"
     }
   ],
   "4d0d3ddec9": [
@@ -535,6 +581,12 @@
       "value": "Izradite radni prostor"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Idi na datoteku"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -563,22 +615,6 @@
     {
       "type": 0,
       "value": "Moj radni prostor"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagirao je na vaš komentar"
     }
   ],
   "5d04a002ea": [
@@ -623,46 +659,6 @@
       "value": "Kasnije"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " osobe reagirale su na tvoj komentar"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Netko je reagirao na tvoj komentar"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " osoba reagiralo je na tvoj komentar"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -693,10 +689,80 @@
       "value": "Dostupna je nova verzija tldraw-a. Ponovno učitajte stranicu za nastavak."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Uređeno"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Nova datoteka"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagirali su"
     }
   ],
   "6832ac5936": [
@@ -711,10 +777,53 @@
       "value": "Izbriši radni prostor"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Netko je reagirao"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osoba je reagiralo"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Pomoć"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -727,6 +836,12 @@
     {
       "type": 0,
       "value": "Slijedite ove korake za ručni uvoz sadržaja:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Platno"
     }
   ],
   "70a6facb9d": [
@@ -799,6 +914,12 @@
     {
       "type": 0,
       "value": "Molimo ponovno učitajte"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Kopiraj vezu datoteke"
     }
   ],
   "777f9e90cf": [
@@ -963,6 +1084,56 @@
       "value": "Već ste član ovog radnog prostora"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagirali su"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -979,6 +1150,12 @@
     {
       "type": 0,
       "value": "Podijeljeno s vama"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Oko"
     }
   ],
   "8ff3d0a705": [
@@ -1019,6 +1196,12 @@
       "value": "? Ovu radnju nije moguće poništiti."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Datoteke"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1041,6 +1224,22 @@
     {
       "type": 0,
       "value": "Ovaj mjesec"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " je reagirao/la"
     }
   ],
   "985a4b720f": [
@@ -1216,6 +1415,12 @@
       "value": "Politika kolačića"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Uključi/isključi bočnu traku s komentarima"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1270,6 +1475,18 @@
       "value": "Dosegnuto je ograničenje datoteke"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "Aplikacija"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Knjižnice"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1320,6 +1537,12 @@
     {
       "type": 0,
       "value": "Datoteka je puna"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Otvori ploču s obavijestima"
     }
   ],
   "b357b524e7": [
@@ -1446,6 +1669,12 @@
       "value": "ownerName"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Trenutna datoteka"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1549,6 +1778,18 @@
       "value": "Odbaciti"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Boja"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profil"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1573,65 +1814,16 @@
       "value": "Saznajte više o objavljivanju."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " i "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " druga"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " drugi"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " drugih"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Postavke"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " reagirali su na vaš komentar"
+      "value": "Poništi objavu datoteke"
     }
   ],
   "d3d2e61733": [
@@ -1650,6 +1842,12 @@
     {
       "type": 0,
       "value": "Uključi/isključi bočnu traku"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Radni prostori"
     }
   ],
   "d638a3344b": [
@@ -1722,12 +1920,6 @@
       "value": "Napustite radni prostor"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Oznake za otklanjanje pogrešaka aplikacije"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1750,36 +1942,6 @@
     {
       "type": 0,
       "value": "Uvjeti usluge"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " i "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagirali su na vaš komentar"
     }
   ],
   "e81c4e4f2b": [
@@ -1898,81 +2060,6 @@
       "value": "Ova pozivnica nije važeća ili je istekla."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " i "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "few": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " druga"
-            }
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " drugi"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " drugih"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reagirali su na vaš komentar"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -2051,6 +2138,36 @@
     {
       "type": 0,
       "value": "Pogreška pri prihvaćanju pozivnice"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagirali su"
     }
   ],
   "ffcd73e997": [

@@ -34,6 +34,7 @@ export type AssetUrls = {
 		'arrow-cycle': string
 		'arrow-elbow': string
 		'arrow-left': string
+		'arrow-right': string
 		'arrowhead-arrow': string
 		'arrowhead-bar': string
 		'arrowhead-diamond': string
@@ -141,6 +142,7 @@ export type AssetUrls = {
 		'reset-zoom': string
 		'rotate-ccw': string
 		'rotate-cw': string
+		search: string
 		'send-backward': string
 		'send-to-back': string
 		'share-1': string
@@ -156,6 +158,7 @@ export type AssetUrls = {
 		'stretch-horizontal': string
 		'stretch-vertical': string
 		strike: string
+		taskList: string
 		'text-align-center': string
 		'text-align-left': string
 		'text-align-right': string
@@ -259,7 +262,6 @@ export type AssetUrls = {
 		scratch: string
 		spotify: string
 		tldraw: string
-		val_town: string
 		vimeo: string
 		youtube: string
 	}

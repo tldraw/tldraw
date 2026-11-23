@@ -7,8 +7,10 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { defineMessages, TldrawUiIcon, useEditor, useTranslation } from 'tldraw'
-import type { LibraryGroup } from './library-groups'
+import { defineMessages, useEditor, useTranslation } from 'tldraw'
+import { useLibrariesComponentOverrides } from './libraries-components'
+import { getGroupOwner, type LibraryGroup } from './library-groups'
+import { LibraryTabLabel as DefaultLibraryTabLabel } from './library-tab-label'
 
 const messages = defineMessages({
 	owners: { id: 'libraries.tabs.label', defaultMessage: 'Library owners' },
@@ -34,6 +36,7 @@ export function LibraryTabs({
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const { LibraryTabLabel = DefaultLibraryTabLabel } = useLibrariesComponentOverrides()
 	const label = (group: LibraryGroup) => group.label ?? msg(messages.other)
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const [overflow, setOverflow] = useState({ start: false, end: false })
@@ -93,15 +96,9 @@ export function LibraryTabs({
 							className="tlui-libraries-tabs__tab"
 							title={label(group)}
 						>
-							{group.icon && (
-								<TldrawUiIcon
-									icon={group.icon}
-									label=""
-									small
-									className="tlui-libraries-tabs__icon"
-								/>
+							{LibraryTabLabel && (
+								<LibraryTabLabel owner={getGroupOwner(group)} libraries={group.libraries} />
 							)}
-							<span className="tlui-libraries-tabs__label">{label(group)}</span>
 						</_Tabs.Trigger>
 					))}
 				</_Tabs.List>
@@ -112,8 +109,13 @@ export function LibraryTabs({
 }
 
 export function LibraryTabPanel({ value, children }: { value: string; children: ReactNode }) {
+	const editor = useEditor()
 	return (
-		<_Tabs.Content value={value} className="tlui-libraries-sections">
+		<_Tabs.Content
+			value={value}
+			className="tlui-libraries-sections"
+			onScroll={() => editor.menus.clearOpenMenus()}
+		>
 			{children}
 		</_Tabs.Content>
 	)

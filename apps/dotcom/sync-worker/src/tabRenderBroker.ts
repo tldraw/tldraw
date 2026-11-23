@@ -54,8 +54,29 @@ export type TabRenderOutcome =
 			}
 	  >
 	| {
-			status: 'no_tab' | 'reload_needed' | 'room_timeout' | 'ack_timeout' | 'work_timeout'
+			status:
+				| 'no_tab'
+				| 'tab_suspended'
+				| 'reload_needed'
+				| 'room_timeout'
+				| 'ack_timeout'
+				| 'work_timeout'
 	  }
+
+/**
+ * Where a job's time went, for telemetry: a slow room and a slow tab are different problems and one
+ * duration can't tell them apart. -1 marks a stage the job never reached.
+ */
+export interface TabRenderStats {
+	/** Tabs the job was sent to. */
+	tabs: number
+	/** Waiting for the room to boot. */
+	roomMs: number
+	/** From sending the job to the first reply of any kind from a tab. */
+	ackMs: number
+}
+
+export type TabRenderResponse = TabRenderOutcome & { stats?: TabRenderStats }
 
 export interface TabRenderSocket {
 	sessionId: string
@@ -127,6 +148,7 @@ interface TabRenderJob {
 	 */
 	tabs: Map<string, 'asked' | 'working'>
 	lastDecline?: Extract<TabRenderReply, { status: 'declined' }>
+	onFirstReply?(): void
 	finish(outcome: TabRenderOutcome): void
 }
 
@@ -141,13 +163,15 @@ export class TabRenderBroker {
 		sessionIds: string[],
 		request: TabRenderRequest,
 		jobIds: readonly string[],
-		send: (sessionId: string, jobId: string) => void
+		send: (sessionId: string, jobId: string) => void,
+		onFirstReply?: () => void
 	): Promise<TabRenderOutcome> {
 		return new Promise((resolve) => {
 			const issued: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
 				tabs: new Map(),
+				onFirstReply,
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
@@ -193,6 +217,8 @@ export class TabRenderBroker {
 	receive(jobId: string, reply: TabRenderReply): boolean {
 		const job = this.jobs.get(jobId)
 		if (!job) return false
+		job.onFirstReply?.()
+		job.onFirstReply = undefined
 
 		switch (reply.status) {
 			case 'accepted':

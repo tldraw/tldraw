@@ -17,7 +17,10 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// Server-side only: the sync worker reads these to pick the render transport.
 	thumbnail_render_push: { enabled: false },
 	mcp_render_push: { enabled: false },
+	// Server-side only: the sync worker reads this to sample MCP reads for the headless shadow compare.
+	headless_shadow: { enabled: false },
 	ui_v3: { enabled: false },
+	mcp_hidden_tab: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }

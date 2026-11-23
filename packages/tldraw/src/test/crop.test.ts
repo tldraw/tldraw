@@ -1,9 +1,12 @@
 import { T, TLImageShape, Vec, createShapeId } from '@tldraw/editor'
 import {
+	applyImageAspectRatio,
+	ASPECT_RATIO_OPTIONS,
 	getCropBox,
 	getCroppedImageDataForAspectRatio,
 	getCroppedImageDataForReplacedImage,
 	getCroppedImageDataWhenZooming,
+	isImageAspectRatioChecked,
 	MIN_CROP_SIZE,
 } from '../lib/shapes/shared/crop'
 import { TestEditor } from './TestEditor'
@@ -2390,5 +2393,49 @@ describe('getCroppedImageDataForReplacedImage', () => {
 		expect(result.crop.topLeft.y).toBeGreaterThanOrEqual(0)
 		expect(result.crop.bottomRight.x).toBeLessThanOrEqual(1)
 		expect(result.crop.bottomRight.y).toBeLessThanOrEqual(1)
+	})
+})
+
+describe('isImageAspectRatioChecked', () => {
+	const partialCrop = { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } }
+
+	function checkedOptions(props: Partial<TLImageShape['props']>) {
+		const image = { ...shape, props: { ...shape.props, ...props } }
+		return ASPECT_RATIO_OPTIONS.filter((option) => isImageAspectRatioChecked(image, option))
+	}
+
+	it.each<[Partial<TLImageShape['props']>, string[]]>([
+		[{ crop: null }, ['original']],
+		[{ crop: initialCrop }, ['original']],
+		// A default-bounds crop with an explicit isCircle counts as cropped.
+		[{ w: 100, h: 100, crop: { ...initialCrop, isCircle: true } }, ['circle']],
+		[{ w: 100, h: 100, crop: { ...initialCrop, isCircle: false } }, ['square']],
+		// Square has a 0.1 tolerance.
+		[{ w: 109, h: 100, crop: partialCrop }, ['square']],
+		[{ w: 112, h: 100, crop: partialCrop }, []],
+		[{ w: 100, h: 100, crop: { ...partialCrop, isCircle: true } }, ['circle']],
+		[{ w: 160, h: 90, crop: { ...partialCrop, isCircle: true } }, ['circle', 'wide']],
+		// The other ratios have a 0.01 tolerance.
+		[{ w: 400, h: 300, crop: partialCrop }, ['landscape']],
+		[{ w: 300, h: 400, crop: partialCrop }, ['portrait']],
+		[{ w: 1600, h: 900, crop: partialCrop }, ['wide']],
+		[{ w: 404, h: 300, crop: partialCrop }, []],
+	])('checks the matching options for %j', (props, expected) => {
+		expect(checkedOptions(props)).toEqual(expected)
+	})
+})
+
+describe('applyImageAspectRatio', () => {
+	it('undoes in one step when entering crop mode first, as the image toolbar does', () => {
+		const before = editor.getShape<TLImageShape>(shape.id)!
+		editor.select(shape.id)
+		editor.run(() => {
+			editor.setCurrentTool('select.crop.idle')
+			applyImageAspectRatio(editor, before, 'wide')
+		})
+		expect(isImageAspectRatioChecked(editor.getShape<TLImageShape>(shape.id)!, 'wide')).toBe(true)
+
+		editor.undo()
+		expect(editor.getShape(shape.id)).toEqual(before)
 	})
 })

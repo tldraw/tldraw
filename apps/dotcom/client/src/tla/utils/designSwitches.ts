@@ -21,8 +21,34 @@ function designSwitch(id: string, label: string, initialValue = false): DesignSw
 }
 
 export const designSwitches = {
-	// Proves the menu end to end. Replace it with the first real idea.
-	placeholder: designSwitch('placeholder', 'Placeholder switch'),
+	// Settings dialog: tabs in a strip above the page instead of a column beside it.
+	settingsHorizontalTabs: designSwitch('settings-horizontal-tabs', 'Horizontal settings tabs'),
+	// Lists these switches on a Labs tab in the settings dialog instead of in the beaker menu.
+	settingsLabsTab: designSwitch('settings-labs-tab', 'Labs tab in settings'),
+	// Gallery and list: avatars of who has opened each board, full opacity for whoever is on it now.
+	boardVisitors: designSwitch('board-visitors', 'Board visitor avatars', true),
+	// File header: the logo opens the main menu, which loses its own ⋮ button.
+	logoMenu: designSwitch('logo-menu', 'Menu on the logo', true),
+	// File header: the sidebar's create-file button, among the icons beside Share.
+	newFileShortcut: designSwitch('new-file-shortcut', 'New file shortcut', true),
+	// File header: settings as an icon beside Share instead of an item in the main menu.
+	settingsIcon: designSwitch('settings-icon', 'Top-level settings icon'),
+	// File header: the file name opens the workspace's files, as the page name opens the pages,
+	// instead of renaming in place.
+	fileSwitcher: designSwitch('file-switcher', 'Breadcrumb file switcher'),
+	// Signed out: the one Share button signed-in users have, in place of a share icon beside
+	// "Sign in to share", with sign-in moved into its menu's Invite and Publish tabs.
+	signedOutShare: designSwitch('signed-out-share', 'Signed-out Share button'),
+	// Signed out: "Unsaved file" in the header in a warning colour instead of the text colour.
+	unsavedFileColor: designSwitch('unsaved-file-color', 'Warning colour on "Unsaved file"'),
+	// Main menu experiments: an Object submenu for Insert embed and Upload media, the command
+	// palette as "Actions…" in its own group, and export moved under File (Export… plus the
+	// whole-page formats) in place of the Export as submenu. Signed out, File also holds
+	// Download, with "Sign in to save" above it on the scratch board, and Export… replaces the
+	// share icon beside "Sign in to share".
+	andysMainMenu: designSwitch('andys-main-menu', "Andy's main menu", true),
+	// List view: a small thumbnail to the left of each board's name.
+	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view', true),
 } satisfies Record<string, DesignSwitch>
 
 export type DesignSwitchId = keyof typeof designSwitches

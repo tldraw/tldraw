@@ -1,5 +1,6 @@
 import { Box, defineMessages, TLImageShape, useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useActions } from '../../context/actions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { AltTextEditor } from './AltTextEditor'
@@ -54,6 +55,7 @@ function ContextualToolbarInner({
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const actions = useActions()
 
 	const isChangingCrop = useValue(
 		'editor path',
@@ -75,10 +77,12 @@ function ContextualToolbarInner({
 
 	const [isEditingAltText, setIsEditingAltText] = useState(false)
 	const handleEditAltTextStart = useCallback(() => setIsEditingAltText(true), [])
-	const handleManipulatingStart = useCallback(
-		() => editor.setCurrentTool('select.crop.idle'),
-		[editor]
-	)
+	const handleManipulatingStart = useCallback(() => {
+		const cropAction = actions['crop-image']
+		// The toolbar isn't gated on the action, so crop must still start if an override removes it
+		if (cropAction) cropAction.onSelect('image-toolbar')
+		else editor.setCurrentTool('select.crop.idle')
+	}, [actions, editor])
 	const onEditAltTextClose = useCallback(() => setIsEditingAltText(false), [])
 
 	useEffect(() => {

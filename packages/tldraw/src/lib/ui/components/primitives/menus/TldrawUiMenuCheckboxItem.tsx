@@ -5,6 +5,7 @@ import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
+import { CommandPaletteItemRegistration } from '../../CommandPalette/CommandPaletteItemRegistration'
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
@@ -117,6 +118,19 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					{content}
 				</_ContextMenu.CheckboxItem>
+			)
+		}
+		case 'command-palette': {
+			if (!labelStr) return null
+			return (
+				<CommandPaletteItemRegistration
+					id={id}
+					label={labelStr}
+					kbd={kbd}
+					disabled={disabled}
+					checked={checked}
+					onSelect={onSelect}
+				/>
 			)
 		}
 		default: {

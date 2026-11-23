@@ -267,7 +267,7 @@ export {
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'
-export { getFontFamily } from './lib/shapes/shared/default-shape-constants'
+export { getFontCheckboxStyle, getFontFamily } from './lib/shapes/shared/default-shape-constants'
 export {
 	allDefaultFontFaces,
 	DefaultFontFaces,
@@ -328,6 +328,10 @@ export {
 	type TLUiActionsMenuProps,
 } from './lib/ui/components/ActionsMenu/DefaultActionsMenu'
 export {
+	DefaultCommandPalette,
+	type TLUiCommandPaletteProps,
+} from './lib/ui/components/CommandPalette/DefaultCommandPalette'
+export {
 	AlignMenuItems,
 	DefaultActionsMenuContent,
 	DistributeMenuItems,
@@ -375,6 +379,42 @@ export {
 	DefaultKeyboardShortcutsDialog,
 	type TLUiKeyboardShortcutsDialogProps,
 } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
+export { CommandPaletteMenuItem } from './lib/ui/components/CommandPalette/CommandPaletteMenuItem'
+export {
+	CommandPaletteShell,
+	type TLUiCommandPalettePosition,
+	type TLUiCommandPaletteShellProps,
+	type TLUiCommandPaletteSuggestions,
+} from './lib/ui/components/CommandPalette/CommandPaletteShell'
+export {
+	CommandPaletteOnDemand,
+	CommandPalettePinned,
+	useCommandPaletteActiveItemId,
+	useCommandPaletteQuery,
+	type TLUiCommandPaletteOnDemandProps,
+	type TLUiCommandPalettePinnedProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteContext'
+export {
+	CommandPalettePromptItem,
+	type TLUiCommandPalettePromptItemProps,
+} from './lib/ui/components/CommandPalette/CommandPalettePromptItem'
+export {
+	CommandPaletteActionGroup,
+	CommandPaletteArrangeGroup,
+	CommandPaletteEditGroup,
+	CommandPaletteExportGroup,
+	CommandPaletteHelpGroup,
+	CommandPalettePagesGroup,
+	CommandPalettePreferencesGroup,
+	CommandPaletteSelectionGroup,
+	CommandPaletteToolsGroup,
+	CommandPaletteViewGroup,
+	type TLUiCommandPaletteActionGroupProps,
+} from './lib/ui/components/CommandPalette/CommandPaletteGroups'
+export { CommandPaletteImageGroup } from './lib/ui/components/CommandPalette/CommandPaletteImageGroup'
+export { CommandPaletteStylesGroup } from './lib/ui/components/CommandPalette/CommandPaletteStylesGroup'
+export { getCommandPaletteMatchScore } from './lib/ui/components/CommandPalette/commandPaletteSearch'
+export { DefaultCommandPaletteContent } from './lib/ui/components/CommandPalette/DefaultCommandPaletteContent'
 export { DefaultKeyboardShortcutsDialogContent } from './lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
 export { LanguageMenu } from './lib/ui/components/LanguageMenu'
 export { InputModeMenu } from './lib/ui/components/InputModeMenu'
@@ -844,6 +884,7 @@ export {
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'
+export { getLinkOpenPolicy, openLink, type TLLinkOpenPolicy } from './lib/utils/openLink'
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
@@ -854,6 +895,7 @@ export {
 	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
 	renderRichTextFromHTML,
+	TaskItemToggleExtension,
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'

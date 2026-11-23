@@ -89,7 +89,9 @@ jobs:
   review:
     name: 'Review translations with Claude'
     needs: download
-    if: needs.download.outputs.pr_number != ''
+    # Paused to save model spend. Set the TRANSLATION_REVIEW repository variable to 'on'
+    # to run it again: gh variable set TRANSLATION_REVIEW --body on -R tldraw/tldraw
+    if: needs.download.outputs.pr_number != '' && vars.TRANSLATION_REVIEW == 'on'
     runs-on: ubuntu-latest
     # The review is advice on the strings PR; failing to produce one must not fail the download.
     continue-on-error: true

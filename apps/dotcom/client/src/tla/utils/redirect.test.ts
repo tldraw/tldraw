@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { getClerkFrontendApiOrigin, getSignInRedirect, isClerkFrontendApiUrl } from './redirect'
+import { afterEach, describe, expect, it } from 'vitest'
+import {
+	clearStayOnBoardAfterSignIn,
+	getClerkFrontendApiOrigin,
+	getSignInRedirect,
+	getStayOnBoardAfterSignIn,
+	isClerkFrontendApiUrl,
+	setStayOnBoardAfterSignIn,
+} from './redirect'
 
 const appOrigin = 'https://www.tldraw.com'
 const clerkOrigin = 'https://clerk.tldraw.com'
@@ -31,6 +38,22 @@ describe('getSignInRedirect', () => {
 		expect(getSignInRedirect('/oauth-consent?a=b', opts)).toBe('/oauth-consent?a=b')
 	})
 
+	it('treats the apex and www hosts as the same app', () => {
+		// Production Clerk sends `redirect_url` on the apex while the app runs on www.
+		expect(getSignInRedirect('https://tldraw.com/oauth-consent?x=1', opts)).toBe(
+			'/oauth-consent?x=1'
+		)
+		expect(
+			getSignInRedirect(`${appOrigin}/oauth-consent?x=1`, {
+				appOrigin: 'https://tldraw.com',
+				clerkOrigin,
+			})
+		).toBe('/oauth-consent?x=1')
+		expect(getSignInRedirect('https://evil.tldraw.com/oauth-consent', opts)).toBe(null)
+		expect(getSignInRedirect('http://tldraw.com/oauth-consent', opts)).toBe(null)
+		expect(getSignInRedirect('https://tldraw.com:8443/oauth-consent', opts)).toBe(null)
+	})
+
 	it('drops the root, missing values and foreign origins', () => {
 		expect(getSignInRedirect(null, opts)).toBe(null)
 		expect(getSignInRedirect(`${appOrigin}/`, opts)).toBe(null)
@@ -49,5 +72,27 @@ describe('isClerkFrontendApiUrl', () => {
 		expect(isClerkFrontendApiUrl('https://evil.example/', clerkOrigin)).toBe(false)
 		expect(isClerkFrontendApiUrl('not a url', clerkOrigin)).toBe(false)
 		expect(isClerkFrontendApiUrl(`${clerkOrigin}/x`, null)).toBe(false)
+	})
+})
+
+describe('staying on a board after sign-in', () => {
+	afterEach(() => {
+		clearStayOnBoardAfterSignIn()
+		window.history.replaceState({}, '', '/')
+	})
+
+	it('is marked by a sign-in on the board at the root', () => {
+		window.history.replaceState({}, '', '/')
+		expect(getStayOnBoardAfterSignIn()).toBe(false)
+		setStayOnBoardAfterSignIn()
+		expect(getStayOnBoardAfterSignIn()).toBe(true)
+		clearStayOnBoardAfterSignIn()
+		expect(getStayOnBoardAfterSignIn()).toBe(false)
+	})
+
+	it('is not marked by a sign-in on a file, which stays on that file anyway', () => {
+		window.history.replaceState({}, '', '/f/abc')
+		setStayOnBoardAfterSignIn()
+		expect(getStayOnBoardAfterSignIn()).toBe(false)
 	})
 })
