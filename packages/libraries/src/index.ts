@@ -66,6 +66,7 @@ export {
 	activeLibraryId,
 	collapsedLibraryIds,
 	librariesPanelOpen,
+	renamingLibraryId,
 	toggleLibrariesPanel,
 } from './canvas/state'
 export {
