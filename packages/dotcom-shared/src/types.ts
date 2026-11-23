@@ -211,8 +211,12 @@ export interface TabRenderApplyOpsRequest {
 	ops: unknown[]
 	/** Which page the agent means. Absent means whichever page the tab is on. */
 	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
-	attribution: { userId: string; runId?: string }
+	/**
+	 * `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }`
+	 * refs to this batch. `batchKey` is the agent's name for the batch: a batch whose key the board
+	 * already records is declined as `already_applied`, so a resend can't land twice.
+	 */
+	attribution: { userId: string; runId?: string; batchKey?: string }
 }
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
@@ -220,7 +224,8 @@ export type TabRenderRequest =
 	| TabRenderReadRequest
 	| TabRenderScreenshotRequest
 	| TabRenderApplyOpsRequest
-	| { mode: 'user_state' }
+	/** `runId` is the agent's run, which may now use this tab's selection: see `joinedMidRun`. */
+	| { mode: 'user_state'; runId?: string }
 
 /**
  * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
@@ -260,6 +265,13 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'tab_hidden',
 	/** Something threw while a batch was applying, so some of it may have landed. */
 	'apply_failed',
+	/**
+	 * The batch applied in the tab but the server didn't confirm it in time or the connection dropped.
+	 * It isn't cancelled, so it usually lands anyway.
+	 */
+	'unconfirmed',
+	/** The board already records this batch's `batchKey`, so nothing was done. */
+	'already_applied',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]

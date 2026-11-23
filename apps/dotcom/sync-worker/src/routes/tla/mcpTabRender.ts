@@ -134,6 +134,10 @@ function writeTabRenderReplyRefusalTelemetry(
 	})
 }
 
+// A resend without a batchKey makes new shapes, so the agent must check first or it duplicates them.
+const BEFORE_RESENDING =
+	'To retry, send them again with the same batchKey; without one, check the board before sending them again.'
+
 const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], string> = {
 	editor_not_ready: 'The board is still loading in the browser tab. Try again in a moment.',
 	page_missing:
@@ -150,8 +154,10 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	read_only: 'You have view-only access to this board, so it cannot be edited.',
 	tab_hidden:
 		'The board is open, but not in the tab the user is looking at, so nothing was done. Ask the user to switch to the board, then try again.',
-	apply_failed:
-		'The browser tab hit an error partway through, so these ops may or may not have applied. Check the board before sending them again.',
+	apply_failed: `The browser tab hit an error partway through, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
+	unconfirmed: `The browser tab applied these ops, but the server has not confirmed them yet, so these ops may or may not have applied. They usually land a moment later. ${BEFORE_RESENDING}`,
+	already_applied:
+		'A batch with this batchKey has already been applied, so nothing was done. Use a new batchKey for new work.',
 	failed: 'The browser tab could not do that. Try again in a moment.',
 }
 
@@ -213,8 +219,7 @@ const NOT_REACHED_MESSAGE = 'The board could not be reached. Try again in a mome
 // telling the agent nothing happened is how it lands twice.
 function mayHaveApplied(status: string) {
 	return {
-		message:
-			'The browser tab did not report back, so these ops may or may not have applied. Check the board before sending them again.',
+		message: `The browser tab did not report back, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
 		reason: `tab_${status}`,
 	}
 }
@@ -293,9 +298,11 @@ export function readUserStateInOpenTab(
 	env: Environment,
 	fileId: string,
 	userId: string,
+	runId: string | null,
 	context: TabRenderContext
 ) {
-	return runInOpenTab(env, fileId, userId, { mode: 'user_state' }, ['user_state'] as const, context)
+	const job: TabRenderRequest = runId ? { mode: 'user_state', runId } : { mode: 'user_state' }
+	return runInOpenTab(env, fileId, userId, job, ['user_state'] as const, context)
 }
 
 export function applyOpsInOpenTab(

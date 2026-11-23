@@ -1553,7 +1553,11 @@ async function callApplyOpsTool(
 			{
 				ops: input.ops,
 				page: input.page ?? undefined,
-				attribution: { userId, runId: input.runId ?? undefined },
+				attribution: {
+					userId,
+					runId: input.runId ?? undefined,
+					batchKey: input.batchKey ?? undefined,
+				},
 			},
 			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)
@@ -1597,6 +1601,7 @@ async function callUserStateTool(
 				env,
 				input.boardId,
 				userId,
+				input.runId,
 				tabContext(request, ctx, USER_STATE_TOOL_NAME)
 			)
 			if (!state.ok) return toolError(state.message, state.reason)

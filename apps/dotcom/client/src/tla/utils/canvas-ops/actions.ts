@@ -128,16 +128,41 @@ export interface BatchJournal {
  */
 export interface RunMemory {
 	created: TLShapeId[]
+	/**
+	 * The run's earlier batches went to another of the user's tabs, so this tab's selection isn't the
+	 * one the agent last saw. Stays set until the agent reads this tab's selection.
+	 */
+	joinedMidRun: boolean
 }
 const runMemories = new WeakMap<Editor, Map<string, RunMemory>>()
-function runMemory(editor: Editor, runId?: string): RunMemory {
+function runMemory(editor: Editor, attribution: Attribution): RunMemory {
+	const { runId, userId } = attribution
 	// A batch that names no run remembers nothing past itself, and isn't kept.
-	if (!runId) return { created: [] }
+	if (!runId) return { created: [], joinedMidRun: false }
 	let byRun = runMemories.get(editor)
 	if (!byRun) runMemories.set(editor, (byRun = new Map()))
 	let memory = byRun.get(runId)
-	if (!memory) byRun.set(runId, (memory = { created: [] }))
+	if (!memory) {
+		// Checked before this batch stamps anything, or its own shapes would count as another tab's.
+		const joinedMidRun = someShapeStamped(
+			editor,
+			(stamp) => stamp.runId === runId && stamp.userId === userId
+		)
+		byRun.set(runId, (memory = { created: [], joinedMidRun }))
+	}
 	return memory
+}
+
+/**
+ * The run's agent has read this tab's selection (`get_user_state`), so the run can use it. Only that
+ * run: another agent of the same user hasn't seen it. Kept even before the run's first batch here.
+ */
+export function markSelectionSeen(editor: Editor, runId: string) {
+	let byRun = runMemories.get(editor)
+	if (!byRun) runMemories.set(editor, (byRun = new Map()))
+	const memory = byRun.get(runId)
+	if (memory) memory.joinedMidRun = false
+	else byRun.set(runId, { created: [], joinedMidRun: false })
 }
 
 function applyAction(
@@ -431,6 +456,56 @@ export interface BatchContext {
 	apply(action: CanvasAction): string[]
 }
 
+// Stamps are matched with the user too, since agents pick their own run ids and two people's agents
+// can pick the same one.
+function someShapeStamped(editor: Editor, isMatch: (stamp: Partial<AgentShapeMeta>) => boolean) {
+	const matches = (stamp: unknown) => !!stamp && isMatch(stamp as Partial<AgentShapeMeta>)
+	return editor.store
+		.allRecords()
+		.some(
+			(record) =>
+				record.typeName === 'shape' &&
+				(matches(record.meta.agent) || matches(record.meta.agentEdit))
+		)
+}
+
+// Batch keys are kept on the document record rather than on shapes: a batch that only deletes
+// leaves no shape to stamp, and a later edit overwrites a shape's stamp, and either would let a
+// resend apply twice. Each key is its own `meta` entry, valued with when it was used, because sync
+// patches `meta` one entry deep: a shared map would be sent whole, and two tabs writing at once would
+// erase each other's keys. Old keys drop off: a resend comes moments after the first attempt.
+const BATCH_KEY_PREFIX = 'agentBatchKey:'
+const BATCH_KEY_TTL_MS = 60 * 60 * 1000
+
+// Per user, since agents pick their own keys. JSON, so a ':' in either part can't make two pairs collide.
+function batchKeyEntry(attribution: Attribution) {
+	const { batchKey, userId = '' } = attribution
+	return batchKey ? BATCH_KEY_PREFIX + JSON.stringify([userId, batchKey]) : null
+}
+
+/** Whether a batch with this sender's batch key has already been applied to the board. */
+export function hasAppliedBatch(editor: Editor, attribution: Attribution) {
+	const entry = batchKeyEntry(attribution)
+	return !!entry && Object.hasOwn(editor.getDocumentSettings().meta, entry)
+}
+
+function recordBatchKey(editor: Editor, attribution: Attribution) {
+	const entry = batchKeyEntry(attribution)
+	if (!entry) return
+	const now = Date.now()
+	const meta = { ...editor.getDocumentSettings().meta }
+	for (const [key, usedAt] of Object.entries(meta)) {
+		if (
+			key.startsWith(BATCH_KEY_PREFIX) &&
+			!(typeof usedAt === 'number' && now - usedAt < BATCH_KEY_TTL_MS)
+		)
+			delete meta[key]
+	}
+	meta[entry] = now
+	// Out of history, so undoing the batch doesn't make its key look unused to a resend.
+	editor.updateDocumentSettings({ meta })
+}
+
 /**
  * Run a batch: one history entry and one batch id, stamped on every shape it creates or changes.
  * The body applies actions through `ctx.apply`. Returns the batch id.
@@ -445,7 +520,7 @@ export function runBatch(
 	if (attribution.runId) stamp.runId = attribution.runId
 	if (attribution.userId) stamp.userId = attribution.userId
 	const journal: BatchJournal = { stamp, created: [] }
-	const memory = runMemory(editor, attribution.runId)
+	const memory = runMemory(editor, attribution)
 	const ctx: BatchContext = {
 		editor,
 		journal,
@@ -459,7 +534,14 @@ export function runBatch(
 	}
 	// Ops mark their own stopping points so each can be rolled back; squashing leaves one undo step.
 	const mark = editor.markHistoryStoppingPoint('canvas ops batch')
-	editor.run(() => body(ctx), { history: 'record' })
+	// The key goes in the same transaction as the batch, so the server commits both or neither.
+	editor.run(
+		() => {
+			recordBatchKey(editor, attribution)
+			body(ctx)
+		},
+		{ history: 'record' }
+	)
 	editor.squashToMark(mark)
 	return batchId
 }

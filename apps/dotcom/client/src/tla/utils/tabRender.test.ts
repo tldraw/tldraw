@@ -633,8 +633,96 @@ describe('answerTabRender', () => {
 				expect(editor.getShape(hello)).toBeDefined()
 				expect(replies).toEqual([
 					{ status: 'accepted' },
-					{ status: 'declined', reason: 'apply_failed' },
+					{ status: 'declined', reason: 'unconfirmed' },
 				])
+				editor.dispose()
+			})
+		})
+
+		// An agent told a batch may or may not have landed sends it again with the same key.
+		describe('batch keys', () => {
+			const keyed = (
+				batchKey: string,
+				userId = 'user_a',
+				ops: unknown[] = [{ ...addBox, id: undefined }]
+			) => job({ mode: 'apply_ops', ops, attribution: { userId, batchKey } })
+			const boxCount = (editor: Editor) =>
+				editor.getCurrentPageShapes().filter((shape) => shape.type === 'geo').length
+
+			it('declines a resend of a batch that already landed', async () => {
+				const { editor } = setupEditor()
+				const before = boxCount(editor)
+
+				await answerTabRender(editor, null, 'file-1', keyed('k1'))
+				await answerTabRender(editor, null, 'file-1', keyed('k1'))
+
+				expect(boxCount(editor)).toBe(before + 1)
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'already_applied' })
+				editor.dispose()
+			})
+
+			it('declines a resend of a batch that only edited', async () => {
+				const { editor } = setupEditor()
+				await answerTabRender(editor, null, 'file-1', applyOps())
+				const rename = [{ op: 'rename', target: 'hello', text: 'Renamed' }]
+
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a', rename))
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a', rename))
+
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'already_applied' })
+				editor.dispose()
+			})
+
+			// A delete leaves no shape to carry a stamp, and the selection may have moved since.
+			it('declines a resend of a batch that only deleted', async () => {
+				const { editor } = setupEditor()
+				await answerTabRender(editor, null, 'file-1', applyOps())
+				const remove = [{ op: 'remove', targets: ['hello'] }]
+
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a', remove))
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a', remove))
+
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'already_applied' })
+				editor.dispose()
+			})
+
+			it('declines a resend after a later batch edited the same shapes', async () => {
+				const { editor } = setupEditor()
+				await answerTabRender(editor, null, 'file-1', applyOps())
+				const rename = (text: string) => [{ op: 'rename', target: 'hello', text }]
+
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a', rename('First')))
+				await answerTabRender(editor, null, 'file-1', keyed('k2', 'user_a', rename('Second')))
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a', rename('First')))
+
+				const shape = editor.getShape(hello)!
+				expect(editor.getShapeUtil(shape).getText(shape)).toBe('Second')
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'already_applied' })
+				editor.dispose()
+			})
+
+			// Undo takes the batch back, not its key, so a resend can't undo the user's undo.
+			it('declines a resend after the user undid the batch', async () => {
+				const { editor } = setupEditor()
+				const before = boxCount(editor)
+
+				await answerTabRender(editor, null, 'file-1', keyed('k1'))
+				editor.undo()
+				await answerTabRender(editor, null, 'file-1', keyed('k1'))
+
+				expect(boxCount(editor)).toBe(before)
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'already_applied' })
+				editor.dispose()
+			})
+
+			it("applies a batch whose key only another user's agent has used", async () => {
+				const { editor } = setupEditor()
+				const before = boxCount(editor)
+
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_a'))
+				await answerTabRender(editor, null, 'file-1', keyed('k1', 'user_b'))
+
+				expect(boxCount(editor)).toBe(before + 2)
 				editor.dispose()
 			})
 		})

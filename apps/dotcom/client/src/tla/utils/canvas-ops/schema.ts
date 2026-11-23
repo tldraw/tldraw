@@ -226,6 +226,7 @@ export type OpsBatch = z.infer<typeof OpsBatchSchema>
 export const AttributionSchema = z.object({
 	runId: z.string().max(200).optional(),
 	userId: z.string().max(200).optional(),
+	batchKey: z.string().max(200).optional(),
 })
 export type Attribution = z.infer<typeof AttributionSchema>
 

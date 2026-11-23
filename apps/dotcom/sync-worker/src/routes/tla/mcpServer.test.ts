@@ -2152,7 +2152,7 @@ describe('apply_ops', () => {
 
 		const result = await callTool(
 			'apply_ops',
-			{ boardId: 'abc', ops: OPS, runId: 'run-1' },
+			{ boardId: 'abc', ops: OPS, runId: 'run-1', batchKey: 'key-1' },
 			makeEnv({ tab }),
 			'user_tab'
 		)
@@ -2160,7 +2160,7 @@ describe('apply_ops', () => {
 		expect(tab).toHaveBeenCalledWith('user_tab', {
 			mode: 'apply_ops',
 			ops: OPS,
-			attribution: { userId: 'user_tab', runId: 'run-1' },
+			attribution: { userId: 'user_tab', runId: 'run-1', batchKey: 'key-1' },
 		})
 		expect(JSON.parse(result.content[0].text)).toEqual({
 			pageId: 'page:a',
@@ -2210,6 +2210,8 @@ describe('apply_ops', () => {
 		[{ status: 'declined', reason: 'read_only' }, 'tab_read_only', false],
 		[{ status: 'declined', reason: 'tab_hidden' }, 'tab_tab_hidden', false],
 		[{ status: 'declined', reason: 'apply_failed' }, 'tab_apply_failed', true],
+		[{ status: 'declined', reason: 'unconfirmed' }, 'tab_unconfirmed', true],
+		[{ status: 'declined', reason: 'already_applied' }, 'tab_already_applied', false],
 		[{ status: 'work_timeout' }, 'tab_work_timeout', true],
 	])('answers %j as %s', async (outcome, reason, mayHaveApplied) => {
 		const env = makeEnv({ tab: tabAnswering(outcome) })
@@ -2310,6 +2312,7 @@ describe('apply_ops', () => {
 		],
 		['a batch too large to send', { boardId: 'abc', ops: ['x'.repeat(2_000_000)] }, 'too large'],
 		['a bad runId', { boardId: 'abc', ops: OPS, runId: 7 }, 'runId'],
+		['a bad batchKey', { boardId: 'abc', ops: OPS, batchKey: '' }, 'batchKey'],
 	])('refuses %s without reaching a tab', async (_name, args, phrase) => {
 		const tab = openTab()
 
@@ -2368,6 +2371,20 @@ describe('presence', () => {
 			anonymousViewers: 0,
 		})
 		expect(tab).not.toHaveBeenCalled()
+	})
+
+	// The tab lets only this run use the selection it reads.
+	it("passes the agent's run to the tab", async () => {
+		const tab = openTab()
+
+		await callTool(
+			'get_user_state',
+			{ boardId: 'abc', runId: 'run-1' },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(tab).toHaveBeenCalledWith('user_tab', { mode: 'user_state', runId: 'run-1' })
 	})
 
 	// A hibernating room clears selections from presence, so presence would read as nothing selected.

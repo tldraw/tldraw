@@ -32,6 +32,7 @@ import {
 	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
+import { hasAppliedBatch, markSelectionSeen } from './canvas-ops/actions'
 import { createCanvasOpsReceiver } from './canvas-ops/receiver'
 
 // Answers MCP tool calls from this tab; see "Working in an open tab" and "Editing in an open tab" in
@@ -130,11 +131,12 @@ function doWork(
 		case 'apply_ops':
 			return queueApplyOps(editor, flushChanges, request, receivedAt)
 		case 'user_state':
-			return readUserState(editor)
+			return readUserState(editor, request.runId)
 	}
 }
 
-async function readUserState(editor: Editor): Promise<TabRenderReply> {
+async function readUserState(editor: Editor, runId: string | undefined): Promise<TabRenderReply> {
+	if (runId) markSelectionSeen(editor, runId)
 	const page = editor.getCurrentPage()
 	const { x, y, w, h } = editor.getViewportPageBounds()
 	return {
@@ -230,6 +232,11 @@ function queueApplyOps(
 		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
 		const reason = getRefusal(editor, request, flushChanges)
 		if (reason) return { status: 'declined', reason }
+		// After the flush above, so a first attempt that only reached the server is seen here too. An
+		// unconfirmed first attempt is still in this tab's store.
+		if (hasAppliedBatch(editor, request.attribution)) {
+			return { status: 'declined', reason: 'already_applied' }
+		}
 		let result
 		try {
 			result = createCanvasOpsReceiver(editor).applyBatch({ ops: request.ops }, request.attribution)
@@ -251,7 +258,7 @@ function queueApplyOps(
 		// Applied here isn't applied for anyone else until the server commits it. If it doesn't, the
 		// edits may still land when the tab reconnects, so the agent must check before resending.
 		if (flushChanges && !(await flushChanges())) {
-			return { status: 'declined', reason: 'apply_failed' }
+			return { status: 'declined', reason: 'unconfirmed' }
 		}
 		return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 	})
