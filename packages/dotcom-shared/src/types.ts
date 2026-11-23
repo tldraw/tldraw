@@ -266,8 +266,9 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	/** Something threw while a batch was applying, so some of it may have landed. */
 	'apply_failed',
 	/**
-	 * The batch applied in the tab but the server didn't confirm it in time or the connection dropped.
-	 * It isn't cancelled, so it usually lands anyway.
+	 * The batch applied in the tab but the server didn't confirm it: it timed out, the connection
+	 * dropped, or the server discarded it. A push isn't cancelled, so after a timeout or a drop it may
+	 * still land.
 	 */
 	'unconfirmed',
 	/** The board already records this batch's `batchKey`, so nothing was done. */

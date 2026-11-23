@@ -473,9 +473,11 @@ function someShapeStamped(editor: Editor, isMatch: (stamp: Partial<AgentShapeMet
 // leaves no shape to stamp, and a later edit overwrites a shape's stamp, and either would let a
 // resend apply twice. Each key is its own `meta` entry, valued with when it was used, because sync
 // patches `meta` one entry deep: a shared map would be sent whole, and two tabs writing at once would
-// erase each other's keys. Old keys drop off: a resend comes moments after the first attempt.
+// erase each other's keys. Old keys drop off: a resend comes moments after the first attempt. The
+// expiry is long because tabs on other devices write with their own clocks, and a fast one must not
+// expire a key another tab wrote moments ago.
 const BATCH_KEY_PREFIX = 'agentBatchKey:'
-const BATCH_KEY_TTL_MS = 60 * 60 * 1000
+const BATCH_KEY_TTL_MS = 24 * 60 * 60 * 1000
 
 // Per user, since agents pick their own keys. JSON, so a ':' in either part can't make two pairs collide.
 function batchKeyEntry(attribution: Attribution) {

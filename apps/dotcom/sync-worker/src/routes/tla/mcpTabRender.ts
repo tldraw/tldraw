@@ -155,7 +155,7 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	tab_hidden:
 		'The board is open, but not in the tab the user is looking at, so nothing was done. Ask the user to switch to the board, then try again.',
 	apply_failed: `The browser tab hit an error partway through, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
-	unconfirmed: `The browser tab applied these ops, but the server has not confirmed them yet, so these ops may or may not have applied. They usually land a moment later. ${BEFORE_RESENDING}`,
+	unconfirmed: `The browser tab applied these ops, but the server has not confirmed them yet, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
 	already_applied:
 		'A batch with this batchKey has already been applied, so nothing was done. Use a new batchKey for new work.',
 	failed: 'The browser tab could not do that. Try again in a moment.',
