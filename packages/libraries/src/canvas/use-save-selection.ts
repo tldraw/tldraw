@@ -22,18 +22,10 @@ const messages = defineMessages({
 		id: 'libraries.save-error.title',
 		defaultMessage: "Couldn't save to library",
 	},
-	saveErrorDescription: {
-		id: 'libraries.save-error.description',
-		defaultMessage: 'You may not be allowed to add to this library, or it no longer exists.',
-	},
 	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
 	newLibraryErrorTitle: {
 		id: 'libraries.save-to-new-library-error.title',
-		defaultMessage: "Couldn't add to a new library",
-	},
-	newLibraryErrorDescription: {
-		id: 'libraries.save-to-new-library-error.description',
-		defaultMessage: 'You may not be allowed to create libraries, or saving failed.',
+		defaultMessage: "Couldn't create library",
 	},
 })
 
@@ -83,7 +75,6 @@ export function useSaveSelection(source: LibrarySource, prepareItemContent?: Pre
 				() => {
 					addToast({
 						title: msg(messages.saveErrorTitle),
-						description: msg(messages.saveErrorDescription),
 						severity: 'error',
 					})
 				}
@@ -111,7 +102,6 @@ export function useSaveSelection(source: LibrarySource, prepareItemContent?: Pre
 			.catch(() => {
 				addToast({
 					title: msg(messages.newLibraryErrorTitle),
-					description: msg(messages.newLibraryErrorDescription),
 					severity: 'error',
 				})
 			})

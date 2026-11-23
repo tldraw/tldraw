@@ -22,11 +22,11 @@ const messages = defineMessages({
 	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
 		id: 'libraries.delete-item-dialog.body',
-		defaultMessage: 'Delete “{name}” from this library? Copies already placed on canvases stay.',
+		defaultMessage: 'Delete “{name}” from “{library}”?',
 	},
 	deleteUnnamedItemBody: {
 		id: 'libraries.delete-unnamed-item-dialog.body',
-		defaultMessage: 'Delete this item from this library? Copies already placed on canvases stay.',
+		defaultMessage: 'Delete this item from “{library}”?',
 	},
 	renameErrorTitle: {
 		id: 'libraries.rename-error.title',
@@ -43,10 +43,6 @@ const messages = defineMessages({
 	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
 	copiedDescription: { id: 'libraries.copied.description', defaultMessage: 'Copied to {name}.' },
 	copyErrorTitle: { id: 'libraries.copy-error.title', defaultMessage: "Couldn't copy item" },
-	changeErrorDescription: {
-		id: 'libraries.change-error.description',
-		defaultMessage: 'You may not be allowed to change this library, or the item no longer exists.',
-	},
 })
 
 export interface LibraryItemsProps {
@@ -143,9 +139,9 @@ export function LibraryItems({
 	)
 	const showChangeError = useCallback(
 		(title: string) => {
-			addToast({ title, description: msg(messages.changeErrorDescription), severity: 'error' })
+			addToast({ title, severity: 'error' })
 		},
-		[addToast, msg]
+		[addToast]
 	)
 	const moveItem = useCallback(
 		(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => {
@@ -255,8 +251,13 @@ export function LibraryItems({
 																	title={msg(messages.deleteItemTitle)}
 																	body={
 																		item.name
-																			? msg(messages.deleteItemBody, { name: item.name })
-																			: msg(messages.deleteUnnamedItemBody)
+																			? msg(messages.deleteItemBody, {
+																					name: item.name,
+																					library: library.name,
+																				})
+																			: msg(messages.deleteUnnamedItemBody, {
+																					library: library.name,
+																				})
 																	}
 																	onClose={onClose}
 																	onConfirm={() =>
