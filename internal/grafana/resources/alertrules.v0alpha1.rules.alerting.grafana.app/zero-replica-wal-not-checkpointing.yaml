@@ -14,10 +14,11 @@ spec:
   annotations:
     summary: Zero replica WAL is not checkpointing on {{ $labels.service_instance_id }}
     description: >-
-      Uncheckpointed replica WAL is {{ humanize1024 $values.A.Value }}B (normal is under 100MB on
-      most machines). A pinned read snapshot stops checkpoints and the WAL grows at the replication
-      write rate, about 190MB/min, until /data (8GB) fills, and then the replicator dies with
-      SQLITE_FULL. That leaves 15-25 minutes after this fires. Restarting the machine clears it.
+      Uncheckpointed replica WAL is {{ humanize1024 $values.A.Value }}B (normal is a few MB). A stuck
+      sync worker holds an old read snapshot, so checkpoints stop and the WAL grows 80-190MB/min
+      until /data (8GB) fills and the replicator dies with SQLITE_FULL. If only this machine is
+      affected, restart it.
+    runbook_url: https://www.notion.so/4143e4c324c081bc8a79d4dc5aa9b4f3
   execErrState: Error
   expressions:
     A:
@@ -39,7 +40,7 @@ spec:
         conditions:
           - evaluator:
               params:
-                - 1500000000
+                - 1000000000
               type: gt
             operator:
               type: and
@@ -60,7 +61,7 @@ spec:
         type: threshold
       queryType: expression
       source: true
-  for: 3m0s
+  for: 5m0s
   labels:
     service: zero
     severity: critical

@@ -537,7 +537,13 @@ describe('getAllFeatureFlagValues', () => {
 
 		// headless_shadow is absent here: makeEnv binds no HEADLESS_WORKER, and the flag is hidden until
 		// the worker is bound in the environment (see the test below).
-		expect(Object.keys(flags).sort()).toEqual(['libraries', 'load_rum', 'rum_enabled', 'ui_v3'])
+		expect(Object.keys(flags).sort()).toEqual([
+			'libraries',
+			'load_rum',
+			'mcp_hidden_tab',
+			'rum_enabled',
+			'ui_v3',
+		])
 	})
 
 	it('lists headless_shadow only where HEADLESS_WORKER is bound', async () => {

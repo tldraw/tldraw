@@ -11,6 +11,7 @@ import { isPage } from '@tldraw/tlschema'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_FEEDBACK_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 	MCP_TAB_PER_USER_RATE_LIMIT,
@@ -229,7 +230,13 @@ function makeRpcRequest(
 		userAgent,
 		userId = 'user_default',
 		clientId,
-	}: { userAgent?: string; userId?: string; clientId?: string } = {}
+		headers = {},
+	}: {
+		userAgent?: string
+		userId?: string
+		clientId?: string
+		headers?: Record<string, string>
+	} = {}
 ) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
@@ -238,6 +245,7 @@ function makeRpcRequest(
 			'x-test-user': userId,
 			...(clientId ? { 'x-test-client': clientId } : {}),
 			...(userAgent ? { 'user-agent': userAgent } : {}),
+			...headers,
 		},
 		body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
 	}) as any
@@ -461,6 +469,7 @@ describe('MCP server', () => {
 			'get_board_users',
 			'read_page_comments',
 			'write_comment',
+			'send_feedback',
 		])
 	})
 })
@@ -1338,6 +1347,235 @@ describe('write_comment', () => {
 	})
 })
 
+describe('send_feedback', () => {
+	const WEBHOOK = 'https://discord.example/api/webhooks/1/token'
+
+	function stubDiscord(response = new Response(null, { status: 204 })) {
+		const fetchMock = vi.fn(async (_url: string, _init: RequestInit) => response)
+		vi.stubGlobal('fetch', fetchMock)
+		return fetchMock
+	}
+
+	function postedPayload(fetchMock: ReturnType<typeof stubDiscord>) {
+		return JSON.parse(fetchMock.mock.calls[0][1].body as string)
+	}
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it('posts the report to Discord with what the server knows about the agent', async () => {
+		const fetchMock = stubDiscord()
+		const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK, WORKER_NAME: 'staging' })
+		const result = await rpcResult(
+			await mcpServer(
+				makeRpcRequest(
+					'tools/call',
+					{
+						name: 'send_feedback',
+						arguments: {
+							message: ' get_page_info said the tab was closed, but it was open. ',
+							agent: 'Claude Code, Claude Opus 5.5',
+						},
+					},
+					{
+						userId: 'user_1234wxyz',
+						userAgent: 'claude-code/2.1.0',
+						clientId: 'https://claude.ai/oauth/claude-code-client-metadata',
+					}
+				),
+				env
+			)
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({ sent: true, type: 'bug' })
+		expect(fetchMock).toHaveBeenCalledTimes(1)
+		expect(fetchMock.mock.calls[0][0]).toBe(WEBHOOK)
+		expect(postedPayload(fetchMock)).toEqual({
+			username: 'MCP feedback (staging)',
+			allowed_mentions: { parse: [] },
+			embeds: [
+				{
+					title: 'MCP feedback',
+					color: 0xe5484d,
+					description: 'get_page_info said the tab was closed, but it was open.',
+					fields: [
+						{ name: 'Type', value: '🐛 Bug', inline: true },
+						{ name: 'Source', value: 'dotcom MCP server', inline: true },
+						{ name: 'Agent', value: 'Claude Code, Claude Opus 5.5', inline: true },
+						{ name: 'Client', value: 'claude', inline: true },
+						{ name: 'User', value: '`user_1234wxyz`' },
+						{
+							name: 'Client id',
+							value: '`https://claude.ai/oauth/claude-code-client-metadata`',
+						},
+						{ name: 'User-Agent', value: '`claude-code/2.1.0`' },
+					],
+				},
+			],
+		})
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'outcome')).toEqual(['ok'])
+	})
+
+	it('needs only a message, and leaves out what the caller did not say', async () => {
+		const fetchMock = stubDiscord()
+		const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+		const result = await callTool(
+			'send_feedback',
+			{ type: 'feature_request', message: 'Let me search inside boards' },
+			env
+		)
+		expect(JSON.parse(result.content[0].text)).toEqual({ sent: true, type: 'feature_request' })
+		const embed = postedPayload(fetchMock).embeds[0]
+		expect(embed.title).toBe('MCP feedback')
+		expect(embed.color).toBe(0x3e63dd)
+		expect(embed.fields.map((field: any) => [field.name, field.value])).toEqual([
+			['Type', '💡 Feature request'],
+			['Source', 'dotcom MCP server'],
+			['Agent', 'Not given'],
+			['Client', 'Unrecognised'],
+			['User', '`user_default`'],
+			['Client id', 'None'],
+			['User-Agent', 'None'],
+		])
+	})
+
+	it('tells a call proxied by the Codex app from a direct one by its User-Agent', async () => {
+		const sources = []
+		for (const userAgent of ['tldraw-codex-plugin', 'codex-cli/0.50.0']) {
+			const fetchMock = stubDiscord()
+			const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+			await mcpServer(
+				makeRpcRequest(
+					'tools/call',
+					{ name: 'send_feedback', arguments: { message: 'Broken' } },
+					{ userAgent }
+				),
+				env
+			)
+			const fields = postedPayload(fetchMock).embeds[0].fields
+			sources.push(fields.find((field: any) => field.name === 'Source').value)
+		}
+		expect(sources).toEqual(['Codex app', 'dotcom MCP server'])
+	})
+
+	it('rejects bad input before posting anything', async () => {
+		const fetchMock = stubDiscord()
+		const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+		const cases = [
+			[{}, 'message is required'],
+			[{ message: 'x', type: 'rant' }, 'type must be one of'],
+			[{ message: 'x', agent: 'y'.repeat(201) }, 'agent must be at most 200 characters'],
+			[{ message: 'x'.repeat(3501) }, 'at most 3500 characters'],
+		] as const
+		for (const [args, error] of cases) {
+			const result = await callTool('send_feedback', args, env)
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain(error)
+		}
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('says so when no webhook is configured on a deployment', async () => {
+		const fetchMock = stubDiscord()
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SERVER_FEEDBACK_RATE_LIMITER: { limit } })
+		const result = await callTool('send_feedback', { message: 'Broken' }, env)
+		// Checked before the rate limit, so a call that can't be sent doesn't spend the budget.
+		expect(limit).not.toHaveBeenCalled()
+		expect(result).toEqual({
+			content: [
+				{ type: 'text', text: 'Feedback is not set up on this deployment, so it was not sent.' },
+			],
+			isError: true,
+		})
+		expect(fetchMock).not.toHaveBeenCalled()
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['feedback_not_configured'])
+	})
+
+	it('logs the report instead of posting it in local dev', async () => {
+		const fetchMock = stubDiscord()
+		const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+		const result = await callTool(
+			'send_feedback',
+			{ message: 'Broken' },
+			makeEnv({ IS_LOCAL: '1' })
+		)
+		expect(JSON.parse(result.content[0].text)).toEqual({ sent: true, type: 'bug' })
+		expect(fetchMock).not.toHaveBeenCalled()
+		expect(log).toHaveBeenCalledWith('MCP feedback:', expect.stringContaining('Broken'))
+		log.mockRestore()
+	})
+
+	it('reports a Discord failure without its details', async () => {
+		stubDiscord(new Response(`webhook token invalid ${'x'.repeat(1000)}`, { status: 401 }))
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+		const result = await callTool('send_feedback', { message: 'Broken' }, env)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not send the feedback: the feedback could not be delivered.'
+		)
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['feedback_send_error'])
+
+		// Without a ctx there is no Sentry, so the report goes to console.error with the same context.
+		const [, context, error] = reported.mock.calls[0]
+		reported.mockRestore()
+		expect((error as Error).message).toBe('Discord webhook failed (401)')
+		expect(context).toMatchObject({ type: 'bug', discord_status: 401 })
+		expect((context as any).discord_detail).toHaveLength(500)
+		expect((context as any).discord_detail).toMatch(/^webhook token invalid x+$/)
+	})
+
+	it('gives up on a Discord webhook that does not answer', async () => {
+		const fetchMock = vi.fn(
+			(_url: string, init: RequestInit) =>
+				new Promise<Response>((_resolve, reject) => {
+					init.signal!.addEventListener('abort', () => reject(init.signal!.reason))
+				})
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		// Fake timers don't drive AbortSignal.timeout, so the test fires the timeout itself.
+		const timeout = new AbortController()
+		const timeoutSpy = vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal)
+		try {
+			const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+			const pending = callTool('send_feedback', { message: 'Broken' }, env)
+			await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+			expect(timeoutSpy).toHaveBeenCalledWith(5_000)
+			timeout.abort(new DOMException('The operation timed out.', 'TimeoutError'))
+			const result = await pending
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toBe(
+				'Could not send the feedback: the feedback could not be delivered.'
+			)
+			expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['feedback_send_error'])
+		} finally {
+			timeoutSpy.mockRestore()
+		}
+	})
+
+	it(`allows ${MCP_FEEDBACK_PER_USER_RATE_LIMIT} reports per account per minute, then rate limits`, async () => {
+		const fetchMock = stubDiscord()
+		const env = makeEnv({ DISCORD_MCP_FEEDBACK_WEBHOOK_URL: WEBHOOK })
+		const results = []
+		for (let i = 0; i <= MCP_FEEDBACK_PER_USER_RATE_LIMIT; i++) {
+			// A fresh response each time: a body can only be read once.
+			fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }))
+			results.push(await callTool('send_feedback', { message: 'Broken' }, env, 'user_fb'))
+		}
+		expect(results.slice(0, MCP_FEEDBACK_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_FEEDBACK_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_FEEDBACK_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain('Feedback is limited')
+		expect(fetchMock).toHaveBeenCalledTimes(MCP_FEEDBACK_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_feedback')
+	})
+})
+
 describe('get_board_info', () => {
 	it('returns the board name, page count, and stable page ids as well as indexes', async () => {
 		mockPublishedBoard()
@@ -1966,6 +2204,7 @@ describe('apply_ops', () => {
 	// between "nothing happened" and "we don't know".
 	it.each<[TabRenderOutcome, string, boolean]>([
 		[{ status: 'no_tab' }, 'tab_not_open', false],
+		[{ status: 'tab_suspended' }, 'tab_suspended', false],
 		[{ status: 'reload_needed' }, 'tab_reload_needed', false],
 		[{ status: 'ack_timeout' }, 'tab_ack_timeout', false],
 		[{ status: 'declined', reason: 'read_only' }, 'tab_read_only', false],

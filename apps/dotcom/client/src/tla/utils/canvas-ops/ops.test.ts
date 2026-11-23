@@ -191,6 +191,49 @@ describe('add, place, and label', () => {
 		expect(overlap(rect('n1'), rect('blocker'))).toBe(false)
 	})
 
+	// Otherwise the agent takes the box to be the size it asked for.
+	it('says when a box grew past the size it was given to fit its text', () => {
+		const result = applyOps(editor, [
+			{
+				op: 'add',
+				kind: 'box',
+				id: 'tall',
+				text: 'a label long enough to wrap',
+				at: { x: 0, y: 0 },
+				w: 120,
+				h: 40,
+			},
+			{ op: 'add', kind: 'box', id: 'roomy', text: 'ok', at: { x: 0, y: 300 }, w: 200, h: 100 },
+			{
+				op: 'duplicate',
+				subject: 'roomy',
+				id: 'copy',
+				at: { x: 400, y: 300 },
+				text: 'now this one wraps\nonto more\nlines than before',
+			},
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('tall').h).toBeGreaterThan(40)
+		expect(result.results[0].adjusted).toMatch(/^grew from 120x40 to 120x\d+ to fit its text$/)
+		expect(result.results[1].adjusted).toBeUndefined()
+		expect(result.results[2].adjusted).toMatch(/^grew from 200x100 to 200x\d+ to fit its text$/)
+	})
+
+	it('stamps agentEdit only on shapes a later batch changes', () => {
+		seedDiagram()
+		const first = applyOps(editor, [
+			{ op: 'add', kind: 'box', text: 'Cache', id: 'cache', relation: 'below', target: 'db' },
+		])
+		expect(editor.getShape(id('cache'))!.meta).toEqual({
+			agent: expect.objectContaining({ batchId: first.batchId }),
+		})
+		const second = applyOps(editor, [{ op: 'rename', target: 'cache', text: 'Redis' }])
+		expect(editor.getShape(id('cache'))!.meta).toEqual({
+			agent: expect.objectContaining({ batchId: first.batchId }),
+			agentEdit: expect.objectContaining({ batchId: second.batchId }),
+		})
+	})
+
 	it('a new box beside a box takes its style and footprint', () => {
 		seedDiagram()
 		const result = applyOps(editor, [
@@ -327,6 +370,88 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(rect('api').h).toBe(100)
 	})
 
+	it('rename says when a widened box swallows a neighbour, but not the shapes it already held', () => {
+		seed([
+			{
+				type: 'create_shape',
+				id: 'outline',
+				geo: 'rectangle',
+				x: 0,
+				y: 0,
+				w: 1000,
+				h: 400,
+				dash: 'dashed',
+			},
+			{
+				type: 'create_shape',
+				id: 'box',
+				geo: 'rectangle',
+				x: 100,
+				y: 100,
+				w: 120,
+				h: 80,
+				text: 'A',
+			},
+			{ type: 'create_shape', id: 'dot', geo: 'ellipse', x: 260, y: 120, w: 30, h: 30 },
+		])
+		const result = applyOps(editor, [
+			{ op: 'rename', target: 'box', text: 'A much longer label than before' },
+		])
+		expect(rect('box').w).toBeGreaterThan(200)
+		expect(result.results[0].adjusted).toMatch(
+			/^widened to \d+ so the label stays on one line; now covers dot$/
+		)
+	})
+
+	it('duplicate says when the copy lands on a neighbour', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{ op: 'duplicate', subject: 'api', id: 'copy', at: { x: 450, y: 120 } },
+		])
+		expect(result.errors).toEqual([])
+		expect(result.results[0].adjusted).toBe('now overlaps db')
+	})
+
+	it('duplicate says when the copy lands exactly on a neighbour the same size', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{ op: 'duplicate', subject: 'api', id: 'twin', at: { x: 500, y: 100 } },
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('twin')).toEqual(rect('db'))
+		expect(result.results[0].adjusted).toBe('now covers db')
+	})
+
+	it('a box added at a point says what it lands on, but not what it sits close to', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{ op: 'add', kind: 'box', id: 'over', at: { x: 250, y: 150 }, w: 100, h: 60 },
+			{ op: 'add', kind: 'box', id: 'near', at: { x: 310, y: 300 }, w: 100, h: 60 },
+		])
+		expect(result.errors).toEqual([])
+		expect(result.results[0].adjusted).toBe('now overlaps api')
+		expect(result.results[1].adjusted).toBeUndefined()
+	})
+
+	it('a box widened past its sibling for its label says it grew from the sibling size', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
+			{
+				op: 'add',
+				kind: 'box',
+				id: 'wide',
+				text: 'a label much longer than its neighbour',
+				relation: 'below',
+				target: 'api',
+			},
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('wide').w).toBeGreaterThan(200)
+		expect(result.results[0].adjusted).toMatch(
+			/^styled like api \(.*200x100\); grew from 200x100 to \d+x\d+ to fit its text/
+		)
+	})
+
 	it('restyles a shape like another', () => {
 		seedDiagram()
 		applyOps(editor, [{ op: 'restyle', targets: ['api'], like: 'db' }])
@@ -361,6 +486,200 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(result.errors).toEqual([])
 		expect(overlap(rect('l1'), rect('l2'))).toBe(false)
 		expect(Math.hypot(rect('l1').center.x - 200, rect('l1').center.y - 200)).toBeLessThan(120)
+	})
+
+	it('untangle leaves enclosing outlines and arrows where they are', () => {
+		seed([
+			{
+				type: 'create_shape',
+				id: 'outline',
+				geo: 'rectangle',
+				x: 0,
+				y: 0,
+				w: 600,
+				h: 300,
+				dash: 'dashed',
+			},
+			{ type: 'create_shape', id: 'a', geo: 'rectangle', x: 40, y: 40, w: 120, h: 80 },
+			{ type: 'create_shape', id: 'b', geo: 'rectangle', x: 400, y: 40, w: 120, h: 80 },
+			{ type: 'create_arrow', id: 'ab', from: { shapeId: 'a' }, to: { shapeId: 'b' } },
+			// Pokes over the outline's corner, which still mustn't pull the outline off its contents.
+			{ type: 'create_shape', id: 'poke', geo: 'rectangle', x: 560, y: 260, w: 100, h: 80 },
+		])
+		const before = { outline: rect('outline'), ab: rect('ab') }
+		const result = applyOps(editor, [{ op: 'untangle', targets: ['outline', 'a', 'b', 'ab'] }])
+		expect(result.errors).toEqual([])
+		expect(rect('outline')).toEqual(before.outline)
+		expect(rect('ab')).toEqual(before.ab)
+		expect(result.results[0]).toMatchObject({
+			shapeIds: [],
+			message: 'moved 0 of 2 shape(s) apart',
+			adjusted:
+				'left arrows alone: ab (they follow their shapes); left outlines alone: outline (they hold other shapes)',
+		})
+	})
+
+	it('untangle separates overlapping frames, carrying their contents, and leaves a clear one alone', () => {
+		const frame = (s: string, x: number, y: number) =>
+			editor.createShape({ id: id(s), type: 'frame', x, y, props: { w: 300, h: 200 } })
+		frame('f1', 0, 0)
+		frame('f2', 200, 50)
+		frame('f3', 0, 600)
+		for (const [child, parent] of [
+			['c1', 'f1'],
+			['c2', 'f2'],
+			['c3', 'f3'],
+		]) {
+			editor.createShape<TLGeoShape>({
+				id: id(child),
+				type: 'geo',
+				parentId: id(parent),
+				x: 20,
+				y: 20,
+				props: { w: 80, h: 60 },
+			})
+		}
+		const before = { f3: rect('f3'), c3: rect('c3') }
+		const result = applyOps(editor, [{ op: 'untangle', targets: ['f1', 'f2', 'f3'] }])
+		expect(result.errors).toEqual([])
+		expect(overlap(rect('f1'), rect('f2'))).toBe(false)
+		expect(rect('c1').x - rect('f1').x).toBeCloseTo(20)
+		expect(rect('c2').x - rect('f2').x).toBeCloseTo(20)
+		expect({ f3: rect('f3'), c3: rect('c3') }).toEqual(before)
+		expect(result.results[0].message).toBe('moved 1 of 3 shape(s) apart')
+		expect(result.results[0].adjusted).toBeUndefined()
+	})
+
+	it('untangle still moves a box dropped over a smaller one', () => {
+		seed([
+			{ type: 'create_shape', id: 'small', geo: 'rectangle', x: 50, y: 50, w: 60, h: 40 },
+			{
+				type: 'create_shape',
+				id: 'big',
+				geo: 'rectangle',
+				x: 0,
+				y: 0,
+				w: 200,
+				h: 150,
+				fill: 'solid',
+			},
+		])
+		const result = applyOps(editor, [
+			{ op: 'untangle', targets: ['big', 'small'], maxDistance: 300 },
+		])
+		expect(result.results[0]).toMatchObject({
+			shapeIds: ['big'],
+			message: 'moved 1 of 2 shape(s) apart',
+		})
+		expect(overlap(rect('big'), rect('small'))).toBe(false)
+	})
+
+	it('resizes lines and closed paths, keeping the centre when asked', () => {
+		applyOps(editor, [
+			{
+				op: 'path',
+				id: 'zig',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 50 },
+					{ x: 200, y: 0 },
+				],
+			},
+			{
+				op: 'path',
+				id: 'blob',
+				closed: true,
+				points: [
+					{ x: 400, y: 0 },
+					{ x: 500, y: 0 },
+					{ x: 450, y: 100 },
+				],
+			},
+			// Lopsided, so scaling about its bounds' corner moves its origin.
+			{
+				op: 'path',
+				id: 'tent',
+				closed: true,
+				points: [
+					{ x: 0, y: 500 },
+					{ x: 100, y: 450 },
+					{ x: 200, y: 500 },
+				],
+			},
+		])
+		const zig = rect('zig')
+		const blob = rect('blob')
+		const tent = rect('tent')
+		const result = applyOps(editor, [
+			{ op: 'resize', target: 'zig', scale: 2 },
+			{ op: 'resize', target: 'blob', w: blob.w * 3, h: blob.h * 3, anchor: 'center' },
+			{ op: 'resize', target: 'tent', w: 600, h: 150, anchor: 'center' },
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('zig')).toMatchObject({ x: zig.x, y: zig.y, w: zig.w * 2, h: zig.h * 2 })
+		expect(rect('blob').w).toBeCloseTo(blob.w * 3, 0)
+		expect(rect('blob').center.x).toBeCloseTo(blob.center.x, 0)
+		expect(rect('blob').center.y).toBeCloseTo(blob.center.y, 0)
+		expect(rect('tent').center.x).toBeCloseTo(tent.center.x, 0)
+		expect(rect('tent').center.y).toBeCloseTo(tent.center.y, 0)
+	})
+
+	it('resizes a rotated line along the page axes it was measured in', () => {
+		applyOps(editor, [
+			{
+				op: 'path',
+				id: 'zig',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 50 },
+					{ x: 200, y: 0 },
+				],
+			},
+		])
+		editor.rotateShapesBy([id('zig')], Math.PI / 2)
+		const before = rect('zig')
+		const result = applyOps(editor, [{ op: 'resize', target: 'zig', h: before.h / 2 }])
+		expect(result.errors).toEqual([])
+		expect(rect('zig').w).toBeCloseTo(before.w, 0)
+		expect(rect('zig').h).toBeCloseTo(before.h / 2, 0)
+	})
+
+	it('scales a path rotated off the page axes evenly, in place', () => {
+		applyOps(editor, [
+			{
+				op: 'path',
+				id: 'zig',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 50 },
+					{ x: 200, y: 0 },
+				],
+			},
+		])
+		editor.rotateShapesBy([id('zig')], Math.PI / 4)
+		const before = rect('zig')
+		const grown = applyOps(editor, [{ op: 'resize', target: 'zig', w: before.w * 2 }])
+		expect(grown.errors).toEqual([])
+		expect(grown.results[0].adjusted).toBe('scaled evenly, since it is rotated')
+		const after = rect('zig')
+		expect(after.w).toBeCloseTo(before.w * 2, 0)
+		expect(after.h).toBeCloseTo(before.h * 2, 0)
+		expect(after.x).toBeCloseTo(before.x, 0)
+		expect(after.y).toBeCloseTo(before.y, 0)
+
+		const stretched = applyOps(editor, [
+			{ op: 'resize', target: 'zig', w: after.w * 2, h: after.h },
+		])
+		expect(stretched.errors[0]).toMatch(/rotated, so it can only be scaled evenly/)
+		expect(rect('zig')).toEqual(after)
+
+		const centred = applyOps(editor, [
+			{ op: 'resize', target: 'zig', scale: 0.5, anchor: 'center' },
+		])
+		expect(centred.errors).toEqual([])
+		expect(rect('zig').w).toBeCloseTo(after.w / 2, 0)
+		expect(rect('zig').center.x).toBeCloseTo(after.center.x, 0)
+		expect(rect('zig').center.y).toBeCloseTo(after.center.y, 0)
 	})
 })
 

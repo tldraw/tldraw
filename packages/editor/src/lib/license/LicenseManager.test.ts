@@ -23,6 +23,7 @@ vi.mock('../../version', () => {
 })
 
 const now = new Date()
+const EXPECTED_GRACE_PERIOD_DAYS = 5
 const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 5).toISOString()
 
 const STANDARD_LICENSE_INFO = JSON.stringify([
@@ -1083,7 +1084,7 @@ describe('LicenseManager', () => {
 	describe('License expiry and grace period', () => {
 		it('Fails if the license key has expired beyond grace period', async () => {
 			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 40) // 40 days ago (beyond 30-day grace period)
+			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 10)
 			expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiryDate
 			const expiredLicenseKey = await generateLicenseKey(
 				JSON.stringify(expiredLicenseInfo),
@@ -1097,7 +1098,7 @@ describe('LicenseManager', () => {
 
 		it('Allows a grace period for expired licenses', async () => {
 			const almostExpiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 5) // 5 days ago
+			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 4)
 			almostExpiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiryDate
 			const almostExpiredLicenseKey = await generateLicenseKey(
 				JSON.stringify(almostExpiredLicenseInfo),
@@ -1109,15 +1110,15 @@ describe('LicenseManager', () => {
 			expect(result.isAnnualLicenseExpired).toBe(false)
 		})
 
-		it('Handles grace period correctly - 20 days expired should still be within grace period', async () => {
+		it('Handles grace period correctly - 4 days expired should still be within grace period', async () => {
 			// Pin the clock and use a date-only UTC expiry so the calculation is timezone
-			// independent. The named day is fully usable, so an expiry 20 calendar days before
-			// "now" has been past its usable window for 19 full days.
+			// independent. The named day is fully usable, so an expiry 4 calendar days before
+			// "now" has been past its usable window for 3 full days.
 			vi.useFakeTimers()
 			vi.setSystemTime(new Date('2026-06-26T12:00:00.000Z'))
 			try {
 				const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-06' // 20 days before now
+				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-22' // 4 days before now
 
 				const expiredLicenseKey = await generateLicenseKey(
 					JSON.stringify(expiredLicenseInfo),
@@ -1129,8 +1130,8 @@ describe('LicenseManager', () => {
 					expiredLicenseKey
 				)) as ValidLicenseKeyResult
 				expect(result.isAnnualLicense).toBe(true)
-				expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
-				expect(result.daysSinceExpiry).toBe(19)
+				expect(result.isAnnualLicenseExpired).toBe(false) // Within grace period
+				expect(result.daysSinceExpiry).toBe(3)
 			} finally {
 				vi.useRealTimers()
 			}
@@ -1495,12 +1496,12 @@ describe('getLicenseState', () => {
 	})
 
 	describe('Grace period handling', () => {
-		it('returns "licensed" for license 0-30 days past expiry', () => {
+		it('returns "licensed" for license within grace period', () => {
 			const messages: string[][] = []
 			const licenseResult = getDefaultLicenseResult({
 				isAnnualLicense: true,
-				isAnnualLicenseExpired: false, // Still within 30-day grace period
-				daysSinceExpiry: 20, // 20 days past expiry
+				isAnnualLicenseExpired: false, // Still within grace period
+				daysSinceExpiry: 4,
 				isInternalLicense: false,
 			})
 
@@ -1509,19 +1510,19 @@ describe('getLicenseState', () => {
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
 				'Your tldraw license has expired.',
-				'License expired 20 days ago.',
+				'License expired 4 days ago.',
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
 	})
 
 	describe('Expired licenses', () => {
-		it('returns "expired" for license 30+ days past expiry', () => {
+		it('returns "expired" for license past expiry+grace period', () => {
 			const messages: string[][] = []
 			const licenseResult = getDefaultLicenseResult({
 				isAnnualLicense: true,
-				isAnnualLicenseExpired: true, // Beyond 30-day grace period
-				daysSinceExpiry: 35, // 35 days past expiry
+				isAnnualLicenseExpired: true, // Beyond grace period
+				daysSinceExpiry: 10,
 				isInternalLicense: false,
 			})
 
@@ -1529,7 +1530,7 @@ describe('getLicenseState', () => {
 
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
-				'Your tldraw license has been expired for more than 30 days!',
+				`Your tldraw license has been expired for more than ${EXPECTED_GRACE_PERIOD_DAYS} days!`,
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
@@ -1586,7 +1587,7 @@ describe('getLicenseState', () => {
 
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
-				'Your tldraw license has been expired for more than 30 days!',
+				`Your tldraw license has been expired for more than ${EXPECTED_GRACE_PERIOD_DAYS} days!`,
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
@@ -1606,7 +1607,7 @@ describe('getLicenseState', () => {
 
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
-				'Your tldraw license has been expired for more than 30 days!',
+				`Your tldraw license has been expired for more than ${EXPECTED_GRACE_PERIOD_DAYS} days!`,
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})

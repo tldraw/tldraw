@@ -2,6 +2,7 @@ import { Editor, type TLShapeId } from 'tldraw'
 import {
 	describeShapes,
 	fromShapeId,
+	isRotatedOffPageAxes,
 	LABEL_PADDING,
 	measureLabel,
 	runBatch,
@@ -74,6 +75,22 @@ function gapBetween(a: Rect, b: Rect): number {
 /** Lines and draw strokes are mostly empty space, so their bounding boxes are not obstacles. */
 function isPath(type: string) {
 	return type === 'line' || type === 'draw'
+}
+
+/**
+ * An empty, unfilled box with other shapes inside: an outline round a group, which untangle can't
+ * separate from its contents. A filled or labelled box on top of a smaller one is an overlap like any
+ * other. A frame is neither: its contents are its children and move with it.
+ */
+function isOutlineAroundShapes(editor: Editor, id: TLShapeId) {
+	const shape = editor.getShape(id)
+	if (shape?.type !== 'geo') return false
+	const empty =
+		(shape.props as { fill?: string }).fill === 'none' &&
+		!editor.getShapeUtil(shape).getText(shape)?.trim()
+	if (!empty) return false
+	const rect = rectOf(editor, id)
+	return obstacles(editor, new Set([id])).some((o) => contains(rect, o.rect))
 }
 
 /** Shapes that count as solid obstacles for placement. */
@@ -497,19 +514,53 @@ function labelWidthNeeded(editor: Editor, id: TLShapeId, text: string, size: Can
 	return measureLabel(editor, text, size, font).w + 2 * LABEL_PADDING
 }
 
-/** A note when a shape that just grew now sits within CLEARANCE of (or on) a neighbour. */
-function crowding(editor: Editor, id: TLShapeId): string | undefined {
+/**
+ * Neighbours a grown or moved shape now overlaps, crowds or covers. Shapes already inside `before`
+ * (an outline's contents) are left out; newly covered ones are reported, since a widened box hides
+ * them.
+ */
+function crowding(
+	editor: Editor,
+	id: TLShapeId,
+	before?: Rect,
+	clearance = CLEARANCE
+): string | undefined {
 	const rect = rectOf(editor, id)
 	let worst: { id: TLShapeId; gap: number } | null = null
+	const covered: string[] = []
 	for (const o of obstacles(editor, new Set([id]))) {
-		if (contains(o.rect, rect) || contains(rect, o.rect)) continue
+		// A neighbour of exactly the same box contains it too, but is covered, not a container.
+		if (contains(o.rect, rect) && !contains(rect, o.rect)) continue
+		if (contains(rect, o.rect)) {
+			if (!before || !contains(before, o.rect)) covered.push(fromShapeId(o.id))
+			continue
+		}
 		const gap = gapBetween(rect, o.rect)
-		if (gap < CLEARANCE && (!worst || gap < worst.gap)) worst = { id: o.id, gap }
+		if (gap < clearance && (!worst || gap < worst.gap)) worst = { id: o.id, gap }
 	}
-	if (!worst) return undefined
-	return worst.gap < 0
-		? `now overlaps ${fromShapeId(worst.id)}`
-		: `now only ${Math.round(worst.gap)} clear of ${fromShapeId(worst.id)}`
+	const unnamed = covered.length - 5
+	return joinNotes(
+		covered.length
+			? `now covers ${covered.slice(0, 5).join(', ')}${unnamed > 0 ? ` and ${unnamed} more` : ''}`
+			: undefined,
+		!worst
+			? undefined
+			: worst.gap < 0
+				? `now overlaps ${fromShapeId(worst.id)}`
+				: `now only ${Math.round(worst.gap)} clear of ${fromShapeId(worst.id)}`
+	)
+}
+
+/** A geo shape grows to fit its label whatever size it was given, which the caller should hear about. */
+function grewToFitText(editor: Editor, id: TLShapeId, w?: number, h?: number) {
+	if (editor.getShape(id)?.type !== 'geo') return undefined
+	const r = rectOf(editor, id)
+	if (!((w !== undefined && r.w > w + 1) || (h !== undefined && r.h > h + 1))) return undefined
+	return `grew from ${Math.round(w ?? r.w)}x${Math.round(h ?? r.h)} to ${Math.round(r.w)}x${Math.round(r.h)} to fit its text`
+}
+
+function joinNotes(...notes: Array<string | undefined>) {
+	return notes.filter(Boolean).join('; ') || undefined
 }
 
 /** Create a new subject at `at`; the caller moves it into place. */
@@ -602,14 +653,14 @@ function inheritStyle(
 	spec: NewSubject,
 	kind: NonNullable<NewSubject['kind']>,
 	targetId: TLShapeId
-): string | undefined {
+): { note?: string; footprint?: { w: number; h: number } } {
 	const target = editor.getShape(targetId)
-	if (!target) return undefined
+	if (!target) return {}
 	const sameKind =
 		(kind === 'label' && target.type === 'text') ||
 		(kind === 'note' && target.type === 'note') ||
 		((kind === 'box' || kind === 'ellipse' || kind === 'shape') && target.type === 'geo')
-	if (!sameKind) return undefined
+	if (!sameKind) return {}
 	const p = target.props as {
 		color?: CanvasColor
 		fill?: NewSubject['fill']
@@ -620,6 +671,7 @@ function inheritStyle(
 		geo?: string
 	}
 	const notes: string[] = []
+	let footprint: { w: number; h: number } | undefined
 	if (spec.size === undefined && p.size) {
 		spec.size = p.size
 		notes.push(`size ${p.size}`)
@@ -649,10 +701,15 @@ function inheritStyle(
 				: 0
 			spec.w = Math.max(p.w, needed)
 			spec.h = p.h
-			notes.push(`${Math.round(spec.w)}x${Math.round(spec.h)}`)
+			// The sibling's own size, so any widening for the label reads as growth from it.
+			footprint = { w: p.w, h: p.h }
+			notes.push(`${Math.round(p.w)}x${Math.round(p.h)}`)
 		}
 	}
-	return notes.length ? `styled like ${fromShapeId(targetId)} (${notes.join(', ')})` : undefined
+	return {
+		note: notes.length ? `styled like ${fromShapeId(targetId)} (${notes.join(', ')})` : undefined,
+		footprint,
+	}
 }
 
 function moveTo(ctx: OpContext, id: TLShapeId, x: number, y: number) {
@@ -803,6 +860,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 		}
 		case 'duplicate': {
 			const source = resolveRef(editor, op.subject, ctx.refs)
+			const sourceRect = rectOf(editor, source)
 			const ids = ctx
 				.apply({
 					type: 'duplicate_shape',
@@ -813,7 +871,14 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 					text: op.text,
 				})
 				.map(toShapeId)
-			return ok(ids, `Copied ${fromShapeId(source)} with matching style and dimensions`)
+			return ok(
+				ids,
+				`Copied ${fromShapeId(source)} with matching style and dimensions`,
+				joinNotes(
+					grewToFitText(editor, ids[0], sourceRect.w, sourceRect.h),
+					isPath(editor.getShape(ids[0])!.type) ? undefined : crowding(editor, ids[0])
+				)
+			)
 		}
 		case 'add': {
 			const kind =
@@ -834,14 +899,22 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				const pos = op.at ? { x: op.at.x, y: op.at.y } : { x: 100, y: 100 }
 				const align = op.at && op.align && op.align !== 'center' ? op.align : undefined
 				const id = materialise(ctx, spec, pos, align)
-				return ok([id], `${fromShapeId(id)} at ${fmt(rectOf(editor, id))}`)
+				return ok(
+					[id],
+					`${fromShapeId(id)} at ${fmt(rectOf(editor, id))}`,
+					joinNotes(
+						grewToFitText(editor, id, spec.w, spec.h),
+						// The caller chose the spot, so only an actual overlap is worth a note, not closeness.
+						crowding(editor, id, undefined, 0)
+					)
+				)
 			}
 			const targetId = resolveRef(editor, op.target, ctx.refs)
 			const relation = op.relation ?? 'below'
 			const target = rectOf(editor, targetId)
 			const gap = op.gap ?? 24
 			const align = op.align ?? 'center'
-			const styled = inheritStyle(editor, spec, kind, targetId)
+			const { note: styled, footprint } = inheritStyle(editor, spec, kind, targetId)
 			const id = materialise(ctx, spec, { x: target.x, y: target.y - 10_000 })
 			const exclude = new Set([id, targetId])
 			const p = placeLabel(ctx, id, kind === 'label' && op.size === undefined, (r) =>
@@ -851,7 +924,11 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			return ok(
 				[id],
 				`${fromShapeId(id)} ${relation.replace('_', ' ')} ${fromShapeId(targetId)} at ${fmt(rectOf(editor, id))}`,
-				[styled, p.adjusted].filter(Boolean).join('; ') || undefined
+				joinNotes(
+					styled,
+					grewToFitText(editor, id, footprint?.w ?? spec.w, footprint?.h ?? spec.h),
+					p.adjusted
+				)
 			)
 		}
 		case 'place': {
@@ -1103,12 +1180,10 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				}
 			}
 			ctx.apply(update)
-			const crowded = update.w !== undefined ? crowding(editor, id) : undefined
-			return ok(
-				[id],
-				`${fromShapeId(id)} renamed to "${op.text}"`,
-				[adjusted, crowded].filter(Boolean).join('; ') || undefined
-			)
+			const renamed = rectOf(editor, id)
+			const grew = renamed.w > rect.w + 1 || renamed.h > rect.h + 1
+			const crowded = grew ? crowding(editor, id, rect) : undefined
+			return ok([id], `${fromShapeId(id)} renamed to "${op.text}"`, joinNotes(adjusted, crowded))
 		}
 		case 'restyle': {
 			const ids = resolveRefList(editor, op.targets, ctx.refs)
@@ -1141,10 +1216,25 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const maxDistance = op.maxDistance ?? 60
 			const moved: TLShapeId[] = []
 			const stuck: string[] = []
+			// A bound arrow follows its shapes, so moving one apart only detaches it.
+			const arrows = new Set(
+				ids.filter(
+					(id) =>
+						editor.getShape(id)?.type === 'arrow' &&
+						editor.getBindingsFromShape(id, 'arrow').length > 0
+				)
+			)
+			// An outline drawn around a group collides with all of it, and moving it would leave the
+			// group behind.
+			const outlines = new Set(
+				ids.filter((id) => !arrows.has(id) && isOutlineAroundShapes(editor, id))
+			)
 			for (const [i, id] of ids.entries()) {
+				if (arrows.has(id) || outlines.has(id)) continue
 				const rect = rectOf(editor, id)
 				const anchorRect = anchors?.[i] ? rectOf(editor, anchors[i]) : rect
-				const obs = obstacles(editor, new Set([id]))
+				// A frame's children move with it, so they are never in its way.
+				const obs = obstacles(editor, editor.getShapeAndDescendantIds([id]))
 				if (!collides(rect, obs, 2)) continue
 				const ac = center(anchorRect)
 				let placed = false
@@ -1177,20 +1267,29 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			}
 			return ok(
 				moved,
-				`moved ${moved.length} of ${ids.length} shape(s) apart`,
-				stuck.length
-					? `could not clear: ${stuck.join(', ')} (within ${maxDistance} of their anchors)`
-					: undefined
+				`moved ${moved.length} of ${ids.length - arrows.size - outlines.size} shape(s) apart`,
+				joinNotes(
+					stuck.length
+						? `could not clear: ${stuck.join(', ')} (within ${maxDistance} of their anchors)`
+						: undefined,
+					arrows.size
+						? `left arrows alone: ${[...arrows].map(fromShapeId).join(', ')} (they follow their shapes)`
+						: undefined,
+					outlines.size
+						? `left outlines alone: ${[...outlines].map(fromShapeId).join(', ')} (they hold other shapes)`
+						: undefined
+				)
 			)
 		}
 		case 'resize': {
 			const id = resolveRef(editor, op.target, ctx.refs)
 			const rect = rectOf(editor, id)
 			const shape = editor.getShape(id)!
-			if (shape.type === 'line' || shape.type === 'draw' || shape.type === 'arrow') {
-				throw new Error(`resize does not support ${shape.type} shapes`)
+			if (shape.type === 'arrow') {
+				throw new Error('resize does not support arrows; redraw them with connect instead')
 			}
 			const uniform = shape.type === 'note' || shape.type === 'text'
+			const scaledPath = isPath(shape.type) || shape.type === 'highlight'
 			const factor = uniform
 				? Math.min(
 						op.w === undefined ? Infinity : op.w / rect.w,
@@ -1208,26 +1307,40 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				w: uniform ? (geometry.w / currentScale) * (currentScale * uniformScale) : w,
 				h: uniform ? (geometry.h / currentScale) * (currentScale * uniformScale) : h,
 			}
-			if (op.anchor === 'center' && !uniform) {
+			// A rotated path scales evenly from the one side it was given, so the side it wasn't given
+			// must not be pinned to its current length.
+			const evenPath = scaledPath && op.scale === undefined && isRotatedOffPageAxes(editor, id)
+			if (evenPath) {
+				update.w = op.w
+				update.h = op.h
+			}
+			if (op.anchor === 'center' && !uniform && !scaledPath) {
 				// rect is page space and update_shape writes parent space: move by the delta.
 				update.x = shape.x - (w - rect.w) / 2
 				update.y = shape.y - (h - rect.h) / 2
 			}
 			ctx.apply(update)
-			if (uniform && op.anchor === 'center') {
+			// A path is scaled about its bounds' corner, which moves its origin, so it is re-centred from
+			// where it landed rather than moved by a delta worked out beforehand.
+			if ((uniform || scaledPath) && op.anchor === 'center') {
 				const resized = rectOf(editor, id)
+				const landed = editor.getShape(id)!
 				ctx.apply({
 					type: 'update_shape',
 					shapeId: fromShapeId(id),
-					x: shape.x + (rect.x + rect.w / 2) - (resized.x + resized.w / 2),
-					y: shape.y + (rect.y + rect.h / 2) - (resized.y + resized.h / 2),
+					x: landed.x + (rect.x + rect.w / 2) - (resized.x + resized.w / 2),
+					y: landed.y + (rect.y + rect.h / 2) - (resized.y + resized.h / 2),
 				})
 			}
 			const actual = rectOf(editor, id)
 			return ok(
 				[id],
 				`${fromShapeId(id)} resized to ${Math.round(actual.w)}x${Math.round(actual.h)}`,
-				crowding(editor, id)
+				scaledPath
+					? evenPath && (op.w === undefined || op.h === undefined)
+						? 'scaled evenly, since it is rotated'
+						: undefined
+					: crowding(editor, id, rect)
 			)
 		}
 	}
@@ -1298,11 +1411,9 @@ export function applyOps(
 	const results: OpResult[] = []
 	const errors: string[] = []
 	const selected = editor.getSelectedShapeIds()
-	let createdIds: string[] = []
 	const batchId = runBatch(editor, attribution, (batch) => {
 		const ctx: OpContext = { ...batch, refs: { created: batch.memory.created, selected } }
 		for (const [index, op] of ops.entries()) results.push(runOp(ctx, op, index, errors))
-		createdIds = batch.journal.created.map(fromShapeId)
 	})
-	return { batchId, applied: results.filter((r) => r.ok).length, createdIds, errors, results }
+	return { batchId, applied: results.filter((r) => r.ok).length, errors, results }
 }

@@ -168,8 +168,7 @@ MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # volume the trial is judged on; production stays on the export until it is.
 THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 
-# The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
-# worker serves every environment's host, and it must exist before this one deploys.
+# One static-assets worker serves every MCP host and must exist before this worker deploys.
 [[env.staging.services]]
 binding = "MCP_WEB"
 service = "mcp-web"
@@ -202,7 +201,7 @@ MCP_HOST_ORIGIN = "https://mcp.tldraw.com"
 # query and ignore it. Unset reads as on, which is what previews and local dev get.
 MCP_SEARCH_NAME_MATCHING_ENABLED = "false"
 
-# The MCP host's landing page on mcp.tldraw.com. The same worker as staging's binding above.
+# Production uses the same MCP assets as staging.
 [[env.production.services]]
 binding = "MCP_WEB"
 service = "mcp-web"
@@ -738,6 +737,32 @@ name = "MCP_SERVER_TAB_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1032"
 simple = { limit = 90, period = 60 }
+
+# MCP server per-account `send_feedback` guard. Bounds posts to the Discord feedback channel — see
+# MCP_FEEDBACK_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_FEEDBACK_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1033"
+simple = { limit = 5, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_FEEDBACK_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1034"
+simple = { limit = 5, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_FEEDBACK_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1035"
+simple = { limit = 5, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_FEEDBACK_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1036"
+simple = { limit = 5, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]

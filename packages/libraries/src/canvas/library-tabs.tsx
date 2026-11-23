@@ -109,8 +109,13 @@ export function LibraryTabs({
 }
 
 export function LibraryTabPanel({ value, children }: { value: string; children: ReactNode }) {
+	const editor = useEditor()
 	return (
-		<_Tabs.Content value={value} className="tlui-libraries-sections">
+		<_Tabs.Content
+			value={value}
+			className="tlui-libraries-sections"
+			onScroll={() => editor.menus.clearOpenMenus()}
+		>
 			{children}
 		</_Tabs.Content>
 	)

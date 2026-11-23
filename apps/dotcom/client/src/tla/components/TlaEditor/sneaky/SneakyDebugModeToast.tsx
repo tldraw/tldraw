@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { useEditor, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { trackEvent } from '../../../../utils/analytics'
+import { getDotDevUrl, withAppOrigin } from '../../../../utils/appOriginLinks'
 
-const SDK_URL = 'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=debug'
+const SDK_URL = getDotDevUrl('debug')
 const TOAST_ID = 'debug-sdk-toast'
 const TOAST_DELAY = 10_000
 
@@ -33,7 +34,7 @@ export function SneakyDebugModeToast() {
 						label: 'Get started',
 						onClick() {
 							trackEvent('debug-sdk-toast-clicked')
-							window.open(SDK_URL, '_blank')
+							window.open(withAppOrigin(SDK_URL), '_blank')
 						},
 					},
 				],

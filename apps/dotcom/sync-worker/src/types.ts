@@ -39,6 +39,8 @@ export interface Environment {
 	HYPERDRIVE_DISABLED?: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	// Where the MCP server's send_feedback tool posts. Separate from the in-app form's channel.
+	DISCORD_MCP_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
 	PLAIN_LABEL_TYPE_ID?: string
 	PLAIN_WORKSPACE_ID?: string
@@ -110,6 +112,8 @@ export interface Environment {
 	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 	/** Per-account calls to the tools that go through a board's durable object. Bounds load on a shared board. */
 	MCP_SERVER_TAB_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `send_feedback` calls. Bounds posts to the feedback channel. */
+	MCP_SERVER_FEEDBACK_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -157,7 +161,7 @@ export interface Environment {
 	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
 	// the host has no route (production for now, dev, previews).
 	MCP_HOST_ORIGIN: string | undefined
-	// The MCP host's landing page: a static-assets worker with no route or public URL of its own.
+	// The MCP host's static-assets worker with no route or public URL of its own.
 	// mcpHostRouter hands it every GET and HEAD it doesn't serve itself.
 	// Bound per environment in wrangler.toml; unbound, the host 404s those paths as before.
 	MCP_WEB: Fetcher | undefined
