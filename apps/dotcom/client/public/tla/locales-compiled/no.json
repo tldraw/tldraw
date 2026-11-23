@@ -197,6 +197,12 @@
       "value": "Opprett fil"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Laget av meg"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -311,6 +317,16 @@
       "value": "Generer invitasjonslenken på nytt"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (du)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -413,6 +429,12 @@
       "value": "Kontakt eieren for å be om tilgang."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Handlinger…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -467,6 +489,22 @@
     {
       "type": 0,
       "value": "Fest filen"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Gjenstand"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Redigert "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -531,6 +569,18 @@
     {
       "type": 0,
       "value": "Sidemeny"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Ingen filer her ennå."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Eksport…"
     }
   ],
   "53770fd374": [
@@ -603,6 +653,12 @@
       "value": "Personvernerklæring"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Arkiverte filer vil vises her."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -661,6 +717,12 @@
     {
       "type": 0,
       "value": "Seinere"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Nylige"
     }
   ],
   "625fd29749": [
@@ -779,6 +841,12 @@
     {
       "type": 0,
       "value": "Slett arbeidsområde"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Logg inn for å lagre"
     }
   ],
   "69ce6a28fb": [
@@ -946,6 +1014,12 @@
       "value": "Send inn et problem på GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· På dette forumet nå"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -970,10 +1044,22 @@
       "value": "Åpne tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Logg inn for å redigere profilinnstillinger"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Glemme"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Arkivert"
     }
   ],
   "7daeced9ff": [
@@ -1078,6 +1164,12 @@
       "value": "Gi nytt navn til filen"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Arbeidsområde uten navn"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1144,6 +1236,12 @@
     {
       "type": 0,
       "value": "Sjekk e-posten din for en bekreftelseskode."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Hjem"
     }
   ],
   "8eb2c00e96": [
@@ -1258,6 +1356,12 @@
     {
       "type": 0,
       "value": "Tøm søk"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Ulagret fil"
     }
   ],
   "9b33f5c63c": [
@@ -1540,6 +1644,12 @@
       "value": "E-postadresse"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Rutenettvisning"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1638,6 +1748,12 @@
     {
       "type": 0,
       "value": "Gjeldende fil"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Søk…"
     }
   ],
   "c17466812d": [
@@ -1870,6 +1986,12 @@
       "value": "Forlat arbeidsområdet"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Feilsøkingsflagg for apper"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1936,6 +2058,12 @@
       "value": "Kontomeny"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Ingen filer samsvarer med søket ditt."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1980,6 +2108,12 @@
       "value": "valgt"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Delt med meg"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1990,6 +2124,12 @@
     {
       "type": 0,
       "value": "Brukerinnstillinger"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Listevisning"
     }
   ],
   "f2569594b2": [
