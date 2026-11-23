@@ -594,22 +594,13 @@ export function parseBoardUsersInput(input: unknown): { boardId: string } {
 	return { boardId: parseBoardId(requireArgumentsObject(input).boardId) }
 }
 
-export function parseUserStateInput(input: unknown): {
-	boardId: string
-	userId: string | null
-	runId: string | null
-} {
+export function parseUserStateInput(input: unknown): { boardId: string; userId: string | null } {
 	const value = requireArgumentsObject(input)
-	const { userId, runId } = value
+	const { userId } = value
 	if (userId !== undefined && (typeof userId !== 'string' || !userId)) {
 		throw new Error('userId must be a user id from get_board_users')
 	}
-	if (runId !== undefined && runId !== null) {
-		if (typeof runId !== 'string' || !runId || runId.length > APPLY_OPS_MAX_RUN_ID_LENGTH) {
-			throw new Error(`runId must be a string of at most ${APPLY_OPS_MAX_RUN_ID_LENGTH} characters`)
-		}
-	}
-	return { boardId: parseBoardId(value.boardId), userId: userId ?? null, runId: runId ?? null }
+	return { boardId: parseBoardId(value.boardId), userId: userId ?? null }
 }
 
 // A null workspace means the caller's personal workspace. A blank string is treated the same way
@@ -2419,11 +2410,6 @@ function getUserStateToolDefinition() {
 					type: 'string',
 					description: 'A user id from get_board_users. Omit it for the user you are acting for.',
 				},
-				runId: {
-					type: 'string',
-					description:
-						'The runId you pass to apply_ops, if any. Lets that run use the selection you read here.',
-				},
 			},
 			required: ['boardId'],
 		},
@@ -2490,7 +2476,7 @@ Put a card's words in the box's own text, not in labels laid over it. Keep shape
 				batchKey: {
 					type: 'string',
 					description:
-						'A new string for each batch, such as a UUID. If a call fails with "may or may not have applied", send the same ops again with the same batchKey: a batch that already landed is not applied twice.',
+						'A new string for each batch, such as a UUID. A batch with a key runs at most once. If a call says the ops may or may not have applied, send the same call again with the same batchKey: you get the first result, or are told it has not landed yet.',
 				},
 			},
 			required: ['boardId', 'ops'],

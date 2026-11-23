@@ -10,6 +10,7 @@ import {
 	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
 	findMcpPage,
+	getBatchKeyMetaEntry,
 	readMcpPage,
 	toShapeMeasurements,
 } from '@tldraw/dotcom-shared'
@@ -32,7 +33,6 @@ import {
 	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
-import { hasAppliedBatch, markSelectionSeen } from './canvas-ops/actions'
 import { createCanvasOpsReceiver } from './canvas-ops/receiver'
 
 // Answers MCP tool calls from this tab; see "Working in an open tab" and "Editing in an open tab" in
@@ -131,20 +131,11 @@ function doWork(
 		case 'apply_ops':
 			return queueApplyOps(editor, flushChanges, request, receivedAt)
 		case 'user_state':
-			return readUserState(editor, flushChanges, request.run)
+			return readUserState(editor)
 	}
 }
 
-async function readUserState(
-	editor: Editor,
-	flushChanges: FlushChanges | null,
-	run: { userId: string; runId: string } | undefined
-): Promise<TabRenderReply> {
-	if (run && !editor.getIsReadonly()) {
-		markSelectionSeen(editor, run)
-		// So the run's next batch sees the move here even if it reaches another of the user's tabs.
-		void flushChanges?.()
-	}
+async function readUserState(editor: Editor): Promise<TabRenderReply> {
 	const page = editor.getCurrentPage()
 	const { x, y, w, h } = editor.getViewportPageBounds()
 	return {
@@ -235,16 +226,22 @@ function queueApplyOps(
 		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
 		// Waited on, unlike a read's catch-up: the batch must not land on top of this tab's own unsent
 		// edits from before, or report them as its own if the server refuses them.
-		if (flushChanges && !(await flushChanges())) return { status: 'declined', reason: 'failed' }
+		const flushed = flushChanges ? await flushChanges() : true
+		// A resend comes only to the tab that took the first attempt, the one place an unconfirmed copy
+		// can be. The key is in this store if that copy is here or already on the server, and missing if
+		// this tab lost it, by a reload or a refused push, in which case nothing can land it any more.
+		const { batchKey, userId } = request.attribution
+		if (
+			batchKey &&
+			Object.hasOwn(editor.getDocumentSettings().meta, getBatchKeyMetaEntry(userId, batchKey))
+		) {
+			return { status: 'declined', reason: flushed ? 'already_applied' : 'unconfirmed' }
+		}
+		if (!flushed) return { status: 'declined', reason: 'failed' }
 		// Again, because the flush can take long enough for the worker to have given up.
 		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
 		const reason = getRefusal(editor, request, flushChanges)
 		if (reason) return { status: 'declined', reason }
-		// After the flush above, so a first attempt that only reached the server is seen here too. An
-		// unconfirmed first attempt is still in this tab's store.
-		if (hasAppliedBatch(editor, request.attribution)) {
-			return { status: 'declined', reason: 'already_applied' }
-		}
 		let result
 		try {
 			result = createCanvasOpsReceiver(editor).applyBatch({ ops: request.ops }, request.attribution)

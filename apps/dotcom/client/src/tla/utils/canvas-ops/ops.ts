@@ -224,15 +224,6 @@ function matchDescription(shapes: ShapeSummary[], description: string): ShapeSum
 interface RefContext {
 	created: TLShapeId[]
 	selected: TLShapeId[]
-	joinedMidRun: boolean
-}
-
-// The user's other tab closed and this one took over, so its selection is one the agent never saw.
-function checkSelectionIsCurrent(ctx: RefContext) {
-	if (ctx.joinedMidRun)
-		throw new Error(
-			'The board is now open in a different browser tab, whose selection may not be the one you saw. Name the shapes by id, or call get_user_state with your runId to see what is selected now.'
-		)
 }
 
 function resolveRef(editor: Editor, ref: Ref, ctx: RefContext): TLShapeId {
@@ -242,7 +233,6 @@ function resolveRef(editor: Editor, ref: Ref, ctx: RefContext): TLShapeId {
 		return id
 	}
 	if ('selected' in ref) {
-		checkSelectionIsCurrent(ctx)
 		if (ctx.selected.length === 0) throw new Error('The user has nothing selected')
 		if (ctx.selected.length > 1)
 			throw new Error(
@@ -281,7 +271,6 @@ function resolveRef(editor: Editor, ref: Ref, ctx: RefContext): TLShapeId {
 function resolveRefList(editor: Editor, list: RefList, ctx: RefContext): TLShapeId[] {
 	if (Array.isArray(list)) return list.map((r) => resolveRef(editor, r, ctx))
 	if ('selected' in list) {
-		checkSelectionIsCurrent(ctx)
 		if (ctx.selected.length === 0) throw new Error('The user has nothing selected')
 		return ctx.selected
 	}
@@ -1423,10 +1412,7 @@ export function applyOps(
 	const errors: string[] = []
 	const selected = editor.getSelectedShapeIds()
 	const batchId = runBatch(editor, attribution, (batch) => {
-		const ctx: OpContext = {
-			...batch,
-			refs: { created: batch.memory.created, selected, joinedMidRun: batch.joinedMidRun },
-		}
+		const ctx: OpContext = { ...batch, refs: { created: batch.memory.created, selected } }
 		for (const [index, op] of ops.entries()) results.push(runOp(ctx, op, index, errors))
 	})
 	return { batchId, applied: results.filter((r) => r.ok).length, errors, results }

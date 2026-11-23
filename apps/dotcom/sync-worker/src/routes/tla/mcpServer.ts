@@ -1601,7 +1601,6 @@ async function callUserStateTool(
 				env,
 				input.boardId,
 				userId,
-				input.runId,
 				tabContext(request, ctx, USER_STATE_TOOL_NAME)
 			)
 			if (!state.ok) return toolError(state.message, state.reason)

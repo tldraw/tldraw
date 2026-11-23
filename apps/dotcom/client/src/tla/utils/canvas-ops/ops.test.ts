@@ -1,3 +1,4 @@
+import { getBatchKeyMetaEntry } from '@tldraw/dotcom-shared'
 import { applyObjectDiff, diffRecord } from '@tldraw/sync-core'
 import {
 	Box,
@@ -17,16 +18,10 @@ import {
 	type TLMeasureTextOpts,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import {
-	describeShapes,
-	hasAppliedBatch,
-	isRunInAnotherTab,
-	markSelectionSeen,
-	runBatch,
-} from './actions'
+import { describeShapes, runBatch } from './actions'
 import { applyOps } from './ops'
 import { createCanvasOpsReceiver } from './receiver'
-import type { CanvasAction, CanvasOp } from './schema'
+import type { CanvasAction } from './schema'
 
 /** A headless editor whose text measurement is deterministic: 16 units per character and 32 per line at 24px, scaled by font size. */
 function createTestEditor(): Editor {
@@ -118,6 +113,39 @@ function seedDiagram() {
 	])
 }
 
+// The file object reads a batch key from the document to tell whether an unconfirmed batch landed.
+describe('batch keys', () => {
+	const keyed = { userId: 'u1', batchKey: 'k1' }
+	const hasKey = (tab: Editor, userId: string, batchKey: string) =>
+		Object.hasOwn(tab.getDocumentSettings().meta, getBatchKeyMetaEntry(userId, batchKey))
+
+	it('records the key with the batch, and keeps it when the batch is undone', () => {
+		applyOps(editor, [{ op: 'add', kind: 'box', text: 'A', at: { x: 0, y: 0 } }], keyed)
+		expect(hasKey(editor, 'u1', 'k1')).toBe(true)
+
+		editor.undo()
+		expect(hasKey(editor, 'u1', 'k1')).toBe(true)
+	})
+
+	// Two tabs record keys at once and the server applies both pushes to its copy of the document.
+	it("keeps both tabs' keys when they record at the same time", () => {
+		const other = createTestEditor()
+		const base = editor.getDocumentSettings()
+		runBatch(editor, keyed, () => {})
+		runBatch(other, { userId: 'u2', batchKey: 'k2' }, () => {})
+
+		let server = base
+		for (const tab of [editor, other]) {
+			server = applyObjectDiff(server, diffRecord(base, tab.getDocumentSettings())!)
+		}
+		editor.store.mergeRemoteChanges(() => editor.store.put([server]))
+
+		expect(hasKey(editor, 'u1', 'k1')).toBe(true)
+		expect(hasKey(editor, 'u2', 'k2')).toBe(true)
+		other.dispose()
+	})
+})
+
 describe('references', () => {
 	it('resolves ids, text, descriptions, and the selection', () => {
 		seedDiagram()
@@ -152,125 +180,6 @@ describe('references', () => {
 		applyOps(editor, [{ op: 'remove', targets: { selected: true } }], { userId: 'victim' })
 		expect(editor.getShape(id('api'))).toBeDefined()
 		expect(editor.getShape(id('heart'))).toBeUndefined()
-	})
-
-	// The user's other tab closed mid-run and this one took over: its selection isn't what the agent saw.
-	describe('a run that moved here from another tab', () => {
-		const claimForOtherTab = (runId: string, userId: string) =>
-			editor.updateDocumentSettings({
-				meta: {
-					[`agentRunTab:${JSON.stringify([userId, runId])}`]: { tab: 'other-tab', at: Date.now() },
-				},
-			})
-		const restyleSelected = (attribution: { runId?: string; userId?: string }) =>
-			applyOps(
-				editor,
-				[{ op: 'restyle', targets: { selected: true }, color: 'black' }],
-				attribution
-			)
-		const run = { runId: 'run-1', userId: 'u1' }
-
-		// A batch naming shapes by id says nothing about whether the agent saw this tab's selection.
-		it('refuses the selection until the agent reads it, whatever batches come between', () => {
-			seedDiagram()
-			claimForOtherTab('run-1', 'u1')
-			editor.select(id('heart'))
-
-			expect(restyleSelected(run).errors).toEqual([
-				expect.stringContaining('different browser tab'),
-			])
-			applyOps(editor, [{ op: 'restyle', targets: ['n1'], color: 'blue' }], run)
-			expect(restyleSelected(run).errors).toEqual([
-				expect.stringContaining('different browser tab'),
-			])
-			expect(editor.getShape<TLGeoShape>(id('heart'))!.props.color).not.toBe('black')
-
-			markSelectionSeen(editor, run)
-			expect(restyleSelected(run).errors).toEqual([])
-			expect(editor.getShape<TLGeoShape>(id('heart'))!.props.color).toBe('black')
-		})
-
-		// Two agents of one user: one reading the selection says nothing about what the other saw.
-		it("keeps refusing for a run whose agent didn't read the selection", () => {
-			seedDiagram()
-			claimForOtherTab('run-1', 'u1')
-			editor.select(id('heart'))
-
-			markSelectionSeen(editor, { runId: 'run-2', userId: 'u1' })
-
-			expect(restyleSelected(run).errors).toEqual([
-				expect.stringContaining('different browser tab'),
-			])
-		})
-
-		it("ignores another user's run with the same id", () => {
-			seedDiagram()
-			claimForOtherTab('run-1', 'u2')
-			editor.select(id('heart'))
-
-			expect(restyleSelected(run).errors).toEqual([])
-		})
-
-		it('trusts the selection in a run that started here', () => {
-			seedDiagram()
-			editor.select(id('heart'))
-
-			expect(restyleSelected(run).errors).toEqual([])
-			expect(restyleSelected(run).errors).toEqual([])
-		})
-
-		// A delete leaves no shape behind, so the claim can't come from shape stamps.
-		it('claims the run for this tab on a batch that only deletes', () => {
-			seedDiagram()
-			applyOps(editor, [{ op: 'remove', targets: ['n1'] }], run)
-
-			expect(isRunInAnotherTab(editor, run)).toBe(false)
-			expect(
-				editor.getDocumentSettings().meta[`agentRunTab:${JSON.stringify(['u1', 'run-1'])}`]
-			).toMatchObject({ tab: expect.any(String) })
-		})
-	})
-
-	// The first tab's copy of a keyed batch replays on reconnect after a second tab applied the resend.
-	it("gives a keyed batch's new shapes and bindings the same ids in every tab", () => {
-		const other = createTestEditor()
-		const ops: CanvasOp[] = [
-			{ op: 'add', kind: 'box', text: 'A', at: { x: 0, y: 0 } },
-			{ op: 'add', kind: 'box', text: 'B', at: { x: 400, y: 0 } },
-			{ op: 'connect', from: { created: 0 }, to: { created: 1 } },
-		]
-		const attribution = { userId: 'u1', batchKey: 'k1' }
-		const records = (tab: Editor) =>
-			tab.store
-				.allRecords()
-				.filter((r) => r.typeName === 'shape' || r.typeName === 'binding')
-				.map((r) => r.id)
-				.sort()
-
-		applyOps(editor, ops, attribution)
-		applyOps(other, ops, attribution)
-
-		expect(records(editor)).toHaveLength(5)
-		expect(records(other)).toEqual(records(editor))
-		other.dispose()
-	})
-
-	// Two tabs record keys at once and the server applies both pushes to its copy of the document.
-	it("keeps both tabs' batch keys when they record at the same time", () => {
-		const other = createTestEditor()
-		const base = editor.getDocumentSettings()
-		runBatch(editor, { userId: 'u1', batchKey: 'k1' }, () => {})
-		runBatch(other, { userId: 'u2', batchKey: 'k2' }, () => {})
-
-		let server = base
-		for (const tab of [editor, other]) {
-			server = applyObjectDiff(server, diffRecord(base, tab.getDocumentSettings())!)
-		}
-		editor.store.mergeRemoteChanges(() => editor.store.put([server]))
-
-		expect(hasAppliedBatch(editor, { userId: 'u1', batchKey: 'k1' })).toBe(true)
-		expect(hasAppliedBatch(editor, { userId: 'u2', batchKey: 'k2' })).toBe(true)
-		other.dispose()
 	})
 
 	it('reports an ambiguous description as an op error and still runs the rest', () => {

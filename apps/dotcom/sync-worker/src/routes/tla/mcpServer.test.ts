@@ -2212,6 +2212,8 @@ describe('apply_ops', () => {
 		[{ status: 'declined', reason: 'apply_failed' }, 'tab_apply_failed', true],
 		[{ status: 'declined', reason: 'unconfirmed' }, 'tab_unconfirmed', true],
 		[{ status: 'declined', reason: 'already_applied' }, 'tab_already_applied', false],
+		[{ status: 'declined', reason: 'batch_unresolved' }, 'tab_batch_unresolved', false],
+		[{ status: 'declined', reason: 'batch_key_reused' }, 'tab_batch_key_reused', false],
 		[{ status: 'work_timeout' }, 'tab_work_timeout', true],
 	])('answers %j as %s', async (outcome, reason, mayHaveApplied) => {
 		const env = makeEnv({ tab: tabAnswering(outcome) })
@@ -2371,23 +2373,6 @@ describe('presence', () => {
 			anonymousViewers: 0,
 		})
 		expect(tab).not.toHaveBeenCalled()
-	})
-
-	// The tab lets only this run use the selection it reads.
-	it("passes the agent's run to the tab", async () => {
-		const tab = openTab()
-
-		await callTool(
-			'get_user_state',
-			{ boardId: 'abc', runId: 'run-1' },
-			makeEnv({ tab }),
-			'user_tab'
-		)
-
-		expect(tab).toHaveBeenCalledWith('user_tab', {
-			mode: 'user_state',
-			run: { userId: 'user_tab', runId: 'run-1' },
-		})
 	})
 
 	// A hibernating room clears selections from presence, so presence would read as nothing selected.

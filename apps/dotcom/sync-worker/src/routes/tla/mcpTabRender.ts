@@ -158,6 +158,10 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	unconfirmed: `The browser tab applied these ops, but the server has not confirmed them yet, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
 	already_applied:
 		'A batch with this batchKey has already been applied, so nothing was done. Use a new batchKey for new work.',
+	batch_unresolved:
+		'The first attempt at this batch is in a browser tab that cannot be reached right now, and that tab may still send it, so it was not run again. Ask the user to bring the tab with this board back, then try again with the same batchKey. Do not send these ops with a new batchKey: if the first attempt lands later, they would apply twice. Only if the user closed that tab, which loses edits it had not sent, is it safe to send them again with a new batchKey.',
+	batch_key_reused:
+		'This batchKey was already used for different ops, so nothing was done. Use a new batchKey for each batch.',
 	failed: 'The browser tab could not do that. Try again in a moment.',
 }
 
@@ -298,13 +302,9 @@ export function readUserStateInOpenTab(
 	env: Environment,
 	fileId: string,
 	userId: string,
-	runId: string | null,
 	context: TabRenderContext
 ) {
-	const job: TabRenderRequest = runId
-		? { mode: 'user_state', run: { userId, runId } }
-		: { mode: 'user_state' }
-	return runInOpenTab(env, fileId, userId, job, ['user_state'] as const, context)
+	return runInOpenTab(env, fileId, userId, { mode: 'user_state' }, ['user_state'] as const, context)
 }
 
 export function applyOpsInOpenTab(

@@ -213,10 +213,21 @@ export interface TabRenderApplyOpsRequest {
 	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
 	/**
 	 * `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }`
-	 * refs to this batch. `batchKey` is the agent's name for the batch: a batch whose key the board
-	 * already records is declined as `already_applied`, so a resend can't land twice.
+	 * refs to this batch. `batchKey` is the agent's name for the batch: the file object runs a keyed
+	 * batch at most once, and the tab records the key at `getBatchKeyMetaEntry` in the same commit.
 	 */
 	attribution: { userId: string; runId?: string; batchKey?: string }
+}
+
+const BATCH_KEY_META_PREFIX = 'agentBatchKey:'
+
+/**
+ * The `document.meta` entry a tab writes with a keyed batch, which tells the file object the batch
+ * reached the server. Per user, since agents pick their own keys; JSON, so a ':' in either part can't
+ * make two pairs collide.
+ */
+export function getBatchKeyMetaEntry(userId: string, batchKey: string) {
+	return BATCH_KEY_META_PREFIX + JSON.stringify([userId, batchKey])
 }
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
@@ -224,11 +235,7 @@ export type TabRenderRequest =
 	| TabRenderReadRequest
 	| TabRenderScreenshotRequest
 	| TabRenderApplyOpsRequest
-	/**
-	 * `run` is the agent's run, which may now use this tab's selection: see `isRunInAnotherTab`.
-	 * `userId` comes from the verified token.
-	 */
-	| { mode: 'user_state'; run?: { userId: string; runId: string } }
+	| { mode: 'user_state' }
 
 /**
  * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
@@ -274,8 +281,15 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	 * still land.
 	 */
 	'unconfirmed',
-	/** The board already records this batch's `batchKey`, so nothing was done. */
+	/** A resend of a keyed batch the server has, so nothing was done. */
 	'already_applied',
+	/**
+	 * From the file object: a resend of a keyed batch whose only attempt isn't on the server yet. Its
+	 * tab may still push it, so it isn't run again.
+	 */
+	'batch_unresolved',
+	/** From the file object: a batch key already used for different ops. */
+	'batch_key_reused',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
