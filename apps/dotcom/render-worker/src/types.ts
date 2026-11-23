@@ -1,5 +1,6 @@
 import { AnalyticsEngineDataset } from '@cloudflare/workers-types'
 import { SentryEnvironment } from '@tldraw/worker-shared'
+import { HeadlessWorkerRpc } from './headlessShadow'
 
 // The Browser Rendering binding's Quick Actions method, copied from sync-worker's BrowserBinding.
 // Cloudflare exposes `env.BROWSER.quickAction` so a Worker can call the Quick Action endpoints
@@ -22,6 +23,10 @@ export interface Environment extends SentryEnvironment {
 	// dataset sync-worker uses. Carries no board identity, only the session's numbers. Undefined in
 	// tests.
 	MEASURE: AnalyticsEngineDataset | undefined
+
+	// The headless editor's worker, for the screenshot shadow (headlessShadow.ts). Deployed from the
+	// tldraw-headless repo and bound on staging only; unbound, the shadow never runs.
+	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
 
 	// Origin serving the render page (THUMBNAIL_RENDER_PATH). For now the client origin, same as
 	// sync-worker's MCP_SCREENSHOT_RENDER_ORIGIN; the worker-owned render page is a later step. Set

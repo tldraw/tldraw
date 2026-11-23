@@ -73,6 +73,15 @@ binding = "MEASURE"
 [[env.production.analytics_engine_datasets]]
 binding = "MEASURE"
 
+#################### Headless editor (screenshot shadow) ####################
+# Deployed from the tldraw-headless repo, so it must exist before this worker deploys. Staging only:
+# there is no dev or production headless worker, and binding a service that does not exist fails the
+# deploy. Whether a render is compared is sync-worker's `headless_screenshot_shadow` flag.
+
+[[env.staging.services]]
+binding = "HEADLESS_WORKER"
+service = "staging-tldraw-headless-worker"
+
 #################### Sentry release tagging ####################
 # createSentry needs this to tag releases. Repeated per environment, as elsewhere in dotcom.
 

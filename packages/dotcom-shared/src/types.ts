@@ -431,6 +431,7 @@ export const FEATURE_FLAG_KEYS = [
 	'thumbnail_render_push',
 	'mcp_render_push',
 	'headless_shadow',
+	'headless_screenshot_shadow',
 	'ui_v3',
 	'mcp_hidden_tab',
 ] as const

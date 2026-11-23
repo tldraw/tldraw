@@ -239,6 +239,15 @@ async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
 	return evaluateFlagForUser(flag, 'thumbnail_render_push', `${job.kind}/${job.slug}`)
 }
 
+// OG and thumbnail renders only, where the volume and the Browser Run spend are; MCP is left out so a
+// tool call never adds load to someone's session. Bucketed per board, like push, so a board's renders
+// are either all compared or none are.
+async function isHeadlessScreenshotShadowFor(env: Environment, job: ThumbnailRenderJob) {
+	if (!env.HEADLESS_WORKER || job.surface === 'mcp') return false
+	const flag = await getFeatureFlagValue(env, 'headless_screenshot_shadow')
+	return evaluateFlagForUser(flag, 'headless_screenshot_shadow', `${job.kind}/${job.slug}`)
+}
+
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
 	const url = new URL(THUMBNAIL_RENDER_PATH, renderOrigin)
 	url.searchParams.set('token', token)
@@ -355,6 +364,7 @@ export async function captureThumbnailScreenshot(
 				reason: telemetry.reason,
 				content: content ?? EMPTY_CONTENT_SUMMARY,
 			},
+			shadow: await isHeadlessScreenshotShadowFor(env, job),
 		})
 		if (!result.ok) throw new RenderWorkerError(result.reason)
 		// Callers read only `base64`; render time now lives on the worker's ledger, not here.

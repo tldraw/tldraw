@@ -453,7 +453,7 @@ function writeBrowserRunSessionTelemetry(
 // The analytics writer, copied from sync-worker's utils/analytics.ts. The worker name goes in the
 // second blob for legacy reasons — it was the only field when analytics were introduced, so the
 // position is fixed. Swallows its own failure: telemetry must never turn a good render into an error.
-function writeDataPoint(
+export function writeDataPoint(
 	measure: Environment['MEASURE'],
 	workerName: string | undefined,
 	name: string,
