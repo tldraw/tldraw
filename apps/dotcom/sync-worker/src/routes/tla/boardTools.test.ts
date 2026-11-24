@@ -38,6 +38,9 @@ import {
 	getCommentRefusalMessage,
 	getPageCommentsResult,
 	parseWriteCommentInput,
+	parseCreateImageUploadInput,
+	getCreateImageUploadToolDefinition,
+	TOOL_NAMES,
 	resolveSnapshotPage,
 	COMMENT_MENTION_MAX,
 	commentTextToRichText,
@@ -1855,5 +1858,32 @@ describe('getCommentRefusalMessage', () => {
 		expect(getCommentRefusalMessage({ reason: 'page_not_found', pageId: 'page:x' })).toContain(
 			'get_board_info'
 		)
+	})
+})
+
+describe('parseCreateImageUploadInput', () => {
+	it('takes a board, a supported type and an optional name', () => {
+		expect(parseCreateImageUploadInput({ boardId: 'b', mimeType: 'image/png' })).toEqual({
+			boardId: 'b',
+			mimeType: 'image/png',
+			name: null,
+		})
+		expect(
+			parseCreateImageUploadInput({ boardId: 'b', mimeType: 'image/webp', name: ' shot.webp ' })
+		).toEqual({ boardId: 'b', mimeType: 'image/webp', name: 'shot.webp' })
+	})
+
+	it('refuses a type the board cannot take', () => {
+		for (const mimeType of [undefined, 'image/svg+xml', 'application/pdf']) {
+			expect(() => parseCreateImageUploadInput({ boardId: 'b', mimeType })).toThrow(
+				'mimeType must be one of'
+			)
+		}
+	})
+
+	// Listing a tool is what offers it to a model, and nothing answers this one yet.
+	it('is not served yet', () => {
+		const served: readonly string[] = TOOL_NAMES
+		expect(served).not.toContain(getCreateImageUploadToolDefinition().name)
 	})
 })

@@ -207,6 +207,52 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 ])
 export type CanvasOp = z.infer<typeof CanvasOpSchema>
 
+const IMAGE_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'] as const
+
+/**
+ * An image from a file the agent uploaded (create_image_upload) or from the web. Placed like `add`.
+ * Sized by `w` alone, since the height follows the image; without it, the natural size, capped.
+ *
+ * Not in CanvasOpSchema yet: joining that union is what advertises an op to a model, through the
+ * JSON schema copy the apply_ops tool definition is built from, and nothing applies this one.
+ */
+export const ImageOpSchema = z.strictObject({
+	op: z.literal('image'),
+	source: z.union([
+		z.strictObject({ uploadId: z.string().min(1).max(200) }),
+		z.strictObject({ url: z.url({ protocol: /^https$/ }).max(2048) }),
+	]),
+	id: optionalId,
+	w: extent.optional(),
+	altText: z.string().max(1000).optional(),
+	relation: Relation.optional(),
+	target: RefSchema.optional(),
+	at: PointSchema.optional(),
+	gap: gap.optional(),
+	align: Align.optional(),
+})
+export type ImageOp = z.infer<typeof ImageOpSchema>
+
+/**
+ * The same op as the tab receives it. The worker swaps `source` before forwarding the batch: it
+ * checks the upload belongs to this board, or copies the url into our own storage, so the tab never
+ * loads an address a model chose. A source the worker could not resolve arrives as `failed` rather
+ * than being dropped, so the op fails in its own slot and the indexes in the result still line up
+ * with the batch the model sent.
+ */
+export const ResolvedImageOpSchema = ImageOpSchema.extend({
+	source: z.union([
+		z.strictObject({
+			src: z.url(),
+			mimeType: z.enum(IMAGE_MIME_TYPES),
+			name: z.string().max(200),
+			fileSize: z.number().int().positive(),
+		}),
+		z.strictObject({ failed: z.string().max(500) }),
+	]),
+})
+export type ResolvedImageOp = z.infer<typeof ResolvedImageOpSchema>
+
 /**
  * A batch runs synchronously in the user's tab, so its size bounds how long the tab stalls. MCP
  * can't stream, so a whole agent reply arrives as one batch. Measured in the headless test

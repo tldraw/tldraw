@@ -91,6 +91,9 @@ export const BOARD_USERS_TOOL_NAME = 'get_board_users'
 export const READ_PAGE_COMMENTS_TOOL_NAME = 'read_page_comments'
 export const WRITE_COMMENT_TOOL_NAME = 'write_comment'
 export const SEND_FEEDBACK_TOOL_NAME = 'send_feedback'
+// Not in TOOL_NAMES or getToolDefinitions yet: designed here alongside the `image` canvas op, and
+// served once the upload route behind it exists.
+export const CREATE_IMAGE_UPLOAD_TOOL_NAME = 'create_image_upload'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
@@ -2092,6 +2095,62 @@ export function getWrittenCommentResult({
 	return toolJsonResult(queued ? { ...written, queued, note: COMMENT_QUEUED_NOTE } : written)
 }
 
+// --- Images -------------------------------------------------------------------------------------
+//
+// A model cannot put a file's bytes in a tool argument, so a local file reaches a board in two
+// steps: create_image_upload hands back a short-lived URL the agent's shell uploads to, and an
+// `image` op in apply_ops places the result. An image already on the web skips the first step and
+// goes to the op as a url. See ImageOpSchema in the client's canvas-ops/schema.ts.
+
+export const IMAGE_UPLOAD_MIME_TYPES = [
+	'image/png',
+	'image/jpeg',
+	'image/gif',
+	'image/webp',
+] as const
+export type ImageUploadMimeType = (typeof IMAGE_UPLOAD_MIME_TYPES)[number]
+export const IMAGE_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+export const IMAGE_UPLOAD_TTL_MS = 10 * 60 * 1000
+export const IMAGE_NAME_MAX_LENGTH = 200
+
+export function parseCreateImageUploadInput(input: unknown): {
+	boardId: string
+	mimeType: ImageUploadMimeType
+	/** The file's name, shown on tldraw.com as the image's name. Null when the caller gave none. */
+	name: string | null
+} {
+	const value = requireArgumentsObject(input)
+	const boardId = parseBoardId(value.boardId)
+	const { mimeType } = value
+	if (!IMAGE_UPLOAD_MIME_TYPES.includes(mimeType as ImageUploadMimeType)) {
+		throw new Error(`mimeType must be one of ${IMAGE_UPLOAD_MIME_TYPES.join(', ')}`)
+	}
+	const name = optionalString(value.name, 'name')
+	if (name !== null && name.length > IMAGE_NAME_MAX_LENGTH) {
+		throw new Error(`name must be at most ${IMAGE_NAME_MAX_LENGTH} characters`)
+	}
+	return { boardId, mimeType: mimeType as ImageUploadMimeType, name }
+}
+
+export interface ImageUploadTicket {
+	/** What the `image` op takes as its source. Opaque to the caller. */
+	uploadId: string
+	/** Carries its own authorization: the agent's shell holds no token for this server. */
+	uploadUrl: string
+	method: 'PUT'
+	headers: { 'Content-Type': ImageUploadMimeType }
+	maxBytes: number
+	/** ISO 8601. */
+	expiresAt: string
+}
+
+export function getCreateImageUploadResult(ticket: ImageUploadTicket): ToolResult {
+	return toolJsonResult({
+		...ticket,
+		note: `Upload the file with: curl -T <path> -H "Content-Type: ${ticket.headers['Content-Type']}" "<uploadUrl>". Then place it with ${APPLY_OPS_TOOL_NAME}: {"op": "image", "source": {"uploadId": "${ticket.uploadId}"}}.`,
+	})
+}
+
 // --- Tool definitions ---------------------------------------------------------------------------
 
 /**
@@ -2564,6 +2623,41 @@ function getWriteCommentToolDefinition() {
 				},
 			},
 			required: ['boardId', 'text'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+export function getCreateImageUploadToolDefinition() {
+	return {
+		name: CREATE_IMAGE_UPLOAD_TOOL_NAME,
+		title: 'Create tldraw image upload',
+		description: `Get a one-time URL to upload a local image file to, as the first step of putting it on a board. Upload the file from a shell with: curl -T <path> -H "Content-Type: <mimeType>" "<uploadUrl>". Then place it with an image op in ${APPLY_OPS_TOOL_NAME}, passing the uploadId as its source. The URL lasts ${IMAGE_UPLOAD_TTL_MS / 60_000} minutes and takes one file of up to ${IMAGE_UPLOAD_MAX_BYTES / (1024 * 1024)} MB. Needs a client that can run shell commands; for an image already on the web, skip this and give the image op its url. The board does not have to be open for this step.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: {
+					...FILE_BOARD_ID_PROPERTY,
+					description: 'The id of the board the image is for.',
+				},
+				mimeType: {
+					type: 'string',
+					enum: IMAGE_UPLOAD_MIME_TYPES,
+					description: 'The type of the file you will upload.',
+				},
+				name: {
+					type: 'string',
+					maxLength: IMAGE_NAME_MAX_LENGTH,
+					description: 'The file’s name, for example "login-screen.png".',
+				},
+			},
+			required: ['boardId', 'mimeType'],
 		},
 		annotations: {
 			readOnlyHint: false,
