@@ -38,6 +38,12 @@ import {
 	getCommentRefusalMessage,
 	getPageCommentsResult,
 	parseWriteCommentInput,
+	parseAddImageInput,
+	parseCreateImageUploadInput,
+	getAddImageToolDefinition,
+	getCreateImageUploadToolDefinition,
+	IMAGE_MAX_WIDTH,
+	TOOL_NAMES,
 	resolveSnapshotPage,
 	COMMENT_MENTION_MAX,
 	commentTextToRichText,
@@ -1855,5 +1861,94 @@ describe('getCommentRefusalMessage', () => {
 		expect(getCommentRefusalMessage({ reason: 'page_not_found', pageId: 'page:x' })).toContain(
 			'get_board_info'
 		)
+	})
+})
+
+describe('parseCreateImageUploadInput', () => {
+	it('takes a board, a supported type and an optional name', () => {
+		expect(parseCreateImageUploadInput({ boardId: 'b', mimeType: 'image/png' })).toEqual({
+			boardId: 'b',
+			mimeType: 'image/png',
+			name: null,
+		})
+		expect(
+			parseCreateImageUploadInput({ boardId: 'b', mimeType: 'image/webp', name: ' shot.webp ' })
+		).toEqual({ boardId: 'b', mimeType: 'image/webp', name: 'shot.webp' })
+	})
+
+	it('refuses a type the board cannot take', () => {
+		for (const mimeType of [undefined, 'image/svg+xml', 'application/pdf']) {
+			expect(() => parseCreateImageUploadInput({ boardId: 'b', mimeType })).toThrow(
+				'mimeType must be one of'
+			)
+		}
+	})
+})
+
+describe('parseAddImageInput', () => {
+	it('takes an upload or a url, with placement left to the server by default', () => {
+		expect(parseAddImageInput({ boardId: 'b', uploadId: 'up1' })).toEqual({
+			boardId: 'b',
+			source: { kind: 'upload', uploadId: 'up1' },
+			pageId: null,
+			position: null,
+			w: null,
+			altText: null,
+		})
+		expect(
+			parseAddImageInput({
+				boardId: 'b',
+				url: 'https://example.com/a.png',
+				page: 'page:two',
+				x: 10.5,
+				y: -4,
+				w: 320,
+				altText: 'A chart',
+			})
+		).toEqual({
+			boardId: 'b',
+			source: { kind: 'url', url: 'https://example.com/a.png' },
+			pageId: 'page:two',
+			position: { x: 10.5, y: -4 },
+			w: 320,
+			altText: 'A chart',
+		})
+	})
+
+	it('needs exactly one source', () => {
+		expect(() => parseAddImageInput({ boardId: 'b' })).toThrow('Say which image')
+		expect(() =>
+			parseAddImageInput({ boardId: 'b', uploadId: 'up1', url: 'https://example.com/a.png' })
+		).toThrow('Pass only one of uploadId or url.')
+	})
+
+	it('takes only an https url', () => {
+		for (const url of ['http://example.com/a.png', 'data:image/png;base64,AAAA', 'a.png']) {
+			expect(() => parseAddImageInput({ boardId: 'b', url })).toThrow('https URL')
+		}
+	})
+
+	it('needs x and y together, and a page id rather than an ordinal', () => {
+		expect(() => parseAddImageInput({ boardId: 'b', uploadId: 'up1', x: 1 })).toThrow(
+			'x and y must both be numbers'
+		)
+		expect(() => parseAddImageInput({ boardId: 'b', uploadId: 'up1', page: 0 })).toThrow(
+			'page must be a page id'
+		)
+	})
+
+	it('bounds the width', () => {
+		for (const w of [0, -5, IMAGE_MAX_WIDTH + 1, '300']) {
+			expect(() => parseAddImageInput({ boardId: 'b', uploadId: 'up1', w })).toThrow('w must be')
+		}
+	})
+})
+
+describe('image tool definitions', () => {
+	// Listing a tool is what offers it to a model, and nothing answers these two yet.
+	it('are not served yet', () => {
+		const served: readonly string[] = TOOL_NAMES
+		expect(served).not.toContain(getCreateImageUploadToolDefinition().name)
+		expect(served).not.toContain(getAddImageToolDefinition().name)
 	})
 })
