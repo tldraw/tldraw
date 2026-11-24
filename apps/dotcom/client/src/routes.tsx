@@ -1,6 +1,6 @@
 /* oxlint-disable react/only-export-components -- the router root; any edit here reloads the page regardless */
 import type { TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Suspense, lazy, useEffect } from 'react'
+import { ReactNode, Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
@@ -34,6 +34,7 @@ export function createAppRouter({
 				let header = 'Something went wrong'
 				let para1 =
 					'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
+				let cta: ReactNode = undefined
 				if (isRemoteSyncError(error)) {
 					switch (error.reason as TLSyncErrorCloseEventReason) {
 						case 'NOT_FOUND': {
@@ -58,6 +59,31 @@ export function createAppRouter({
 							para1 = `Please slow down.`
 							break
 						}
+						case 'ROOM_FULL': {
+							header = 'Collaborator limit reached'
+							para1 = 'This file has reached the maximum number of active collaborators.'
+							break
+						}
+						case 'CLIENT_TOO_OLD': {
+							header = 'Please reload'
+							para1 = 'A new version of tldraw is available. Please reload the page to continue.'
+							cta = (
+								<button type="button" onClick={() => window.location.reload()}>
+									Reload
+								</button>
+							)
+							break
+						}
+						case 'SERVER_TOO_OLD': {
+							para1 =
+								'The multiplayer server is out of date. Please reload the page. If the problem persists, let us know at hello@tldraw.com.'
+							break
+						}
+						case 'INVALID_RECORD': {
+							para1 =
+								'Your changes were rejected by the server. Please reload the page. If the problem persists, let us know at hello@tldraw.com.'
+							break
+						}
 					}
 				}
 				if (error instanceof TlaNotFoundError) {
@@ -70,6 +96,7 @@ export function createAppRouter({
 							header,
 							para1,
 						}}
+						cta={cta}
 					/>
 				)
 			}}
