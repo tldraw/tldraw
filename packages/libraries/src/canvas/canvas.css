@@ -655,7 +655,6 @@
 
 .tlui-libraries-browse__rows + .tlui-libraries-browse__group {
 	margin-top: 8px;
-	border-top: 1px solid var(--tl-color-divider);
 }
 
 /* .tlui-dialog__body's `overflow-wrap: anywhere` would let the action's label wrap mid-word. */
