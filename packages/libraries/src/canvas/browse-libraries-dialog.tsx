@@ -417,7 +417,7 @@ function BrowseHeader({
 							type="button"
 							className="tlui-libraries-browse__title-rename"
 							title={msg(messages.renameLibrary)}
-							onClick={onStartRename}
+							onDoubleClick={onStartRename}
 						>
 							{title}
 						</button>

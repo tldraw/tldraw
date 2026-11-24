@@ -580,7 +580,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	cursor: text;
+	cursor: default;
 }
 
 .tlui-libraries-browse__title-rename:focus-visible {
