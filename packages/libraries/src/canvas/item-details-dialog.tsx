@@ -5,13 +5,15 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	useEditor,
 	useTranslation,
 	useValue,
 	type TLLibrary,
 	type TLLibraryId,
+	type TLLibraryThumbnail,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryItem } from '../lib/schema'
+import { getThumbnailForColorMode, type TLLibraryItem } from '../lib/schema'
 import { ItemMenu } from '../ui/item-menu'
 import { RenameInput } from '../ui/rename-input'
 import { useLibraryCan } from './use-library-can'
@@ -166,6 +168,45 @@ export function ItemDetailsDialog({
 							<dd>{details.creatorName}</dd>
 						</>
 					)}
+				</dl>
+			</TldrawUiDialogBody>
+		</>
+	)
+}
+
+export interface ReadOnlyItemDetailsDialogProps {
+	name?: string
+	libraryName: string
+	thumbnail?: TLLibraryThumbnail
+}
+
+/** The preview and facts of an item that can't be changed, such as one of a pack not yet added. */
+export function ReadOnlyItemDetailsDialog({
+	name,
+	libraryName,
+	thumbnail,
+}: ReadOnlyItemDetailsDialogProps) {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
+	const thumbnailUrl = thumbnail && getThumbnailForColorMode(thumbnail, colorMode)
+	return (
+		<>
+			<TldrawUiDialogHeader className="tlui-libraries-details__header">
+				<TldrawUiDialogTitle>{msg(messages.title)}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className="tlui-libraries-details">
+				<div>
+					<span className="tlui-libraries-tile__thumbnail tlui-libraries-details__thumbnail">
+						{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
+					</span>
+				</div>
+				<dl className="tlui-libraries-details__facts">
+					<dt>{msg(messages.name)}</dt>
+					<dd>{name ?? msg(messages.unnamedItem)}</dd>
+					<dt>{msg(messages.library)}</dt>
+					<dd>{libraryName}</dd>
 				</dl>
 			</TldrawUiDialogBody>
 		</>

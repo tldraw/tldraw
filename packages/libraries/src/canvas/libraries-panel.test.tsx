@@ -789,3 +789,125 @@ describe('item Details after Move to', () => {
 		expect(source.getItems(shapes.library.id)).toEqual([])
 	})
 })
+
+describe("items in Browse's library view", () => {
+	const openBrowse = async (container: HTMLElement) => {
+		act(() =>
+			container
+				.querySelector<HTMLButtonElement>('button.tlui-libraries-panel__browse-more')!
+				.click()
+		)
+		await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
+	}
+	const viewLibrary = async (name: string) => {
+		const view = await vi.waitFor(() => {
+			const el = [
+				...document.querySelectorAll<HTMLButtonElement>('.tlui-libraries-browse__view'),
+			].find((button) => button.textContent === name)
+			expect(el).toBeDefined()
+			return el!
+		})
+		act(() => view.click())
+	}
+	const browseTile = (name: string) =>
+		vi.waitFor(() => {
+			const el = document.querySelector<HTMLButtonElement>(
+				`.tlui-libraries-browse__items button[aria-label="${name}"]`
+			)
+			expect(el).not.toBeNull()
+			return el!
+		})
+	const detailsDialog = () =>
+		vi.waitFor(() => {
+			const el = document.querySelector<HTMLElement>(
+				'.tlui-dialog__content:has(.tlui-libraries-details)'
+			)
+			expect(el).not.toBeNull()
+			return el!
+		})
+	const facts = (dialog: Element) =>
+		Object.fromEntries(
+			[...dialog.querySelectorAll('dt')].map((dt) => [
+				dt.textContent,
+				dt.nextElementSibling!.textContent,
+			])
+		)
+
+	it("opens a source library's item in Details over Browse, with its ⋮, and returns focus to the tile", async () => {
+		const container = await renderPanel(makeShapesSource('added'), () => [])
+		await openBrowse(container)
+		await viewLibrary('Shapes')
+		const tile = await browseTile('Box')
+		expect(tile.type).toBe('button')
+		act(() => tile.focus())
+		act(() => tile.click())
+
+		const dialog = await detailsDialog()
+		expect(facts(dialog)).toEqual({ Name: 'Box', Library: 'Shapes' })
+		expect(dialog.querySelector('[aria-label="Item options"]')).not.toBeNull()
+		expect(document.querySelector('.tlui-libraries-browse__items')).not.toBeNull()
+
+		await act(async () =>
+			dialog.querySelector<HTMLButtonElement>('.tlui-dialog__header__close button')!.click()
+		)
+		await vi.waitFor(() => expect(dialog.isConnected).toBe(false))
+		await settle()
+		expect(document.activeElement).toBe(await browseTile('Box'))
+	})
+
+	it("opens an item's menu on right-click, with Details and the source's item actions", async () => {
+		const { library: icons } = makeLibrary('Icons', [])
+		const source = makeShapesSource('added')
+		await source.createLibrary(icons.name)
+		const container = await renderPanel(source, () => [])
+		await openBrowse(container)
+		await viewLibrary('Shapes')
+		const tile = await browseTile('Box')
+		await act(async () => {
+			tile.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+		})
+		const labels = await vi.waitFor(() => {
+			const items = [
+				...document.querySelectorAll(
+					'.tlui-libraries-menu :is(.tlui-libraries-menu__item, .tlui-menu__submenu__trigger)'
+				),
+			]
+			expect(items.length).toBeGreaterThan(0)
+			return items.map((item) => item.textContent)
+		})
+		expect(labels).toEqual(['Details', 'Move to', 'Copy to', 'Delete'])
+		await choose('Details')
+		expect(facts(await detailsDialog())).toEqual({ Name: 'Box', Library: 'Shapes' })
+	})
+
+	it("shows a host entry's item in a read-only Details, named for the entry", async () => {
+		const groups: LibraryBrowseGroup[] = [
+			{
+				id: 'public',
+				label: 'Public libraries',
+				entries: [
+					{
+						id: 'doodles',
+						name: 'Doodles',
+						itemCount: 1,
+						previews: [],
+						added: false,
+						canAdd: true,
+						add: async () => LibraryRecordType.createId('doodles'),
+						getItems: async () => [{ id: 'star', name: 'Star' }],
+					},
+				],
+			},
+		]
+		const container = await renderPanel(new InMemoryLibrarySource(), () => groups)
+		await openBrowse(container)
+		await viewLibrary('Doodles')
+		const tile = await browseTile('Star')
+		act(() => tile.click())
+
+		const dialog = await detailsDialog()
+		expect(facts(dialog)).toEqual({ Name: 'Star', Library: 'Doodles' })
+		expect(dialog.querySelector('[aria-label="Item options"]')).toBeNull()
+		expect(dialog.querySelector('button.tlui-libraries-details__name')).toBeNull()
+	})
+})

@@ -868,7 +868,7 @@
 	min-width: 0;
 }
 
-.tlui-libraries-browse__item > .tlui-libraries-tile__thumbnail {
+.tlui-libraries-browse__item > .tlui-libraries-tile {
 	flex: 1;
 }
 

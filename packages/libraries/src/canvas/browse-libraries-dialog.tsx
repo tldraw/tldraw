@@ -20,7 +20,7 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	TldrawUiIcon,
-	TldrawUiTooltip,
+	useDialogs,
 	useDirection,
 	useEditor,
 	useToasts,
@@ -32,8 +32,10 @@ import {
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { getLibraryItemCount, getLibraryPreviewItems } from '../lib/librarySummary'
-import { getThumbnailForColorMode } from '../lib/schema'
+import { getThumbnailForColorMode, type TLLibraryItem } from '../lib/schema'
 import { getContextMenuHandlers, openContextMenu } from '../ui/context-menu'
+import { getItemMenuId, ItemMenu, type ItemMenuProps } from '../ui/item-menu'
+import { ItemTile } from '../ui/item-tile'
 import { LibraryMenu, type LibraryMenuProps } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import {
@@ -43,10 +45,13 @@ import {
 	keepBrowsePlacement,
 } from './browse-groups'
 import { CreateLibraryButton } from './create-library-button'
+import { ItemDetailsDialog, ReadOnlyItemDetailsDialog } from './item-details-dialog'
 import { CreateLibraryItem, type LibrariesPanelHeaderCreate } from './libraries-panel-header'
-import { useLongPress } from './long-press'
+import { useLongPress, withHandlers } from './long-press'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useLibraryActions } from './use-library-actions'
+import { useLibraryCan } from './use-library-can'
+import { useLibraryItemActions } from './use-library-item-actions'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 
 /** Tiles in a row's strip. A library with more items shows one fewer, then a "+ N" tile. */
@@ -787,10 +792,69 @@ interface ViewedItem {
 	thumbnailUrl?: string
 }
 
+/** What a library opened from Browse offers for each of its items. */
+interface ViewedItemActions {
+	/** The content of the Details dialog opened over Browse for the item. */
+	renderDetails(item: ViewedItem, onClose: () => void): ReactNode
+	/** The item menu's actions besides Details. */
+	getMenuProps?(item: ViewedItem): Omit<ItemMenuProps, 'id' | 'trigger' | 'onShowDetails'>
+}
+
+/**
+ * An item of a library opened from Browse. Pressing it opens its Details over Browse, and
+ * right-click, a long press, or the context menu key opens its menu. Focus returns to it once
+ * Details closes.
+ */
+function BrowseItemTile({ item, actions }: { item: ViewedItem; actions: ViewedItemActions }) {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const tileRef = useRef<HTMLLIElement>(null)
+	const id = `browse-${item.id}`
+	const menuId = getItemMenuId(id)
+	const showDetails = () => {
+		const button = tileRef.current && tileRef.current.querySelector('button')
+		addDialog({
+			component: ({ onClose }) => actions.renderDetails(item, onClose),
+			onClose: () => {
+				editor.timers.requestAnimationFrame(() => {
+					if (button && button.isConnected) button.focus()
+				})
+			},
+		})
+	}
+	const contextMenu = getContextMenuHandlers((opener, point) =>
+		openContextMenu(editor, menuId, { opener, point })
+	)
+	const press = useLongPress(true)(() => openContextMenu(editor, menuId))
+	return (
+		<li ref={tileRef} className="tlui-libraries-browse__item">
+			<ItemTile
+				name={item.name}
+				accessibleLabel={item.name ?? msg(messages.unnamedItem)}
+				thumbnailUrl={item.thumbnailUrl}
+				buttonProps={withHandlers(
+					{ onClick: showDetails, onContextMenu: contextMenu.onContextMenu },
+					{ ...press, onKeyDown: contextMenu.onKeyDown }
+				)}
+				menu={
+					<ItemMenu
+						id={id}
+						trigger="none"
+						onShowDetails={showDetails}
+						{...(actions.getMenuProps ? actions.getMenuProps(item) : {})}
+					/>
+				}
+			/>
+		</li>
+	)
+}
+
 /** A library opened from Browse: all its items, with its menu above and its action below. */
 function LibraryView({
 	name,
 	items,
+	itemActions,
 	itemsRef,
 	placement,
 	menuId,
@@ -802,6 +866,7 @@ function LibraryView({
 	name: string
 	/** Undefined while they load. */
 	items: ViewedItem[] | undefined
+	itemActions: ViewedItemActions
 	itemsRef?(element: HTMLElement | null): void
 	placement: LibraryPlacement
 	menuId: string
@@ -843,19 +908,7 @@ function LibraryView({
 					<ul ref={setListRef} className="tlui-libraries-browse__items" aria-busy={!items}>
 						{items &&
 							items.map((item) => (
-								<li key={item.id} className="tlui-libraries-browse__item">
-									<TldrawUiTooltip content={item.name} side="bottom">
-										<span
-											className="tlui-libraries-tile__thumbnail"
-											role="img"
-											aria-label={item.name ?? msg(messages.unnamedItem)}
-										>
-											{item.thumbnailUrl && (
-												<img src={item.thumbnailUrl} alt="" draggable={false} />
-											)}
-										</span>
-									</TldrawUiTooltip>
-								</li>
+								<BrowseItemTile key={item.id} item={item} actions={itemActions} />
 							))}
 					</ul>
 				)}
@@ -885,6 +938,33 @@ function SourceLibraryView({
 	const urls = useLibraryThumbnailUrls(source, items, { container: element })
 	const placement = useSourcePlacement(source, libraryId)
 	const { menuProps, rename, startRename } = useSourceLibraryMenu(source, library, placement)
+	const canDelete = useLibraryCan(source, 'deleteItem', libraryId)
+	const { move, copy, requestDelete, moveTargets, copyTargets } = useLibraryItemActions(
+		source,
+		libraryId
+	)
+	const byId = new Map<string, TLLibraryItem>(items.map((item) => [item.id, item]))
+	const itemActions: ViewedItemActions = {
+		renderDetails: ({ id }, onClose) => {
+			const item = byId.get(id)
+			return (
+				item && (
+					<ItemDetailsDialog source={source} item={item} library={library} onClose={onClose} />
+				)
+			)
+		},
+		getMenuProps: ({ id }) => {
+			const item = byId.get(id)
+			if (!item) return {}
+			return {
+				moveTargets,
+				onMove: (toLibraryId) => move(item.id, toLibraryId as TLLibraryId),
+				copyTargets,
+				onCopy: (toLibraryId) => copy(item.id, toLibraryId as TLLibraryId),
+				onDelete: canDelete ? () => requestDelete(item.id) : undefined,
+			}
+		},
+	}
 	return (
 		<LibraryView
 			name={library.name}
@@ -893,6 +973,7 @@ function SourceLibraryView({
 				name: item.name,
 				thumbnailUrl: urls[item.id] ?? undefined,
 			}))}
+			itemActions={itemActions}
 			itemsRef={setElement}
 			placement={placement}
 			menuId={`libraries-browse-view-menu-${libraryId}`}
@@ -937,10 +1018,24 @@ function HostLibraryView({ entry, onBack }: { entry: LibraryBrowseEntry; onBack(
 			})),
 		[loaded, colorMode]
 	)
+	const thumbnails = useMemo(
+		() => new Map(loaded ? loaded.map((item) => [item.id, item.thumbnail]) : []),
+		[loaded]
+	)
+	const itemActions: ViewedItemActions = {
+		renderDetails: (item) => (
+			<ReadOnlyItemDetailsDialog
+				name={item.name}
+				libraryName={entry.name}
+				thumbnail={thumbnails.get(item.id)}
+			/>
+		),
+	}
 	return (
 		<LibraryView
 			name={entry.name}
 			items={items}
+			itemActions={itemActions}
 			placement={placement}
 			menuId={`libraries-browse-view-menu-host-${entry.id}`}
 			menuProps={{ onAddToDocument: placement.onAdd, onRemoveFromDocument: placement.onRemove }}
