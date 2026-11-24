@@ -140,6 +140,9 @@ const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 // RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
 // RMv1 with v5 backups before zeroRmv2 turns on for it.
 const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
+// Production's RM takes that step alone. View-syncers restore from the URL the RM hands them, with
+// the v5 binary whatever this flag says, so theirs stays off and the step doesn't restart them.
+const zeroRmBackupV5 = zeroBackupV5 || env.TLDRAW_ENV === 'production'
 // Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
 // would redeploy production's zero apps in place.
 const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
@@ -836,7 +839,7 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
 		.replace('__RMV2_ENV\n', rmv2Env)
-		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
+		.replaceAll('__BACKUP_V5', String(zeroRmBackupV5))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -909,7 +912,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	// v5 backups put each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
 	// replaces the env folder and the backup lands at the bucket root.
-	const backupPath = `${previewId ?? env.TLDRAW_ENV}${zeroBackupV5 ? '/' : ''}`
+	const backupPath = (v5: boolean) => `${previewId ?? env.TLDRAW_ENV}${v5 ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -923,13 +926,41 @@ async function deployZeroViaFlyIoMultiNode() {
 		`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
 	]
 
+	const rmConfigFile = 'flyio-replication-manager.toml'
+	const rmInputs: FlyDeployInputs = {
+		config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath(zeroRmBackupV5)),
+		secrets,
+	}
+	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
+	const vsInputs: FlyDeployInputs = {
+		config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath(zeroBackupV5)),
+		dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
+		secrets,
+	}
+
+	// A restarted RMv1 fails its health check and serves no restores until its backup covers the
+	// replica, so view-syncers restarted in the same deploy hang on it: on 2026-11-10 that left 5 to
+	// 7 of 13 down for 18 and then 26 minutes. Refused before anything is touched. An RMv2 handoff
+	// keeps the old RM serving until the new one is ready, so it is exempt.
+	if (env.TLDRAW_ENV === 'production' && !zeroRmv2 && env.ZERO_FORCE_DEPLOY !== 'true') {
+		const pending = async (appName: string, inputs: FlyDeployInputs) => {
+			const deployed = await getDeployedInputHash(appName)
+			return !(deployed.reason === 'stamped' && deployed.hash === hashFlyDeployInputs(inputs))
+		}
+		if ((await pending(flyioReplAppName, rmInputs)) && (await pending(flyioAppName, vsInputs))) {
+			throw new Error(
+				`${flyioReplAppName} and ${flyioAppName} would both deploy (changed inputs or unhealthy machines). ` +
+					'Ship the replication-manager change first, wait for its backup, then the view-syncers.'
+			)
+		}
+	}
+
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)
-	const rmConfigFile = 'flyio-replication-manager.toml'
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
-		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
+		inputs: rmInputs,
 		deploy: zeroRmv2
 			? (renderedToml) =>
 					handOffReplicationManager({
@@ -938,20 +969,24 @@ async function deployZeroViaFlyIoMultiNode() {
 						configFile: rmConfigFile,
 						pwd: zeroCacheFolder,
 					})
-			: undefined,
+			: // The backup gate holds the health check down for as long as the backup takes, which
+				// can pass flyctl's 5 minute default; a deploy that fails there invites a re-run, and a
+				// re-run restarts the RM and its backup.
+				async () => {
+					await exec(
+						'flyctl',
+						['deploy', '-a', flyioReplAppName, '-c', rmConfigFile, '--wait-timeout', '30m'],
+						{ pwd: zeroCacheFolder }
+					)
+				},
 	})
 
 	// Deploy view syncer with reference to replication manager
-	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
 	await ensureFlyApp(flyioAppName, apps)
 	await deployFlyAppIfChanged({
 		appName: flyioAppName,
 		configFile: 'flyio-view-syncer.toml',
-		inputs: {
-			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
-			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
-			secrets,
-		},
+		inputs: vsInputs,
 	})
 	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
 	await exec(
