@@ -1,4 +1,5 @@
 import { Role, TlaFile, TlaUser } from '@tldraw/dotcom-shared'
+import type { TLLibraryErrorReason } from '@tldraw/libraries'
 import { createContext, useContext } from 'react'
 import { trackEvent } from '../../utils/analytics'
 import { TldrawAppSessionState } from './local-session-state'
@@ -26,6 +27,19 @@ export type TLAppUiEventSource =
 	| 'workspace-settings'
 	| 'workspace-home'
 	| 'command-palette'
+	| 'libraries'
+
+/** @public */
+export type TLAppLibraryAction =
+	| 'create-library'
+	| 'save-to-library'
+	| 'rename-library'
+	| 'delete-library'
+	| 'copy-library'
+	| 'rename-library-item'
+	| 'delete-library-item'
+	| 'move-library-item'
+	| 'add-starter-pack'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -117,6 +131,17 @@ export interface TLAppUiEventMap {
 		filter: 'onlyCurrentPage' | 'onlyMine' | 'onlyUnread' | 'showResolved'
 		value: boolean
 	}
+	'create-library': { owner: 'home' | 'workspace' | 'file' }
+	'save-to-library': { item_count: number }
+	'rename-library': null
+	'delete-library': null
+	'copy-library': { item_count: number }
+	'rename-library-item': null
+	'delete-library-item': null
+	'move-library-item': null
+	'open-starter-packs': null
+	'add-starter-pack': { pack_id: string }
+	'library-error': { action: TLAppLibraryAction; reason: TLLibraryErrorReason }
 }
 
 /** @public */
