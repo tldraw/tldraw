@@ -707,7 +707,7 @@ describe('BoardLibrarySource', () => {
 			const source = new CompositeLibrarySource({
 				parts: [
 					{ owner: { id: 'kits', name: 'Kits' }, source: kits },
-					{ owner: { id: 'board', name: 'This board' }, source: board },
+					{ owner: { id: 'board', name: 'This file' }, source: board },
 				],
 			})
 			return { source, board, kit, toasts }
@@ -855,7 +855,7 @@ describe('BoardLibrarySource', () => {
 	})
 
 	describe("the document's own library", () => {
-		const documentLibrary = { name: 'This board' }
+		const documentLibrary = { name: 'This file' }
 
 		function setUp() {
 			const editor = makeEditor()
@@ -867,7 +867,7 @@ describe('BoardLibrarySource', () => {
 		it('is listed and can be saved to before the document holds it', () => {
 			const { editor, source, own } = setUp()
 			expect(source.getLibraries()).toEqual([own])
-			expect(own.name).toBe('This board')
+			expect(own.name).toBe('This file')
 			expect(source.getLibraryPlacement(own.id)).toBe('document')
 			expect(source.can('addItem', own.id)).toBe(true)
 			expect(source.getItems(own.id)).toEqual([])
@@ -879,7 +879,7 @@ describe('BoardLibrarySource', () => {
 			const item = await added(
 				source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
 			)
-			expect(allOfType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
+			expect(allOfType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This file' }])
 			expect(source.getItems(own.id)).toEqual([item])
 			expect(source.getLibraries()).toEqual([own])
 		})

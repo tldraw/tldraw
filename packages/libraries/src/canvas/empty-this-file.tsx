@@ -6,7 +6,7 @@ const messages = defineMessages({
 	empty: { id: 'libraries.this-file.empty', defaultMessage: 'No libraries added yet.' },
 })
 
-/** "This board" with no libraries, and a few to add straight away. */
+/** "This file" with no libraries, and a few to add straight away. */
 export function EmptyThisFile({ offers }: { offers: LibraryBrowseEntry[] }) {
 	const msg = useTranslation()
 	return (

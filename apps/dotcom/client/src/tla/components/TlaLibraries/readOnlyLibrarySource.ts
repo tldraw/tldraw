@@ -19,7 +19,7 @@ function refuse(action: TLLibraryAction, target?: TLLibraryTarget): Promise<neve
 /**
  * A source whose libraries can be browsed and their items placed, but not changed: `can` refuses
  * every action and every write rejects with a {@link LibraryPermissionError}. It has no placement
- * or libraries to add, so the panel lists its libraries as they come, without "This board" or
+ * or libraries to add, so the panel lists its libraries as they come, without "This file" or
  * "Browse libraries".
  */
 export abstract class ReadOnlyLibrarySource implements LibrarySource {

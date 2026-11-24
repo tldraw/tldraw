@@ -5,14 +5,14 @@ import type { LibraryBrowseEntry, LibraryBrowseGroup } from './browse-libraries-
 export interface PanelSections {
 	/** Housed in the document or added to it, and any the source gives no placement. */
 	thisFile: TLLibrary[]
-	/** The document's own, which "This board" starts with. */
+	/** The document's own, which "This file" starts with. */
 	document: TLLibrary[]
 	/** The user's default, shown in every document. */
 	defaults: TLLibrary[]
 }
 
 /**
- * The user's default, which the panel lists first, and the libraries under "This board": the
+ * The user's default, which the panel lists first, and the libraries under "This file": the
  * document's own, then the rest. Undefined for a source that doesn't say why its libraries are
  * shown, whose libraries the panel lists as they come.
  */
@@ -31,13 +31,13 @@ export function getPanelSections(
 	return sections
 }
 
-/** How many of the host's browse entries an empty "This board" offers. */
+/** How many of the host's browse entries an empty "This file" offers. */
 export const EMPTY_THIS_FILE_OFFER_COUNT = 3
 
 /**
- * The host's browse entries an empty "This board" offers to add, such as starter packs: the first
- * few not yet added that can be. None while "This board" has libraries besides the document's own,
- * or for a source whose libraries have no placement, which has no "This board".
+ * The host's browse entries an empty "This file" offers to add, such as starter packs: the first
+ * few not yet added that can be. None while "This file" has libraries besides the document's own,
+ * or for a source whose libraries have no placement, which has no "This file".
  */
 export function getEmptyThisFileOffers(
 	sections: PanelSections | undefined,

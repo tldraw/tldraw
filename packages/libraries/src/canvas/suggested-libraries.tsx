@@ -11,7 +11,7 @@ const messages = defineMessages({
 	add: { id: 'libraries.this-file.add', defaultMessage: 'Add' },
 })
 
-/** A few of the host's browse entries to add to "This board" straight away. Nothing without any. */
+/** A few of the host's browse entries to add to "This file" straight away. Nothing without any. */
 export function SuggestedLibraries({ offers }: { offers: LibraryBrowseEntry[] }) {
 	const msg = useTranslation()
 	if (offers.length === 0) return null

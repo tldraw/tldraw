@@ -32,7 +32,7 @@ it('lists targets as flat menu items, with any detail after the name', () => {
 					<MenuTargetItems
 						targets={[
 							{ id: 'stash', name: 'My stash' },
-							{ id: 'board', name: 'This board' },
+							{ id: 'board', name: 'This file' },
 							{ id: 'kit', name: 'Kit', detail: 'Team' },
 						]}
 						onSelect={() => {}}
@@ -44,6 +44,6 @@ it('lists targets as flat menu items, with any detail after the name', () => {
 	const menu = document.querySelector('[role="menu"]')!
 	expect(menu.querySelector('[role="group"]')).toBeNull()
 	const items = [...menu.querySelectorAll('[role="menuitem"]')]
-	expect(items.map((item) => item.textContent)).toEqual(['My stash', 'This board', 'KitTeam'])
+	expect(items.map((item) => item.textContent)).toEqual(['My stash', 'This file', 'KitTeam'])
 	expect(items[2].querySelector('.tlui-libraries-menu__item-detail')!.textContent).toBe('Team')
 })

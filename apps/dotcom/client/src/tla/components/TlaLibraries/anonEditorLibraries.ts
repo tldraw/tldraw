@@ -10,7 +10,7 @@ import { STARTER_PACK_IDS } from './starterPacks'
 import { getStarterPackLibraryId, StarterPacksLibrarySource } from './starterPacksLibrarySource'
 
 const messages = defineMessages({
-	thisBoard: { defaultMessage: 'This board' },
+	thisFile: { defaultMessage: 'This file' },
 	publicLibraries: { defaultMessage: 'Public libraries' },
 })
 
@@ -47,7 +47,7 @@ export function getAnonEditorLibraries(
 				id: 'anon',
 				parts: [
 					{
-						owner: { id: 'board', name: msg(messages.thisBoard) },
+						owner: { id: 'board', name: msg(messages.thisFile) },
 						source: new ReadOnlyLibraryView(new BoardLibrarySource(editor)),
 					},
 					{

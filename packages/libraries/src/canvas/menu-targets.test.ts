@@ -5,7 +5,7 @@ import { getLibraryMenuTargets } from './menu-targets'
 
 const owners = [
 	{ id: 'home', name: 'My workspace' },
-	{ id: 'board', name: 'This board' },
+	{ id: 'board', name: 'This file' },
 	{ id: 'team', name: 'Team' },
 ]
 
@@ -26,7 +26,7 @@ const rows = (source: InMemoryLibrarySource) =>
 	)
 
 const stash = library('stash', 'My stash', 'home')
-const board = library('board', 'This board', 'board')
+const board = library('board', 'This file', 'board')
 
 it("puts the user's default and the document's own first, without their owners", () => {
 	const kit = library('kit', 'Kit', 'team')
@@ -35,7 +35,7 @@ it("puts the user's default and the document's own first, without their owners",
 		[board, 'document'],
 		[stash, 'default'],
 	])
-	expect(rows(source)).toEqual(['My stash', 'This board', 'Kit'])
+	expect(rows(source)).toEqual(['My stash', 'This file', 'Kit'])
 })
 
 it('keeps the rest in the order the source lists them', () => {
@@ -45,7 +45,7 @@ it('keeps the rest in the order the source lists them', () => {
 		[library('a', 'A', 'team'), 'housed'],
 		[board, 'document'],
 	])
-	expect(rows(source)).toEqual(['My stash', 'This board', 'B', 'A'])
+	expect(rows(source)).toEqual(['My stash', 'This file', 'B', 'A'])
 })
 
 it('names the owner of each of the rest when they belong to two or more owners', () => {
@@ -55,7 +55,7 @@ it('names the owner of each of the rest when they belong to two or more owners',
 		[library('kit', 'Kit', 'team'), 'added'],
 		[library('icons', 'Icons', 'home'), 'added'],
 	])
-	expect(rows(source)).toEqual(['My stash', 'This board', 'Kit · Team', 'Icons · My workspace'])
+	expect(rows(source)).toEqual(['My stash', 'This file', 'Kit · Team', 'Icons · My workspace'])
 })
 
 it('names the owner of a library that shares its name with another listed one', () => {
@@ -65,7 +65,7 @@ it('names the owner of a library that shares its name with another listed one', 
 		[library('their-stash', 'My stash', 'team'), 'added'],
 		[library('kit', 'Kit', 'team'), 'added'],
 	])
-	expect(rows(source)).toEqual(['My stash', 'This board', 'My stash · Team', 'Kit'])
+	expect(rows(source)).toEqual(['My stash', 'This file', 'My stash · Team', 'Kit'])
 })
 
 it("lists a source that doesn't place its libraries as it comes, naming owners when there are two or more", () => {

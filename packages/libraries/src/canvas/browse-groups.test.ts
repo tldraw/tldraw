@@ -9,7 +9,7 @@ const library = (name: string, ownerId: string) =>
 const owners = [
 	{ id: 'acme', name: 'Acme' },
 	{ id: 'home', name: 'Home' },
-	{ id: 'board', name: 'This board' },
+	{ id: 'board', name: 'This file' },
 ]
 
 function setUp() {

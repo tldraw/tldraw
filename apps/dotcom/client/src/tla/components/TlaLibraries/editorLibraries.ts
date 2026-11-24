@@ -11,14 +11,14 @@ import type { TldrawAppLibrariesSource } from './librariesSource'
 import { TrackedLibrarySource } from './trackedLibrarySource'
 
 const messages = defineMessages({
-	thisBoard: { defaultMessage: 'This board' },
+	thisFile: { defaultMessage: 'This file' },
 })
 
 const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
 
 /**
  * The libraries an open file's editor offers: the workspace libraries added to the file and the
- * user's default, under their workspaces, then the board's own, "This board", kept as records in
+ * user's default, under their workspaces, then the board's own, "This file", kept as records in
  * the file's document so it is saved, synced and duplicated with it. Anyone who can edit the file
  * saves to it. New libraries go to the user's home workspace, and are added to the file.
  *
@@ -55,10 +55,10 @@ export function getEditorLibraries(
 		parts: [
 			{ source: fileLibraries },
 			{
-				owner: { id: fileId, name: app.msg(messages.thisBoard) },
+				owner: { id: fileId, name: app.msg(messages.thisFile) },
 				source: new BoardLibrarySource(editor, {
 					id: `board:${fileId}`,
-					documentLibrary: { name: app.msg(messages.thisBoard) },
+					documentLibrary: { name: app.msg(messages.thisFile) },
 					...reporting,
 				}),
 			},
