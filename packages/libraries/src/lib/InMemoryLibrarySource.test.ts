@@ -75,6 +75,17 @@ describe('InMemoryLibrarySource', () => {
 		expect(await source.getItemContent(item.id)).toEqual(content())
 	})
 
+	it('stores the meta an item is given, as its own copy', async () => {
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Wireframes')
+		const meta = { category: 'Actions', tags: ['button'] }
+		const item = await added(source.addItem(library.id, { content: content(), meta }))
+		const plain = await added(source.addItem(library.id, { content: content() }))
+		meta.tags.push('changed')
+		expect(item.meta).toEqual({ category: 'Actions', tags: ['button'] })
+		expect(plain.meta).toEqual({})
+	})
+
 	it('adds an item without a name', async () => {
 		const source = new InMemoryLibrarySource()
 		const library = await source.createLibrary('Wireframes')

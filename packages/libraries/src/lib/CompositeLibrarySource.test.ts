@@ -255,6 +255,17 @@ describe('CompositeLibrarySource', () => {
 		await vi.waitFor(() => expect(mine.getItems(from.id)).toEqual([]))
 	})
 
+	it("keeps an item's meta when moving it between parts", async () => {
+		const { source, team } = setUp()
+		const from = await source.createLibrary('Kit', { ownerId: 'home' })
+		const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
+		const item = await added(
+			source.addItem(from.id, { content: content('star'), meta: { category: 'Shapes' } })
+		)
+		await source.moveItem!(item.id, to.id)
+		expect(team.getItems(to.id).map((i) => i.meta)).toEqual([{ category: 'Shapes' }])
+	})
+
 	describe('a part that stores added items after listing them', () => {
 		// Lists added items at once, then fails to store them and removes them again.
 		function failingToStore(source: InMemoryLibrarySource): LibrarySource {

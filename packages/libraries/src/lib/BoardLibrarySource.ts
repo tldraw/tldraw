@@ -296,7 +296,7 @@ export class BoardLibrarySource implements LibrarySource {
 				...(thumbnail ? { thumbnail: mapThumbnail(thumbnail, ({ asset }) => asset.id) } : {}),
 				createdAt: now + index,
 				version: 1,
-				meta: {},
+				meta: newItem.meta === undefined ? {} : structuredClone(newItem.meta),
 			}
 			const contentRecord = LibraryItemContentRecordType.create({
 				id: createLibraryItemContentId(item.id),

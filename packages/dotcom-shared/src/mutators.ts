@@ -9,6 +9,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import {
+	MAX_LIBRARY_META_LENGTH,
 	MAX_LIBRARY_NAME_LENGTH,
 	MAX_NUMBER_OF_LIBRARIES,
 	MAX_NUMBER_OF_LIBRARY_ITEMS,
@@ -198,8 +199,6 @@ export function libraryName(name: string) {
 	assert(clamped.length > 0, ZErrorCode.bad_request)
 	return clamped
 }
-
-const MAX_LIBRARY_META_LENGTH = 4096
 
 function assertValidLibraryMeta(meta: JsonObject) {
 	assert(meta && typeof meta === 'object' && !Array.isArray(meta), ZErrorCode.bad_request)

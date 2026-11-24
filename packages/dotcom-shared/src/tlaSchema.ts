@@ -254,6 +254,7 @@ export const library_item = table('library_item')
 		createdBy: string(),
 		createdAt: number(),
 		updatedAt: number(),
+		meta: json<JsonObject>(),
 	})
 	.primaryKey('id')
 

@@ -219,6 +219,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 				LibraryItemRecordType.create({
 					libraryId,
 					...(newItem.name === undefined ? {} : { name: newItem.name }),
+					...(newItem.meta === undefined ? {} : { meta: structuredClone(newItem.meta) }),
 					createdAt: now + index,
 				})
 			),

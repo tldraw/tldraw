@@ -41,6 +41,7 @@ const item = (id: string, thumbnail: string | { light: string; dark: string } | 
 	createdBy: 'user_cccc11112222dddd',
 	createdAt: 1,
 	updatedAt: 1,
+	meta: { category: `Category ${id}` },
 })
 type Item = ReturnType<typeof item>
 interface ObjectRow {
@@ -140,6 +141,9 @@ describe('copyLibrary', () => {
 			])
 		)
 		for (const source of ['item_a', 'item_b', 'item_c']) expect(params).not.toContain(source)
+		expect(params).toEqual(
+			expect.arrayContaining([{ category: 'Category item_a' }, { category: 'Category item_b' }])
+		)
 	})
 
 	it('copies only the items I named, and leaves out ones the library no longer has', async () => {

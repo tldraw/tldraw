@@ -59,6 +59,8 @@ export interface TLNewLibraryItem {
 	 * UI shows a placeholder.
 	 */
 	thumbnail?: TLLibraryThumbnail<Blob>
+	/** Stored on the item as its `meta`, e.g. the category it had in the pack it was copied from. */
+	meta?: JsonObject
 }
 
 /**
