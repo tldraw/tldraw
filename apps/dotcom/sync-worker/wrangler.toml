@@ -183,7 +183,7 @@ binding = "MCP_WEB"
 service = "mcp-web"
 
 # The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
-# Deployed from the separate tldraw-headless repo, so it must already exist before this one deploys.
+# Deployed separately, so it must already exist before this one deploys.
 # Staging only: there is no dev or production headless worker, and binding a service that does not
 # exist fails the deploy — so dev, production and previews leave HEADLESS_WORKER unbound (inert), and
 # the `headless_shadow` flag is hidden from their admin panels. Whether the shadow runs is that flag,

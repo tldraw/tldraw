@@ -193,10 +193,10 @@ export interface Environment {
 	LOCAL_SCREENSHOT_SERVICE_URL: string | undefined
 
 	// The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
-	// Unbound everywhere for now — the worker is not yet deployed or named in any wrangler.toml — so the
-	// shadow is inert until a binding is added and the `headless_shadow` flag samples a caller. Typed as
-	// the RPC surface rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for
-	// its branding, which lives in another repo and would pull the worker in as a build dependency.
+	// Bound on staging only. Its presence also stands in for the render worker's own binding when
+	// sync-worker decides to sample a screenshot (`headless_screenshot_shadow`). Typed as the RPC surface
+	// rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for its branding,
+	// which is deployed separately and would pull the worker in as a build dependency.
 	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
 }
 
