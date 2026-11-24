@@ -33,6 +33,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
+			percentage: 0,
 			description:
 				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
 		},
@@ -49,6 +50,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
+			percentage: 0,
 			description:
 				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
@@ -88,6 +90,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
+			percentage: 0,
 			description:
 				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
 		},
@@ -198,7 +201,8 @@ export function getFeatureFlagType(
 
 /**
  * Evaluate a flag for a specific user. Percentage flags use a deterministic
- * hash of userId+flagName. Allowlist flags check the user against the named ids.
+ * hash of userId+flagName. Allowlist flags check the user against the named ids, then
+ * against their own percentage, bucketed the same way.
  * Boolean flags use the `enabled` field directly.
  */
 export function evaluateFlagForUser(
@@ -229,8 +233,15 @@ export function evaluateFlagForUser(
 			// Missing or malformed `users` denies rather than admits: this is read from KV, where a
 			// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
 			// that silently opens to everyone.
+			if (
+				Array.isArray(flag.users) &&
+				flag.users.some((entry) => entry && entry.userId === userId)
+			) {
+				return true
+			}
+			// Same type check as `users`: a hand-edited `"50"` would compare by coercion.
 			return (
-				Array.isArray(flag.users) && flag.users.some((entry) => entry && entry.userId === userId)
+				typeof flag.percentage === 'number' && hashToPercentage(userId, flagName) < flag.percentage
 			)
 		default:
 			exhaustiveSwitchError(flag)
@@ -336,7 +347,7 @@ export async function isFeatureFlagEnabledForUser(
 export type FeatureFlagUpdate =
 	| { type: 'boolean'; enabled?: boolean }
 	| { type: 'percentage'; enabled?: boolean; percentage?: number }
-	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean }
+	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean; percentage?: number }
 
 /** Thrown when an update names a different type than the flag it addresses. */
 export class FeatureFlagTypeError extends Error {}
@@ -391,6 +402,7 @@ export async function setFeatureFlag(
 				// not a separate operation the admin UI would have to model.
 				users: update.users ?? value.users,
 				allowEveryone: update.allowEveryone ?? value.allowEveryone ?? false,
+				percentage: update.percentage ?? value.percentage ?? 0,
 			})
 		}
 		default:
