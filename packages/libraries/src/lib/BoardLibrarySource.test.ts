@@ -891,6 +891,16 @@ describe('BoardLibrarySource', () => {
 			expect(elsewhere.getLibraries()).toMatchObject([{ id: own.id, name: 'Ce tableau' }])
 		})
 
+		it('is listed only once the document holds it, with hideUntilSaved, under the name it is given', async () => {
+			const { editor, source, own } = setUp()
+			const viewer = new BoardLibrarySource(editor, {
+				documentLibrary: { name: 'Ce fichier', hideUntilSaved: true },
+			})
+			expect(viewer.getLibraries()).toEqual([])
+			await added(source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) }))
+			expect(viewer.getLibraries()).toMatchObject([{ id: own.id, name: 'Ce fichier' }])
+		})
+
 		it("can't be renamed or deleted, and no other library can be created", async () => {
 			const { source, own } = setUp()
 			expect(source.can('renameLibrary', own.id)).toBe(false)

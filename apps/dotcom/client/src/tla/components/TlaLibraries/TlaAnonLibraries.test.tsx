@@ -328,6 +328,22 @@ describe('with libraries_anonymous on', () => {
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
 	})
 
+	it('lists a board library stored as "This board" as "This file"', async () => {
+		const editor = await renderEditor()
+		const board = new BoardLibrarySource(editor, { documentLibrary: { name: 'This board' } })
+		const [own] = board.getLibraries()
+		const id = createShapeId()
+		act(() => editor.createShape({ id, type: 'geo' }))
+		await act(() =>
+			board.addItem(own.id, {
+				name: 'Box',
+				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+			})
+		)
+		await openPanel(editor)
+		expect(sectionNames()).toEqual(['This file', 'Diagramming', 'Math'])
+	})
+
 	it('lists only the starter packs on a board whose document holds no libraries', async () => {
 		const editor = await renderEditor({ records: {} })
 		await openPanel(editor)

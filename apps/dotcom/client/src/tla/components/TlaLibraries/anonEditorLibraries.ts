@@ -26,8 +26,8 @@ function hasBoardLibraries(editor: Editor) {
 }
 
 /**
- * The libraries a signed-out visitor's editor offers, read-only: the board's own, when its document
- * holds libraries, then the starter packs. Made once per editor, with the packs folded shut, so that
+ * The libraries a signed-out visitor's editor offers, read-only: the board's own, as "This file"
+ * whatever name it was stored with, once its document holds it, then the starter packs. Made once per editor, with the packs folded shut, so that
  * each is fetched only once it's unfolded.
  */
 export function getAnonEditorLibraries(
@@ -48,7 +48,11 @@ export function getAnonEditorLibraries(
 				parts: [
 					{
 						owner: { id: 'board', name: msg(messages.thisFile) },
-						source: new ReadOnlyLibraryView(new BoardLibrarySource(editor)),
+						source: new ReadOnlyLibraryView(
+							new BoardLibrarySource(editor, {
+								documentLibrary: { name: msg(messages.thisFile), hideUntilSaved: true },
+							})
+						),
 					},
 					{
 						owner: { id: 'starter-packs', name: msg(messages.publicLibraries) },

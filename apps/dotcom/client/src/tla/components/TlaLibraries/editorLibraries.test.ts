@@ -102,6 +102,20 @@ describe('getEditorLibraries', () => {
 		expect(source.getItems(own.id)).toHaveLength(1)
 	})
 
+	it('lists a board library stored as "This board" as "This file", in the panel and its menus', async () => {
+		const { editor, source } = setUp()
+		const stored = new BoardLibrarySource(editor, { documentLibrary: { name: 'This board' } })
+		const [own] = stored.getLibraries()
+		const { id } = addImage(editor)
+		await added(
+			stored.addItem(own.id, {
+				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+			})
+		)
+		expect(ofType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
+		expect(source.getLibraries()).toMatchObject([{ id: own.id, name: 'This file' }])
+	})
+
 	it('creates no other libraries on the board, and lists ones it already houses', async () => {
 		const { editor, source } = setUp()
 		expect(source.can('createLibrary', { ownerId: 'file-a' })).toBe(false)
