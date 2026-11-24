@@ -565,7 +565,7 @@ function LibrariesPanelButton() {
 	return (
 		<TldrawUiButton
 			type="icon"
-			className={styles.topLeftMainMenuTrigger}
+			className={`${styles.topLeftMainMenuTrigger} ${styles.librariesButton}`}
 			data-testid="tla-libraries-button"
 			aria-pressed={open}
 			tooltip={label}
@@ -575,7 +575,7 @@ function LibrariesPanelButton() {
 				toggleLibrariesPanel(editor)
 			}}
 		>
-			<TlaIcon icon="library" />
+			<TlaIcon icon="library-strong" />
 		</TldrawUiButton>
 	)
 }
