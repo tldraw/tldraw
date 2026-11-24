@@ -2,7 +2,9 @@ import {
 	createShapeId,
 	createTLStore,
 	defaultBindingUtils,
+	defaultShapeTools,
 	defaultShapeUtils,
+	defaultTools,
 	Editor,
 	LibraryRecordType,
 	type TLLibraryItemId,
@@ -85,6 +87,31 @@ describe('placeLibraryItem', () => {
 		await placeLibraryItem(editor, source, itemId)
 		editor.undo()
 		expect(editor.getCurrentPageShapes()).toEqual([])
+	})
+})
+
+describe('placeLibraryItem with the default tools', () => {
+	let toolsEditor: Editor
+	beforeEach(() => {
+		toolsEditor = new Editor({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [...defaultTools, ...defaultShapeTools],
+			store: createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils }),
+			getContainer: () => document.body,
+		})
+		toolsEditor.setCurrentTool('hand')
+	})
+	afterEach(() => toolsEditor.dispose())
+
+	it('switches to the select tool to select what it placed', async () => {
+		await placeLibraryItem(toolsEditor, source, itemId)
+		expect(toolsEditor.getCurrentToolId()).toBe('select')
+	})
+
+	it('keeps the current tool when the placed shapes are not selected', async () => {
+		await placeLibraryItem(toolsEditor, source, itemId, { select: false })
+		expect(toolsEditor.getCurrentToolId()).toBe('hand')
 	})
 })
 
