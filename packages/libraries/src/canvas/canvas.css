@@ -904,6 +904,10 @@
 	border-radius: var(--tl-radius-1);
 }
 
+.tlui-libraries-details__facts > dd:has(.tlui-input__wrapper) {
+	overflow: visible;
+}
+
 .tlui-libraries-details__facts .tlui-input__wrapper {
 	flex: 1;
 	min-width: 0;
