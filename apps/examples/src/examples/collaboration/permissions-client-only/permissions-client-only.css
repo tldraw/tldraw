@@ -1,8 +1,17 @@
 .permissions-controls {
 	display: flex;
-	align-items: center;
+	flex-direction: column;
 	gap: 4px;
+	width: 240px;
 	margin: 8px;
-	padding: 0 8px 0 0;
+	padding: 8px;
 	pointer-events: all;
+}
+
+/* One line with a fixed width, so that the panel does not change size when the status changes */
+.permissions-status {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: var(--tl-color-text-3);
 }

@@ -1,15 +1,5 @@
 import { useEffect } from 'react'
-import {
-	atom,
-	Editor,
-	TLCheckDiff,
-	Tldraw,
-	TldrawUiButton,
-	TLShape,
-	useEditor,
-	useToasts,
-	useValue,
-} from 'tldraw'
+import { atom, Editor, TLCheckDiff, Tldraw, TLShape, useEditor, useToasts, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './permissions-client-only.css'
 
@@ -57,7 +47,11 @@ function Controls() {
 	const { addToast } = useToasts()
 	const user = useValue(currentUser)
 	// [4]
-	const canEdit = useValue('can edit', () => editor.checkCapability('edit-shape'), [editor])
+	const status = useValue(
+		'status',
+		() => editor.checkCapability('edit-shape')?.reason ?? 'You can change the selection',
+		[editor]
+	)
 
 	useEffect(() => {
 		function onRejected({ reason }: { reason: string }) {
@@ -71,17 +65,16 @@ function Controls() {
 
 	return (
 		<div className="tlui-menu permissions-controls">
-			{['alice', 'bob'].map((name) => (
-				<TldrawUiButton
-					key={name}
-					type="normal"
-					isActive={user === name}
-					onClick={() => currentUser.set(name)}
-				>
-					{name}
-				</TldrawUiButton>
-			))}
-			<span>{canEdit ? canEdit.reason : 'You can change the selection'}</span>
+			<label>
+				Act as{' '}
+				<select value={user} onChange={(e) => currentUser.set(e.currentTarget.value)}>
+					<option value="alice">alice</option>
+					<option value="bob">bob</option>
+				</select>
+			</label>
+			<span className="permissions-status" title={status}>
+				{status}
+			</span>
 		</div>
 	)
 }
