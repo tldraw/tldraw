@@ -430,6 +430,7 @@ export const FEATURE_FLAG_KEYS = [
 	'libraries',
 	'thumbnail_render_push',
 	'mcp_render_push',
+	'thumbnail_render_worker',
 	'headless_shadow',
 	'ui_v3',
 	'mcp_hidden_tab',

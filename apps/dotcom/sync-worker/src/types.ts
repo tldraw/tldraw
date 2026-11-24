@@ -160,10 +160,6 @@ export interface Environment {
 	// the page fetching them back from the snapshot route, for every board. Where it is unset
 	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
 	THUMBNAIL_RENDER_PUSH: string | undefined
-	// 'true' hands rendering to the private render worker (RENDER_WORKER) instead of the local render
-	// path in thumbnailRender.ts. Off everywhere it is unset; flipped per environment once the worker
-	// renders end-to-end. See apps/dotcom/render-worker.
-	THUMBNAIL_RENDER_VIA_WORKER: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

@@ -17,6 +17,8 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// Server-side only: the sync worker reads these to pick the render transport.
 	thumbnail_render_push: { enabled: false },
 	mcp_render_push: { enabled: false },
+	// Server-side only: the sync worker reads this to pick which worker renders a board.
+	thumbnail_render_worker: { enabled: false },
 	// Server-side only: the sync worker reads this to sample MCP reads and OG and thumbnail renders for
 	// the headless shadow compare.
 	headless_shadow: { enabled: false },
