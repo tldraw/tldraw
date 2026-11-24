@@ -23,6 +23,7 @@ import {
 	getNetworkDiff,
 } from './diff'
 import { interval } from './interval'
+import { getParentCycleOpIds } from './parentCycles'
 import {
 	TLObjectStoreAccess,
 	TLPushRequest,
@@ -803,7 +804,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				if (!networkDiff) return
 				const speculativeChanges = this.store.filterChangesByScope(
 					this.store.extractingChanges(() => {
-						this.applyNetworkDiff(networkDiff, true)
+						this.applySpeculativeDiff(networkDiff)
 					}),
 					'document'
 				)
@@ -925,6 +926,23 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/**
+	 * Re-applies this client's unconfirmed changes on top of fresh server state, minus any op the
+	 * room will refuse for closing a parent cycle with a change that beat it there (#6152). Applying
+	 * it anyway would put the cycle in the store until the push result arrives, and the editor
+	 * overflows the stack walking it.
+	 */
+	private applySpeculativeDiff(diff: NetworkDiff<R>) {
+		const refused = getParentCycleOpIds(diff, (id) =>
+			this.store.unsafeGetWithoutCapture(id as RecordId<any>)
+		)
+		if (refused.size > 0) {
+			diff = { ...diff }
+			for (const id of refused) delete diff[id]
+		}
+		this.applyNetworkDiff(diff, true)
+	}
+
+	/**
 	 * Applies a 'network' diff to the store this does value-based equality checking so that if the
 	 * data is the same (as opposed to merely identical with ===), then no change is made and no
 	 * changes will be propagated back to store listeners
@@ -1012,12 +1030,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					this.speculativeChanges = this.store.extractingChanges(() => {
 						for (const request of this.pendingPushRequests) {
 							if (!('diff' in request) || !request.diff) continue
-							this.applyNetworkDiff(request.diff, true)
+							this.applySpeculativeDiff(request.diff)
 						}
 						if (!this.unsentChanges.nextDiff) return
 						const diff = getNetworkDiff(this.unsentChanges.nextDiff)
 						if (!diff) return
-						this.applyNetworkDiff(diff, true)
+						this.applySpeculativeDiff(diff)
 					})
 				} catch (e) {
 					console.error(e)

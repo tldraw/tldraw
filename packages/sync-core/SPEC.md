@@ -237,6 +237,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RP11** A push (or ping) updates the session's `lastInteractionTime`; a ping is answered with `pong`.
 - **RP12** A `TLSyncError` thrown while handling a message (validation, migration) rejects only that session with the error's reason.
 - **RP13** When the storage layer reports that it modified the transaction's changes (`emitChanges: 'when-different'`), the room broadcasts the storage's actual changes and the pusher receives them as `rebaseWithDiff`. (The built-in storages never do this; the rule is observable with a custom storage.)
+- **RP14** A `put` or `patch` that would leave a shape its own ancestor once the whole push is applied is skipped like an authorizer veto; the rest of the push still applies. The check uses the push's end state, so the order of its ops doesn't matter, and every op of a cycle the push forms by itself is skipped. Concurrent reparents from two clients can each be valid alone and form a cycle together, so the second is refused.
 
 ## 25. `TLSyncRoom` — messaging and broadcast (RB)
 

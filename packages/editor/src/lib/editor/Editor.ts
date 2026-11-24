@@ -666,6 +666,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					},
 					afterChange: (shapeBefore, shapeAfter) => {
+						// A redo can replay a reparent that a collaborator's change has since made into a
+						// parent cycle, and a room may already store one (#6152). Every walk below would
+						// overflow the stack, so undo the reparent. Callbacks see the end state of the whole
+						// change, so a valid batch never looks cyclic partway through.
+						if (
+							shapeBefore.parentId !== shapeAfter.parentId &&
+							this._isOwnAncestor(shapeAfter.id)
+						) {
+							const current = this.store.unsafeGetWithoutCapture(shapeAfter.id)!
+							this.store.put([
+								{
+									...current,
+									parentId: this._isOwnAncestor(shapeAfter.id, shapeBefore.parentId)
+										? this.getCurrentPageId()
+										: shapeBefore.parentId,
+									index: shapeBefore.index,
+									x: shapeBefore.x,
+									y: shapeBefore.y,
+									rotation: shapeBefore.rotation,
+								},
+							])
+							return
+						}
+
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
@@ -5736,6 +5760,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!freshShape) return false
 		if (freshShape.parentId === ancestorId) return true
 		return this.hasAncestor(this.getShapeParent(freshShape), ancestorId)
+	}
+
+	/**
+	 * Whether the parent chain starting at `parentId` (by default the shape's stored parent) leads
+	 * back to the shape. Iterative with a visited set, unlike {@link Editor.hasAncestor}, so a cycle
+	 * elsewhere can't hang it.
+	 */
+	private _isOwnAncestor(
+		shapeId: TLShapeId,
+		parentId = this.store.unsafeGetWithoutCapture(shapeId)?.parentId
+	): boolean {
+		const visited = new Set<TLParentId>()
+		while (parentId && isShapeId(parentId) && !visited.has(parentId)) {
+			if (parentId === shapeId) return true
+			visited.add(parentId)
+			const parent = this.store.unsafeGetWithoutCapture(parentId)
+			if (!parent) return false
+			parentId = parent.parentId
+		}
+		return false
 	}
 
 	/**
