@@ -565,7 +565,8 @@
 	border-radius: var(--tl-radius-1);
 }
 
-.tlui-libraries-browse__back {
+.tlui-libraries-browse__header .tlui-button__icon,
+.tlui-libraries-details__header .tlui-button__icon {
 	color: var(--tl-color-text-3);
 }
 
