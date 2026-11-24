@@ -1475,7 +1475,11 @@ async function callApplyOpsTool(
 			{
 				ops: input.ops,
 				page: input.page ?? undefined,
-				attribution: { userId, runId: input.runId ?? undefined },
+				attribution: {
+					userId,
+					runId: input.runId ?? undefined,
+					batchKey: input.batchKey ?? undefined,
+				},
 			},
 			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)

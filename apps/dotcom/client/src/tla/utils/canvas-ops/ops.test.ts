@@ -1,3 +1,5 @@
+import { getBatchKeyMetaEntry } from '@tldraw/dotcom-shared'
+import { applyObjectDiff, diffRecord } from '@tldraw/sync-core'
 import {
 	Box,
 	createShapeId,
@@ -110,6 +112,39 @@ function seedDiagram() {
 		{ type: 'create_note', id: 'n1', text: 'todo', x: 900, y: 500 },
 	])
 }
+
+// The file object reads a batch key from the document to tell whether an unconfirmed batch landed.
+describe('batch keys', () => {
+	const keyed = { userId: 'u1', batchKey: 'k1' }
+	const hasKey = (tab: Editor, userId: string, batchKey: string) =>
+		Object.hasOwn(tab.getDocumentSettings().meta, getBatchKeyMetaEntry(userId, batchKey))
+
+	it('records the key with the batch, and keeps it when the batch is undone', () => {
+		applyOps(editor, [{ op: 'add', kind: 'box', text: 'A', at: { x: 0, y: 0 } }], keyed)
+		expect(hasKey(editor, 'u1', 'k1')).toBe(true)
+
+		editor.undo()
+		expect(hasKey(editor, 'u1', 'k1')).toBe(true)
+	})
+
+	// Two tabs record keys at once and the server applies both pushes to its copy of the document.
+	it("keeps both tabs' keys when they record at the same time", () => {
+		const other = createTestEditor()
+		const base = editor.getDocumentSettings()
+		runBatch(editor, keyed, () => {})
+		runBatch(other, { userId: 'u2', batchKey: 'k2' }, () => {})
+
+		let server = base
+		for (const tab of [editor, other]) {
+			server = applyObjectDiff(server, diffRecord(base, tab.getDocumentSettings())!)
+		}
+		editor.store.mergeRemoteChanges(() => editor.store.put([server]))
+
+		expect(hasKey(editor, 'u1', 'k1')).toBe(true)
+		expect(hasKey(editor, 'u2', 'k2')).toBe(true)
+		other.dispose()
+	})
+})
 
 describe('references', () => {
 	it('resolves ids, text, descriptions, and the selection', () => {
