@@ -229,12 +229,13 @@ button.topLeftInputNameWidthSetter {
 .topLeftMainMenuTrigger::after {
 	content: '';
 	position: absolute;
-	inset: 4px;
+	inset: 2px;
 	border-radius: var(--tl-radius-2);
 }
 
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
+		z-index: 4;
 		color: var(--tl-color-text-1);
 	}
 
