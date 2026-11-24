@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode, useState } from 'react'
+import { TldrawUiTooltip } from 'tldraw'
 
 /** @public */
 export interface ItemTileProps {
@@ -26,31 +27,32 @@ export function ItemTile({
 	const nextUrl = thumbnailUrl === loadedUrl ? undefined : thumbnailUrl
 	return (
 		<div className="tlui-libraries-tile">
-			<button
-				type="button"
-				className="tlui-libraries-tile__button"
-				aria-label={accessibleLabel}
-				title={name}
-				{...buttonProps}
-			>
-				<span className="tlui-libraries-tile__thumbnail">
-					{shownUrl && (
-						<img key={shownUrl} src={shownUrl} alt="" draggable={false} decoding="async" />
-					)}
-					{nextUrl && (
-						<img
-							key={nextUrl}
-							src={nextUrl}
-							alt=""
-							draggable={false}
-							loading="lazy"
-							decoding="async"
-							data-loading={shownUrl ? true : undefined}
-							onLoad={() => setLoadedUrl(nextUrl)}
-						/>
-					)}
-				</span>
-			</button>
+			<TldrawUiTooltip content={name} side="bottom">
+				<button
+					type="button"
+					className="tlui-libraries-tile__button"
+					aria-label={accessibleLabel}
+					{...buttonProps}
+				>
+					<span className="tlui-libraries-tile__thumbnail">
+						{shownUrl && (
+							<img key={shownUrl} src={shownUrl} alt="" draggable={false} decoding="async" />
+						)}
+						{nextUrl && (
+							<img
+								key={nextUrl}
+								src={nextUrl}
+								alt=""
+								draggable={false}
+								loading="lazy"
+								decoding="async"
+								data-loading={shownUrl ? true : undefined}
+								onLoad={() => setLoadedUrl(nextUrl)}
+							/>
+						)}
+					</span>
+				</button>
+			</TldrawUiTooltip>
 			{menu && <div className="tlui-libraries-tile__menu">{menu}</div>}
 		</div>
 	)

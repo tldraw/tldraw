@@ -1,6 +1,9 @@
 import {
+	createContext,
 	type ReactNode,
+	type SyntheticEvent,
 	useCallback,
+	useContext,
 	useEffect,
 	useLayoutEffect,
 	useMemo,
@@ -29,7 +32,12 @@ import {
 import type { LibrarySource } from '../lib/LibrarySource'
 import { getLibraryItemCount, getLibraryPreviewItems } from '../lib/librarySummary'
 import { getThumbnailForColorMode } from '../lib/schema'
-import { getBrowseSections } from './browse-groups'
+import {
+	type BrowseSections,
+	getBrowseSections,
+	isAddedToDocument,
+	keepBrowsePlacement,
+} from './browse-groups'
 import { activeLibraryId } from './state'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 
@@ -121,18 +129,74 @@ type Viewing = { kind: 'source'; libraryId: TLLibraryId } | { kind: 'host'; entr
 export interface BrowseLibrariesDialogProps {
 	source: LibrarySource
 	getBrowseGroups?(): LibraryBrowseGroup[]
+	/**
+	 * Shows it as a view in the libraries sheet in place of a dialog, with a Back button that calls
+	 * this where the dialog has its ✕.
+	 */
+	onBack?(): void
 }
 
-export function BrowseLibrariesDialog({
+/** Keeps the card the user last pressed or focused where it is on screen as the list changes. */
+const HoldInViewContext = createContext<((card: HTMLElement) => void) | undefined>(undefined)
+
+function useHoldInView() {
+	const held = useRef<{ card: HTMLElement; top: number; stop(): void } | undefined>(undefined)
+	useLayoutEffect(() => {
+		const hold = held.current
+		if (!hold || !hold.card.isConnected) return
+		const body = hold.card.closest('.tlui-dialog__body')
+		const top = hold.card.getBoundingClientRect().top
+		if (body && top !== hold.top) body.scrollTop += top - hold.top
+		hold.top = hold.card.getBoundingClientRect().top
+	})
+	useEffect(() => () => held.current?.stop(), [])
+	return useCallback((card: HTMLElement) => {
+		if (held.current && held.current.card === card) return
+		if (held.current) held.current.stop()
+		const body = card.closest('.tlui-dialog__body')
+		const onScroll = () => {
+			if (held.current) held.current.top = card.getBoundingClientRect().top
+		}
+		if (body) body.addEventListener('scroll', onScroll, { passive: true })
+		held.current = {
+			card,
+			top: card.getBoundingClientRect().top,
+			stop: () => body?.removeEventListener('scroll', onScroll),
+		}
+	}, [])
+}
+
+/** Set where Browse is a view in the libraries sheet: leaves it for the libraries again. */
+const SheetBackContext = createContext<(() => void) | undefined>(undefined)
+
+export function BrowseLibrariesDialog({ onBack, ...props }: BrowseLibrariesDialogProps) {
+	return (
+		<SheetBackContext.Provider value={onBack}>
+			<BrowseLibraries {...props} />
+		</SheetBackContext.Provider>
+	)
+}
+
+function BrowseLibraries({
 	source,
 	getBrowseGroups: getHostGroups,
-}: BrowseLibrariesDialogProps) {
+}: Omit<BrowseLibrariesDialogProps, 'onBack'>) {
+	const sheetBack = useContext(SheetBackContext)
 	const msg = useTranslation()
-	const sections = useValue(
+	const nextSections = useValue(
 		'browse sections',
 		() => getBrowseSections(source, getHostGroups ? getHostGroups() : []),
 		[source, getHostGroups]
 	)
+	const shownSections = useRef<BrowseSections | undefined>(undefined)
+	const sections = useMemo(
+		() => keepBrowsePlacement(shownSections.current, nextSections),
+		[nextSections]
+	)
+	useLayoutEffect(() => {
+		shownSections.current = sections
+	}, [sections])
+	const holdInView = useHoldInView()
 	const isEmpty =
 		sections.thisFile.length === 0 && sections.owners.length === 0 && sections.hosts.length === 0
 	const [viewing, setViewing] = useState<Viewing | null>(null)
@@ -153,7 +217,7 @@ export function BrowseLibrariesDialog({
 				<SourceLibraryView
 					source={source}
 					library={library}
-					added={addedLibrary !== undefined}
+					added={isAddedToDocument(source, library.id)}
 					onBack={back}
 				/>
 			)
@@ -168,8 +232,8 @@ export function BrowseLibrariesDialog({
 	}
 
 	return (
-		<>
-			<BrowseHeader title={msg(messages.title)} />
+		<HoldInViewContext.Provider value={holdInView}>
+			<BrowseHeader title={msg(messages.title)} onBack={sheetBack} />
 			<TldrawUiDialogBody className="tlui-libraries-browse">
 				{isEmpty && <p className="tlui-libraries-panel__empty">{msg(messages.empty)}</p>}
 				{sections.thisFile.length > 0 && (
@@ -180,7 +244,6 @@ export function BrowseLibrariesDialog({
 									key={listed.library.id}
 									source={source}
 									library={listed.library}
-									added
 									onView={() => setViewing({ kind: 'source', libraryId: listed.library.id })}
 								/>
 							) : (
@@ -207,7 +270,6 @@ export function BrowseLibrariesDialog({
 								key={library.id}
 								source={source}
 								library={library}
-								added={false}
 								onView={() => setViewing({ kind: 'source', libraryId: library.id })}
 							/>
 						))}
@@ -221,21 +283,35 @@ export function BrowseLibrariesDialog({
 					</BrowseGroup>
 				))}
 			</TldrawUiDialogBody>
-		</>
+		</HoldInViewContext.Provider>
 	)
 }
 
-/** A Browse view's title, after a Back button where there's somewhere to go back to. */
+/**
+ * A Browse view's title, after a Back button where there's somewhere to go back to, and before the
+ * dialog's ✕. In the libraries sheet there's always a Back, which takes focus, and no ✕.
+ */
 function BrowseHeader({ title, onBack }: { title: string; onBack?(): void }) {
 	const msg = useTranslation()
 	const dir = useDirection()
+	const inSheet = useContext(SheetBackContext) !== undefined
+	const backRef = useRef<HTMLButtonElement>(null)
+	useLayoutEffect(() => {
+		if (inSheet && backRef.current) backRef.current.focus()
+	}, [inSheet])
 	return (
 		<TldrawUiDialogHeader className="tlui-libraries-browse__header">
 			{onBack && (
 				<TldrawUiButton
+					ref={backRef}
 					type="icon"
 					className="tlui-libraries-browse__back"
 					onClick={onBack}
+					onTouchEnd={(e) => {
+						if (!e.cancelable) return
+						e.preventDefault()
+						onBack()
+					}}
 					tooltip={msg(messages.back)}
 					title={msg(messages.back)}
 				>
@@ -243,7 +319,7 @@ function BrowseHeader({ title, onBack }: { title: string; onBack?(): void }) {
 				</TldrawUiButton>
 			)}
 			<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
-			<TldrawUiDialogCloseButton />
+			{!inSheet && <TldrawUiDialogCloseButton />}
 		</TldrawUiDialogHeader>
 	)
 }
@@ -332,15 +408,17 @@ function useSourceAdd(source: LibrarySource, library: TLLibrary, added: boolean)
 function SourceLibraryCard({
 	source,
 	library,
-	added,
 	onView,
 }: {
 	source: LibrarySource
 	library: TLLibrary
-	added: boolean
 	onView(): void
 }) {
 	const libraryId = library.id
+	const added = useValue('library added', () => isAddedToDocument(source, libraryId), [
+		source,
+		libraryId,
+	])
 	const itemCount = useValue('library item count', () => getLibraryItemCount(source, libraryId), [
 		source,
 		libraryId,
@@ -417,13 +495,22 @@ function LibraryCard({
 	onView?(): void
 }) {
 	const msg = useTranslation()
+	const holdInView = useContext(HoldInViewContext)
+	const hold = (e: SyntheticEvent<HTMLElement>) => {
+		if (holdInView) holdInView(e.currentTarget)
+	}
 	const thumbnails = Array.from({ length: PREVIEW_COUNT }, (_, i) => (
 		<span key={i} className="tlui-libraries-tile__thumbnail">
 			{thumbnailUrls[i] && <img src={thumbnailUrls[i]} alt="" draggable={false} />}
 		</span>
 	))
 	return (
-		<li ref={cardRef} className="tlui-libraries-browse__card">
+		<li
+			ref={cardRef}
+			className="tlui-libraries-browse__card"
+			onPointerDownCapture={hold}
+			onFocusCapture={hold}
+		>
 			{onView ? (
 				<button
 					type="button"
@@ -471,6 +558,16 @@ function LibrarySummary({
 	onRemove?(): void
 }) {
 	const msg = useTranslation()
+	const actionsRef = useRef<HTMLDivElement>(null)
+	const hadFocus = useRef(false)
+	useLayoutEffect(() => {
+		const actions = actionsRef.current
+		if (!actions || !hadFocus.current) return
+		const active = actions.ownerDocument.activeElement
+		if (active && active !== actions.ownerDocument.body && !active.contains(actions)) return
+		const button = actions.querySelector<HTMLButtonElement>('button:not(:disabled)')
+		if (button) button.focus({ preventScroll: true })
+	}, [added, disabled, removing])
 	return (
 		<div className="tlui-libraries-browse__footer">
 			<div className="tlui-libraries-browse__text">
@@ -479,7 +576,16 @@ function LibrarySummary({
 					{msg(messages.itemCount, { count: itemCount })}
 				</span>
 			</div>
-			<div className="tlui-libraries-browse__actions">
+			<div
+				ref={actionsRef}
+				className="tlui-libraries-browse__actions"
+				onFocus={() => {
+					hadFocus.current = true
+				}}
+				onBlur={(e) => {
+					if (e.relatedTarget) hadFocus.current = false
+				}}
+			>
 				{added && onRemove ? (
 					<>
 						<span className="tlui-libraries-browse__added">
@@ -533,6 +639,7 @@ function LibraryView({
 	onBack(): void
 }) {
 	const msg = useTranslation()
+	const inSheet = useContext(SheetBackContext) !== undefined
 	const listRef = useRef<HTMLUListElement | null>(null)
 	const setListRef = useCallback(
 		(element: HTMLUListElement | null) => {
@@ -542,9 +649,10 @@ function LibraryView({
 		[itemsRef]
 	)
 	useLayoutEffect(() => {
+		if (inSheet) return
 		const content = listRef.current && listRef.current.closest('.tlui-dialog__content')
 		if (content instanceof HTMLElement) content.focus()
-	}, [])
+	}, [inSheet])
 	return (
 		<>
 			<BrowseHeader title={name} onBack={onBack} />

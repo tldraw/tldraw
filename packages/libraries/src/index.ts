@@ -22,8 +22,8 @@ export { useLibrariesComponents } from './canvas/use-libraries-components'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
 export {
 	LibrariesPanelHeader,
+	type LibrariesPanelHeaderCreate,
 	type LibrariesPanelHeaderProps,
-	type NewLibraryAction,
 } from './canvas/libraries-panel-header'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
 export { LibrariesQuickActions, LibrariesToolbarButton } from './canvas/libraries-quick-actions'
@@ -31,7 +31,6 @@ export {
 	LibrarySectionHeader,
 	type LibrarySectionHeaderProps,
 } from './canvas/library-section-header'
-export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
 export { useLibrariesEnabled } from './canvas/license'
 export { type TLLibraryItemOrdering } from './canvas/item-order'
 export { useLibraries } from './canvas/use-libraries'
@@ -50,7 +49,7 @@ export {
 	type SaveSelectionToLibrary,
 	useSaveSelectionToLibrary,
 } from './canvas/use-save-selection-to-library'
-export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
+export { NoLibraries } from './canvas/no-libraries'
 export {
 	defaultPlaceLibraryItem,
 	type LibraryItemPlacer,
@@ -104,6 +103,7 @@ export {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemDetails,
 	type TLLibraryItemPartial,
 	type TLLibraryOwner,
 	type TLLibraryPlacement,

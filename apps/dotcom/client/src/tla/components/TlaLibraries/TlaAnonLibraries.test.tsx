@@ -66,7 +66,6 @@ beforeAll(() => {
 		value: { add() {}, delete() {}, forEach() {}, [Symbol.iterator]: () => [][Symbol.iterator]() },
 	})
 	Element.prototype.scrollIntoView ??= () => {}
-	Element.prototype.scrollTo ??= () => {}
 	window.matchMedia ??= (query: string) =>
 		({
 			matches: false,
@@ -148,25 +147,8 @@ async function renderEditor({
 
 async function openPanel(editor: Editor) {
 	act(() => librariesPanelOpen.set(editor, true))
-	await vi.waitFor(
-		() => {
-			showTab('Public libraries')
-			expect(sectionNames()).toContain('Diagramming')
-		},
-		{ timeout: 5000 }
-	)
+	await vi.waitFor(() => expect(sectionNames()).toContain('Diagramming'), { timeout: 5000 })
 	return container!.querySelector('.tlui-libraries-panel')!
-}
-
-// A board that holds libraries has a tab for them, before the starter packs' tab.
-function showTab(name: string) {
-	const tab = [...container!.querySelectorAll<HTMLElement>('.tlui-libraries-tabs__tab')].find(
-		(el) => el.title === name
-	)
-	if (!tab) return
-	act(() => {
-		tab.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }))
-	})
 }
 
 const sectionNames = () =>
@@ -175,6 +157,17 @@ const sectionNames = () =>
 const tiles = () => container!.querySelectorAll<HTMLButtonElement>('.tlui-libraries-tile__button')
 
 const tileLabels = () => [...tiles()].map((el) => el.getAttribute('aria-label'))
+
+function search(query: string) {
+	const input = container!.querySelector<HTMLInputElement>(
+		'.tlui-libraries-search__input input, input.tlui-libraries-search__input'
+	)!
+	const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!
+	act(() => {
+		setValue.call(input, query)
+		input.dispatchEvent(new Event('input', { bubbles: true }))
+	})
+}
 
 async function unfold(name: string) {
 	const toggle = [
@@ -230,6 +223,7 @@ describe('with libraries_anonymous on', () => {
 		expect(panel.querySelector('.tlui-libraries-panel__browse-more')).toBeNull()
 		expect(panel.querySelector(':scope > header [aria-label="Library options"]')).toBeNull()
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
+		expect(panel.textContent).not.toContain('This board')
 		expect(panel.textContent).not.toContain('Browse libraries')
 	})
 
@@ -246,6 +240,38 @@ describe('with libraries_anonymous on', () => {
 		expect(loadStarterPackIndex).toHaveBeenCalledWith('diagramming')
 	})
 
+	it("unfolds a folded pack's matches for a search, and folds it again once cleared", async () => {
+		const editor = await renderEditor()
+		await openPanel(editor)
+		expect(loadStarterPackIndex).not.toHaveBeenCalled()
+
+		search('process')
+		await vi.waitFor(() => expect(tileLabels()).toEqual(['Process']))
+		expect(loadStarterPackIndex).toHaveBeenCalledTimes(1)
+		expect(loadStarterPackIndex).toHaveBeenCalledWith('diagramming')
+
+		search('')
+		await vi.waitFor(() => expect(sectionNames()).toEqual(['Diagramming', 'Math']))
+		expect(
+			[...container!.querySelectorAll('.tlui-libraries-panel__toggle')].map((el) =>
+				el.getAttribute('aria-expanded')
+			)
+		).toEqual(['false', 'false'])
+		expect(tiles()).toHaveLength(0)
+	})
+
+	it('says nothing matched straight away, without fetching any pack, for a search that misses', async () => {
+		const editor = await renderEditor()
+		const panel = await openPanel(editor)
+
+		search('zzzz')
+
+		expect(panel.textContent).toContain('No items found')
+		expect(panel.textContent).not.toContain('Searching…')
+		await act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+		expect(loadStarterPackIndex).not.toHaveBeenCalled()
+	})
+
 	it('places an item on the canvas', async () => {
 		const editor = await renderEditor()
 		await openPanel(editor)
@@ -260,21 +286,16 @@ describe('with libraries_anonymous on', () => {
 	it("lists the board's own libraries before the packs, read-only too", async () => {
 		const editor = await renderEditor()
 		await act(() => new BoardLibrarySource(editor).createLibrary('Our shapes'))
-		act(() => librariesPanelOpen.set(editor, true))
-		await vi.waitFor(() => expect(sectionNames()).toEqual(['Our shapes']))
-		const panel = container!.querySelector('.tlui-libraries-panel')!
-		const expanded = () =>
+		const panel = await openPanel(editor)
+
+		expect(sectionNames()).toEqual(['Our shapes', 'Diagramming', 'Math'])
+		expect(
 			[...panel.querySelectorAll('.tlui-libraries-panel__toggle')].map((el) =>
 				el.getAttribute('aria-expanded')
 			)
-
-		expect(expanded()).toEqual(['true'])
+		).toEqual(['true', 'false', 'false'])
 		expect(panel.textContent).toContain('No items yet.')
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
-
-		await openPanel(editor)
-		expect(sectionNames()).toEqual(['Diagramming', 'Math'])
-		expect(expanded()).toEqual(['false', 'false'])
 	})
 
 	it('lists "This board" once someone has saved to it, with its items, read-only', async () => {
@@ -289,10 +310,9 @@ describe('with libraries_anonymous on', () => {
 				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
 			})
 		)
-		act(() => librariesPanelOpen.set(editor, true))
-		await vi.waitFor(() => expect(sectionNames()).toEqual(['This board']))
-		const panel = container!.querySelector('.tlui-libraries-panel')!
+		const panel = await openPanel(editor)
 
+		expect(sectionNames()).toEqual(['This board', 'Diagramming', 'Math'])
 		expect(tileLabels()).toEqual(['Box'])
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
 	})

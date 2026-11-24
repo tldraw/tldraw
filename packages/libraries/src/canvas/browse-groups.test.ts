@@ -1,6 +1,6 @@
 import { LibraryRecordType } from 'tldraw'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
-import { type BrowseSections, getBrowseSections } from './browse-groups'
+import { type BrowseSections, getBrowseSections, keepBrowsePlacement } from './browse-groups'
 import type { LibraryBrowseEntry, LibraryBrowseGroup } from './browse-libraries-dialog'
 
 const library = (name: string, ownerId: string) =>
@@ -117,5 +117,50 @@ it("lists only a host's entries for a source that doesn't add libraries to docum
 		thisFile: [],
 		owners: [],
 		hosts: [['Packs', ['Doodles']]],
+	})
+})
+
+describe('keepBrowsePlacement', () => {
+	it('keeps a library added or removed while browsing in the group it was shown in', async () => {
+		const { source, id } = setUp()
+		const shown = getBrowseSections(source)
+		await source.addLibraryToDocument!(id('Diagrams'))
+		await source.removeLibraryFromDocument!(id('Arrows'))
+		expect(summarize(keepBrowsePlacement(shown, getBrowseSections(source)))).toEqual(
+			summarize(shown)
+		)
+	})
+
+	it("keeps a host's entry in its group once added, with the entry as it is now", () => {
+		const { source } = setUp()
+		const packs = (added: boolean) => ({
+			id: 'packs',
+			label: 'Public libraries',
+			entries: [entry('Doodles', { added }), entry('Badges')],
+		})
+		const kept = keepBrowsePlacement(
+			getBrowseSections(source, [packs(false)]),
+			getBrowseSections(source, [packs(true)])
+		)
+		expect(summarize(kept).hosts).toEqual([['Public libraries', ['Doodles', 'Badges']]])
+		expect(kept.hosts[0].entries[0].added).toBe(true)
+	})
+
+	it('puts a library first listed while browsing where it belongs, and drops one no longer listed', async () => {
+		const { source, id } = setUp()
+		const shown = getBrowseSections(source)
+		const added = await source.createLibrary('Badges', { ownerId: 'acme' })
+		await source.deleteLibrary(id('Icons'))
+		const kept = summarize(keepBrowsePlacement(shown, getBrowseSections(source)))
+		expect(kept).toMatchObject({
+			thisFile: ['Arrows', added.name],
+			owners: [['Acme', ['Diagrams', 'Wireframes']]],
+		})
+	})
+
+	it('groups as usual when nothing has been shown yet', () => {
+		const { source } = setUp()
+		const next = getBrowseSections(source)
+		expect(keepBrowsePlacement(undefined, next)).toBe(next)
 	})
 })

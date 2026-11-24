@@ -2,26 +2,29 @@ import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } f
 import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryMenu as DefaultLibraryMenu } from '../ui/library-menu'
-import { getItemOrdering, itemOrderings } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
 import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-section-header'
+import { useLongPress } from './long-press'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
+import { useIsPhone } from './use-is-phone'
+import { useItemOrdering } from './use-item-ordering'
 import { useLibraryActions } from './use-library-actions'
 import { useLibraryCollapsed } from './use-library-collapsed'
-import { useLibraryItemOrder } from './use-library-item-order'
 
 /** Unfolds and scrolls into view when it becomes the active library, e.g. from a toast's "Open". */
 export function LibrarySection({
 	source,
 	library,
 	getItemProps,
+	placeItem,
 	prepareItemContent,
 }: {
 	source: LibrarySource
 	library: TLLibrary
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	placeItem(itemId: TLLibraryItemId): void
 	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
@@ -48,7 +51,12 @@ export function LibrarySection({
 	useEffect(() => {
 		if (!isActive) return
 		collapsedLibraryIds.update(editor, (ids) => ids.filter((id) => id !== libraryId))
-		if (ref.current) ref.current.scrollIntoView({ block: 'nearest' })
+		if (ref.current) {
+			ref.current.scrollIntoView({
+				block: 'nearest',
+				behavior: editor.user.getAnimationSpeed() > 0 ? 'smooth' : 'auto',
+			})
+		}
 		activeLibraryId.set(editor, null)
 	}, [editor, isActive, libraryId])
 
@@ -56,17 +64,24 @@ export function LibrarySection({
 		if (!collapsed && source.loadItems) source.loadItems(libraryId)
 	}, [source, libraryId, collapsed])
 
-	const order = useLibraryItemOrder(source, libraryId)
-	const sort = {
-		options: itemOrderings.map(({ id, label }) => ({ id, label })),
-		value: order.ordering,
-		onValueChange: (orderingId: string) => order.setOrdering(getItemOrdering(orderingId).id),
-		reversed: order.reversed,
-		onReversedChange: order.setReversed,
-	}
+	const { ordering, reversed, sort } = useItemOrdering(source, libraryId)
+	const menuId = `libraries-library-menu-${libraryId}`
+	const headerPress = useLongPress(useIsPhone() && !isRenaming && !!LibraryMenu)(() =>
+		editor.menus.addOpenMenu(menuId)
+	)
 
 	return (
-		<section ref={setRef} className="tlui-libraries-section">
+		<section
+			ref={setRef}
+			className="tlui-libraries-section"
+			{...headerPress}
+			onPointerDown={(e) => {
+				const header = e.currentTarget.firstElementChild
+				if (headerPress.onPointerDown && header && header.contains(e.target as Node)) {
+					headerPress.onPointerDown(e)
+				}
+			}}
+		>
 			{LibrarySectionHeader && (
 				<LibrarySectionHeader
 					source={source}
@@ -80,7 +95,7 @@ export function LibrarySection({
 							<LibraryMenu
 								source={source}
 								library={library}
-								id={`libraries-library-menu-${libraryId}`}
+								id={menuId}
 								sort={sort}
 								{...menuActions}
 							/>
@@ -97,8 +112,9 @@ export function LibrarySection({
 					library={library}
 					container={element}
 					getItemProps={getItemProps}
-					ordering={order.ordering}
-					reversed={order.reversed}
+					placeItem={placeItem}
+					ordering={ordering}
+					reversed={reversed}
 					prepareItemContent={prepareItemContent}
 				/>
 			)}

@@ -1,4 +1,4 @@
-.libraries-custom-tabs-count {
+.libraries-custom-pieces-count {
 	margin-left: 4px;
 	padding: 0 5px;
 	border-radius: 8px;
@@ -8,7 +8,7 @@
 	line-height: 16px;
 }
 
-.libraries-custom-tabs-section-header {
+.libraries-custom-pieces-section-header {
 	position: sticky;
 	top: 0;
 	z-index: 1;
@@ -19,7 +19,7 @@
 	background: var(--tl-color-panel);
 }
 
-.libraries-custom-tabs-section-header > button {
+.libraries-custom-pieces-section-header > button {
 	all: unset;
 	display: flex;
 	align-items: center;
@@ -30,7 +30,7 @@
 	cursor: pointer;
 }
 
-.libraries-custom-tabs-empty {
+.libraries-custom-pieces-empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -39,7 +39,7 @@
 	text-align: center;
 }
 
-.libraries-custom-tabs-empty p {
+.libraries-custom-pieces-empty p {
 	margin: 0;
 	color: var(--tl-color-text-3);
 }

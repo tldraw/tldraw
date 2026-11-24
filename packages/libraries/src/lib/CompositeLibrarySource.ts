@@ -8,6 +8,7 @@ import {
 	type LibrarySource,
 	type TLCopyLibraryOptions,
 	type TLLibraryAction,
+	type TLLibraryItemDetails,
 	type TLLibraryOwner,
 	type TLLibraryPlacement,
 	type TLLibraryTarget,
@@ -90,6 +91,8 @@ export class CompositeLibrarySource implements LibrarySource {
 	readonly getPreviewItems?: (libraryId: TLLibraryId, count: number) => TLLibraryItem[]
 	/** Present when any part has it. A part without it may match any search. */
 	readonly mayHaveItemsMatching?: (libraryId: TLLibraryId, query: string) => boolean
+	/** Present when any part has it. */
+	readonly getItemDetails?: (item: TLLibraryItem) => TLLibraryItemDetails
 	/** Present when any part has it. */
 	readonly removeLibraryFromDocument?: (libraryId: TLLibraryId) => Promise<void>
 	private readonly parts: Part[]
@@ -201,6 +204,12 @@ export class CompositeLibrarySource implements LibrarySource {
 			this.mayHaveItemsMatching = (libraryId, query) => {
 				const source = this.partByLibrary$.get().get(libraryId)?.source
 				return source?.mayHaveItemsMatching ? source.mayHaveItemsMatching(libraryId, query) : true
+			}
+		}
+		if (this.parts.some((part) => part.source.getItemDetails)) {
+			this.getItemDetails = (item) => {
+				const source = this.partByLibrary$.get().get(item.libraryId)?.source
+				return source?.getItemDetails ? source.getItemDetails(item) : {}
 			}
 		}
 		if (this.parts.some((part) => part.source.removeLibraryFromDocument)) {

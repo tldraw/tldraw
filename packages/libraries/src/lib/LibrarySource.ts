@@ -41,7 +41,7 @@ export type TLLibraryPlacement = 'housed' | 'added' | 'default' | 'document'
 export interface TLLibraryOwner {
 	id: string
 	name: string
-	/** Shown before the name on the owner's tab in the libraries panel. */
+	/** Shown before the owner's name in the libraries panel's menus. */
 	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
 }
 
@@ -81,6 +81,16 @@ export interface TLNewLibraryItem {
  * The changes {@link LibrarySource.updateItem} makes to an item. Fields left out stay as they are.
  */
 export type TLLibraryItemPartial = Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
+
+/**
+ * What a source knows about an item beyond its listing, shown in its details. Every field is
+ * optional: the details leave out what a source doesn't know.
+ */
+export interface TLLibraryItemDetails {
+	/** The name to show for whoever saved the item. */
+	creatorName?: string
+	description?: string
+}
 
 /**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
@@ -168,6 +178,12 @@ export interface LibrarySource {
 	 * Optional: without it, every library is searched. Reactive, like the other getters.
 	 */
 	mayHaveItemsMatching?(libraryId: TLLibraryId, query: string): boolean
+
+	/**
+	 * What the source knows about an item beyond its listing, such as who saved it. Optional:
+	 * without it, an item's details show what its listing has. Reactive, like the other getters.
+	 */
+	getItemDetails?(item: TLLibraryItem): TLLibraryItemDetails
 
 	/**
 	 * Whether the current user may do `action`. With a library id, answers for that library;

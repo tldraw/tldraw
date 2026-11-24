@@ -102,6 +102,23 @@ describe('CompositeLibrarySource', () => {
 		expect(kit).not.toHaveProperty('ownerId')
 	})
 
+	it("answers an item's details from its part, and none from a part without them", async () => {
+		const mine = Object.assign(new InMemoryLibrarySource({ id: 'mine' }), {
+			getItemDetails: () => ({ creatorName: 'Ada' }),
+		})
+		const kits = shared()
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: personal, source: mine },
+				{ owner: tldraw, source: kits },
+			],
+		})
+		const kit = await mine.createLibrary('Kit')
+		const star = await added(mine.addItem(kit.id, { name: 'Star', content: content('star') }))
+		expect(source.getItemDetails!(star)).toEqual({ creatorName: 'Ada' })
+		expect(source.getItemDetails!(kits.getItems(wireframing)[0])).toEqual({})
+	})
+
 	it("counts and previews each library from its part's summary, or else its listed items", async () => {
 		const counted = new InMemoryLibrarySource({ id: 'counted' })
 		const listed = new InMemoryLibrarySource({ id: 'listed' })
@@ -599,6 +616,7 @@ describe('CompositeLibrarySource shown in a document', () => {
 		expect(source.addLibraryToDocument).toBeUndefined()
 		expect(source.removeLibraryFromDocument).toBeUndefined()
 		expect(source.getNewLibraryOwnerIds).toBeUndefined()
+		expect(source.getItemDetails).toBeUndefined()
 	})
 })
 

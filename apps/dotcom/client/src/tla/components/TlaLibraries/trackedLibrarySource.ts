@@ -35,6 +35,7 @@ export class TrackedLibrarySource implements LibrarySource {
 	readonly getLibraryOwners?: LibrarySource['getLibraryOwners']
 	readonly getDefaultOwnerId?: LibrarySource['getDefaultOwnerId']
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly getItemDetails?: LibrarySource['getItemDetails']
 	readonly loadItems?: LibrarySource['loadItems']
 	readonly isLoadingItems?: LibrarySource['isLoadingItems']
 	readonly mayHaveItemsMatching?: LibrarySource['mayHaveItemsMatching']
@@ -106,6 +107,7 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.getLibraryOwners) this.getLibraryOwners = source.getLibraryOwners.bind(source)
 		if (source.getDefaultOwnerId) this.getDefaultOwnerId = source.getDefaultOwnerId.bind(source)
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.getItemDetails) this.getItemDetails = source.getItemDetails.bind(source)
 		if (source.loadItems) this.loadItems = source.loadItems.bind(source)
 		if (source.isLoadingItems) this.isLoadingItems = source.isLoadingItems.bind(source)
 		if (source.getItemCount) this.getItemCount = source.getItemCount.bind(source)

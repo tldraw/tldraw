@@ -95,3 +95,100 @@ function getOwnerGroups(source: LibrarySource): BrowseOwnerGroup[] {
 			: [{ ...group, libraries: group.libraries.sort((a, b) => a.name.localeCompare(b.name)) }]
 	)
 }
+
+/** Whether the document has the source's library added, as listed under "In this file". */
+export function isAddedToDocument(source: LibrarySource, libraryId: TLLibrary['id']) {
+	return (
+		source.getLibraryPlacement !== undefined && source.getLibraryPlacement(libraryId) === 'added'
+	)
+}
+
+type Listed =
+	| { key: string; slot: string; kind: 'source'; library: TLLibrary }
+	| { key: string; slot: string; kind: 'host'; entry: LibraryBrowseEntry }
+
+const THIS_FILE = 'this-file'
+const ownerSlot = (ownerId: string | undefined) => `owner:${ownerId ?? ''}`
+const hostSlot = (groupId: string) => `host:${groupId}`
+
+/** Every library `sections` lists, in the order it lists them, with the group it's in. */
+function listAll(sections: BrowseSections): Listed[] {
+	return [
+		...sections.thisFile.map(
+			(added): Listed =>
+				added.kind === 'source'
+					? { key: `source:${added.library.id}`, slot: THIS_FILE, ...added }
+					: { key: `host:${added.entry.id}`, slot: THIS_FILE, ...added }
+		),
+		...sections.owners.flatMap((group) =>
+			group.libraries.map(
+				(library): Listed => ({
+					key: `source:${library.id}`,
+					slot: ownerSlot(group.ownerId),
+					kind: 'source',
+					library,
+				})
+			)
+		),
+		...sections.hosts.flatMap((group) =>
+			group.entries.map(
+				(entry): Listed => ({
+					key: `host:${entry.id}`,
+					slot: hostSlot(group.id),
+					kind: 'host',
+					entry,
+				})
+			)
+		),
+	]
+}
+
+/**
+ * `next`, with each library where `shown` lists it and in the same order: one added or removed
+ * while Browse is open stays in its group rather than moving between "In this file" and the rest.
+ * Libraries `shown` doesn't list go where `next` puts them, after those it does; ones `next`
+ * doesn't list are left out.
+ */
+export function keepBrowsePlacement(
+	shown: BrowseSections | undefined,
+	next: BrowseSections
+): BrowseSections {
+	if (!shown) return next
+	const shownListed = listAll(shown)
+	const shownAt = new Map(shownListed.map((listed, i) => [listed.key, { i, slot: listed.slot }]))
+	const nextListed = listAll(next)
+	const rank = (listed: Listed) =>
+		shownAt.get(listed.key)?.i ?? shownListed.length + nextListed.indexOf(listed)
+	const placed = nextListed
+		.map((listed) => ({ ...listed, slot: shownAt.get(listed.key)?.slot ?? listed.slot }))
+		.sort((a, b) => rank(a) - rank(b))
+	const inSlot = (slot: string) => placed.filter((listed) => listed.slot === slot)
+
+	const ownerOrder = [...shown.owners, ...next.owners].map((group) => group.ownerId)
+	const ownerGroups = [...next.owners, ...shown.owners]
+		.filter((group, i, all) => all.findIndex((g) => g.ownerId === group.ownerId) === i)
+		.sort((a, b) => ownerOrder.indexOf(a.ownerId) - ownerOrder.indexOf(b.ownerId))
+	const hostOrder = [...shown.hosts, ...next.hosts].map((group) => group.id)
+	const hostGroups = [...next.hosts, ...shown.hosts]
+		.filter((group, i, all) => all.findIndex((g) => g.id === group.id) === i)
+		.sort((a, b) => hostOrder.indexOf(a.id) - hostOrder.indexOf(b.id))
+	return {
+		thisFile: inSlot(THIS_FILE).map((listed) =>
+			listed.kind === 'source'
+				? { kind: 'source' as const, library: listed.library }
+				: { kind: 'host' as const, entry: listed.entry }
+		),
+		owners: ownerGroups.flatMap((group) => {
+			const libraries = inSlot(ownerSlot(group.ownerId)).flatMap((listed) =>
+				listed.kind === 'source' ? [listed.library] : []
+			)
+			return libraries.length === 0 ? [] : [{ ...group, libraries }]
+		}),
+		hosts: hostGroups.flatMap((group) => {
+			const entries = inSlot(hostSlot(group.id)).flatMap((listed) =>
+				listed.kind === 'host' ? [listed.entry] : []
+			)
+			return entries.length === 0 ? [] : [{ ...group, entries }]
+		}),
+	}
+}

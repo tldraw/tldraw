@@ -61,6 +61,7 @@ export abstract class ReadOnlyLibrarySource implements LibrarySource {
 export class ReadOnlyLibraryView extends ReadOnlyLibrarySource {
 	readonly id: string
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly getItemDetails?: LibrarySource['getItemDetails']
 	readonly loadItems?: LibrarySource['loadItems']
 	readonly isLoadingItems?: LibrarySource['isLoadingItems']
 	readonly mayHaveItemsMatching?: LibrarySource['mayHaveItemsMatching']
@@ -71,6 +72,7 @@ export class ReadOnlyLibraryView extends ReadOnlyLibrarySource {
 		super()
 		this.id = source.id
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.getItemDetails) this.getItemDetails = source.getItemDetails.bind(source)
 		if (source.loadItems) this.loadItems = source.loadItems.bind(source)
 		if (source.isLoadingItems) this.isLoadingItems = source.isLoadingItems.bind(source)
 		if (source.getItemCount) this.getItemCount = source.getItemCount.bind(source)

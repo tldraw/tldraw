@@ -42,6 +42,107 @@
 	right: var(--tlui-libraries-panel-side);
 }
 
+/* On phones the panel is a modal sheet along the bottom, its top and height set as it moves. It sits
+   over the toolbar and under menus, so the menus opened from it show above it. */
+.tlui-libraries-sheet__overlay {
+	position: absolute;
+	inset: 0;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	background-color: var(--tl-color-overlay);
+	animation: tl-fade-in 0.12s ease-out;
+}
+
+.tlui-libraries-panel.tlui-libraries-sheet {
+	left: 0;
+	right: 0;
+	width: auto;
+	max-height: none;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	border-radius: var(--tl-radius-4) var(--tl-radius-4) 0 0;
+	outline: none;
+	-webkit-touch-callout: none;
+}
+
+.tlui-libraries-sheet__title {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* For screen readers and the keyboard: shown only while it has keyboard focus. */
+.tlui-libraries-sheet__close {
+	all: unset;
+	position: absolute;
+	top: 4px;
+	right: 8px;
+	z-index: 1;
+	padding: 2px 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+	outline: 2px solid var(--tl-color-selected);
+}
+
+.tlui-libraries-sheet__close:not(:focus-visible) {
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.tlui-libraries-sheet__handle {
+	all: unset;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 20px;
+	touch-action: none;
+	cursor: grab;
+}
+
+.tlui-libraries-sheet__handle::before {
+	content: '';
+	width: 36px;
+	height: 4px;
+	border-radius: 2px;
+	background-color: var(--tl-color-text-3);
+	opacity: 0.5;
+}
+
+.tlui-libraries-sheet__handle:focus-visible::before {
+	opacity: 1;
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+.tlui-libraries-sheet .tlui-libraries-sections {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.tlui-libraries-sheet > .tlui-dialog__body {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.tlui-libraries-sheet .tlui-libraries-tile__button {
+	user-select: none;
+}
+
+/* A long press opens the item's menu instead. The button stays for the keyboard. */
+.tlui-libraries-sheet .tlui-libraries-tile__menu:not(:has(:focus-visible)) {
+	opacity: 0;
+	pointer-events: none;
+}
+
 /* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */
 .tlui-libraries-panel__header {
 	flex-shrink: 0;
@@ -51,6 +152,11 @@
 	gap: 4px;
 	padding: 2px;
 	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+/* 40px, its buttons flush to the panel's edges, like the page menu's rows. */
+.tlui-libraries-panel > .tlui-libraries-panel__header {
+	padding: 0;
 }
 
 .tlui-libraries-panel__title {
@@ -88,7 +194,8 @@
 }
 
 /* Points down while open, and to the side while folded shut. */
-.tlui-icon.tlui-libraries-chevron {
+.tlui-libraries-chevron {
+	flex-shrink: 0;
 	width: 12px;
 	height: 12px;
 	transition: transform 120ms ease-out;
@@ -99,7 +206,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.tlui-icon.tlui-libraries-chevron {
+	.tlui-libraries-chevron {
 		transition: none;
 	}
 }
@@ -108,146 +215,34 @@
 	overflow-y: auto;
 }
 
-.tlui-libraries-menu-heading {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 6px 10px 2px;
-	font-size: 11px;
-	color: var(--tl-color-text-3);
-	cursor: default;
-}
-
-.tlui-libraries-tabs {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-}
-
-/* Fades at an edge only while there are more owners to scroll to on that side. */
-.tlui-libraries-tabs__bar {
-	position: relative;
+.tlui-libraries-panel__footer {
 	flex-shrink: 0;
-	border-bottom: 1px solid var(--tl-color-divider);
+	margin: 0;
+	border-top: 1px solid var(--tl-color-divider);
+	border-radius: 0;
 }
 
-.tlui-libraries-tabs__bar::before,
-.tlui-libraries-tabs__bar::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	z-index: 1;
-	width: 32px;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 120ms ease-out;
-}
-
-/* 1px in from each side, so they don't paint over the panel's inset edge ring. */
-.tlui-libraries-tabs__bar::before {
-	left: 1px;
-	background: linear-gradient(90deg, var(--tl-color-panel) 20%, transparent);
-}
-
-.tlui-libraries-tabs__bar::after {
-	right: 1px;
-	background: linear-gradient(270deg, var(--tl-color-panel) 20%, transparent);
-}
-
-.tlui-libraries-tabs__bar[data-overflow-start='true']::before,
-.tlui-libraries-tabs__bar[data-overflow-end='true']::after {
-	opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.tlui-libraries-tabs__bar::before,
-	.tlui-libraries-tabs__bar::after {
-		transition: none;
-	}
-}
-
-/* Scrolls sideways when the owners don't fit, the active tab centred. Positioned so it is the tabs'
-   offsetParent, which centring measures against. */
-.tlui-libraries-tabs__list {
-	position: relative;
+.tlui-libraries-panel__end-link {
 	display: flex;
-	padding: 0 6px;
-	overflow-x: auto;
-	scrollbar-width: none;
+	justify-content: center;
+	padding: var(--tl-space-2) 10px var(--tl-space-3);
 }
 
-.tlui-libraries-tabs__list::-webkit-scrollbar {
-	display: none;
-}
-
-.tlui-libraries-tabs__tab {
-	all: unset;
-	position: relative;
-	flex-shrink: 0;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
+.tlui-libraries-panel__end-link > .tlui-button {
 	gap: 6px;
-	max-width: 160px;
-	height: 40px;
-	padding: 0 8px;
+}
+
+.tlui-libraries-panel__group-label {
+	margin: 0;
+	padding: 0 14px;
+	line-height: 32px;
+	font-size: 12px;
 	font-weight: 500;
 	color: var(--tl-color-text-3);
-	cursor: pointer;
 }
 
-.tlui-libraries-tabs__tab::after {
-	content: '';
-	position: absolute;
-	left: 8px;
-	right: 8px;
-	bottom: 0;
-	height: 2px;
-	border-radius: 1px;
-	background: var(--tl-color-text-1);
-	visibility: hidden;
-}
-
-.tlui-libraries-tabs__tab[data-state='active'] {
-	color: var(--tl-color-text-1);
-}
-
-.tlui-libraries-tabs__tab[data-state='active']::after {
-	visibility: visible;
-}
-
-@media (hover: hover) {
-	.tlui-libraries-tabs__tab:hover {
-		color: var(--tl-color-text-1);
-	}
-}
-
-.tlui-libraries-tabs__tab:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -6px;
-	border-radius: var(--tl-radius-3);
-}
-
-.tlui-libraries-tabs__icon {
-	flex-shrink: 0;
-}
-
-.tlui-libraries-tabs__label {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-libraries-tabs > .tlui-libraries-sections {
-	flex: 1;
-	min-height: 0;
-}
-
-.tlui-libraries-tabs > .tlui-libraries-sections:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
+.tlui-libraries-panel__group > .tlui-libraries-panel__group-label {
+	padding-top: 6px;
 }
 
 .tlui-libraries-sections .tlui-libraries-grid {
@@ -291,7 +286,7 @@
 }
 
 .tlui-libraries-panel__toggle > .tlui-libraries-chevron {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
 }
 
 /* Each tile's button fills its grid cell and insets the thumbnail with its own padding, so
@@ -318,6 +313,9 @@
 	width: 100%;
 	padding: 4px;
 	cursor: pointer;
+	/* A vertical swipe scrolls the list; any other touch drag is left to the tile, to pull the item
+	   out. With the browser free to pan either way, it cancels the drag as it starts. */
+	touch-action: pan-y;
 }
 
 .tlui-libraries-dragging,
@@ -331,19 +329,32 @@
 	border-radius: var(--tl-radius-2);
 }
 
-/* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu
-   is open. */
+/* The ⋯ sits over the thumbnail's corner. With a pointer that hovers, it and a section header's ⋯
+   show while their tile or header is hovered or focused, or the menu is open; touch has no hover to
+   reveal them, so there they always show. */
 .tlui-libraries-tile__menu {
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	opacity: 0;
 }
 
-.tlui-libraries-tile:hover .tlui-libraries-tile__menu,
-.tlui-libraries-tile:focus-within .tlui-libraries-tile__menu,
-.tlui-libraries-tile__menu:has([data-state='open']) {
-	opacity: 1;
+@media (hover: hover) {
+	.tlui-libraries-tile__menu,
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__header-actions {
+		opacity: 0;
+	}
+
+	.tlui-libraries-tile:hover .tlui-libraries-tile__menu,
+	.tlui-libraries-tile:has(:focus-visible) .tlui-libraries-tile__menu,
+	.tlui-libraries-tile__menu:has([data-state='open']),
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header:is(:hover, :has(:focus-visible))
+		> .tlui-libraries-panel__header-actions,
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header
+		> .tlui-libraries-panel__header-actions:has([data-state='open']) {
+		opacity: 1;
+	}
 }
 
 .tlui-libraries-tile__menu-button {
@@ -355,6 +366,19 @@
 
 .tlui-libraries-tile__menu-button::after {
 	content: none;
+}
+
+@media (pointer: coarse) {
+	.tlui-libraries-tile__menu {
+		top: 0;
+		right: 0;
+	}
+
+	.tlui-libraries-tile__menu-button {
+		height: 40px;
+		width: 40px;
+		min-width: 40px;
+	}
 }
 
 .tlui-libraries-tile__thumbnail {
@@ -373,7 +397,8 @@
 			:has(.tlui-libraries-tile__menu-button:hover, [aria-disabled='true'])
 		)
 		.tlui-libraries-tile__thumbnail {
-		background: var(--tl-color-muted-2);
+		outline: 1.5px solid var(--tl-color-muted-1);
+		outline-offset: -1.5px;
 	}
 
 	.tlui-libraries-tile__menu-button:hover {
@@ -388,7 +413,7 @@
 
 .tlui-libraries-tile:has(.tlui-libraries-tile__menu-button[data-state='open'])
 	.tlui-libraries-tile__thumbnail {
-	background: var(--tl-color-background);
+	outline: none;
 }
 
 .tlui-libraries-tile__thumbnail > img {
@@ -404,7 +429,15 @@
 }
 
 .tlui-libraries-add-tile .tlui-libraries-tile__thumbnail {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
+	background: var(--tl-color-panel);
+}
+
+.tlui-libraries-add-tile
+	.tlui-libraries-tile__button:not([aria-disabled='true'])
+	.tlui-libraries-tile__thumbnail {
+	outline: 1.5px solid var(--tl-color-muted-2);
+	outline-offset: -1.5px;
 }
 
 .tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] {
@@ -415,22 +448,23 @@
 	opacity: 0.4;
 }
 
-@media (hover: hover) {
-	.tlui-libraries-add-tile:not(:has([aria-disabled='true'])):hover .tlui-libraries-tile__thumbnail {
-		color: var(--tl-color-text-1);
-	}
-}
-
 .tlui-libraries-menu,
 .tlui-libraries-menu__submenu {
 	min-width: 100px;
+	max-height: var(--radix-dropdown-menu-content-available-height);
 	padding: 4px;
+}
+
+.tlui-libraries-menu:has(> .tlui-libraries-menu__heading) {
+	min-width: 144px;
 }
 
 .tlui-libraries-menu__heading {
 	display: flex;
 	align-items: center;
-	width: 200px;
+	box-sizing: border-box;
+	width: 0;
+	min-width: 100%;
 	min-height: 36px;
 	padding: 0 10px;
 	font-size: 12px;
@@ -522,6 +556,11 @@
 	inset: 2px;
 }
 
+.tlui-libraries-menu__item-detail {
+	margin-inline-start: var(--tl-space-3);
+	color: var(--tl-color-text-3);
+}
+
 .tlui-libraries-menu__item--danger {
 	color: var(--tl-color-danger);
 }
@@ -544,8 +583,7 @@
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-input__wrapper {
 	height: 32px;
-	margin-left: 4px;
-	margin-right: 44px;
+	margin: 0 8px 0 12px;
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-libraries-panel__rename {
@@ -575,6 +613,13 @@
 	background: var(--tl-color-panel);
 }
 
+@media (hover: hover) {
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__toggle:hover {
+		background: linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2))
+			var(--tl-color-panel);
+	}
+}
+
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-button::before {
 	content: '';
 	position: absolute;
@@ -591,15 +636,6 @@
 .tlui-libraries-panel > .tlui-libraries-panel__header .tlui-button[data-state='open']::after {
 	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
-}
-
-.tlui-libraries-panel__group-label {
-	margin: 0;
-	padding: 0 14px;
-	line-height: 32px;
-	font-size: 12px;
-	font-weight: 500;
-	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-browse {
@@ -707,6 +743,99 @@
 	color: var(--tl-color-text-3);
 }
 
+.tlui-libraries-details {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-4);
+	width: 320px;
+	max-width: 100%;
+}
+
+.tlui-libraries-details__thumbnail {
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+
+.tlui-libraries-details__description {
+	margin: 0;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-details__facts {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--tl-space-2) var(--tl-space-4);
+	margin: 0;
+	font-size: 12px;
+}
+
+.tlui-libraries-details__facts > dt {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-details__facts > dd {
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--tl-color-text-1);
+}
+
+/* Like the tldraw.com sidebar's search row: an icon, the input, and a ✕ once it has text, in a box
+   that takes the primary colour while focused. */
+.tlui-libraries-search {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	height: 32px;
+	margin: var(--tl-space-2) 10px var(--tl-space-3);
+	padding-left: 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+}
+
+.tlui-libraries-panel__header:has(+ .tlui-libraries-search) {
+	border-bottom: none;
+}
+
+.tlui-libraries-search + .tlui-libraries-sections {
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.tlui-libraries-search:focus-within {
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
+}
+
+.tlui-libraries-search > .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	gap: 6px;
+}
+
+.tlui-libraries-search__icon {
+	flex-shrink: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-input.tlui-libraries-search__input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+}
+
+.tlui-libraries-search__clear {
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+}
+
+.tlui-libraries-search__clear::after {
+	inset: 4px;
+}
+
 .tlui-libraries-browse__view {
 	all: unset;
 	box-sizing: border-box;
@@ -761,4 +890,97 @@
 	white-space: nowrap;
 	font-size: 12px;
 	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-this-file-empty {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 10px 12px;
+}
+
+.tlui-libraries-panel__suggested {
+	padding: 8px 10px 12px;
+}
+
+.tlui-libraries-this-file-empty__text {
+	margin: 0;
+	padding: 0 4px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-offers {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.tlui-libraries-offers__heading {
+	margin: 0;
+	padding: 0 4px;
+	font-size: inherit;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-offers__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tlui-libraries-offer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 10px 8px 8px;
+	border-radius: var(--tl-radius-3);
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
+}
+
+.tlui-libraries-offer__icon {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-offer__text {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.tlui-libraries-offer__name {
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-offer__detail {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-button.tlui-libraries-offer__add {
+	flex-shrink: 0;
+	height: 32px;
+	padding: 0 12px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-primary);
+}
+
+.tlui-button.tlui-libraries-offer__add::after {
+	inset: 0;
+	border-radius: inherit;
 }

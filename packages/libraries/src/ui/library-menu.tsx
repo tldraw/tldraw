@@ -7,7 +7,6 @@ import {
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	useReadonly,
 	useTranslation,
 } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
@@ -62,8 +61,8 @@ export interface LibraryMenuProps {
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: LibraryMenuCopy
 	/**
-	 * Items of the host's own, placed after "New library", e.g. {@link LibraryMenuItem}s. Shown
-	 * in a read-only editor too, so leave out any that change the document.
+	 * Items of the host's own, placed after "New library", e.g. {@link LibraryMenuItem}s. The menu
+	 * doesn't check whether the editor is read-only, so gate any that change the document.
 	 */
 	children?: ReactNode
 }
@@ -74,21 +73,15 @@ export interface LibraryMenuProps {
  */
 export function LibraryMenu({
 	id,
-	onCreate,
-	onRename,
-	onDelete,
-	onRemoveFromDocument,
+	onCreate: create,
+	onRename: rename,
+	onDelete: remove,
+	onRemoveFromDocument: removeFromDocument,
 	sort,
-	copy,
+	copy: copyTo,
 	children,
 }: LibraryMenuProps) {
 	const msg = useTranslation()
-	const isReadonly = useReadonly()
-	const create = isReadonly ? undefined : onCreate
-	const rename = isReadonly ? undefined : onRename
-	const remove = isReadonly ? undefined : onDelete
-	const removeFromDocument = isReadonly ? undefined : onRemoveFromDocument
-	const copyTo = isReadonly ? undefined : copy
 	if (!create && !rename && !remove && !removeFromDocument && !sort && !copyTo && !children) {
 		return null
 	}

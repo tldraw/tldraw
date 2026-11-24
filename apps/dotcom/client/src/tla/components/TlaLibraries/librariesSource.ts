@@ -27,6 +27,7 @@ import {
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
+	type TLLibraryItemDetails,
 	type TLLibraryItemId,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
@@ -225,6 +226,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		new Map()
 	)
 
+	// What's stored under an item's id never changes, so one load serves every later use.
+	private readonly itemContents = new Map<TLLibraryItemId, Promise<TLLibraryItemContent>>()
+
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const owners = this.app
@@ -273,6 +277,25 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			else byLibrary.set(libraryRowId, [item])
 		}
 		return byLibrary
+	})
+
+	// Who saved each stored item, by its row id, and the workspace whose members can name them.
+	private readonly itemCreators$ = computed('library item creators', () => {
+		const creators = new Map<string, { userId: string; workspaceId: string }>()
+		const rows = this.libraryRowsById$.get()
+		for (const row of rows.values()) {
+			for (const item of row.items) {
+				creators.set(item.id, { userId: item.createdBy, workspaceId: row.owningGroupId })
+			}
+		}
+		for (const [libraryRowId, watch] of this.itemWatches.get()) {
+			const workspaceId = rows.get(libraryRowId)?.owningGroupId
+			if (workspaceId === undefined) continue
+			for (const item of watch.items.get()) {
+				creators.set(item.id, { userId: item.createdBy, workspaceId })
+			}
+		}
+		return creators
 	})
 
 	constructor(
@@ -337,9 +360,28 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			.map((p) => p.item)
 	}
 
+	getItemDetails(item: TLLibraryItem): TLLibraryItemDetails {
+		const creator = this.itemCreators$.get().get(rowId(item.id))
+		if (!creator) return {}
+		const member = this.app
+			.getWorkspaceMembership(creator.workspaceId)
+			?.groupMembers.find((m) => m.userId === creator.userId)
+		return member ? { creatorName: member.userName } : {}
+	}
+
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const pending = this.findPendingItem(itemId)
 		if (pending) return pending.loadContent()
+		let loading = this.itemContents.get(itemId)
+		if (!loading) {
+			loading = this.loadItemContent(itemId)
+			this.itemContents.set(itemId, loading)
+			loading.catch(() => this.itemContents.delete(itemId))
+		}
+		return loading
+	}
+
+	private async loadItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const response = await this.request(`/api/app/library-items/${rowId(itemId)}/content`)
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)

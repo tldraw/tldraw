@@ -73,6 +73,21 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(source.getLibraries()).toMatchObject([{ id: library.id, name: library.name }])
 	})
 
+	it("names who saved an item from its workspace's members", async () => {
+		const { backend, source } = setUp()
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		const item = await added(source.addItem(kit.id, { content }))
+		expect(source.getItemDetails(item)).toEqual({ creatorName: 'Me' })
+
+		backend.rows.update((rows) =>
+			rows.map((row) => ({
+				...row,
+				items: row.items.map((i) => ({ ...i, createdBy: 'user_gone' })),
+			}))
+		)
+		expect(source.getItemDetails(source.getItems(kit.id)[0])).toEqual({})
+	})
+
 	it('lists libraries from the synced rows, with their workspace as owner', async () => {
 		const { source } = setUp()
 		await source.createLibrary('Team kit', { ownerId: 'acme' })
