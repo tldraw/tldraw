@@ -9,7 +9,8 @@ import {
 	ScreenshotRequest,
 	ScreenshotResult,
 } from './api'
-import { browserRenderContextOf, classifyScreenshotFailure } from './errors'
+import { BrowserRenderError, browserRenderContextOf, classifyScreenshotFailure } from './errors'
+import { BrowserRender, compareScreenshotInShadow } from './headlessShadow'
 import { readMeasureResult, runRenderSession } from './render'
 import { Environment } from './types'
 
@@ -24,9 +25,10 @@ import { Environment } from './types'
  */
 export class RenderWorker extends WorkerEntrypoint<Environment> implements RenderWorkerRpc {
 	async screenshot(request: ScreenshotRequest): Promise<ScreenshotResult> {
-		const { payload, telemetry } = request
+		const { payload, telemetry, shadow } = request
+		let browser: BrowserRender
 		try {
-			const { buffer } = await runRenderSession(this.env, {
+			const { buffer, durationMs } = await runRenderSession(this.env, {
 				session: {
 					source: telemetry.source,
 					mode: 'screenshot',
@@ -36,14 +38,25 @@ export class RenderWorker extends WorkerEntrypoint<Environment> implements Rende
 				payload,
 				content: telemetry.content,
 			})
-			return { ok: true, png: new Uint8Array(buffer) }
+			browser = { ok: true, png: new Uint8Array(buffer), browserMs: durationMs }
 		} catch (error) {
 			// The ledger write already happened at the choke point for a session that existed; here we
 			// report the detail (Browser Run status/body/budget) to our own Sentry and hand sync-worker the
 			// bounded reason for its request-level event.
 			this.reportRenderError(error)
-			return { ok: false, reason: classifyScreenshotFailure(error) as RenderFailureReason }
+			browser = {
+				ok: false,
+				reason: classifyScreenshotFailure(error) as RenderFailureReason,
+				browserMs: error instanceof BrowserRenderError ? error.durationMs : 0,
+			}
 		}
+		// After the answer, never in its way: see headlessShadow.ts.
+		if (shadow && this.env.HEADLESS_WORKER) {
+			this.ctx.waitUntil(
+				compareScreenshotInShadow(this.env, { payload, content: telemetry.content }, browser)
+			)
+		}
+		return browser.ok ? { ok: true, png: browser.png } : { ok: false, reason: browser.reason }
 	}
 
 	async measure(request: MeasureRequest): Promise<MeasureResult> {

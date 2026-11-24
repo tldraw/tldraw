@@ -70,12 +70,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 		},
 		headless_shadow: {
 			type: 'percentage',
-			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. Bucketed per user:
-			// the sync worker passes the caller's user id, so a stable sample of accounts runs the shadow.
+			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. One percentage, two
+			// ids: MCP reads bucket by the caller's user id, OG and thumbnail renders by the board's kind and
+			// slug, so a stable sample of accounts and of boards runs the shadow.
 			percentage: 0,
 			enabled: true,
 			description:
-				'Runs the headless editor over an MCP page read in shadow mode, off the critical path, and records how its clustering compares with the open tab. Does nothing unless the HEADLESS_WORKER binding is present. Bucketed per user. A change lands within about a minute',
+				'Runs the headless editor in shadow mode, off the critical path: over MCP page reads, recording how its clustering compares with the open tab, and over OG and thumbnail renders, recording how its image and timing compare with Browser Run. Does nothing unless the HEADLESS_WORKER binding is present. MCP reads are bucketed per user, renders per BOARD (kind and slug). A change lands within about a minute',
 		},
 		ui_v3: {
 			type: 'allowlist',

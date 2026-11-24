@@ -31,9 +31,14 @@ spec:
     that clustering diverges from what the tab returned. A cluster id hashes its
     member ids, so cluster agreement is matched / tab clusters — the fraction of
     the tab's clusters the headless path reproduced exactly; bounds deltas are the
-    numeric measurement difference, in page units (px at z=1). Only staging has a
-    HEADLESS_WORKER binding today, so set the Environment variable to staging.
-    See apps/dotcom/sync-worker/src/routes/tla/headlessShadow.ts.
+    numeric measurement difference, in page units (px at z=1). The lower panels
+    are the screenshot shadow (op:screenshot, reference:browser_run): the render
+    worker sends sampled OG and thumbnail renders to the headless worker with
+    Browser Run's PNG, which diffs the two; its rows come from
+    <environment>-tldraw-render-worker. Only staging has a HEADLESS_WORKER binding
+    today, so set the Environment variable to staging. See
+    apps/dotcom/sync-worker/src/routes/tla/headlessShadow.ts and
+    apps/dotcom/render-worker/src/headlessShadow.ts.
   editable: true
   elements:
     panel-1:
@@ -309,7 +314,7 @@ spec:
                       formatAs: table
                       intervalFactor: 1
                       query: |-
-                        SELECT quantile(0.5)(double9) as p50_ms
+                        SELECT quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -317,7 +322,7 @@ spec:
                         AND blob3 = 'op:measure'
                         AND double9 > 0
                       rawQuery: |-
-                        SELECT quantile(0.5)(double9) as p50_ms
+                        SELECT quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -745,7 +750,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantile(0.95)(double7) as p95_max_delta
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantileExactWeighted(0.95)(double7, _sample_interval) as p95_max_delta
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -755,7 +760,7 @@ spec:
                         GROUP BY date
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantile(0.95)(double7) as p95_max_delta
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantileExactWeighted(0.95)(double7, _sample_interval) as p95_max_delta
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -863,7 +868,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantile(0.5)(double9) as p50_ms, quantile(0.95)(double9) as p95_ms
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms, quantileExactWeighted(0.95)(double9, _sample_interval) as p95_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -873,7 +878,7 @@ spec:
                         GROUP BY date
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantile(0.5)(double9) as p50_ms, quantile(0.95)(double9) as p95_ms
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms, quantileExactWeighted(0.95)(double9, _sample_interval) as p95_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -956,6 +961,910 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
+          version: 13.2.0-29854286369
+    panel-10:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT sum(_sample_interval) as comparisons
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                      rawQuery: |-
+                        SELECT sum(_sample_interval) as comparisons
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          OG and thumbnail renders the render worker also drew with the headless editor (op:screenshot,
+          reference:browser_run), sampled per board by the headless_shadow flag.
+        id: 10
+        links: []
+        title: Screenshot comparisons
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-11:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT sum(if(blob5 = 'outcome:ok', _sample_interval, 0)) / sum(_sample_interval) as both_drew
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                      rawQuery: |-
+                        SELECT sum(if(blob5 = 'outcome:ok', _sample_interval, 0)) / sum(_sample_interval) as both_drew
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Fraction of compared renders where Browser Run and headless both produced an image
+          (outcome:ok). Outcome agreement is what decides which boards headless can take over.
+        id: 11
+        links: []
+        title: Both drew
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: red
+                      value: 0
+                    - color: yellow
+                      value: 0.8
+                    - color: green
+                      value: 0.95
+                unit: percentunit
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-12:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT quantileExactWeighted(0.5)(double1, _sample_interval) as fair_diff
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND double1 >= 0
+                      rawQuery: |-
+                        SELECT quantileExactWeighted(0.5)(double1, _sample_interval) as fair_diff
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND double1 >= 0
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Median fraction of pixels that differ between the two images, by the headless harness's
+          'fair' diff: an edge drawn half a pixel over doesn't count; a missing, extra or recoloured mark
+          does. Over renders with a diff (double1 >= 0).
+        id: 12
+        links: []
+        title: Median pixel diff
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: yellow
+                      value: 0.005
+                    - color: red
+                      value: 0.02
+                unit: percentunit
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-13:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT quantileExactWeighted(0.5)(double4, _sample_interval) as compare_ms
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND blob5 = 'outcome:ok'
+                      rawQuery: |-
+                        SELECT quantileExactWeighted(0.5)(double4, _sample_interval) as compare_ms
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND blob5 = 'outcome:ok'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Median wall time of the render worker's compare RPC: the headless render plus decoding the
+          reference and the diff. Compare with Browser Run's time in the chart below.
+        id: 13
+        links: []
+        title: Median compare call
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-14:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob5 = 'outcome:ok' AND blob8 = 'diff:size_mismatch', 'ok, size mismatch', if(blob5 = 'outcome:ok' AND blob8 = 'diff:unreadable', 'ok, unreadable reference', substring(blob5, 9))) as outcome, sum(_sample_interval) as comparisons
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        GROUP BY date, outcome
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob5 = 'outcome:ok' AND blob8 = 'diff:size_mismatch', 'ok, size mismatch', if(blob5 = 'outcome:ok' AND blob8 = 'diff:unreadable', 'ok, unreadable reference', substring(blob5, 9))) as outcome, sum(_sample_interval) as comparisons
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        GROUP BY date, outcome
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Compared renders over time, stacked by outcome: ok (both drew), headless_failed,
+          browser_failed, both_failed, and compare_failed (the call itself failed, most often a
+          payload plus PNG over the 32 MiB RPC cap; not a headless failure). Renders both drew but
+          didn't diff are split out of ok: size mismatch (different sizes, likely a framing bug) and
+          unreadable reference.
+        id: 14
+        links: []
+        title: Screenshot comparisons by outcome
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-15:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double1, _sample_interval) as p50, quantileExactWeighted(0.9)(double1, _sample_interval) as p90, quantileExactWeighted(0.99)(double1, _sample_interval) as p99
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND double1 >= 0
+                        GROUP BY date
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double1, _sample_interval) as p50, quantileExactWeighted(0.9)(double1, _sample_interval) as p90, quantileExactWeighted(0.99)(double1, _sample_interval) as p99
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND double1 >= 0
+                        GROUP BY date
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Fraction of pixels that differ ('fair' diff), p50, p90 and p99, over renders with a diff.
+        id: 15
+        links: []
+        title: Pixel diff
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percentunit
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-16:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double3, _sample_interval) as browser_p50, quantileExactWeighted(0.9)(double3, _sample_interval) as browser_p90, quantileExactWeighted(0.5)(double4, _sample_interval) as headless_p50, quantileExactWeighted(0.9)(double4, _sample_interval) as headless_p90
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND blob5 = 'outcome:ok'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double3, _sample_interval) as browser_p50, quantileExactWeighted(0.9)(double3, _sample_interval) as browser_p90, quantileExactWeighted(0.5)(double4, _sample_interval) as headless_p50, quantileExactWeighted(0.9)(double4, _sample_interval) as headless_p90
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND blob5 = 'outcome:ok'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Browser Run's render time against the compare call's wall time (headless render plus
+          decoding the reference and the diff), p50 and p90, over renders both drew.
+        id: 16
+        links: []
+        title: Browser Run vs headless time
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-17:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob7, 10) as reason, sum(_sample_interval) as comparisons
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND blob7 != 'headless:ok'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob7, 10) as reason, sum(_sample_interval) as comparisons
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        AND blob7 != 'headless:ok'
+                        GROUP BY date, reason
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Compared renders headless didn't draw, by its reason: page_error (a board it can't load,
+          most often a newer schema), render_error, timeout (the 20 s shadow budget) or rpc_error (the
+          call itself failed).
+        id: 17
+        links: []
+        title: Headless failures by reason
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-18:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT if(double7 = 0, 'no media', if(double7 <= 5, '1-5 media', '6+ media')) as media,
+                          if(double6 <= 20, '0-20 shapes', if(double6 <= 200, '21-200 shapes', '200+ shapes')) as shapes,
+                          sum(_sample_interval) as comparisons,
+                          round(100 * sum(if(blob5 = 'outcome:ok', _sample_interval, 0)) / sum(_sample_interval), 1) as both_drew_pct,
+                          round(100 * quantileExactWeighted(0.5)(double1, if(double1 >= 0, _sample_interval, 0)), 3) as p50_diff_pct,
+                          round(100 * quantileExactWeighted(0.9)(double1, if(double1 >= 0, _sample_interval, 0)), 3) as p90_diff_pct,
+                          round(quantileExactWeighted(0.5)(double4, if(blob5 = 'outcome:ok', _sample_interval, 0))) as p50_compare_ms
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        GROUP BY media, shapes
+                        ORDER BY media, shapes
+                      rawQuery: |-
+                        SELECT if(double7 = 0, 'no media', if(double7 <= 5, '1-5 media', '6+ media')) as media,
+                          if(double6 <= 20, '0-20 shapes', if(double6 <= 200, '21-200 shapes', '200+ shapes')) as shapes,
+                          sum(_sample_interval) as comparisons,
+                          round(100 * sum(if(blob5 = 'outcome:ok', _sample_interval, 0)) / sum(_sample_interval), 1) as both_drew_pct,
+                          round(100 * quantileExactWeighted(0.5)(double1, if(double1 >= 0, _sample_interval, 0)), 3) as p50_diff_pct,
+                          round(100 * quantileExactWeighted(0.9)(double1, if(double1 >= 0, _sample_interval, 0)), 3) as p90_diff_pct,
+                          round(quantileExactWeighted(0.5)(double4, if(blob5 = 'outcome:ok', _sample_interval, 0))) as p50_compare_ms
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'render_shadow_compare'
+                        AND blob2 = '${environment}-tldraw-render-worker'
+                        AND blob3 = 'op:screenshot'
+                        GROUP BY media, shapes
+                        ORDER BY media, shapes
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: >-
+          Compared renders bucketed by media assets and page shapes. Where both_drew_pct drops or the
+          diff climbs is content headless shouldn't own yet. Diffs are percentages of pixels.
+        id: 18
+        links: []
+        title: Diff and agreement by board content
+        vizConfig:
+          group: table
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                custom:
+                  align: auto
+                  cellOptions:
+                    type: auto
+                  inspect: false
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              cellHeight: sm
+              footer:
+                countRows: false
+                fields: ''
+                reducer:
+                  - sum
+                show: false
+              showHeader: true
           version: 13.2.0-29854286369
   layout:
     kind: GridLayout
@@ -1042,6 +1951,87 @@ spec:
             width: 12
             x: 0
             y: 20
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-10
+            height: 4
+            width: 6
+            x: 0
+            y: 28
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-11
+            height: 4
+            width: 6
+            x: 6
+            y: 28
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-12
+            height: 4
+            width: 6
+            x: 12
+            y: 28
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-13
+            height: 4
+            width: 6
+            x: 18
+            y: 28
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-14
+            height: 8
+            width: 12
+            x: 0
+            y: 32
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-15
+            height: 8
+            width: 12
+            x: 12
+            y: 32
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-16
+            height: 8
+            width: 12
+            x: 0
+            y: 40
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-17
+            height: 8
+            width: 12
+            x: 12
+            y: 40
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-18
+            height: 8
+            width: 24
+            x: 0
+            y: 48
   links: []
   liveNow: false
   preload: false

@@ -58,8 +58,9 @@ binding = "BROWSER"
 #################### browser_run_session spend ledger ####################
 # The SAME MEASURE dataset sync-worker writes to, so a session row lands alongside the request-level
 # events (the dataset defaults to the binding name, as in sync-worker). This worker writes ONLY
-# `browser_run_session`, and it carries no board identity — so this binding does not widen the
-# identity surface. Note: the event's worker-name blob becomes this worker's name, not sync-worker's.
+# `browser_run_session` and `render_shadow_compare`, and neither carries board identity — so this
+# binding does not widen the identity surface. Note: the events' worker-name blob becomes this
+# worker's name, not sync-worker's.
 
 [[env.dev.analytics_engine_datasets]]
 binding = "MEASURE"
@@ -72,6 +73,15 @@ binding = "MEASURE"
 
 [[env.production.analytics_engine_datasets]]
 binding = "MEASURE"
+
+#################### Headless editor (screenshot shadow) ####################
+# Deployed separately, so it must exist before this worker deploys. Staging only:
+# there is no dev or production headless worker, and binding a service that does not exist fails the
+# deploy. Whether a render is compared is sync-worker's `headless_shadow` flag.
+
+[[env.staging.services]]
+binding = "HEADLESS_WORKER"
+service = "staging-tldraw-headless-worker"
 
 #################### Sentry release tagging ####################
 # createSentry needs this to tag releases. Repeated per environment, as elsewhere in dotcom.

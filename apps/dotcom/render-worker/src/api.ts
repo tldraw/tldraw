@@ -83,6 +83,12 @@ export type RenderFailureReason =
 export interface ScreenshotRequest {
 	payload: RenderPayload
 	telemetry: RenderTelemetry
+	/**
+	 * Also draw this payload with the headless editor after answering, and record how the two compare
+	 * (see headlessShadow.ts). sync-worker decides, from the `headless_shadow` flag, because
+	 * the flags live there.
+	 */
+	shadow?: boolean
 }
 
 /**

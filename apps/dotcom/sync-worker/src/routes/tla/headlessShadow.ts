@@ -24,8 +24,8 @@ import { ResolvedThumbnailBoard, loadBoardSnapshot } from './thumbnailRender'
 // It never touches the answer the caller already has: the whole comparison runs in `ctx.waitUntil`
 // after the tool has returned, and every failure is swallowed into a telemetry row.
 //
-// Rollout follows the HEADLESS_WORKER binding, which only staging has (the worker is deployed from
-// the tldraw-headless repo as `staging-tldraw-headless-worker`). The `headless_shadow` flag is the
+// Rollout follows the HEADLESS_WORKER binding, which only staging has (the worker is deployed
+// separately as `staging-tldraw-headless-worker`). The `headless_shadow` flag is the
 // one control: staging runs it at 100%; production and dev leave the binding unbound, so it is fully
 // inert there, and the flag is hidden where no binding backs it (see getAllFeatureFlagValues).
 //
