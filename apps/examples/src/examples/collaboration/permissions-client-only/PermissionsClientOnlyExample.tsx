@@ -4,6 +4,7 @@ import {
 	Editor,
 	inlineBase64AssetStore,
 	TLCheckDiff,
+	TLComponents,
 	Tldraw,
 	TLRecord,
 	TLShape,
@@ -71,32 +72,41 @@ function UserEditor({ user }: { user: string }) {
 	const connect = useCallback(() => connectToRoom(), [])
 	const checkDiff = useMemo(() => makeCheckDiff(user), [user])
 	const store = useSync({ connect, checkDiff, assets: inlineBase64AssetStore })
-	const components = useMemo(() => ({ TopPanel: () => <Status user={user} /> }), [user])
 	return (
-		<div className="permissions-editor" onPointerDownCapture={() => editor && focusEditor(editor)}>
-			<Tldraw
-				store={store}
-				autoFocus={false}
-				onMount={(editor) => {
-					setEditor(editor)
-					registerChecks(editor, user)
-				}}
-				components={components}
-			/>
+		<div className="permissions-column" onPointerDownCapture={() => editor && focusEditor(editor)}>
+			<div className="permissions-status">
+				<span className="permissions-user">{user}</span>
+				{editor && <Status editor={editor} />}
+			</div>
+			<div className="permissions-editor">
+				<Tldraw
+					store={store}
+					autoFocus={false}
+					onMount={(editor) => {
+						setEditor(editor)
+						registerChecks(editor, user)
+					}}
+					components={components}
+				/>
+			</div>
 		</div>
 	)
 }
 
-function Status({ user }: { user: string }) {
+function Status({ editor }: { editor: Editor }) {
+	// [3]
+	const status = useValue('status', () => editor.checkCapability('edit-shape')?.reason ?? '', [
+		editor,
+	])
+	return <span>{status}</span>
+}
+
+// Renders nothing: it is in the UI only to show a toast when the editor rejects a change.
+const components: TLComponents = { TopPanel: RejectionToasts }
+
+function RejectionToasts() {
 	const editor = useEditor()
 	const { addToast } = useToasts()
-	// [3]
-	const status = useValue(
-		'status',
-		() => editor.checkCapability('edit-shape')?.reason ?? 'You can change the selection',
-		[editor]
-	)
-
 	useEffect(() => {
 		function onRejected({ reason }: { reason: string }) {
 			addToast({ title: reason, severity: 'warning' })
@@ -106,15 +116,7 @@ function Status({ user }: { user: string }) {
 			editor.off('rejected', onRejected)
 		}
 	}, [editor, addToast])
-
-	return (
-		<div className="permissions-controls">
-			<div className="tlui-menu permissions-user">{user}</div>
-			<div className="tlui-menu permissions-status" title={status}>
-				{status}
-			</div>
-		</div>
-	)
+	return null
 }
 
 export default function PermissionsClientOnlyExample() {
