@@ -1,10 +1,14 @@
 import type { TLLibrary, TLLibraryId, TLLibraryThumbnail } from '@tldraw/tlschema'
-import { LibraryNotFoundError, type LibrarySource } from './LibrarySource'
+import {
+	LibraryNotFoundError,
+	type LibrarySource,
+	type TLCopyLibraryOptions,
+} from './LibrarySource'
 import type { TLLibraryItem } from './schema'
 
 /**
- * Copies a library and its items to an owner, as a new library with the same name. The
- * original is left as it is, so this works for read-only libraries too. Item thumbnails are
+ * Copies a library and its items to an owner, as a new library named by `options.getName`, its
+ * items keeping their names. The original is left as it is, so this works for read-only libraries too. Item thumbnails are
  * fetched from their URLs and copied; one that can't be fetched is left out. If an item can't be
  * copied, the partial copy is deleted and the error rethrown.
  * @public
@@ -12,12 +16,14 @@ import type { TLLibraryItem } from './schema'
 export async function copyLibrary(
 	source: LibrarySource,
 	libraryId: TLLibraryId,
-	ownerId: string
+	ownerId: string,
+	options: TLCopyLibraryOptions = {}
 ): Promise<TLLibrary> {
 	const library = source.getLibraries().find((c) => c.id === libraryId)
 	if (!library) throw new LibraryNotFoundError(libraryId)
 	const items = source.getItems(libraryId)
-	const copy = await source.createLibrary(library.name, { ownerId })
+	const name = options.getName ? options.getName(library.name) : library.name
+	const copy = await source.createLibrary(name, { ownerId })
 	try {
 		for (const item of items) await copyItem(source, item, source, copy.id)
 	} catch (error) {
@@ -27,19 +33,25 @@ export async function copyLibrary(
 	return copy
 }
 
-/** Adds a copy of `item`, from `from`, to a library in `to`, with a new id. */
+/**
+ * Adds a copy of `item`, from `from`, to a library in `to`, with a new id. `options.getName` names
+ * the copy from the item's name; an unnamed item's copy is unnamed.
+ */
 export async function copyItem(
 	from: LibrarySource,
 	item: TLLibraryItem,
 	to: LibrarySource,
-	toLibraryId: TLLibraryId
+	toLibraryId: TLLibraryId,
+	options: TLCopyLibraryOptions = {}
 ): Promise<TLLibraryItem> {
 	const [content, thumbnail] = await Promise.all([
 		from.getItemContent(item.id),
 		item.thumbnail === undefined ? undefined : fetchThumbnail(item.thumbnail),
 	])
 	return to.addItem(toLibraryId, {
-		...(item.name === undefined ? {} : { name: item.name }),
+		...(item.name === undefined
+			? {}
+			: { name: options.getName ? options.getName(item.name) : item.name }),
 		content,
 		...(thumbnail === undefined ? {} : { thumbnail }),
 	})

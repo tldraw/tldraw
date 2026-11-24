@@ -1,6 +1,6 @@
 import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { copyLibrary } from './copyLibrary'
+import { copyItem, copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import { LibraryNotFoundError } from './LibrarySource'
 import {
@@ -96,6 +96,17 @@ describe('copyLibrary', () => {
 		expect(source.getItems(copy.id)[0].thumbnail).toBeUndefined()
 	})
 
+	it('names the copy with getName, its items keeping their names', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		await source.addItem(original.id, { name: 'Card', content: content() })
+		const copy = await copyLibrary(source, original.id, 'acme', {
+			getName: (name) => `${name} (Copy)`,
+		})
+		expect(copy.name).toBe('Wireframes (Copy)')
+		expect(source.getItems(copy.id).map((item) => item.name)).toEqual(['Card'])
+	})
+
 	it('deletes the partial copy when an item cannot be copied', async () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
@@ -126,5 +137,23 @@ describe('copyLibrary', () => {
 		)
 		await expect(copyLibrary(source, original.id, 'nobody')).rejects.toThrow(LibraryNotFoundError)
 		expect(source.getLibraries()).toHaveLength(1)
+	})
+})
+
+describe('copyItem', () => {
+	it("names the copy with getName, and leaves an unnamed item's copy unnamed", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const from = await source.createLibrary('Wireframes')
+		const to = await source.createLibrary('Sketches')
+		const card = await source.addItem(from.id, { name: 'Card', content: content() })
+		const unnamed = await source.addItem(from.id, { content: content() })
+		const getName = (name: string) => `${name} (Copy)`
+
+		const cardCopy = await copyItem(source, card, source, to.id, { getName })
+		const unnamedCopy = await copyItem(source, unnamed, source, to.id, { getName })
+
+		expect(cardCopy.name).toBe('Card (Copy)')
+		expect(unnamedCopy.name).toBeUndefined()
+		expect(source.getItems(from.id).map((item) => item.name)).toEqual(['Card', undefined])
 	})
 })

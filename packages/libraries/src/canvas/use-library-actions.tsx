@@ -16,6 +16,7 @@ import { getCopyOwners } from './copy-owners'
 import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
+	copyName: { id: 'libraries.copy-name', defaultMessage: '{name} (Copy)' },
 	deleteTitle: {
 		id: 'libraries.delete-library-dialog.title',
 		defaultMessage: 'Delete library',
@@ -93,7 +94,9 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
 
 	const copyToOwner = (ownerId: string) => {
 		const owner = copyOwners.find((o) => o.id === ownerId)
-		copyLibrary(source, libraryId, ownerId).then(
+		copyLibrary(source, libraryId, ownerId, {
+			getName: (name) => msg(messages.copyName, { name }),
+		}).then(
 			() =>
 				addToast({
 					title: msg(messages.copiedTitle),

@@ -39,6 +39,16 @@ export interface TLNewLibraryOptions {
 	meta?: JsonObject
 }
 
+/** How {@link copyLibrary} names the copy. */
+export interface TLCopyLibraryOptions {
+	/**
+	 * The copy's name, from the library's, e.g. "Shapes (Copy)" from "Shapes". Left out, the copy
+	 * has the library's name. A source that limits names' length may shorten the name it passes, so
+	 * that the result fits.
+	 */
+	getName?(name: string): string
+}
+
 /** What a source needs to store a new item. */
 export interface TLNewLibraryItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */

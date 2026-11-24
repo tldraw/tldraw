@@ -65,6 +65,7 @@ export {
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
+	type TLCopyLibraryOptions,
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
 export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'

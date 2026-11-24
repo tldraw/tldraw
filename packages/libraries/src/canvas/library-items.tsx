@@ -28,6 +28,7 @@ import { useSaveSelection } from './use-save-selection'
 import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
+	copyName: { id: 'libraries.copy-name', defaultMessage: '{name} (Copy)' },
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
 	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
@@ -184,7 +185,9 @@ export function LibraryItems({
 			const item = items.find((i) => i.id === itemId)
 			if (!item) return
 			const target = copyTargets.find((c) => c.id === toLibraryId)
-			copyItem(source, item, source, toLibraryId).then(
+			copyItem(source, item, source, toLibraryId, {
+				getName: (name) => msg(messages.copyName, { name }),
+			}).then(
 				() => {
 					addToast({
 						title: msg(messages.copiedTitle),
