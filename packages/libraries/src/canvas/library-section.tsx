@@ -73,7 +73,12 @@ export function LibrarySection({
 
 	const { ordering, reversed } = useItemOrdering(source)
 	const menuId = `libraries-library-menu-${libraryId}`
-	const hasMenu = !!LibraryMenu
+	const isDocumentLibrary = useValue(
+		'is document library',
+		() => !!source.getLibraryPlacement && source.getLibraryPlacement(libraryId) === 'document',
+		[source, libraryId]
+	)
+	const hasMenu = !!LibraryMenu && !isDocumentLibrary
 	const opensMenu = hasMenu && !isRenaming
 	const contextMenu = getContextMenuHandlers((opener, point) =>
 		openContextMenu(editor, menuId, { opener, point })
