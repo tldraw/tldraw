@@ -69,8 +69,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
+		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
 		return [
-			{ id: homeId, name: this.app.msg(messages.privateToYou) },
+			{ id: homeId, name: homeName ?? this.app.msg(messages.privateToYou) },
 			...memberships.flatMap((m) =>
 				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
 			),
