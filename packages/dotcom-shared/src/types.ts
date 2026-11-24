@@ -106,8 +106,7 @@ export const THUMBNAIL_SETTLE_TIMEOUT_MS = 10_000
 export interface ThumbnailRenderParams {
 	/**
 	 * `content` fits the page's content to the requested output size. When omitted, the render page
-	 * sets the x/y/z viewport below directly. Every surface asks for `content` today (see
-	 * ThumbnailRenderJob).
+	 * sets the x/y/z viewport below directly. Every surface asks for `content` today.
 	 */
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */

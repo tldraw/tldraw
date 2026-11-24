@@ -11,8 +11,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { evaluateFlagForUser, getFeatureFlagValue } from '../../utils/featureFlags'
 import { readSnapshotPage } from './boardTools'
 import { resolveSharedBoardForUser } from './mcpServer'
-import { loadBoardSnapshot } from './thumbnailRender'
-import { ThumbnailRenderJob, thumbnailSnapshotBodyFor } from './thumbnailRenderJob'
+import { loadBoardSnapshot, thumbnailSnapshotBodyFor } from './thumbnailRender'
 
 // Shadow mode for the headless editor's measure path. Page measurement for MCP now happens in the
 // caller's own open tab (#11416); this runs the same page through the headless editor off the
@@ -151,11 +150,11 @@ function writeShadowCompareTelemetry(
 }
 
 /**
- * The fixed measure job for a board's page. `null` when the (possibly stale) R2 snapshot no longer has
+ * The fixed measure payload for a board's page. `null` when the (possibly stale) R2 snapshot no longer has
  * the page the tab read.
  */
 function buildMeasurePayload(snapshot: RoomSnapshot, pageId: string): HeadlessRenderPayload | null {
-	const job: ThumbnailRenderJob = {
+	const body = thumbnailSnapshotBodyFor(snapshot, {
 		camera: 'content',
 		pageId,
 		mode: 'measure',
@@ -165,8 +164,7 @@ function buildMeasurePayload(snapshot: RoomSnapshot, pageId: string): HeadlessRe
 		width: SHADOW_MEASURE_VIEWPORT.width,
 		height: SHADOW_MEASURE_VIEWPORT.height,
 		theme: 'light',
-	}
-	const body = thumbnailSnapshotBodyFor(snapshot, job)
+	})
 	return body.error ? null : body
 }
 

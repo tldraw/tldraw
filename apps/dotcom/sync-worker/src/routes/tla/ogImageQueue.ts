@@ -1,4 +1,3 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import {
@@ -386,10 +385,7 @@ export async function handleOgImageRenderMessage(
 		// The render worker draws the chosen page; the PNG goes to the cache key the OG route reads.
 		const render = await captureThumbnailScreenshot(env, board, {
 			pageId,
-			theme: 'light',
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-			telemetry: { source: 'queue', reason },
+			reason,
 			content: summarizeSnapshotContent(snapshot, pageId),
 			snapshot,
 		})

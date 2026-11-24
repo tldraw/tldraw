@@ -1,13 +1,14 @@
-import type { RenderTelemetry } from '@tldraw/dotcom-render-worker'
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	RENDER_PUSH_BUDGET_BYTES,
+	ThumbnailRenderParams,
+	ThumbnailSnapshotResponseBody,
 	renderPushByteLength,
 	renderPushScript,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { AssetRecordType, isShape, isShapeId } from '@tldraw/tlschema'
+import { AssetRecordType, TLRecord, isShape, isShapeId } from '@tldraw/tlschema'
 import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
@@ -26,7 +27,7 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileViewableFor,
 } from './getSharedFile'
-import { thumbnailSnapshotBodyFor } from './thumbnailRenderJob'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import { BoardSnapshotReadError, RenderWorkerError } from './thumbnailShared'
 
 // The render-and-cache core shared by every screenshot surface: the MCP screenshot tool
@@ -160,47 +161,69 @@ async function isHeadlessScreenshotShadowFor(env: Environment, board: ThumbnailB
 	return evaluateFlagForUser(flag, 'headless_shadow', `${board.kind}/${board.slug}`)
 }
 
-// Renders one content-fit page of a board the caller has already read and returns the PNG. The
-// private render worker (apps/dotcom/render-worker) does the rendering: it owns the render page, the
-// Browser Run call and the `browser_run_session` ledger, and reports a failure's detail to its own
-// Sentry. Callers decide where (and whether) to cache the result.
+/**
+ * What the render page draws: the payload pushed into the page (see captureThumbnailScreenshot) and
+ * handed to the headless editor's shadow (see headlessShadow.ts). One builder, so the two cannot
+ * draw different records.
+ */
+export function thumbnailSnapshotBodyFor(
+	snapshot: RoomSnapshot | undefined,
+	renderParams: ThumbnailRenderParams
+): ThumbnailSnapshotResponseBody {
+	// A corrupt or partial R2 payload can carry schema metadata without a documents array; guard it
+	// so it returns a controlled 404 rather than throwing on the .map below and 500ing the render.
+	if (!snapshot?.schema || !snapshot.documents) {
+		return { error: true, message: 'Board not found' }
+	}
+
+	// A render can target a specific page, chosen from an earlier read of the board. If the page is gone
+	// from this snapshot the render page would silently fall back to whichever page the snapshot opens
+	// to, and the caller would get a picture of the wrong page. Fail instead, so the capture surfaces
+	// as a retryable render error rather than a wrong image.
+	if (
+		renderParams.pageId &&
+		!snapshot.documents.some((d) => (d.state as TLRecord | undefined)?.id === renderParams.pageId)
+	) {
+		return { error: true, message: 'Page not found' }
+	}
+
+	// Same reasoning as the page check above, and it matters more here: with every requested shape
+	// gone the render page would have nothing to fit the camera to and would export a blank frame,
+	// which the caller would take for a picture of those shapes. Requiring every id to still be
+	// present turns a stale request into a retryable render error instead.
+	if (renderParams.shapeIds) {
+		const presentIds = new Set(snapshot.documents.map((d) => (d.state as TLRecord | undefined)?.id))
+		if (!renderParams.shapeIds.every((id) => presentIds.has(id as TLRecord['id']))) {
+			return { error: true, message: 'Shape not found' }
+		}
+	}
+
+	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
+	return {
+		error: false,
+		// The rest of the board costs parse, migration and store load inside the Browser Run budget.
+		records: sliceSnapshotForRender(records, renderParams) ?? records,
+		schema: snapshot.schema,
+		renderParams,
+	}
+}
+
+// Renders one content-fit page of a board the caller has already read, at the OG image's size, and
+// returns the PNG. The private render worker (apps/dotcom/render-worker) does the rendering: it owns
+// the render page, the Browser Run call and the `browser_run_session` ledger, and reports a failure's
+// detail to its own Sentry. The caller decides where to cache the result.
 export async function captureThumbnailScreenshot(
 	env: Environment,
 	board: ThumbnailBoardRef,
 	{
 		pageId,
-		shapeIds,
-		theme,
-		width,
-		height,
-		telemetry,
-		capture,
+		reason,
 		content,
 		snapshot,
 	}: {
-		/**
-		 * The single page to render. When omitted, the render page exports whichever page the
-		 * snapshot opens to (used by OG images).
-		 */
-		pageId?: string
-		/**
-		 * Restricts the export to these shapes rather than the whole page: the render page fits the
-		 * camera to their common bounds and draws only them.
-		 */
-		shapeIds?: string[]
-		theme: 'light' | 'dark'
-		width: number
-		height: number
-		/**
-		 * Who this session is for on the spend ledger. Required so a new caller cannot create
-		 * browser sessions that never appear on it.
-		 */
-		telemetry: { source: RenderTelemetry['source']; reason?: OgImageRenderReason }
-		/**
-		 * `live` skips the in-page export and lets the screenshot rasterize the live canvas, after the
-		 * page has pruned it to the requested shapes. See ThumbnailRenderParams.
-		 */
-		capture?: 'live'
+		pageId: string
+		/** The queue trigger, for the spend ledger. */
+		reason: OgImageRenderReason
 		/** What the board holds, for the ledger (see summarizeSnapshotContent). Never identifies it. */
 		content: RenderContentSummary
 		/** The board, as the caller read it: its records are pushed into the render page. */
@@ -215,19 +238,16 @@ export async function captureThumbnailScreenshot(
 
 	const body = thumbnailSnapshotBodyFor(snapshot, {
 		camera: 'content',
-		...(pageId ? { pageId } : null),
-		...(shapeIds?.length ? { shapeIds } : null),
-		...(capture ? { capture } : null),
-		// Ignored while `camera` is 'content'; carried because the job type keeps the explicit-viewport
-		// path available (see ThumbnailRenderJob).
+		pageId,
+		// Ignored while `camera` is 'content'.
 		x: 0,
 		y: 0,
 		z: 1,
-		width,
-		height,
-		theme,
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+		theme: 'light',
 	})
-	// A page or shape that vanished between the caller's choice and this snapshot.
+	// A page that vanished between the caller's choice and this snapshot.
 	if (body.error) throw new Error(body.message)
 	// Refuse a page too large to push before spending any RPC. The push carries only the records the
 	// chosen page draws, so this measures the page, not the board. The injected script is the larger
@@ -237,7 +257,7 @@ export async function captureThumbnailScreenshot(
 	}
 	const result = await env.RENDER_WORKER.screenshot({
 		payload: body,
-		telemetry: { source: telemetry.source, reason: telemetry.reason, content },
+		telemetry: { source: 'queue', reason, content },
 		shadow: await isHeadlessScreenshotShadowFor(env, board),
 	})
 	// A bounded reason; re-thrown so callers keep one throw/catch for every failure.
