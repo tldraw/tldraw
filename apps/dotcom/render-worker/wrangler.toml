@@ -4,6 +4,13 @@ main = "src/worker.ts"
 compatibility_date = "2026-03-24"
 compatibility_flags = ["nodejs_compat"]
 
+# The page is this worker's whole public surface, reached through the app-host routes below. It has
+# to be on a tldraw host: the SDK licenses the editor by hostname, and an unlicensed one blanks
+# itself five seconds after it mounts. Rendering is reached only through sync-worker's RENDER_WORKER
+# service binding (the RenderWorker entrypoint); any other HTTP request gets a 404 (see the worker's
+# fetch handler).
+workers_dev = false
+
 [dev]
 port = 8790
 
@@ -14,13 +21,6 @@ command = "pnpm build-page"
 
 [assets]
 directory = "./.page"
-
-# The page is served on workers.dev, and it has to be a tldraw host: the SDK licenses the editor by
-# hostname, and an unlicensed one blanks itself five seconds after it mounts. That page is this
-# worker's whole public surface. Rendering is reached only through sync-worker's RENDER_WORKER
-# service binding (the RenderWorker entrypoint); any other HTTP request gets a 404 (see the worker's
-# fetch handler).
-workers_dev = true
 
 #################### Environment names ####################
 
@@ -34,7 +34,7 @@ name = "dev-tldraw-render-worker"
 LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 # The origin serving the render page. In dev that is the client's dev server, which is where the
 # local screenshot service above captures from whatever this says. Deployed environments point at
-# this worker's own workers.dev host.
+# the app host, where the routes below hand the page's paths to this worker.
 RENDER_PAGE_ORIGIN = "http://localhost:3000"
 
 # preview has no hard-coded name; the deploy script generates it at build time (as for sync-worker).
@@ -43,13 +43,22 @@ RENDER_PAGE_ORIGIN = "http://localhost:3000"
 name = "staging-tldraw-render-worker"
 
 [env.staging.vars]
-RENDER_PAGE_ORIGIN = "https://staging-tldraw-render-worker.tldraw.workers.dev"
+RENDER_PAGE_ORIGIN = "https://staging.tldraw.com"
+
+# One pattern covers the page and its assets, which the page build puts under /__thumbnail-render/.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/__thumbnail-render*"
 
 [env.production]
 name = "tldraw-render-worker"
 
 [env.production.vars]
-RENDER_PAGE_ORIGIN = "https://tldraw-render-worker.tldraw.workers.dev"
+RENDER_PAGE_ORIGIN = "https://www.tldraw.com"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/__thumbnail-render*"
 
 #################### Browser Rendering (Quick Actions) ####################
 # Named environments do not inherit the top-level binding, so it is repeated per environment.

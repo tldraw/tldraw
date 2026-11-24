@@ -66,6 +66,9 @@ export default defineConfig({
 	build: {
 		outDir,
 		emptyOutDir: true,
+		// Under the render path, so the one route that sends the page to this worker carries its assets
+		// too (see the routes in wrangler.toml).
+		assetsDir: `${THUMBNAIL_RENDER_PATH.slice(1)}/assets`,
 		// our svg icons break if we use data urls (as in the client's own build)
 		assetsInlineLimit: 0,
 		rollupOptions: { input: resolve(client, entry) },
