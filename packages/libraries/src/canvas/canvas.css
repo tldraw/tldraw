@@ -878,10 +878,11 @@
 .tlui-libraries-details {
 	display: flex;
 	flex-direction: column;
-	gap: var(--tl-space-3);
+	gap: 12px;
 	width: 424px;
 	max-width: 100%;
-	padding-top: 0;
+	padding-top: 6px;
+	padding-bottom: 6px;
 }
 
 .tlui-libraries-details__description {
