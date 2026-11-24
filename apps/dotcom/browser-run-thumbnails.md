@@ -263,7 +263,7 @@ The sync worker needs:
 
 ### The render worker's page
 
-The render worker serves the render page itself, not the client. `page.vite.config.ts` builds the client's `thumbnail-render` entry into the worker's static assets on every `wrangler dev` and `wrangler deploy`, so the page and the worker that drives it ship together, and `RENDER_PAGE_ORIGIN` points at the worker's own workers.dev host (`https://<worker name>.tldraw.workers.dev`). Local dev is the exception: it captures through the client dev server.
+The render worker serves the render page itself, not the client. `page.vite.config.ts` builds the client's `thumbnail-render` entry into the worker's static assets on every `wrangler dev` and `wrangler deploy`, so the page and the worker that drives it ship together, and a route on the app host (`staging.tldraw.com/__thumbnail-render*`, `www.tldraw.com/__thumbnail-render*`) hands the page and its assets to the worker, ahead of the client. The page's URL is the one the client served it at, so its origin, CSP and image loading are unchanged, and the worker has no workers.dev host. Local dev is the exception: it captures through the client dev server.
 
 The page's source still lives in the client (`thumbnail-render.html`, `src/pages/thumbnail-render.tsx`), because it draws with the app's shape utils, asset store and stylesheet. The client's own build leaves the entry out, so tldraw.com does not serve `/__thumbnail-render`.
 
