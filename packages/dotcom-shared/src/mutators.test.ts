@@ -1,6 +1,7 @@
 import type { Transaction } from '@rocicorp/zero'
 import { IndexKey, uniqueId } from '@tldraw/utils'
 import { describe, expect, it, vi } from 'vitest'
+import { MAX_NUMBER_OF_LIBRARIES, MAX_NUMBER_OF_LIBRARY_ITEMS } from './constants'
 import { createMutators, MutatorOptions, parseFlags, userHasFlag } from './mutators'
 import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
@@ -284,6 +285,12 @@ function createMockTx(
 		},
 		dbTransaction: {
 			query: async (sql: string, params: unknown[]) => {
+				const counted = sql.match(/^select count\(\*\) from "(\w+)" where "(\w+)" = \$1$/)
+				if (counted) {
+					const [, table, column] = counted
+					const rows = store[table as keyof TableStore] as any[]
+					return [{ count: String(rows.filter((r) => r[column] === params[0]).length) }]
+				}
 				// Handle the specific SQL for assertNotMaxFiles
 				if (sql.includes('count(*)') && sql.includes('"file"')) {
 					const userId = params[0]
@@ -2000,5 +2007,51 @@ describe('libraries', () => {
 			)
 			expect(store.library_item.map((i) => i.libraryId)).toEqual([libraryId, otherLibrary])
 		})
+	})
+
+	describe('limits', () => {
+		const fullWorkspace = () =>
+			Array.from({ length: MAX_NUMBER_OF_LIBRARIES }, (_, i) =>
+				makeLibrary({ id: `coll_full${String(i).padStart(11, '0')}`, owningGroupId: W })
+			)
+		const fullLibrary = (inLibrary: string) =>
+			Array.from({ length: MAX_NUMBER_OF_LIBRARY_ITEMS }, (_, i) =>
+				makeItem(`item_full${String(i).padStart(11, '0')}`, inLibrary)
+			)
+		const expectRefused = (fn: () => Promise<any>, code: ZErrorCode) =>
+			expect(fn()).rejects.toThrow(code)
+
+		for (const location of ['server', 'client'] as const) {
+			it(`refuses a library past the cap in a workspace, on the ${location}`, async () => {
+				const { store, tx, mutators } = setup({ library: fullWorkspace() }, location)
+				await expectRefused(
+					() => mutators.library.create(tx, { id: libraryId, name: 'One more', owningGroupId: W }),
+					ZErrorCode.max_libraries_reached
+				)
+				expect(store.library).toHaveLength(MAX_NUMBER_OF_LIBRARIES)
+				await mutators.library.create(tx, { id: libraryId, name: 'Elsewhere', owningGroupId: V })
+				expect(store.library).toHaveLength(MAX_NUMBER_OF_LIBRARIES + 1)
+			})
+
+			it(`refuses moving an item into a full library, on the ${location}`, async () => {
+				const full = 'coll_cccc11112222dddd'
+				const itemId = 'item_1111222233334444'
+				const { store, tx, mutators } = setup(
+					{
+						library: [
+							makeLibrary({ id: libraryId, owningGroupId: W }),
+							makeLibrary({ id: full, owningGroupId: W }),
+						],
+						library_item: [makeItem(itemId, libraryId), ...fullLibrary(full)],
+					},
+					location
+				)
+				await expectRefused(
+					() => mutators.library_item.move(tx, { id: itemId, libraryId: full }),
+					ZErrorCode.max_library_items_reached
+				)
+				expect(store.library_item[0].libraryId).toBe(libraryId)
+			})
+		}
 	})
 })

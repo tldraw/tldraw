@@ -10,6 +10,8 @@ import {
 } from '@tldraw/utils'
 import {
 	MAX_LIBRARY_NAME_LENGTH,
+	MAX_NUMBER_OF_LIBRARIES,
+	MAX_NUMBER_OF_LIBRARY_ITEMS,
 	MAX_NUMBER_OF_WORKSPACES,
 	MAX_WORKSPACE_NAME_LENGTH,
 } from './constants'
@@ -226,6 +228,46 @@ async function assertCanManageLibraryItem(tx: Tx, userId: string, itemId: string
 }
 
 /**
+ * Counts the rows of `table` whose `column` is `id`, for a cap. Locks the row they belong to first,
+ * as the sync worker's library routes do, so concurrent adds into it count one at a time; NO KEY so
+ * inserts whose foreign keys reference it aren't blocked. Counted in SQL rather than by reading
+ * every row.
+ */
+async function countUnderLock(
+	tx: Extract<Tx, { location: 'server' }>,
+	lockTable: 'group' | 'library',
+	table: 'library' | 'library_item',
+	column: 'owningGroupId' | 'libraryId',
+	id: string
+) {
+	await tx.dbTransaction.query(`select 1 from "${lockTable}" where "id" = $1 for no key update`, [
+		id,
+	])
+	const [row] = Array.from(
+		await tx.dbTransaction.query(`select count(*) from "${table}" where "${column}" = $1`, [id])
+	) as { count: number | string }[]
+	return Number(row?.count ?? 0)
+}
+
+/** Refuses another library in a workspace that has {@link MAX_NUMBER_OF_LIBRARIES}. */
+async function assertWorkspaceHasRoomForLibrary(tx: Tx, owningGroupId: string) {
+	const count =
+		tx.location === 'server'
+			? await countUnderLock(tx, 'group', 'library', 'owningGroupId', owningGroupId)
+			: (await tx.run(zql.library.where('owningGroupId', '=', owningGroupId))).length
+	assert(count < MAX_NUMBER_OF_LIBRARIES, ZErrorCode.max_libraries_reached)
+}
+
+/** Refuses another item in a library that has {@link MAX_NUMBER_OF_LIBRARY_ITEMS}. */
+async function assertLibraryHasRoomForItem(tx: Tx, libraryId: string) {
+	const count =
+		tx.location === 'server'
+			? await countUnderLock(tx, 'library', 'library_item', 'libraryId', libraryId)
+			: (await tx.run(zql.library_item.where('libraryId', '=', libraryId))).length
+	assert(count < MAX_NUMBER_OF_LIBRARY_ITEMS, ZErrorCode.max_library_items_reached)
+}
+
+/**
  * Deletes a library. Its items go with it: the foreign key cascades in Postgres, deleting their
  * library_item_object rows, which queues their objects' deletion, but a client's local store has
  * no cascade.
@@ -344,6 +386,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				// The server's insert ignores a conflicting id, which would report success for nothing.
 				const existing = await tx.run(zql.library.where('id', '=', id).one())
 				assert(!existing, ZErrorCode.bad_request)
+				await assertWorkspaceHasRoomForLibrary(tx, owningGroupId)
 				const now = Date.now()
 				await tx.mutate.library.insert({
 					id,
@@ -388,6 +431,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				const item = await assertCanManageLibraryItem(tx, userId, id)
 				if (item.libraryId === libraryId) return
 				await assertCanManageLibrary(tx, userId, libraryId)
+				await assertLibraryHasRoomForItem(tx, libraryId)
 				await tx.mutate.library_item.update({ id, libraryId, updatedAt: Date.now() })
 			},
 		},
