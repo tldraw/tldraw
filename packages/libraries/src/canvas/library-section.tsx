@@ -106,13 +106,7 @@ export function LibrarySection({
 					onToggleCollapsed={() => setCollapsed(!collapsed)}
 					menu={
 						hasMenu && (
-							<LibraryMenu
-								source={source}
-								library={library}
-								id={menuId}
-								trigger="none"
-								{...menuActions}
-							/>
+							<LibraryMenu source={source} library={library} id={menuId} {...menuActions} />
 						)
 					}
 					isRenaming={isRenaming}

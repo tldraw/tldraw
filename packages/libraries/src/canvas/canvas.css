@@ -464,6 +464,23 @@
 	color: var(--tl-color-danger);
 }
 
+/* A section header's ⋯ shows while the header is hovered or focused, or its menu is open. Touch has
+   no hover, so there it always shows. */
+@media (hover: hover) {
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__header-actions {
+		opacity: 0;
+	}
+
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header:is(:hover, :has(:focus-visible))
+		> .tlui-libraries-panel__header-actions,
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header
+		> .tlui-libraries-panel__header-actions:has([data-state='open']) {
+		opacity: 1;
+	}
+}
+
 .tlui-libraries-panel__header-actions {
 	display: flex;
 	align-items: center;
