@@ -67,9 +67,13 @@ export const MCP_SERVER_INFO = {
  * matches. That is the same failure the tool definition already guards against, arriving one step
  * earlier — see `getSearchBoardsToolDefinition`.
  */
-export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
-	return nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+export function getMcpServerInstructions(nameMatchingEnabled: boolean, imageToolsEnabled = false) {
+	const instructions = nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+	return imageToolsEnabled ? `${instructions} ${IMAGE_INSTRUCTIONS}` : instructions
 }
+
+const IMAGE_INSTRUCTIONS =
+	'add_image puts an image on a board, whether or not the board is open: one from the web by its url, or a local file you first upload from a shell to the URL create_image_upload gives you.'
 
 const SEARCHING_INSTRUCTIONS =
 	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. send_feedback sends a bug report or other feedback about this server to the tldraw team. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
@@ -91,8 +95,8 @@ export const BOARD_USERS_TOOL_NAME = 'get_board_users'
 export const READ_PAGE_COMMENTS_TOOL_NAME = 'read_page_comments'
 export const WRITE_COMMENT_TOOL_NAME = 'write_comment'
 export const SEND_FEEDBACK_TOOL_NAME = 'send_feedback'
-// Not in TOOL_NAMES or getToolDefinitions yet: the two image tools are designed here and served
-// once the upload route and the room write behind them exist.
+// Not in TOOL_NAMES: these two are served only where a deployment turns them on, and a harness
+// serving fixtures has no upload route behind them.
 export const CREATE_IMAGE_UPLOAD_TOOL_NAME = 'create_image_upload'
 export const ADD_IMAGE_TOOL_NAME = 'add_image'
 
@@ -2286,8 +2290,9 @@ export function getAddImageResult(added: {
  * @param nameMatchingEnabled - Whether this deployment will match on board names. When it will not,
  *   `search_boards` advertises no `query` argument and says so, rather than offering a search that
  *   would be refused. Read from the environment by the route; this layer stays free of it.
+ * @param imageToolsEnabled - Whether this deployment serves create_image_upload and add_image.
  */
-export function getToolDefinitions(nameMatchingEnabled: boolean) {
+export function getToolDefinitions(nameMatchingEnabled: boolean, imageToolsEnabled = false) {
 	return [
 		getSearchBoardsToolDefinition(nameMatchingEnabled),
 		getListWorkspacesToolDefinition(),
@@ -2303,6 +2308,9 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 		getReadPageCommentsToolDefinition(),
 		getWriteCommentToolDefinition(),
 		getSendFeedbackToolDefinition(),
+		...(imageToolsEnabled
+			? [getCreateImageUploadToolDefinition(), getAddImageToolDefinition()]
+			: []),
 	]
 }
 
@@ -2762,7 +2770,7 @@ function getWriteCommentToolDefinition() {
 	}
 }
 
-export function getCreateImageUploadToolDefinition() {
+function getCreateImageUploadToolDefinition() {
 	return {
 		name: CREATE_IMAGE_UPLOAD_TOOL_NAME,
 		title: 'Create tldraw image upload',
@@ -2797,7 +2805,7 @@ export function getCreateImageUploadToolDefinition() {
 	}
 }
 
-export function getAddImageToolDefinition() {
+function getAddImageToolDefinition() {
 	return {
 		name: ADD_IMAGE_TOOL_NAME,
 		title: 'Add image to tldraw board',

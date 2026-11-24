@@ -36,6 +36,7 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
+import { addImageForUser, createImageUpload } from './mcpImages'
 import {
 	getMcpAgentClient,
 	normalizeMcpClient,
@@ -112,6 +113,10 @@ vi.mock('./pageComments', () => ({
 	writeCommentForUser: vi.fn(),
 	readMentionableUsers: vi.fn(async () => []),
 }))
+
+// The upload route, the fetch and the room write are covered in mcpImages.test.ts and
+// mcpImage.test.ts; these tests are about the dispatch around them.
+vi.mock('./mcpImages', () => ({ addImageForUser: vi.fn(), createImageUpload: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -1344,6 +1349,108 @@ describe('write_comment', () => {
 			'user_x'
 		)
 		expect(other.isError).toBeUndefined()
+	})
+})
+
+describe('image tools', () => {
+	const ON = { MCP_IMAGE_TOOLS_ENABLED: 'true' }
+
+	// Unset is off, so a deployment nobody configured (production, today) offers neither tool and
+	// answers a call to one as it would any name it has never heard of.
+	it('are served only where the deployment turns them on', async () => {
+		const listed = async (env: Environment) =>
+			(await resultOf(await mcpServer(makeRpcRequest('tools/list'), env))).tools.map(
+				(tool: any) => tool.name
+			)
+		expect(await listed(makeEnv())).not.toContain('add_image')
+		expect((await listed(makeEnv(ON))).slice(-2)).toEqual(['create_image_upload', 'add_image'])
+
+		const refused = await rpcError(
+			await mcpServer(
+				makeToolCall('add_image', { boardId: 'b', url: 'https://x.test/a.png' }),
+				makeEnv()
+			)
+		)
+		expect(refused.message).toBe('Unknown tool: add_image')
+		expect(addImageForUser).not.toHaveBeenCalled()
+	})
+
+	it('returns the upload ticket with how to use it', async () => {
+		vi.mocked(createImageUpload).mockResolvedValue({
+			ok: true,
+			ticket: {
+				uploadId: 'abc-shot-png',
+				uploadUrl: 'https://app.example/api/app/mcp/uploads/abc-shot-png?token=t',
+				method: 'PUT',
+				headers: { 'Content-Type': 'image/png' },
+				maxBytes: 10,
+				expiresAt: '2026-01-01T00:10:00.000Z',
+			},
+		})
+		const result = await callTool(
+			'create_image_upload',
+			{ boardId: 'board_abc', mimeType: 'image/png', name: 'shot.png' },
+			makeEnv(ON),
+			'user_abc'
+		)
+		expect(vi.mocked(createImageUpload).mock.calls[0].slice(2)).toEqual([
+			'user_abc',
+			{ boardId: 'board_abc', mimeType: 'image/png', name: 'shot.png' },
+		])
+		const ticket = JSON.parse(result.content[0].text)
+		expect(ticket).toMatchObject({ uploadId: 'abc-shot-png', method: 'PUT' })
+		expect(ticket.note).toContain('curl -T')
+	})
+
+	it('returns where the image landed, with a link to the board', async () => {
+		vi.mocked(addImageForUser).mockResolvedValue({
+			ok: true,
+			shapeId: 'shape:x',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			x: 10,
+			y: 20,
+			w: 800,
+			h: 600,
+		})
+		const result = await callTool(
+			'add_image',
+			{ boardId: 'board_abc', uploadId: 'abc-shot-png', x: 10, y: 20 },
+			makeEnv(ON),
+			'user_abc'
+		)
+		expect(vi.mocked(addImageForUser).mock.calls[0].slice(1)).toEqual([
+			'user_abc',
+			{
+				boardId: 'board_abc',
+				source: { kind: 'upload', uploadId: 'abc-shot-png' },
+				pageId: null,
+				position: { x: 10, y: 20 },
+				w: null,
+				altText: null,
+			},
+		])
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			shapeId: 'shape:x',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			x: 10,
+			y: 20,
+			w: 800,
+			h: 600,
+			url: 'https://render.example/f/board_abc',
+		})
+	})
+
+	it('tells the model what went wrong when the image is refused', async () => {
+		vi.mocked(addImageForUser).mockResolvedValue({
+			ok: false,
+			reason: 'upload_not_found',
+			uploadId: 'nope',
+		})
+		const result = await callTool('add_image', { boardId: 'b', uploadId: 'nope' }, makeEnv(ON))
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('No uploaded image for uploadId "nope"')
 	})
 })
 

@@ -148,6 +148,8 @@ export interface Environment {
 	 * still being watched.
 	 */
 	MCP_SEARCH_NAME_MATCHING_ENABLED: string | undefined
+	/** `true` to serve create_image_upload and add_image. Off when unset. */
+	MCP_IMAGE_TOOLS_ENABLED: string | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined

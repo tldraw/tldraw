@@ -36,6 +36,13 @@ import {
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
 	SEND_FEEDBACK_TOOL_NAME,
+	ADD_IMAGE_TOOL_NAME,
+	CREATE_IMAGE_UPLOAD_TOOL_NAME,
+	getAddImageRefusalMessage,
+	getAddImageResult,
+	getCreateImageUploadResult,
+	parseAddImageInput,
+	parseCreateImageUploadInput,
 	ToolResult,
 	USER_STATE_TOOL_NAME,
 	WRITE_COMMENT_TOOL_NAME,
@@ -80,6 +87,7 @@ import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { feedbackErrorContext, isMcpFeedbackConfigured, sendMcpFeedback } from './mcpFeedback'
+import { addImageForUser, createImageUpload } from './mcpImages'
 import {
 	PUBLISHED_BOARD_FAILURE,
 	TabRenderContext,
@@ -255,6 +263,12 @@ interface JsonRpcRequest {
 export function isMcpSearchNameMatchingEnabled(env: Environment) {
 	const word = envFlagWord(env.MCP_SEARCH_NAME_MATCHING_ENABLED)
 	return word === undefined || word === 'true'
+}
+
+// Off unless a deployment asks for it, the other way round from name matching: these tools write to
+// boards and to the uploads bucket, so a deployment that forgot the var serves neither.
+export function isMcpImageToolsEnabled(env: Environment) {
+	return envFlagWord(env.MCP_IMAGE_TOOLS_ENABLED) === 'true'
 }
 
 // --- MCP protocol telemetry ---
@@ -458,7 +472,11 @@ const TOOL_HANDLERS = new Map<
 	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
 	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
 	[SEND_FEEDBACK_TOOL_NAME, callSendFeedbackTool],
+	[CREATE_IMAGE_UPLOAD_TOOL_NAME, callCreateImageUploadTool],
+	[ADD_IMAGE_TOOL_NAME, callAddImageTool],
 ])
+
+const IMAGE_TOOL_NAMES = new Set<string>([CREATE_IMAGE_UPLOAD_TOOL_NAME, ADD_IMAGE_TOOL_NAME])
 
 export async function mcpServer(
 	request: IRequest,
@@ -498,7 +516,10 @@ export async function mcpServer(
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
 			capabilities: { tools: {} },
 			serverInfo: MCP_SERVER_INFO,
-			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
+			instructions: getMcpServerInstructions(
+				isMcpSearchNameMatchingEnabled(env),
+				isMcpImageToolsEnabled(env)
+			),
 		})
 	}
 
@@ -516,7 +537,10 @@ export async function mcpServer(
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
 			capabilities: { tools: {} },
-			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
+			instructions: getMcpServerInstructions(
+				isMcpSearchNameMatchingEnabled(env),
+				isMcpImageToolsEnabled(env)
+			),
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
 			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
@@ -545,7 +569,10 @@ export async function mcpServer(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: getToolDefinitions(isMcpSearchNameMatchingEnabled(env)),
+						tools: getToolDefinitions(
+							isMcpSearchNameMatchingEnabled(env),
+							isMcpImageToolsEnabled(env)
+						),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -555,7 +582,10 @@ export async function mcpServer(
 			)
 		case 'tools/call': {
 			const toolName = rpcRequest.params?.name ?? ''
-			const toolHandler = TOOL_HANDLERS.get(toolName)
+			const toolHandler =
+				IMAGE_TOOL_NAMES.has(toolName) && !isMcpImageToolsEnabled(env)
+					? undefined
+					: TOOL_HANDLERS.get(toolName)
 			if (!toolHandler) {
 				// The requested name is caller-controlled and unbounded, so telemetry records a bounded
 				// value while the JSON-RPC error still tells the caller which name was unknown.
@@ -999,6 +1029,74 @@ async function callWriteCommentTool(
 			extras: { boardId: input.boardId, target: input.target.kind },
 			summary: 'Could not post the comment',
 			recordAs: () => 'comment_write_error',
+		})
+	}
+}
+
+async function callCreateImageUploadTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseCreateImageUploadInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const created = await createImageUpload(env, request as IRequest, userId, input)
+		if (!created.ok) return toolError(getAddImageRefusalMessage(created), created.reason)
+		return getCreateImageUploadResult(created.ticket)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_image',
+			extras: { boardId: input.boardId, mimeType: input.mimeType },
+			summary: 'Could not create the image upload',
+			recordAs: () => 'image_upload_error',
+		})
+	}
+}
+
+async function callAddImageTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseAddImageInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// The budget every tool that goes through the board's durable object shares.
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const added = await addImageForUser(env, userId, input)
+		if (!added.ok) return toolError(getAddImageRefusalMessage(added), added.reason)
+		const { ok: _ok, ...placed } = added
+		return getAddImageResult({
+			...placed,
+			url: `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_image',
+			// The url is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId, source: input.source.kind },
+			summary: 'Could not add the image',
+			recordAs: () => 'image_write_error',
 		})
 	}
 }

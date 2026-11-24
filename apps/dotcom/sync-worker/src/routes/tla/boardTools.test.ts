@@ -40,10 +40,9 @@ import {
 	parseWriteCommentInput,
 	parseAddImageInput,
 	parseCreateImageUploadInput,
-	getAddImageToolDefinition,
-	getCreateImageUploadToolDefinition,
 	IMAGE_MAX_WIDTH,
-	TOOL_NAMES,
+	getMcpServerInstructions,
+	getToolDefinitions,
 	resolveSnapshotPage,
 	COMMENT_MENTION_MAX,
 	commentTextToRichText,
@@ -1945,10 +1944,14 @@ describe('parseAddImageInput', () => {
 })
 
 describe('image tool definitions', () => {
-	// Listing a tool is what offers it to a model, and nothing answers these two yet.
-	it('are not served yet', () => {
-		const served: readonly string[] = TOOL_NAMES
-		expect(served).not.toContain(getCreateImageUploadToolDefinition().name)
-		expect(served).not.toContain(getAddImageToolDefinition().name)
+	// A deployment without the upload route configured must not offer a model tools it will refuse.
+	it('are listed only where the deployment serves them', () => {
+		const names = (imageToolsEnabled: boolean) =>
+			getToolDefinitions(true, imageToolsEnabled).map((tool) => tool.name)
+		expect(names(false)).not.toContain('create_image_upload')
+		expect(names(false)).not.toContain('add_image')
+		expect(names(true).slice(-2)).toEqual(['create_image_upload', 'add_image'])
+		expect(getMcpServerInstructions(true, false)).not.toContain('add_image')
+		expect(getMcpServerInstructions(false, true)).toContain('add_image')
 	})
 })

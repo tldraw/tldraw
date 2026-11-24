@@ -133,6 +133,8 @@ TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 ZERO_SERVER = "http://localhost:4848/"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
+# Serves create_image_upload and add_image. Off wherever this is unset, which includes production.
+MCP_IMAGE_TOOLS_ENABLED = "true"
 # The MCP server's public URL, and the resource identifier it advertises in protected resource
 # metadata and in the WWW-Authenticate challenge. Not compared against an incoming token: Clerk stamps
 # no `aud`, so there is no audience binding to check. Points at the client dev server because that is
@@ -165,6 +167,7 @@ MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_HOST_ORIGIN = "https://staging-mcp.tldraw.com"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
+MCP_IMAGE_TOOLS_ENABLED = "true"
 # Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
 # volume the trial is judged on; production stays on the export until it is.
