@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'fs'
+import { join } from 'path'
 import { type LibraryPack, type LibraryPackItem, InMemoryLibrarySource } from '@tldraw/libraries'
 import { createTLSchema, type SerializedStore, type TLRecord } from 'tldraw'
 import { describe, expect, it } from 'vitest'
@@ -10,9 +12,8 @@ import {
 	isStarterPackAdded,
 	loadStarterPack,
 	loadStarterPackSummaries,
-	STARTER_PACK_LOADERS,
+	STARTER_PACK_IDS,
 	STARTER_PACK_PREVIEW_COUNT,
-	type StarterPackSummary,
 } from './starterPacks'
 
 const pack: LibraryPack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
@@ -22,22 +23,88 @@ const owners = [
 	{ id: 'home', name: 'Home' },
 ]
 
-const fullPacks = await Promise.all(Object.keys(STARTER_PACK_LOADERS).map(loadStarterPack))
+const fullPacks = await Promise.all(STARTER_PACK_IDS.map(loadStarterPack))
+
+const DATA_DIR = join(__dirname, 'starterPackData')
+
+interface IndexFile {
+	id: string
+	name: string
+	version: number
+	items: { id: string; name?: string; thumbnail?: string | { light: string; dark: string } }[]
+}
+
+// The index as written, its thumbnails named by file rather than resolved to URLs.
+const readIndexFile = (packId: string): IndexFile =>
+	JSON.parse(readFileSync(join(DATA_DIR, packId, 'index.json'), 'utf8'))
+
+const thumbnailFiles = (thumbnail: IndexFile['items'][number]['thumbnail']) =>
+	thumbnail === undefined
+		? []
+		: typeof thumbnail === 'string'
+			? [thumbnail]
+			: [thumbnail.light, thumbnail.dark]
 
 describe('starter pack data', () => {
 	it('summarises the packs in starterPackManifest.json', async () => {
-		const summaries: StarterPackSummary[] = fullPacks.map((p) => ({
-			id: p.id,
-			name: p.name,
-			version: p.version,
-			itemCount: p.items.length,
-			previews: p.items
-				.slice(0, STARTER_PACK_PREVIEW_COUNT)
-				.map((item) => ({ id: item.id, thumbnail: item.thumbnail })),
-		}))
+		const summaries = STARTER_PACK_IDS.map((id) => {
+			const index = readIndexFile(id)
+			return {
+				id: index.id,
+				name: index.name,
+				version: index.version,
+				itemCount: index.items.length,
+				itemNames: index.items.flatMap((item) => (item.name === undefined ? [] : [item.name])),
+				previews: index.items
+					.slice(0, STARTER_PACK_PREVIEW_COUNT)
+					.map((item) => ({ id: item.id, thumbnail: item.thumbnail })),
+			}
+		})
 		await expect(JSON.stringify(summaries, null, '\t') + '\n').toMatchFileSnapshot(
 			'./starterPackManifest.json'
 		)
+	})
+
+	it.each(STARTER_PACK_IDS)(
+		"%s's folder holds exactly its index, each item's content and its thumbnails",
+		(id) => {
+			const index = readIndexFile(id)
+			expect(index.id).toBe(id)
+			expect(readdirSync(join(DATA_DIR, id)).sort()).toEqual([
+				'content',
+				'index.json',
+				'thumbnails',
+			])
+			expect(readdirSync(join(DATA_DIR, id, 'content')).sort()).toEqual(
+				index.items.map((item) => `${item.id}.json`).sort()
+			)
+			expect(readdirSync(join(DATA_DIR, id, 'thumbnails')).sort()).toEqual(
+				index.items
+					.flatMap((item) => thumbnailFiles(item.thumbnail))
+					.map((file) => file.replace(/^thumbnails\//, ''))
+					.sort()
+			)
+		}
+	)
+
+	it.each(STARTER_PACK_IDS)("%s's thumbnails carry no colour profile or metadata", (id) => {
+		const dir = join(DATA_DIR, id, 'thumbnails')
+		for (const file of readdirSync(dir)) {
+			const webp = readFileSync(join(dir, file))
+			const chunks: string[] = []
+			for (let offset = 12; offset < webp.length; ) {
+				const size = webp.readUInt32LE(offset + 4)
+				chunks.push(webp.toString('ascii', offset, offset + 4))
+				offset += 8 + size + (size & 1)
+			}
+			expect(chunks, file).not.toContain('ICCP')
+			expect(chunks, file).not.toContain('EXIF')
+			expect(chunks, file).not.toContain('XMP ')
+		}
+	})
+
+	it('lists every pack in its folder', () => {
+		expect(readdirSync(DATA_DIR).sort()).toEqual([...STARTER_PACK_IDS].sort())
 	})
 
 	it('loads the summaries once and keeps them for the dialog', async () => {
@@ -45,12 +112,12 @@ describe('starter pack data', () => {
 		const loading = loadStarterPackSummaries()
 		expect(loadStarterPackSummaries()).toBe(loading)
 		const summaries = await loading
-		expect(summaries.map((p) => p.id)).toEqual(Object.keys(STARTER_PACK_LOADERS))
+		expect(summaries.map((p) => p.id)).toEqual(STARTER_PACK_IDS)
 		expect(getStarterPackSummaries()).toBe(summaries)
 	})
 
 	it('loads each pack under its own id', () => {
-		expect(fullPacks.map((p) => p.id)).toEqual(Object.keys(STARTER_PACK_LOADERS))
+		expect(fullPacks.map((p) => p.id)).toEqual(STARTER_PACK_IDS)
 	})
 
 	it("can't load a pack that doesn't exist", async () => {
@@ -62,9 +129,9 @@ describe('starter pack data', () => {
 		(_, p) => {
 			expect(p.items.length).toBeGreaterThan(0)
 			expect(new Set(p.items.map((item) => item.id)).size).toBe(p.items.length)
-			const dataUrl = expect.stringMatching(/^data:image\//)
+			const webp = expect.stringMatching(/\.webp$/)
 			for (const item of p.items) {
-				expect(item.thumbnail, item.id).toEqual({ light: dataUrl, dark: dataUrl })
+				expect(item.thumbnail, item.id).toEqual({ light: webp, dark: webp })
 			}
 		}
 	)

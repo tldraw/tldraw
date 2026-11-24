@@ -1,0 +1,127 @@
+{
+	"id": "doodles",
+	"name": "Doodles",
+	"version": 1,
+	"items": [
+		{
+			"id": "waving-person",
+			"name": "Waving person",
+			"thumbnail": {
+				"light": "thumbnails/waving-person-light.webp",
+				"dark": "thumbnails/waving-person-dark.webp"
+			}
+		},
+		{
+			"id": "fairy",
+			"name": "Fairy",
+			"thumbnail": {
+				"light": "thumbnails/fairy-light.webp",
+				"dark": "thumbnails/fairy-dark.webp"
+			}
+		},
+		{
+			"id": "skateboarder",
+			"name": "Skateboarder",
+			"thumbnail": {
+				"light": "thumbnails/skateboarder-light.webp",
+				"dark": "thumbnails/skateboarder-dark.webp"
+			}
+		},
+		{
+			"id": "car-with-passengers",
+			"name": "Car with passengers",
+			"thumbnail": {
+				"light": "thumbnails/car-with-passengers-light.webp",
+				"dark": "thumbnails/car-with-passengers-dark.webp"
+			}
+		},
+		{
+			"id": "bunny",
+			"name": "Bunny",
+			"thumbnail": {
+				"light": "thumbnails/bunny-light.webp",
+				"dark": "thumbnails/bunny-dark.webp"
+			}
+		},
+		{
+			"id": "driver",
+			"name": "Driver",
+			"thumbnail": {
+				"light": "thumbnails/driver-light.webp",
+				"dark": "thumbnails/driver-dark.webp"
+			}
+		},
+		{
+			"id": "dog",
+			"name": "Dog",
+			"thumbnail": {
+				"light": "thumbnails/dog-light.webp",
+				"dark": "thumbnails/dog-dark.webp"
+			}
+		},
+		{
+			"id": "happy-dog",
+			"name": "Happy dog",
+			"thumbnail": {
+				"light": "thumbnails/happy-dog-light.webp",
+				"dark": "thumbnails/happy-dog-dark.webp"
+			}
+		},
+		{
+			"id": "builder-in-hi-vis",
+			"name": "Builder in hi-vis",
+			"thumbnail": {
+				"light": "thumbnails/builder-in-hi-vis-light.webp",
+				"dark": "thumbnails/builder-in-hi-vis-dark.webp"
+			}
+		},
+		{
+			"id": "builder-in-stripes",
+			"name": "Builder in stripes",
+			"thumbnail": {
+				"light": "thumbnails/builder-in-stripes-light.webp",
+				"dark": "thumbnails/builder-in-stripes-dark.webp"
+			}
+		},
+		{
+			"id": "bean",
+			"name": "Bean",
+			"thumbnail": {
+				"light": "thumbnails/bean-light.webp",
+				"dark": "thumbnails/bean-dark.webp"
+			}
+		},
+		{
+			"id": "standing-person",
+			"name": "Standing person",
+			"thumbnail": {
+				"light": "thumbnails/standing-person-light.webp",
+				"dark": "thumbnails/standing-person-dark.webp"
+			}
+		},
+		{
+			"id": "builder-with-sign",
+			"name": "Builder with sign",
+			"thumbnail": {
+				"light": "thumbnails/builder-with-sign-light.webp",
+				"dark": "thumbnails/builder-with-sign-dark.webp"
+			}
+		},
+		{
+			"id": "dancing-blob",
+			"name": "Dancing blob",
+			"thumbnail": {
+				"light": "thumbnails/dancing-blob-light.webp",
+				"dark": "thumbnails/dancing-blob-dark.webp"
+			}
+		},
+		{
+			"id": "cheering-blob",
+			"name": "Cheering blob",
+			"thumbnail": {
+				"light": "thumbnails/cheering-blob-light.webp",
+				"dark": "thumbnails/cheering-blob-dark.webp"
+			}
+		}
+	]
+}

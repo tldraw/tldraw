@@ -1,0 +1,55 @@
+{
+	"id": "wireframing",
+	"name": "Wireframing",
+	"version": 5,
+	"items": [
+		{
+			"id": "button",
+			"name": "Button",
+			"thumbnail": {
+				"light": "thumbnails/button-light.webp",
+				"dark": "thumbnails/button-dark.webp"
+			}
+		},
+		{
+			"id": "input",
+			"name": "Input",
+			"thumbnail": {
+				"light": "thumbnails/input-light.webp",
+				"dark": "thumbnails/input-dark.webp"
+			}
+		},
+		{
+			"id": "card",
+			"name": "Card",
+			"thumbnail": {
+				"light": "thumbnails/card-light.webp",
+				"dark": "thumbnails/card-dark.webp"
+			}
+		},
+		{
+			"id": "avatar",
+			"name": "Avatar",
+			"thumbnail": {
+				"light": "thumbnails/avatar-light.webp",
+				"dark": "thumbnails/avatar-dark.webp"
+			}
+		},
+		{
+			"id": "checkbox",
+			"name": "Checkbox",
+			"thumbnail": {
+				"light": "thumbnails/checkbox-light.webp",
+				"dark": "thumbnails/checkbox-dark.webp"
+			}
+		},
+		{
+			"id": "nav-bar",
+			"name": "Navigation bar",
+			"thumbnail": {
+				"light": "thumbnails/nav-bar-light.webp",
+				"dark": "thumbnails/nav-bar-dark.webp"
+			}
+		}
+	]
+}

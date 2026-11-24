@@ -1,12 +1,15 @@
 import {
 	copyPack,
-	libraryThumbnailValidator,
+	parseLibraryItemContent,
 	parseLibraryPack,
 	type LibraryPack,
 	type LibraryPackItem,
 	type LibrarySource,
 	type TLLibrary,
+	type TLLibraryItemContent,
+	type TLLibraryThumbnail,
 } from '@tldraw/libraries'
+import type { JsonObject } from '@tldraw/utils'
 import { atom, T } from 'tldraw'
 
 /** What the starter packs dialog shows of a pack, without loading its items. */
@@ -15,31 +18,85 @@ export interface StarterPackSummary {
 	name: string
 	version: number
 	itemCount: number
+	/** Its items' names, so a search can tell whether the pack has a match without loading it. */
+	itemNames: string[]
 	previews: Pick<LibraryPackItem, 'id' | 'thumbnail'>[]
 }
 
-const starterPackSummariesValidator: T.Validator<StarterPackSummary[]> = T.arrayOf(
+/** A pack's items without their content, which is loaded separately for each item. */
+export interface StarterPackIndex {
+	id: string
+	name: string
+	version: number
+	items: Omit<LibraryPackItem, 'content'>[]
+}
+
+// Thumbnails are named by their file in the pack's folder, e.g. `thumbnails/plus-light.webp`.
+const thumbnailFileValidator = T.or(T.string, T.object({ light: T.string, dark: T.string }))
+
+const starterPackSummariesValidator = T.arrayOf(
 	T.object({
 		id: T.string,
 		name: T.string,
 		version: T.positiveInteger,
 		itemCount: T.nonZeroInteger,
-		previews: T.arrayOf(
-			T.object({ id: T.string, thumbnail: libraryThumbnailValidator.optional() })
-		),
+		itemNames: T.arrayOf(T.string),
+		previews: T.arrayOf(T.object({ id: T.string, thumbnail: thumbnailFileValidator.optional() })),
 	})
 )
 
+const starterPackIndexValidator = T.object({
+	id: T.string,
+	name: T.string,
+	version: T.positiveInteger,
+	items: T.arrayOf(
+		T.object({
+			id: T.string,
+			name: T.string.optional(),
+			thumbnail: thumbnailFileValidator.optional(),
+			meta: (T.jsonValue as T.Validator<JsonObject>).optional(),
+		})
+	),
+})
+
 export const STARTER_PACK_PREVIEW_COUNT = 4
 
-// Each pack is its own chunk, fetched when it's added. starterPackManifest.json is generated from
-// these by starterPacks.test.ts, in this order; run that test with `-u` after changing a pack.
-export const STARTER_PACK_LOADERS: Record<string, () => Promise<{ default: unknown }>> = {
-	wireframing: () => import('./starterPackWireframing.json'),
-	diagramming: () => import('./starterPackDiagramming.json'),
-	'floor-plan': () => import('./starterPackFloorPlan.json'),
-	'tldraw-characters': () => import('./starterPackTldrawCharacters.json'),
-	doodles: () => import('./starterPackDoodles.json'),
+// In the order they're listed. Each pack is a folder in starterPackData, as
+// scripts/split-starter-pack.ts writes it; starterPackManifest.json is generated from them by
+// starterPacks.test.ts, in this order. Run that test with `-u` after changing a pack.
+export const STARTER_PACK_IDS = [
+	'wireframing',
+	'diagramming',
+	'floor-plan',
+	'tldraw-characters',
+	'doodles',
+]
+
+// Each index and each item's content is its own chunk, fetched when needed.
+const indexLoaders = import.meta.glob<unknown>('./starterPackData/*/index.json', {
+	import: 'default',
+})
+const contentLoaders = import.meta.glob<unknown>('./starterPackData/*/content/*.json', {
+	import: 'default',
+})
+function packPath(packId: string, file: string) {
+	return `./starterPackData/${packId}/${file}`
+}
+
+function resolveThumbnail(
+	urls: Record<string, string>,
+	packId: string,
+	thumbnail: TLLibraryThumbnail | undefined
+): TLLibraryThumbnail | undefined {
+	if (thumbnail === undefined) return undefined
+	const url = (file: string) => {
+		const resolved = urls[packPath(packId, file)]
+		if (!resolved) throw new Error(`Starter pack ${packId} has no thumbnail ${file}`)
+		return resolved
+	}
+	return typeof thumbnail === 'string'
+		? url(thumbnail)
+		: { light: url(thumbnail.light), dark: url(thumbnail.dark) }
 }
 
 const starterPackSummaries = atom<StarterPackSummary[] | undefined>(
@@ -54,9 +111,18 @@ export function getStarterPackSummaries() {
 }
 
 export function loadStarterPackSummaries() {
-	loadingSummaries ??= import('./starterPackManifest.json').then(
-		(manifest) => {
-			const summaries = starterPackSummariesValidator.validate(manifest.default)
+	loadingSummaries ??= Promise.all([
+		import('./starterPackManifest.json'),
+		import('./starterPackThumbnails'),
+	]).then(
+		([manifest, { starterPackThumbnailUrls }]) => {
+			const summaries = starterPackSummariesValidator.validate(manifest.default).map((pack) => ({
+				...pack,
+				previews: pack.previews.map((preview) => ({
+					id: preview.id,
+					thumbnail: resolveThumbnail(starterPackThumbnailUrls, pack.id, preview.thumbnail),
+				})),
+			}))
 			starterPackSummaries.set(summaries)
 			return summaries
 		},
@@ -68,10 +134,54 @@ export function loadStarterPackSummaries() {
 	return loadingSummaries
 }
 
+const indexes = new Map<string, Promise<StarterPackIndex>>()
+
+/** A pack's items, with their thumbnails' URLs but without their content. Loaded once. */
+export function loadStarterPackIndex(id: string): Promise<StarterPackIndex> {
+	const existing = indexes.get(id)
+	if (existing) return existing
+	const load = indexLoaders[packPath(id, 'index.json')]
+	if (!load) return Promise.reject(new Error(`No starter pack with id ${id}`))
+	const loading = Promise.all([load(), import('./starterPackThumbnails')]).then(
+		([value, { starterPackThumbnailUrls }]): StarterPackIndex => {
+			const index = starterPackIndexValidator.validate(value)
+			return {
+				...index,
+				items: index.items.map((item) => {
+					const thumbnail = resolveThumbnail(starterPackThumbnailUrls, id, item.thumbnail)
+					return { ...item, ...(thumbnail === undefined ? {} : { thumbnail }) }
+				}),
+			}
+		},
+		(error: unknown) => {
+			indexes.delete(id)
+			throw error
+		}
+	)
+	indexes.set(id, loading)
+	return loading
+}
+
+/** One item's content, as {@link parseLibraryItemContent} reads it. */
+export async function loadStarterPackItemContent(
+	packId: string,
+	itemId: string
+): Promise<TLLibraryItemContent> {
+	const load = contentLoaders[packPath(packId, `content/${itemId}.json`)]
+	if (!load) throw new Error(`Starter pack ${packId} has no item ${itemId}`)
+	return parseLibraryItemContent(await load())
+}
+
+/** A whole pack, every item's content included, as copying it needs. */
 export async function loadStarterPack(id: string): Promise<LibraryPack> {
-	const load = Object.hasOwn(STARTER_PACK_LOADERS, id) ? STARTER_PACK_LOADERS[id] : undefined
-	if (!load) throw new Error(`No starter pack with id ${id}`)
-	return parseLibraryPack((await load()).default)
+	const index = await loadStarterPackIndex(id)
+	const items = await Promise.all(
+		index.items.map(async (item) => ({
+			...item,
+			content: await loadStarterPackItemContent(id, item.id),
+		}))
+	)
+	return parseLibraryPack({ ...index, items })
 }
 
 function getDefaultOwnerId(source: LibrarySource) {
