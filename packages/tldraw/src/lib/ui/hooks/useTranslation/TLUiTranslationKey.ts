@@ -431,7 +431,6 @@ export type TLUiTranslationKey =
 	| 'libraries.select-to-add'
 	| 'libraries.sheet.close'
 	| 'libraries.sheet.resize'
-	| 'libraries.tabs.other'
 	| 'libraries.this-file.add'
 	| 'libraries.this-file.empty'
 	| 'libraries.this-file.suggested'

@@ -13,11 +13,10 @@ import {
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
-import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import { useLibrariesEnabled } from './license'
+import { getLibraryMenuTargets } from './menu-targets'
 import { canCreateNewLibrary } from './new-library'
 import type { LibraryItemPlacer } from './place-item'
-import { sortByRecentlyAddedTo } from './recent-libraries'
 import type { PrepareItemContent } from './save-shapes'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 import { usePlaceItem } from './use-place-item'
@@ -54,7 +53,7 @@ export interface CommandPaletteLibrariesGroupProps {
 /**
  * The libraries' commands for tldraw's command palette: open or close the {@link LibrariesPanel},
  * add the selection to a library, as {@link AddToLibraryMenuItem} does, and browse more libraries,
- * as the panel's ⋯ menu does. While the palette has a
+ * as the panel's footer does. While the palette has a
  * query, it also lists the best matching items, by their name or their library's, and picking one
  * places it in the middle of the viewport, as clicking its tile does. Renders nothing when
  * libraries aren't enabled. Pass it to `DefaultCommandPalette` with the groups you keep.
@@ -128,29 +127,28 @@ function AddSelectionToLibrary({
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
-	const libraries = useValue(
-		'writable libraries',
+	const targets = useValue(
+		'add to library targets',
 		() =>
-			sortByRecentlyAddedTo(
-				source.id,
+			getLibraryMenuTargets(
+				source,
 				source.getLibraries().filter((library) => source.can('addItem', library.id))
 			),
 		[source]
 	)
-	const grouping = useLibraryGrouping(source)
 	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
 	const { saveSelection, saveToNewLibrary } = useSaveSelectionToLibrary(source, prepareItemContent)
 
-	if (!hasSelection || (libraries.length === 0 && !canCreate)) return null
+	if (!hasSelection || (targets.length === 0 && !canCreate)) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="add-to-library" label={messages.addToLibrary.id}>
-			{toMenuTargets(libraries, grouping).map((target) => (
+			{targets.map((target) => (
 				<TldrawUiMenuItem
 					key={target.id}
 					id={`add-to-library:${target.id}`}
 					label={target.name}
-					detail={target.owner?.name}
+					detail={target.detail}
 					onSelect={() => saveSelection(target.id as TLLibraryId)}
 				/>
 			))}
