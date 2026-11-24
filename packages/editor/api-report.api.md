@@ -3628,13 +3628,19 @@ export interface TLCanvasComponentProps {
 // @public
 export interface TLCapabilities {
     // (undocumented)
+    'create-comment': null;
+    // (undocumented)
     'create-page': null;
     // (undocumented)
     'create-shape': null;
     // (undocumented)
+    'delete-comment': null;
+    // (undocumented)
     'delete-page': null;
     // (undocumented)
     'delete-shape': null;
+    // (undocumented)
+    'edit-comment': null;
     // (undocumented)
     'edit-page': null;
     // (undocumented)
