@@ -215,24 +215,38 @@ describe('LibrariesPanel components with a custom library header', () => {
 			new InMemoryLibrarySource({ id: 'rename' }),
 			<MenuItem label="Host item" onClick={() => {}} />
 		)
-		const menuIn = (selector: string) =>
-			panel.querySelector(`${selector} [aria-label="Library options"]`)
-		const click = async (selector: string) => {
-			await act(async () => {
-				panel.querySelector<HTMLButtonElement>(selector)!.click()
-			})
-		}
-		expect(menuIn(':scope > header')).not.toBeNull()
+		const panelMenu = () => panel.querySelector(':scope > header [aria-label="Library options"]')
+		const sectionMenu = () =>
+			panel.querySelector('[data-testid="header"] .tlui-libraries-menu-anchor')
+		expect(panelMenu()).not.toBeNull()
 
-		await click('.tlui-libraries-panel__create')
-		expect(panel.querySelector('[data-testid="done"]')).not.toBeNull()
-		expect(menuIn(':scope > header')).toBeNull()
-		expect(menuIn('[data-testid="header"]')).toBeNull()
+		act(() => {
+			panelMenu()!.dispatchEvent(
+				new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
+			)
+		})
+		const create = await vi.waitFor(() => {
+			const item = [
+				...document.querySelectorAll<HTMLButtonElement>('.tlui-libraries-menu__item'),
+			].find((el) => el.textContent === 'Create library')
+			expect(item).toBeDefined()
+			return item!
+		})
+		await act(async () => create.click())
+		await vi.waitFor(() => expect(panel.querySelector('[data-testid="done"]')).not.toBeNull())
+		expect(panelMenu()).toBeNull()
+		expect(
+			panel.querySelectorAll('[data-testid="header"] .tlui-libraries-menu-anchor')
+		).toHaveLength(panel.querySelectorAll('[data-testid="header"]').length - 1)
 
-		await click('[data-testid="done"]')
-		expect(panel.querySelector('[data-testid="name"]')?.textContent).toBe('Mine')
-		expect(menuIn(':scope > header')).not.toBeNull()
-		expect(menuIn('[data-testid="header"]')).not.toBeNull()
+		await act(async () => {
+			panel.querySelector<HTMLButtonElement>('[data-testid="done"]')!.click()
+		})
+		expect(
+			[...panel.querySelectorAll('[data-testid="name"]')].map((el) => el.textContent)
+		).toContain('Mine')
+		expect(panelMenu()).not.toBeNull()
+		expect(sectionMenu()).not.toBeNull()
 	})
 })
 
@@ -279,6 +293,47 @@ describe('LibrariesPanel item menus on right-click', () => {
 			panel.querySelector('.tlui-libraries-sections')!.dispatchEvent(new Event('scroll'))
 		})
 		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
+	it('opens with Insert first and Delete last, and no button of its own on the tile', async () => {
+		const panel = await renderPanel()
+		expect(panel.querySelector('.tlui-libraries-tile [aria-label="Item options"]')).toBeNull()
+		await rightClickBox(panel)
+		const labels = await vi.waitFor(() => {
+			const items = [...document.querySelectorAll('.tlui-libraries-menu [role^="menuitem"]')]
+			expect(items.length).toBeGreaterThan(0)
+			return items.map((item) => item.textContent)
+		})
+		expect(labels[0]).toBe('Insert')
+		expect(labels[1]).toBe('Details')
+		expect(labels).not.toContain('Rename')
+		expect(labels[labels.length - 1]).toBe('Delete')
+	})
+
+	it.each(['ContextMenu', 'F10'])(
+		'opens from the keyboard with %s on a focused tile',
+		async (key) => {
+			const panel = await renderPanel()
+			const tile = panel.querySelector<HTMLButtonElement>('button[aria-label="Box"]')!
+			await act(async () => {
+				tile.focus()
+				tile.dispatchEvent(
+					new KeyboardEvent('keydown', { key, shiftKey: key === 'F10', bubbles: true })
+				)
+			})
+			expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		}
+	)
+
+	it('opens the library menu on a right-click on its name, with no button of its own', async () => {
+		const panel = await renderPanel()
+		expect(panel.querySelector('.tlui-libraries-section [aria-label="Library options"]')).toBeNull()
+		await act(async () => {
+			panel
+				.querySelector('.tlui-libraries-panel__toggle')!
+				.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+		})
+		expect(editor.menus.isMenuOpen(`libraries-library-menu-${library.id}`)).toBe(true)
 	})
 
 	it('leaves the right-click alone when the ItemMenu slot is null', async () => {

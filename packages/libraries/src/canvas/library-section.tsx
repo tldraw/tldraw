@@ -1,6 +1,14 @@
-import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type ButtonHTMLAttributes,
+	type SyntheticEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getContextMenuHandlers, openContextMenu } from '../ui/context-menu'
 import { LibraryMenu as DefaultLibraryMenu } from '../ui/library-menu'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
@@ -8,7 +16,6 @@ import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-s
 import { useLongPress } from './long-press'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
-import { useIsPhone } from './use-is-phone'
 import { useItemOrdering } from './use-item-ordering'
 import { useLibraryActions } from './use-library-actions'
 import { useLibraryCollapsed } from './use-library-collapsed'
@@ -64,11 +71,17 @@ export function LibrarySection({
 		if (!collapsed && source.loadItems) source.loadItems(libraryId)
 	}, [source, libraryId, collapsed])
 
-	const { ordering, reversed, sort } = useItemOrdering(source, libraryId)
+	const { ordering, reversed } = useItemOrdering(source)
 	const menuId = `libraries-library-menu-${libraryId}`
-	const headerPress = useLongPress(useIsPhone() && !isRenaming && !!LibraryMenu)(() =>
-		editor.menus.addOpenMenu(menuId)
+	const hasMenu = !isRenaming && !!LibraryMenu
+	const contextMenu = getContextMenuHandlers((opener, point) =>
+		openContextMenu(editor, menuId, { opener, point })
 	)
+	const headerPress = useLongPress(hasMenu)(() => openContextMenu(editor, menuId))
+	const inHeader = (e: SyntheticEvent<HTMLElement>) => {
+		const header = e.currentTarget.firstElementChild
+		return !!header && header.contains(e.target as Node)
+	}
 
 	return (
 		<section
@@ -76,10 +89,13 @@ export function LibrarySection({
 			className="tlui-libraries-section"
 			{...headerPress}
 			onPointerDown={(e) => {
-				const header = e.currentTarget.firstElementChild
-				if (headerPress.onPointerDown && header && header.contains(e.target as Node)) {
-					headerPress.onPointerDown(e)
-				}
+				if (headerPress.onPointerDown && inHeader(e)) headerPress.onPointerDown(e)
+			}}
+			onContextMenu={(e) => {
+				if (hasMenu && inHeader(e)) contextMenu.onContextMenu(e)
+			}}
+			onKeyDown={(e) => {
+				if (hasMenu && inHeader(e)) contextMenu.onKeyDown(e)
 			}}
 		>
 			{LibrarySectionHeader && (
@@ -88,15 +104,13 @@ export function LibrarySection({
 					library={library}
 					collapsed={collapsed}
 					onToggleCollapsed={() => setCollapsed(!collapsed)}
-					sort={sort}
 					menu={
-						!isRenaming &&
-						LibraryMenu && (
+						hasMenu && (
 							<LibraryMenu
 								source={source}
 								library={library}
 								id={menuId}
-								sort={sort}
+								trigger="none"
 								{...menuActions}
 							/>
 						)

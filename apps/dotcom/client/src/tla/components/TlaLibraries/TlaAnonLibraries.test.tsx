@@ -221,9 +221,20 @@ describe('with libraries_anonymous on', () => {
 		await unfold('Diagramming')
 		expect(panel.querySelector('.tlui-libraries-panel__create')).toBeNull()
 		expect(panel.querySelector('.tlui-libraries-panel__browse-more')).toBeNull()
-		expect(panel.querySelector(':scope > header [aria-label="Library options"]')).toBeNull()
+		const headerMenu = panel.querySelector(':scope > header [aria-label="Library options"]')!
+		act(() => {
+			headerMenu.dispatchEvent(
+				new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
+			)
+		})
+		await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
+		expect(
+			[...document.querySelectorAll('.tlui-libraries-menu [role^="menuitem"]')].map(
+				(item) => item.textContent
+			)
+		).toEqual(['Sort by'])
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
-		expect(panel.textContent).not.toContain('This board')
+		expect(panel.textContent).not.toContain('This file')
 		expect(panel.textContent).not.toContain('Browse libraries')
 	})
 
@@ -298,9 +309,9 @@ describe('with libraries_anonymous on', () => {
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
 	})
 
-	it('lists "This board" once someone has saved to it, with its items, read-only', async () => {
+	it('lists "This file" once someone has saved to it, with its items, read-only', async () => {
 		const editor = await renderEditor()
-		const board = new BoardLibrarySource(editor, { documentLibrary: { name: 'This board' } })
+		const board = new BoardLibrarySource(editor, { documentLibrary: { name: 'This file' } })
 		const [own] = board.getLibraries()
 		const id = createShapeId()
 		act(() => editor.createShape({ id, type: 'geo' }))
@@ -312,7 +323,7 @@ describe('with libraries_anonymous on', () => {
 		)
 		const panel = await openPanel(editor)
 
-		expect(sectionNames()).toEqual(['This board', 'Diagramming', 'Math'])
+		expect(sectionNames()).toEqual(['This file', 'Diagramming', 'Math'])
 		expect(tileLabels()).toEqual(['Box'])
 		expect(panel.querySelector('.tlui-libraries-add-tile')).toBeNull()
 	})

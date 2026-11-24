@@ -113,9 +113,9 @@ A `LibrariesPanelHeader` override gets the header's props, including the items i
 This one adds "Fold all" and "Unfold all" before them, setting `collapsedLibraryIds`.
 
 [2]
-A `LibrarySectionHeader` override gets the library, whether it's folded, and the library's ⋯ menu
-to place. It hands back to the default header while the library is being renamed, so the rename
-input still works.
+A `LibrarySectionHeader` override gets the library, whether it's folded, and the library's menu to
+place inside it: the menu has no button and opens over the header on a right-click. It hands back
+to the default header while the library is being renamed, so the rename input still works.
 
 [3]
 `EmptyLibrary` shows in a library with no items, and `NoLibraries` when there are no libraries.

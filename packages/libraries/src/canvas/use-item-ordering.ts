@@ -1,11 +1,10 @@
-import type { TLLibraryId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { getItemOrdering, itemOrderings } from './item-order'
 import { useLibraryItemOrder } from './use-library-item-order'
 
-/** The user's ordering for a library's items, and the sort menu's options for changing it. */
-export function useItemOrdering(source: LibrarySource, libraryId: TLLibraryId) {
-	const order = useLibraryItemOrder(source, libraryId)
+/** The user's ordering for the source's items, and the sort menu's options for changing it. */
+export function useItemOrdering(source: LibrarySource) {
+	const order = useLibraryItemOrder(source)
 	const sort = {
 		options: itemOrderings.map(({ id, label }) => ({ id, label })),
 		value: order.ordering,

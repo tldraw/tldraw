@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react'
 import { defineMessages, useEditor, useTranslation, useValue } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
-import { LibraryMenu } from '../ui/library-menu'
+import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { MenuItem, MenuSubmenu } from '../ui/menu-items'
 import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
-	createLibrary: { id: 'libraries.panel.create-library', defaultMessage: 'Create a library' },
-	browseLibraries: { id: 'libraries.panel.browse-libraries', defaultMessage: 'Browse libraries' },
+	createLibrary: { id: 'libraries.panel.create-library', defaultMessage: 'Create library' },
+	addLibrary: { id: 'libraries.panel.add-library', defaultMessage: 'Add library' },
 })
 
 /**
@@ -25,24 +25,32 @@ export interface LibrariesPanelHeaderCreate {
 export interface LibrariesPanelHeaderProps {
 	/** The host's items for the panel's ⋯ menu, from {@link LibrariesPanelProps.menuItems}. */
 	menuItems?: ReactNode
-	/** For "Create a library". Left out when the source doesn't allow creating a library. */
+	/** For "Sort by", the order of every library's items. */
+	sort?: LibraryMenuSort
+	/** For "Create library". Left out when the source doesn't allow creating a library. */
 	create?: LibrariesPanelHeaderCreate
-	/** For "Browse libraries". Left out when there are no libraries to browse. */
+	/** For "Add library", which opens the libraries to browse. Left out when there are none. */
 	onBrowse?(): void
 }
 
 /**
- * The {@link LibrariesPanel}'s header: its title and a ⋯ menu to create a library, browse libraries
- * and pick the host's own items. The default for {@link LibrariesComponents.LibrariesPanelHeader}.
+ * The {@link LibrariesPanel}'s header: its title and a ⋯ menu to sort the items, add a library to
+ * the file, create a library and pick the host's own items. The default for
+ * {@link LibrariesComponents.LibrariesPanelHeader}.
  * @public @react
  */
-export function LibrariesPanelHeader({ menuItems, create, onBrowse }: LibrariesPanelHeaderProps) {
+export function LibrariesPanelHeader({
+	menuItems,
+	sort,
+	create,
+	onBrowse,
+}: LibrariesPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const renaming = useValue('renaming library', () => renamingLibraryId.get(editor) !== null, [
 		editor,
 	])
-	const hasItems = !!create || !!onBrowse || !!menuItems
+	const hasItems = !!sort || !!create || !!onBrowse || !!menuItems
 
 	return (
 		<header className="tlui-libraries-panel__header">
@@ -51,9 +59,9 @@ export function LibrariesPanelHeader({ menuItems, create, onBrowse }: LibrariesP
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the new library's name input straight away. */}
 				{!renaming && hasItems && (
-					<LibraryMenu id="libraries-panel-menu">
+					<LibraryMenu id="libraries-panel-menu" sort={sort}>
+						{onBrowse && <MenuItem label={msg(messages.addLibrary)} onClick={onBrowse} />}
 						{create && <CreateLibraryItem create={create} />}
-						{onBrowse && <MenuItem label={msg(messages.browseLibraries)} onClick={onBrowse} />}
 						{menuItems}
 					</LibraryMenu>
 				)}
@@ -62,7 +70,8 @@ export function LibrariesPanelHeader({ menuItems, create, onBrowse }: LibrariesP
 	)
 }
 
-function CreateLibraryItem({ create }: { create: LibrariesPanelHeaderCreate }) {
+/** "Create library", or a submenu of who it can be created for when there's a choice. */
+export function CreateLibraryItem({ create }: { create: LibrariesPanelHeaderCreate }) {
 	const msg = useTranslation()
 	const label = msg(messages.createLibrary)
 

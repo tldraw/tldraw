@@ -19,6 +19,7 @@ import { canCreateNewLibrary } from './new-library'
 import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
+import { useLibraryCreate } from './use-create-library'
 import { usePlaceItem } from './use-place-item'
 import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
@@ -83,6 +84,7 @@ export function CommandPaletteLibrariesGroup({
 	const { addDialog } = useDialogs()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+	const create = useLibraryCreate(source)
 
 	if (!librariesEnabled) return null
 
@@ -106,8 +108,13 @@ export function CommandPaletteLibrariesGroup({
 					onSelect={(eventSource) => {
 						trackEvent('open-browse-libraries', { source: eventSource })
 						addDialog({
-							component: () => (
-								<BrowseLibrariesDialog source={source} getBrowseGroups={getBrowseGroups} />
+							component: ({ onClose }) => (
+								<BrowseLibrariesDialog
+									source={source}
+									getBrowseGroups={getBrowseGroups}
+									create={create}
+									onClose={onClose}
+								/>
 							),
 						})
 					}}

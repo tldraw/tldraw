@@ -89,7 +89,7 @@ function SearchResultGroup({
 	itemIds: TLLibraryItemId[]
 }) {
 	const [element, setElement] = useState<HTMLElement | null>(null)
-	const { ordering, reversed } = useItemOrdering(source, library.id)
+	const { ordering, reversed } = useItemOrdering(source)
 	const key = itemIds.join()
 	const itemFilter = useMemo(() => {
 		const ids = new Set(key.split(','))

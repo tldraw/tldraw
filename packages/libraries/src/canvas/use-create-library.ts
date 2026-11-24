@@ -1,7 +1,15 @@
-import { useCallback } from 'react'
-import { defineMessages, getIncrementedName, useEditor, useToasts, useTranslation } from 'tldraw'
+import { useCallback, useMemo } from 'react'
+import {
+	defineMessages,
+	getIncrementedName,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { createNewLibrary } from './new-library'
+import type { LibrariesPanelHeaderCreate } from './libraries-panel-header'
+import { canCreateNewLibrary, createNewLibrary, getNewLibraryOwners } from './new-library'
 import { activeLibraryId, renamingLibraryId } from './state'
 
 const messages = defineMessages({
@@ -40,4 +48,22 @@ export function useCreateLibrary(source: LibrarySource) {
 		},
 		[editor, source, msg, addToast]
 	)
+}
+
+/**
+ * Where the user can create a library and {@link useCreateLibrary}'s create, for a "Create library"
+ * item or button. Undefined when the source allows creating none.
+ */
+export function useLibraryCreate(source: LibrarySource): LibrariesPanelHeaderCreate | undefined {
+	const createLibrary = useCreateLibrary(source)
+	const owners = useValue(
+		'new library owners',
+		() => {
+			const owners = getNewLibraryOwners(source)
+			if (owners.length > 0) return owners
+			return canCreateNewLibrary(source) ? [] : undefined
+		},
+		[source]
+	)
+	return useMemo(() => owners && { owners, onCreate: createLibrary }, [owners, createLibrary])
 }

@@ -6,10 +6,9 @@ import {
 	TldrawUiButtonLabel,
 	useTranslation,
 } from 'tldraw'
-import { OpenBookIcon } from '../ui/open-book-icon'
 
 const messages = defineMessages({
-	browseMore: { id: 'libraries.browse-more', defaultMessage: 'Browse more libraries' },
+	addLibraries: { id: 'libraries.add-libraries', defaultMessage: 'Add libraries' },
 })
 
 /** The panel's footer button that opens the libraries to browse. */
@@ -21,7 +20,7 @@ export function BrowseMoreButton({
 	ref?: Ref<HTMLButtonElement>
 }) {
 	const msg = useTranslation()
-	const label = msg(messages.browseMore)
+	const label = msg(messages.addLibraries)
 
 	return (
 		<TldrawUiButton
@@ -32,7 +31,7 @@ export function BrowseMoreButton({
 			onClick={onBrowse}
 		>
 			<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-			<TldrawUiButtonIcon icon={<OpenBookIcon />} small />
+			<TldrawUiButtonIcon icon="plus" small />
 		</TldrawUiButton>
 	)
 }

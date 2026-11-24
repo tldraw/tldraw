@@ -13,7 +13,6 @@ import {
 import type { LibrarySource } from '../lib/LibrarySource'
 import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
 import { BrowseMoreButton } from './browse-more-button'
-import { CreateLibraryButton } from './create-library-button'
 import { EmptyThisFile } from './empty-this-file'
 import {
 	type LibrariesComponents,
@@ -25,7 +24,6 @@ import { LibrariesSearch } from './libraries-search'
 import { LibrariesSheet } from './libraries-sheet'
 import { LibrarySection } from './library-section'
 import { useLibrariesEnabled } from './license'
-import { canCreateNewLibrary, getNewLibraryOwners } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
 import { normalizeQuery } from './panel-search'
 import { getEmptyThisFileOffers, getPanelSections } from './panel-sections'
@@ -34,15 +32,16 @@ import type { PrepareItemContent } from './save-shapes'
 import { SearchResults } from './search-results'
 import { librariesPanelOpen, librariesSearchQuery } from './state'
 import { SuggestedLibraries } from './suggested-libraries'
-import { useCreateLibrary } from './use-create-library'
+import { useLibraryCreate } from './use-create-library'
 import { useIsPhone } from './use-is-phone'
 import { useLibraryItemDrag } from './use-item-drag'
+import { useItemOrdering } from './use-item-ordering'
 import { useLibraries } from './use-libraries'
 import { usePlaceItem } from './use-place-item'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
-	thisBoard: { id: 'libraries.panel.this-board', defaultMessage: 'This board' },
+	thisFile: { id: 'libraries.panel.this-file', defaultMessage: 'This file' },
 	search: { id: 'libraries.search.label', defaultMessage: 'Search libraries' },
 	searchPlaceholder: { id: 'libraries.search.placeholder', defaultMessage: 'Search…' },
 })
@@ -79,10 +78,11 @@ export interface LibrariesPanelProps {
  * A floating panel on one side of the canvas for browsing a {@link LibrarySource}, shown while
  * {@link librariesPanelOpen} is set. Each library is a section that folds shut. A source that
  * says why its libraries are shown (see {@link LibrarySource.getLibraryPlacement}) lists the user's
- * default, then those in the document under "This board", starting with the document's own; any
+ * default, then those in the document, starting with the document's own; any
  * other source lists its libraries as they come. Setting {@link activeLibraryId} brings that
  * library into view. Clicking an item places a copy of it in the middle of the viewport; dragging
- * one out drops it under the pointer.
+ * one out drops it under the pointer. A right-click or a long press on an item or a library's name
+ * opens its menu, as do the context menu key and Shift+F10 on one that has focus.
  *
  * A drag starts once the pointer has left the panel and moved past the editor's
  * `uiDragDistanceSquared` option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a
@@ -90,8 +90,7 @@ export interface LibrariesPanelProps {
  *
  * On a phone, below the breakpoint where tldraw's toolbar takes its mobile layout, the panel is a
  * modal sheet along the bottom of the screen instead, at half its height or reaching up to the top
- * bar. There, a tap on an item places it and closes the sheet, a long press opens an item's or a
- * library's menu, and items aren't dragged out.
+ * bar. There, a tap on an item places it and closes the sheet, and items aren't dragged out.
  *
  * Its size and position follow CSS variables set on the panel or any element around it:
  *
@@ -103,8 +102,8 @@ export interface LibrariesPanelProps {
  *   the canvas's height less the two insets, at most `720px`.
  * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
  *
- * `--tlui-libraries-tile-width` is the width of a tile, `86.67px` by default, and the panel is three
- * tiles wide (280px with its 20px of gutter) whatever the number of columns. The default is set on the panel itself, so override
+ * `--tlui-libraries-tile-width` is the width of a tile, `96px` by default, and the panel is three
+ * tiles wide (336px, with 12px between the tiles and at its sides) whatever the number of columns. The default is set on the panel itself, so override
  * it with a rule on `.tlui-libraries-panel`. Read it to size an `ItemTile` override or anything
  * else to match the tiles.
  * @public @react
@@ -169,16 +168,8 @@ function LibrariesPanelContent({
 		(itemId: TLLibraryItemId) => placeOnClick(itemId, 'libraries'),
 		[placeOnClick]
 	)
-	const createLibrary = useCreateLibrary(source)
-	const newLibraryOwners = useValue(
-		'new library owners',
-		() => {
-			const owners = getNewLibraryOwners(source)
-			if (owners.length > 0) return owners
-			return canCreateNewLibrary(source) ? [] : undefined
-		},
-		[source]
-	)
+	const { sort } = useItemOrdering(source)
+	const create = useLibraryCreate(source)
 
 	const canBrowse =
 		!!(source.getAvailableLibraries && source.addLibraryToDocument) || !!getBrowseGroups
@@ -189,7 +180,14 @@ function LibrariesPanelContent({
 			return
 		}
 		addDialog({
-			component: () => <BrowseLibrariesDialog source={source} getBrowseGroups={getBrowseGroups} />,
+			component: ({ onClose }) => (
+				<BrowseLibrariesDialog
+					source={source}
+					getBrowseGroups={getBrowseGroups}
+					create={create}
+					onClose={onClose}
+				/>
+			),
 		})
 	}
 	const leaveBrowse = () => {
@@ -231,27 +229,17 @@ function LibrariesPanelContent({
 				<div
 					role="group"
 					className="tlui-libraries-panel__group"
-					aria-label={msg(messages.thisBoard)}
+					aria-label={msg(messages.thisFile)}
 				>
-					{sections.document.length > 0 ? (
-						<>
-							{renderSections(sections.document)}
-							{renderSections(sections.thisFile)}
-							{offers.length > 0 && (
-								<div className="tlui-libraries-panel__suggested">
-									<SuggestedLibraries offers={offers} />
-								</div>
-							)}
-						</>
-					) : (
-						<>
-							<h3 className="tlui-libraries-panel__group-label">{msg(messages.thisBoard)}</h3>
-							{sections.thisFile.length > 0 ? (
-								renderSections(sections.thisFile)
-							) : (
-								<EmptyThisFile offers={offers} />
-							)}
-						</>
+					{renderSections(sections.document)}
+					{renderSections(sections.thisFile)}
+					{sections.document.length === 0 && sections.thisFile.length === 0 && (
+						<EmptyThisFile offers={offers} />
+					)}
+					{sections.document.length > 0 && offers.length > 0 && (
+						<div className="tlui-libraries-panel__suggested">
+							<SuggestedLibraries offers={offers} />
+						</div>
 					)}
 				</div>
 			</>
@@ -260,12 +248,12 @@ function LibrariesPanelContent({
 		)
 	}
 
-	const create = newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }
 	const contents = (
 		<>
 			{LibrariesPanelHeader && (
 				<LibrariesPanelHeader
 					menuItems={menuItems}
+					sort={libraries.length > 0 ? sort : undefined}
 					create={create}
 					onBrowse={canBrowse ? browse : undefined}
 				/>
@@ -279,7 +267,6 @@ function LibrariesPanelContent({
 			<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
 				{libraries.length === 0 && NoLibraries && <NoLibraries />}
 				{renderLists()}
-				{!searching && create && <CreateLibraryButton create={create} />}
 			</div>
 			{!searching && canBrowse && <BrowseMoreButton ref={browseMoreRef} onBrowse={browse} />}
 		</>
@@ -292,6 +279,7 @@ function LibrariesPanelContent({
 					<BrowseLibrariesDialog
 						source={source}
 						getBrowseGroups={getBrowseGroups}
+						create={create}
 						onBack={leaveBrowse}
 					/>
 				) : (

@@ -2,6 +2,10 @@
 	--tlui-libraries-columns: 1;
 }
 
+.libraries-list-layout .tlui-libraries-grid {
+	gap: 0;
+}
+
 .tlui-libraries-tile.libraries-list-row {
 	flex-direction: row;
 	align-items: center;
@@ -19,7 +23,7 @@
 	align-items: center;
 	gap: 8px;
 	min-width: 0;
-	padding: 4px 40px 4px 4px;
+	padding: 4px;
 	cursor: pointer;
 }
 

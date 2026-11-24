@@ -72,7 +72,10 @@ export function useLongPress(enabled: boolean): (onLongPress: () => void) => Pre
 }
 
 /** `props` with each of `extra`'s handlers called after the one it already has. */
-export function withHandlers<T extends object>(props: T, extra: PressProps): T {
+export function withHandlers<T extends object>(
+	props: T,
+	extra: Partial<Record<keyof HTMLAttributes<HTMLElement>, (e: any) => void>>
+): T {
 	const merged: Record<string, unknown> = { ...(props as Record<string, unknown>) }
 	for (const [name, handler] of Object.entries(extra) as [string, (e: unknown) => void][]) {
 		const own = merged[name]

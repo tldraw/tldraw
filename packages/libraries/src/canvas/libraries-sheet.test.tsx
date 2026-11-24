@@ -237,7 +237,7 @@ it('offers moving an item to another library, but not moving a library', async (
 	touch('pointerdown', toggle)
 	await wait(600)
 	expect(editor.menus.isMenuOpen(`libraries-library-menu-${shapes.id}`)).toBe(true)
-	await vi.waitFor(() => expect(menuLabels()).toContain('Rename library'))
+	await vi.waitFor(() => expect(menuLabels()).toContain('Rename'))
 	expect(menuLabels()).toContain('Copy to')
 	expect(menuLabels()).not.toContain('Move to')
 	touch('pointerup', toggle)
@@ -416,24 +416,22 @@ it('goes back from Browse on a tap whose click iOS drops at the screen’s edge'
 	expect(sheetName()).toBe('Libraries')
 })
 
-it('adds a library from Browse in place, keeping its card, the scroll and the focus', async () => {
+it('adds a library from Browse in place, keeping its row, the scroll and the focus', async () => {
 	await renderPanel({ forceMobile: true, browsable: true })
 	await openBrowse()
 	const body = browse()!
 	body.scrollTop = 40
-	const card = [...body.querySelectorAll('.tlui-libraries-browse__card')].find((c) =>
-		c.textContent!.includes('Icons')
-	)!
-	const group = card.closest('section')
-	const add = [...card.querySelectorAll('button')].find((b) => b.textContent === 'Add to file')!
-	add.focus()
-	act(() => add.click())
-	await vi.waitFor(() => expect(card.textContent).toContain('Remove'))
-	expect(card.isConnected).toBe(true)
-	expect(card.closest('section')).toBe(group)
-	expect(document.activeElement).toBe(
-		[...card.querySelectorAll('button')].find((b) => b.textContent === 'Remove')
-	)
+	const rows = () => [...body.querySelectorAll('.tlui-libraries-browse__row')]
+	const row = rows().find((r) => r.textContent!.includes('Icons'))!
+	const index = rows().indexOf(row)
+	const action = row.querySelector<HTMLButtonElement>('.tlui-libraries-browse__action')!
+	expect(action.textContent).toContain('Add to file')
+	action.focus()
+	act(() => action.click())
+	await vi.waitFor(() => expect(action.textContent).toContain('Remove from file'))
+	expect(row.isConnected).toBe(true)
+	expect(rows().indexOf(row)).toBe(index)
+	expect(document.activeElement).toBe(action)
 	expect(body.scrollTop).toBe(40)
 })
 

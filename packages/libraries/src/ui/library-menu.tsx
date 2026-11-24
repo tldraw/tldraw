@@ -10,18 +10,20 @@ import {
 	useTranslation,
 } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
+import { ContextMenuAnchor } from './context-menu'
 import { MenuCheckboxItem, MenuItem, MenuSubmenu } from './menu-items'
 
 const messages = defineMessages({
 	moreOptions: { id: 'libraries.library-menu.title', defaultMessage: 'Library options' },
 	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
-	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
-	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
+	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename' },
+	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete' },
+	addToDocument: { id: 'libraries.library-menu.add-to-document', defaultMessage: 'Add to file' },
 	removeFromDocument: {
 		id: 'libraries.library-menu.remove-from-document',
-		defaultMessage: 'Remove from this file',
+		defaultMessage: 'Remove from file',
 	},
-	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort items by' },
+	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort by' },
 	reverse: { id: 'libraries.library-menu.reverse', defaultMessage: 'Reverse order' },
 	copy: { id: 'libraries.library-menu.copy', defaultMessage: 'Copy to' },
 })
@@ -50,53 +52,76 @@ export interface LibraryMenuProps {
 	 * one open and close together.
 	 */
 	id: string
+	/**
+	 * `'button'`, the default, opens the menu from a ⋯ button. With `'none'` it has no button and
+	 * opens only by its id, e.g. on a right-click, against the nearest positioned element around it.
+	 */
+	trigger?: 'button' | 'none'
 	/** Leave out any action the source doesn't allow; the menu hides it. */
 	onCreate?(): void
 	onRename?(): void
 	onDelete?(): void
+	/** Shows the library in the document. */
+	onAddToDocument?(): void
 	/** Stops showing the library in the document, without deleting it. */
 	onRemoveFromDocument?(): void
-	/** A "Sort items by" submenu. Leave out to hide it. */
+	/** A "Sort by" submenu. Leave out to hide it. */
 	sort?: LibraryMenuSort
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: LibraryMenuCopy
 	/**
-	 * Items of the host's own, placed after "New library", e.g. {@link LibraryMenuItem}s. The menu
-	 * doesn't check whether the editor is read-only, so gate any that change the document.
+	 * Items of the host's own, placed before Delete, e.g. {@link LibraryMenuItem}s. The menu doesn't
+	 * check whether the editor is read-only, so gate any that change the document.
 	 */
 	children?: ReactNode
 }
 
 /**
- * A ⋯ menu for the panel's libraries. Renders nothing when it has no actions.
+ * A menu for a library: add it to or remove it from the file, rename it, sort its items, copy it,
+ * the host's items, then Delete. Renders nothing when it has no actions.
  * @public @react
  */
 export function LibraryMenu({
 	id,
+	trigger = 'button',
 	onCreate: create,
 	onRename: rename,
 	onDelete: remove,
+	onAddToDocument: addToDocument,
 	onRemoveFromDocument: removeFromDocument,
 	sort,
 	copy: copyTo,
 	children,
 }: LibraryMenuProps) {
 	const msg = useTranslation()
-	if (!create && !rename && !remove && !removeFromDocument && !sort && !copyTo && !children) {
+	if (
+		!create &&
+		!rename &&
+		!remove &&
+		!addToDocument &&
+		!removeFromDocument &&
+		!sort &&
+		!copyTo &&
+		!children
+	) {
 		return null
 	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
-			<TldrawUiDropdownMenuTrigger>
-				<TldrawUiButton
-					type="icon"
-					tooltip={msg(messages.moreOptions)}
-					title={msg(messages.moreOptions)}
-				>
-					<TldrawUiButtonIcon icon="dots-vertical" small />
-				</TldrawUiButton>
-			</TldrawUiDropdownMenuTrigger>
+			{trigger === 'none' ? (
+				<ContextMenuAnchor menuId={id} />
+			) : (
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
+						type="icon"
+						tooltip={msg(messages.moreOptions)}
+						title={msg(messages.moreOptions)}
+					>
+						<TldrawUiButtonIcon icon="dots-vertical" small />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+			)}
 			<TldrawUiDropdownMenuContent
 				className="tlui-libraries-menu"
 				side="bottom"
@@ -105,8 +130,13 @@ export function LibraryMenu({
 				alignOffset={0}
 			>
 				<TldrawUiDropdownMenuGroup>
+					{addToDocument && (
+						<MenuItem label={msg(messages.addToDocument)} onClick={addToDocument} />
+					)}
+					{removeFromDocument && (
+						<MenuItem label={msg(messages.removeFromDocument)} onClick={removeFromDocument} />
+					)}
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
-					{children}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
 						<MenuSubmenu id={`${id}-sort`} label={msg(messages.sort)}>
@@ -136,11 +166,13 @@ export function LibraryMenu({
 							))}
 						</MenuSubmenu>
 					)}
-					{removeFromDocument && (
-						<MenuItem label={msg(messages.removeFromDocument)} onClick={removeFromDocument} />
-					)}
-					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
+					{children}
 				</TldrawUiDropdownMenuGroup>
+				{remove && (
+					<TldrawUiDropdownMenuGroup>
+						<MenuItem label={msg(messages.delete)} onClick={remove} />
+					</TldrawUiDropdownMenuGroup>
+				)}
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)

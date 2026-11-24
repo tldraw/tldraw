@@ -10,7 +10,10 @@ export interface ItemTileProps {
 	thumbnailUrl?: string
 	/** Props for the tile's button: its click, pointer and drag handlers. */
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
-	/** Shown over the tile's corner on hover, e.g. an {@link ItemMenu}. */
+	/**
+	 * The item's menu, e.g. an {@link ItemMenu} with `trigger="none"`, which opens over the tile on a
+	 * right-click.
+	 */
 	menu?: ReactNode
 }
 

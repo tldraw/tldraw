@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useMemo } from 'react'
+import { type ButtonHTMLAttributes, useCallback, useMemo } from 'react'
 import {
 	defineMessages,
 	useDialogs,
@@ -8,9 +8,11 @@ import {
 	type TLLibrary,
 	type TLLibraryId,
 	type TLLibraryItemId,
+	type VecModel,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibraryItem } from '../lib/schema'
+import { getContextMenuHandlers, openContextMenu } from '../ui/context-menu'
 import { ItemGrid, ItemGridTile } from '../ui/item-grid'
 import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
@@ -21,7 +23,6 @@ import type { TLLibraryItemOrdering } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import { useLongPress, withHandlers } from './long-press'
 import type { PrepareItemContent } from './save-shapes'
-import { useIsPhone } from './use-is-phone'
 import { useLibraryCan } from './use-library-can'
 import { useLibraryItemActions } from './use-library-item-actions'
 import { useLibraryItems } from './use-library-items'
@@ -75,31 +76,26 @@ export function LibraryItems({
 		[listed, itemFilter]
 	)
 	const thumbnailUrls = useLibraryThumbnailUrls(source, items, { container })
-	const canRename = useLibraryCan(source, 'updateItem', libraryId)
 	const canAdd = useLibraryCan(source, 'addItem', libraryId) && !itemFilter
 	const canDelete = useLibraryCan(source, 'deleteItem', libraryId)
-	const { rename, move, copy, requestDelete, moveTargets, copyTargets } = useLibraryItemActions(
+	const { move, copy, requestDelete, moveTargets, copyTargets } = useLibraryItemActions(
 		source,
 		libraryId
 	)
 	// Every item has Details, so it has a menu whatever the source allows.
 	const hasItemMenu = ItemMenu !== null
-	const getPressProps = useLongPress(useIsPhone())
+	const getPressProps = useLongPress(true)
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const props = getItemProps(itemId)
 			if (!hasItemMenu) return props
-			const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
-			return {
-				...withHandlers(props, getPressProps(openMenu)),
-				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
-					e.preventDefault()
-					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
-					// releasing the button selects whichever item it lands on.
-					if (e.buttons === 0) openMenu()
-					else window.addEventListener('pointerup', openMenu, { once: true })
-				},
-			}
+			const open = (opener?: HTMLElement, point?: VecModel) =>
+				openContextMenu(editor, getItemMenuId(itemId), { opener, point })
+			const contextMenu = getContextMenuHandlers(open)
+			return withHandlers(
+				{ ...props, onContextMenu: contextMenu.onContextMenu },
+				{ ...getPressProps(() => open()), onKeyDown: contextMenu.onKeyDown }
+			)
 		},
 		[getItemProps, hasItemMenu, editor, getPressProps]
 	)
@@ -145,7 +141,8 @@ export function LibraryItems({
 										<ItemMenu
 											item={item}
 											id={item.id}
-											name={item.name}
+											trigger="none"
+											onInsert={() => placeItem(item.id)}
 											onShowDetails={() =>
 												addDialog({
 													component: ({ onClose }) => (
@@ -153,13 +150,11 @@ export function LibraryItems({
 															source={source}
 															item={item}
 															library={library}
-															onPlace={() => placeItem(item.id)}
 															onClose={onClose}
 														/>
 													),
 												})
 											}
-											onRename={canRename ? (name) => rename(item.id, name) : undefined}
 											moveTargets={moveTargets}
 											onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
 											copyTargets={copyTargets}

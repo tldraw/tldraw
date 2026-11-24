@@ -101,10 +101,23 @@ async function renderPanel(
 	return container
 }
 
-const press = (element: Element, key: string) =>
+const headerMenuItems = async (container: HTMLElement) => {
+	const trigger = container.querySelector<HTMLButtonElement>(
+		'.tlui-libraries-panel > header [aria-label="Library options"]'
+	)
+	if (!trigger) return undefined
 	act(() => {
-		element.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+		trigger.dispatchEvent(
+			new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
+		)
 	})
+	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
+	return [
+		...document.querySelectorAll<HTMLButtonElement>(
+			'.tlui-libraries-menu .tlui-libraries-menu__item'
+		),
+	]
+}
 
 it.each([
 	['one owner', () => new InMemoryLibrarySource()],
@@ -120,15 +133,24 @@ it.each([
 			}),
 	],
 ])(
-	'keeps the name of a new library ready to edit once the footer button is done, with %s',
+	"keeps the name of a new library ready to edit once the header's Create library is done, with %s",
 	async (_, makeSource) => {
 		const container = await renderPanel(makeSource())
-		const newLibrary = container.querySelector<HTMLButtonElement>('.tlui-libraries-panel__create')!
-		newLibrary.focus()
-		press(newLibrary, 'Enter')
-		act(() => newLibrary.click())
-		const owner = document.querySelector<HTMLButtonElement>('.tlui-libraries-menu__item')
-		if (owner) act(() => owner.click())
+		const items = await headerMenuItems(container)
+		const create = items!.find((item) => item.textContent === 'Create library')
+		if (create) {
+			act(() => create.click())
+		} else {
+			act(() => panelEditor!.menus.addOpenMenu('libraries-panel-menu-create'))
+			const owner = await vi.waitFor(() => {
+				const el = [
+					...document.querySelectorAll<HTMLButtonElement>('.tlui-libraries-menu__item'),
+				].find((item) => item.textContent === 'Home')
+				expect(el).toBeDefined()
+				return el!
+			})
+			act(() => owner.click())
+		}
 
 		const input = await vi.waitFor(() => {
 			const el = container.querySelector<HTMLInputElement>('input.tlui-libraries-panel__rename')
@@ -142,63 +164,57 @@ it.each([
 	}
 )
 
-const headerMenuItems = async (container: HTMLElement) => {
-	const trigger = container.querySelector<HTMLButtonElement>(
-		'.tlui-libraries-panel > header [aria-label="Library options"]'
+it("offers Sort by, Add library and Create library in the header's menu", async () => {
+	const shapes = LibraryRecordType.create({ name: 'Shapes' })
+	const container = await renderPanel(
+		new InMemoryLibrarySource({ initial: { libraries: [shapes], items: [], contents: {} } }),
+		() => []
 	)
-	if (!trigger) return undefined
-	act(() => {
-		trigger.dispatchEvent(
-			new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
-		)
-	})
-	return vi.waitFor(() => {
-		const items = [
-			...document.querySelectorAll<HTMLButtonElement>(
-				'.tlui-libraries-menu .tlui-libraries-menu__item'
-			),
-		]
-		expect(items.length).toBeGreaterThan(0)
-		return items
-	})
-}
-
-it("offers Create a library and Browse libraries in the header's menu", async () => {
-	const container = await renderPanel(new InMemoryLibrarySource(), () => [])
 	const items = await headerMenuItems(container)
-	expect(items!.map((item) => item.textContent)).toEqual(['Create a library', 'Browse libraries'])
-	act(() => items![1].click())
+	const submenus = [
+		...document.querySelectorAll('.tlui-libraries-menu .tlui-menu__submenu__trigger'),
+	]
+	expect(submenus.map((item) => item.textContent)).toEqual(['Sort by'])
+	expect(items!.map((item) => item.textContent)).toEqual(['Add library', 'Create library'])
+	act(() => items![0].click())
 	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
 })
 
-it('ends the list with Create new library, and pins Browse more libraries below it', async () => {
+it('pins Add libraries below the list, with no link to create a library at its end', async () => {
 	const container = await renderPanel(new InMemoryLibrarySource(), () => [])
 	await vi.waitFor(() =>
 		expect(container.querySelector('.tlui-libraries-panel__browse-more')).not.toBeNull()
 	)
 	const sections = container.querySelector('.tlui-libraries-sections')!
-	expect(sections.lastElementChild!.querySelector('.tlui-libraries-panel__create')).not.toBeNull()
+	expect(container.querySelector('.tlui-libraries-panel__create')).toBeNull()
 	expect(sections.querySelector('.tlui-libraries-panel__browse-more')).toBeNull()
 	expect(sections.nextElementSibling!.classList).toContain('tlui-libraries-panel__browse-more')
-	expect(sections.nextElementSibling!.textContent).toBe('Browse more libraries')
+	expect(sections.nextElementSibling!.textContent).toBe('Add libraries')
 })
 
-it('leaves out the header menu, Create new library and Browse more libraries for a source that allows none of them', async () => {
+it('leaves out the header menu and Add libraries for a source that allows neither', async () => {
 	const container = await renderPanel(new InMemoryLibrarySource({ can: () => false }))
 	expect(await headerMenuItems(container)).toBeUndefined()
 	expect(container.querySelector('.tlui-libraries-panel__browse-more')).toBeNull()
 	expect(container.querySelector('.tlui-libraries-panel__create')).toBeNull()
 })
 
-const browseCard = (name: string) =>
-	[...document.querySelectorAll('.tlui-libraries-browse__card')].find(
+const browseRow = (name: string) =>
+	[...document.querySelectorAll('.tlui-libraries-browse__row')].find(
 		(el) => el.querySelector('.tlui-libraries-browse__name')!.textContent === name
 	)!
 
-const buttonsOf = (card: Element) =>
-	[...card.querySelectorAll<HTMLButtonElement>('.tlui-libraries-browse__footer button')].map(
-		(button) => `${button.textContent}${button.disabled ? ' (disabled)' : ''}`
-	)
+/** A row's action: its button's label, or the "Added" it shows with no button. */
+const actionOf = (row: Element) => {
+	const added = row.querySelector('.tlui-libraries-browse__added')
+	if (added) return added.textContent
+	const button = row.querySelector<HTMLButtonElement>('.tlui-libraries-browse__action')!
+	const label = button.querySelector('.tlui-libraries-browse__action-label')!.textContent
+	return `${label}${button.getAttribute('aria-disabled') === 'true' ? ' (disabled)' : ''}`
+}
+
+const clickAction = (row: Element) =>
+	act(() => row.querySelector<HTMLButtonElement>('.tlui-libraries-browse__action')!.click())
 
 it('removes an added library from the file in Browse, where the user may, so it can be added again', async () => {
 	const icons = LibraryRecordType.create({ name: 'Icons', ownerId: 'home' })
@@ -215,29 +231,21 @@ it('removes an added library from the file in Browse, where the user may, so it 
 		container.querySelector<HTMLButtonElement>('button.tlui-libraries-panel__browse-more')!.click()
 	)
 	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
-	expect(buttonsOf(browseCard('Pinned'))).toEqual(['Added (disabled)'])
-	expect(buttonsOf(browseCard('Icons'))).toEqual(['Add to file'])
+	expect(actionOf(browseRow('Pinned'))).toBe('Added')
+	expect(actionOf(browseRow('Icons'))).toBe('Add to file')
 
-	act(() =>
-		browseCard('Icons')
-			.querySelector<HTMLButtonElement>('.tlui-libraries-browse__footer button')!
-			.click()
-	)
-	await vi.waitFor(() => expect(buttonsOf(browseCard('Icons'))).toEqual(['Remove']))
-	expect(browseCard('Icons').querySelector('.tlui-libraries-browse__added')!.textContent).toBe(
+	clickAction(browseRow('Icons'))
+	await vi.waitFor(() => expect(actionOf(browseRow('Icons'))).toBe('Remove from file'))
+	expect(browseRow('Icons').querySelector('.tlui-libraries-browse__action-rest')!.textContent).toBe(
 		'Added'
 	)
 
-	act(() =>
-		browseCard('Icons')
-			.querySelector<HTMLButtonElement>('.tlui-libraries-browse__footer button')!
-			.click()
-	)
-	await vi.waitFor(() => expect(buttonsOf(browseCard('Icons'))).toEqual(['Add to file']))
+	clickAction(browseRow('Icons'))
+	await vi.waitFor(() => expect(actionOf(browseRow('Icons'))).toBe('Add to file'))
 	expect(source.getLibraries().map((library) => library.id)).not.toContain(icons.id)
 })
 
-it("offers Remove for a host's added entry only where it gives a way to remove it", async () => {
+it("offers Remove from file for a host's added entry only where it gives a way to remove it", async () => {
 	const remove = vi.fn(async () => {})
 	const entry = (name: string, removable: boolean) => ({
 		id: name,
@@ -257,14 +265,44 @@ it("offers Remove for a host's added entry only where it gives a way to remove i
 		container.querySelector<HTMLButtonElement>('button.tlui-libraries-panel__browse-more')!.click()
 	)
 	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
-	expect(buttonsOf(browseCard('Kept'))).toEqual(['Added (disabled)'])
-	expect(buttonsOf(browseCard('Doodles'))).toEqual(['Remove'])
-	act(() =>
-		browseCard('Doodles')
-			.querySelector<HTMLButtonElement>('.tlui-libraries-browse__footer button')!
-			.click()
-	)
+	expect(actionOf(browseRow('Kept'))).toBe('Added')
+	expect(actionOf(browseRow('Doodles'))).toBe('Remove from file')
+	clickAction(browseRow('Doodles'))
 	expect(remove).toHaveBeenCalledOnce()
+})
+
+it("lists the host's groups under their labels, each row with up to five tiles or a note that it's empty", async () => {
+	const entry = (name: string, itemCount: number) => ({
+		id: name,
+		name,
+		itemCount,
+		previews: [],
+		added: false,
+		canAdd: true,
+		add: async () => LibraryRecordType.createId(name),
+	})
+	const groups = [
+		{
+			id: 'public',
+			label: 'Public libraries',
+			entries: [entry('Big', 36), entry('Small', 3), entry('Bare', 0)],
+		},
+	]
+	const container = await renderPanel(new InMemoryLibrarySource(), () => groups)
+	act(() =>
+		container.querySelector<HTMLButtonElement>('button.tlui-libraries-panel__browse-more')!.click()
+	)
+	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
+	const group = document.querySelector('.tlui-libraries-browse__group')!
+	expect(group.querySelector('h3')!.textContent).toBe('Public libraries')
+	const tiles = (name: string) =>
+		[...browseRow(name).querySelectorAll('.tlui-libraries-tile__thumbnail')].map(
+			(tile) => tile.textContent
+		)
+	expect(tiles('Big')).toEqual(['', '', '', '', '+ 32'])
+	expect(tiles('Small')).toEqual(['', '', ''])
+	expect(tiles('Bare')).toEqual([])
+	expect(browseRow('Bare').textContent).toContain('This library is empty.')
 })
 
 const emptyContent: TLLibraryItemContent = {
@@ -410,7 +448,7 @@ it('searches only the libraries the source says may match, and says at once when
 
 describe('a board with a library of its own', () => {
 	const boardSource = (editor: Editor) =>
-		new BoardLibrarySource(editor, { documentLibrary: { name: 'This board' } })
+		new BoardLibrarySource(editor, { documentLibrary: { name: 'This file' } })
 	const addTile = (container: Element) =>
 		container.querySelector<HTMLButtonElement>('.tlui-libraries-add-tile button')
 	const offer = (id: string) => ({
@@ -423,10 +461,10 @@ describe('a board with a library of its own', () => {
 		add: async () => LibraryRecordType.createId(id),
 	})
 
-	it('shows "This board" as a library with the + tile, then the suggestions', async () => {
+	it('shows "This file" as a library with the + tile, then the suggestions', async () => {
 		const groups = [{ id: 'packs', label: 'Packs', entries: [offer('Doodles')] }]
 		const container = await renderPanel(boardSource, () => groups)
-		await vi.waitFor(() => expect(toggles(container)).toEqual(['This board:true']))
+		await vi.waitFor(() => expect(toggles(container)).toEqual(['This file:true']))
 		expect(addTile(container)).not.toBeNull()
 		expect(container.querySelector('.tlui-libraries-panel__group-label')).toBeNull()
 		expect(container.textContent).not.toContain('No libraries added yet.')
@@ -474,7 +512,7 @@ describe('a board with a library of its own', () => {
 			return source
 		})
 		await vi.waitFor(() => expect(tileLabels(container)).toEqual(['Box']))
-		expect(toggles(container)).toEqual(['This board:true'])
+		expect(toggles(container)).toEqual(['This file:true'])
 		expect(addTile(container)).toBeNull()
 	})
 })
