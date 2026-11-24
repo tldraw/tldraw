@@ -570,6 +570,11 @@
 	color: var(--tl-color-text-3);
 }
 
+.tlui-libraries-browse__header .tlui-dialog__header__close,
+.tlui-libraries-details__header .tlui-dialog__header__close {
+	margin-inline-start: -4px;
+}
+
 .tlui-libraries-browse__header .tlui-input__wrapper {
 	flex: 1;
 	min-width: 0;
