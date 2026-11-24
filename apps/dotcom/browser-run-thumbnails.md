@@ -265,7 +265,7 @@ The sync worker needs:
 
 The render worker serves the render page itself, not the client. `page.vite.config.ts` builds the client's `thumbnail-render` entry into the worker's static assets on every `wrangler dev` and `wrangler deploy`, so the page and the worker that drives it ship together, and a route on the app host (`staging.tldraw.com/__thumbnail-render*`, `www.tldraw.com/__thumbnail-render*`) hands the page and its assets to the worker, ahead of the client. The page's URL is the one the client served it at, so its origin, CSP and image loading are unchanged, and the worker has no workers.dev host. Local dev is the exception: it captures through the client dev server.
 
-The page's source still lives in the client (`thumbnail-render.html`, `src/pages/thumbnail-render.tsx`), because it draws with the app's shape utils, asset store and stylesheet. The client's own build leaves the entry out, so tldraw.com does not serve `/__thumbnail-render`.
+The page's source still lives in the client (`thumbnail-render.html`, `src/pages/thumbnail-render.tsx`), because it draws with the app's shape utils, asset store and stylesheet. The client's own build leaves the entry out, so the worker's route is the only thing serving `/__thumbnail-render`.
 
 The page has to be served from a tldraw host. The SDK licenses the editor by hostname, and an unlicensed editor unmounts itself five seconds after it mounts, which is inside the time a heavy board takes to render. That rules out handing Browser Run the page as `html`: such a page loads at `about:blank`, which has no hostname and is not a secure context, so no license key can be verified there either. The page is the worker's only public surface; rendering is still reached only through the `RENDER_WORKER` binding.
 
