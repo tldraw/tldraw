@@ -208,6 +208,7 @@
 
 .tlui-libraries-sections {
 	overflow-y: auto;
+	padding-top: 12px;
 }
 
 .tlui-libraries-panel__footer {
