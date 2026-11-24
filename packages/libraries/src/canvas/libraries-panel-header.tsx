@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react'
-import { defineMessages, useEditor, useTranslation, useValue } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
 import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { MenuItem, MenuSubmenu } from '../ui/menu-items'
-import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
@@ -45,20 +44,14 @@ export function LibrariesPanelHeader({
 	create,
 	onBrowse,
 }: LibrariesPanelHeaderProps) {
-	const editor = useEditor()
 	const msg = useTranslation()
-	const renaming = useValue('renaming library', () => renamingLibraryId.get(editor) !== null, [
-		editor,
-	])
 	const hasItems = !!sort || !!create || !!onBrowse || !!menuItems
 
 	return (
 		<header className="tlui-libraries-panel__header">
 			<span className="tlui-libraries-panel__title">{msg(messages.title)}</span>
 			<div className="tlui-libraries-panel__header-actions">
-				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
-				    the new library's name input straight away. */}
-				{!renaming && hasItems && (
+				{hasItems && (
 					<LibraryMenu id="libraries-panel-menu" sort={sort}>
 						{onBrowse && <MenuItem label={msg(messages.addLibrary)} onClick={onBrowse} />}
 						{create && <CreateLibraryItem create={create} />}

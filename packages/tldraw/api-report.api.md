@@ -4360,7 +4360,7 @@ export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTi
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children, }: TLUiDropdownMenuContentProps): JSX.Element;
+export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, onCloseAutoFocus, children, }: TLUiDropdownMenuContentProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps): JSX.Element;
@@ -5074,6 +5074,7 @@ export interface TLUiDropdownMenuContentProps {
     collisionPadding?: number;
     // (undocumented)
     id?: string;
+    onCloseAutoFocus?(event: Event): void;
     // (undocumented)
     side?: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)

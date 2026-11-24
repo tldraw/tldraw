@@ -234,10 +234,10 @@ describe('LibrariesPanel components with a custom library header', () => {
 		})
 		await act(async () => create.click())
 		await vi.waitFor(() => expect(panel.querySelector('[data-testid="done"]')).not.toBeNull())
-		expect(panelMenu()).toBeNull()
+		expect(panelMenu()).not.toBeNull()
 		expect(
 			panel.querySelectorAll('[data-testid="header"] [aria-label="Library options"]')
-		).toHaveLength(panel.querySelectorAll('[data-testid="header"]').length - 1)
+		).toHaveLength(panel.querySelectorAll('[data-testid="header"]').length)
 
 		await act(async () => {
 			panel.querySelector<HTMLButtonElement>('[data-testid="done"]')!.click()
@@ -327,7 +327,9 @@ describe('LibrariesPanel item menus on right-click', () => {
 
 	it('opens the library menu on a right-click on its name, as well as from its ⋯', async () => {
 		const panel = await renderPanel()
-		expect(panel.querySelector('.tlui-libraries-section [aria-label="Library options"]')).not.toBeNull()
+		expect(
+			panel.querySelector('.tlui-libraries-section [aria-label="Library options"]')
+		).not.toBeNull()
 		await act(async () => {
 			panel
 				.querySelector('.tlui-libraries-panel__toggle')!

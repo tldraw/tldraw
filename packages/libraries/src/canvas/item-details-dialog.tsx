@@ -67,6 +67,7 @@ export function ItemDetailsDialog({
 		libraryId
 	)
 	const [renaming, setRenaming] = useState(false)
+	const nameRef = useRef<HTMLButtonElement>(null)
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const items = useMemo(() => [item], [item])
 	const thumbnailUrl = useLibraryThumbnailUrls(source, items, { container: element })[item.id]
@@ -76,17 +77,15 @@ export function ItemDetailsDialog({
 		<>
 			<TldrawUiDialogHeader className="tlui-libraries-details__header">
 				<TldrawUiDialogTitle>{msg(messages.title)}</TldrawUiDialogTitle>
-				{!renaming && (
-					<ItemMenu
-						id={`${item.id}-details`}
-						onRename={canRename ? () => setRenaming(true) : undefined}
-						moveTargets={moveTargets}
-						onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
-						copyTargets={copyTargets}
-						onCopy={(toLibraryId) => copy(item.id, toLibraryId as TLLibraryId)}
-						onDelete={canDelete ? () => requestDelete(item.id) : undefined}
-					/>
-				)}
+				<ItemMenu
+					id={`${item.id}-details`}
+					onRename={canRename ? () => setRenaming(true) : undefined}
+					moveTargets={moveTargets}
+					onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
+					copyTargets={copyTargets}
+					onCopy={(toLibraryId) => copy(item.id, toLibraryId as TLLibraryId)}
+					onDelete={canDelete ? () => requestDelete(item.id) : undefined}
+				/>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="tlui-libraries-details">
@@ -110,10 +109,12 @@ export function ItemDetailsDialog({
 									rename(item.id, newName)
 								}}
 								onCancel={() => setRenaming(false)}
+								returnFocusRef={nameRef}
 							/>
 						)}
 						{!renaming && canRename && (
 							<button
+								ref={nameRef}
 								type="button"
 								className="tlui-libraries-details__name"
 								onClick={() => setRenaming(true)}

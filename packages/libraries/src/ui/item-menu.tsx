@@ -10,6 +10,7 @@ import {
 	useTranslation,
 } from 'tldraw'
 import { ContextMenuAnchor } from './context-menu'
+import { keepClaimedFocus } from './keep-claimed-focus'
 import { type LibraryMenuTarget, MenuItem, MenuSubmenu, MenuTargetItems } from './menu-items'
 
 const messages = defineMessages({
@@ -109,6 +110,7 @@ export function ItemMenu({
 				align="start"
 				alignOffset={0}
 				sideOffset={0}
+				onCloseAutoFocus={keepClaimedFocus}
 			>
 				<TldrawUiDropdownMenuGroup>
 					{onInsert && <MenuItem label={msg(messages.insert)} onClick={onInsert} />}

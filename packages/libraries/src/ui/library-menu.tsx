@@ -11,6 +11,7 @@ import {
 } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
 import { ContextMenuAnchor } from './context-menu'
+import { keepClaimedFocus } from './keep-claimed-focus'
 import { MenuCheckboxItem, MenuItem, MenuSubmenu } from './menu-items'
 
 const messages = defineMessages({
@@ -128,6 +129,7 @@ export function LibraryMenu({
 				align="start"
 				sideOffset={0}
 				alignOffset={0}
+				onCloseAutoFocus={keepClaimedFocus}
 			>
 				<TldrawUiDropdownMenuGroup>
 					{addToDocument && (

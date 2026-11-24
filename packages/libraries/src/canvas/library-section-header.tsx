@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useRef } from 'react'
 import type { TLLibrary } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { CaretDownIcon } from '../ui/caret-down-icon'
@@ -16,8 +16,7 @@ export interface LibrarySectionHeaderProps {
 	 * The library's menu: the `LibraryMenu` slot, wired to rename, delete, copy and remove the
 	 * library from the file as the source allows. It has no button of its own: it opens on a
 	 * right-click, a long press on touch, or the context menu key or Shift+F10 on the header, over
-	 * the header, so render it inside the header. Null while renaming, when a closing menu would hand
-	 * focus back and blur the name input.
+	 * the header, so render it inside the header. It stays while renaming.
 	 */
 	menu: ReactNode
 	/**
@@ -45,6 +44,7 @@ export function LibrarySectionHeader({
 	onRenameComplete,
 	onRenameCancel,
 }: LibrarySectionHeaderProps) {
+	const toggleRef = useRef<HTMLButtonElement>(null)
 	return (
 		<header className="tlui-libraries-panel__header">
 			{isRenaming ? (
@@ -53,9 +53,11 @@ export function LibrarySectionHeader({
 					defaultValue={library.name}
 					onComplete={onRenameComplete}
 					onCancel={onRenameCancel}
+					returnFocusRef={toggleRef}
 				/>
 			) : (
 				<button
+					ref={toggleRef}
 					type="button"
 					className="tlui-libraries-panel__title tlui-libraries-panel__toggle"
 					aria-expanded={!collapsed}

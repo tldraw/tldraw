@@ -73,11 +73,12 @@ export function LibrarySection({
 
 	const { ordering, reversed } = useItemOrdering(source)
 	const menuId = `libraries-library-menu-${libraryId}`
-	const hasMenu = !isRenaming && !!LibraryMenu
+	const hasMenu = !!LibraryMenu
+	const opensMenu = hasMenu && !isRenaming
 	const contextMenu = getContextMenuHandlers((opener, point) =>
 		openContextMenu(editor, menuId, { opener, point })
 	)
-	const headerPress = useLongPress(hasMenu)(() => openContextMenu(editor, menuId))
+	const headerPress = useLongPress(opensMenu)(() => openContextMenu(editor, menuId))
 	const inHeader = (e: SyntheticEvent<HTMLElement>) => {
 		const header = e.currentTarget.firstElementChild
 		return !!header && header.contains(e.target as Node)
@@ -92,10 +93,10 @@ export function LibrarySection({
 				if (headerPress.onPointerDown && inHeader(e)) headerPress.onPointerDown(e)
 			}}
 			onContextMenu={(e) => {
-				if (hasMenu && inHeader(e)) contextMenu.onContextMenu(e)
+				if (opensMenu && inHeader(e)) contextMenu.onContextMenu(e)
 			}}
 			onKeyDown={(e) => {
-				if (hasMenu && inHeader(e)) contextMenu.onKeyDown(e)
+				if (opensMenu && inHeader(e)) contextMenu.onKeyDown(e)
 			}}
 		>
 			{LibrarySectionHeader && (
