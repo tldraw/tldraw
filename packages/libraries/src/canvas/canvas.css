@@ -658,7 +658,7 @@
 	flex-shrink: 0;
 	align-items: center;
 	gap: 2px;
-	height: 28px;
+	height: 32px;
 	margin-inline-end: -8px;
 	padding: 0 6px 0 8px;
 	border-radius: var(--tl-radius-2);
@@ -672,7 +672,7 @@
 .tlui-libraries-browse__action::before {
 	content: '';
 	position: absolute;
-	inset: -6px 0;
+	inset: -4px 0;
 }
 
 .tlui-libraries-browse__action[aria-disabled='true'] {
