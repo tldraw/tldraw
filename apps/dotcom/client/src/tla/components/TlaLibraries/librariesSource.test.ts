@@ -1,6 +1,7 @@
-import { MAX_LIBRARY_NAME_LENGTH } from '@tldraw/dotcom-shared'
+import { MAX_LIBRARY_NAME_LENGTH, ZErrorCode } from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
+	LibraryPermissionError,
 	LibraryRecordType,
 	copyLibrary,
 	type TLLibraryItemContent,
@@ -64,6 +65,54 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(source.can('createLibrary', { ownerId: 'acme' })).toBe(true)
 		expect(source.can('createLibrary', { ownerId: 'elsewhere' })).toBe(false)
 		await expect(source.createLibrary('Kit', { ownerId: 'elsewhere' })).rejects.toThrow()
+	})
+
+	describe('at a limit', () => {
+		const atLimit = (code: ZErrorCode) => {
+			const result = Promise.resolve({ type: 'error', error: { type: 'app', message: code } })
+			return { client: result, server: result } as any
+		}
+		const watchToasts = (app: object) =>
+			((app as { showMutationRejectionToast: unknown }).showMutationRejectionToast = vi.fn())
+
+		it('explains a library the workspace has no room for, as not allowed', async () => {
+			const { backend, source } = setUp()
+			const toast = watchToasts(backend.app)
+			vi.spyOn(backend.app.z.mutate.library, 'create').mockReturnValue(
+				atLimit(ZErrorCode.max_libraries_reached)
+			)
+			await expect(source.createLibrary('Kit')).rejects.toBeInstanceOf(LibraryPermissionError)
+			expect(toast).toHaveBeenCalledWith(
+				expect.objectContaining({ message: ZErrorCode.max_libraries_reached })
+			)
+		})
+
+		it('explains an item the worker refuses for a full library, as not allowed', async () => {
+			const { backend, source } = setUp()
+			const toast = watchToasts(backend.app)
+			const kit = await source.createLibrary('Kit')
+			backend.fetch.mockResolvedValueOnce(
+				Response.json({ error: ZErrorCode.max_library_items_reached }, { status: 409 })
+			)
+			await expect(source.addItem(kit.id, { content })).rejects.toBeInstanceOf(
+				LibraryPermissionError
+			)
+			expect(toast).toHaveBeenCalledWith(
+				expect.objectContaining({ message: ZErrorCode.max_library_items_reached })
+			)
+			expect(source.getItems(kit.id)).toEqual([])
+		})
+
+		it('leaves other rejections as failures, without a toast', async () => {
+			const { backend, source } = setUp()
+			const toast = watchToasts(backend.app)
+			const kit = await source.createLibrary('Kit')
+			vi.spyOn(backend.app.z.mutate.library, 'rename').mockReturnValue(atLimit('forbidden' as ZErrorCode))
+			await expect(source.renameLibrary(kit.id, 'Renamed')).rejects.not.toBeInstanceOf(
+				LibraryPermissionError
+			)
+			expect(toast).not.toHaveBeenCalled()
+		})
 	})
 
 	it("adds an item through the worker, with the user's token, and loads its content back", async () => {

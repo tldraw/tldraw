@@ -173,6 +173,12 @@
       "value": "Unpin file"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "This workspace has reached the maximum number of libraries. Delete old libraries before creating new ones."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -263,6 +269,12 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "This library has reached the maximum number of items. Delete old items before adding new ones."
     }
   ],
   "28b2464e1f": [

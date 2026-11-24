@@ -671,6 +671,14 @@ export class TldrawApp {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
 		},
+		max_libraries_reached: {
+			defaultMessage:
+				'This workspace has reached the maximum number of libraries. Delete old libraries before creating new ones.',
+		},
+		max_library_items_reached: {
+			defaultMessage:
+				'This library has reached the maximum number of items. Delete old items before adding new ones.',
+		},
 		uploadingTldrFiles: {
 			defaultMessage:
 				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',

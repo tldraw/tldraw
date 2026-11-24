@@ -4,6 +4,7 @@ import {
 	libraryName,
 	type TlaLibrary,
 	type TlaLibraryItemThumbnail,
+	ZErrorCode,
 } from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
@@ -37,8 +38,14 @@ const messages = defineMessages({
 
 interface MutationResult {
 	type: string
-	error?: unknown
+	error?: { type: string; message: string }
 }
+
+// What the server refuses with when an add would take a workspace or library past its limit.
+const limitCodes: ReadonlySet<string> = new Set([
+	ZErrorCode.max_libraries_reached,
+	ZErrorCode.max_library_items_reached,
+])
 
 // A row's id is the record id without its type prefix.
 const rowId = (id: TLLibraryId | TLLibraryItemId) => id.slice(id.indexOf(':') + 1)
@@ -150,7 +157,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const id = uniqueId()
 		const meta = options.meta ?? {}
 		await this.check(
-			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }).server
+			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }).server,
+			'createLibrary'
 		)
 		return LibraryRecordType.create({
 			id: LibraryRecordType.createId(id),
@@ -176,7 +184,10 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({ owningGroupId: ownerId }),
 		})
-		if (!response.ok) throw new Error(`Couldn't copy the library: ${response.status}`)
+		if (!response.ok) {
+			await this.throwIfResponseAtLimit(response, 'createLibrary')
+			throw new Error(`Couldn't copy the library: ${response.status}`)
+		}
 		const { id } = (await response.json()) as { id: string }
 		return toLibrary({ ...library, id, owningGroupId: ownerId })
 	}
@@ -196,7 +207,10 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			method: 'POST',
 			body: form,
 		})
-		if (!response.ok) throw new Error(`Couldn't add the item: ${response.status}`)
+		if (!response.ok) {
+			await this.throwIfResponseAtLimit(response, 'addItem', libraryId)
+			throw new Error(`Couldn't add the item: ${response.status}`)
+		}
 		const { id, createdAt, thumbnail } = (await response.json()) as {
 			id: string
 			createdAt: number
@@ -224,7 +238,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			this.app.z.mutate.library_item.move({
 				id: rowId(itemId),
 				libraryId: rowId(toLibraryId),
-			}).server
+			}).server,
+			'addItem',
+			toLibraryId
 		)
 	}
 
@@ -246,9 +262,34 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	// The local store has the change at once; waiting for the server is what reports a rejection,
 	// and lets items be added in the worker to a library that was just created. Zero's mutation
 	// promises resolve with an error result rather than rejecting.
-	private async check(result: Promise<MutationResult>) {
+	// `action` is what's refused if the change would take a workspace or library past its limit.
+	private async check(
+		result: Promise<MutationResult>,
+		action?: TLLibraryAction,
+		libraryId?: TLLibraryId
+	) {
 		const { type, error } = await result
-		if (type === 'error') throw new Error('The change was rejected', { cause: error })
+		if (type !== 'error') return
+		if (action && error?.type === 'app') this.throwIfAtLimit(error.message, action, libraryId)
+		throw new Error('The change was rejected', { cause: error })
+	}
+
+	// A refusal for a limit gets the app's toast explaining it, and counts as the user not being
+	// allowed to rather than as a failure.
+	private throwIfAtLimit(code: unknown, action: TLLibraryAction, libraryId?: TLLibraryId) {
+		if (typeof code !== 'string' || !limitCodes.has(code)) return
+		this.app.showMutationRejectionToast({ type: 'app', message: code, details: undefined })
+		throw new LibraryPermissionError(action, libraryId)
+	}
+
+	private async throwIfResponseAtLimit(
+		response: Response,
+		action: TLLibraryAction,
+		libraryId?: TLLibraryId
+	) {
+		if (response.status !== 409) return
+		const body = (await response.json().catch(() => null)) as { error?: unknown } | null
+		this.throwIfAtLimit(body?.error, action, libraryId)
 	}
 
 	private async request(path: string, init: RequestInit = {}) {
