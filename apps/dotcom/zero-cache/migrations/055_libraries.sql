@@ -19,10 +19,22 @@ CREATE TABLE library (
   "updatedAt" BIGINT NOT NULL,
   -- e.g. the pack a library was copied from: { "packId", "packVersion" }
   "meta" JSONB NOT NULL DEFAULT '{}',
-  CONSTRAINT library_owning_group_id_fkey FOREIGN KEY ("owningGroupId") REFERENCES public."group"("id") ON DELETE CASCADE
+  -- a user's default library, shown on every board they open. It lives in their home workspace,
+  -- whose id is the user's id, so one default per home workspace is one default per user.
+  "isDefault" BOOLEAN NOT NULL DEFAULT false,
+  -- how many files the library is added to, counting files the user can't see, so a workspace's
+  -- libraries list can flag the ones in no file; kept by count_library_files below
+  "fileCount" INTEGER NOT NULL DEFAULT 0,
+  -- how many items it has, so libraries can be listed with their counts without syncing every
+  -- item; kept by count_library_items below
+  "itemCount" INTEGER NOT NULL DEFAULT 0,
+  CONSTRAINT library_owning_group_id_fkey FOREIGN KEY ("owningGroupId") REFERENCES public."group"("id") ON DELETE CASCADE,
+  CONSTRAINT library_default_in_home_workspace CHECK (NOT "isDefault" OR "owningGroupId" = "createdBy")
 );
 
 CREATE INDEX library_owning_group_id_idx ON library("owningGroupId");
+
+CREATE UNIQUE INDEX library_one_default_per_user_idx ON library("owningGroupId") WHERE "isDefault";
 
 CREATE TABLE library_item (
   "id" VARCHAR PRIMARY KEY,
@@ -34,6 +46,9 @@ CREATE TABLE library_item (
   "thumbnail" JSONB,
   -- the ROOMS bucket key of the item's content; server-only, left out of the Zero schema
   "contentKey" VARCHAR NOT NULL,
+  -- as a library's meta: opaque data the client stores with the item, e.g. the category and tags
+  -- it had in the starter pack it was copied from
+  "meta" JSONB NOT NULL DEFAULT '{}',
   "createdBy" VARCHAR NOT NULL,
   "createdAt" BIGINT NOT NULL,
   "updatedAt" BIGINT NOT NULL,
@@ -42,7 +57,23 @@ CREATE TABLE library_item (
 
 CREATE INDEX library_item_library_id_idx ON library_item("libraryId");
 
-ALTER PUBLICATION zero_data ADD TABLE public."library", public."library_item";
+-- Libraries added to a file. A file's panel shows the libraries added to it, to everyone who can
+-- access the file, members of the library's workspace or not; only those who can edit the file
+-- add or remove them. Rows go with either the file or the library.
+CREATE TABLE file_library (
+  "fileId" VARCHAR NOT NULL,
+  "libraryId" VARCHAR NOT NULL,
+  -- authorship only, and no FK to "user", as library."createdBy"
+  "addedBy" VARCHAR NOT NULL,
+  "addedAt" BIGINT NOT NULL,
+  PRIMARY KEY ("fileId", "libraryId"),
+  CONSTRAINT file_library_file_id_fkey FOREIGN KEY ("fileId") REFERENCES public."file"("id") ON DELETE CASCADE,
+  CONSTRAINT file_library_library_id_fkey FOREIGN KEY ("libraryId") REFERENCES public."library"("id") ON DELETE CASCADE
+);
+
+CREATE INDEX file_library_library_id_idx ON file_library("libraryId");
+
+ALTER PUBLICATION zero_data ADD TABLE public."library", public."library_item", public."file_library";
 
 -- The R2 objects each library item uses: its content in the ROOMS bucket, and in the uploads
 -- bucket its thumbnails and the copies of the images and videos its content refers to, made when
@@ -104,3 +135,42 @@ CREATE TRIGGER library_item_object_effect_outbox_after_delete
 AFTER DELETE ON public.library_item_object
 REFERENCING OLD TABLE AS deleted
 FOR EACH STATEMENT EXECUTE FUNCTION library_item_object_effect_outbox_fn();
+
+-- library."fileCount", kept by triggers on file_library; a file or library delete cascades through
+-- file_library, so its rows' triggers count those too.
+CREATE OR REPLACE FUNCTION count_library_files() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP IN ('DELETE', 'UPDATE') THEN
+    -- matches nothing when the library itself is being deleted
+    UPDATE public."library" SET "fileCount" = "fileCount" - 1 WHERE "id" = OLD."libraryId";
+  END IF;
+  IF TG_OP IN ('INSERT', 'UPDATE') THEN
+    UPDATE public."library" SET "fileCount" = "fileCount" + 1 WHERE "id" = NEW."libraryId";
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "count_library_files_trigger"
+AFTER INSERT OR DELETE OR UPDATE OF "libraryId" ON public."file_library"
+FOR EACH ROW
+EXECUTE FUNCTION count_library_files();
+
+-- library."itemCount", kept by triggers on library_item; a library delete cascades through
+-- library_item, whose rows' triggers then match no library.
+CREATE OR REPLACE FUNCTION count_library_items() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP IN ('DELETE', 'UPDATE') THEN
+    UPDATE public."library" SET "itemCount" = "itemCount" - 1 WHERE "id" = OLD."libraryId";
+  END IF;
+  IF TG_OP IN ('INSERT', 'UPDATE') THEN
+    UPDATE public."library" SET "itemCount" = "itemCount" + 1 WHERE "id" = NEW."libraryId";
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "count_library_items_trigger"
+AFTER INSERT OR DELETE OR UPDATE OF "libraryId" ON public."library_item"
+FOR EACH ROW
+EXECUTE FUNCTION count_library_items();
