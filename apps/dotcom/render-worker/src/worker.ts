@@ -94,10 +94,10 @@ export class RenderWorker extends WorkerEntrypoint<Environment> implements Rende
 				sentry.captureException(error)
 			})
 		} catch {
-			// createSentry throws when no DSN is configured — which is every deployed environment today
-			// (staging/preview), not just dev — and withScope/captureException can throw too. The render
-			// detail must still surface, so log it rather than swallow. Never rethrow: reporting runs on
-			// an already-failing path and must not turn a handled failure into an unhandled one.
+			// createSentry throws on a deployed worker with no DSN, and withScope/captureException can
+			// throw too. The render detail must still surface, so log it rather than swallow. Never
+			// rethrow: reporting runs on an already-failing path and must not turn a handled failure into
+			// an unhandled one.
 			console.error('[render-worker]', context, error)
 		}
 	}
