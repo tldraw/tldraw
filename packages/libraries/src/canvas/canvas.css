@@ -233,7 +233,7 @@
 
 .tlui-libraries-sections .tlui-libraries-grid {
 	overflow: visible;
-	padding: 0 12px 12px;
+	padding: 4px 12px 12px;
 }
 
 /* Stays at the top of the list while its own items scroll under it, until the next section's header
