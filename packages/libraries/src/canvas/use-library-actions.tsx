@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getLibraryItemCount } from '../lib/librarySummary'
 import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getContentTooNewToast } from './content-too-new-toast'
@@ -119,7 +120,7 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 	}
 
 	const deleteLibrary = () => {
-		const count = source.getItems(libraryId).length
+		const count = getLibraryItemCount(source, libraryId)
 		const housed =
 			source.getLibraryPlacement !== undefined && source.getLibraryPlacement(libraryId) === 'housed'
 		addDialog({

@@ -124,6 +124,7 @@ export {
 } from './lib/CompositeLibrarySource'
 export { parseLibraryPack, type LibraryPack, type LibraryPackItem } from './lib/LibraryPack'
 export { copyLibrary } from './lib/copyLibrary'
+export { getLibraryItemCount, getLibraryPreviewItems } from './lib/librarySummary'
 export { addPackToDocument, findPackCopy } from './lib/addPackToDocument'
 export { copyPack } from './lib/copyPack'
 export {

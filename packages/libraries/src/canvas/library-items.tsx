@@ -97,7 +97,14 @@ export function LibraryItems({
 		editor,
 	])
 
+	const loading = useValue(
+		'library items loading',
+		() => !!source.isLoadingItems && source.isLoadingItems(libraryId),
+		[source, libraryId]
+	)
+
 	if (items.length === 0 && !canAdd) {
+		if (loading) return null
 		return EmptyLibrary && <EmptyLibrary library={library} />
 	}
 

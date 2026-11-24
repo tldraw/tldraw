@@ -133,6 +133,43 @@ export interface LibrarySource {
 	): string | null | Promise<string | null>
 
 	/**
+	 * Fetches a library's items, for a source that lists them only once they are fetched, e.g. from
+	 * a download per library. The panel calls it for each library whose items it is about to show:
+	 * an unfolded section, and every library while a search is active. Called again on each of
+	 * those, so return straight away once the items are fetched or being fetched. Failures are the
+	 * source's to report. Optional: a source that lists its items straight away leaves it out.
+	 */
+	loadItems?(libraryId: TLLibraryId): void
+	/**
+	 * Whether a library has items that aren't listed yet: not yet fetched by
+	 * {@link LibrarySource.loadItems}, or being fetched. Reactive, like the other getters. While it
+	 * has, the panel shows nothing in place of the library's items rather than calling it empty,
+	 * and a search that has found nothing yet says it's still searching rather than that nothing
+	 * matched.
+	 */
+	isLoadingItems?(libraryId: TLLibraryId): boolean
+	/**
+	 * How many items a library has, whether or not they're listed yet, for a source that can tell
+	 * without fetching them. Reactive, like the other getters. Optional: without it, the UI counts
+	 * {@link LibrarySource.getItems}.
+	 */
+	getItemCount?(libraryId: TLLibraryId): number
+	/**
+	 * A library's first `count` items, in its order, to preview it in a list of libraries, for a
+	 * source that has them without fetching the rest. Reactive, like the other getters. Optional:
+	 * without it, the UI previews the first of {@link LibrarySource.getItems}.
+	 */
+	getPreviewItems?(libraryId: TLLibraryId, count: number): TLLibraryItem[]
+	/**
+	 * Whether a library may have items matching a search, answered without its items, e.g. from a
+	 * list of their names the source has to hand. The panel searches a library, loading its items
+	 * with {@link LibrarySource.loadItems}, only where its name matches or this says it may. `query`
+	 * is trimmed and lowercased, and an item matches when its name contains it, ignoring case.
+	 * Optional: without it, every library is searched. Reactive, like the other getters.
+	 */
+	mayHaveItemsMatching?(libraryId: TLLibraryId, query: string): boolean
+
+	/**
 	 * Whether the current user may do `action`. With a library id, answers for that library;
 	 * with `{ ownerId }`, for that owner (e.g. may they create libraries for it); with neither,
 	 * for the source as a whole (e.g. may they create libraries).
