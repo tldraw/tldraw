@@ -99,11 +99,11 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarBottomArea}>
 					<div className={styles.sidebarDivider} />
 					<TlaSidebarMcpLink />
-					{/* In `ui_v3` the settings dialog holds these two, and replaces the user menu. */}
+					{/* In `ui_v3` the settings dialog holds the SDK link and feedback, and replaces the user menu. */}
 					{!isUiV3 && <TlaSidebarDotDevLink />}
-					{!isUiV3 && <TlaSidebarFeedbackButton />}
 					<div className={styles.sidebarBottomRow}>
 						{isUiV3 ? <TlaSidebarUserSettingsButton /> : <TlaUserSettingsMenu />}
+						{!isUiV3 && <TlaSidebarFeedbackButton />}
 						<TlaSidebarNotificationsButton />
 					</div>
 				</div>
