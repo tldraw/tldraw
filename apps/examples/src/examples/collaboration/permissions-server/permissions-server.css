@@ -1,0 +1,39 @@
+.permissions-server {
+	display: flex;
+	gap: 8px;
+	position: absolute;
+	inset: 0;
+}
+
+.permissions-server-editor {
+	position: relative;
+	flex: 1;
+}
+
+.permissions-controls {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 8px;
+	pointer-events: all;
+}
+
+.permissions-user {
+	display: flex;
+	align-items: center;
+	height: 40px;
+	padding: 0 12px;
+}
+
+/* Fixed sizes and one line, so that nothing moves when the status changes */
+.permissions-status {
+	display: flex;
+	align-items: center;
+	width: 260px;
+	height: 40px;
+	padding: 0 12px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: var(--tl-color-text-3);
+}
