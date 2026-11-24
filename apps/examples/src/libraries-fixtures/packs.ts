@@ -1,9 +1,13 @@
 import {
+	addPackToDocument,
+	findPackCopy,
 	InMemoryLibrarySource,
 	type InMemoryLibrarySourceOptions,
+	type LibraryBrowseGroup,
 	LibraryItemRecordType,
 	type LibraryPack,
 	type LibraryPackItem,
+	type LibrarySource,
 	LibraryRecordType,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
@@ -52,4 +56,37 @@ export function packSource(id: string, packs: LibraryPack[], options: PackSource
 		can: options.can,
 		initial: { libraries, items: entries.map(({ record }) => record), contents },
 	})
+}
+
+// The shipped packs, as a "Public libraries" group to browse: adding one copies it to the owner
+// given, such as the user's own workspace, or adds the copy they already have. Removing one removes
+// that copy from the document, and keeps it.
+export function getPackBrowseGroups(source: LibrarySource, ownerId: string): LibraryBrowseGroup[] {
+	const libraries = source.getLibraries()
+	const canAdd = source.can('createLibrary', { ownerId })
+	return [
+		{
+			id: 'public',
+			label: 'Public libraries',
+			entries: Object.values(PACKS).map((pack) => {
+				const shown = findPackCopy(libraries, pack.id)
+				const remove = source.removeLibraryFromDocument
+				return {
+					id: pack.id,
+					name: pack.name,
+					itemCount: pack.items.length,
+					previews: pack.items.slice(0, 4).map((item) => item.thumbnail),
+					added: shown !== undefined,
+					libraryId: shown?.id,
+					canAdd,
+					add: () => addPackToDocument(source, pack.id, async () => pack, { ownerId }),
+					remove:
+						shown && remove && source.can('removeLibraryFromDocument', shown.id)
+							? () => remove.call(source, shown.id)
+							: undefined,
+					getItems: async () => pack.items,
+				}
+			}),
+		},
+	]
 }

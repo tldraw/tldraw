@@ -4,6 +4,11 @@ export {
 	type AddToLibraryMenuItemProps,
 } from './canvas/add-to-library-menu-item'
 export {
+	type LibraryBrowseEntry,
+	type LibraryBrowseEntryItem,
+	type LibraryBrowseGroup,
+} from './canvas/browse-libraries-dialog'
+export {
 	CommandPaletteLibrariesGroup,
 	type CommandPaletteLibrariesGroupProps,
 } from './canvas/command-palette-libraries-group'
