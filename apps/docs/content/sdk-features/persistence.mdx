@@ -272,11 +272,10 @@ editor.store.listen(handleChanges, { source: 'all', scope: 'document' })
 
 ### Throttled auto-save
 
-Here's a pattern for auto-saving with throttling (`lodash` isn't a tldraw dependency, so bring your own throttle):
+Here's a pattern for auto-saving with throttling, using the `throttle` helper that tldraw exports:
 
 ```ts
-import { throttle } from 'lodash'
-import { getSnapshot } from 'tldraw'
+import { getSnapshot, throttle } from 'tldraw'
 
 const saveToStorage = throttle(() => {
 	const snapshot = getSnapshot(editor.store)
