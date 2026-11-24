@@ -14,6 +14,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// per-user value here means nothing to the client.
 	version_chain: { enabled: false },
 	libraries: { enabled: false },
+	libraries_anonymous: { enabled: false },
 	// Server-side only: the sync worker reads these to pick the render transport.
 	thumbnail_render_push: { enabled: false },
 	mcp_render_push: { enabled: false },
