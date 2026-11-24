@@ -37,6 +37,8 @@ describe('compareScreenshotInShadow', () => {
 		const { env, compareSpy, rows } = setup(async () => ({
 			ok: true,
 			diff: { fair: 0.0015, strict: 0.04 },
+			headless: [1200, 630],
+			reference: [1200, 630],
 		}))
 		await compareScreenshotInShadow(env, { payload, content }, { ok: true, png, browserMs: 750 })
 
@@ -50,12 +52,18 @@ describe('compareScreenshotInShadow', () => {
 			'outcome:ok',
 			'browser:ok',
 			'headless:ok',
+			'diff:compared',
 		])
 		expect(row.doubles).toEqual([0.0015, 0.04, 750, expect.any(Number), 10, 4, 1, 2.5])
 	})
 
 	it('still asks headless to draw when the browser failed, without a reference', async () => {
-		const { env, compareSpy, rows } = setup(async () => ({ ok: true, diff: null }))
+		const { env, compareSpy, rows } = setup(async () => ({
+			ok: true,
+			diff: null,
+			headless: [1200, 630],
+			reference: null,
+		}))
 		await compareScreenshotInShadow(
 			env,
 			{ payload, content },
@@ -67,8 +75,43 @@ describe('compareScreenshotInShadow', () => {
 			'outcome:browser_failed',
 			'browser:browser_timeout',
 			'headless:ok',
+			'diff:none',
 		])
 		expect(rows()[0].doubles.slice(0, 3)).toEqual([-1, -1, 45_000])
+	})
+
+	it('tells a size mismatch from an unreadable reference when both drew', async () => {
+		const mismatch = setup(async () => ({
+			ok: true,
+			diff: null,
+			headless: [1200, 630],
+			reference: [2400, 1260],
+		}))
+		await compareScreenshotInShadow(
+			mismatch.env,
+			{ payload, content },
+			{ ok: true, png, browserMs: 700 }
+		)
+		expect(mismatch.rows()[0].blobs.slice(4)).toEqual([
+			'outcome:ok',
+			'browser:ok',
+			'headless:ok',
+			'diff:size_mismatch',
+		])
+		expect(mismatch.rows()[0].doubles.slice(0, 2)).toEqual([-1, -1])
+
+		const unreadable = setup(async () => ({
+			ok: true,
+			diff: null,
+			headless: [1200, 630],
+			reference: null,
+		}))
+		await compareScreenshotInShadow(
+			unreadable.env,
+			{ payload, content },
+			{ ok: true, png, browserMs: 700 }
+		)
+		expect(unreadable.rows()[0].blobs.at(-1)).toBe('diff:unreadable')
 	})
 
 	it('records a headless refusal by its reason', async () => {
@@ -78,6 +121,7 @@ describe('compareScreenshotInShadow', () => {
 			'outcome:headless_failed',
 			'browser:ok',
 			'headless:page_error',
+			'diff:none',
 		])
 	})
 
@@ -93,6 +137,7 @@ describe('compareScreenshotInShadow', () => {
 			'outcome:compare_failed',
 			'browser:ok',
 			'headless:rpc_error',
+			'diff:none',
 		])
 	})
 
@@ -110,6 +155,7 @@ describe('compareScreenshotInShadow', () => {
 			'outcome:both_failed',
 			'browser:browser_failed',
 			'headless:timeout',
+			'diff:none',
 		])
 	})
 

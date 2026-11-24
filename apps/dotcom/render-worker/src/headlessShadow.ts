@@ -19,9 +19,17 @@ export interface HeadlessCompareRequest {
 	reference?: Uint8Array
 }
 
-/** `diff` is the fraction of pixels that differ, or null with no readable reference. */
+/**
+ * The fractions of pixels that differ, and both images' sizes. `diff` is null with no reference, one
+ * that isn't a PNG (`reference` null), or one of another size: those aren't diffed.
+ */
 export type HeadlessCompareResult =
-	| { ok: true; diff: { fair: number; strict: number } | null }
+	| {
+			ok: true
+			diff: { fair: number; strict: number } | null
+			headless: [number, number]
+			reference: [number, number] | null
+	  }
 	| { ok: false; reason: string }
 
 export interface HeadlessWorkerRpc {
@@ -33,8 +41,7 @@ export type BrowserRender =
 	| { ok: true; png: Uint8Array; browserMs: number }
 	| { ok: false; reason: RenderFailureReason; browserMs: number }
 
-// A warm headless render is ~100 ms and the decode and diff ~70 ms, but images are fetched, so this
-// is generous. It bounds how long a stuck call can hold the isolate, not a render anyone waits for.
+// A warm headless render is ~100 ms, but images are fetched, so this is generous. It bounds how long a stuck call can hold the isolate, not a render anyone waits for.
 const SHADOW_COMPARE_TIMEOUT_MS = 20_000
 
 /**
@@ -64,16 +71,18 @@ export async function compareScreenshotInShadow(
 	} finally {
 		clearTimeout(timer)
 	}
-	// The RPC's wall time: the headless render plus the decode and diff. The headless worker can't
-	// time itself, since a Worker's clock stands still between I/O.
+	// The RPC's wall time: the headless render plus decoding the reference and the diff. The headless
+	// worker can't time itself, since a Worker's clock stands still between I/O.
 	const compareMs = Date.now() - startedAt
 	const headlessReason = result === 'timeout' ? 'timeout' : result.ok ? 'ok' : result.reason
-	const diff = result !== 'timeout' && result.ok ? result.diff : null
+	const answered = result !== 'timeout' && result.ok ? result : null
+	const diff = answered?.diff ?? null
 	writeShadowCompareTelemetry(env, {
 		outcome: outcomeOf(browser.ok, headlessReason),
 		browser: browser.ok ? 'ok' : browser.reason,
 		headless: headlessReason,
 		diff,
+		diffReason: !answered || !browser.ok ? 'none' : diffReasonOf(answered),
 		browserMs: browser.browserMs,
 		compareMs,
 		content,
@@ -92,11 +101,17 @@ function outcomeOf(browserOk: boolean, headless: string) {
 	return 'both_failed'
 }
 
+/** Why a render both sides drew has a diff or not; a size mismatch is likely a framing bug. */
+function diffReasonOf({ diff, reference }: Extract<HeadlessCompareResult, { ok: true }>) {
+	if (diff) return 'compared'
+	return reference ? 'size_mismatch' : 'unreadable'
+}
+
 // The same event as sync-worker's measure shadow, told apart by `op`. blob1–5 line up with it (name,
 // worker, op, reference, outcome); the doubles are positional and mean something else per `op`, so
 // every panel filters on `op`. Screenshot doubles, whose order must not change: [fair, strict,
 // browserMs, compareMs, records, pageShapes, mediaAssets, imageMegapixels], with -1 for a diff that
-// wasn't made. No board identity.
+// wasn't made; blob8 says why (rows before it have none). No board identity.
 function writeShadowCompareTelemetry(
 	env: Environment,
 	{
@@ -104,6 +119,7 @@ function writeShadowCompareTelemetry(
 		browser,
 		headless,
 		diff,
+		diffReason,
 		browserMs,
 		compareMs,
 		content,
@@ -112,6 +128,7 @@ function writeShadowCompareTelemetry(
 		browser: string
 		headless: string
 		diff: { fair: number; strict: number } | null
+		diffReason: string
 		browserMs: number
 		compareMs: number
 		content: RenderContentSummary
@@ -124,6 +141,7 @@ function writeShadowCompareTelemetry(
 			`outcome:${outcome}`,
 			`browser:${browser}`,
 			`headless:${headless}`,
+			`diff:${diffReason}`,
 		],
 		doubles: [
 			diff?.fair ?? -1,

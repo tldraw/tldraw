@@ -1264,8 +1264,8 @@ spec:
             queryOptions: {}
             transformations: []
         description: >-
-          Median wall time of the render worker's compare RPC: the headless render plus about 70 ms
-          of PNG decode and diff. Compare with Browser Run's time in the chart below.
+          Median wall time of the render worker's compare RPC: the headless render plus decoding the
+          reference and the diff. Compare with Browser Run's time in the chart below.
         id: 13
         links: []
         title: Median compare call
@@ -1322,7 +1322,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 9) as outcome, sum(_sample_interval) as comparisons
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob5 = 'outcome:ok' AND blob8 = 'diff:size_mismatch', 'ok, size mismatch', if(blob5 = 'outcome:ok' AND blob8 = 'diff:unreadable', 'ok, unreadable reference', substring(blob5, 9))) as outcome, sum(_sample_interval) as comparisons
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -1331,7 +1331,7 @@ spec:
                         GROUP BY date, outcome
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob5, 9) as outcome, sum(_sample_interval) as comparisons
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob5 = 'outcome:ok' AND blob8 = 'diff:size_mismatch', 'ok, size mismatch', if(blob5 = 'outcome:ok' AND blob8 = 'diff:unreadable', 'ok, unreadable reference', substring(blob5, 9))) as outcome, sum(_sample_interval) as comparisons
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -1351,7 +1351,9 @@ spec:
         description: >-
           Compared renders over time, stacked by outcome: ok (both drew), headless_failed,
           browser_failed, both_failed, and compare_failed (the call itself failed, most often a
-          payload plus PNG over the 32 MiB RPC cap; not a headless failure).
+          payload plus PNG over the 32 MiB RPC cap; not a headless failure). Renders both drew but
+          didn't diff are split out of ok: size mismatch (different sizes, likely a framing bug) and
+          unreadable reference.
         id: 14
         links: []
         title: Screenshot comparisons by outcome
@@ -1585,8 +1587,8 @@ spec:
             queryOptions: {}
             transformations: []
         description: >-
-          Browser Run's render time against the compare call's wall time (headless render plus about
-          70 ms of decode and diff), p50 and p90, over renders both drew.
+          Browser Run's render time against the compare call's wall time (headless render plus
+          decoding the reference and the diff), p50 and p90, over renders both drew.
         id: 16
         links: []
         title: Browser Run vs headless time
