@@ -41,7 +41,8 @@ export type BrowserRender =
 	| { ok: true; png: Uint8Array; browserMs: number }
 	| { ok: false; reason: RenderFailureReason; browserMs: number }
 
-// A warm headless render is ~100 ms, but images are fetched, so this is generous. It bounds how long a stuck call can hold the isolate, not a render anyone waits for.
+// A warm headless render is ~100 ms, but images are fetched, so this is generous. It bounds how
+// long a stuck call can hold the isolate, not a render anyone waits for.
 const SHADOW_COMPARE_TIMEOUT_MS = 20_000
 
 /**
