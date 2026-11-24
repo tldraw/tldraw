@@ -9,7 +9,7 @@ import {
 } from '@tldraw/libraries'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
-import { TldrawAppLibrariesSource } from './librariesSource'
+import { getCopyName, TldrawAppLibrariesSource } from './librariesSource'
 
 const content: TLLibraryItemContent = {
 	formatVersion: 1,
@@ -107,7 +107,9 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const toast = watchToasts(backend.app)
 			const kit = await source.createLibrary('Kit')
-			vi.spyOn(backend.app.z.mutate.library, 'rename').mockReturnValue(atLimit('forbidden' as ZErrorCode))
+			vi.spyOn(backend.app.z.mutate.library, 'rename').mockReturnValue(
+				atLimit('forbidden' as ZErrorCode)
+			)
 			await expect(source.renameLibrary(kit.id, 'Renamed')).rejects.not.toBeInstanceOf(
 				LibraryPermissionError
 			)
@@ -171,6 +173,26 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
 		const urls = backend.fetch.mock.calls.map(([url]) => String(url))
 		expect(urls.filter((url) => url.endsWith('/content'))).toEqual([])
+	})
+
+	it('names the copy with getName, and sends the name to the worker', async () => {
+		const { backend, source } = setUp()
+		const kit = await source.createLibrary('Kit')
+		await source.addItem(kit.id, { name: 'Star', content })
+		const copy = await source.copyLibrary(kit.id, 'acme', { getName: (name) => `${name} (Copy)` })
+		expect(copy.name).toBe('Kit (Copy)')
+		const [, init] = backend.fetch.mock.calls.at(-1)!
+		expect(JSON.parse(init!.body as string)).toMatchObject({ name: 'Kit (Copy)' })
+		expect(source.getLibraries().find((c) => c.id === copy.id)?.name).toBe('Kit (Copy)')
+		expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
+	})
+
+	it('shortens a long name so that the copy keeps the whole of what getName adds', () => {
+		const getName = (name: string) => `${name} (Copy)`
+		const name = getCopyName('x'.repeat(MAX_LIBRARY_NAME_LENGTH), { getName })
+		expect(name).toHaveLength(MAX_LIBRARY_NAME_LENGTH)
+		expect(name.endsWith(' (Copy)')).toBe(true)
+		expect(getCopyName('Kit', {})).toBe('Kit')
 	})
 
 	it('renames, moves and deletes items through the mutators', async () => {

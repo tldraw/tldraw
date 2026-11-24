@@ -1,6 +1,7 @@
 import {
 	can,
 	isRole,
+	libraryName,
 	MAX_NUMBER_OF_LIBRARIES,
 	MAX_NUMBER_OF_LIBRARY_ITEMS,
 	TlaLibraryItemObject,
@@ -22,6 +23,8 @@ import { requireAuth } from '../../utils/tla/getAuth'
 
 export interface CopyLibraryRequestBody {
 	owningGroupId: string
+	/** The new library's name. Left out, it has the library's. */
+	name?: string
 }
 
 export interface CopyLibraryResponseBody {
@@ -45,7 +48,11 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 	const libraryId = request.params.libraryId
 	const body = (await request.json().catch(() => null)) as CopyLibraryRequestBody | null
 	const owningGroupId = body?.owningGroupId
+	const name = body?.name
 	if (!libraryId || typeof owningGroupId !== 'string' || !owningGroupId) {
+		return Response.json({ error: 'Bad request' }, { status: 400 })
+	}
+	if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
 		return Response.json({ error: 'Bad request' }, { status: 400 })
 	}
 
@@ -82,7 +89,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 				.insertInto('library')
 				.values({
 					id,
-					name: access.library.name,
+					name: name === undefined ? access.library.name : libraryName(name),
 					owningGroupId,
 					createdBy: auth.userId,
 					createdAt: now,

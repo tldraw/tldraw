@@ -2,6 +2,7 @@ import {
 	can,
 	isSvgLibraryThumbnail,
 	libraryName,
+	MAX_LIBRARY_NAME_LENGTH,
 	type TlaLibrary,
 	type TlaLibraryItemThumbnail,
 	ZErrorCode,
@@ -13,6 +14,7 @@ import {
 	LibraryRecordType,
 	getThumbnailForColorMode,
 	type LibrarySource,
+	type TLCopyLibraryOptions,
 	type TLLibrary,
 	type TLLibraryAction,
 	type TLLibraryId,
@@ -176,20 +178,25 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		await this.check(this.app.z.mutate.library.delete({ id: rowId(libraryId) }).server)
 	}
 
-	async copyLibrary(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary> {
+	async copyLibrary(
+		libraryId: TLLibraryId,
+		ownerId: string,
+		options: TLCopyLibraryOptions = {}
+	): Promise<TLLibrary> {
 		const library = this.findRow(libraryId)
 		if (!library) throw new LibraryNotFoundError(libraryId)
+		const name = getCopyName(library.name, options)
 		const response = await this.request(`/api/app/libraries/${rowId(libraryId)}/copy`, {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ owningGroupId: ownerId }),
+			body: JSON.stringify({ owningGroupId: ownerId, name }),
 		})
 		if (!response.ok) {
 			await this.throwIfResponseAtLimit(response, 'createLibrary')
 			throw new Error(`Couldn't copy the library: ${response.status}`)
 		}
 		const { id } = (await response.json()) as { id: string }
-		return toLibrary({ ...library, id, owningGroupId: ownerId })
+		return toLibrary({ ...library, id, name, owningGroupId: ownerId })
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
@@ -298,4 +305,11 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (token) headers.set('Authorization', `Bearer ${token}`)
 		return fetch(path, { ...init, headers })
 	}
+}
+
+/** A copy's name, the library's shortened as needed so that the whole of it is stored. */
+export function getCopyName(name: string, { getName }: TLCopyLibraryOptions) {
+	if (!getName) return name
+	const room = Math.max(MAX_LIBRARY_NAME_LENGTH - getName('').length, 1)
+	return libraryName(getName(name.trim().slice(0, room)))
 }

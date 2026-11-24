@@ -59,11 +59,11 @@ function mockPool(resultSets: unknown[][]) {
 	return fake
 }
 
-function request(owningGroupId: string) {
+function request(owningGroupId: string, body: object = {}) {
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/copy`, {
 			method: 'POST',
-			body: JSON.stringify({ owningGroupId }),
+			body: JSON.stringify({ owningGroupId, ...body }),
 		}),
 		{ params: { libraryId: LIBRARY_ID } }
 	) as any
@@ -169,6 +169,30 @@ describe('copyLibrary', () => {
 
 		expect((await copyLibrary(request(V), env)).status).toBe(200)
 		for (const spy of spies) expect(spy).not.toHaveBeenCalled()
+	})
+
+	it("names the copy as I asked, trimmed and clamped, keeping its items' names", async () => {
+		const fake = mockPool([
+			[access('member')],
+			[{ role: 'member' }],
+			...destination(),
+			[item('item_a', null)],
+		])
+		const long = `${'x'.repeat(120)} (Copy)`
+		const response = await copyLibrary(request(V, { name: `  ${long}  ` }), makeEnv())
+		expect(response.status).toBe(200)
+		const params = fake.queries.find((q) => q.sql.startsWith('insert into "library"'))!.parameters
+		expect(params).toContain(long.slice(0, 100))
+		expect(params).not.toContain('Shapes')
+	})
+
+	it.each([
+		['a name that is blank', { name: '   ' }],
+		['a name that is not a string', { name: 7 }],
+	])('refuses %s', async (_, body) => {
+		const fake = mockPool([[access('member')], [{ role: 'member' }]])
+		expect((await copyLibrary(request(V, body), makeEnv())).status).toBe(400)
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
 	it('copies an empty library as the library row alone', async () => {

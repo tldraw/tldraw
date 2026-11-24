@@ -142,10 +142,19 @@ export function createFakeLibrariesBackend({
 		}
 		match = url.match(/^\/api\/app\/libraries\/([^/]+)\/copy$/)
 		if (match && init.method === 'POST') {
-			const { owningGroupId } = JSON.parse(init.body as string)
+			const { owningGroupId, name } = JSON.parse(init.body as string)
 			const source = rows.get().find((row) => row.id === match![1])!
 			const id = uniqueId()
-			rows.update((all) => [...all, { ...source, id, owningGroupId, items: [] }])
+			rows.update((all) => [
+				...all,
+				{
+					...source,
+					id,
+					name: name === undefined ? source.name : libraryName(name),
+					owningGroupId,
+					items: [],
+				},
+			])
 			for (const item of source.items) {
 				const { thumbnail } = item
 				const copy = addItem(
