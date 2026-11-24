@@ -502,7 +502,7 @@
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-input__wrapper {
 	height: 32px;
-	margin: 0 12px;
+	margin: 0 12px 0 4px;
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-libraries-panel__rename {
