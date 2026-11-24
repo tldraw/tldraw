@@ -274,7 +274,7 @@ export async function uploadMcpImage(request: IRequest, env: Environment): Promi
 	if (!info || info.mimeType !== grant.mimeType) {
 		return Response.json(
 			{
-				error: `The file is not a ${grant.mimeType} image${info ? `; it is ${info.mimeType}` : ''}. Call create_image_upload with the type of the file you are uploading.`,
+				error: `The file is not ${grant.mimeType}${info ? `; it is ${info.mimeType}` : ''}. Call create_image_upload with the type of the file you are uploading.`,
 			},
 			{ status: 415 }
 		)

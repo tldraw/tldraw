@@ -1,12 +1,12 @@
 import { IRequest } from 'itty-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { jpegBytes, pngBytes } from '../../mcpImageTestHelpers'
+import { REAL_IMAGES, jpegBytes, pngBytes } from '../../mcpImageTestHelpers'
 import { Environment } from '../../types'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { mintThumbnailRenderToken, verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import { hasWriteAccessToFile } from '../../utils/tla/hasWriteAccessToFile'
-import { IMAGE_UPLOAD_MAX_BYTES } from './boardTools'
+import { IMAGE_UPLOAD_MAX_BYTES, IMAGE_UPLOAD_TTL_MS } from './boardTools'
 import {
 	addImageForUser,
 	createImageUpload,
@@ -23,6 +23,7 @@ vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 vi.mock('../../utils/durableObjects', () => ({ getRoomDurableObject: vi.fn() }))
 
 afterEach(() => {
+	vi.useRealTimers()
 	vi.clearAllMocks()
 	vi.unstubAllGlobals()
 })
@@ -168,6 +169,44 @@ describe('the upload route', () => {
 		const moved = ticket.uploadUrl.replace(ticket.uploadId, 'someone-elses-object')
 		expect((await uploadMcpImage(put(moved, pngBytes(1, 1)), env)).status).toBe(403)
 		expect(objects.size).toBe(0)
+	})
+
+	it('refuses a URL that has run out, and takes the file a moment before', async () => {
+		vi.useFakeTimers({ now: Date.UTC(2026, 0, 1) })
+		const { env, objects } = makeEnv()
+		const ticket = await createUpload(env)
+		expect(Date.parse(ticket.expiresAt) - Date.now()).toBe(IMAGE_UPLOAD_TTL_MS)
+
+		vi.setSystemTime(Date.parse(ticket.expiresAt))
+		const late = await uploadMcpImage(put(ticket.uploadUrl, pngBytes(1, 1)), env)
+		expect(late.status).toBe(403)
+		expect(objects.size).toBe(0)
+
+		vi.setSystemTime(Date.parse(ticket.expiresAt) - 1)
+		expect((await uploadMcpImage(put(ticket.uploadUrl, pngBytes(1, 1)), env)).status).toBe(200)
+	})
+
+	it('takes each supported type as a real file, and reads its size', async () => {
+		const { env, objects } = makeEnv()
+		vi.mocked(hasWriteAccessToFile).mockResolvedValue(true)
+		const files = [
+			['image/jpeg', REAL_IMAGES.rotatedJpeg, { w: 16, h: 24 }],
+			['image/gif', REAL_IMAGES.gif, { w: 24, h: 16 }],
+			['image/webp', REAL_IMAGES.webpLossy, { w: 1, h: 1 }],
+			['image/webp', REAL_IMAGES.webpLossless, { w: 1, h: 1 }],
+		] as const
+		for (const [mimeType, bytes, size] of files) {
+			const created = await createImageUpload(env, REQUEST, 'user_1', {
+				boardId: 'board_1',
+				mimeType,
+				name: null,
+			})
+			if (!created.ok) throw new Error('Expected a ticket')
+			const { uploadId, uploadUrl } = created.ticket
+			const response = await uploadMcpImage(put(uploadUrl, bytes as Uint8Array<ArrayBuffer>), env)
+			expect(await response.json()).toEqual({ uploadId, ...size })
+			expect(objects.get(uploadId).httpMetadata).toEqual({ contentType: mimeType })
+		}
 	})
 
 	// The declared type is what the model said; the bytes are what arrived.

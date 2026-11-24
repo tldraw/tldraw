@@ -1,7 +1,15 @@
 import { TLImageShape, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import { StoredImage, planMcpImage, readImageInfo } from './mcpImage'
-import { gifBytes, jpegBytes, pngBytes, webpBytes } from './mcpImageTestHelpers'
+import {
+	REAL_IMAGES,
+	gifBytes,
+	jpegBytes,
+	pngBytes,
+	webpBytes,
+	webpLosslessBytes,
+	webpLossyBytes,
+} from './mcpImageTestHelpers'
 
 describe('readImageInfo', () => {
 	it('reads the type and size from the header of each supported format', () => {
@@ -37,6 +45,64 @@ describe('readImageInfo', () => {
 	it('gives a rotated JPEG the size it is drawn at', () => {
 		expect(readImageInfo(jpegBytes(4000, 3000, 6))).toMatchObject({ w: 3000, h: 4000 })
 		expect(readImageInfo(jpegBytes(4000, 3000, 1))).toMatchObject({ w: 4000, h: 3000 })
+	})
+
+	// A WebP is one of three encodings, each keeping its size somewhere else. Most files in the wild
+	// are the two plain ones, not the extended container.
+	it('reads all three kinds of WebP', () => {
+		expect(readImageInfo(webpLossyBytes(1024, 768))).toEqual({
+			mimeType: 'image/webp',
+			w: 1024,
+			h: 768,
+			isAnimated: false,
+		})
+		expect(readImageInfo(webpLosslessBytes(1024, 768))).toEqual({
+			mimeType: 'image/webp',
+			w: 1024,
+			h: 768,
+			isAnimated: false,
+		})
+		// The largest size the format allows, which fills every bit of both fields.
+		expect(readImageInfo(webpLosslessBytes(16384, 16384))).toMatchObject({ w: 16384, h: 16384 })
+		expect(readImageInfo(webpBytes(16384, 9000))).toMatchObject({ w: 16384, h: 9000 })
+	})
+
+	it('reads whole files as encoders write them', () => {
+		const read = (bytes: Uint8Array) => readImageInfo(bytes)
+		expect(read(REAL_IMAGES.png)).toEqual({
+			mimeType: 'image/png',
+			w: 24,
+			h: 16,
+			isAnimated: false,
+		})
+		expect(read(REAL_IMAGES.gif)).toEqual({ mimeType: 'image/gif', w: 24, h: 16, isAnimated: true })
+		// Several segments come before the frame here, one of them EXIF with no orientation in it.
+		expect(read(REAL_IMAGES.jpeg)).toEqual({
+			mimeType: 'image/jpeg',
+			w: 24,
+			h: 16,
+			isAnimated: false,
+		})
+		expect(read(REAL_IMAGES.rotatedJpeg)).toMatchObject({ mimeType: 'image/jpeg', w: 16, h: 24 })
+		for (const webp of [REAL_IMAGES.webpLossy, REAL_IMAGES.webpLossless, REAL_IMAGES.webpAlpha]) {
+			expect(read(webp)).toEqual({ mimeType: 'image/webp', w: 1, h: 1, isAnimated: false })
+		}
+		expect(read(REAL_IMAGES.webpAnimated)).toEqual({
+			mimeType: 'image/webp',
+			w: 1,
+			h: 1,
+			isAnimated: true,
+		})
+	})
+
+	// Every prefix of a real file: a reader that trusts a length it has not checked reads past the
+	// end, and an upload can be cut off anywhere.
+	it('never throws on a truncated file', () => {
+		for (const bytes of Object.values(REAL_IMAGES)) {
+			for (let length = 0; length < bytes.length; length++) {
+				expect(() => readImageInfo(bytes.subarray(0, length))).not.toThrow()
+			}
+		}
 	})
 
 	it('refuses anything else, including an image cut off before its size', () => {

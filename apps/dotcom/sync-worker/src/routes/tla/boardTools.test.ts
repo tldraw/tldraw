@@ -39,6 +39,7 @@ import {
 	getPageCommentsResult,
 	parseWriteCommentInput,
 	parseAddImageInput,
+	getAddImageRefusalMessage,
 	parseCreateImageUploadInput,
 	IMAGE_MAX_WIDTH,
 	getMcpServerInstructions,
@@ -1940,6 +1941,21 @@ describe('parseAddImageInput', () => {
 		for (const w of [0, -5, IMAGE_MAX_WIDTH + 1, '300']) {
 			expect(() => parseAddImageInput({ boardId: 'b', uploadId: 'up1', w })).toThrow('w must be')
 		}
+	})
+})
+
+describe('getAddImageRefusalMessage', () => {
+	it('tells the model what to do about each refusal', () => {
+		expect(getAddImageRefusalMessage({ reason: 'image_forbidden' })).toContain('view-only link')
+		expect(getAddImageRefusalMessage({ reason: 'page_not_found', pageId: 'page:gone' })).toBe(
+			'No page with id "page:gone" on this board. Page ids come from get_board_info.'
+		)
+		expect(getAddImageRefusalMessage({ reason: 'upload_not_found', uploadId: 'abc' })).toContain(
+			'an upload URL lasts 10 minutes'
+		)
+		expect(getAddImageRefusalMessage({ reason: 'image_too_large' })).toBe(
+			'That image is over the 10 MB limit.'
+		)
 	})
 })
 
