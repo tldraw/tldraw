@@ -23,6 +23,7 @@ import {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryPlacement,
 	type TLLibraryThumbnailContext,
 	type TLLibraryItemPartial,
 	type TLNewLibraryItem,
@@ -55,10 +56,10 @@ export interface BoardLibrarySourceOptions {
 	/** Translates the report's text, as `useTranslation` does. */
 	msg?(message: TLI18nMessage): string
 	/**
-	 * Gives the document a library of its own under this name: listed while the document can be
-	 * changed even before anything is saved to it, and kept in the document from the first save. It
-	 * can't be renamed or deleted, and no other library can be created in the document; ones it
-	 * already houses stay listed after it.
+	 * Gives the document a library of its own under this name, placed as `'document'`: listed while
+	 * the document can be changed even before anything is saved to it, and kept in the document from
+	 * the first save. It can't be renamed or deleted, and no other library can be created in the
+	 * document; ones it already houses stay listed after it.
 	 */
 	documentLibrary?: { name: string }
 }
@@ -122,6 +123,11 @@ export class BoardLibrarySource implements LibrarySource {
 
 	getLibraries() {
 		return this.libraries.get()
+	}
+
+	getLibraryPlacement(libraryId: TLLibraryId): TLLibraryPlacement | undefined {
+		if (this.isDocumentLibrary(libraryId)) return 'document'
+		return this.get<TLLibrary>(libraryId) ? 'housed' : undefined
 	}
 
 	// One query per library, kept so its result stays the same array until that library's
@@ -208,6 +214,8 @@ export class BoardLibrarySource implements LibrarySource {
 
 	can(action: TLLibraryAction, libraryId?: TLLibraryId) {
 		if (this.editor.getIsReadonly()) return false
+		// Its libraries are housed in the document, so they are never added to it or removed from it.
+		if (action === 'addLibraryToDocument' || action === 'removeLibraryFromDocument') return false
 		if (action === 'createLibrary' && this.documentLibraryName !== undefined) return false
 		if (libraryId === undefined) return true
 		if (this.isDocumentLibrary(libraryId)) {

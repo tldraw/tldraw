@@ -175,6 +175,15 @@ describe('BoardLibrarySource', () => {
 		expect(stored[library.id]).toMatchObject({ name: 'Board kit' })
 	})
 
+	it('houses its libraries in the document, which never adds or removes them', async () => {
+		const source = new BoardLibrarySource(makeEditor())
+		const library = await source.createLibrary('Kit')
+		expect(source.getLibraryPlacement(library.id)).toBe('housed')
+		expect(source.getLibraryPlacement(LibraryRecordType.createId('nope'))).toBeUndefined()
+		expect(source.can('addLibraryToDocument', library.id)).toBe(false)
+		expect(source.can('removeLibraryFromDocument', library.id)).toBe(false)
+	})
+
 	it('stores the meta a new library is given', async () => {
 		const source = new BoardLibrarySource(makeEditor())
 		const library = await source.createLibrary('Kit', { meta: { packId: 'shapes' } })
@@ -859,6 +868,7 @@ describe('BoardLibrarySource', () => {
 			const { editor, source, own } = setUp()
 			expect(source.getLibraries()).toEqual([own])
 			expect(own.name).toBe('This board')
+			expect(source.getLibraryPlacement(own.id)).toBe('document')
 			expect(source.can('addItem', own.id)).toBe(true)
 			expect(source.getItems(own.id)).toEqual([])
 			expect(allOfType(editor, 'library')).toEqual([])
@@ -866,7 +876,9 @@ describe('BoardLibrarySource', () => {
 
 		it('is kept in the document from the first save, with the item', async () => {
 			const { editor, source, own } = setUp()
-			const item = await source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			const item = await added(
+				source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			)
 			expect(allOfType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
 			expect(source.getItems(own.id)).toEqual([item])
 			expect(source.getLibraries()).toEqual([own])
@@ -874,7 +886,7 @@ describe('BoardLibrarySource', () => {
 
 		it('is listed under the name it is given, whatever name it was stored with', async () => {
 			const { editor, source, own } = setUp()
-			await source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			await added(source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) }))
 			const elsewhere = new BoardLibrarySource(editor, { documentLibrary: { name: 'Ce tableau' } })
 			expect(elsewhere.getLibraries()).toMatchObject([{ id: own.id, name: 'Ce tableau' }])
 		})
@@ -892,8 +904,10 @@ describe('BoardLibrarySource', () => {
 			const editor = makeEditor()
 			const kit = await new BoardLibrarySource(editor).createLibrary('Kit')
 			const source = new BoardLibrarySource(editor, { documentLibrary })
-			const [, housed] = source.getLibraries()
+			const [own, housed] = source.getLibraries()
 			expect(housed).toEqual(kit)
+			expect(source.getLibraryPlacement(own.id)).toBe('document')
+			expect(source.getLibraryPlacement(kit.id)).toBe('housed')
 			expect(source.can('deleteLibrary', kit.id)).toBe(true)
 		})
 
@@ -902,7 +916,9 @@ describe('BoardLibrarySource', () => {
 			const kit = await new BoardLibrarySource(editor).createLibrary('Kit')
 			const source = new BoardLibrarySource(editor, { documentLibrary })
 			const [own] = source.getLibraries()
-			const item = await source.addItem(kit.id, { content: contentOf(editor, [addImage(editor)]) })
+			const item = await added(
+				source.addItem(kit.id, { content: contentOf(editor, [addImage(editor)]) })
+			)
 			await source.moveItem(item.id, own.id)
 			expect(source.getItems(own.id)).toEqual([{ ...item, libraryId: own.id }])
 			expect(allOfType(editor, 'library').map((library) => library.id)).toContain(own.id)
@@ -913,7 +929,9 @@ describe('BoardLibrarySource', () => {
 			editor.updateInstanceState({ isReadonly: true })
 			expect(source.getLibraries()).toEqual([])
 			editor.updateInstanceState({ isReadonly: false })
-			const item = await source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			const item = await added(
+				source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			)
 			editor.updateInstanceState({ isReadonly: true })
 			expect(source.getLibraries()).toEqual([own])
 			expect(source.getItems(own.id)).toEqual([item])
