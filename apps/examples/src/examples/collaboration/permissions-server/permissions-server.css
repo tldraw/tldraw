@@ -19,9 +19,7 @@
 	gap: 8px;
 	height: 36px;
 	padding: 0 8px;
-	overflow: hidden;
 	white-space: nowrap;
-	text-overflow: ellipsis;
 	font-size: 13px;
 }
 
