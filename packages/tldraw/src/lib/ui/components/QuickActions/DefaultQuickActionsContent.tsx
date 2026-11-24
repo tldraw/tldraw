@@ -44,10 +44,21 @@ function CommentQuickAction() {
 		() => editor.getCurrentToolId() === 'comment',
 		[editor]
 	)
+	const cannotComment = useValue(
+		'cannot comment',
+		() => !!editor.checkCapability('create-comment'),
+		[editor]
+	)
 
 	if (!commentingEnabled) return null
 
-	return <TldrawUiMenuToolItem toolId="comment" isSelected={isCommentToolSelected} />
+	return (
+		<TldrawUiMenuToolItem
+			toolId="comment"
+			isSelected={isCommentToolSelected}
+			disabled={cannotComment}
+		/>
+	)
 }
 
 function UndoRedoGroup() {

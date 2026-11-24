@@ -55,8 +55,14 @@ export function DefaultContextMenuContent() {
 }
 
 function CommentMenuItem() {
+	const editor = useEditor()
 	const commentTool = useTools().comment
+	const cannotComment = useValue(
+		'cannot comment',
+		() => !!editor.checkCapability('create-comment'),
+		[editor]
+	)
 	if (!commentTool) return null
 	// `c` enters the tool rather than opening a composer at the menu's point, so don't advertise it.
-	return <TldrawUiMenuItem {...commentTool} kbd={undefined} />
+	return <TldrawUiMenuItem {...commentTool} kbd={undefined} disabled={cannotComment} />
 }
