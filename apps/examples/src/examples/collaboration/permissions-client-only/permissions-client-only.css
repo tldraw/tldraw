@@ -1,3 +1,15 @@
+.permissions-editors {
+	display: flex;
+	gap: 8px;
+	position: absolute;
+	inset: 0;
+}
+
+.permissions-editor {
+	position: relative;
+	flex: 1;
+}
+
 .permissions-controls {
 	display: flex;
 	align-items: flex-start;
@@ -9,9 +21,8 @@
 .permissions-user {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	width: 132px;
-	padding-left: 12px;
+	height: 40px;
+	padding: 0 12px;
 }
 
 /* Fixed sizes and one line, so that nothing moves when the status changes */
