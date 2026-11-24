@@ -128,7 +128,7 @@ assert(
 //   2: the RM on v5 (#11619's deploy)
 //   3: the rollback under test: v5 off, trailing slash kept
 // Each step past 1 also adds a view-syncer on an empty volume, which has to restore from the backup.
-const rehearsalStep = 2 as 1 | 2 | 3
+const rehearsalStep = 3 as 1 | 2 | 3
 const deployZero =
 	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 // For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
