@@ -91,7 +91,6 @@ export function ItemDetailsDialog({
 		libraryId
 	)
 	const [renaming, setRenaming] = useState(false)
-	const nameRef = useRef<HTMLButtonElement>(null)
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const items = useMemo(() => [item], [item])
 	const thumbnailUrl = useLibraryThumbnailUrls(source, items, { container: element })[item.id]
@@ -139,12 +138,10 @@ export function ItemDetailsDialog({
 									rename(item.id, newName)
 								}}
 								onCancel={() => setRenaming(false)}
-								returnFocusRef={nameRef}
 							/>
 						)}
 						{!renaming && canRename && (
 							<button
-								ref={nameRef}
 								type="button"
 								className="tlui-libraries-details__name"
 								onClick={() => setRenaming(true)}

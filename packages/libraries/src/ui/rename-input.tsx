@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { TldrawUiInput } from 'tldraw'
 
 /** @public */
@@ -8,11 +8,6 @@ export interface RenameInputProps {
 	/** Called once, on Enter or blur, with the input's value. */
 	onComplete(name: string): void
 	onCancel(): void
-	/**
-	 * What to focus once the rename ends and the input is gone, if nothing else has focus by then,
-	 * e.g. the name that replaces the input.
-	 */
-	returnFocusRef?: RefObject<HTMLElement | null>
 }
 
 /**
@@ -21,13 +16,7 @@ export interface RenameInputProps {
  * a blur, e.g. when the menu holding it closes, is saved too.
  * @public @react
  */
-export function RenameInput({
-	defaultValue,
-	className,
-	onComplete,
-	onCancel,
-	returnFocusRef,
-}: RenameInputProps) {
+export function RenameInput({ defaultValue, className, onComplete, onCancel }: RenameInputProps) {
 	const finished = useRef(false)
 	const value = useRef(defaultValue)
 	const latestOnComplete = useRef(onComplete)
@@ -44,18 +33,12 @@ export function RenameInput({
 		latestOnCancel.current = onCancel
 	})
 	// Escape cancels here before a dialog around the input sees it, as the dialog would close too.
-	// Enter's default is cancelled, or once focus returns to the name, the key would also press it.
 	useEffect(() => {
 		const input = inputRef.current
 		const win = input && input.ownerDocument.defaultView
 		if (!input || !win) return
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.target !== input || e.isComposing) return
-			if (e.key === 'Enter') {
-				e.preventDefault()
-				return
-			}
-			if (e.key !== 'Escape') return
+			if (e.key !== 'Escape' || e.target !== input || e.isComposing) return
 			e.preventDefault()
 			e.stopPropagation()
 			if (finished.current) return
@@ -70,11 +53,6 @@ export function RenameInput({
 			if (value.current !== defaultValue) finish(() => latestOnComplete.current(value.current))
 		}
 	}, [defaultValue])
-	useEffect(() => {
-		return () => {
-			if (returnFocusRef) focusIfNothingHasFocus(returnFocusRef)
-		}
-	}, [returnFocusRef])
 
 	return (
 		<TldrawUiInput
@@ -89,12 +67,4 @@ export function RenameInput({
 			onCancel={() => finish(onCancel)}
 		/>
 	)
-}
-
-/** Focuses what the ref holds now, the element that replaced the input, unless something has focus. */
-function focusIfNothingHasFocus(ref: RefObject<HTMLElement | null>) {
-	const target = ref.current
-	if (!target || !target.isConnected) return
-	const active = target.ownerDocument.activeElement
-	if (!active || active === target.ownerDocument.body) target.focus()
 }

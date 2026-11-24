@@ -563,7 +563,7 @@ describe('renaming from a ⋮', () => {
 		['Enter', 'Mine'],
 		['Escape', 'Shapes'],
 	])(
-		"keeps a library's ⋮ and the name input's focus, and %s ends it on the name",
+		"keeps a library's ⋮ and the name input's focus, and %s ends it without focusing the name",
 		async (key, name) => {
 			const container = await renderPanel(makeShapesSource())
 			const section = container.querySelector('.tlui-libraries-section')!
@@ -581,7 +581,7 @@ describe('renaming from a ⋮', () => {
 			await press(input, key)
 			const toggle = section.querySelector<HTMLButtonElement>('.tlui-libraries-panel__toggle')!
 			expect(toggle.textContent).toBe(name)
-			expect(document.activeElement).toBe(toggle)
+			expect(document.activeElement).not.toBe(toggle)
 		}
 	)
 
@@ -612,7 +612,7 @@ describe('renaming from a ⋮', () => {
 		await press(input, 'Enter')
 		const name = document.querySelector<HTMLButtonElement>('.tlui-libraries-details__name')!
 		expect(name.textContent).toBe('Crate')
-		expect(document.activeElement).toBe(name)
+		expect(document.activeElement).not.toBe(name)
 	})
 
 	it("keeps a library's ⋮ in Browse's library view while its name is edited", async () => {
@@ -646,7 +646,7 @@ describe('renaming from a ⋮', () => {
 		await press(input, 'Escape')
 		const title = header.querySelector<HTMLButtonElement>('.tlui-libraries-browse__title-rename')!
 		expect(title.textContent).toBe('Shapes')
-		expect(document.activeElement).toBe(title)
+		expect(document.activeElement).not.toBe(title)
 	})
 })
 

@@ -381,7 +381,6 @@ function BrowseHeader({
 	const dir = useDirection()
 	const inSheet = useContext(SheetBackContext) !== undefined
 	const backRef = useRef<HTMLButtonElement>(null)
-	const titleRef = useRef<HTMLButtonElement>(null)
 	useLayoutEffect(() => {
 		if (inSheet && backRef.current) backRef.current.focus()
 	}, [inSheet])
@@ -410,13 +409,11 @@ function BrowseHeader({
 					defaultValue={title}
 					onComplete={rename.onComplete}
 					onCancel={rename.onCancel}
-					returnFocusRef={titleRef}
 				/>
 			) : (
 				<TldrawUiDialogTitle>
 					{onStartRename ? (
 						<button
-							ref={titleRef}
 							type="button"
 							className="tlui-libraries-browse__title-rename"
 							title={msg(messages.renameLibrary)}
@@ -659,7 +656,6 @@ function BrowseRow({
 		openContextMenu(editor, menuId, { opener, point })
 	)
 	const press = useLongPress(!rename)(() => openContextMenu(editor, menuId))
-	const nameRef = useRef<HTMLButtonElement>(null)
 	const overflows = itemCount > PREVIEW_COUNT
 	const tileCount = overflows ? PREVIEW_COUNT - 1 : Math.min(itemCount, PREVIEW_COUNT)
 	const tiles = Array.from({ length: tileCount }, (_, i) => (
@@ -708,13 +704,11 @@ function BrowseRow({
 						defaultValue={name}
 						onComplete={rename.onComplete}
 						onCancel={rename.onCancel}
-						returnFocusRef={nameRef}
 					/>
 				) : (
 					<>
 						{onView ? (
 							<button
-								ref={nameRef}
 								type="button"
 								className="tlui-libraries-browse__name tlui-libraries-browse__view"
 								aria-label={msg(messages.view, { name })}

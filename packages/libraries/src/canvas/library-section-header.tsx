@@ -1,4 +1,4 @@
-import { type ReactNode, useRef } from 'react'
+import type { ReactNode } from 'react'
 import type { TLLibrary } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { CaretDownIcon } from '../ui/caret-down-icon'
@@ -44,7 +44,6 @@ export function LibrarySectionHeader({
 	onRenameComplete,
 	onRenameCancel,
 }: LibrarySectionHeaderProps) {
-	const toggleRef = useRef<HTMLButtonElement>(null)
 	return (
 		<header className="tlui-libraries-panel__header">
 			{isRenaming ? (
@@ -53,11 +52,9 @@ export function LibrarySectionHeader({
 					defaultValue={library.name}
 					onComplete={onRenameComplete}
 					onCancel={onRenameCancel}
-					returnFocusRef={toggleRef}
 				/>
 			) : (
 				<button
-					ref={toggleRef}
 					type="button"
 					className="tlui-libraries-panel__title tlui-libraries-panel__toggle"
 					aria-expanded={!collapsed}
