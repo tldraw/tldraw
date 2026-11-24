@@ -1,11 +1,18 @@
 import { useSync } from '@tldraw/sync'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	AssetRecordType,
 	getHashForString,
 	TLAssetStore,
 	TLBookmarkAsset,
 	Tldraw,
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
 	uniqueId,
+	useEditor,
 } from 'tldraw'
 
 const WORKER_URL = `http://localhost:5858`
@@ -13,10 +20,17 @@ const WORKER_URL = `http://localhost:5858`
 // In this example, the room ID is hard-coded. You can set this however you like though.
 const roomId = 'test-room'
 
-// Open the app with ?user=teacher or ?user=sam. See src/server/permissions.ts.
-const user = new URLSearchParams(window.location.search).get('user') ?? 'teacher'
+// The server reads the user from the connect URL. See src/server/permissions.ts. In a real app,
+// the server gets the user from your auth instead.
+const USERS = ['teacher', 'sam', 'alex']
 
 function App() {
+	const [user, setUser] = useState(USERS[0])
+	// A new user needs a new connection, so we remount the editor.
+	return <Room key={user} user={user} setUser={setUser} />
+}
+
+function Room({ user, setUser }: { user: string; setUser(user: string): void }) {
 	// Create a store connected to multiplayer.
 	const store = useSync({
 		// We need to know the websocket's URI...
@@ -24,6 +38,10 @@ function App() {
 		// ...and how to handle static assets like images & videos
 		assets: multiplayerAssets,
 	})
+	const components = useMemo(
+		() => ({ TopPanel: () => <Controls user={user} setUser={setUser} /> }),
+		[user, setUser]
+	)
 
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
@@ -36,10 +54,46 @@ function App() {
 					window.editor = editor
 					// when the editor is ready, we need to register out bookmark unfurling service
 					editor.registerExternalAssetHandler('url', unfurlBookmarkUrl)
-					// the server reverts a change that its checkDiff rejects, and tells us why
-					editor.on('rejected', ({ reason }) => console.warn(reason))
 				}}
+				components={components}
 			/>
+		</div>
+	)
+}
+
+function Controls({ user, setUser }: { user: string; setUser(user: string): void }) {
+	const editor = useEditor()
+	const [status, setStatus] = useState('Your changes sync to the server')
+
+	// The server reverts a change that its checkDiff rejects, and tells us why.
+	useEffect(() => {
+		function onRejected({ reason }: { reason: string }) {
+			setStatus(`Rejected: ${reason}`)
+		}
+		editor.on('rejected', onRejected)
+		return () => {
+			editor.off('rejected', onRejected)
+		}
+	}, [editor])
+
+	return (
+		<div className="permissions-controls">
+			<div className="tlui-menu permissions-user">
+				<span>Act as</span>
+				<TldrawUiSelect id="act-as" value={user} onValueChange={setUser}>
+					<TldrawUiSelectTrigger>
+						<TldrawUiSelectValue placeholder="User">{user}</TldrawUiSelectValue>
+					</TldrawUiSelectTrigger>
+					<TldrawUiSelectContent>
+						{USERS.map((name) => (
+							<TldrawUiSelectItem key={name} value={name} label={name} />
+						))}
+					</TldrawUiSelectContent>
+				</TldrawUiSelect>
+			</div>
+			<div className="tlui-menu permissions-status" title={status}>
+				{status}
+			</div>
 		</div>
 	)
 }
