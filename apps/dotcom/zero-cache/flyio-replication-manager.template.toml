@@ -41,7 +41,9 @@ ZERO_LITESTREAM_BACKUP_URL = "s3://__ZERO_R2_BUCKET_NAME/__BACKUP_PATH"
 ZERO_LITESTREAM_BACKUP_USING_V5 = "__BACKUP_V5"
 __RMV2_ENV
 ZERO_LITESTREAM_ENDPOINT = "__ZERO_R2_ENDPOINT"
-ZERO_LOG_LEVEL = "warn"
+# info, not warn: the backup gate only reports at info ("awaiting initial backup", "initial backup
+# confirmed"), and on 2026-11-10 we had to infer it from R2.
+ZERO_LOG_LEVEL = "info"
 OTEL_TRACES_EXPORTER = "none"
 DO_NOT_TRACK = "1"
 OTEL_NODE_RESOURCE_DETECTORS = "env,host,os"
