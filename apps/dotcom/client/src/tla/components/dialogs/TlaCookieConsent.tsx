@@ -83,6 +83,7 @@ export const TlaCookieConsent = memo(function TlaCookieConsent() {
 		// or else the animation will replay when it reappears
 		<div
 			className={styles.cookieConsentWrapper}
+			onPointerDown={(e) => e.stopPropagation()}
 			style={{
 				opacity: isManageCookiesDialogShown ? 0 : 1,
 				pointerEvents: animationComplete ? 'auto' : 'none',
