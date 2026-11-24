@@ -2,7 +2,9 @@ import {
 	can,
 	isRole,
 	MAX_LIBRARY_NAME_LENGTH,
+	MAX_NUMBER_OF_LIBRARY_ITEMS,
 	TlaLibraryItemThumbnail,
+	ZErrorCode,
 } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
@@ -10,8 +12,10 @@ import { AssetToReplace } from '../../assetAssociation'
 import { LibraryItemObject, queueLibraryObjectDeletes } from '../../libraryEffects'
 import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
 import {
+	countLibraryItems,
 	getLibraryAccess,
 	getLibraryItemAccess,
+	limitReached,
 	MAX_LIBRARY_ITEM_CONTENT_BYTES,
 	newLibraryItemContentKey,
 } from '../../libraryStorage'
@@ -74,7 +78,8 @@ function isItemContent(value: unknown): value is StoredItemContent {
  * reaches clients through Zero, and a library_item_object row for each object it stored. Each
  * object is queued for deletion before it's stored (see queueLibraryObjectDeletes), so a failed or
  * stopped request leaves nothing behind once the processor has drained it. The worker picks the
- * item's id and every object's name, so a request can't name existing content and overwrite it.
+ * item's id and every object's name, so a request can't name existing content and overwrite it. A
+ * library holds at most MAX_NUMBER_OF_LIBRARY_ITEMS items; past that, adding answers 409.
  *
  * Form fields: `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG), `darkThumbnail` (optional, and
  * only with `thumbnail`, which is then the light one of the pair) and `name` (optional).
@@ -114,6 +119,11 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 		if (!can(access.role, 'manageLibraries')) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
+		// Checked before anything is stored, and again under the library's lock before the row is
+		// inserted, in case another add filled it meanwhile.
+		if ((await countLibraryItems(db, libraryId)) >= MAX_NUMBER_OF_LIBRARY_ITEMS) {
+			return limitReached(ZErrorCode.max_library_items_reached)
+		}
 
 		const id = uniqueId()
 		const contentKey = newLibraryItemContentKey()
@@ -133,7 +143,10 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 		const skipped = new Set(copied.skippedObjectNames)
 		const storedObjects = objects.filter((object) => !skipped.has(object.objectName))
 		const now = Date.now()
-		await db.transaction().execute(async (tx) => {
+		const added = await db.transaction().execute(async (tx) => {
+			if ((await countLibraryItems(tx, libraryId, { lock: true })) >= MAX_NUMBER_OF_LIBRARY_ITEMS) {
+				return false
+			}
 			await tx
 				.insertInto('library_item')
 				.values({
@@ -151,7 +164,9 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 				.insertInto('library_item_object')
 				.values(storedObjects.map((object) => ({ itemId: id, ...object })))
 				.execute()
+			return true
 		})
+		if (!added) return limitReached(ZErrorCode.max_library_items_reached)
 		return Response.json({
 			id,
 			createdAt: now,

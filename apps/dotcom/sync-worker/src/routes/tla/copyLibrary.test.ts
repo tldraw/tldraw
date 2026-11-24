@@ -1,3 +1,8 @@
+import {
+	MAX_NUMBER_OF_LIBRARIES,
+	MAX_NUMBER_OF_LIBRARY_ITEMS,
+	ZErrorCode,
+} from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { createFakeR2 } from '../../test/fakeR2'
@@ -37,6 +42,9 @@ const item = (id: string, thumbnail: string | { light: string; dark: string } | 
 
 const url = (objectName: string) => `https://content.test/${objectName}`
 
+// The destination's lock and its library count, read in the transaction before the source's items.
+const destination = (libraries = 0) => [[], [{ count: String(libraries) }]]
+
 function makeEnv() {
 	return {
 		ROOMS: createFakeR2(),
@@ -75,6 +83,7 @@ describe('copyLibrary', () => {
 		const fake = mockPool([
 			[access('member')],
 			[{ role: 'member' }],
+			...destination(),
 			[item('item_a', url('thumb_a-png')), item('item_b', pair), item('item_c', null)],
 		])
 
@@ -101,6 +110,7 @@ describe('copyLibrary', () => {
 		const fake = mockPool([
 			[access('member')],
 			[{ role: 'member' }],
+			...destination(),
 			[item('item_a', url('thumb_a-png'))],
 			[],
 			[],
@@ -150,6 +160,7 @@ describe('copyLibrary', () => {
 		mockPool([
 			[access('member')],
 			[{ role: 'member' }],
+			...destination(),
 			[item('item_a', url('thumb_a-png'))],
 			[],
 			[],
@@ -178,6 +189,37 @@ describe('copyLibrary', () => {
 		})
 
 		await expect(copyLibrary(request(V), makeEnv())).rejects.toThrow('insert failed')
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
+	})
+
+	it('answers 409 and writes nothing when the destination has the most libraries it can', async () => {
+		const env = makeEnv()
+		const put = vi.spyOn(env.UPLOADS, 'put')
+		const fake = mockPool([
+			[access('member')],
+			[{ role: 'member' }],
+			...destination(MAX_NUMBER_OF_LIBRARIES),
+			[item('item_a', url('thumb_a-png'))],
+		])
+
+		const response = await copyLibrary(request(V), env)
+
+		expect(response.status).toBe(409)
+		expect(await response.json()).toEqual({ error: ZErrorCode.max_libraries_reached })
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
+		expect(put).not.toHaveBeenCalled()
+	})
+
+	it('answers 409 and writes nothing when the copy would have more items than a library can', async () => {
+		const items = Array.from({ length: MAX_NUMBER_OF_LIBRARY_ITEMS + 1 }, (_, i) =>
+			item(`item_${i}`, null)
+		)
+		const fake = mockPool([[access('member')], [{ role: 'member' }], ...destination(), items])
+
+		const response = await copyLibrary(request(V), makeEnv())
+
+		expect(response.status).toBe(409)
+		expect(await response.json()).toEqual({ error: ZErrorCode.max_library_items_reached })
 		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 

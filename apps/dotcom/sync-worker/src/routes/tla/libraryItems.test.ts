@@ -1,3 +1,4 @@
+import { MAX_NUMBER_OF_LIBRARY_ITEMS, ZErrorCode } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { createFakeR2 } from '../../test/fakeR2'
@@ -296,6 +297,53 @@ describe('addLibraryItem', () => {
 		await drainQueued(env, queuedObjects(fake), namedObjects(fake))
 		expect((await env.ROOMS.list()).objects).toHaveLength(1)
 		expect(await uploadNames(env)).toHaveLength(1)
+	})
+
+	it('answers 409 without storing or queueing anything when the library is full', async () => {
+		const fake = mockPool([
+			[libraryAccess(W, 'member')],
+			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS) }],
+		])
+		const env = makeEnv()
+		const response = await addLibraryItem(
+			addRequest({
+				content: JSON.stringify(CONTENT),
+				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+			}),
+			env
+		)
+
+		expect(response.status).toBe(409)
+		expect(await response.json()).toEqual({ error: ZErrorCode.max_library_items_reached })
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(await uploadNames(env)).toEqual([])
+		expect(fake.queries.some((q) => /^insert/i.test(q.sql))).toBe(false)
+	})
+
+	it('inserts no row, and leaves nothing once drained, when another add fills the library first', async () => {
+		const fake = mockPool([
+			[libraryAccess(W, 'member')],
+			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS - 1) }],
+			[],
+			[],
+			[{ count: String(MAX_NUMBER_OF_LIBRARY_ITEMS) }],
+		])
+		const env = makeEnv()
+		const response = await addLibraryItem(
+			addRequest({
+				content: JSON.stringify(CONTENT),
+				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+			}),
+			env
+		)
+
+		expect(response.status).toBe(409)
+		const sqls = fake.queries.map((q) => q.sql)
+		expect(sqls.some((sql) => sql.startsWith('insert into "library_item'))).toBe(false)
+		expect(sqls.some((sql) => sql.endsWith('for no key update'))).toBe(true)
+		await drainQueued(env, queuedObjects(fake), [])
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(await uploadNames(env)).toEqual([])
 	})
 
 	it("stores each request's content under a key of its own", async () => {

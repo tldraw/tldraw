@@ -1,7 +1,19 @@
-import { can, isRole, TlaLibraryItemObject } from '@tldraw/dotcom-shared'
+import {
+	can,
+	isRole,
+	MAX_NUMBER_OF_LIBRARIES,
+	MAX_NUMBER_OF_LIBRARY_ITEMS,
+	TlaLibraryItemObject,
+	ZErrorCode,
+} from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { getLibraryAccess, getWorkspaceRole } from '../../libraryStorage'
+import {
+	countWorkspaceLibraries,
+	getLibraryAccess,
+	getWorkspaceRole,
+	limitReached,
+} from '../../libraryStorage'
 import { LibraryItemInsertRow, toThumbnailColumn } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
@@ -21,7 +33,9 @@ export interface CopyLibraryResponseBody {
  * the items they were copied from (content, thumbnails and the uploads they own): this inserts
  * rows only, a library_item_object row for each object a copied item uses, and an object is
  * deleted once no item uses it. The caller must be a member of the library's workspace and able to
- * manage libraries in the destination.
+ * manage libraries in the destination. The copy counts toward the destination's
+ * MAX_NUMBER_OF_LIBRARIES, and its items toward its own MAX_NUMBER_OF_LIBRARY_ITEMS; past either,
+ * copying answers 409 and writes nothing.
  */
 export async function copyLibrary(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -47,7 +61,13 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 
 		const id = uniqueId()
 		const now = Date.now()
-		await db.transaction().execute(async (tx) => {
+		const refused = await db.transaction().execute(async (tx) => {
+			if (
+				(await countWorkspaceLibraries(tx, owningGroupId, { lock: true })) >=
+				MAX_NUMBER_OF_LIBRARIES
+			) {
+				return ZErrorCode.max_libraries_reached
+			}
 			// Locked so a delete of a source item waits for the copy, and can't remove an object
 			// before the copy's rows name it.
 			const items = await tx
@@ -57,6 +77,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 				.orderBy('createdAt')
 				.forKeyShare()
 				.execute()
+			if (items.length > MAX_NUMBER_OF_LIBRARY_ITEMS) return ZErrorCode.max_library_items_reached
 			await tx
 				.insertInto('library')
 				.values({
@@ -69,7 +90,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 					meta: access.library.meta,
 				})
 				.execute()
-			if (items.length === 0) return
+			if (items.length === 0) return null
 
 			const newIdsBySourceId = new Map(items.map((item) => [item.id, uniqueId()]))
 			const rows: LibraryItemInsertRow[] = items.map((item) => ({
@@ -94,7 +115,9 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 				itemId: newIdsBySourceId.get(object.itemId)!,
 			}))
 			if (objects.length > 0) await tx.insertInto('library_item_object').values(objects).execute()
+			return null
 		})
+		if (refused) return limitReached(refused)
 		return Response.json({ id } satisfies CopyLibraryResponseBody)
 	} finally {
 		await db.destroy()

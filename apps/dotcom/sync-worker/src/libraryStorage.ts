@@ -1,4 +1,4 @@
-import { DB, Role } from '@tldraw/dotcom-shared'
+import { DB, Role, ZErrorCode } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { Kysely } from 'kysely'
 
@@ -69,4 +69,54 @@ export async function getWorkspaceRole(db: Kysely<DB>, userId: string, groupId: 
 		.where('userId', '=', userId)
 		.executeTakeFirst()
 	return resolveRole(groupId, userId, row?.role)
+}
+
+// Counts for the library caps. With `lock`, the row being added to is locked first, as the
+// mutators lock it, so concurrent adds into it count one at a time; NO KEY so inserts whose foreign
+// keys reference it aren't blocked.
+
+/** How many libraries a workspace has. */
+export async function countWorkspaceLibraries(
+	db: Kysely<DB>,
+	groupId: string,
+	{ lock = false }: { lock?: boolean } = {}
+) {
+	if (lock) {
+		await db.selectFrom('group').select('id').where('id', '=', groupId).forNoKeyUpdate().execute()
+	}
+	const row = await db
+		.selectFrom('library')
+		.select((eb) => eb.fn.countAll().as('count'))
+		.where('owningGroupId', '=', groupId)
+		.executeTakeFirst()
+	return Number(row?.count ?? 0)
+}
+
+/** How many items a library has. */
+export async function countLibraryItems(
+	db: Kysely<DB>,
+	libraryId: string,
+	{ lock = false }: { lock?: boolean } = {}
+) {
+	if (lock) {
+		await db
+			.selectFrom('library')
+			.select('id')
+			.where('id', '=', libraryId)
+			.forNoKeyUpdate()
+			.execute()
+	}
+	const row = await db
+		.selectFrom('library_item')
+		.select((eb) => eb.fn.countAll().as('count'))
+		.where('libraryId', '=', libraryId)
+		.executeTakeFirst()
+	return Number(row?.count ?? 0)
+}
+
+/** The answer to a request that would take a workspace or library past its cap. */
+export function limitReached(
+	code: typeof ZErrorCode.max_libraries_reached | typeof ZErrorCode.max_library_items_reached
+) {
+	return Response.json({ error: code }, { status: 409 })
 }
