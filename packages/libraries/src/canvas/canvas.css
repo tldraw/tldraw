@@ -243,6 +243,8 @@
 	top: 0;
 	z-index: 1;
 	border-bottom: none;
+	box-sizing: border-box;
+	min-height: 40px;
 }
 
 /* The whole name row folds the section, with the chevron straight after the name. */
@@ -494,10 +496,6 @@
 	flex: 1;
 	min-width: 0;
 	height: 40px;
-}
-
-.tlui-libraries-section > .tlui-libraries-panel__header:has(.tlui-input__wrapper) {
-	min-height: 44px;
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-input__wrapper {
