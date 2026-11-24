@@ -619,7 +619,9 @@
 }
 
 @media (hover: hover) {
-	.tlui-libraries-browse__row:hover {
+	.tlui-libraries-browse__row:hover:not(
+			:has(.tlui-libraries-browse__action:not([aria-disabled='true']):hover)
+		) {
 		background: var(--tl-color-muted-2);
 	}
 }
