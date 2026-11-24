@@ -126,7 +126,7 @@ export function ItemDetailsDialog({
 				{details.description && (
 					<p className="tlui-libraries-details__description">{details.description}</p>
 				)}
-				<dl className="tlui-libraries-details__facts">
+				<dl ref={focusDialog} className="tlui-libraries-details__facts">
 					<dt>{msg(messages.name)}</dt>
 					<dd>
 						{renaming && (
@@ -199,7 +199,7 @@ export function ReadOnlyItemDetailsDialog({
 						{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
 					</span>
 				</div>
-				<dl className="tlui-libraries-details__facts">
+				<dl ref={focusDialog} className="tlui-libraries-details__facts">
 					<dt>{msg(messages.name)}</dt>
 					<dd>{name ?? msg(messages.unnamedItem)}</dd>
 					<dt>{msg(messages.library)}</dt>
@@ -208,4 +208,11 @@ export function ReadOnlyItemDetailsDialog({
 			</TldrawUiDialogBody>
 		</>
 	)
+}
+
+/** Focuses the dialog itself on open, so its first button isn't focused and doesn't show its tooltip. */
+function focusDialog(element: HTMLElement | null) {
+	if (!element) return
+	const dialog = element.closest<HTMLElement>('.tlui-dialog__content')
+	if (dialog) dialog.focus()
 }
