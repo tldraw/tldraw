@@ -21,7 +21,7 @@
 	display: flex;
 	flex-direction: column;
 	background: var(--tl-color-panel);
-	border-radius: var(--tl-radius-4);
+	border-radius: var(--tl-radius-3);
 	box-shadow: var(--tl-shadow-3);
 	overflow: hidden;
 	color: var(--tl-color-text-1);
@@ -362,6 +362,16 @@
 	visibility: hidden;
 }
 
+.tlui-libraries-grid .tlui-libraries-tile__thumbnail,
+.tlui-libraries-grid .tlui-libraries-tile__button:focus-visible {
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-libraries-grid .tlui-libraries-add-tile .tlui-libraries-tile__thumbnail,
+.tlui-libraries-grid .tlui-libraries-add-tile .tlui-libraries-tile__button:focus-visible {
+	border-radius: var(--tl-radius-1);
+}
+
 .tlui-libraries-add-tile .tlui-libraries-tile__thumbnail {
 	color: var(--tl-color-text-1);
 	background: var(--tl-color-panel);
@@ -554,9 +564,9 @@
 	display: flex;
 	flex-direction: column;
 	flex-basis: auto;
-	width: 560px;
+	width: 572px;
 	max-width: 100%;
-	height: min(672px, 70vh);
+	height: min(752px, 80vh);
 	padding: 6px var(--tl-space-4);
 	font-weight: 500;
 }
@@ -958,7 +968,7 @@
 	display: flex;
 	align-items: center;
 	height: 32px;
-	margin: var(--tl-space-2) 12px var(--tl-space-3);
+	margin: 2px 12px 6px;
 	padding-left: 8px;
 	border-radius: var(--tl-radius-2);
 	background: var(--tl-color-muted-2);
@@ -985,7 +995,7 @@
 
 .tlui-libraries-search__icon {
 	flex-shrink: 0;
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
 }
 
 .tlui-input.tlui-libraries-search__input {
