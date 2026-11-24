@@ -322,6 +322,7 @@ export const commentToolOverrides: TLUiOverrides = {
 			label: messages.toolComment.id,
 			kbd: 'c',
 			onSelect: (source) => {
+				if (editor.checkCapability('create-comment')) return
 				// The menu was opened by the last pointer down; the live pointer is over the menu now.
 				if (source === 'context-menu') startCommentAt(editor, editor.inputs.getOriginPagePoint())
 				else editor.setCurrentTool('comment')
