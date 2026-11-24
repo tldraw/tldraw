@@ -1,6 +1,7 @@
 import { createBuilder, mustGetQuery } from '@rocicorp/zero'
 import { Database, QueryDelegate } from '@rocicorp/zero/zqlite'
 import { describe, expect, it } from 'vitest'
+import { LIBRARY_PREVIEW_ITEM_COUNT } from './constants'
 import { queries, ZeroContext } from './queries'
 import { schema } from './tlaSchema'
 
@@ -363,15 +364,82 @@ describe('libraries query', () => {
 		library_item: [
 			{ id: 'i_w', libraryId: 'c_w', createdAt: 1 },
 			{ id: 'i_x', libraryId: 'c_x', createdAt: 1 },
+			// more than the libraries query previews, oldest first
+			...Array.from({ length: LIBRARY_PREVIEW_ITEM_COUNT + 2 }, (_, i) => ({
+				id: `i_private_${i}`,
+				libraryId: 'c_private',
+				createdAt: 10 + i,
+			})),
 		],
 	})
 
-	it("returns the libraries of every workspace I'm in, home included, with their items", async () => {
+	const privateItemIds = (count: number) =>
+		Array.from({ length: count }, (_, i) => `i_private_${i}`)
+
+	it("returns the libraries of every workspace I'm in, home included, with their first items", async () => {
 		const result = await delegate.run(queries.libraries.fn({ ctx, args: undefined }))
 		expect(result.map((c) => [c.id, c.items.map((i) => i.id)])).toEqual([
-			['c_private', []],
+			['c_private', privateItemIds(LIBRARY_PREVIEW_ITEM_COUNT)],
 			['c_w', ['i_w']],
 		])
+	})
+
+	it("returns all of a library's items, to a member of its workspace", async () => {
+		const run = (libraryId: string) =>
+			delegate.run(queries.libraryItems.fn({ ctx, args: { libraryId } }))
+		expect((await run('c_private'))?.items.map((i) => i.id)).toEqual(
+			privateItemIds(LIBRARY_PREVIEW_ITEM_COUNT + 2)
+		)
+		expect((await run('c_w'))?.items.map((i) => i.id)).toEqual(['i_w'])
+		expect(await run('c_x')).toBeUndefined()
+	})
+})
+
+describe('libraryItems query, through a file', () => {
+	const me = ctx.userId
+	const X = 'group_x' // a workspace I'm not in
+
+	const delegate = seed({
+		group_user: [{ userId: 'user_other', groupId: X }],
+		file: [
+			{ id: 'f_shared', owningGroupId: X, isDeleted: false },
+			{ id: 'f_x', owningGroupId: X, isDeleted: false },
+		],
+		group_file: [
+			{ fileId: 'f_shared', groupId: X },
+			{ fileId: 'f_x', groupId: X },
+		],
+		// opened via a share link
+		file_state: [{ userId: me, fileId: 'f_shared' }],
+		library: [
+			{ id: 'c_shared', owningGroupId: X, createdAt: 1 },
+			{ id: 'c_unshared', owningGroupId: X, createdAt: 2 },
+		],
+		library_item: [
+			{ id: 'i_shared', libraryId: 'c_shared', createdAt: 1 },
+			{ id: 'i_unshared', libraryId: 'c_unshared', createdAt: 1 },
+		],
+		file_library: [
+			{ fileId: 'f_shared', libraryId: 'c_shared', addedBy: 'user_other', addedAt: 1 },
+			{ fileId: 'f_x', libraryId: 'c_unshared', addedBy: 'user_other', addedAt: 1 },
+		],
+	})
+
+	const run = (libraryId: string) =>
+		delegate.run(queries.libraryItems.fn({ ctx, args: { libraryId } }))
+
+	it("returns the items of a library added to a file I can access, from a workspace I'm not in", async () => {
+		expect((await run('c_shared'))?.items.map((i) => i.id)).toEqual(['i_shared'])
+	})
+
+	it("returns nothing of a library added only to files I can't access", async () => {
+		expect(await run('c_unshared')).toBeUndefined()
+	})
+
+	it('stays within the planner EXISTS limit', () => {
+		expect(countExists(astOf('libraryItems', { libraryId: 'c_shared' }))).toBeLessThanOrEqual(
+			MAX_PLANNABLE_EXISTS
+		)
 	})
 })
 

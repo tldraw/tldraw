@@ -433,6 +433,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					meta,
 					isDefault: false,
 					fileCount: 0,
+					itemCount: 0,
 				})
 			},
 			/**
@@ -459,6 +460,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					meta: {},
 					isDefault: true,
 					fileCount: 0,
+					itemCount: 0,
 				})
 			},
 			/** Renames a library. The user's default library keeps its name. */

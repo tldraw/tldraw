@@ -518,6 +518,33 @@ export class TldrawApp {
 	}
 
 	/**
+	 * One library's items, until `stop` is called (see `queries.libraryItems`). `loaded` turns true
+	 * once the query has synced, so an empty list means the library has none.
+	 */
+	watchLibraryItems(libraryId: string) {
+		const row$ = atom<QueryResultType<typeof queries.libraryItems>>(
+			`library items ${libraryId}`,
+			undefined,
+			{ isEqual }
+		)
+		const loaded$ = atom(`library items loaded ${libraryId}`, false)
+		const view = this.materializeQuery<QueryResultType<typeof queries.libraryItems>>(
+			queries.libraryItems({ libraryId })
+		)
+		this.feedQuery(row$, view)
+		view.addListener((_row, resultType) => {
+			if (resultType !== 'complete' || loaded$.get()) return
+			// After feedQuery's flush, so the items are in place before anyone reads them as loaded.
+			void this.changesFlushed?.then(() => loaded$.set(true))
+		})
+		return {
+			items: computed(`library item rows ${libraryId}`, () => row$.get()?.items ?? []),
+			loaded: loaded$ as Signal<boolean>,
+			stop: () => view.destroy(),
+		}
+	}
+
+	/**
 	 * Recent comments across the user's files, for the notifications feed (bounded per feed,
 	 * cross-file, unordered). Empty until {@link startNotificationFeeds}.
 	 */

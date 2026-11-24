@@ -1,4 +1,5 @@
 import {
+	LIBRARY_PREVIEW_ITEM_COUNT,
 	libraryName,
 	type TlaFileLibrary,
 	type TlaLibrary,
@@ -10,7 +11,7 @@ import { atom, computed } from 'tldraw'
 import { vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
 
-type Row = Omit<TlaLibrary, 'fileCount'> & { items: TlaLibraryItem[] }
+type Row = Omit<TlaLibrary, 'fileCount' | 'itemCount'> & { items: TlaLibraryItem[] }
 
 /** A promise each request or mutation waits on while a test holds it, until it's let through. */
 function createHold() {
@@ -42,10 +43,13 @@ export function createFakeLibrariesBackend({
 	const rows = atom<Row[]>('fake library rows', [])
 	const otherRows = atom<Row[]>('fake library rows of other workspaces', [])
 	const fileLibraries = atom<TlaFileLibrary[]>('fake file libraries', [])
+	// As the libraries queries have them: with their counts, and only their first items.
 	const withFileCounts = (all: Row[]) => {
 		const added = fileLibraries.get()
 		return all.map((row) => ({
 			...row,
+			items: row.items.slice(0, LIBRARY_PREVIEW_ITEM_COUNT),
+			itemCount: row.items.length,
 			fileCount: added.filter((fl) => fl.libraryId === row.id).length,
 		}))
 	}
@@ -355,6 +359,22 @@ export function createFakeLibrariesBackend({
 		stop: vi.fn(),
 	}))
 
+	// One library's items, as the libraryItems query has them. Synced at once unless held.
+	let itemsHold: ReturnType<typeof createHold> | undefined
+	const watchLibraryItems = vi.fn((libraryId: string) => {
+		const loaded = atom(`fake library items loaded ${libraryId}`, !itemsHold)
+		if (itemsHold) void itemsHold.passes.then(() => loaded.set(true))
+		return {
+			items: computed(`fake library items ${libraryId}`, () =>
+				loaded.get()
+					? ([...rows.get(), ...otherRows.get()].find((row) => row.id === libraryId)?.items ?? [])
+					: []
+			),
+			loaded,
+			stop: vi.fn(),
+		}
+	})
+
 	const toasts = { addToast: vi.fn() }
 	const app = {
 		userId,
@@ -366,6 +386,7 @@ export function createFakeLibrariesBackend({
 		getLibraryRows: () => libraryRows.get(),
 		areLibrariesLoaded: () => librariesLoaded.get(),
 		watchFileLibraries,
+		watchLibraryItems,
 		canUpdateFile: (fileId: string) => !readOnlyFiles.has(fileId),
 		getFile: (fileId: string) => ({
 			id: fileId,
@@ -385,6 +406,8 @@ export function createFakeLibrariesBackend({
 		librariesLoaded,
 		fileWorkspaces,
 		watchFileLibraries,
+		watchLibraryItems,
+		holdLibraryItems: () => (itemsHold = createHold()),
 		contents,
 		fetch: fetchSpy,
 		getToken: async () => 'token',
