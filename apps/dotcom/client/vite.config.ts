@@ -103,11 +103,6 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 // https://vitejs.dev/config/
 export default defineConfig((env) => ({
 	plugins: [
-		// Ahead of spaFallbackPlugin, and the order is load-bearing: middleware registers in plugin
-		// order, so this rewrites the extensionless /__thumbnail-render to its .html entry before the
-		// preview server's SPA fallback can rewrite it to /index.html — which would leave every
-		// preview-server capture (including the e2e webServer) hanging on a page that never marks
-		// itself ready.
 		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
 		clerkJsPlugin(),
@@ -143,14 +138,6 @@ export default defineConfig((env) => ({
 
 		// our svg icons break if we use data urls, so disable inline assets for now
 		assetsInlineLimit: 0,
-
-		rollupOptions: {
-			input: {
-				index: fileURLToPath(new URL('./index.html', import.meta.url)),
-				// See pages/thumbnail-render.tsx.
-				'thumbnail-render': fileURLToPath(new URL('./thumbnail-render.html', import.meta.url)),
-			},
-		},
 	},
 	// add backwards-compatible support for NEXT_PUBLIC_ env vars
 	define: {

@@ -4,8 +4,7 @@
 // binding as `Service<RenderWorkerRpc>`. The caller uses `import type` only, so nothing of the worker
 // is bundled into it; the service binding is the sole runtime link between the two.
 //
-// Division of labour (see apps/dotcom/browser-run-thumbnails.md, "A private screenshot and measure
-// worker"):
+// Division of labour (see apps/dotcom/browser-run-thumbnails.md, "A private screenshot worker"):
 //
 // - sync-worker keeps auth, board resolution, snapshot loading, rate limits, R2 caching, and the
 //   request-level `mcp_shared_board_screenshot` telemetry.
@@ -14,13 +13,13 @@
 //   static render page — rendering is reached only through the binding — and it is handed no board
 //   identity, so the "No board identifier leaves this pipeline" rule holds by construction here too.
 
-import { ThumbnailShapeMeasurement, ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
+import { ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
 
 /**
  * What the worker is asked to render: the same self-describing payload the render page reads today,
  * built by sync-worker's `thumbnailSnapshotBodyFor`. It carries the records, the schema, and the
- * `renderParams` (page, shapes, theme, viewport, `mode`, `capture`), so the worker needs nothing
- * else to drive the page — and because it is the exact body a pulled page would have fetched, a
+ * `renderParams` (page, shapes, theme, viewport), so the worker needs nothing else to drive the
+ * page — and because it is the exact body a pulled page would have fetched, a
  * pushed render and a (former) fetched one cannot differ.
  *
  * There is no token and no pull path. The service-binding RPC that carries this payload has the same
@@ -58,10 +57,7 @@ export interface RenderTelemetry {
 	source: 'mcp' | 'og' | 'queue'
 	/** The queue trigger (`reason:`), on sessions the queue runs; request-path sessions omit it. */
 	reason?: 'crawler' | 'publish' | 'edit'
-	/**
-	 * What the board holds, for the ledger's content doubles. Required on both calls: a measure can
-	 * supply it too (sync-worker holds the snapshot either way), where today measures write zeros.
-	 */
+	/** What the board holds, for the ledger's content doubles. */
 	content: RenderContentSummary
 }
 
@@ -76,7 +72,6 @@ export type RenderFailureReason =
 	| 'browser_failed'
 	| 'browser_timeout'
 	| 'empty_render'
-	| 'page_error'
 	| 'not_configured'
 	| 'render_error'
 
@@ -110,30 +105,10 @@ export type ScreenshotResult =
 	| { ok: true; png: Uint8Array }
 	| { ok: false; reason: RenderFailureReason }
 
-export interface MeasureRequest {
-	payload: RenderPayload
-	telemetry: RenderTelemetry
-}
-
-/**
- * The page's measured geometry, keyed by shape id, in the page's own `{ x, y, w, h, text? }` form —
- * the worker parses it out of the `/content` HTML and drops any non-finite box. sync-worker adapts it
- * to its clustering coordinates (`ShapeMeasurement`), which stays sync-side with the clustering code.
- */
-export type MeasureResult =
-	| { ok: true; measurements: Record<string, ThumbnailShapeMeasurement> }
-	| { ok: false; reason: RenderFailureReason }
-
 /**
  * The service-binding surface. sync-worker types its `RENDER_WORKER` binding as
  * `Service<RenderWorkerRpc>`; the worker's `WorkerEntrypoint` subclass satisfies this.
- *
- * Both methods choose their Browser Run action and their result parser from the method itself
- * (`screenshot` → `/screenshot` → PNG; `measure` → `/content` → geometry), which must agree with the
- * payload's `renderParams.mode` — and does, by construction, since sync-worker builds the payload
- * from the same job that picks the method. The worker reads the viewport from `renderParams`.
  */
 export interface RenderWorkerRpc {
 	screenshot(request: ScreenshotRequest): Promise<ScreenshotResult>
-	measure(request: MeasureRequest): Promise<MeasureResult>
 }

@@ -7,7 +7,6 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 	SOCIAL_PREVIEW_BYPASS_PARAM,
-	THUMBNAIL_RENDER_PATH,
 } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
@@ -15,7 +14,7 @@ import json5 from 'json5'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
-import { csp, thumbnailRenderCsp } from '../src/utils/csp'
+import { csp } from '../src/utils/csp'
 import { reportBundleSize } from './measure-bundle-size'
 import { getMultiplayerServerURL } from './multiplayer-server-url'
 import { Config } from './vercel-output-config'
@@ -180,14 +179,6 @@ async function build() {
 
 	writeFileSync('.vercel/output/static/index.html', newIndex)
 
-	// The thumbnail render entry waits on these same faces during its settle phase, so it preloads
-	// them too — otherwise their fetch starts only after the SDK has booted and the editor mounted.
-	const thumbnailHtml = readFileSync('.vercel/output/static/thumbnail-render.html', 'utf8')
-	writeFileSync(
-		'.vercel/output/static/thumbnail-render.html',
-		thumbnailHtml.replace('<!-- $PRELOADED_FONTS -->', () => fontPreloads)
-	)
-
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
 	// Includes the .js.map files: they're content-hashed like the chunks they describe, so they're
@@ -300,15 +291,6 @@ async function build() {
 						src: '/',
 						dest: '/index.html',
 						headers: { ...commonSecurityHeaders, Link: agentDiscoveryLinkHeader },
-					},
-					// The render page's own entry (see pages/thumbnail-render.tsx), rewritten so the URL
-					// the sync-worker renders never moves. Must come before the SPA fallback below,
-					// which would otherwise answer with index.html.
-					{
-						check: true,
-						src: `^${THUMBNAIL_RENDER_PATH}$`,
-						dest: '/thumbnail-render.html',
-						headers: { ...commonSecurityHeaders, 'Content-Security-Policy': thumbnailRenderCsp },
 					},
 					// serve static files
 					{

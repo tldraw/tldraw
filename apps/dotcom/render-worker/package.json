@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/dotcom-render-worker",
-	"description": "A private Cloudflare Worker that renders tldraw board thumbnails and measures through Browser Rendering, reached only over a service binding",
+	"description": "A private Cloudflare Worker that renders tldraw board thumbnails through Browser Rendering, reached only over a service binding",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
