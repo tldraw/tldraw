@@ -374,3 +374,92 @@ describe('libraries query', () => {
 		])
 	})
 })
+
+describe('fileLibraries query', () => {
+	const me = ctx.userId
+	const other = 'user_other'
+	const W = 'group_w' // a workspace I'm in
+	const X = 'group_x' // a workspace I'm not in
+	const added = (fileId: string, libraryId: string) => ({
+		fileId,
+		libraryId,
+		addedBy: other,
+		addedAt: 1,
+	})
+
+	const delegate = seed({
+		group_user: [
+			{ userId: me, groupId: me },
+			{ userId: me, groupId: W },
+			{ userId: other, groupId: other },
+			{ userId: other, groupId: X },
+		],
+		file: [
+			{ id: 'f_w', owningGroupId: W, isDeleted: false },
+			// opened via a share link
+			{ id: 'f_shared', owningGroupId: X, isDeleted: false },
+			// X's board I've never opened
+			{ id: 'f_x', owningGroupId: X, isDeleted: false },
+		],
+		group_file: [
+			{ fileId: 'f_w', groupId: W },
+			{ fileId: 'f_shared', groupId: X },
+			{ fileId: 'f_x', groupId: X },
+		],
+		file_state: [{ userId: me, fileId: 'f_shared' }],
+		library: [
+			{ id: 'c_default', owningGroupId: me, isDefault: true, createdAt: 1 },
+			{ id: 'c_private', owningGroupId: me, isDefault: false, createdAt: 2 },
+			{ id: 'c_w', owningGroupId: W, isDefault: false, createdAt: 3 },
+			{ id: 'c_w_unadded', owningGroupId: W, isDefault: false, createdAt: 4 },
+			{ id: 'c_x', owningGroupId: X, isDefault: false, createdAt: 5 },
+			{ id: 'c_other_default', owningGroupId: other, isDefault: true, createdAt: 6 },
+		],
+		library_item: [
+			{ id: 'i_default', libraryId: 'c_default', createdAt: 1 },
+			{ id: 'i_x', libraryId: 'c_x', createdAt: 1 },
+		],
+		file_library: [
+			added('f_w', 'c_w'),
+			added('f_w', 'c_default'),
+			added('f_shared', 'c_x'),
+			added('f_shared', 'c_other_default'),
+			added('f_x', 'c_private'),
+			added('f_x', 'c_w'),
+		],
+	})
+
+	async function run(fileId: string) {
+		const result = await delegate.run(queries.fileLibraries.fn({ ctx, args: { fileId } }))
+		return result.map((c) => [
+			c.id,
+			c.items.map((i) => i.id),
+			c.fileLibraries.map((fl) => fl.fileId),
+		])
+	}
+
+	it("returns the libraries added to a board in my workspace, with my default, and nothing I haven't added", async () => {
+		expect(await run('f_w')).toEqual([
+			['c_default', ['i_default'], ['f_w']],
+			['c_w', [], ['f_w']],
+		])
+	})
+
+	it("returns a board's libraries to someone who opened it, from workspaces they aren't in", async () => {
+		expect(await run('f_shared')).toEqual([
+			['c_default', ['i_default'], []],
+			['c_x', ['i_x'], ['f_shared']],
+			['c_other_default', [], ['f_shared']],
+		])
+	})
+
+	it("returns only my default for a board I can't access, without its rows there", async () => {
+		expect(await run('f_x')).toEqual([['c_default', ['i_default'], []]])
+	})
+
+	it('stays within the planner EXISTS limit', () => {
+		expect(countExists(astOf('fileLibraries', { fileId: 'f_w' }))).toBeLessThanOrEqual(
+			MAX_PLANNABLE_EXISTS
+		)
+	})
+})

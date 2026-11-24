@@ -12,7 +12,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import type { JsonObject } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { Kysely } from 'kysely'
+import { Kysely, sql } from 'kysely'
 import { AssetToReplace } from '../../assetAssociation'
 import { LibraryItemObject, queueLibraryObjectDeletes } from '../../libraryEffects'
 import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
@@ -192,6 +192,10 @@ async function readItems(form: FormData): Promise<NewItem[] | Response> {
  * the pair) and `meta:<id>` (optional, a JSON object of at most MAX_LIBRARY_META_LENGTH
  * characters). At most MAX_LIBRARY_ITEMS_PER_REQUEST items, of at most
  * MAX_LIBRARY_ITEMS_REQUEST_BYTES of content and thumbnails together.
+ *
+ * Adding items changes a starter pack's copy, so the library's `meta` loses the pack's `packId`
+ * (see clearPackId in the mutators), unless `fillsPackCopy` is `true`: the items are the pack's
+ * own, sent as the user copies it. That's taken only from the library's creator, whose copy it is.
  */
 export async function addLibraryItems(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -216,6 +220,10 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 		if (!can(access.role, 'manageLibraries')) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
+
+		const fillsPackCopy =
+			form.get('fillsPackCopy') === 'true' && access.library.createdBy === auth.userId
+
 		const ids = items.map((item) => item.id)
 		if (await isAnyItemIdTaken(db, ids)) {
 			const added = await getAddedItems(db, auth.userId, ids)
@@ -273,6 +281,14 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 					.execute()
 				if (inserted.length < rows.length) throw new IdTakenError()
 				await tx.insertInto('library_item_object').values(objects).execute()
+				if (!fillsPackCopy) {
+					await tx
+						.updateTable('library')
+						.set({ meta: sql`"meta" - 'packId'` })
+						.where('id', '=', libraryId)
+						.where(sql<boolean>`"meta" ? 'packId'`)
+						.execute()
+				}
 				return undefined
 			})
 		} catch (error) {
@@ -371,7 +387,10 @@ async function storeItemObjects(
 	return { thumbnail, skippedObjectNames }
 }
 
-/** An item's content, to members of its library's workspace. */
+/**
+ * An item's content, to members of its library's workspace and to anyone who can access a file
+ * its library is added to.
+ */
 export async function getLibraryItemContent(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
 	if (!(await canUseLibraries(env, auth.userId))) return notFound()
@@ -382,7 +401,7 @@ export async function getLibraryItemContent(request: IRequest, env: Environment)
 	let contentKey: string
 	try {
 		const access = await getLibraryItemAccess(db, auth.userId, itemId)
-		if (!access || !isRole(access.role)) return notFound()
+		if (!access || !(isRole(access.role) || access.isOnAccessibleFile)) return notFound()
 		contentKey = access.item.contentKey
 	} finally {
 		await db.destroy()
