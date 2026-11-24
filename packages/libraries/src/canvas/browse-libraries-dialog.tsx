@@ -647,6 +647,18 @@ function BrowseRow({
 			ref={rowRef}
 			className="tlui-libraries-browse__row"
 			data-empty={itemCount === 0 || undefined}
+			data-viewable={(onView && !rename) || undefined}
+			onClick={
+				onView && !rename
+					? (e) => {
+							if (e.defaultPrevented) return
+							const target = e.target as Element
+							if (target.closest('[role="menu"], input, button:not(.tlui-libraries-browse__view)'))
+								return
+							onView()
+						}
+					: undefined
+			}
 			onPointerDownCapture={hold}
 			onFocusCapture={hold}
 			{...press}
@@ -662,7 +674,17 @@ function BrowseRow({
 					/>
 				) : (
 					<>
-						<span className="tlui-libraries-browse__name">{name}</span>
+						{onView ? (
+							<button
+								type="button"
+								className="tlui-libraries-browse__name tlui-libraries-browse__view"
+								aria-label={msg(messages.view, { name })}
+							>
+								{name}
+							</button>
+						) : (
+							<span className="tlui-libraries-browse__name">{name}</span>
+						)}
 						<BrowseAction placement={placement} revealOnHover />
 					</>
 				)}
@@ -671,17 +693,7 @@ function BrowseRow({
 			{itemCount === 0 && (
 				<p className="tlui-libraries-browse__empty">{msg(messages.emptyLibrary)}</p>
 			)}
-			{itemCount > 0 && onView && (
-				<button
-					type="button"
-					className="tlui-libraries-browse__strip tlui-libraries-browse__view"
-					aria-label={msg(messages.view, { name })}
-					onClick={onView}
-				>
-					{tiles}
-				</button>
-			)}
-			{itemCount > 0 && !onView && (
+			{itemCount > 0 && (
 				<div className="tlui-libraries-browse__strip" aria-hidden>
 					{tiles}
 				</div>
