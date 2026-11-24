@@ -762,7 +762,7 @@
 
 .tlui-libraries-browse__footer > .tlui-libraries-browse__action {
 	margin-inline-end: 4px;
-	padding-inline-end: 8px;
+	padding: 0 8px;
 }
 
 /* With a pointer that hovers, a row's action rests as a muted + or "Added ✓" until the row is hovered
