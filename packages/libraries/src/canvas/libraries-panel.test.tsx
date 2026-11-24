@@ -911,3 +911,60 @@ describe("items in Browse's library view", () => {
 		expect(dialog.querySelector('button.tlui-libraries-details__name')).toBeNull()
 	})
 })
+
+it("treats a host's added entry as the source's library it's added as, with that library's menu and rename", async () => {
+	const copy = LibraryRecordType.create({ name: 'Doodles', ownerId: 'home' })
+	const source = new InMemoryLibrarySource({
+		owners: [{ id: 'home', name: 'Home' }],
+		defaultOwnerId: 'home',
+		initial: { libraries: [copy], items: [], contents: {} },
+		shownInDocument: [{ libraryId: copy.id, placement: 'added' }],
+	})
+	const groups: LibraryBrowseGroup[] = [
+		{
+			id: 'public',
+			label: 'Public libraries',
+			entries: [
+				{
+					id: 'doodles',
+					name: 'Doodles',
+					itemCount: 0,
+					previews: [],
+					added: true,
+					libraryId: copy.id,
+					canAdd: true,
+					add: async () => copy.id,
+					getItems: async () => [],
+				},
+			],
+		},
+	]
+	const container = await renderPanel(source, () => groups)
+	act(() =>
+		container.querySelector<HTMLButtonElement>('button.tlui-libraries-panel__browse-more')!.click()
+	)
+	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-browse')).not.toBeNull())
+	expect(document.querySelectorAll('.tlui-libraries-browse__row')).toHaveLength(1)
+	const row = browseRow('Doodles')
+	await act(async () => {
+		row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+	})
+	const labels = await vi.waitFor(() => {
+		const items = [
+			...document.querySelectorAll(
+				'.tlui-libraries-menu :is(.tlui-libraries-menu__item, .tlui-menu__submenu__trigger)'
+			),
+		].map((item) => item.textContent)
+		expect(items.length).toBeGreaterThan(0)
+		return items
+	})
+	expect(labels).toEqual(expect.arrayContaining(['Remove from file', 'Rename']))
+	act(() => panelEditor!.menus.clearOpenMenus())
+
+	act(() => row.querySelector<HTMLButtonElement>('.tlui-libraries-browse__view')!.click())
+	await vi.waitFor(() =>
+		expect(document.querySelector('.tlui-libraries-browse__title-rename')!.textContent).toBe(
+			'Doodles'
+		)
+	)
+})

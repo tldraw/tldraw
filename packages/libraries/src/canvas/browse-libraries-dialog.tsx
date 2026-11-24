@@ -39,6 +39,7 @@ import { ItemTile } from '../ui/item-tile'
 import { LibraryMenu, type LibraryMenuProps } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import {
+	type BrowseListedLibrary,
 	type BrowseSections,
 	getBrowseSections,
 	isAddedToDocument,
@@ -111,8 +112,9 @@ export interface LibraryBrowseEntry {
 	 */
 	added: boolean
 	/**
-	 * The library the document shows for it, once added. The source's library with this id is then
-	 * listed only as this entry.
+	 * The library the document shows for it, once added. Where the source lists a library with this
+	 * id, the entry is then listed as that library, with the library's own actions, and listed again
+	 * as the entry once the document no longer shows it.
 	 */
 	libraryId?: TLLibraryId
 	canAdd: boolean
@@ -137,8 +139,15 @@ export interface LibraryBrowseEntryItem {
 	thumbnail?: TLLibraryThumbnail
 }
 
-/** What the dialog has opened to view, looked up again as the groups change. */
-type Viewing = { kind: 'source'; libraryId: TLLibraryId } | { kind: 'host'; entryId: string }
+/**
+ * What the dialog has opened to view, looked up again as the groups change: the source's library,
+ * or a host's entry, which is viewed as the library it's added as once it is, and as the entry again
+ * once that library is gone.
+ */
+interface Viewing {
+	libraryId?: TLLibraryId
+	entryId?: string
+}
 
 export interface BrowseLibrariesDialogProps {
 	source: LibrarySource
@@ -195,9 +204,7 @@ export function BrowseLibrariesDialog({ onBack, ...props }: BrowseLibrariesDialo
 	)
 }
 
-type BrowseRowEntry =
-	| { key: string; kind: 'source'; library: TLLibrary }
-	| { key: string; kind: 'host'; entry: LibraryBrowseEntry }
+type BrowseRowEntry = BrowseListedLibrary & { key: string }
 
 interface BrowseLists {
 	/** The source's libraries, and the host's entries added to the file: those added first. */
@@ -208,29 +215,33 @@ interface BrowseLists {
 
 /** The libraries `sections` lists, in its order. */
 function getBrowseLists(sections: BrowseSections): BrowseLists {
-	const sourceRow = (library: TLLibrary): BrowseRowEntry => ({
-		key: `source:${library.id}`,
-		kind: 'source',
-		library,
-	})
-	const hostRow = (entry: LibraryBrowseEntry): BrowseRowEntry => ({
-		key: `host:${entry.id}`,
-		kind: 'host',
-		entry,
+	const row = (listed: BrowseListedLibrary): BrowseRowEntry => ({
+		...listed,
+		key: listed.kind === 'source' ? `source:${listed.library.id}` : `host:${listed.entry.id}`,
 	})
 	return {
 		rows: [
-			...sections.thisFile.map((listed) =>
-				listed.kind === 'source' ? sourceRow(listed.library) : hostRow(listed.entry)
+			...sections.thisFile.map(row),
+			...sections.owners.flatMap((group) =>
+				group.libraries.map((library) => row({ kind: 'source', library }))
 			),
-			...sections.owners.flatMap((group) => group.libraries.map(sourceRow)),
 		],
 		hostGroups: sections.hosts.map((group) => ({
 			id: group.id,
 			label: group.label,
-			rows: group.entries.map(hostRow),
+			rows: group.libraries.map(row),
 		})),
 	}
+}
+
+/** The row `viewing` is of, as `rows` list it now. */
+function findViewed(rows: BrowseRowEntry[], viewing: Viewing) {
+	const { libraryId, entryId } = viewing
+	const entryIdOf = (row: BrowseRowEntry) => (row.kind === 'source' ? row.entryId : row.entry.id)
+	return (
+		rows.find((row) => row.kind === 'source' && row.library.id === libraryId) ??
+		rows.find((row) => entryId !== undefined && entryIdOf(row) === entryId)
+	)
 }
 
 function BrowseLibraries({
@@ -259,6 +270,12 @@ function BrowseLibraries({
 	const rows = [...lists.rows, ...lists.hostGroups.flatMap((group) => group.rows)]
 	const holdInView = useHoldInView()
 	const [viewing, setViewing] = useState<Viewing | null>(null)
+	const viewed = viewing ? findViewed(rows, viewing) : undefined
+	const viewedLibraryId = viewed && viewed.kind === 'source' ? viewed.library.id : undefined
+	useLayoutEffect(() => {
+		if (viewedLibraryId === undefined) return
+		setViewing((current) => current && { ...current, libraryId: viewedLibraryId })
+	}, [viewedLibraryId])
 	const listRef = useRef<HTMLDivElement>(null)
 	useLayoutEffect(() => {
 		if (sheetBack || viewing) return
@@ -282,27 +299,21 @@ function BrowseLibraries({
 				key={row.key}
 				source={source}
 				library={row.library}
-				onView={() => setViewing({ kind: 'source', libraryId: row.library.id })}
+				onView={() => setViewing({ libraryId: row.library.id, entryId: row.entryId })}
 			/>
 		) : (
 			<HostLibraryRow
 				key={row.key}
 				entry={row.entry}
-				onView={
-					row.entry.getItems ? () => setViewing({ kind: 'host', entryId: row.entry.id }) : undefined
-				}
+				onView={row.entry.getItems ? () => setViewing({ entryId: row.entry.id }) : undefined}
 			/>
 		)
 
-	if (viewing?.kind === 'source') {
-		const row = rows.find((r) => r.kind === 'source' && r.library.id === viewing.libraryId)
-		if (row && row.kind === 'source') {
-			return <SourceLibraryView source={source} library={row.library} onBack={back} />
-		}
+	if (viewed && viewed.kind === 'source') {
+		return <SourceLibraryView source={source} library={viewed.library} onBack={back} />
 	}
-	if (viewing?.kind === 'host') {
-		const row = rows.find((r) => r.kind === 'host' && r.entry.id === viewing.entryId)
-		if (row && row.kind === 'host') return <HostLibraryView entry={row.entry} onBack={back} />
+	if (viewed && viewed.kind === 'host') {
+		return <HostLibraryView entry={viewed.entry} onBack={back} />
 	}
 
 	return (

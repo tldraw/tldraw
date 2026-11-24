@@ -1,6 +1,11 @@
-import { LibraryRecordType } from 'tldraw'
+import { LibraryRecordType, type TLLibraryId } from 'tldraw'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
-import { type BrowseSections, getBrowseSections, keepBrowsePlacement } from './browse-groups'
+import {
+	type BrowseListedLibrary,
+	type BrowseSections,
+	getBrowseSections,
+	keepBrowsePlacement,
+} from './browse-groups'
 import type { LibraryBrowseEntry, LibraryBrowseGroup } from './browse-libraries-dialog'
 
 const library = (name: string, ownerId: string) =>
@@ -38,13 +43,18 @@ function setUp() {
 const summary = (source: InMemoryLibrarySource, hostGroups: LibraryBrowseGroup[] = []) =>
 	summarize(getBrowseSections(source, hostGroups))
 
+const labelOf = (listed: BrowseListedLibrary) => {
+	if (listed.kind === 'host') return `${listed.entry.name} (host)`
+	return listed.entryId === undefined
+		? listed.library.name
+		: `${listed.library.name} (as ${listed.entryId})`
+}
+
 const summarize = ({ thisFile, owners, hosts }: BrowseSections) => {
 	return {
-		thisFile: thisFile.map((listed) =>
-			listed.kind === 'source' ? listed.library.name : `${listed.entry.name} (host)`
-		),
+		thisFile: thisFile.map(labelOf),
 		owners: owners.map((group) => [group.ownerName, group.libraries.map((l) => l.name)]),
-		hosts: hosts.map((group) => [group.label, group.entries.map((entry) => entry.name)]),
+		hosts: hosts.map((group) => [group.label, group.libraries.map(labelOf)]),
 	}
 }
 
@@ -85,7 +95,7 @@ it('moves a library to "In this file" once added, and leaves out those housed in
 	expect(summary(source).owners[1]).toEqual(['Acme', ['Diagrams', 'Wireframes']])
 })
 
-it("lists a host's added entries in this file, once, and leaves the group the rest", () => {
+it("lists a host's added entries in this file, once, as the source's library they're added as where it lists one, and leaves the group the rest", () => {
 	const { source, id } = setUp()
 	const packs = {
 		id: 'packs',
@@ -98,12 +108,12 @@ it("lists a host's added entries in this file, once, and leaves the group the re
 	}
 	const empty = { id: 'empty', label: 'Shipped', entries: [entry('Kit', { added: true })] }
 	expect(summary(source, [packs, empty])).toEqual({
-		thisFile: ['Arrows pack (host)', 'Badges (host)', 'Kit (host)'],
+		thisFile: ['Arrows (as Arrows pack)', 'Badges (host)', 'Kit (host)'],
 		owners: [
 			['Home', ['Icons']],
 			['Acme', ['Diagrams', 'Wireframes']],
 		],
-		hosts: [['Public libraries', ['Doodles']]],
+		hosts: [['Public libraries', ['Doodles (host)']]],
 	})
 })
 
@@ -116,7 +126,7 @@ it("lists only a host's entries for a source that doesn't add libraries to docum
 	expect(summary(source, [{ id: 'packs', label: 'Packs', entries: [entry('Doodles')] }])).toEqual({
 		thisFile: [],
 		owners: [],
-		hosts: [['Packs', ['Doodles']]],
+		hosts: [['Packs', ['Doodles (host)']]],
 	})
 })
 
@@ -142,8 +152,70 @@ describe('keepBrowsePlacement', () => {
 			getBrowseSections(source, [packs(false)]),
 			getBrowseSections(source, [packs(true)])
 		)
-		expect(summarize(kept).hosts).toEqual([['Public libraries', ['Doodles', 'Badges']]])
-		expect(kept.hosts[0].entries[0].added).toBe(true)
+		expect(summarize(kept).hosts).toEqual([
+			['Public libraries', ['Doodles (host)', 'Badges (host)']],
+		])
+		const [doodles] = kept.hosts[0].libraries
+		expect(doodles.kind === 'host' && doodles.entry.added).toBe(true)
+	})
+
+	describe("a host's entry added as the source's library", () => {
+		const packs = (libraryId?: TLLibraryId) => [
+			{
+				id: 'packs',
+				label: 'Public libraries',
+				entries: [
+					entry('Arrows pack', { added: libraryId !== undefined, libraryId }),
+					entry('Badges'),
+				],
+			},
+		]
+
+		it("takes the entry's place once added", async () => {
+			const { source } = setUp()
+			const shown = getBrowseSections(source, packs())
+			const copy = await source.createLibrary('Copy', { ownerId: 'home' })
+			const kept = keepBrowsePlacement(shown, getBrowseSections(source, packs(copy.id)))
+			expect(summarize(kept)).toMatchObject({
+				thisFile: ['Arrows'],
+				hosts: [['Public libraries', ['Copy (as Arrows pack)', 'Badges (host)']]],
+			})
+		})
+
+		it("takes the entry's place even where the library was listed as available to add first", async () => {
+			const { source } = setUp()
+			const shown = getBrowseSections(source, packs())
+			const copy = await source.createLibrary('Copy', { ownerId: 'home' })
+			await source.removeLibraryFromDocument!(copy.id)
+			const listedFirst = keepBrowsePlacement(shown, getBrowseSections(source, packs()))
+			expect(summarize(listedFirst).owners[0]).toEqual(['Home', ['Icons', 'Copy']])
+
+			await source.addLibraryToDocument!(copy.id)
+			const kept = keepBrowsePlacement(listedFirst, getBrowseSections(source, packs(copy.id)))
+			expect(summarize(kept).hosts).toEqual([
+				['Public libraries', ['Copy (as Arrows pack)', 'Badges (host)']],
+			])
+		})
+
+		it("gives the entry its place back once the library is gone, and keeps it while it's there", async () => {
+			const { source } = setUp()
+			const copy = await source.createLibrary('Copy', { ownerId: 'home' })
+			const shown = getBrowseSections(source, packs(copy.id))
+			expect(summarize(shown).thisFile).toEqual(['Arrows', 'Copy (as Arrows pack)'])
+
+			const changed = keepBrowsePlacement(shown, getBrowseSections(source, packs()))
+			expect(summarize(changed)).toMatchObject({
+				thisFile: ['Arrows', 'Copy'],
+				hosts: [['Public libraries', ['Badges (host)', 'Arrows pack (host)']]],
+			})
+
+			await source.deleteLibrary(copy.id)
+			const removed = keepBrowsePlacement(shown, getBrowseSections(source, packs()))
+			expect(summarize(removed)).toMatchObject({
+				thisFile: ['Arrows', 'Arrows pack (host)'],
+				hosts: [['Public libraries', ['Badges (host)']]],
+			})
+		})
 	})
 
 	it('puts a library first listed while browsing where it belongs, and drops one no longer listed', async () => {
