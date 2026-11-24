@@ -122,13 +122,15 @@ assert(
 	'ZERO_FORCE_DEPLOY must be true or false'
 )
 
-// Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
+// REHEARSAL ONLY, DO NOT MERGE. This preview runs the multinode layout so it can rehearse
+// production's v3 -> v5 -> v3 backup switch. Bump the step and push to move on:
+//   1: RMv1, v3 backups, no trailing slash (production today)
+//   2: the RM on v5 (#11619's deploy)
+//   3: the rollback under test: v5 off, trailing slash kept
+// Each step past 1 also adds a view-syncer on an empty volume, which has to restore from the backup.
+const rehearsalStep = 1 as 1 | 2 | 3
 const deployZero =
-	env.DEPLOY_ZERO === 'false'
-		? false
-		: previewId && env.DEPLOY_ZERO === 'flyio-multinode'
-			? ('flyio' as const)
-			: (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 // For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
 const flyioAppName =
 	deployZero === 'flyio'
@@ -147,7 +149,11 @@ const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
 // Production's RM takes that step alone. View-syncers restore from the URL the RM hands them, with
 // the v5 binary whatever this flag says, so theirs stays off and the step doesn't restart them.
-const zeroRmBackupV5 = zeroBackupV5 || env.TLDRAW_ENV === 'production'
+const zeroRmBackupV5 =
+	zeroBackupV5 || env.TLDRAW_ENV === 'production' || (!!previewId && rehearsalStep === 2)
+// Zero resolves the v5 backup's subfolder, which it keeps in Postgres, against the backup URL, so the
+// slash has to outlive v5: without it a rolled-back RM backs up to the bucket root.
+const zeroRmBackupSlash = zeroRmBackupV5 || (!!previewId && rehearsalStep === 3)
 // Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
 // would redeploy production's zero apps in place.
 const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
@@ -354,7 +360,13 @@ const zeroVmSizes = {
 		vsMinMachines: 13,
 		killTimeout: '5m',
 	},
-	preview: { single: { cpus: 2, memory: '2gb' } },
+	preview: {
+		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '1gb' },
+		volumeSize: '1gb',
+		vsMinMachines: 1,
+		killTimeout: '5m',
+	},
 } as const
 
 const zeroConnectionLimits = {
@@ -368,7 +380,8 @@ const zeroConnectionLimits = {
 	},
 	// Previews use Supabase branch DB
 	preview: {
-		single: { upstream: 3, cvr: 5 },
+		rm: { upstream: 1, cvr: 1 },
+		vs: { upstream: 2, cvr: 3 },
 	},
 } as const
 interface ConnLimits {
@@ -821,7 +834,10 @@ async function deployFlyAppIfChanged({
 	/** Rolls out the config already written to configFile; defaults to `flyctl deploy`. */
 	deploy?(stampedConfig: string): Promise<void>
 }) {
-	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId || env.TLDRAW_ENV === 'staging'
+	const forced =
+		env.ZERO_FORCE_DEPLOY === 'true' ||
+		(!!previewId && rehearsalStep === 1) ||
+		env.TLDRAW_ENV === 'staging'
 	const hash = hashFlyDeployInputs(inputs)
 	const deployed = forced ? null : await getDeployedInputHash(appName)
 	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
@@ -955,7 +971,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	// v5 backups put each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
 	// replaces the env folder and the backup lands at the bucket root.
-	const backupPath = (v5: boolean) => `${previewId ?? env.TLDRAW_ENV}${v5 ? '/' : ''}`
+	const backupPath = (slash: boolean) => `${previewId ?? env.TLDRAW_ENV}${slash ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -971,7 +987,7 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	const rmConfigFile = 'flyio-replication-manager.toml'
 	const rmInputs: FlyDeployInputs = {
-		config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath(zeroRmBackupV5)),
+		config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath(zeroRmBackupSlash)),
 		secrets,
 	}
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
@@ -985,7 +1001,11 @@ async function deployZeroViaFlyIoMultiNode() {
 	// replica, so view-syncers restarted in the same deploy hang on it: on 2026-11-10 that left 5 to
 	// 7 of 13 down for 18 and then 26 minutes. Refused before anything is touched. An RMv2 handoff
 	// keeps the old RM serving until the new one is ready, so it is exempt.
-	if (env.TLDRAW_ENV === 'production' && !zeroRmv2 && env.ZERO_FORCE_DEPLOY !== 'true') {
+	if (
+		(env.TLDRAW_ENV === 'production' || (!!previewId && rehearsalStep > 1)) &&
+		!zeroRmv2 &&
+		env.ZERO_FORCE_DEPLOY !== 'true'
+	) {
 		const pending = async (appName: string, inputs: FlyDeployInputs) => {
 			const deployed = await getDeployedInputHash(appName)
 			return !(deployed.reason === 'stamped' && deployed.hash === hashFlyDeployInputs(inputs))
@@ -1034,7 +1054,14 @@ async function deployZeroViaFlyIoMultiNode() {
 	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
 	await exec(
 		'flyctl',
-		['scale', 'count', String(zeroVm.vsMinMachines), '-a', flyioAppName, '--yes'],
+		[
+			'scale',
+			'count',
+			String(previewId ? rehearsalStep : zeroVm.vsMinMachines),
+			'-a',
+			flyioAppName,
+			'--yes',
+		],
 		{
 			pwd: zeroCacheFolder,
 		}
