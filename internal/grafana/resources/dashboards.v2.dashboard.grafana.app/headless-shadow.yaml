@@ -314,7 +314,7 @@ spec:
                       formatAs: table
                       intervalFactor: 1
                       query: |-
-                        SELECT quantile(0.5)(double9) as p50_ms
+                        SELECT quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -322,7 +322,7 @@ spec:
                         AND blob3 = 'op:measure'
                         AND double9 > 0
                       rawQuery: |-
-                        SELECT quantile(0.5)(double9) as p50_ms
+                        SELECT quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -750,7 +750,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantile(0.95)(double7) as p95_max_delta
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantileExactWeighted(0.95)(double7, _sample_interval) as p95_max_delta
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -760,7 +760,7 @@ spec:
                         GROUP BY date
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantile(0.95)(double7) as p95_max_delta
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, avg(double8) as mean_delta, quantileExactWeighted(0.95)(double7, _sample_interval) as p95_max_delta
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -868,7 +868,7 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantile(0.5)(double9) as p50_ms, quantile(0.95)(double9) as p95_ms
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms, quantileExactWeighted(0.95)(double9, _sample_interval) as p95_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
@@ -878,7 +878,7 @@ spec:
                         GROUP BY date
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantile(0.5)(double9) as p50_ms, quantile(0.95)(double9) as p95_ms
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileExactWeighted(0.5)(double9, _sample_interval) as p50_ms, quantileExactWeighted(0.95)(double9, _sample_interval) as p95_ms
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'render_shadow_compare'
