@@ -1,13 +1,13 @@
 import { InMemorySyncStorage, TLPersistentClientSocket, TLSocketRoom, useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
+	Editor,
 	IndexKey,
 	inlineBase64AssetStore,
 	PageRecordType,
 	TLRecord,
 	Tldraw,
 	uniqueId,
-	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { checkDiff } from './permissions'
@@ -76,22 +76,40 @@ function connectToRoom(userId: string): TLPersistentClientSocket {
 	return client
 }
 
+// Two editors on one page: only the one that you click gets keyboard shortcuts.
+let focusedEditor: Editor | null = null
+function focusEditor(editor: Editor) {
+	if (focusedEditor !== editor) {
+		focusedEditor?.blur()
+		editor.focus()
+		focusedEditor = editor
+	}
+}
+
 function UserEditor({ user }: { user: string }) {
+	const [editor, setEditor] = useState<Editor | null>(null)
 	// useSync reconnects when connect changes
 	const connect = useCallback(() => connectToRoom(user), [user])
 	const store = useSync({ connect, assets: inlineBase64AssetStore })
-	const components = useMemo(() => ({ TopPanel: () => <Status user={user} /> }), [user])
 	return (
-		<div className="permissions-server-editor">
-			<Tldraw store={store} components={components} />
+		<div
+			className="permissions-server-column"
+			onPointerDownCapture={() => editor && focusEditor(editor)}
+		>
+			<div className="permissions-status">
+				<span className="permissions-user">{user}</span>
+				{editor && <Status editor={editor} />}
+			</div>
+			<div className="permissions-server-editor">
+				<Tldraw store={store} autoFocus={false} onMount={setEditor} />
+			</div>
 		</div>
 	)
 }
 
 // [3]
-function Status({ user }: { user: string }) {
-	const editor = useEditor()
-	const [status, setStatus] = useState('Your changes sync to the room')
+function Status({ editor }: { editor: Editor }) {
+	const [status, setStatus] = useState('')
 
 	useEffect(() => {
 		function onRejected({ reason }: { reason: string }) {
@@ -103,14 +121,7 @@ function Status({ user }: { user: string }) {
 		}
 	}, [editor])
 
-	return (
-		<div className="permissions-controls">
-			<div className="tlui-menu permissions-user">{user}</div>
-			<div className="tlui-menu permissions-status" title={status}>
-				{status}
-			</div>
-		</div>
-	)
+	return <span title={status}>{status}</span>
 }
 
 export default function PermissionsServerExample() {

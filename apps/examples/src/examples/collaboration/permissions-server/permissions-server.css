@@ -5,35 +5,34 @@
 	inset: 0;
 }
 
-.permissions-server-editor {
-	position: relative;
+.permissions-server-column {
+	display: flex;
+	flex-direction: column;
 	flex: 1;
+	min-width: 0;
 }
 
-.permissions-controls {
-	display: flex;
-	align-items: flex-start;
-	gap: 8px;
-	margin: 8px;
-	pointer-events: all;
-}
-
-.permissions-user {
-	display: flex;
-	align-items: center;
-	height: 40px;
-	padding: 0 12px;
-}
-
-/* Fixed sizes and one line, so that nothing moves when the status changes */
+/* One line, so that the editor below does not move when the status changes */
 .permissions-status {
 	display: flex;
 	align-items: center;
-	width: 260px;
-	height: 40px;
-	padding: 0 12px;
+	gap: 8px;
+	height: 36px;
+	padding: 0 8px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	color: var(--tl-color-text-3);
+	font-size: 13px;
+}
+
+.permissions-user {
+	padding: 2px 8px;
+	border-radius: 4px;
+	background: hsl(0, 0%, 0%, 6%);
+	font-weight: 600;
+}
+
+.permissions-server-editor {
+	position: relative;
+	flex: 1;
 }
