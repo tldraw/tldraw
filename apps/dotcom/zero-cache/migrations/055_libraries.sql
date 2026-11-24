@@ -66,6 +66,10 @@ CREATE INDEX library_item_object_object_idx ON library_item_object("bucket", "ob
 -- last library_item_object row naming it goes, which happens when items are deleted on their own
 -- or with their library or workspace.
 --
+-- The trigger runs once per statement, cascades included, and checks each object the statement's
+-- deleted rows name once, so a statement that deletes several rows naming one object, such as a
+-- delete of two libraries that share it, queues it once.
+--
 -- The check locks the row it finds, so a transaction deleting that row at the same moment waits
 -- for this one, then finds this one's row gone and queues the object. A row another transaction
 -- has deleted but not committed is locked already: SKIP LOCKED passes over it, rather than waiting
@@ -74,24 +78,29 @@ CREATE INDEX library_item_object_object_idx ON library_item_object("bucket", "ob
 -- object before deleting it, so that is harmless.
 
 CREATE OR REPLACE FUNCTION library_item_object_effect_outbox_fn() RETURNS trigger AS $$
+DECLARE
+	obj RECORD;
 BEGIN
-	PERFORM 1 FROM public.library_item_object
-	WHERE "bucket" = OLD."bucket" AND "objectName" = OLD."objectName"
-	LIMIT 1
-	FOR KEY SHARE SKIP LOCKED;
-	IF NOT FOUND THEN
-		INSERT INTO public.effect_outbox ("tableName", "entityId", command, payload)
-		VALUES (
-			'library_item_object',
-			OLD."bucket" || '/' || OLD."objectName",
-			'delete',
-			jsonb_build_object('bucket', OLD."bucket", 'objectName', OLD."objectName")
-		);
-	END IF;
-	RETURN OLD;
+	FOR obj IN SELECT DISTINCT "bucket", "objectName" FROM deleted LOOP
+		PERFORM 1 FROM public.library_item_object
+		WHERE "bucket" = obj."bucket" AND "objectName" = obj."objectName"
+		LIMIT 1
+		FOR KEY SHARE SKIP LOCKED;
+		IF NOT FOUND THEN
+			INSERT INTO public.effect_outbox ("tableName", "entityId", command, payload)
+			VALUES (
+				'library_item_object',
+				obj."bucket" || '/' || obj."objectName",
+				'delete',
+				jsonb_build_object('bucket', obj."bucket", 'objectName', obj."objectName")
+			);
+		END IF;
+	END LOOP;
+	RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER library_item_object_effect_outbox_after_delete
 AFTER DELETE ON public.library_item_object
-FOR EACH ROW EXECUTE FUNCTION library_item_object_effect_outbox_fn();
+REFERENCING OLD TABLE AS deleted
+FOR EACH STATEMENT EXECUTE FUNCTION library_item_object_effect_outbox_fn();

@@ -155,11 +155,35 @@ describeMaybe('library_item_object effect_outbox trigger', () => {
 		await addItem('copy1', 'c2', [['rooms', 'content-1']])
 		await client.query(`DELETE FROM "group" WHERE "id" = 'g1'`)
 		expect(await client.query(`SELECT 1 FROM library`)).toMatchObject({ rowCount: 0 })
-		expect([...new Set((await outbox()).map((r) => r.entityId))]).toEqual([
+		expect((await outbox()).map((r) => r.entityId)).toEqual([
 			'rooms/content-1',
 			'rooms/content-2',
 			'uploads/thumb-1',
 		])
+	})
+
+	it('queues each object once when one statement deletes two libraries that share it', async () => {
+		await addLibrary('c2')
+		await addItem('copy1', 'c2', [
+			['rooms', 'content-1'],
+			['uploads', 'thumb-1'],
+		])
+		await addItem('copy2', 'c2', [['rooms', 'content-2']])
+		await client.query(`DELETE FROM library WHERE "id" IN ('c1', 'c2')`)
+		expect(await outbox()).toEqual([
+			queued('rooms', 'content-1'),
+			queued('rooms', 'content-2'),
+			queued('uploads', 'thumb-1'),
+		])
+	})
+
+	it('queues an object again when an item names it after its queued delete was processed', async () => {
+		await client.query(`DELETE FROM library_item WHERE "id" = 'i2'`)
+		expect(await outbox()).toEqual([queued('rooms', 'content-2')])
+		await client.query(`DELETE FROM effect_outbox`)
+		await addItem('i3', 'c1', [['rooms', 'content-2']])
+		await client.query(`DELETE FROM library_item WHERE "id" = 'i3'`)
+		expect(await outbox()).toEqual([queued('rooms', 'content-2')])
 	})
 
 	it('queues an object whose last two items are deleted at once by two transactions', async () => {
