@@ -39,7 +39,16 @@ import {
 
 export interface BoardLibrarySourceOptions {
 	id?: string
+	/**
+	 * Gives the document a library of its own under this name: listed while the document can be
+	 * changed even before anything is saved to it, and kept in the document from the first save. It
+	 * can't be renamed or deleted, and no other library can be created in the document; ones it
+	 * already houses stay listed after it.
+	 */
+	documentLibrary?: { name: string }
 }
+
+const DOCUMENT_LIBRARY_ID = LibraryRecordType.createId('document')
 
 /**
  * A source that keeps libraries in the editor's own document, as records next to its shapes, so
@@ -55,18 +64,23 @@ export interface BoardLibrarySourceOptions {
  *
  * Changes don't go on the undo stack, as with comments: saving to a library isn't an edit to the
  * canvas. Nothing can be changed while the editor is read-only. The board doesn't track owners.
+ *
+ * With the `documentLibrary` option, the document has one library of its own, which anyone who
+ * can change the document can save to, rather than any number of libraries.
  */
 export class BoardLibrarySource implements LibrarySource {
 	readonly id: string
 	private readonly libraries: Computed<TLLibrary[]>
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly thumbnailUrls = new Map<TLAssetId, ResolvedUrl>()
+	private readonly documentLibraryName: string | undefined
 
 	constructor(
 		private readonly editor: Editor,
 		options: BoardLibrarySourceOptions = {}
 	) {
 		this.id = options.id ?? 'board'
+		this.documentLibraryName = options.documentLibrary && options.documentLibrary.name
 		for (const typeName of ['library', 'library-item', 'library-item-content']) {
 			if (!editor.store.schema.types[typeName as TLRecord['typeName']]) {
 				throw new Error(
@@ -74,7 +88,16 @@ export class BoardLibrarySource implements LibrarySource {
 				)
 			}
 		}
-		this.libraries = this.query('library')
+		const stored = this.query('library')
+		this.libraries = computed('board libraries', () => {
+			const libraries = stored.get()
+			const name = this.documentLibraryName
+			if (name === undefined) return libraries
+			const own = libraries.find((library) => library.id === DOCUMENT_LIBRARY_ID)
+			const housed = libraries.filter((library) => library.id !== DOCUMENT_LIBRARY_ID)
+			if (!own && this.editor.getIsReadonly()) return housed
+			return [own ? { ...own, name } : createDocumentLibrary(name), ...housed]
+		})
 	}
 
 	getLibraries() {
@@ -161,9 +184,14 @@ export class BoardLibrarySource implements LibrarySource {
 		})
 	}
 
-	can(_action: TLLibraryAction, libraryId?: TLLibraryId) {
+	can(action: TLLibraryAction, libraryId?: TLLibraryId) {
 		if (this.editor.getIsReadonly()) return false
-		return libraryId === undefined || !!this.get<TLLibrary>(libraryId)
+		if (action === 'createLibrary' && this.documentLibraryName !== undefined) return false
+		if (libraryId === undefined) return true
+		if (this.isDocumentLibrary(libraryId)) {
+			return action !== 'renameLibrary' && action !== 'deleteLibrary'
+		}
+		return !!this.get<TLLibrary>(libraryId)
 	}
 
 	// The board doesn't track owners, so a library can't be given one.
@@ -245,7 +273,13 @@ export class BoardLibrarySource implements LibrarySource {
 			content: structuredClone(rest),
 			assetIds: [...new Set(assets.map((asset) => asset.id))],
 		})
-		this.write([...newAssets, ...thumbnailAssetList, item, contentRecord])
+		this.write([
+			...this.unstoredLibrary(libraryId),
+			...newAssets,
+			...thumbnailAssetList,
+			item,
+			contentRecord,
+		])
 		await Promise.all(getThumbnailAssetIds(item).map((id) => this.getResolvedUrl(id)?.ready))
 		return this.toListedItem(item)
 	}
@@ -268,7 +302,7 @@ export class BoardLibrarySource implements LibrarySource {
 		this.assertCan('deleteItem', item.libraryId)
 		this.assertCan('addItem', toLibraryId)
 		if (item.libraryId === toLibraryId) return
-		this.write([{ ...item, libraryId: toLibraryId }])
+		this.write([...this.unstoredLibrary(toLibraryId), { ...item, libraryId: toLibraryId }])
 	}
 
 	// Assets join the document at its current schema, as pasting brings them in.
@@ -389,8 +423,20 @@ export class BoardLibrarySource implements LibrarySource {
 
 	private getLibrary(libraryId: TLLibraryId) {
 		const library = this.get<TLLibrary>(libraryId)
-		if (!library) throw new LibraryNotFoundError(libraryId)
-		return library
+		if (library) return library
+		const name = this.documentLibraryName
+		if (name !== undefined && libraryId === DOCUMENT_LIBRARY_ID) return createDocumentLibrary(name)
+		throw new LibraryNotFoundError(libraryId)
+	}
+
+	private isDocumentLibrary(libraryId: TLLibraryId) {
+		return this.documentLibraryName !== undefined && libraryId === DOCUMENT_LIBRARY_ID
+	}
+
+	// The document's own library, for the write that first saves to it.
+	private unstoredLibrary(libraryId: TLLibraryId): TLLibrary[] {
+		if (!this.isDocumentLibrary(libraryId) || this.get<TLLibrary>(libraryId)) return []
+		return [this.getLibrary(libraryId)]
 	}
 
 	private getItem(itemId: TLLibraryItemId) {
@@ -408,6 +454,10 @@ interface ResolvedUrl {
 	src: string
 	url: Atom<string | undefined>
 	ready: Promise<void>
+}
+
+function createDocumentLibrary(name: string): TLLibrary {
+	return LibraryRecordType.create({ id: DOCUMENT_LIBRARY_ID, name })
 }
 
 function listThumbnail<Src>(thumbnail: TLLibraryThumbnail<Src>): Src[] {

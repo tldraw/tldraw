@@ -511,4 +511,80 @@ describe('BoardLibrarySource', () => {
 		expect(source.can('addItem', library.id)).toBe(false)
 		await expect(source.renameLibrary(library.id, 'No')).rejects.toThrow(LibraryPermissionError)
 	})
+
+	describe("the document's own library", () => {
+		const documentLibrary = { name: 'This board' }
+
+		function setUp() {
+			const editor = makeEditor()
+			const source = new BoardLibrarySource(editor, { documentLibrary })
+			const [own] = source.getLibraries()
+			return { editor, source, own }
+		}
+
+		it('is listed and can be saved to before the document holds it', () => {
+			const { editor, source, own } = setUp()
+			expect(source.getLibraries()).toEqual([own])
+			expect(own.name).toBe('This board')
+			expect(source.can('addItem', own.id)).toBe(true)
+			expect(source.getItems(own.id)).toEqual([])
+			expect(allOfType(editor, 'library')).toEqual([])
+		})
+
+		it('is kept in the document from the first save, with the item', async () => {
+			const { editor, source, own } = setUp()
+			const item = await source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			expect(allOfType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
+			expect(source.getItems(own.id)).toEqual([item])
+			expect(source.getLibraries()).toEqual([own])
+		})
+
+		it('is listed under the name it is given, whatever name it was stored with', async () => {
+			const { editor, source, own } = setUp()
+			await source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			const elsewhere = new BoardLibrarySource(editor, { documentLibrary: { name: 'Ce tableau' } })
+			expect(elsewhere.getLibraries()).toMatchObject([{ id: own.id, name: 'Ce tableau' }])
+		})
+
+		it("can't be renamed or deleted, and no other library can be created", async () => {
+			const { source, own } = setUp()
+			expect(source.can('renameLibrary', own.id)).toBe(false)
+			expect(source.can('deleteLibrary', own.id)).toBe(false)
+			expect(source.can('createLibrary')).toBe(false)
+			await expect(source.deleteLibrary(own.id)).rejects.toThrow(LibraryPermissionError)
+			await expect(source.createLibrary('Kit')).rejects.toThrow(LibraryPermissionError)
+		})
+
+		it('lists the libraries the document already houses after it', async () => {
+			const editor = makeEditor()
+			const kit = await new BoardLibrarySource(editor).createLibrary('Kit')
+			const source = new BoardLibrarySource(editor, { documentLibrary })
+			const [, housed] = source.getLibraries()
+			expect(housed).toEqual(kit)
+			expect(source.can('deleteLibrary', kit.id)).toBe(true)
+		})
+
+		it('takes items moved into it, keeping it from then on', async () => {
+			const editor = makeEditor()
+			const kit = await new BoardLibrarySource(editor).createLibrary('Kit')
+			const source = new BoardLibrarySource(editor, { documentLibrary })
+			const [own] = source.getLibraries()
+			const item = await source.addItem(kit.id, { content: contentOf(editor, [addImage(editor)]) })
+			await source.moveItem(item.id, own.id)
+			expect(source.getItems(own.id)).toEqual([{ ...item, libraryId: own.id }])
+			expect(allOfType(editor, 'library').map((library) => library.id)).toContain(own.id)
+		})
+
+		it('is listed while read-only only once it has been saved to, and takes nothing', async () => {
+			const { editor, source, own } = setUp()
+			editor.updateInstanceState({ isReadonly: true })
+			expect(source.getLibraries()).toEqual([])
+			editor.updateInstanceState({ isReadonly: false })
+			const item = await source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
+			editor.updateInstanceState({ isReadonly: true })
+			expect(source.getLibraries()).toEqual([own])
+			expect(source.getItems(own.id)).toEqual([item])
+			expect(source.can('addItem', own.id)).toBe(false)
+		})
+	})
 })
