@@ -262,6 +262,12 @@ The sync worker needs:
 - `MCP_SERVER_URL` - the MCP server's public URL: the resource identifier advertised in protected resource metadata and pointed at by the `WWW-Authenticate` challenge. **Not** compared against an incoming token — Clerk stamps no `aud`, so there is no audience binding to check; see "Authentication on the MCP server" for what stands in for one. Set in `wrangler.toml` for dev, staging, and production; previews have no entry, so `deploy-dotcom.ts` injects `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp` as a deploy var. Left unset it would be derived from the request's own `Host` header, which is acceptable for local dev and tests only — see `getMcpResourceUrl`.
 - `THUMBNAILS` R2 bucket binding - board thumbnails / OG images (`og/…` keys) and their pending markers. `thumbnails-preview` in dev/preview/staging, `thumbnails` in production.
 
+### The render worker's page
+
+Renders the `thumbnail_render_worker` flag sends to the private render worker (`apps/dotcom/render-worker`) load the render page from that worker, not from the client. `page.vite.config.ts` builds the client's `thumbnail-render` entry into the worker's static assets on every `wrangler dev` and `wrangler deploy`, so the page and the worker that drives it ship together, and `RENDER_PAGE_ORIGIN` points at the worker's own workers.dev host (`https://<worker name>.tldraw.workers.dev`). Local dev is the exception: it captures through the client dev server.
+
+The page has to be served from a tldraw host. The SDK licenses the editor by hostname, and an unlicensed editor unmounts itself five seconds after it mounts, which is inside the time a heavy board takes to render. That rules out handing Browser Run the page as `html`: such a page loads at `about:blank`, which has no hostname and is not a secure context, so no license key can be verified there either. The page is the worker's only public surface; rendering is still reached only through the `RENDER_WORKER` binding.
+
 ### Why two buckets
 
 The MCP tools no longer write `mcp/…` screenshots, so `MCP_DATA_BUCKET` is unbound and its objects expire on their lifecycle rule. What follows is why the two were split, kept because the `og/…` reasoning still holds.

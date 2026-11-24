@@ -27,9 +27,8 @@ export interface Environment extends SentryEnvironment {
 	// and bound on staging only; unbound, the shadow never runs.
 	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
 
-	// Origin serving the render page (THUMBNAIL_RENDER_PATH). For now the client origin, same as
-	// sync-worker's MCP_SCREENSHOT_RENDER_ORIGIN; the worker-owned render page is a later step. Set
-	// per environment in wrangler.toml.
+	// Origin serving the render page (THUMBNAIL_RENDER_PATH): this worker's own workers.dev host where
+	// it is deployed, the client's dev server in local dev. Set per environment in wrangler.toml.
 	RENDER_PAGE_ORIGIN: string | undefined
 
 	// Development only: a local HTTP screenshot service (the client dev server's Playwright endpoint)

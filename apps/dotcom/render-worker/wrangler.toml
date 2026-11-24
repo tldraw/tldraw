@@ -7,10 +7,20 @@ compatibility_flags = ["nodejs_compat"]
 [dev]
 port = 8790
 
-# This worker has NO routes and no custom domain, deliberately: it is reached only through
-# sync-worker's RENDER_WORKER service binding (the RenderWorker entrypoint). A direct HTTP request
-# gets a 404 (see the worker's fetch handler). That is the "no public routes" property — the render
-# page, the Browser Run calls, and the token-free push all live behind the binding.
+# The render page, built from the client's thumbnail-render entry (page.vite.config.ts) and served by
+# this worker as static assets, so the page and the worker that drives it deploy as one.
+[build]
+command = "pnpm build-page"
+
+[assets]
+directory = "./.page"
+
+# The page is served on workers.dev, and it has to be a tldraw host: the SDK licenses the editor by
+# hostname, and an unlicensed one blanks itself five seconds after it mounts. That page is this
+# worker's whole public surface. Rendering is reached only through sync-worker's RENDER_WORKER
+# service binding (the RenderWorker entrypoint); any other HTTP request gets a 404 (see the worker's
+# fetch handler).
+workers_dev = true
 
 #################### Environment names ####################
 
@@ -22,8 +32,9 @@ name = "dev-tldraw-render-worker"
 # endpoint instead of the BROWSER binding — exactly as sync-worker does. Deployed environments leave
 # this unset and use the BROWSER binding.
 LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
-# The origin serving the render page. Mirrors sync-worker's MCP_SCREENSHOT_RENDER_ORIGIN; the
-# worker-owned render page is a later step, so for now this points at the client.
+# The origin serving the render page. In dev that is the client's dev server, which is where the
+# local screenshot service above captures from whatever this says. Deployed environments point at
+# this worker's own workers.dev host.
 RENDER_PAGE_ORIGIN = "http://localhost:3000"
 
 # preview has no hard-coded name; the deploy script generates it at build time (as for sync-worker).
@@ -32,13 +43,13 @@ RENDER_PAGE_ORIGIN = "http://localhost:3000"
 name = "staging-tldraw-render-worker"
 
 [env.staging.vars]
-RENDER_PAGE_ORIGIN = "https://staging.tldraw.com"
+RENDER_PAGE_ORIGIN = "https://staging-tldraw-render-worker.tldraw.workers.dev"
 
 [env.production]
 name = "tldraw-render-worker"
 
 [env.production.vars]
-RENDER_PAGE_ORIGIN = "https://www.tldraw.com"
+RENDER_PAGE_ORIGIN = "https://tldraw-render-worker.tldraw.workers.dev"
 
 #################### Browser Rendering (Quick Actions) ####################
 # Named environments do not inherit the top-level binding, so it is repeated per environment.
