@@ -2,6 +2,8 @@ import {
 	McpPageLookup,
 	McpPageRead,
 	TAB_RENDER_DECLINE_REASONS,
+	TAB_RENDER_MAX_EXPORT_TEXT_SHAPES,
+	TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE,
 	TabRenderApplyOpsRequest,
 	TabRenderReply,
 	TabRenderRequest,
@@ -132,6 +134,10 @@ function writeTabRenderReplyRefusalTelemetry(
 	})
 }
 
+// A resend without a batchKey makes new shapes, so the agent must check first or it duplicates them.
+const BEFORE_RESENDING =
+	'To retry, send them again with the same batchKey; without one, check the board before sending them again.'
+
 const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], string> = {
 	editor_not_ready: 'The board is still loading in the browser tab. Try again in a moment.',
 	page_missing:
@@ -140,8 +146,7 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 		'The browser tab is showing a different page, and this only works on the page in view. Ask the user to switch to that page, then try again.',
 	shapes_missing:
 		'Those shapes are no longer on the page. Call get_page_info for the current clusters.',
-	too_many_shapes:
-		'That is too many shapes to capture at once without interrupting the user. Ask for fewer clusters.',
+	too_many_shapes: `Those clusters are too much to draw at once without interrupting the user: one screenshot fits about ${TAB_RENDER_MAX_EXPORT_TEXT_SHAPES} shapes with text, or ${TAB_RENDER_MAX_EXPORT_TEXT_SHAPES * TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE} without. Ask for fewer clusters.`,
 	busy: 'The user is busy in the browser tab. Try again in a moment.',
 	export_timed_out:
 		'The picture took too long to draw, usually while images load. Try again in a moment.',
@@ -149,8 +154,14 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	read_only: 'You have view-only access to this board, so it cannot be edited.',
 	tab_hidden:
 		'The board is open, but not in the tab the user is looking at, so nothing was done. Ask the user to switch to the board, then try again.',
-	apply_failed:
-		'The browser tab hit an error partway through, so these ops may or may not have applied. Check the board before sending them again.',
+	apply_failed: `The browser tab hit an error partway through, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
+	unconfirmed: `The browser tab applied these ops, but the server has not confirmed them yet, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
+	already_applied:
+		'A batch with this batchKey has already been applied, so nothing was done. Use a new batchKey for new work.',
+	batch_unresolved:
+		'The first attempt at this batch is in a browser tab that cannot be reached right now, and that tab may still send it, so it was not run again. Ask the user to bring the tab with this board back, then try again with the same batchKey. Do not send these ops with a new batchKey: if the first attempt lands later, they would apply twice. Only if the user closed that tab, which loses edits it had not sent, is it safe to send them again with a new batchKey.',
+	batch_key_reused:
+		'This batchKey was already used for different ops, so nothing was done. Use a new batchKey for each batch.',
 	failed: 'The browser tab could not do that. Try again in a moment.',
 }
 
@@ -171,6 +182,11 @@ function describeFailure(
 			return {
 				message: `This board is not open in a browser tab, and this tool works through the user's open tab. Ask the user to open ${boardUrl} and keep it open, then try again.`,
 				reason: 'tab_not_open',
+			}
+		case 'tab_suspended':
+			return {
+				message: `The browser suspended the tab with ${boardUrl} open, which it does to tabs left in the background, so nothing was done. Ask the user to click on that tab, then try again.`,
+				reason: 'tab_suspended',
 			}
 		case 'reload_needed':
 			return {
@@ -207,8 +223,7 @@ const NOT_REACHED_MESSAGE = 'The board could not be reached. Try again in a mome
 // telling the agent nothing happened is how it lands twice.
 function mayHaveApplied(status: string) {
 	return {
-		message:
-			'The browser tab did not report back, so these ops may or may not have applied. Check the board before sending them again.',
+		message: `The browser tab did not report back, so these ops may or may not have applied. ${BEFORE_RESENDING}`,
 		reason: `tab_${status}`,
 	}
 }

@@ -19,6 +19,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		mcp_render_push: { enabled: false },
 		headless_shadow: { enabled: false },
 		ui_v3: { enabled: false },
+		mcp_hidden_tab: { enabled: false },
 		...overrides,
 	}
 }
