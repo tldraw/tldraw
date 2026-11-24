@@ -1,6 +1,6 @@
 import { computed, type Computed } from '@tldraw/state'
 import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
-import { copyLibrary, copyItem } from './copyLibrary'
+import { copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -23,7 +23,7 @@ export interface CompositeLibrarySourcePart {
 	 *
 	 * Parts can name the same owner, to list their libraries together, such as an app's generated
 	 * libraries beside a workspace's own. The owner is listed once, as the first part naming it
-	 * gives it, and libraries created for it, or moved or copied to it, go to that first part.
+	 * gives it, and libraries created for it, or copied to it, go to that first part.
 	 */
 	owner?: TLLibraryOwner
 	source: LibrarySource
@@ -181,23 +181,6 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	deleteItem(itemId: TLLibraryItemId) {
 		return this.getItemPart(itemId).part.source.deleteItem(itemId)
-	}
-
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
-		const from = this.getLibraryPart(libraryId)
-		const to = this.getOwnerPart(ownerId)
-		if (from === to) {
-			if (from.owner) return
-			if (!from.source.moveLibrary) {
-				throw new Error(`Source ${from.source.id} can't move libraries`)
-			}
-			return from.source.moveLibrary(libraryId, ownerId)
-		}
-		if (!from.source.can('deleteLibrary', libraryId)) {
-			throw new LibraryPermissionError('deleteLibrary', libraryId)
-		}
-		await copyLibrary(this, libraryId, ownerId)
-		await from.source.deleteLibrary(libraryId)
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {

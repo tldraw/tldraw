@@ -35,7 +35,6 @@ export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,
 	type LibraryMenuCopy,
-	type LibraryMenuMove,
 	type LibraryMenuProps,
 	type LibraryMenuSort,
 } from './ui/library-menu'

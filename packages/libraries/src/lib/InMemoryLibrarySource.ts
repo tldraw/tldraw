@@ -36,7 +36,7 @@ export interface InMemoryLibrarySourceOptions {
 	}
 	/**
 	 * Who libraries can belong to. Leave out for a source without owners, whose libraries can't
-	 * be moved, or for a subclass that lists its own by overriding `getLibraryOwners`. When
+	 * be copied to another owner, or for a subclass that lists its own by overriding `getLibraryOwners`. When
 	 * given, the starting data and default owner are checked against them.
 	 */
 	owners?: TLLibraryOwner[]
@@ -246,14 +246,6 @@ export class InMemoryLibrarySource implements LibrarySource {
 		this.assertCan('addItem', toLibraryId)
 		if (item.libraryId === toLibraryId) return
 		this.store.put([{ ...item, libraryId: toLibraryId }])
-	}
-
-	// Items point at their library, not its owner, so they move with it.
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
-		const library = this.getLibrary(libraryId)
-		if (!this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
-		if (library.ownerId === ownerId) return
-		this.store.put([{ ...library, ownerId }])
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */

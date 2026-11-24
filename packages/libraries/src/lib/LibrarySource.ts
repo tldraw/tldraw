@@ -129,11 +129,6 @@ export interface LibrarySource {
 	 * out, or returning undefined, the source decides.
 	 */
 	getDefaultOwnerId?(): string | undefined
-	/**
-	 * Gives a library to another owner. Its items stay in it. Optional: sources that don't track
-	 * owners, or can't move libraries between them, leave it out.
-	 */
-	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

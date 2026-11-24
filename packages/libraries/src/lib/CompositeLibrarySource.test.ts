@@ -171,13 +171,6 @@ describe('CompositeLibrarySource', () => {
 		expect(team.getLibraries()).toHaveLength(1)
 	})
 
-	it("won't move a library out of a read-only part, and copies nothing", async () => {
-		const { source, mine, kits } = setUp()
-		await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
-		expect(mine.getLibraries()).toEqual([])
-		expect(kits.getLibraries()).toHaveLength(1)
-	})
-
 	it("copies a read-only part's library into a writable part, leaving the original", async () => {
 		const { source, mine, kits } = setUp()
 		await copyLibrary(source, wireframing, 'home')
@@ -192,17 +185,6 @@ describe('CompositeLibrarySource', () => {
 			['Wireframing', 'home'],
 			['Wireframing', 'tldraw'],
 		])
-	})
-
-	it('moves a library between writable parts', async () => {
-		const { source, mine, team } = setUp()
-		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
-		await source.addItem(kit.id, { name: 'Star', content: content('star') })
-		await source.moveLibrary(kit.id, 'acme')
-		expect(mine.getLibraries()).toEqual([])
-		const [moved] = team.getLibraries()
-		expect(moved.name).toBe('Kit')
-		expect(team.getItems(moved.id).map((item) => item.name)).toEqual(['Star'])
 	})
 
 	it('moves an item between parts by copying it and deleting the original', async () => {
@@ -239,14 +221,11 @@ describe('CompositeLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBe('acme')
 			const kit = await source.createLibrary('Kit')
 			expect(kit.ownerId).toBe('acme')
-			await source.moveLibrary(kit.id, 'home')
-			expect(mine.getLibraries()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
-		})
-
-		it("won't move a read-only part's library to one of its owners", async () => {
-			const { source, mine } = setUpOwned()
-			await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
-			expect(mine.getLibraries()).toEqual([])
+			const home = await source.createLibrary('Home kit', { ownerId: 'home' })
+			expect(mine.getLibraries()).toMatchObject([
+				{ id: kit.id, ownerId: 'acme' },
+				{ id: home.id, ownerId: 'home' },
+			])
 		})
 
 		it("copies a read-only part's library to one of its owners", async () => {
@@ -296,7 +275,6 @@ describe('CompositeLibrarySource', () => {
 			const copy = await copyLibrary(source, wireframing, 'acme')
 			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id, copy.id])
 			expect(generated.getLibraries()).toHaveLength(1)
-			await expect(source.moveLibrary(wireframing, 'acme')).rejects.toThrow(LibraryPermissionError)
 		})
 	})
 
