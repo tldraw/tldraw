@@ -13,7 +13,7 @@ import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getContentTooNewToast } from './content-too-new-toast'
 import { getCopyOwners } from './copy-owners'
-import { renamingLibraryId } from './state'
+import { activeLibraryId, renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	copyName: { id: 'libraries.copy-name', defaultMessage: '{name} (Copy)' },
@@ -97,11 +97,13 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
 		copyLibrary(source, libraryId, ownerId, {
 			getName: (name) => msg(messages.copyName, { name }),
 		}).then(
-			() =>
+			(copy) => {
+				activeLibraryId.set(editor, copy.id)
 				addToast({
 					title: msg(messages.copiedTitle),
 					description: owner && msg(messages.copiedDescription, { name: owner.name }),
-				}),
+				})
+			},
 			(error) => {
 				const tooNew = getContentTooNewToast(error, msg)
 				if (tooNew) addToast(tooNew)
