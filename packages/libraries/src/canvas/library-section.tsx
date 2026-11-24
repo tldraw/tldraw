@@ -73,12 +73,16 @@ export function LibrarySection({
 
 	const { ordering, reversed } = useItemOrdering(source)
 	const menuId = `libraries-library-menu-${libraryId}`
-	const isDocumentLibrary = useValue(
-		'is document library',
-		() => !!source.getLibraryPlacement && source.getLibraryPlacement(libraryId) === 'document',
+	const isFixedLibrary = useValue(
+		'is fixed library',
+		() => {
+			if (!source.getLibraryPlacement) return false
+			const placement = source.getLibraryPlacement(libraryId)
+			return placement === 'document' || placement === 'default'
+		},
 		[source, libraryId]
 	)
-	const hasMenu = !!LibraryMenu && !isDocumentLibrary
+	const hasMenu = !!LibraryMenu && !isFixedLibrary
 	const opensMenu = hasMenu && !isRenaming
 	const contextMenu = getContextMenuHandlers((opener, point) =>
 		openContextMenu(editor, menuId, { opener, point })
