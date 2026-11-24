@@ -134,7 +134,7 @@ export function MenuSubmenu({
 			>
 				<TldrawUiDropdownMenuSubTrigger label={label} />
 			</div>
-			<TldrawUiDropdownMenuSubContent alignOffset={-4} sideOffset={0}>
+			<TldrawUiDropdownMenuSubContent alignOffset={-2} sideOffset={0}>
 				<TldrawUiDropdownMenuGroup className="tlui-libraries-menu__submenu">
 					{children}
 				</TldrawUiDropdownMenuGroup>
