@@ -75,7 +75,6 @@ beforeEach(() => {
 		thumbnail_render_push: { enabled: false },
 		mcp_render_push: { enabled: false },
 		headless_shadow: { enabled: false },
-		headless_screenshot_shadow: { enabled: false },
 		ui_v3: { enabled: false },
 		mcp_hidden_tab: { enabled: false },
 	} satisfies FeatureFlags)

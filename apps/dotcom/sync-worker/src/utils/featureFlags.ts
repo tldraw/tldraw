@@ -70,21 +70,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 		},
 		headless_shadow: {
 			type: 'percentage',
-			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. Bucketed per user:
-			// the sync worker passes the caller's user id, so a stable sample of accounts runs the shadow.
+			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. One percentage, two
+			// ids: MCP reads bucket by the caller's user id, OG and thumbnail renders by the board's kind and
+			// slug, so a stable sample of accounts and of boards runs the shadow.
 			percentage: 0,
 			enabled: true,
 			description:
-				'Runs the headless editor over an MCP page read in shadow mode, off the critical path, and records how its clustering compares with the open tab. Does nothing unless the HEADLESS_WORKER binding is present. Bucketed per user. A change lands within about a minute',
-		},
-		headless_screenshot_shadow: {
-			type: 'percentage',
-			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. Bucketed per board,
-			// as thumbnail_render_push is, so a board's renders are either all compared or none are.
-			percentage: 0,
-			enabled: true,
-			description:
-				'Has the render worker draw OG and thumbnail renders with the headless editor too, off the critical path, and record how the two images and their timings compare. Does nothing unless the HEADLESS_WORKER binding is present. Bucketed per BOARD: the sync worker passes the board kind and slug as the id. A change lands within about a minute',
+				'Runs the headless editor in shadow mode, off the critical path: over MCP page reads, recording how its clustering compares with the open tab, and over OG and thumbnail renders, recording how its image and timing compare with Browser Run. Does nothing unless the HEADLESS_WORKER binding is present. MCP reads are bucketed per user, renders per BOARD (kind and slug). A change lands within about a minute',
 		},
 		ui_v3: {
 			type: 'allowlist',
@@ -448,10 +440,6 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 	})
 }
 
-// Both shadows need a headless worker. sync-worker's own HEADLESS_WORKER binding stands in for the
-// render worker's: the two are bound in the same environments (staging only).
-const HEADLESS_FLAGS = new Set<string>(['headless_shadow', 'headless_screenshot_shadow'])
-
 /**
  * Every flag's stored value, unevaluated — the admin view. Does NOT evaluate per-user: the stored
  * percentage, enabled and user list are returned as-is.
@@ -467,11 +455,11 @@ export async function getAllFeatureFlagValues(
 
 	await Promise.all(
 		FEATURE_FLAG_KEYS.map(async (key) => {
-			// The headless shadows only do anything where HEADLESS_WORKER is bound (staging today). A flag
+			// headless_shadow only does anything where HEADLESS_WORKER is bound (staging today). A flag
 			// that cannot act is a control that misleads, so it is hidden from the admin panel until the
 			// binding exists in this environment, and reappears the moment the worker is bound there.
 			// See headlessShadow.ts.
-			if (HEADLESS_FLAGS.has(key) && !env.HEADLESS_WORKER) return
+			if (key === 'headless_shadow' && !env.HEADLESS_WORKER) return
 			flags[key] = await readFeatureFlag(env, key)
 		})
 	)

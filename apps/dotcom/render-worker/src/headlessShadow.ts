@@ -10,7 +10,7 @@ import { Environment } from './types'
 //
 // Runs only in `ctx.waitUntil`, and swallows every failure into a telemetry row, so it can never
 // change or delay a render. Inert unless HEADLESS_WORKER is bound (staging only) and sync-worker's
-// `headless_screenshot_shadow` flag picked the board.
+// `headless_shadow` flag picked the board.
 
 /** The headless worker's `compare` call, copied from its own contract. Keep them in step by hand. */
 export interface HeadlessCompareRequest {

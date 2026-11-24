@@ -1009,7 +1009,7 @@ spec:
             transformations: []
         description: >-
           OG and thumbnail renders the render worker also drew with the headless editor (op:screenshot,
-          reference:browser_run), sampled per board by the headless_screenshot_shadow flag.
+          reference:browser_run), sampled per board by the headless_shadow flag.
         id: 10
         links: []
         title: Screenshot comparisons

@@ -244,8 +244,8 @@ async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
 // are either all compared or none are.
 async function isHeadlessScreenshotShadowFor(env: Environment, job: ThumbnailRenderJob) {
 	if (!env.HEADLESS_WORKER || job.surface === 'mcp') return false
-	const flag = await getFeatureFlagValue(env, 'headless_screenshot_shadow')
-	return evaluateFlagForUser(flag, 'headless_screenshot_shadow', `${job.kind}/${job.slug}`)
+	const flag = await getFeatureFlagValue(env, 'headless_shadow')
+	return evaluateFlagForUser(flag, 'headless_shadow', `${job.kind}/${job.slug}`)
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {

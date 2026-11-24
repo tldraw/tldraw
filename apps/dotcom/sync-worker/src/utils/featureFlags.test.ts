@@ -648,14 +648,12 @@ describe('getAllFeatureFlagValues', () => {
 		])
 	})
 
-	it('lists the headless shadow flags only where HEADLESS_WORKER is bound', async () => {
+	it('lists headless_shadow only where HEADLESS_WORKER is bound', async () => {
 		const unbound = await getAllFeatureFlagValues(makeEnv() as any)
 		expect(unbound).not.toHaveProperty('headless_shadow')
-		expect(unbound).not.toHaveProperty('headless_screenshot_shadow')
 
 		const bound = await getAllFeatureFlagValues({ ...makeEnv(), HEADLESS_WORKER: {} } as any)
 		expect(bound).toHaveProperty('headless_shadow')
-		expect(bound).toHaveProperty('headless_screenshot_shadow')
 	})
 })
 

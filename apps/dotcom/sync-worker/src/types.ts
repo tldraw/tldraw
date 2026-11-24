@@ -194,7 +194,7 @@ export interface Environment {
 
 	// The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
 	// Bound on staging only. Its presence also stands in for the render worker's own binding when
-	// sync-worker decides to sample a screenshot (`headless_screenshot_shadow`). Typed as the RPC surface
+	// sync-worker decides to sample a screenshot (`headless_shadow`). Typed as the RPC surface
 	// rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for its branding,
 	// which is deployed separately and would pull the worker in as a build dependency.
 	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
