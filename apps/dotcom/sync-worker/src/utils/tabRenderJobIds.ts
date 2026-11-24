@@ -7,7 +7,7 @@ import { base64UrlDecode, base64UrlEncode } from './base64'
 // in the worker and never reaches the object, and so is a real one replayed after it expires.
 //
 // Keyed off MCP_SCREENSHOT_TOKEN_SECRET, which every deployment already has. The prefix keeps a job
-// id from ever passing as a render token signature, or the reverse.
+// id from ever passing as any other signature made with that secret.
 const SIGNED_PREFIX = 'mcp-tab-render-job:'
 
 const NONCE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/

@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getBoardThumbnail } from './getBoardThumbnail'
 import { getOgImageCacheKey } from './ogImageQueue'
-import { makeFakeThumbnailsBucket, makeScreenshotTestEnv } from './screenshotTestHelpers'
+import {
+	makeFakeThumbnailsBucket,
+	makeScreenshotTestEnv,
+	screenshotOf,
+} from './screenshotTestHelpers'
 
 vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
 	...(await importOriginal<typeof import('../../utils/tla/getAuth')>()),
@@ -127,7 +131,7 @@ describe('getBoardThumbnail', () => {
 		const response = await getBoardThumbnail(makeRequest(), env)
 
 		expect(response.status).toBe(404)
-		expect((env.BROWSER as any).quickAction).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	it('rejects an over-long board id without resolving it', async () => {

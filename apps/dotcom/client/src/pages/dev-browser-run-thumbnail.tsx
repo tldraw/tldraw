@@ -26,7 +26,7 @@ type FixtureName = keyof typeof fixtures
 
 // Dev-only fixture variant of the production thumbnail render page. It renders allowlisted
 // example snapshots from plain query params so render behavior can be iterated on locally
-// without a sync worker, published file, or signed render token. There is no worker to upload
+// without a sync worker or a published file. There is no worker to upload
 // to here, so the editor.toImage output is shown as a full-viewport <img> (making a screenshot
 // of this page pixel-identical to the export) and exposed as a data URL for the capture script.
 export function Component() {

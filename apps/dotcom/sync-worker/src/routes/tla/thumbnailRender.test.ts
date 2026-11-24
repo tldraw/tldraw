@@ -2,7 +2,7 @@ import { getShapeClusters } from '@tldraw/dotcom-shared'
 import { describe, expect, it } from 'vitest'
 import { enumerateBoardPages } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
-import { buildThumbnailRenderUrl, summarizeSnapshotContent } from './thumbnailRender'
+import { summarizeSnapshotContent } from './thumbnailRender'
 
 describe('enumerateBoardPages', () => {
 	it('lists pages in fractional-index order with names and content flags', () => {
@@ -18,14 +18,6 @@ describe('enumerateBoardPages', () => {
 			{ index: 1, id: 'page:b', name: 'Ideas', hasContent: true },
 			{ index: 2, id: 'page:c', name: 'Page 3', hasContent: false },
 		])
-	})
-})
-
-describe('buildThumbnailRenderUrl', () => {
-	it('builds the render page URL with the token', () => {
-		const url = new URL(buildThumbnailRenderUrl('https://render.example', 'the-token'))
-		expect(url.pathname).toBe('/__thumbnail-render')
-		expect(url.searchParams.get('token')).toBe('the-token')
 	})
 })
 

@@ -645,9 +645,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
 			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
 			MCP_SCREENSHOT_TOKEN_SECRET: env.MCP_SCREENSHOT_TOKEN_SECRET,
-			// Previews render thumbnails from their own client origin. Staging and production set
-			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
-			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
+			// The client origin this worker builds public URLs from. Staging and production set
+			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry.
 			...(previewId
 				? {
 						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
@@ -655,7 +654,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 						// Staging opts in through its own wrangler.toml vars block; production stays on the
 						// export until the trial is judged. Injected here because previews have no such block.
 						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
-						THUMBNAIL_RENDER_PUSH: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml
@@ -703,7 +701,7 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 }
 
 async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
-	// Deployed to dev, staging and production. Not to previews: they stay on the local render path (no
+	// Deployed to dev, staging and production. Not to previews: they render no thumbnails (no
 	// RENDER_WORKER binding injected), so the worker is validated on staging rather than per-PR.
 	if (previewId) {
 		nicelog('skipping render-worker deploy for previews')

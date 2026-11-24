@@ -7,7 +7,7 @@
 import type { ThumbnailSnapshotResponseBody } from './types'
 
 // The render page marks a terminal state on <body>/<html>: success sets data-thumbnail-ready once
-// the exported image has painted; any failure (bad token, snapshot load, export, or image decode)
+// the exported image has painted; any failure (no pushed job, snapshot load, export, or image decode)
 // sets data-thumbnail-error. The screenshot wait resolves on EITHER, so a failed render returns as
 // soon as it errors instead of burning the whole render timeout holding scarce Browser Run
 // capacity.

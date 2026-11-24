@@ -4,7 +4,7 @@ import { isLocalWorkerRequest, ownOrigin, parseRequest } from './vite-thumbnail-
 const worker = { socket: { remoteAddress: '127.0.0.1' }, headers: { host: 'localhost:3000' } }
 
 const body = {
-	url: 'https://anywhere.example/__thumbnail-render?token=t',
+	url: 'https://anywhere.example/__thumbnail-render?push=1',
 	waitForSelector: { selector: '[data-thumbnail-ready]' },
 	selector: 'body',
 	gotoOptions: { timeout: 1000 },
@@ -41,7 +41,7 @@ describe('isLocalWorkerRequest', () => {
 describe('parseRequest', () => {
 	it("opens the render page on the dev server's own origin, whatever host the body names", () => {
 		const request = parseRequest(body, ownOrigin({ port: 3000 }), 'screenshot')
-		expect(request.url).toBe('http://localhost:3000/__thumbnail-render?token=t')
+		expect(request.url).toBe('http://localhost:3000/__thumbnail-render?push=1')
 		expect(request.injectedScripts).toEqual(['window.x = 1'])
 	})
 

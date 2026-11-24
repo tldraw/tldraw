@@ -13,7 +13,6 @@ import {
 	OgImageRenderReason,
 	ThumbnailBoardRef,
 } from '../../types'
-import { deleteRenderTokenRecord } from '../../utils/renderTokens'
 import { enumerateBoardPages } from './boardTools'
 import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import {
@@ -145,7 +144,8 @@ export async function enqueueOgImageRender(
 		firedAt?: number
 	}
 ): Promise<EnqueueOgImageResult> {
-	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
+	// No render worker means nothing could draw the job: previews bind none and render no thumbnails.
+	if (!env.THUMBNAILS || !env.QUEUE || !env.RENDER_WORKER) return 'unavailable'
 
 	const pendingKey = getOgImagePendingKey(board)
 	if (isMarkerAlive(await env.THUMBNAILS.head(pendingKey))) {
@@ -219,9 +219,7 @@ export async function deleteBoardThumbnails(
 	// A file with no published slug never had a published key to delete, and deriving one from an empty
 	// slug would address `og/published//light.png` — some other board's neighbourhood, not this one's.
 	if (publishedSlug) boards.push({ kind: 'published', slug: publishedSlug })
-	await Promise.all(
-		boards.flatMap((board) => [deleteOgImage(env, board), deleteRenderTokenRecord(env, board)])
-	)
+	await Promise.all(boards.map((board) => deleteOgImage(env, board)))
 }
 
 /**
@@ -239,6 +237,8 @@ export async function enqueuePublishThumbnailRender(
 	publishedSlug: string,
 	reportProblem: (error: unknown) => void
 ): Promise<void> {
+	// A deployment that renders no thumbnails by design has no problem to report.
+	if (!env.RENDER_WORKER) return
 	const board: ThumbnailBoardRef = { kind: 'published', slug: publishedSlug }
 	// An in-place republish reuses the slug, so a cooldown armed against the previous snapshot's
 	// failure would otherwise outlive the snapshot it was evidence about and block the new one's
@@ -338,9 +338,7 @@ export async function handleOgImageRenderMessage(
 		//
 		// `file` is the row the resolve above already gated on, handed back so this read re-applies the
 		// gate without asking Postgres the same question a second time. Safe precisely here: the two are
-		// microseconds apart in one function, where a re-read would return the row we already hold. The
-		// render page's own read (getThumbnailSnapshot) deliberately does not do this — it is a separate
-		// request, and its re-read is what makes an un-share land inside the token's window.
+		// microseconds apart in one function, where a re-read would return the row we already hold.
 		const snapshot = await loadBoardSnapshot(env, board, { access: 'render', file: board.file })
 		if (!snapshot) {
 			// No persisted content. The render page reads the snapshot through the same functions, so it
@@ -385,16 +383,12 @@ export async function handleOgImageRenderMessage(
 			}
 		}
 
-		// The render page exports the chosen page; the worker screenshots it through the BROWSER
-		// binding and writes the PNG to the cache key the OG route reads.
+		// The render worker draws the chosen page; the PNG goes to the cache key the OG route reads.
 		const render = await captureThumbnailScreenshot(env, board, {
-			surface: 'og',
 			pageId,
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
-			// `source` is the telemetry surface, not the render pipeline: these sessions belong to the
-			// queue's ledger even though the job is signed for the og pipeline.
 			telemetry: { source: 'queue', reason },
 			content: summarizeSnapshotContent(snapshot, pageId),
 			snapshot,
