@@ -44,12 +44,18 @@ export function RenameInput({
 		latestOnCancel.current = onCancel
 	})
 	// Escape cancels here before a dialog around the input sees it, as the dialog would close too.
+	// Enter's default is cancelled, or once focus returns to the name, the key would also press it.
 	useEffect(() => {
 		const input = inputRef.current
 		const win = input && input.ownerDocument.defaultView
 		if (!input || !win) return
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key !== 'Escape' || e.target !== input || e.isComposing) return
+			if (e.target !== input || e.isComposing) return
+			if (e.key === 'Enter') {
+				e.preventDefault()
+				return
+			}
+			if (e.key !== 'Escape') return
 			e.preventDefault()
 			e.stopPropagation()
 			if (finished.current) return
