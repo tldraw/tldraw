@@ -926,7 +926,7 @@
 	border-radius: var(--tl-radius-1);
 }
 
-.tlui-libraries-details__facts > dd:has(.tlui-input__wrapper) {
+.tlui-libraries-details__facts > dd:has(.tlui-input__wrapper, .tlui-libraries-details__name) {
 	overflow: visible;
 }
 
