@@ -1,5 +1,19 @@
 import { useEffect } from 'react'
-import { atom, Editor, TLCheckDiff, Tldraw, TLShape, useEditor, useToasts, useValue } from 'tldraw'
+import {
+	atom,
+	Editor,
+	TLCheckDiff,
+	Tldraw,
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	TLShape,
+	useEditor,
+	useToasts,
+	useValue,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import './permissions-client-only.css'
 
@@ -64,17 +78,22 @@ function Controls() {
 	}, [editor, addToast])
 
 	return (
-		<div className="tlui-menu permissions-controls">
-			<label>
-				Act as{' '}
-				<select value={user} onChange={(e) => currentUser.set(e.currentTarget.value)}>
-					<option value="alice">alice</option>
-					<option value="bob">bob</option>
-				</select>
-			</label>
-			<span className="permissions-status" title={status}>
+		<div className="permissions-controls">
+			<div className="tlui-menu permissions-user">
+				<span>Act as</span>
+				<TldrawUiSelect id="act-as" value={user} onValueChange={(value) => currentUser.set(value)}>
+					<TldrawUiSelectTrigger>
+						<TldrawUiSelectValue placeholder="User">{user}</TldrawUiSelectValue>
+					</TldrawUiSelectTrigger>
+					<TldrawUiSelectContent>
+						<TldrawUiSelectItem value="alice" label="alice" />
+						<TldrawUiSelectItem value="bob" label="bob" />
+					</TldrawUiSelectContent>
+				</TldrawUiSelect>
+			</div>
+			<div className="tlui-menu permissions-status" title={status}>
 				{status}
-			</span>
+			</div>
 		</div>
 	)
 }

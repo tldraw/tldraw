@@ -1,15 +1,26 @@
 .permissions-controls {
 	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	width: 240px;
+	align-items: flex-start;
+	gap: 8px;
 	margin: 8px;
-	padding: 8px;
 	pointer-events: all;
 }
 
-/* One line with a fixed width, so that the panel does not change size when the status changes */
+.permissions-user {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 132px;
+	padding-left: 12px;
+}
+
+/* Fixed sizes and one line, so that nothing moves when the status changes */
 .permissions-status {
+	display: flex;
+	align-items: center;
+	width: 260px;
+	height: 40px;
+	padding: 0 12px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
