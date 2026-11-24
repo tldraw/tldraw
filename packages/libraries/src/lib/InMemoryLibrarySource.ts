@@ -323,8 +323,9 @@ export class InMemoryLibrarySource implements LibrarySource {
 		this.getLibrary(toLibraryId)
 		this.assertCan('deleteItem', item.libraryId)
 		this.assertCan('addItem', toLibraryId)
-		if (item.libraryId === toLibraryId) return
+		if (item.libraryId === toLibraryId) return itemId
 		this.store.put([{ ...item, libraryId: toLibraryId }])
+		return itemId
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */

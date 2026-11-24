@@ -67,7 +67,10 @@ export class CompositeLibrarySource implements LibrarySource {
 	 * Present when any part can move items. Within a part, the part moves the item; across parts,
 	 * the item is copied and the original deleted, so it gets a new id.
 	 */
-	readonly moveItem?: (itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => Promise<void>
+	readonly moveItem?: (
+		itemId: TLLibraryItemId,
+		toLibraryId: TLLibraryId
+	) => Promise<TLLibraryItemId>
 	/**
 	 * Present when any part has it, listing each part's in order. A part with a fixed owner lists
 	 * that owner when its source lists any; a part without it lists none.
@@ -330,8 +333,9 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteItem', item.libraryId)) {
 			throw new LibraryPermissionError('deleteItem', item.libraryId)
 		}
-		const { stored } = await copyItem(from.source, item, to.source, toLibraryId)
+		const { copied, stored } = await copyItem(from.source, item, to.source, toLibraryId)
 		deleteOnceStored(stored, () => from.source.deleteItem(itemId))
+		return copied.id
 	}
 
 	private getDefaultPart() {

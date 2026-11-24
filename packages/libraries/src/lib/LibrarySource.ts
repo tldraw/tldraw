@@ -222,11 +222,12 @@ export interface LibrarySource {
 	updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**
-	 * Moves an item to another library, keeping its id, content and thumbnail. Needs
-	 * `deleteItem` on the library it leaves and `addItem` on the one it joins. Optional: the UI
-	 * offers "Move to" only for sources that have it.
+	 * Moves an item to another library, keeping its content and thumbnail, and resolves to its id
+	 * there: the same id, unless the source moves it by copying it, as a `CompositeLibrarySource`
+	 * does between its sources. Needs `deleteItem` on the library it leaves and `addItem` on
+	 * the one it joins. Optional: the UI offers "Move to" only for sources that have it.
 	 */
-	moveItem?(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): Promise<void>
+	moveItem?(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): Promise<TLLibraryItemId>
 
 	/**
 	 * Who libraries can belong to, each library naming one in its `ownerId`. Listed in the

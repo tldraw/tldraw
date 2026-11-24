@@ -638,6 +638,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			undefined,
 			{ action: 'addItem', libraryId: toLibraryId }
 		)
+		return itemId
 	}
 
 	/** Stops syncing the libraries' items, and releases the thumbnail URLs made for items added here. */

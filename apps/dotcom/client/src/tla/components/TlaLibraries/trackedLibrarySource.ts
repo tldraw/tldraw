@@ -81,8 +81,12 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.moveItem) {
 			const moveItem = source.moveItem.bind(source)
 			this.moveItem = async (itemId, toLibraryId) => {
-				await this.watch({ action: 'move-library-item' }, moveItem(itemId, toLibraryId))
+				const movedId = await this.watch(
+					{ action: 'move-library-item' },
+					moveItem(itemId, toLibraryId)
+				)
 				this.track('move-library-item')
+				return movedId
 			}
 		}
 		if (source.copyLibrary) {

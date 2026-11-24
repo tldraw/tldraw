@@ -35,26 +35,48 @@ export interface ItemDetailsDialogProps {
 	onClose(): void
 }
 
-/** An item's preview and facts, with a menu to rename, move, copy or delete it. */
+/**
+ * An item's preview and facts, with a menu to rename, move, copy or delete it. It follows the item
+ * to the library it's moved to, and closes once the item is deleted.
+ */
 export function ItemDetailsDialog({
 	source,
 	item: initialItem,
-	library,
+	library: initialLibrary,
 	onClose,
 }: ItemDetailsDialogProps) {
 	const msg = useTranslation()
-	const libraryId = initialItem.libraryId
+	const [shownItem, setShownItem] = useState({
+		id: initialItem.id,
+		libraryId: initialItem.libraryId,
+	})
+	const [moving, setMoving] = useState(false)
+	const libraryId = shownItem.libraryId
 	const current = useValue(
 		'item details item',
-		() => source.getItems(libraryId).find((i) => i.id === initialItem.id),
-		[source, libraryId, initialItem.id]
+		() => source.getItems(libraryId).find((i) => i.id === shownItem.id),
+		[source, libraryId, shownItem.id]
 	)
-	const item = current ?? initialItem
+	const [lastItem, setLastItem] = useState(initialItem)
+	useEffect(() => {
+		if (current) setLastItem(current)
+	}, [current])
+	const item = current ?? lastItem
 	const shown = useRef(current !== undefined)
 	useEffect(() => {
 		if (current) shown.current = true
-		else if (shown.current) onClose()
-	}, [current, onClose])
+		else if (shown.current && !moving) onClose()
+	}, [current, moving, onClose])
+	const library = useValue(
+		'item details library',
+		() =>
+			[
+				...source.getLibraries(),
+				...(source.getAvailableLibraries ? source.getAvailableLibraries() : []),
+			].find((l) => l.id === libraryId),
+		[source, libraryId]
+	)
+	const libraryName = library ? library.name : initialLibrary.name
 	const details = useValue(
 		'item details',
 		() => (source.getItemDetails ? source.getItemDetails(item) : {}),
@@ -81,7 +103,13 @@ export function ItemDetailsDialog({
 					id={`${item.id}-details`}
 					onRename={canRename ? () => setRenaming(true) : undefined}
 					moveTargets={moveTargets}
-					onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
+					onMove={(toLibraryId) => {
+						setMoving(true)
+						move(item.id, toLibraryId as TLLibraryId).then((movedId) => {
+							if (movedId) setShownItem({ id: movedId, libraryId: toLibraryId as TLLibraryId })
+							setMoving(false)
+						})
+					}}
 					copyTargets={copyTargets}
 					onCopy={(toLibraryId) => copy(item.id, toLibraryId as TLLibraryId)}
 					onDelete={canDelete ? () => requestDelete(item.id) : undefined}
@@ -125,7 +153,7 @@ export function ItemDetailsDialog({
 						{!renaming && !canRename && name}
 					</dd>
 					<dt>{msg(messages.library)}</dt>
-					<dd>{library.name}</dd>
+					<dd>{libraryName}</dd>
 					{item.createdAt !== undefined && (
 						<>
 							<dt>{msg(messages.created)}</dt>

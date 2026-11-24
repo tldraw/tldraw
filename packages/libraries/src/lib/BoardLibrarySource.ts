@@ -364,8 +364,9 @@ export class BoardLibrarySource implements LibrarySource {
 		this.getLibrary(toLibraryId)
 		this.assertCan('deleteItem', item.libraryId)
 		this.assertCan('addItem', toLibraryId)
-		if (item.libraryId === toLibraryId) return
+		if (item.libraryId === toLibraryId) return itemId
 		this.write([...this.unstoredLibrary(toLibraryId), { ...item, libraryId: toLibraryId }])
+		return itemId
 	}
 
 	// Assets join the document at its current schema, as pasting brings them in.

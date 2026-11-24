@@ -291,8 +291,11 @@ describe('useLibraryItemActions', () => {
 		act(() => actions().copy(box.id, icons.id))
 		await flush()
 		expect(source.getItems(icons.id).map((i) => i.name)).toEqual(['Box (Copy)'])
-		act(() => actions().move(box.id, icons.id))
-		await flush()
+		let movedId: TLLibraryItemId | undefined
+		await act(async () => {
+			movedId = await actions().move(box.id, icons.id)
+		})
+		expect(movedId).toBe(box.id)
 		expect(source.getItems(shapes.id)).toEqual([])
 		expect(
 			source

@@ -52,8 +52,11 @@ export interface LibraryItemActions {
 	 * names are never blank.
 	 */
 	rename(itemId: TLLibraryItemId, name: string): void
-	/** Moves an item to one of {@link LibraryItemActions.moveTargets}, then shows a toast. */
-	move(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): void
+	/**
+	 * Moves an item to one of {@link LibraryItemActions.moveTargets}, then shows a toast. Resolves
+	 * to the item's id in the library it joins, or undefined if it couldn't move.
+	 */
+	move(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): Promise<TLLibraryItemId | undefined>
 	/** Copies an item to one of {@link LibraryItemActions.copyTargets}, then shows a toast. */
 	copy(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): void
 	/** Asks the user to confirm in a dialog, then deletes the item. */
@@ -128,16 +131,21 @@ export function useLibraryItemActions(
 	)
 	const move = useCallback(
 		(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => {
-			if (!source.moveItem) return
+			if (!source.moveItem) return Promise.resolve(undefined)
 			const target = moveTargets.find((c) => c.id === toLibraryId)
-			source.moveItem(itemId, toLibraryId).then(
-				() =>
+			return source.moveItem(itemId, toLibraryId).then(
+				(movedId) => {
 					showDone(
 						msg(messages.movedTitle),
 						target ? msg(messages.movedDescription, { name: target.name }) : undefined,
 						toLibraryId
-					),
-				() => showChangeError(msg(messages.moveErrorTitle))
+					)
+					return movedId
+				},
+				() => {
+					showChangeError(msg(messages.moveErrorTitle))
+					return undefined
+				}
 			)
 		},
 		[source, moveTargets, msg, showDone, showChangeError]

@@ -17,6 +17,7 @@ import {
 } from 'tldraw'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { BoardLibrarySource } from '../lib/BoardLibrarySource'
+import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryItemRecordType, type TLLibraryItemContent } from '../lib/schema'
@@ -517,54 +518,54 @@ describe('a board with a library of its own', () => {
 	})
 })
 
-describe('renaming from a ⋮', () => {
-	const openMenu = (trigger: Element) =>
-		act(() => {
-			trigger.dispatchEvent(
-				new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
-			)
-		})
-	const choose = async (label: string) => {
-		const item = await vi.waitFor(() => {
-			const el = [
-				...document.querySelectorAll<HTMLButtonElement>('.tlui-libraries-menu__item'),
-			].find((e) => e.textContent === label)
-			expect(el).toBeDefined()
-			return el!
-		})
-		await act(async () => item.click())
-	}
-	const findInput = (within: Element) =>
-		vi.waitFor(() => {
-			const el = within.querySelector<HTMLInputElement>('input')
-			expect(el).not.toBeNull()
-			return el!
-		})
-	// Long enough for a closing menu to hand focus back to its trigger.
-	const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)))
-	const press = (input: HTMLInputElement, key: string) =>
-		act(() => {
-			input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
-		})
-	const makeSource = (placement?: 'added') => {
-		const { library, items } = makeLibrary('Shapes', ['Box'])
-		return new InMemoryLibrarySource({
-			initial: {
-				libraries: [library],
-				items,
-				contents: Object.fromEntries(items.map((item) => [item.id, emptyContent])),
-			},
-			shownInDocument: placement ? [{ libraryId: library.id, placement }] : undefined,
-		})
-	}
+const openMenu = (trigger: Element) =>
+	act(() => {
+		trigger.dispatchEvent(
+			new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
+		)
+	})
+const choose = async (label: string) => {
+	const item = await vi.waitFor(() => {
+		const el = [...document.querySelectorAll<HTMLButtonElement>('.tlui-libraries-menu__item')].find(
+			(e) => e.textContent === label
+		)
+		expect(el).toBeDefined()
+		return el!
+	})
+	await act(async () => item.click())
+}
+const findInput = (within: Element) =>
+	vi.waitFor(() => {
+		const el = within.querySelector<HTMLInputElement>('input')
+		expect(el).not.toBeNull()
+		return el!
+	})
+// Long enough for a closing menu to hand focus back to its trigger.
+const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 50)))
+const press = (input: HTMLInputElement, key: string) =>
+	act(() => {
+		input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }))
+	})
+const makeShapesSource = (placement?: 'added') => {
+	const { library, items } = makeLibrary('Shapes', ['Box'])
+	return new InMemoryLibrarySource({
+		initial: {
+			libraries: [library],
+			items,
+			contents: Object.fromEntries(items.map((item) => [item.id, emptyContent])),
+		},
+		shownInDocument: placement ? [{ libraryId: library.id, placement }] : undefined,
+	})
+}
 
+describe('renaming from a ⋮', () => {
 	it.each([
 		['Enter', 'Mine'],
 		['Escape', 'Shapes'],
 	])(
 		"keeps a library's ⋮ and the name input's focus, and %s ends it on the name",
 		async (key, name) => {
-			const container = await renderPanel(makeSource())
+			const container = await renderPanel(makeShapesSource())
 			const section = container.querySelector('.tlui-libraries-section')!
 			openMenu(section.querySelector('[aria-label="Library options"]')!)
 			await choose('Rename')
@@ -585,7 +586,7 @@ describe('renaming from a ⋮', () => {
 	)
 
 	it("keeps an item's ⋮ in Details while its name is edited", async () => {
-		const container = await renderPanel(makeSource())
+		const container = await renderPanel(makeShapesSource())
 		const tile = await vi.waitFor(() => {
 			const el = container.querySelector('button[aria-label="Box"]')
 			expect(el).not.toBeNull()
@@ -615,7 +616,7 @@ describe('renaming from a ⋮', () => {
 	})
 
 	it("keeps a library's ⋮ in Browse's library view while its name is edited", async () => {
-		const container = await renderPanel(makeSource('added'), () => [])
+		const container = await renderPanel(makeShapesSource('added'), () => [])
 		act(() =>
 			container
 				.querySelector<HTMLButtonElement>('button.tlui-libraries-panel__browse-more')!
@@ -646,5 +647,145 @@ describe('renaming from a ⋮', () => {
 		const title = header.querySelector<HTMLButtonElement>('.tlui-libraries-browse__title-rename')!
 		expect(title.textContent).toBe('Shapes')
 		expect(document.activeElement).toBe(title)
+	})
+})
+
+describe('item Details after Move to', () => {
+	const openDetails = async (container: HTMLElement, itemName: string) => {
+		const tile = await vi.waitFor(() => {
+			const el = container.querySelector(`button[aria-label="${itemName}"]`)
+			expect(el).not.toBeNull()
+			return el!
+		})
+		await act(async () => {
+			tile.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+		})
+		await choose('Details')
+		return vi.waitFor(() => {
+			const el = document.querySelector<HTMLElement>(
+				'.tlui-dialog__content:has(.tlui-libraries-details)'
+			)
+			expect(el).not.toBeNull()
+			return el!
+		})
+	}
+	const fact = (dialog: Element, label: string) => {
+		const dt = [...dialog.querySelectorAll('dt')].find((el) => el.textContent === label)!
+		return dt.nextElementSibling!.textContent
+	}
+	const openDetailsMenu = (dialog: Element) =>
+		openMenu(dialog.querySelector('[aria-label="Item options"]')!)
+	const moveTargetsIn = async () => {
+		const trigger = await vi.waitFor(() => {
+			const el = [
+				...document.querySelectorAll<HTMLElement>(
+					'.tlui-libraries-menu .tlui-menu__submenu__trigger'
+				),
+			].find((e) => e.textContent!.startsWith('Move to'))
+			expect(el).toBeDefined()
+			return el!
+		})
+		await act(async () => {
+			trigger.dispatchEvent(
+				new MouseEvent('pointermove', { bubbles: true, pointerType: 'mouse' } as any)
+			)
+			trigger.click()
+		})
+		return vi.waitFor(() => {
+			const items = [
+				...document.querySelectorAll('.tlui-libraries-menu__submenu .tlui-libraries-menu__item'),
+			]
+			expect(items.length).toBeGreaterThan(0)
+			return items.map((item) => item.textContent)
+		})
+	}
+	const twoLibraries = () => {
+		const shapes = makeLibrary('Shapes', ['Box'])
+		const icons = makeLibrary('Icons', [])
+		return { shapes, icons }
+	}
+
+	it('stays open on the item in the library it moved to, within a source', async () => {
+		const { shapes, icons } = twoLibraries()
+		const source = new InMemoryLibrarySource({
+			initial: {
+				libraries: [shapes.library, icons.library],
+				items: shapes.items,
+				contents: Object.fromEntries(shapes.items.map((item) => [item.id, emptyContent])),
+			},
+		})
+		const container = await renderPanel(source)
+		const dialog = await openDetails(container, 'Box')
+		expect(fact(dialog, 'Library')).toBe('Shapes')
+		openDetailsMenu(dialog)
+		expect(await moveTargetsIn()).toEqual(['Icons'])
+		await choose('Icons')
+
+		await vi.waitFor(() => expect(fact(dialog, 'Library')).toBe('Icons'))
+		expect(dialog.isConnected).toBe(true)
+		expect(fact(dialog, 'Name')).toBe('Box')
+		act(() => panelEditor!.menus.clearOpenMenus())
+		openDetailsMenu(dialog)
+		expect(await moveTargetsIn()).toEqual(['Shapes'])
+	})
+
+	it('follows an item a source moves by copying it, as between the parts of a composite', async () => {
+		const { shapes, icons } = twoLibraries()
+		const mine = new InMemoryLibrarySource({
+			id: 'mine',
+			initial: {
+				libraries: [shapes.library],
+				items: shapes.items,
+				contents: Object.fromEntries(shapes.items.map((item) => [item.id, emptyContent])),
+			},
+		})
+		const team = new InMemoryLibrarySource({
+			id: 'team',
+			initial: { libraries: [icons.library], items: [], contents: {} },
+		})
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: { id: 'me', name: 'Me' }, source: mine },
+				{ owner: { id: 'team', name: 'Team' }, source: team },
+			],
+		})
+		const container = await renderPanel(source)
+		const dialog = await openDetails(container, 'Box')
+		openDetailsMenu(dialog)
+		await moveTargetsIn()
+		await choose('Icons')
+
+		await vi.waitFor(() => expect(fact(dialog, 'Library')).toBe('Icons'))
+		await vi.waitFor(() => expect(mine.getItems(shapes.library.id)).toEqual([]))
+		expect(dialog.isConnected).toBe(true)
+		expect(fact(dialog, 'Name')).toBe('Box')
+		const [moved] = team.getItems(icons.library.id)
+		expect(moved.id).not.toBe(shapes.items[0].id)
+		expect(dialog.querySelector('[aria-label="Item options"]')).not.toBeNull()
+	})
+
+	it('closes once the item is deleted', async () => {
+		const { shapes } = twoLibraries()
+		const source = new InMemoryLibrarySource({
+			initial: {
+				libraries: [shapes.library],
+				items: shapes.items,
+				contents: Object.fromEntries(shapes.items.map((item) => [item.id, emptyContent])),
+			},
+		})
+		const container = await renderPanel(source)
+		const dialog = await openDetails(container, 'Box')
+		openDetailsMenu(dialog)
+		await choose('Delete')
+		const confirm = await vi.waitFor(() => {
+			const el = [
+				...document.querySelectorAll<HTMLButtonElement>('.tlui-dialog__footer button'),
+			].find((b) => b.textContent === 'Delete')
+			expect(el).toBeDefined()
+			return el!
+		})
+		await act(async () => confirm.click())
+		await vi.waitFor(() => expect(dialog.isConnected).toBe(false))
+		expect(source.getItems(shapes.library.id)).toEqual([])
 	})
 })
