@@ -451,8 +451,11 @@ export const adminRoutes = createRouter<Environment>()
 		// dropped silently and still answered `{success: true, users: […]}`, so an admin could send an
 		// allowlist to a percentage flag, be told it saved, and have nothing stored anywhere.
 		const type = getFeatureFlagType(env, flagKey)
-		if (percentage !== undefined && type !== 'percentage') {
+		if (percentage !== undefined && type === 'boolean') {
 			throw new StatusError(400, `"${flagKey}" is a ${type} flag; percentage does not apply to it`)
+		}
+		if (percentage !== undefined && type === 'allowlist' && !Number.isInteger(percentage)) {
+			throw new StatusError(400, 'percentage must be a whole number between 0 and 100')
 		}
 		if (emails !== undefined && type !== 'allowlist') {
 			throw new StatusError(400, `"${flagKey}" is a ${type} flag; emails do not apply to it`)
@@ -469,7 +472,7 @@ export const adminRoutes = createRouter<Environment>()
 		if (enabled !== undefined && type === 'allowlist') {
 			throw new StatusError(
 				400,
-				`"${flagKey}" is an allowlist flag; enabled does not apply to it — edit the list or allowEveryone`
+				`"${flagKey}" is an allowlist flag; enabled does not apply to it — edit the list, percentage or allowEveryone`
 			)
 		}
 
@@ -490,7 +493,7 @@ export const adminRoutes = createRouter<Environment>()
 				}
 				users = await resolveAllowlistUsers(env, parsed)
 			}
-			update = { type, users, allowEveryone }
+			update = { type, users, allowEveryone, percentage }
 		} else if (type === 'percentage') {
 			update = { type, enabled, percentage }
 		} else {
