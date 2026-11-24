@@ -344,6 +344,14 @@
 	text-overflow: ellipsis;
 }
 
+.sidebarLinkButtonNewDot {
+	flex-shrink: 0;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: var(--tl-color-selected);
+}
+
 .sidebarLinkButton:focus-visible {
 	outline-offset: -2px;
 }
