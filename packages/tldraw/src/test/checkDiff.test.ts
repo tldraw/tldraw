@@ -118,10 +118,12 @@ describe('capability checks', () => {
 		removeA()
 	})
 
-	it('rejects every capability in a readonly editor', () => {
+	it('rejects the shape and page capabilities in a readonly editor', () => {
 		const editor = new TestEditor()
 		editor.updateInstanceState({ isReadonly: true })
 		expect(editor.checkCapability('create-shape')).toEqual({ reason: 'readonly' })
+		expect(editor.checkCapability('delete-page')).toEqual({ reason: 'readonly' })
+		expect(editor.checkCapability('create-comment')).toBeNull()
 	})
 
 	it('is reactive', () => {
