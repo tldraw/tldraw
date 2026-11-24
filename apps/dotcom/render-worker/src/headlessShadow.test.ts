@@ -81,7 +81,7 @@ describe('compareScreenshotInShadow', () => {
 		])
 	})
 
-	it('swallows an RPC that throws into a row', async () => {
+	it('records an RPC that throws as a failed compare, not a headless failure', async () => {
 		const { env, rows } = setup(async () => {
 			throw new Error('worker exploded')
 		})
@@ -90,7 +90,7 @@ describe('compareScreenshotInShadow', () => {
 			compareScreenshotInShadow(env, { payload, content }, { ok: true, png, browserMs: 700 })
 		).resolves.toBeUndefined()
 		expect(rows()[0].blobs.slice(4)).toEqual([
-			'outcome:headless_failed',
+			'outcome:compare_failed',
 			'browser:ok',
 			'headless:rpc_error',
 		])

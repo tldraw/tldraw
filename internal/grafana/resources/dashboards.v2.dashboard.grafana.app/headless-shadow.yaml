@@ -1350,7 +1350,8 @@ spec:
             transformations: []
         description: >-
           Compared renders over time, stacked by outcome: ok (both drew), headless_failed,
-          browser_failed, both_failed.
+          browser_failed, both_failed, and compare_failed (the call itself failed, most often a
+          payload plus PNG over the 32 MiB RPC cap; not a headless failure).
         id: 14
         links: []
         title: Screenshot comparisons by outcome

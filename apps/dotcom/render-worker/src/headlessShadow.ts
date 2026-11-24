@@ -70,7 +70,7 @@ export async function compareScreenshotInShadow(
 	const headlessReason = result === 'timeout' ? 'timeout' : result.ok ? 'ok' : result.reason
 	const diff = result !== 'timeout' && result.ok ? result.diff : null
 	writeShadowCompareTelemetry(env, {
-		outcome: outcomeOf(browser.ok, headlessReason === 'ok'),
+		outcome: outcomeOf(browser.ok, headlessReason),
 		browser: browser.ok ? 'ok' : browser.reason,
 		headless: headlessReason,
 		diff,
@@ -81,7 +81,11 @@ export async function compareScreenshotInShadow(
 }
 
 /** Whether the two agreed on drawing the board at all, which is what decides the cutover. */
-function outcomeOf(browserOk: boolean, headlessOk: boolean) {
+function outcomeOf(browserOk: boolean, headless: string) {
+	// The call never reached a render, most often a board whose payload plus the PNG passed the 32 MiB
+	// RPC cap, so it says nothing about headless.
+	if (headless === 'rpc_error') return 'compare_failed'
+	const headlessOk = headless === 'ok'
 	if (browserOk && headlessOk) return 'ok'
 	if (browserOk) return 'headless_failed'
 	if (headlessOk) return 'browser_failed'
