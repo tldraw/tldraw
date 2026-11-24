@@ -147,7 +147,11 @@ const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
 // Production's RM takes that step alone. View-syncers restore from the URL the RM hands them, with
 // the v5 binary whatever this flag says, so theirs stays off and the step doesn't restart them.
-const zeroRmBackupV5 = zeroBackupV5 || env.TLDRAW_ENV === 'production'
+const zeroRmBackupV5 = zeroBackupV5
+// Production's RM ran v5 and was rolled back to v3. Zero keeps the v5 backup's subfolder in Postgres
+// and resolves it against the backup URL, so the slash has to outlive v5: without it the RM backs
+// up to the bucket root. Rehearsed on the #11620 preview.
+const zeroRmBackupSlash = zeroRmBackupV5 || env.TLDRAW_ENV === 'production'
 // Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
 // would redeploy production's zero apps in place.
 const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
@@ -955,7 +959,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	// v5 backups put each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
 	// replaces the env folder and the backup lands at the bucket root.
-	const backupPath = (v5: boolean) => `${previewId ?? env.TLDRAW_ENV}${v5 ? '/' : ''}`
+	const backupPath = (slash: boolean) => `${previewId ?? env.TLDRAW_ENV}${slash ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -971,7 +975,7 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	const rmConfigFile = 'flyio-replication-manager.toml'
 	const rmInputs: FlyDeployInputs = {
-		config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath(zeroRmBackupV5)),
+		config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath(zeroRmBackupSlash)),
 		secrets,
 	}
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
