@@ -91,7 +91,7 @@ interface TLTextExternalContent extends TLBaseExternalContent {
 
 ### Files
 
-File content represents one or more files dropped onto the canvas. The handler receives an array of `File` objects and validates file types and sizes before creating shapes. The `<Tldraw>` props `maxAssetSize`, `maxImageDimension`, `acceptedImageMimeTypes`, and `acceptedVideoMimeTypes` control those limits, and `editor.options.maxFilesAtOnce` caps the batch.
+File content represents one or more files dropped onto the canvas. The handler receives an array of `File` objects and validates file types and sizes before creating shapes. The `<Tldraw>` props `maxAssetSize`, `maxImageDimension`, `acceptedImageMimeTypes`, and `acceptedVideoMimeTypes` control those limits, and `editor.options.maxFilesAtOnce` caps the batch. New images and videos are scaled down to fit `editor.options.maxNewMediaViewportFraction` of the viewport at 100% zoom, so a large file doesn't cover the canvas when it lands.
 
 ```typescript
 interface TLFilesExternalContent extends TLBaseExternalContent {

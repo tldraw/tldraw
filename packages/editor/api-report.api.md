@@ -778,6 +778,7 @@ export const defaultTldrawOptions: {
     readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
     readonly maxFontsToLoadBeforeRender: number;
+    readonly maxNewMediaViewportFraction: number;
     readonly maxPages: 40;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
@@ -3931,6 +3932,7 @@ export interface TldrawOptions {
     // (undocumented)
     readonly maxFilesAtOnce: number;
     readonly maxFontsToLoadBeforeRender: number;
+    readonly maxNewMediaViewportFraction: number;
     // (undocumented)
     readonly maxPages: number;
     // (undocumented)

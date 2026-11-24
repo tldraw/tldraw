@@ -800,16 +800,37 @@ export async function createShapesForAssets(
 	const currentPoint = Vec.From(position)
 	const partials: TLShapePartial[] = []
 
+	// Measured against the viewport at 100% zoom, so zooming out doesn't let media land bigger on
+	// the page, and against the visible area, so zooming in doesn't let it fill the screen.
+	const screenBounds = editor.getViewportScreenBounds()
+	const zoomedInScale = Math.max(1, editor.getZoomLevel())
+	const maxFraction = editor.options.maxNewMediaViewportFraction
+	const maxW = (screenBounds.w * maxFraction) / zoomedInScale
+	const maxH = (screenBounds.h * maxFraction) / zoomedInScale
+
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
 		const shapeUtil = editor.getShapeUtilForAssetType(asset.type)
 		const partial = shapeUtil?.createShapeForAsset?.(asset, currentPoint) ?? null
-		if (partial) {
-			partials.push(partial)
-			if ('w' in asset.props && typeof asset.props.w === 'number') {
-				currentPoint.x += asset.props.w
+		if (!partial) continue
+		const props = partial.props as { w?: unknown; h?: unknown } | undefined
+		if (
+			(asset.type === 'image' || asset.type === 'video') &&
+			props &&
+			typeof props.w === 'number' &&
+			typeof props.h === 'number'
+		) {
+			const scale = Math.min(1, maxW / props.w, maxH / props.h)
+			// A viewport that hasn't been measured yet would scale media down to nothing.
+			if (scale > 0 && scale < 1) {
+				props.w *= scale
+				props.h *= scale
 			}
+			currentPoint.x += props.w
+		} else if ('w' in asset.props && typeof asset.props.w === 'number') {
+			currentPoint.x += asset.props.w
 		}
+		partials.push(partial)
 	}
 
 	editor.run(() => {
