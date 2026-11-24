@@ -773,7 +773,7 @@
 
 .tlui-libraries-tile__thumbnail.tlui-libraries-browse__more {
 	color: var(--tl-color-text-3);
-	background: var(--tl-color-panel);
+	background: transparent;
 }
 
 .tlui-libraries-browse__empty {
