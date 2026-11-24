@@ -234,8 +234,8 @@ describe('copyItem', () => {
 		const unnamed = await source.addItem(from.id, { content: content() })
 		const getName = (name: string) => `${name} (Copy)`
 
-		const cardCopy = await copyItem(source, card, source, to.id, { getName })
-		const unnamedCopy = await copyItem(source, unnamed, source, to.id, { getName })
+		const { copied: cardCopy } = await copyItem(source, card, source, to.id, { getName })
+		const { copied: unnamedCopy } = await copyItem(source, unnamed, source, to.id, { getName })
 
 		expect(cardCopy.name).toBe('Card (Copy)')
 		expect(unnamedCopy.name).toBeUndefined()
