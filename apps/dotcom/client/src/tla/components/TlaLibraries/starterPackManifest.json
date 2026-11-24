@@ -69,6 +69,20 @@
 					"light": "thumbnails/disabled-button-light.webp",
 					"dark": "thumbnails/disabled-button-dark.webp"
 				}
+			},
+			{
+				"id": "danger-button",
+				"thumbnail": {
+					"light": "thumbnails/danger-button-light.webp",
+					"dark": "thumbnails/danger-button-dark.webp"
+				}
+			},
+			{
+				"id": "link",
+				"thumbnail": {
+					"light": "thumbnails/link-light.webp",
+					"dark": "thumbnails/link-dark.webp"
+				}
 			}
 		]
 	},
@@ -171,6 +185,20 @@
 					"light": "thumbnails/user-light.webp",
 					"dark": "thumbnails/user-dark.webp"
 				}
+			},
+			{
+				"id": "desktop-client",
+				"thumbnail": {
+					"light": "thumbnails/desktop-client-light.webp",
+					"dark": "thumbnails/desktop-client-dark.webp"
+				}
+			},
+			{
+				"id": "terminal",
+				"thumbnail": {
+					"light": "thumbnails/terminal-light.webp",
+					"dark": "thumbnails/terminal-dark.webp"
+				}
 			}
 		]
 	},
@@ -271,6 +299,20 @@
 					"light": "thumbnails/divide-light.webp",
 					"dark": "thumbnails/divide-dark.webp"
 				}
+			},
+			{
+				"id": "equals",
+				"thumbnail": {
+					"light": "thumbnails/equals-light.webp",
+					"dark": "thumbnails/equals-dark.webp"
+				}
+			},
+			{
+				"id": "not-equals",
+				"thumbnail": {
+					"light": "thumbnails/not-equals-light.webp",
+					"dark": "thumbnails/not-equals-dark.webp"
+				}
 			}
 		]
 	},
@@ -314,6 +356,20 @@
 				"thumbnail": {
 					"light": "thumbnails/arrow-light.webp",
 					"dark": "thumbnails/arrow-dark.webp"
+				}
+			},
+			{
+				"id": "note",
+				"thumbnail": {
+					"light": "thumbnails/note-light.webp",
+					"dark": "thumbnails/note-dark.webp"
+				}
+			},
+			{
+				"id": "step",
+				"thumbnail": {
+					"light": "thumbnails/step-light.webp",
+					"dark": "thumbnails/step-dark.webp"
 				}
 			}
 		]
@@ -369,6 +425,20 @@
 					"light": "thumbnails/single-bed-light.webp",
 					"dark": "thumbnails/single-bed-dark.webp"
 				}
+			},
+			{
+				"id": "dining-table",
+				"thumbnail": {
+					"light": "thumbnails/dining-table-light.webp",
+					"dark": "thumbnails/dining-table-dark.webp"
+				}
+			},
+			{
+				"id": "round-table",
+				"thumbnail": {
+					"light": "thumbnails/round-table-light.webp",
+					"dark": "thumbnails/round-table-dark.webp"
+				}
 			}
 		]
 	},
@@ -412,6 +482,20 @@
 				"thumbnail": {
 					"light": "thumbnails/cloudy-3-light.webp",
 					"dark": "thumbnails/cloudy-3-dark.webp"
+				}
+			},
+			{
+				"id": "arrow",
+				"thumbnail": {
+					"light": "thumbnails/arrow-light.webp",
+					"dark": "thumbnails/arrow-dark.webp"
+				}
+			},
+			{
+				"id": "diamond",
+				"thumbnail": {
+					"light": "thumbnails/diamond-light.webp",
+					"dark": "thumbnails/diamond-dark.webp"
 				}
 			}
 		]
@@ -465,6 +549,20 @@
 				"thumbnail": {
 					"light": "thumbnails/car-with-passengers-light.webp",
 					"dark": "thumbnails/car-with-passengers-dark.webp"
+				}
+			},
+			{
+				"id": "bunny",
+				"thumbnail": {
+					"light": "thumbnails/bunny-light.webp",
+					"dark": "thumbnails/bunny-dark.webp"
+				}
+			},
+			{
+				"id": "driver",
+				"thumbnail": {
+					"light": "thumbnails/driver-light.webp",
+					"dark": "thumbnails/driver-dark.webp"
 				}
 			}
 		]
