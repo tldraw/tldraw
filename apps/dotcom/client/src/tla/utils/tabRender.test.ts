@@ -633,8 +633,44 @@ describe('answerTabRender', () => {
 				expect(editor.getShape(hello)).toBeDefined()
 				expect(replies).toEqual([
 					{ status: 'accepted' },
-					{ status: 'declined', reason: 'apply_failed' },
+					{ status: 'declined', reason: 'unconfirmed' },
 				])
+				editor.dispose()
+			})
+		})
+
+		// The file object sends a resend only to the tab that took the first attempt, which answers
+		// from its own store.
+		describe('a resend of a keyed batch', () => {
+			const keyed = (ops: unknown[] = [addBox]) =>
+				job({ mode: 'apply_ops', ops, attribution: { ...attribution, batchKey: 'k1' } })
+
+			it('says it landed when this tab has it and the server confirms it', async () => {
+				const { editor } = setupEditor()
+				await answerTabRender(editor, async () => true, 'file-1', keyed())
+				await answerTabRender(editor, async () => true, 'file-1', keyed())
+
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'already_applied' })
+				editor.dispose()
+			})
+
+			it('says it is still unconfirmed when this tab has it but the server has not confirmed it', async () => {
+				const { editor } = setupEditor()
+				await answerTabRender(editor, async () => true, 'file-1', keyed())
+				await answerTabRender(editor, async () => false, 'file-1', keyed())
+
+				expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'unconfirmed' })
+				editor.dispose()
+			})
+
+			// A reloaded tab, or one whose push was refused, holds no copy that could land later.
+			it('applies the batch when this tab no longer has it', async () => {
+				const { editor } = setupEditor()
+
+				await answerTabRender(editor, async () => true, 'file-1', keyed())
+
+				expect(replies.at(-1)).toMatchObject({ status: 'applied' })
+				expect(editor.getShape(hello)).toBeDefined()
 				editor.dispose()
 			})
 		})
