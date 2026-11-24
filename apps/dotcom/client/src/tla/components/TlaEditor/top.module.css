@@ -235,8 +235,11 @@ button.topLeftInputNameWidthSetter {
 
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
-		z-index: 4;
 		color: var(--tl-color-text-1);
+	}
+
+	:global(.tlui-button).topLeftMainMenuTrigger:not(:disabled, [data-disabled]):hover {
+		z-index: 4;
 	}
 
 	.topLeftMainMenuTrigger:hover::after {
