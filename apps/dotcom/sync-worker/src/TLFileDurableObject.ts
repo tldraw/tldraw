@@ -13,6 +13,7 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TAB_FROZEN_CLOSE_CODE,
 	TAB_RENDER_PARAM,
 	TLCustomServerEvent,
 	TabRenderReply,
@@ -20,6 +21,7 @@ import {
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
+	getBatchKeyMetaEntry,
 	type FeatureFlagValue,
 	type McpAgentClient,
 	type Role,
@@ -124,11 +126,18 @@ import {
 } from './snapshotUtils'
 import {
 	TAB_RENDER_ROOM_TIMEOUT_MS,
+	BATCH_CLAIM_PREFIX,
+	BatchClaim,
 	TabRenderBroker,
 	TabRenderResponse,
 	TabRenderSocket,
 	TabRenderStats,
+	ClaimedBatchPlan,
+	batchClaimAfter,
+	batchClaimStorageKey,
+	isExpiredBatchClaim,
 	keepDeliverableTabRenderSessions,
+	planClaimedBatch,
 	pickTabRenderSessions,
 	pickTabRenderTargets,
 } from './tabRenderBroker'
@@ -145,6 +154,7 @@ import {
 import { parseTraceColo, readEdgeColo, readReceivedAt } from './utils/connectRouting'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { evaluateFlagForUser, getFeatureFlagValue } from './utils/featureFlags'
 import { LOAD_ID_PARAM, parseLoadId } from './utils/loadId'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { isRateLimited } from './utils/rateLimit'
@@ -178,6 +188,10 @@ import { chainHeadHash } from './versionDelta'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
+
+// How long a frozen tab still explains a missing one. A tab that stays frozen this long has likely
+// been closed or discarded, and "ask the user to open the board" is the better advice by then.
+const TAB_SUSPENDED_MEMORY_MS = 24 * 60 * 60 * 1000
 
 // Cloudflare allows at most six simultaneous open connections. We funnel every R2 operation the
 // durable object makes — asset copies during association passes AND snapshot uploads during
@@ -776,7 +790,13 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	override async webSocketClose(ws: WebSocket) {
+	override async webSocketClose(ws: WebSocket, code: number) {
+		if (code === TAB_FROZEN_CLOSE_CODE) {
+			const attachment = this.getSocketAttachment(ws)
+			if (attachment?.tabRenderConnectedAt && attachment.meta.userId) {
+				this.suspendedTabRenders.set(attachment.meta.userId, Date.now())
+			}
+		}
 		await this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
@@ -1240,6 +1260,9 @@ export class TLFileDurableObject extends DurableObject {
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
+			if (attachment.tabRenderConnectedAt && meta.userId) {
+				this.suspendedTabRenders.delete(meta.userId)
+			}
 
 			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
@@ -3499,6 +3522,21 @@ export class TLFileDurableObject extends DurableObject {
 
 	private tabRenders = new TabRenderBroker()
 
+	/**
+	 * When each user's tab last left because the browser froze it, until one of their tabs connects
+	 * again. In memory only: once the object is evicted, the agent hears the board isn't open, which
+	 * is what it would have heard before this existed.
+	 */
+	private suspendedTabRenders = new Map<string, number>()
+
+	/** No tab can take the job: say whether that's because the browser suspended the user's tab. */
+	private noTabOutcome(userId: string, now: number): TabRenderResponse {
+		const suspendedAt = this.suspendedTabRenders.get(userId)
+		return suspendedAt !== undefined && now - suspendedAt < TAB_SUSPENDED_MEMORY_MS
+			? { status: 'tab_suspended' }
+			: { status: 'no_tab' }
+	}
+
 	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
 	private getTabRenderSockets() {
 		const sockets: (TabRenderSocket & { isReadonly: boolean })[] = []
@@ -3541,16 +3579,54 @@ export class TLFileDurableObject extends DurableObject {
 		request: TabRenderRequest,
 		jobIds: string[]
 	): Promise<TabRenderResponse> {
+		const batchKey = request.mode === 'apply_ops' ? request.attribution.batchKey : undefined
+		if (!batchKey) return this.runTabRender(userId, request, jobIds)
+		// Calls with one key run one at a time, from reading the claim to writing what came of it.
+		// Otherwise a call acting on a claim it read before an await could send the batch to a tab
+		// after another call had freed the claim and sent it to a second tab. In memory is enough: the
+		// object can't hibernate while a call waits here.
+		const lockKey = batchClaimStorageKey(userId, batchKey)
+		const previous = this.batchKeyLocks.get(lockKey) ?? Promise.resolve()
+		const run = previous.catch(() => {}).then(() => this.runTabRender(userId, request, jobIds))
+		this.batchKeyLocks.set(lockKey, run)
+		try {
+			return await run
+		} finally {
+			if (this.batchKeyLocks.get(lockKey) === run) this.batchKeyLocks.delete(lockKey)
+		}
+	}
+
+	private batchKeyLocks = new Map<string, Promise<TabRenderResponse>>()
+
+	private async runTabRender(
+		userId: string,
+		request: TabRenderRequest,
+		jobIds: string[]
+	): Promise<TabRenderResponse> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
 		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
 			return { status: 'declined', reason: 'read_only' }
 		}
+		// Ahead of looking for a tab too: a resend is answered from the claim, open tab or not.
+		const keyed = request.mode === 'apply_ops' ? await this.getKeyedBatch(userId, request) : null
+		let claimant: string | null = null
+		if (keyed?.claim) {
+			const plan = await this.planClaimedBatch(keyed.claim, keyed)
+			if (plan.kind === 'answer') return plan.outcome
+			if (plan.kind === 'ask_claimant') claimant = plan.sessionId
+			else await this.ctx.storage.delete(keyed.storageKey)
+		}
 
 		const isWrite = request.mode === 'apply_ops'
 		const sockets = this.getTabRenderSockets()
 		const now = Date.now()
-		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
+		if (claimant && !pickTabRenderSessions(sockets, userId, now).includes(claimant)) {
+			return { status: 'declined', reason: 'batch_unresolved' }
+		}
+		if (pickTabRenderSessions(sockets, userId, now).length === 0) {
+			return this.noTabOutcome(userId, now)
+		}
 		// The tab applies a write as its own session, which is what the room authorizes. The access
 		// check above is current, but a session keeps the mode it connected with until it reconnects,
 		// so a tab opened before the user could edit has to be reloaded.
@@ -3567,6 +3643,13 @@ export class TLFileDurableObject extends DurableObject {
 		const room = await this.getRoomForTabRender()
 		const stats: TabRenderStats = { tabs: 0, roomMs: Date.now() - roomStartedAt, ackMs: -1 }
 		if (!room) return { status: 'room_timeout', stats }
+		// Ahead of the ownership check below: an await after it would let a session change hands (an
+		// account switch on a known session id) before the job and its reply token are sent.
+		const hiddenTab = evaluateFlagForUser(
+			await getFeatureFlagValue(this.env, 'mcp_hidden_tab'),
+			'mcp_hidden_tab',
+			userId
+		)
 		// Only now: sessionIdToWs is filled in as the room boots.
 		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
 			const ws = this.sessionIdToWs.get(sessionId)
@@ -3577,28 +3660,107 @@ export class TLFileDurableObject extends DurableObject {
 				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
 			}
 		})
-		if (deliverable.length === 0) return { status: 'no_tab', stats }
+		if (claimant && !deliverable.includes(claimant)) {
+			return { status: 'declined', reason: 'batch_unresolved', stats }
+		}
+		if (deliverable.length === 0) return { ...this.noTabOutcome(userId, now), stats }
 
 		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
 		// presence, says which one they're in.
-		const targets = pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
-			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
-			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
-		}).slice(0, jobIds.length)
+		const targets = claimant
+			? [claimant]
+			: pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
+					const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
+					return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
+				}).slice(0, jobIds.length)
 
 		stats.tabs = targets.length
+		let claim: BatchClaim | undefined = claimant ? keyed?.claim : undefined
+		if (keyed && !claimant) {
+			claim = {
+				opsHash: keyed.opsHash,
+				sessionId: targets[0],
+				metaEntry: keyed.landedEntry,
+				at: Date.now(),
+			}
+			await this.ctx.storage.put(keyed.storageKey, claim)
+		}
 		const sentAt = Date.now()
 		const outcome = await this.tabRenders.dispatch(
 			targets,
 			request,
 			jobIds,
 			(sessionId, jobId) => {
-				const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+				const event: TLCustomServerEvent = {
+					type: 'mcp_tab_render',
+					jobId,
+					request,
+					hiddenTab,
+				}
 				room.sendCustomMessage(sessionId, event)
 			},
 			() => (stats.ackMs = Date.now() - sentAt)
 		)
+		if (keyed && claim) {
+			const kept = batchClaimAfter(claim, outcome, { resend: !!claimant, now: Date.now() })
+			if (kept) await this.ctx.storage.put(keyed.storageKey, kept)
+			else await this.ctx.storage.delete(keyed.storageKey)
+		}
 		return { ...outcome, stats }
+	}
+
+	/** A batch's key, its stored claim if it has one, and what identifies its ops. */
+	private async getKeyedBatch(
+		userId: string,
+		request: Extract<TabRenderRequest, { mode: 'apply_ops' }>
+	) {
+		const { batchKey } = request.attribution
+		if (!batchKey) return null
+		const storageKey = batchClaimStorageKey(userId, batchKey)
+		const digest = await crypto.subtle.digest(
+			'SHA-256',
+			new TextEncoder().encode(JSON.stringify([request.ops, request.page ?? null]))
+		)
+		const opsHash = btoa(String.fromCharCode(...new Uint8Array(digest)))
+		await this.pruneBatchClaims()
+		const claim = await this.ctx.storage.get<BatchClaim>(storageKey)
+		return { storageKey, opsHash, claim, landedEntry: getBatchKeyMetaEntry(userId, batchKey) }
+	}
+
+	private async planClaimedBatch(
+		claim: BatchClaim,
+		{
+			storageKey,
+			opsHash,
+			landedEntry,
+		}: { storageKey: string; opsHash: string; landedEntry: string }
+	): Promise<ClaimedBatchPlan> {
+		// Only an unresolved claim for the same ops needs the document.
+		const unresolved = claim.resolvedAt === undefined && claim.opsHash === opsHash
+		const room = unresolved ? await this.getRoomForTabRender() : null
+		if (unresolved && !room) return { kind: 'answer', outcome: { status: 'room_timeout' } }
+		const document = room?.getRecord(TLDOCUMENT_ID) as TLDocument | undefined
+		const landed = !!document && Object.hasOwn(document.meta, landedEntry)
+		const now = Date.now()
+		if (unresolved && landed) await this.ctx.storage.put(storageKey, { ...claim, resolvedAt: now })
+		return planClaimedBatch(claim, opsHash, landed, now)
+	}
+
+	private async pruneBatchClaims() {
+		const now = Date.now()
+		const claims = await this.ctx.storage.list<BatchClaim>({ prefix: BATCH_CLAIM_PREFIX })
+		const expired = [...claims].filter(([, claim]) => isExpiredBatchClaim(claim, now))
+		if (!expired.length) return
+		await this.ctx.storage.delete(expired.map(([key]) => key))
+		// The object, not the tabs, clears the keys from the document: a tab can replay an old batch
+		// long after it was made, and its key must still be there when the object looks for it.
+		const storage = await this.getStorage()
+		storage.transaction((txn) => {
+			const document = txn.get(TLDOCUMENT_ID) as TLDocument
+			const meta = { ...document.meta }
+			for (const [, claim] of expired) delete meta[claim.metaEntry]
+			txn.set(TLDOCUMENT_ID, { ...document, meta })
+		})
 	}
 
 	/**

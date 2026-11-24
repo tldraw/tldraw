@@ -226,6 +226,7 @@ export type OpsBatch = z.infer<typeof OpsBatchSchema>
 export const AttributionSchema = z.object({
 	runId: z.string().max(200).optional(),
 	userId: z.string().max(200).optional(),
+	batchKey: z.string().max(200).optional(),
 })
 export type Attribution = z.infer<typeof AttributionSchema>
 
@@ -245,14 +246,13 @@ export interface OpResult {
 	ok: boolean
 	shapeIds: string[]
 	message: string
-	/** What the op did beyond the literal request (a nudge, a shrink, an inherited style), if anything */
+	/** What the op did beyond the literal request (a nudge, a shrink, an inherited style), or a warning about its neighbours, if anything */
 	adjusted?: string
 }
 
 export interface ApplyOpsResult {
 	batchId: string
 	applied: number
-	createdIds: string[]
 	errors: string[]
 	results: OpResult[]
 }

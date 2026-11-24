@@ -1,5 +1,7 @@
+import { getBatchKeyMetaEntry } from '@tldraw/dotcom-shared'
 import { structuredClone } from '@tldraw/utils'
 import {
+	areAnglesCompatible,
 	createBindingId,
 	createShapeId,
 	DefaultFontFamilies,
@@ -355,7 +357,48 @@ function applyAction(
 			if (action.dash !== undefined && 'dash' in current) props.dash = action.dash
 			if (action.size !== undefined && 'size' in current) props.size = action.size
 			if (Object.keys(props).length) partial.props = props as never
-			partial.meta = { ...shape.meta, agentEdit: { ...journal.stamp } }
+			// Lines and strokes have no w/h props: their shape utils scale the points instead. Applied
+			// now rather than through `partial`, so x and y in the same action land after it.
+			if (
+				(shape.type === 'line' || shape.type === 'draw' || shape.type === 'highlight') &&
+				(action.w !== undefined || action.h !== undefined)
+			) {
+				const ratio = (target: number | undefined, actual: number) =>
+					target === undefined || actual < 1 ? 1 : Math.max(1, target) / actual
+				// Off the page axes, a stretch along them would skew the shape, and resizeShape instead
+				// scales it by the smaller ratio and slides it: growing one side moved it at its old size.
+				const even = isRotatedOffPageAxes(editor, id)
+				if (even && action.w !== undefined && action.h !== undefined) {
+					const bounds = editor.getShapePageBounds(id)!
+					const [x, y] = [ratio(action.w, bounds.w), ratio(action.h, bounds.h)]
+					if (Math.abs(x - y) > 0.02 * Math.max(x, y)) {
+						throw new Error(
+							`Shape "${action.shapeId}" is rotated, so it can only be scaled evenly: give w or h alone, or both in its current proportions (${Math.round(bounds.w)}x${Math.round(bounds.h)})`
+						)
+					}
+				}
+				const scaleTowards = () => {
+					const bounds = editor.getShapePageBounds(id)!
+					const x = ratio(action.w, bounds.w)
+					const y = ratio(action.h, bounds.h)
+					const k = action.w !== undefined ? x : y
+					editor.resizeShape(
+						id,
+						even ? { x: k, y: k } : { x, y },
+						// The ratios are in page axes, which a rotated shape's own axes are not.
+						{ scaleOrigin: { x: bounds.x, y: bounds.y }, scaleAxisRotation: 0 }
+					)
+				}
+				// Stroke width is in the bounds but doesn't scale, so one pass misses; a second closes
+				// most of the gap.
+				scaleTowards()
+				scaleTowards()
+			}
+			// New shapes are moved into place after creation; stamping that move would mark every new
+			// shape as edited.
+			if (!journal.created.includes(id)) {
+				partial.meta = { ...shape.meta, agentEdit: { ...journal.stamp } }
+			}
 			editor.updateShape(partial)
 			return
 		}
@@ -366,6 +409,11 @@ function applyAction(
 			return
 		}
 	}
+}
+
+/** Whether a shape's page rotation is off the page axes (not a multiple of 90°). */
+export function isRotatedOffPageAxes(editor: Editor, id: TLShapeId) {
+	return !areAnglesCompatible(editor.getShapePageTransform(id).rotation(), 0)
 }
 
 // The editor skips locked shapes without a word, which would report an edit that never happened.
@@ -382,6 +430,16 @@ export interface BatchContext {
 	memory: RunMemory
 	/** Apply one bare action now; returns the short ids it created. Throws on failure. */
 	apply(action: CanvasAction): string[]
+}
+
+// One `meta` entry per key, because sync patches `meta` one entry deep: a shared map would be sent
+// whole, and two tabs writing at once would erase each other's keys. The file object clears them.
+function recordBatchKey(editor: Editor, { batchKey, userId = '' }: Attribution) {
+	if (!batchKey) return
+	const meta = { ...editor.getDocumentSettings().meta }
+	meta[getBatchKeyMetaEntry(userId, batchKey)] = Date.now()
+	// Out of history, so undoing the batch doesn't make it look unapplied to a resend.
+	editor.updateDocumentSettings({ meta })
 }
 
 /**
@@ -412,7 +470,14 @@ export function runBatch(
 	}
 	// Ops mark their own stopping points so each can be rolled back; squashing leaves one undo step.
 	const mark = editor.markHistoryStoppingPoint('canvas ops batch')
-	editor.run(() => body(ctx), { history: 'record' })
+	// In the batch's own transaction, so the server commits the key with the edits or not at all.
+	editor.run(
+		() => {
+			recordBatchKey(editor, attribution)
+			body(ctx)
+		},
+		{ history: 'record' }
+	)
 	editor.squashToMark(mark)
 	return batchId
 }

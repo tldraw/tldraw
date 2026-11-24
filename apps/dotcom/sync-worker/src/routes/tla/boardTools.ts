@@ -10,6 +10,7 @@ import {
 	PageSelector,
 	ShapeCluster,
 	ShapeMeasurement,
+	TAB_RENDER_MAX_EXPORT_TEXT_SHAPES,
 	can,
 	findMcpPage,
 	getShapeText,
@@ -548,9 +549,10 @@ export function parseApplyOpsInput(input: unknown): {
 	ops: unknown[]
 	page: PageSelector | null
 	runId: string | null
+	batchKey: string | null
 } {
 	const value = requireArgumentsObject(input)
-	const { ops, runId } = value
+	const { ops, runId, batchKey } = value
 	if (!Array.isArray(ops) || ops.length === 0) {
 		throw new Error('ops must be a non-empty array of canvas ops')
 	}
@@ -565,12 +567,24 @@ export function parseApplyOpsInput(input: unknown): {
 			throw new Error(`runId must be a string of at most ${APPLY_OPS_MAX_RUN_ID_LENGTH} characters`)
 		}
 	}
+	if (batchKey !== undefined && batchKey !== null) {
+		if (
+			typeof batchKey !== 'string' ||
+			!batchKey ||
+			batchKey.length > APPLY_OPS_MAX_RUN_ID_LENGTH
+		) {
+			throw new Error(
+				`batchKey must be a string of at most ${APPLY_OPS_MAX_RUN_ID_LENGTH} characters`
+			)
+		}
+	}
 	return {
 		boardId: parseBoardId(value.boardId),
 		ops,
 		// A model that fills in every field sends null, which means the same as leaving it out.
 		page: value.page === undefined || value.page === null ? null : parsePageSelector(value.page),
 		runId: runId ?? null,
+		batchKey: batchKey ?? null,
 	}
 }
 
@@ -2306,7 +2320,7 @@ function getClusterScreenshotToolDefinition() {
 	return {
 		name: CLUSTER_SCREENSHOT_TOOL_NAME,
 		title: 'Get tldraw cluster screenshot',
-		description: `Get a screenshot of one or more clusters from get_page_info. The clusters will render together in a single image in their relative positions on the board. The board and page in question must be open in the user’s browser tab: if they are not, ask them to open it or switch to it. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. Use get_cluster_info only when the individual shapes matter.`,
+		description: `Get a screenshot of one or more clusters from get_page_info. The clusters will render together in a single image in their relative positions on the board. The board and page in question must be open in the user’s browser tab: if they are not, ask them to open it or switch to it. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. One screenshot fits about ${TAB_RENDER_MAX_EXPORT_TEXT_SHAPES} shapes with text (shapes without text count for far less), so split a text-heavy page across calls. Use get_cluster_info only when the individual shapes matter.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2421,6 +2435,11 @@ Put a card's words in the box's own text, not in labels laid over it. Keep shape
 					type: 'string',
 					description:
 						'Any string. Reuse it across calls so {created} refs reach shapes made in earlier calls.',
+				},
+				batchKey: {
+					type: 'string',
+					description:
+						'A new string for each batch, such as a UUID. A batch with a key runs at most once. If a call says the ops may or may not have applied, send the same call again with the same batchKey: you get the first result, or are told it has not landed yet.',
 				},
 			},
 			required: ['boardId', 'ops'],
