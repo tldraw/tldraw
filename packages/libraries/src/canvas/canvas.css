@@ -550,6 +550,21 @@
 	padding-inline-start: 0;
 }
 
+.tlui-libraries-browse__title-rename {
+	all: unset;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: text;
+}
+
+.tlui-libraries-browse__title-rename:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+	border-radius: var(--tl-radius-1);
+}
+
 .tlui-libraries-browse__back {
 	color: var(--tl-color-text-3);
 }

@@ -53,6 +53,7 @@ import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 const PREVIEW_COUNT = 5
 
 const messages = defineMessages({
+	renameLibrary: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename' },
 	title: { id: 'libraries.browse.title', defaultMessage: 'Browse libraries' },
 	empty: { id: 'libraries.browse.empty', defaultMessage: 'No libraries to add.' },
 	emptyLibrary: { id: 'libraries.browse.empty-library', defaultMessage: 'This library is empty.' },
@@ -351,11 +352,14 @@ function BrowseHeader({
 	onBack,
 	menu,
 	rename,
+	onStartRename,
 }: {
 	title: string
 	onBack?(): void
 	menu?: ReactNode
 	rename?: { onComplete(name: string): void; onCancel(): void }
+	/** Makes the title a button that starts renaming. */
+	onStartRename?(): void
 }) {
 	const msg = useTranslation()
 	const dir = useDirection()
@@ -391,7 +395,20 @@ function BrowseHeader({
 					onCancel={rename.onCancel}
 				/>
 			) : (
-				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>
+					{onStartRename ? (
+						<button
+							type="button"
+							className="tlui-libraries-browse__title-rename"
+							title={msg(messages.renameLibrary)}
+							onClick={onStartRename}
+						>
+							{title}
+						</button>
+					) : (
+						title
+					)}
+				</TldrawUiDialogTitle>
 			)}
 			{!rename && menu}
 			{!inSheet && <TldrawUiDialogCloseButton />}
@@ -526,7 +543,7 @@ function useSourceLibraryMenu(
 				onCancel: () => setRenaming(false),
 			}
 		: undefined
-	return { menuProps, rename }
+	return { menuProps, rename, startRename: menuProps.onRename }
 }
 
 function SourceLibraryRow({
@@ -773,6 +790,7 @@ function LibraryView({
 	menuId,
 	menuProps,
 	rename,
+	onStartRename,
 	onBack,
 }: {
 	name: string
@@ -783,6 +801,7 @@ function LibraryView({
 	menuId: string
 	menuProps: Omit<LibraryMenuProps, 'id'>
 	rename?: { onComplete(name: string): void; onCancel(): void }
+	onStartRename?(): void
 	onBack(): void
 }) {
 	const msg = useTranslation()
@@ -807,6 +826,7 @@ function LibraryView({
 				onBack={onBack}
 				menu={<LibraryMenu id={menuId} {...menuProps} />}
 				rename={rename}
+				onStartRename={onStartRename}
 			/>
 			<TldrawUiDialogBody className="tlui-libraries-browse">
 				{items && items.length === 0 ? (
@@ -858,7 +878,7 @@ function SourceLibraryView({
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const urls = useLibraryThumbnailUrls(source, items, { container: element })
 	const placement = useSourcePlacement(source, libraryId)
-	const { menuProps, rename } = useSourceLibraryMenu(source, library, placement)
+	const { menuProps, rename, startRename } = useSourceLibraryMenu(source, library, placement)
 	return (
 		<LibraryView
 			name={library.name}
@@ -872,6 +892,7 @@ function SourceLibraryView({
 			menuId={`libraries-browse-view-menu-${libraryId}`}
 			menuProps={menuProps}
 			rename={rename}
+			onStartRename={startRename}
 			onBack={onBack}
 		/>
 	)
