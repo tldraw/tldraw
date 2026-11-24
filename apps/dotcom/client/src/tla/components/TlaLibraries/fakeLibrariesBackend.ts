@@ -210,7 +210,7 @@ export function createFakeLibrariesBackend({
 				rows.update((all) => [
 					...all,
 					{
-						...source,
+						...withoutPackId(source),
 						id,
 						name: name === undefined ? source.name : libraryName(name),
 						owningGroupId,
@@ -257,4 +257,9 @@ export function createFakeLibrariesBackend({
 		holdRequests: () => (requestHold = createHold()),
 		holdWorkerRows: () => (rowHold = createHold()),
 	}
+}
+
+function withoutPackId<T extends { meta: JsonObject }>(row: T): T {
+	const { packId: _packId, ...meta } = row.meta
+	return { ...row, meta }
 }

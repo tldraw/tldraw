@@ -344,11 +344,13 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 		const id = uniqueId()
 		const name = getCopyName(source.name, options)
+		// Dropped so the copy isn't taken for the starter pack's own copy, as the worker does.
+		const { packId: _packId, ...meta } = source.meta
 		const library = LibraryRecordType.create({
 			id: LibraryRecordType.createId(id),
 			name,
 			ownerId,
-			meta: source.meta,
+			meta,
 		})
 		const arrival = settleable<boolean>()
 		const copies = new Set<PendingItem>()

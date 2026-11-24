@@ -124,7 +124,7 @@ describe('copyLibrary', () => {
 		expect(response.status).toBe(200)
 		expect(await response.json()).toEqual({ id: NEW_ID })
 		expect(insertOf(fake, 'library')!.parameters).toEqual(
-			expect.arrayContaining([NEW_ID, 'Shapes', V, ME, { packId: 'icons', packVersion: 1 }])
+			expect.arrayContaining([NEW_ID, 'Shapes', V, ME])
 		)
 		const params = insertOf(fake, 'library_item')!.parameters
 		expect(params).toEqual(
@@ -144,6 +144,14 @@ describe('copyLibrary', () => {
 		expect(params).toEqual(
 			expect.arrayContaining([{ category: 'Category item_a' }, { category: 'Category item_b' }])
 		)
+	})
+
+	it("copies the library's meta without the starter pack's packId", async () => {
+		const fake = mockPool(copying([]))
+		expect((await copyLibrary(request(V), makeEnv())).status).toBe(200)
+		const params = insertOf(fake, 'library')!.parameters
+		expect(params).toContainEqual({ packVersion: 1 })
+		expect(params).not.toContainEqual(expect.objectContaining({ packId: 'icons' }))
 	})
 
 	it('copies only the items I named, and leaves out ones the library no longer has', async () => {

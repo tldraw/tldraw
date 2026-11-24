@@ -619,6 +619,24 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(second.getItems(copy.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
 		})
 
+		it("copies the library's meta without the starter pack's packId", async () => {
+			const { backend, source } = setUp()
+			const pack = await source.createLibrary('Icons', {
+				meta: { packId: 'icons', packVersion: 1 },
+			})
+			const requests = backend.holdRequests()
+			const copying = source.copyLibrary(pack.id, 'acme')
+			const pending = source.getLibraries().find((c) => c.id !== pack.id)!
+			expect(pending.meta).toEqual({ packVersion: 1 })
+			requests.release()
+			const copy = await copying
+			await vi.waitFor(() =>
+				expect(backend.rows.get().find((row) => row.id === rowId(copy.id))?.meta).toEqual({
+					packVersion: 1,
+				})
+			)
+		})
+
 		it('places an item being copied from its source item’s content', async () => {
 			const { backend, source, kit } = await withKit()
 			const requests = backend.holdRequests()
