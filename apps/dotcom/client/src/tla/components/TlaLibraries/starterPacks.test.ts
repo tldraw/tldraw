@@ -1,7 +1,21 @@
 import { readdirSync, readFileSync } from 'fs'
 import { join } from 'path'
-import { type LibraryPack, type LibraryPackItem, InMemoryLibrarySource } from '@tldraw/libraries'
-import { createTLSchema, type SerializedStore, type TLRecord } from 'tldraw'
+import {
+	copyPack,
+	InMemoryLibrarySource,
+	placeLibraryItem,
+	type LibraryPack,
+	type LibraryPackItem,
+} from '@tldraw/libraries'
+import {
+	createTLSchema,
+	createTLStore,
+	defaultBindingUtils,
+	defaultShapeUtils,
+	Editor,
+	type SerializedStore,
+	type TLRecord,
+} from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import {
@@ -171,6 +185,65 @@ describe('starter pack content', () => {
 			content: { ...content.content, shapes: [{ ...shape, x: 'left' } as any, ...shapes] },
 		}
 		expect(() => migrateAndValidate(broken)).toThrow()
+	})
+})
+
+describe('starter pack items', () => {
+	it.each(fullPacks.map((p) => [p.id, p] as const))(
+		"%s's items each have one top-level shape",
+		(_, p) => {
+			for (const item of p.items) {
+				const { shapes, rootShapeIds } = item.content.content
+				const roots = shapes.filter((shape) => !shapes.some((s) => s.id === shape.parentId))
+				expect(rootShapeIds, item.id).toHaveLength(1)
+				expect(
+					roots.map((shape) => shape.id),
+					item.id
+				).toEqual(rootShapeIds)
+			}
+		}
+	)
+
+	it('groups the items drawn from several shapes', () => {
+		const doodles = fullPacks.find((p) => p.id === 'doodles')!
+		const step = fullPacks
+			.find((p) => p.id === 'diagramming')!
+			.items.find((item) => item.id === 'step')!
+		for (const item of [...doodles.items, step]) {
+			const { shapes, rootShapeIds } = item.content.content
+			const root = shapes.find((shape) => shape.id === rootShapeIds[0])!
+			expect(root.type, item.id).toBe('group')
+			expect(shapes.filter((shape) => shape.parentId === root.id).length, item.id).toBeGreaterThan(
+				1
+			)
+		}
+	})
+
+	it('places a doodle as one group, selected', async () => {
+		const doodles = fullPacks.find((p) => p.id === 'doodles')!
+		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
+		const copy = await copyPack(source, {
+			...doodles,
+			items: doodles.items.map(({ thumbnail: _, ...item }) => item),
+		})
+		const editor = new Editor({
+			store: createTLStore({ schema: createTLSchema({ records: fileSchemaRecords }) }),
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [],
+			getContainer: () => document.body,
+		})
+		try {
+			for (const item of source.getItems(copy.id)) {
+				editor.selectNone()
+				await placeLibraryItem(editor, source, item.id)
+				const placed = editor.getSelectedShapeIds()
+				expect(placed, item.name).toHaveLength(1)
+				expect(editor.getShape(placed[0])!.type, item.name).toBe('group')
+			}
+		} finally {
+			editor.dispose()
+		}
 	})
 })
 

@@ -1,7 +1,60 @@
 {
 	"formatVersion": 1,
 	"content": {
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 4,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 14,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 7,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 15,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 6,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1,
+				"com.tldraw.library": 1,
+				"com.tldraw.library-item": 1,
+				"com.tldraw.library-item-content": 1
+			}
+		},
 		"shapes": [
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:waving-person",
+				"type": "group",
+				"parentId": "page:page",
+				"index": "a9RNb",
+				"props": {},
+				"typeName": "shape"
+			},
 			{
 				"x": 17.750337845034664,
 				"y": 0,
@@ -19,6 +72,8 @@
 					"growY": 0,
 					"url": "",
 					"scale": 1,
+					"flipX": false,
+					"flipY": false,
 					"color": "black",
 					"labelColor": "black",
 					"fill": "semi",
@@ -33,12 +88,10 @@
 								"type": "paragraph"
 							}
 						]
-					},
-					"flipX": false,
-					"flipY": false
+					}
 				},
-				"parentId": "page:page",
-				"index": "aHLVQ",
+				"parentId": "shape:waving-person",
+				"index": "a1",
 				"typeName": "shape"
 			},
 			{
@@ -69,8 +122,8 @@
 					"scaleX": 1.8668311519302356,
 					"scaleY": 1.8668311519302356
 				},
-				"parentId": "page:page",
-				"index": "aI4Kb",
+				"parentId": "shape:waving-person",
+				"index": "a2KWQ",
 				"typeName": "shape"
 			},
 			{
@@ -101,8 +154,8 @@
 					"scaleX": 1.8668311519302356,
 					"scaleY": 1.8668311519302356
 				},
-				"parentId": "page:page",
-				"index": "aJKMr",
+				"parentId": "shape:waving-person",
+				"index": "a3uTj",
 				"typeName": "shape"
 			},
 			{
@@ -133,8 +186,8 @@
 					"scaleX": 1,
 					"scaleY": 1
 				},
-				"parentId": "page:page",
-				"index": "aKnsU",
+				"parentId": "shape:waving-person",
+				"index": "a4jMI",
 				"typeName": "shape"
 			},
 			{
@@ -165,8 +218,8 @@
 					"scaleX": 1,
 					"scaleY": 1
 				},
-				"parentId": "page:page",
-				"index": "aM4FI",
+				"parentId": "shape:waving-person",
+				"index": "a5UzwV",
 				"typeName": "shape"
 			},
 			{
@@ -197,8 +250,8 @@
 					"scaleX": 1,
 					"scaleY": 1
 				},
-				"parentId": "page:page",
-				"index": "aNFzg",
+				"parentId": "shape:waving-person",
+				"index": "a6co2",
 				"typeName": "shape"
 			},
 			{
@@ -229,8 +282,8 @@
 					"scaleX": 1,
 					"scaleY": 1
 				},
-				"parentId": "page:page",
-				"index": "aOOEA",
+				"parentId": "shape:waving-person",
+				"index": "a7sCA",
 				"typeName": "shape"
 			},
 			{
@@ -261,8 +314,8 @@
 					"scaleX": 1,
 					"scaleY": 1
 				},
-				"parentId": "page:page",
-				"index": "aPlgE",
+				"parentId": "shape:waving-person",
+				"index": "a872v",
 				"typeName": "shape"
 			},
 			{
@@ -293,59 +346,14 @@
 					"scaleX": 1,
 					"scaleY": 1
 				},
-				"parentId": "page:page",
-				"index": "aQcBj",
+				"parentId": "shape:waving-person",
+				"index": "a972v",
 				"typeName": "shape"
 			}
 		],
+		"rootShapeIds": ["shape:waving-person"],
 		"bindings": [],
-		"rootShapeIds": [
-			"shape:YIIv1N9HrRrvR9IOXcn0T",
-			"shape:TbdPt-nNXuRuR_qYp6DnV",
-			"shape:yv9kvZfqQRhfPuj_8IRFh",
-			"shape:7EbnkccnHV5O8KFmsda0M",
-			"shape:8OK4DuKzKNSlUCMZnhRLH",
-			"shape:AIv4689ZXrkjb-NL3qrXb",
-			"shape:d2d0lQNB3q1ya0TniT2RZ",
-			"shape:rmEP8jJgUuqJlDRCq1y7b",
-			"shape:HSfZiwj--JctTMVqdUVY5"
-		],
 		"assets": [],
-		"schema": {
-			"schemaVersion": 2,
-			"sequences": {
-				"com.tldraw.store": 5,
-				"com.tldraw.asset": 1,
-				"com.tldraw.camera": 1,
-				"com.tldraw.document": 2,
-				"com.tldraw.instance": 26,
-				"com.tldraw.instance_page_state": 5,
-				"com.tldraw.page": 1,
-				"com.tldraw.instance_presence": 6,
-				"com.tldraw.pointer": 1,
-				"com.tldraw.shape": 4,
-				"com.tldraw.user": 1,
-				"com.tldraw.asset.image": 6,
-				"com.tldraw.asset.video": 5,
-				"com.tldraw.asset.bookmark": 2,
-				"com.tldraw.shape.arrow": 8,
-				"com.tldraw.shape.bookmark": 2,
-				"com.tldraw.shape.draw": 5,
-				"com.tldraw.shape.embed": 4,
-				"com.tldraw.shape.frame": 1,
-				"com.tldraw.shape.geo": 12,
-				"com.tldraw.shape.group": 0,
-				"com.tldraw.shape.highlight": 4,
-				"com.tldraw.shape.image": 5,
-				"com.tldraw.shape.line": 5,
-				"com.tldraw.shape.note": 13,
-				"com.tldraw.shape.text": 4,
-				"com.tldraw.shape.video": 4,
-				"com.tldraw.binding.arrow": 1,
-				"com.tldraw.comment-thread": 3,
-				"com.tldraw.comment": 1,
-				"com.tldraw.comment-reaction": 1
-			}
-		}
+		"users": []
 	}
 }
