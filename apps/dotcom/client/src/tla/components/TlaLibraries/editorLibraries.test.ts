@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto'
-import { copyLibrary, type LibrarySource } from '@tldraw/libraries'
+import { BoardLibrarySource, copyLibrary, type LibrarySource } from '@tldraw/libraries'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -101,17 +101,23 @@ describe('getEditorLibraries', () => {
 		expect(ofType(editor, 'library')).toEqual([])
 	})
 
-	it("keeps a library created for the board in the file's document", async () => {
+	it('lists "This board" as the board\'s own library, and keeps it in the document once saved to', async () => {
 		const { editor, source } = setUp()
-		const library = await source.createLibrary('Board kit', { ownerId: 'file-a' })
-		expect(library.ownerId).toBe('file-a')
-		expect(ofType(editor, 'library')).toMatchObject([{ id: library.id, name: 'Board kit' }])
+		const own = source.getLibraries().find((c) => c.ownerId === 'file-a')!
+		expect(own.name).toBe('This board')
+		expect(source.can('createLibrary', { ownerId: 'file-a' })).toBe(false)
+		expect(ofType(editor, 'library')).toEqual([])
+		const { id } = addImage(editor)
+		await source.addItem(own.id, {
+			content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+		})
+		expect(ofType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
 	})
 
-	it("copies a board library to the user's own and back, with its image", async () => {
+	it('copies a board library to the user\'s own, and its item back into "This board", with its image', async () => {
 		const { userId, editor, source } = setUp()
 		const { id, assetId } = addImage(editor)
-		const library = await source.createLibrary('Photos', { ownerId: 'file-a' })
+		const library = await new BoardLibrarySource(editor).createLibrary('Photos')
 		await source.addItem(library.id, {
 			content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
 		})
@@ -125,14 +131,15 @@ describe('getEditorLibraries', () => {
 		expect(userContent.content.assets.map((a) => a.id)).toEqual([assetId])
 
 		editor.store.remove([assetId])
-		await copyLibrary(source, copy.id, 'file-a')
-		expect(namesOf(source, 'file-a')).toEqual(['Photos'])
+		const own = source.getLibraries().find((c) => c.ownerId === 'file-a')!
+		await source.moveItem!(userItem.id, own.id)
+		expect(source.getItems(own.id)).toHaveLength(1)
 		expect(ofType(editor, 'asset').map((a) => a.id)).toEqual([assetId])
 	})
 
 	it("keeps a board library out of the user's own libraries across a reload", async () => {
-		const { userId, source } = setUp()
-		await source.createLibrary('Board kit', { ownerId: 'file-a' })
+		const { userId, editor, source } = setUp()
+		await new BoardLibrarySource(editor).createLibrary('Board kit')
 		await source.createLibrary('Team kit')
 
 		const reloaded = createLibrariesSource(userId)

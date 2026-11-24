@@ -10,9 +10,10 @@ const messages = defineMessages({
 const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
 
 /**
- * The libraries an open file's editor offers: the board's own, kept as records in the file's
- * document so they are saved, synced and duplicated with it, then the user's own libraries. New
- * libraries go to the user's own.
+ * The libraries an open file's editor offers: the board's own, "This board", kept as records in
+ * the file's document so it is saved, synced and duplicated with it, then the user's own
+ * libraries. Anyone who can edit the file saves to the board's library. New libraries go to the
+ * user's own.
  *
  * Made once per editor, so the panel and the context menu share it.
  */
@@ -31,7 +32,10 @@ export function getEditorLibraries(
 		parts: [
 			{
 				owner: { id: fileId, name: app.msg(messages.thisBoard) },
-				source: new BoardLibrarySource(editor, { id: `board:${fileId}` }),
+				source: new BoardLibrarySource(editor, {
+					id: `board:${fileId}`,
+					documentLibrary: { name: app.msg(messages.thisBoard) },
+				}),
 			},
 			{
 				owner: { id: app.userId, name: app.msg(messages.yourLibraries) },
