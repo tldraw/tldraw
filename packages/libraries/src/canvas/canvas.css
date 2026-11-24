@@ -575,7 +575,7 @@
 	align-items: center;
 	justify-content: flex-end;
 	height: 40px;
-	padding: 0 var(--tl-space-2);
+	padding: 0 0 0 var(--tl-space-2);
 	border-top: 1px solid var(--tl-color-divider);
 }
 
