@@ -10,6 +10,7 @@ import {
 	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
 	findMcpPage,
+	getBatchKeyMetaEntry,
 	readMcpPage,
 	toShapeMeasurements,
 } from '@tldraw/dotcom-shared'
@@ -225,7 +226,18 @@ function queueApplyOps(
 		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
 		// Waited on, unlike a read's catch-up: the batch must not land on top of this tab's own unsent
 		// edits from before, or report them as its own if the server refuses them.
-		if (flushChanges && !(await flushChanges())) return { status: 'declined', reason: 'failed' }
+		const flushed = flushChanges ? await flushChanges() : true
+		// A resend comes only to the tab that took the first attempt, the one place an unconfirmed copy
+		// can be. The key is in this store if that copy is here or already on the server, and missing if
+		// this tab lost it, by a reload or a refused push, in which case nothing can land it any more.
+		const { batchKey, userId } = request.attribution
+		if (
+			batchKey &&
+			Object.hasOwn(editor.getDocumentSettings().meta, getBatchKeyMetaEntry(userId, batchKey))
+		) {
+			return { status: 'declined', reason: flushed ? 'already_applied' : 'unconfirmed' }
+		}
+		if (!flushed) return { status: 'declined', reason: 'failed' }
 		// Again, because the flush can take long enough for the worker to have given up.
 		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
 		const reason = getRefusal(editor, request, flushChanges)
@@ -251,7 +263,7 @@ function queueApplyOps(
 		// Applied here isn't applied for anyone else until the server commits it. If it doesn't, the
 		// edits may still land when the tab reconnects, so the agent must check before resending.
 		if (flushChanges && !(await flushChanges())) {
-			return { status: 'declined', reason: 'apply_failed' }
+			return { status: 'declined', reason: 'unconfirmed' }
 		}
 		return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 	})

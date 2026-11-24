@@ -1,6 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
+import type { RenderWorkerRpc } from '@tldraw/dotcom-render-worker'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import type { HeadlessWorkerRpc } from './routes/tla/headlessShadow'
 import type { TLFileDurableObject } from './TLFileDurableObject'
@@ -132,6 +133,15 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
+	// RPC to the private render worker (apps/dotcom/render-worker), reached only here — it has no
+	// public routes. It owns the render page, the Browser Run calls, the deadline, result parsing,
+	// and the browser_run_session ledger; this worker keeps auth, snapshot selection, rate limits,
+	// caching and the request-level telemetry. Undefined where the binding is absent (tests, and any
+	// environment not yet wired to it). Typed as the RPC interface rather than Cloudflare's
+	// `Service<RenderWorker>`: the latter wants the entrypoint class (branding), which would pull
+	// `cloudflare:workers` into this worker's types. The binding stub's callable surface is the
+	// interface — every method already returns a Promise of plain, structured-cloneable data.
+	RENDER_WORKER: RenderWorkerRpc | undefined
 	/**
 	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
 	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
@@ -146,6 +156,10 @@ export interface Environment {
 	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
+	// 'true' hands rendering to the private render worker (RENDER_WORKER) instead of the local render
+	// path in thumbnailRender.ts. Off everywhere it is unset; flipped per environment once the worker
+	// renders end-to-end. See apps/dotcom/render-worker.
+	THUMBNAIL_RENDER_VIA_WORKER: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
@@ -175,10 +189,10 @@ export interface Environment {
 	LOCAL_SCREENSHOT_SERVICE_URL: string | undefined
 
 	// The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
-	// Unbound everywhere for now — the worker is not yet deployed or named in any wrangler.toml — so the
-	// shadow is inert until a binding is added and the `headless_shadow` flag samples a caller. Typed as
-	// the RPC surface rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for
-	// its branding, which lives in another repo and would pull the worker in as a build dependency.
+	// Bound on staging only. Its presence also stands in for the render worker's own binding when
+	// sync-worker decides to sample a screenshot (`headless_shadow`). Typed as the RPC surface
+	// rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for its branding,
+	// which is deployed separately and would pull the worker in as a build dependency.
 	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
 }
 

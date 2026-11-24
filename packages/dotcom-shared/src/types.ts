@@ -211,8 +211,23 @@ export interface TabRenderApplyOpsRequest {
 	ops: unknown[]
 	/** Which page the agent means. Absent means whichever page the tab is on. */
 	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
-	attribution: { userId: string; runId?: string }
+	/**
+	 * `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }`
+	 * refs to this batch. `batchKey` is the agent's name for the batch: the file object runs a keyed
+	 * batch at most once, and the tab records the key at `getBatchKeyMetaEntry` in the same commit.
+	 */
+	attribution: { userId: string; runId?: string; batchKey?: string }
+}
+
+const BATCH_KEY_META_PREFIX = 'agentBatchKey:'
+
+/**
+ * The `document.meta` entry a tab writes with a keyed batch, which tells the file object the batch
+ * reached the server. Per user, since agents pick their own keys; JSON, so a ':' in either part can't
+ * make two pairs collide.
+ */
+export function getBatchKeyMetaEntry(userId: string, batchKey: string) {
+	return BATCH_KEY_META_PREFIX + JSON.stringify([userId, batchKey])
 }
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
@@ -260,6 +275,21 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'tab_hidden',
 	/** Something threw while a batch was applying, so some of it may have landed. */
 	'apply_failed',
+	/**
+	 * The batch applied in the tab but the server didn't confirm it: it timed out, the connection
+	 * dropped, or the server discarded it. A push isn't cancelled, so after a timeout or a drop it may
+	 * still land.
+	 */
+	'unconfirmed',
+	/** A resend of a keyed batch the server has, so nothing was done. */
+	'already_applied',
+	/**
+	 * From the file object: a resend of a keyed batch whose only attempt isn't on the server yet. Its
+	 * tab may still push it, so it isn't run again.
+	 */
+	'batch_unresolved',
+	/** From the file object: a batch key already used for different ops. */
+	'batch_key_reused',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
@@ -475,6 +505,13 @@ export interface AllowlistFeatureFlag {
 	 * this existed must not start admitting everyone when the code that reads it is deployed.
 	 */
 	allowEveryone?: boolean
+	/**
+	 * 0–100. Also admits everyone else whose `hash(userId + flagName)` falls below it, the same
+	 * bucketing a percentage flag uses, so a hand-picked group can be ramped out to all users.
+	 *
+	 * Optional because stored values predate it, and absent reads as 0.
+	 */
+	percentage?: number
 	description: string
 }
 

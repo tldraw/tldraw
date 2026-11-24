@@ -77,6 +77,9 @@
   "181b90f889": {
     "translation": "Tạo tệp"
   },
+  "1914dedd04": {
+    "translation": "Do tôi tạo ra"
+  },
   "1a7222b4e5": {
     "translation": "Di chuyển đến"
   },
@@ -124,6 +127,9 @@
   },
   "2e9856a31e": {
     "translation": "Tạo lại liên kết mời"
+  },
+  "2f42560ef5": {
+    "translation": "{name} (bạn)"
   },
   "31246941ad": {
     "translation": "Bạn cần đăng nhập để xem tệp này."
@@ -176,6 +182,9 @@
   "42e53c47c1": {
     "translation": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
   },
+  "42ff290cc4": {
+    "translation": "Hành động…"
+  },
   "44db318ee5": {
     "translation": "Nhận trợ giúp trên Discord"
   },
@@ -196,6 +205,12 @@
   },
   "47f493a590": {
     "translation": "Tệp ghim"
+  },
+  "4970317944": {
+    "translation": "Sự vật"
+  },
+  "49800157c1": {
+    "translation": "Đã chỉnh sửa {time}"
   },
   "49ee308734": {
     "translation": "Tên"
@@ -223,6 +238,12 @@
   },
   "517bb809d9": {
     "translation": "Menu trang"
+  },
+  "517f5f3544": {
+    "translation": "Chưa có tệp nào ở đây."
+  },
+  "536b51486d": {
+    "translation": "Xuất khẩu…"
   },
   "53770fd374": {
     "translation": "Chưa đọc"
@@ -254,6 +275,9 @@
   "56c34c6410": {
     "translation": "Chính sách bảo mật"
   },
+  "56cabd57d5": {
+    "translation": "Các tệp đã được lưu trữ sẽ xuất hiện ở đây."
+  },
   "5a95a425f7": {
     "translation": "Chia sẻ"
   },
@@ -284,6 +308,9 @@
   "61057a0c84": {
     "translation": "Để sau"
   },
+  "623cddd380": {
+    "translation": "Gần đây"
+  },
   "625fd29749": {
     "translation": "Cũ hơn"
   },
@@ -313,6 +340,9 @@
   },
   "694f82ed9d": {
     "translation": "Xóa không gian làm việc"
+  },
+  "697c59072d": {
+    "translation": "Đăng nhập để lưu"
   },
   "69ce6a28fb": {
     "translation": "{count, plural, other {# mọi người đã phản ứng}}"
@@ -383,6 +413,9 @@
   "797799f35e": {
     "translation": "Gửi vấn đề trên GitHub"
   },
+  "797c5be9a7": {
+    "translation": "· Hiện đang có trên diễn đàn này"
+  },
   "7a1920d611": {
     "translation": "Mặc định"
   },
@@ -395,8 +428,14 @@
   "7c0747a5df": {
     "translation": "Mở tldraw"
   },
+  "7c10d4771a": {
+    "translation": "Đăng nhập để chỉnh sửa cài đặt hồ sơ"
+  },
   "7cb5f8b4a5": {
     "translation": "Quên"
+  },
+  "7d69b3cb4c": {
+    "translation": "Đã lưu trữ"
   },
   "7daeced9ff": {
     "translation": "Xuất bản các thay đổi"
@@ -428,6 +467,9 @@
   "86c66437fd": {
     "translation": "Đổi tên tập tin"
   },
+  "8718bcf921": {
+    "translation": "Không gian làm việc chưa có tiêu đề"
+  },
   "87fdb09de6": {
     "translation": "Bạn đã là thành viên của không gian làm việc này."
   },
@@ -439,6 +481,9 @@
   },
   "8c2d3d730c": {
     "translation": "Kiểm tra email của bạn để lấy mã xác minh."
+  },
+  "8cf04a9734": {
+    "translation": "Trang chủ"
   },
   "8eb2c00e96": {
     "translation": "Chia sẻ với bạn"
@@ -484,6 +529,9 @@
   },
   "9983381c21": {
     "translation": "Xóa tìm kiếm"
+  },
+  "9ac3b80777": {
+    "translation": "Tệp chưa được lưu"
   },
   "9b33f5c63c": {
     "translation": "Không nhận được mã? <resend>Gửi lại</resend>."
@@ -591,6 +639,9 @@
   "b357b524e7": {
     "translation": "Địa chỉ email"
   },
+  "b3d7c37eb8": {
+    "translation": "Chế độ xem dạng lưới"
+  },
   "b48becc771": {
     "translation": "Cho phép mời"
   },
@@ -620,6 +671,9 @@
   },
   "bd8aac2696": {
     "translation": "Tệp hiện tại"
+  },
+  "bf9c7b5670": {
+    "translation": "Tìm kiếm…"
   },
   "c17466812d": {
     "translation": "Quản lý không gian làm việc"
@@ -705,6 +759,9 @@
   "dbf9b24193": {
     "translation": "Rời khỏi không gian làm việc"
   },
+  "dfdb78a4e4": {
+    "translation": "Cờ gỡ lỗi ứng dụng"
+  },
   "e0aa021e21": {
     "translation": "OK"
   },
@@ -738,6 +795,9 @@
   "ec611e9a08": {
     "translation": "Menu tài khoản"
   },
+  "ed6241a422": {
+    "translation": "Không có tệp nào phù hợp với tìm kiếm của bạn."
+  },
   "ed75712b0e": {
     "translation": "Nhân đôi"
   },
@@ -753,11 +813,17 @@
   "ef7de3f485": {
     "translation": "đã chọn"
   },
+  "f07e75296c": {
+    "translation": "Đã chia sẻ với tôi"
+  },
   "f09b16bc5f": {
     "translation": "Chúng tôi sử dụng cookie để giữ cho bạn đăng nhập, đồng bộ hóa các tệp của bạn và thu thập số liệu phân tích để giúp chúng tôi cải thiện tldraw."
   },
   "f0e8bff6f9": {
     "translation": "Cài đặt người dùng"
+  },
+  "f13001876b": {
+    "translation": "Chế độ xem danh sách"
   },
   "f2569594b2": {
     "translation": "Chúng tôi sử dụng các cookie này để lưu tệp và cài đặt của bạn."

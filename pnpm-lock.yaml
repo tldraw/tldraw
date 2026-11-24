@@ -783,6 +783,25 @@ importers:
         specifier: ^4.148.0
         version: 4.148.0(@cloudflare/workers-types@4.20260317.1)(@types/node@22.16.0)
 
+  apps/dotcom/render-worker:
+    dependencies:
+      '@tldraw/dotcom-shared':
+        specifier: workspace:*
+        version: link:../../../packages/dotcom-shared
+      '@tldraw/worker-shared':
+        specifier: workspace:*
+        version: link:../../../packages/worker-shared
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260302.0
+        version: 4.20260317.1
+      vitest:
+        specifier: ^5.0.0
+        version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+      wrangler:
+        specifier: ^4.148.0
+        version: 4.148.0(@cloudflare/workers-types@4.20260317.1)(@types/node@22.16.0)
+
   apps/dotcom/sync-worker:
     dependencies:
       '@clerk/backend':
@@ -794,6 +813,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
+      '@tldraw/dotcom-render-worker':
+        specifier: workspace:*
+        version: link:../render-worker
       '@tldraw/dotcom-shared':
         specifier: workspace:*
         version: link:../../../packages/dotcom-shared

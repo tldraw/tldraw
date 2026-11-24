@@ -208,6 +208,63 @@ describe('evaluateFlagForUser (allowlist)', () => {
 	})
 })
 
+describe('evaluateFlagForUser (allowlist percentage)', () => {
+	const flag = (userIds: string[], percentage: number | undefined, allowEveryone = false) =>
+		({
+			type: 'allowlist',
+			users: userIds.map((userId) => ({ userId, email: `${userId}@example.com` })),
+			allowEveryone,
+			percentage,
+			description: '',
+		}) as const
+
+	it('keeps a listed user on at 0%', () => {
+		expect(evaluateFlagForUser(flag(['user-1'], 0), 'libraries', 'user-1')).toBe(true)
+	})
+
+	it('keeps an unlisted user off at 0%', () => {
+		for (let i = 0; i < 100; i++) {
+			expect(evaluateFlagForUser(flag(['user-1'], 0), 'libraries', `user-${i + 2}`)).toBe(false)
+		}
+	})
+
+	it('turns an unlisted user on at 100%', () => {
+		for (let i = 0; i < 100; i++) {
+			expect(evaluateFlagForUser(flag(['user-1'], 100), 'libraries', `other-${i}`)).toBe(true)
+		}
+	})
+
+	// The same bucket a percentage flag of the same name would give, so ramping an allowlist flag
+	// keeps everyone already in it and only ever adds people.
+	it('buckets unlisted users with hashToPercentage on the flag name', () => {
+		for (let i = 0; i < 200; i++) {
+			const userId = `user-${i}`
+			const bucket = hashToPercentage(userId, 'libraries')
+			expect(evaluateFlagForUser(flag([], 25), 'libraries', userId)).toBe(bucket < 25)
+		}
+	})
+
+	it('treats a value without the field as 0%', () => {
+		for (let i = 0; i < 100; i++) {
+			expect(evaluateFlagForUser(flag([], undefined), 'libraries', `user-${i}`)).toBe(false)
+		}
+	})
+
+	// From KV, where a hand-edited value can be anything; a string would compare by coercion.
+	it('ignores a percentage that is not a number', () => {
+		const stringly = { ...flag([], 0), percentage: '100' } as any
+		expect(evaluateFlagForUser(stringly, 'libraries', 'user-1')).toBe(false)
+	})
+
+	it('lets allowEveryone admit users outside the bucket', () => {
+		expect(evaluateFlagForUser(flag([], 0, true), 'libraries', 'user-1')).toBe(true)
+	})
+
+	it('is off for an anonymous caller even at 100%', () => {
+		expect(evaluateFlagForUser(flag([], 100), 'libraries', null)).toBe(false)
+	})
+})
+
 // The admin edits an allowlist as emails; this is the input half of that. Resolution to user ids
 // happens against the database in the admin route.
 describe('parseAllowlistEmails', () => {
@@ -300,6 +357,16 @@ describe('getFeatureFlagValue', () => {
 		const value = await getFeatureFlagValue(env as any, 'libraries')
 		expect(value.description).toContain('libraries UI')
 		expect(value.description).not.toContain('A stale description')
+	})
+
+	it('reads an allowlist stored before percentage existed as 0%', async () => {
+		const env = makeEnv({
+			libraries: JSON.stringify({ users: [{ userId: 'user-1', email: 'one@example.com' }] }),
+		})
+		const value = await getFeatureFlagValue(env as any, 'libraries')
+		expect(value).toMatchObject({ type: 'allowlist', percentage: 0 })
+		expect(evaluateFlagForUser(value, 'libraries', 'user-1')).toBe(true)
+		expect(evaluateFlagForUser(value, 'libraries', 'user-2')).toBe(false)
 	})
 
 	it('reads a value that is not JSON as the defaults', async () => {
@@ -399,6 +466,26 @@ describe('setFeatureFlag', () => {
 		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toEqual([
 			{ userId: 'user-2', email: 'two@example.com' },
 		])
+	})
+
+	it('sets an allowlist percentage without touching the list', async () => {
+		const users = [{ userId: 'user-1', email: 'one@example.com' }]
+		const env = makeEnv({ libraries: JSON.stringify({ users }) })
+		await setFeatureFlag(env as any, 'libraries', { type: 'allowlist', percentage: 5 })
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1])).toMatchObject({
+			users,
+			allowEveryone: false,
+			percentage: 5,
+		})
+	})
+
+	it('keeps an allowlist percentage when only the list is saved', async () => {
+		const env = makeEnv({ libraries: JSON.stringify({ users: [], percentage: 25 }) })
+		await setFeatureFlag(env as any, 'libraries', {
+			type: 'allowlist',
+			users: [{ userId: 'user-2', email: 'two@example.com' }],
+		})
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).percentage).toBe(25)
 	})
 
 	it('reads the current value from KV, not the cache', async () => {

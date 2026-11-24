@@ -197,6 +197,12 @@
       "value": "Vytvořit soubor"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Vytvořeno mnou"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -311,6 +317,16 @@
       "value": "Znovu vygenerovat odkaz na pozvánku"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (vy)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -413,6 +429,12 @@
       "value": "Kontaktujte vlastníka a požádejte o přístup."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Akce…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -467,6 +489,22 @@
     {
       "type": 0,
       "value": "Připnout soubor"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Objekt"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Upraveno "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -531,6 +569,18 @@
     {
       "type": 0,
       "value": "Nabídka stránek"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Zatím zde nejsou žádné soubory."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Vývozní…"
     }
   ],
   "53770fd374": [
@@ -603,6 +653,12 @@
       "value": "Zásady ochrany osobních údajů"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Archivované soubory se zobrazí zde."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -661,6 +717,12 @@
     {
       "type": 0,
       "value": "Později"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Nedávné"
     }
   ],
   "625fd29749": [
@@ -779,6 +841,12 @@
     {
       "type": 0,
       "value": "Smazat pracovní prostor"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Přihlaste se pro uložení"
     }
   ],
   "69ce6a28fb": [
@@ -954,6 +1022,12 @@
       "value": "Odešlete problém na GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Nyní na této nástěnce"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -978,10 +1052,22 @@
       "value": "Otevřít tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Přihlaste se pro úpravu nastavení profilu"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Zapomenout"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Archivováno"
     }
   ],
   "7daeced9ff": [
@@ -1086,6 +1172,12 @@
       "value": "Přejmenovat soubor"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Nepojmenovaný pracovní prostor"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1152,6 +1244,12 @@
     {
       "type": 0,
       "value": "Zkontrolujte si e-mail, kde vám bude doručen ověřovací kód."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Domov"
     }
   ],
   "8eb2c00e96": [
@@ -1266,6 +1364,12 @@
     {
       "type": 0,
       "value": "Vymazat vyhledávání"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Neuložený soubor"
     }
   ],
   "9b33f5c63c": [
@@ -1570,6 +1674,12 @@
       "value": "E-mailová adresa"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Zobrazení mřížky"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1716,6 +1826,12 @@
     {
       "type": 0,
       "value": "Aktuální soubor"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Vyhledávání…"
     }
   ],
   "c17466812d": [
@@ -1978,6 +2094,12 @@
       "value": "Opusťte pracovní prostor"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Příznaky ladění aplikací"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -2044,6 +2166,12 @@
       "value": "Nabídka účtu"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Žádné soubory neodpovídají vašemu vyhledávání."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -2088,6 +2216,12 @@
       "value": "vybraný"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Sdíleno se mnou"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -2098,6 +2232,12 @@
     {
       "type": 0,
       "value": "Uživatelská nastavení"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Seznam"
     }
   ],
   "f2569594b2": [

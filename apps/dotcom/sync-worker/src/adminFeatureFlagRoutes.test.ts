@@ -137,13 +137,36 @@ describe('POST /app/admin/feature-flags', () => {
 		expect(kv.has('rum_enabled')).toBe(false)
 	})
 
-	it('refuses a percentage sent for an allowlist flag', async () => {
+	it('stores a percentage for an allowlist flag, keeping the list', async () => {
+		const env = makeEnv()
+		mockUsers([{ id: 'user_1', email: 'one@tldraw.com' }])
+		await post(env, { flag: 'libraries', emails: 'one@tldraw.com' })
+
+		const response = await post(env, { flag: 'libraries', percentage: 5 })
+
+		expect(response.status).toBe(200)
+		expect(storedFlag('libraries')).toMatchObject({
+			users: [{ userId: 'user_1', email: 'one@tldraw.com' }],
+			percentage: 5,
+		})
+	})
+
+	it.each([101, -1, 1.5, '50'])('refuses %j as an allowlist percentage', async (percentage) => {
 		const env = makeEnv()
 
-		const response = await post(env, { flag: 'libraries', percentage: 50 })
+		const response = await post(env, { flag: 'libraries', percentage })
 
 		expect(response.status).toBe(400)
 		expect(kv.has('libraries')).toBe(false)
+	})
+
+	it('refuses a percentage sent for a boolean flag', async () => {
+		const env = makeEnv()
+
+		const response = await post(env, { flag: 'mcp_hidden_tab', percentage: 50 })
+
+		expect(response.status).toBe(400)
+		expect(kv.has('mcp_hidden_tab')).toBe(false)
 	})
 
 	it('refuses an unknown flag', async () => {
