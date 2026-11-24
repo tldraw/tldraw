@@ -11,6 +11,9 @@ export interface TLCapabilities {
 	'create-page': null
 	'edit-page': null
 	'delete-page': null
+	'create-comment': null
+	'edit-comment': null
+	'delete-comment': null
 }
 
 /** @public */
