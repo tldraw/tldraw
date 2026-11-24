@@ -66,6 +66,8 @@ export const STARTER_PACK_PREVIEW_COUNT = 4
 // starterPacks.test.ts, in this order. Run that test with `-u` after changing a pack.
 export const STARTER_PACK_IDS = [
 	'wireframing',
+	'architecture',
+	'math',
 	'diagramming',
 	'floor-plan',
 	'tldraw-characters',

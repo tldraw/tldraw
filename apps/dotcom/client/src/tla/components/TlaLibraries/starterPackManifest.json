@@ -2,15 +2,44 @@
 	{
 		"id": "wireframing",
 		"name": "Wireframing",
-		"version": 5,
-		"itemCount": 6,
+		"version": 6,
+		"itemCount": 35,
 		"itemNames": [
-			"Button",
-			"Input",
-			"Card",
+			"Primary button",
+			"Secondary button",
+			"Icon button",
+			"Disabled button",
+			"Destructive action",
+			"Link",
+			"Text area",
+			"Text input",
+			"Search input",
+			"Select",
+			"Input / error",
+			"Input / disabled",
+			"Input / focus",
+			"Checkbox / off",
+			"Checkbox / on",
+			"Radio / off",
+			"Radio / on",
+			"Toggle / off",
+			"Toggle / on",
+			"Slider",
+			"Sidebar",
+			"Navigation bar",
+			"Tabs",
+			"Breadcrumbs",
+			"Content card",
+			"Image placeholder",
 			"Avatar",
-			"Checkbox",
-			"Navigation bar"
+			"Simple table",
+			"List row",
+			"Phone frame",
+			"Modal",
+			"Browser window",
+			"Panel",
+			"Login screen",
+			"List / detail screen"
 		],
 		"previews": [
 			{
@@ -21,24 +50,226 @@
 				}
 			},
 			{
-				"id": "input",
+				"id": "secondary-button",
 				"thumbnail": {
-					"light": "thumbnails/input-light.webp",
-					"dark": "thumbnails/input-dark.webp"
+					"light": "thumbnails/secondary-button-light.webp",
+					"dark": "thumbnails/secondary-button-dark.webp"
 				}
 			},
 			{
-				"id": "card",
+				"id": "icon-button",
 				"thumbnail": {
-					"light": "thumbnails/card-light.webp",
-					"dark": "thumbnails/card-dark.webp"
+					"light": "thumbnails/icon-button-light.webp",
+					"dark": "thumbnails/icon-button-dark.webp"
 				}
 			},
 			{
-				"id": "avatar",
+				"id": "disabled-button",
 				"thumbnail": {
-					"light": "thumbnails/avatar-light.webp",
-					"dark": "thumbnails/avatar-dark.webp"
+					"light": "thumbnails/disabled-button-light.webp",
+					"dark": "thumbnails/disabled-button-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "architecture",
+		"name": "Software architecture",
+		"version": 1,
+		"itemCount": 64,
+		"itemNames": [
+			"Mobile client",
+			"Users",
+			"Browser / web client",
+			"User",
+			"Desktop client",
+			"Terminal / CLI",
+			"Server",
+			"Worker",
+			"Function",
+			"Service",
+			"Pod",
+			"Virtual machine",
+			"Scheduled job",
+			"Container",
+			"Relational database",
+			"Document database",
+			"Key–value store",
+			"Column database",
+			"File",
+			"Graph database",
+			"Cache",
+			"Object store",
+			"Data warehouse",
+			"Backup",
+			"Search index",
+			"Archive / cold storage",
+			"Event bus",
+			"Load balancer",
+			"API gateway",
+			"Message queue",
+			"CDN",
+			"Pub/sub topic",
+			"Event stream",
+			"Data pipeline",
+			"Email service",
+			"Router",
+			"DNS",
+			"Reverse proxy",
+			"Switch",
+			"Identity / auth",
+			"Secrets / keys",
+			"Firewall",
+			"VPN",
+			"Logs",
+			"Traces",
+			"Alert",
+			"Metrics",
+			"Code repository",
+			"Artifact registry",
+			"Health check",
+			"CI / CD",
+			"Replicas",
+			"Rate limiter",
+			"Shards",
+			"Circuit breaker",
+			"Subnet",
+			"Cluster",
+			"Network",
+			"Cloud",
+			"VPC / private network",
+			"Region",
+			"Availability zone",
+			"External system",
+			"Software system"
+		],
+		"previews": [
+			{
+				"id": "mobile-client",
+				"thumbnail": {
+					"light": "thumbnails/mobile-client-light.webp",
+					"dark": "thumbnails/mobile-client-dark.webp"
+				}
+			},
+			{
+				"id": "users",
+				"thumbnail": {
+					"light": "thumbnails/users-light.webp",
+					"dark": "thumbnails/users-dark.webp"
+				}
+			},
+			{
+				"id": "browser",
+				"thumbnail": {
+					"light": "thumbnails/browser-light.webp",
+					"dark": "thumbnails/browser-dark.webp"
+				}
+			},
+			{
+				"id": "user",
+				"thumbnail": {
+					"light": "thumbnails/user-light.webp",
+					"dark": "thumbnails/user-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "math",
+		"name": "Math",
+		"version": 1,
+		"itemCount": 62,
+		"itemNames": [
+			"Plus",
+			"Minus",
+			"Multiply",
+			"Divide",
+			"Equals",
+			"Not equal",
+			"Approximately",
+			"Plus / minus",
+			"Less than",
+			"Greater than",
+			"Less / equal",
+			"Greater / equal",
+			"Fraction",
+			"Nth root",
+			"Parentheses",
+			"Square root",
+			"Subscript",
+			"Power",
+			"Braces",
+			"Square brackets",
+			"Absolute value",
+			"Integral",
+			"Double integral",
+			"Triple integral",
+			"Contour integral",
+			"Summation",
+			"Derivative",
+			"Partial derivative",
+			"Product",
+			"Limit",
+			"Nabla",
+			"Beta",
+			"x",
+			"y",
+			"z",
+			"Theta",
+			"Alpha",
+			"Pi",
+			"Infinity",
+			"Mu",
+			"Lambda",
+			"Sigma",
+			"Omega",
+			"Not a member",
+			"Subset / equal",
+			"Union",
+			"Intersection",
+			"Member of",
+			"Subset",
+			"Empty set",
+			"Not",
+			"And",
+			"Or",
+			"Implies",
+			"If and only if",
+			"Coordinate axes",
+			"Matrix 2 × 2",
+			"Column vector",
+			"Number line",
+			"Series",
+			"Definite integral",
+			"Quadratic"
+		],
+		"previews": [
+			{
+				"id": "plus",
+				"thumbnail": {
+					"light": "thumbnails/plus-light.webp",
+					"dark": "thumbnails/plus-dark.webp"
+				}
+			},
+			{
+				"id": "minus",
+				"thumbnail": {
+					"light": "thumbnails/minus-light.webp",
+					"dark": "thumbnails/minus-dark.webp"
+				}
+			},
+			{
+				"id": "times",
+				"thumbnail": {
+					"light": "thumbnails/times-light.webp",
+					"dark": "thumbnails/times-dark.webp"
+				}
+			},
+			{
+				"id": "divide",
+				"thumbnail": {
+					"light": "thumbnails/divide-light.webp",
+					"dark": "thumbnails/divide-dark.webp"
 				}
 			}
 		]

@@ -1,0 +1,267 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 333,
+				"y": 2985,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "switch",
+						"pack": "architecture",
+						"name": "Switch",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Networking and security",
+						"tags": ["Switch", "switch", "Networking and security"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-switch",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b3NBAz",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-switch-body",
+				"type": "geo",
+				"parentId": "shape:full-catalog-switch",
+				"props": {
+					"w": 194,
+					"h": 90,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 18,
+				"y": 30,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-switch-port0",
+				"type": "geo",
+				"parentId": "shape:full-catalog-switch",
+				"props": {
+					"w": 24,
+					"h": 27,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a2BOj",
+				"typeName": "shape"
+			},
+			{
+				"x": 57,
+				"y": 30,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-switch-port1",
+				"type": "geo",
+				"parentId": "shape:full-catalog-switch",
+				"props": {
+					"w": 24,
+					"h": 27,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a3FqX",
+				"typeName": "shape"
+			},
+			{
+				"x": 96,
+				"y": 30,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-switch-port2",
+				"type": "geo",
+				"parentId": "shape:full-catalog-switch",
+				"props": {
+					"w": 24,
+					"h": 27,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a4JO6",
+				"typeName": "shape"
+			},
+			{
+				"x": 135,
+				"y": 30,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-switch-port3",
+				"type": "geo",
+				"parentId": "shape:full-catalog-switch",
+				"props": {
+					"w": 24,
+					"h": 27,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a5Aon",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-switch"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

@@ -1,0 +1,134 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 626.8649791666667,
+				"y": 6994.234,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "omega",
+						"pack": "math",
+						"name": "Omega",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Variables and constants",
+						"tags": ["Omega", "omega", "Variables and constants"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-omega",
+				"type": "line",
+				"parentId": "page:full-native-libraries",
+				"props": {
+					"dash": "solid",
+					"size": "l",
+					"color": "black",
+					"spline": "cubic",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": -13,
+							"y": 22
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": -8,
+							"y": 46
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 11,
+							"y": 50
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": 20,
+							"y": 32
+						},
+						"a6": {
+							"id": "a6",
+							"index": "a6",
+							"x": 27,
+							"y": 50
+						},
+						"a7": {
+							"id": "a7",
+							"index": "a7",
+							"x": 46,
+							"y": 46
+						},
+						"a8": {
+							"id": "a8",
+							"index": "a8",
+							"x": 53,
+							"y": 22
+						},
+						"a9": {
+							"id": "a9",
+							"index": "a9",
+							"x": 41,
+							"y": 0
+						}
+					},
+					"scale": 1.5
+				},
+				"index": "b0qLJ2",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-omega"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}
