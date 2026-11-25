@@ -88,6 +88,28 @@ describe('checkDiff in the editor', () => {
 		expect(typeNames.has('instance_page_state')).toBe(false)
 	})
 
+	it('does not check what side effects write in response to remote changes', () => {
+		let allow = true
+		const { editor, rejected } = setup(() => allow)
+		editor.createShapes([{ id: ids.a, type: 'geo' }])
+		const remoteShape = editor.getShape(ids.a)!
+		editor.deleteShapes([ids.a])
+		editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
+			if (shape.id === ids.a) {
+				editor.createShapes([{ id: ids.b, type: 'geo' }])
+			}
+		})
+
+		allow = false
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([remoteShape])
+		})
+
+		expect(editor.getShape(ids.a)).toBeDefined()
+		expect(editor.getShape(ids.b)).toBeDefined()
+		expect(rejected).toEqual([])
+	})
+
 	it('passes the session and the current user', () => {
 		const contexts: { sessionId: string; userId: string | null }[] = []
 		const { editor } = setup((_diff, { sessionId, userId }) => {
