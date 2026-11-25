@@ -4,7 +4,7 @@ import { domTextMeasurementPlugin } from '../plugins/builtin/domTextMeasurement'
 import { externalContentPlugin } from '../plugins/builtin/externalContent'
 import { snappingPlugin } from '../plugins/builtin/snappingPlugin'
 import type { TLPlugin } from '../plugins/plugin'
-import { reactRenderingPlugins } from './shapeComponents'
+import { reactRenderingPlugins } from './reactRenderingPlugins'
 
 /**
  * The plugins that `new Editor()` installs unless the caller replaces them. They give the editor

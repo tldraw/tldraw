@@ -3,9 +3,7 @@ import type { ReactNode } from 'react'
 import { SVGContainer } from '../components/SVGContainer'
 import type { Editor } from '../editor/Editor'
 import type { ShapeUtil } from '../editor/shapes/ShapeUtil'
-import { exportToSvg } from '../exports/exportToSvg'
-import { svgExportCapability } from '../plugins/builtin/svgExport'
-import { TLPlugin, definePlugin, defineSlot } from '../plugins/plugin'
+import { definePlugin, defineSlot } from '../plugins/plugin'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
 /**
@@ -79,28 +77,3 @@ export const groupShapeComponentPlugin = definePlugin({
 		} satisfies TLShapeComponent<TLGroupShape>)
 	},
 })
-
-/**
- * Exports shapes to SVG by rendering them with React into a hidden DOM element.
- *
- * @public
- */
-export const reactSvgExportPlugin = definePlugin({
-	id: 'react.svgExport',
-	provides: [svgExportCapability],
-	setup(ctx) {
-		ctx.provide(svgExportCapability, {
-			exportToSvg: (shapeIds, opts) => exportToSvg(ctx.editor, shapeIds, opts),
-		})
-	},
-})
-
-/**
- * The plugins that make up the React output layer: shape components and SVG export.
- *
- * @public
- */
-export const reactRenderingPlugins: readonly TLPlugin[] = [
-	groupShapeComponentPlugin,
-	reactSvgExportPlugin,
-]

@@ -54,10 +54,9 @@ export {
 export { TLPluginHost } from './lib/plugins/PluginHost'
 export { legacyEditorPlugins } from './lib/react/legacyEditorPlugins'
 export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'
+export { reactRenderingPlugins, reactSvgExportPlugin } from './lib/react/reactRenderingPlugins'
 export {
 	groupShapeComponentPlugin,
-	reactRenderingPlugins,
-	reactSvgExportPlugin,
 	shapeComponentSlot,
 	type TLShapeComponent,
 } from './lib/react/shapeComponents'
