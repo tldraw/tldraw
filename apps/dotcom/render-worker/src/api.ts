@@ -10,9 +10,9 @@
 // - sync-worker keeps auth, board resolution, snapshot loading, rate limits, R2 caching, and the
 //   request-level `mcp_shared_board_screenshot` telemetry.
 // - the render worker owns the render page, the Browser Run calls, the render deadline, result
-//   parsing, and the session-level `browser_run_session` spend ledger. It has no public routes — it
-//   is reached only through the binding — and it is handed no board identity, so the "No board
-//   identifier leaves this pipeline" rule holds by construction here too.
+//   parsing, and the session-level `browser_run_session` spend ledger. Its only public route is the
+//   static render page — rendering is reached only through the binding — and it is handed no board
+//   identity, so the "No board identifier leaves this pipeline" rule holds by construction here too.
 
 import { ThumbnailShapeMeasurement, ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
 
