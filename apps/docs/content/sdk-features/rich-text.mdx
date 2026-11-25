@@ -318,7 +318,7 @@ function makeAllTextBold(richText: TLRichText): TLRichText {
 
 ## Measurement and rendering
 
-Rich text measurement uses the same system as plain text, with HTML replacing the plain text content. [TLTextMeasurer#measureHtml](?) measures rich text by rendering the HTML into the measurement element and reading the computed dimensions:
+Rich text measurement uses the same system as plain text, with HTML replacing the plain text content. The `measureHtml` method of [TLTextMeasurer](?) measures rich text by rendering the HTML into the measurement element and reading the computed dimensions:
 
 ```typescript
 import { renderHtmlFromRichTextForMeasurement } from 'tldraw'
