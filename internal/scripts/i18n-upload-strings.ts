@@ -19,7 +19,7 @@ const UPLOAD_MAX_POLLS = 120
 /** Items per page when listing keys and languages, within Lokalise's per-endpoint maximums. */
 const PAGE_LIMIT = 500
 /** Anything pricier than this wants a human to look at it first. */
-const MAX_ORDER_TOTAL = 10
+const MAX_ORDER_TOTAL = 20
 
 /**
  * Tag Lokalise applies to a key whose English changed.
