@@ -194,7 +194,7 @@ export function copyLibrary(source: LibrarySource, libraryId: TLLibraryId, owner
 // @public
 export function copyPack(source: LibrarySource, pack: LibraryPack, options?: TLNewLibraryOptions): Promise<TLLibrary>;
 
-// @public
+// @internal
 export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1;
 
 // @public
@@ -536,7 +536,7 @@ export interface LibraryItemsOptions {
     reversed?: boolean;
 }
 
-// @public (undocumented)
+// @internal (undocumented)
 export const libraryItemValidator: T.Validator<TLLibraryItem>;
 
 // @public
@@ -720,7 +720,7 @@ export type LibraryThumbnailUrlsOptions = {
     width: number;
 };
 
-// @public
+// @internal
 export const libraryThumbnailValidator: T.Validator<TLLibraryThumbnail>;
 
 // @public

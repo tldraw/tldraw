@@ -71,14 +71,14 @@ export const nonEmptyString = T.string.check((value) => {
 
 /**
  * A thumbnail: one image's URL, or a light and a dark one.
- * @public
+ * @internal
  */
 export const libraryThumbnailValidator: T.Validator<TLLibraryThumbnail> = T.or(
 	nonEmptyString,
 	T.object({ light: nonEmptyString, dark: nonEmptyString })
 )
 
-/** @public */
+/** @internal */
 export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
 	id: idValidator<TLLibraryItemId>('library-item'),
 	typeName: T.literal('library-item'),
@@ -110,7 +110,7 @@ export const LibraryItemRecordType = createRecordType<TLLibraryItem>('library-it
 
 /**
  * The newest item content format this version of the package can read.
- * @public
+ * @internal
  */
 export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
 
