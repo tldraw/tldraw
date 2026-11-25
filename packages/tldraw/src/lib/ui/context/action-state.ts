@@ -18,6 +18,7 @@ function isActionAvailable(editor: Editor, action: TLUiActionItem) {
 }
 
 function isActionEnabled(editor: Editor, action: TLUiActionItem) {
+	if (action.capabilities?.length && editor.checkCapability(action.capabilities)) return false
 	return !action.isEnabled || action.isEnabled(editor)
 }
 
@@ -80,6 +81,7 @@ function reportThrowingPredicate(
 export function isActionRunnable(editor: Editor, action: TLUiActionItem | undefined): boolean {
 	if (!action) return false
 	if (editor.getIsReadonly() && !action.readonlyOk) return false
+	if (action.capabilities?.length && editor.checkCapability(action.capabilities)) return false
 	return passes(editor, action, 'isAvailable') && passes(editor, action, 'isEnabled')
 }
 
