@@ -8,8 +8,10 @@ import {
 import { type Editor, TldrawUiDropdownMenuTrigger, type VecModel } from 'tldraw'
 
 interface Anchor {
-	element: HTMLElement
+	/** Left out until the menu first opens and mounts its anchor; `opener` and `point` wait for it. */
+	element?: HTMLElement
 	opener?: HTMLElement
+	point?: VecModel
 }
 
 const anchors = new Map<string, Anchor>()
@@ -24,7 +26,10 @@ export function ContextMenuAnchor({ menuId }: { menuId: string }) {
 	useLayoutEffect(() => {
 		const element = ref.current
 		if (!element) return
-		anchors.set(menuId, { element })
+		const anchor = anchors.get(menuId) ?? {}
+		anchor.element = element
+		placeAnchor(element, anchor.point)
+		anchors.set(menuId, anchor)
 		return () => {
 			const anchor = anchors.get(menuId)
 			if (anchor && anchor.element === element) anchors.delete(menuId)
@@ -55,27 +60,31 @@ export function openContextMenu(
 	menuId: string,
 	{ opener, point }: { opener?: HTMLElement; point?: VecModel } = {}
 ) {
-	const anchor = anchors.get(menuId)
-	if (anchor) {
-		anchor.opener = opener
-		const { style } = anchor.element
-		const parent = anchor.element.offsetParent
-		if (point && parent) {
-			const rect = parent.getBoundingClientRect()
-			style.inset = 'auto'
-			style.left = `${point.x - rect.left}px`
-			style.top = `${point.y - rect.top}px`
-			style.width = '0'
-			style.height = '0'
-		} else {
-			style.removeProperty('inset')
-			style.removeProperty('left')
-			style.removeProperty('top')
-			style.removeProperty('width')
-			style.removeProperty('height')
-		}
-	}
+	const anchor = anchors.get(menuId) ?? {}
+	anchor.opener = opener
+	anchor.point = point
+	anchors.set(menuId, anchor)
+	if (anchor.element) placeAnchor(anchor.element, point)
 	editor.menus.addOpenMenu(menuId)
+}
+
+function placeAnchor(element: HTMLElement, point: VecModel | undefined) {
+	const { style } = element
+	const parent = element.offsetParent
+	if (point && parent) {
+		const rect = parent.getBoundingClientRect()
+		style.inset = 'auto'
+		style.left = `${point.x - rect.left}px`
+		style.top = `${point.y - rect.top}px`
+		style.width = '0'
+		style.height = '0'
+	} else {
+		style.removeProperty('inset')
+		style.removeProperty('left')
+		style.removeProperty('top')
+		style.removeProperty('width')
+		style.removeProperty('height')
+	}
 }
 
 /** The control the event came from, to hand focus back to, or else the element handling it. */

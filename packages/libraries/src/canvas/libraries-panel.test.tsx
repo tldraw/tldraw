@@ -1002,3 +1002,67 @@ describe('libraries inside others', () => {
 		expect(tileLabels(container)).toEqual(['Star', 'Box', 'Arrow', 'Left'])
 	})
 })
+
+describe('a burst of changes', () => {
+	// Each change lands a microtask after the last, the way a batch of writes or a sync catch-up
+	// reaches the panel. React only counts nested updates outside act().
+	async function oneMicrotaskApart(count: number, change: (i: number) => void) {
+		const actEnvironment = (globalThis as any).IS_REACT_ACT_ENVIRONMENT
+		;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = false
+		try {
+			for (let i = 0; i < count; i++) {
+				change(i)
+				await Promise.resolve()
+			}
+			await new Promise((resolve) => setTimeout(resolve, 200))
+		} finally {
+			;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = actEnvironment
+		}
+	}
+
+	it('keeps the panel up while many libraries are created and then deleted', async () => {
+		const source = new InMemoryLibrarySource()
+		const container = await renderPanel(source)
+		const sections = () => container.querySelectorAll('.tlui-libraries-section').length
+
+		await oneMicrotaskApart(80, (i) => void source.createLibrary(`Library ${i}`))
+		expect(sections()).toBe(80)
+
+		const libraries = source.getLibraries()
+		await oneMicrotaskApart(libraries.length, (i) => void source.deleteLibrary(libraries[i].id))
+		expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+		expect(sections()).toBe(0)
+	})
+
+	it('keeps the panel up while many items are added to one library', async () => {
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Icons')
+		const container = await renderPanel(source)
+		await oneMicrotaskApart(
+			80,
+			(i) => void source.addItem(library.id, { name: `Item ${i}`, content: emptyContent })
+		)
+		expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+		expect(
+			container.querySelectorAll('.tlui-libraries-tile__button:not([aria-label="Add selection"])')
+				.length
+		).toBe(80)
+	})
+})
+
+it("opens a library's menu from the keyboard before it has ever been opened", async () => {
+	const source = new InMemoryLibrarySource()
+	await source.createLibrary('Icons')
+	const container = await renderPanel(source)
+	const trigger = container.querySelector<HTMLButtonElement>(
+		'.tlui-libraries-section [aria-label="Library options"]'
+	)!
+	expect(document.querySelector('.tlui-libraries-menu')).toBeNull()
+	trigger.focus()
+	act(() => {
+		trigger.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+		)
+	})
+	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
+})
