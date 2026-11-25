@@ -41,7 +41,7 @@ export type TLLibraryPlacement = 'housed' | 'added' | 'default' | 'document'
 export interface TLLibraryOwner {
 	id: string
 	name: string
-	/** Shown before the name on the owner's tab in the libraries panel. */
+	/** Shown before the owner's name in the libraries panel's menus. */
 	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
 }
 
@@ -81,6 +81,16 @@ export interface TLNewLibraryItem {
  * The changes {@link LibrarySource.updateItem} makes to an item. Fields left out stay as they are.
  */
 export type TLLibraryItemPartial = Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
+
+/**
+ * What a source knows about an item beyond its listing, shown in its details. Every field is
+ * optional: the details leave out what a source doesn't know.
+ */
+export interface TLLibraryItemDetails {
+	/** The name to show for whoever saved the item. */
+	creatorName?: string
+	description?: string
+}
 
 /**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
@@ -170,6 +180,12 @@ export interface LibrarySource {
 	mayHaveItemsMatching?(libraryId: TLLibraryId, query: string): boolean
 
 	/**
+	 * What the source knows about an item beyond its listing, such as who saved it. Optional:
+	 * without it, an item's details show what its listing has. Reactive, like the other getters.
+	 */
+	getItemDetails?(item: TLLibraryItem): TLLibraryItemDetails
+
+	/**
 	 * Whether the current user may do `action`. With a library id, answers for that library;
 	 * with `{ ownerId }`, for that owner (e.g. may they create libraries for it); with neither,
 	 * for the source as a whole (e.g. may they create libraries).
@@ -206,11 +222,12 @@ export interface LibrarySource {
 	updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**
-	 * Moves an item to another library, keeping its id, content and thumbnail. Needs
-	 * `deleteItem` on the library it leaves and `addItem` on the one it joins. Optional: the UI
-	 * offers "Move to" only for sources that have it.
+	 * Moves an item to another library, keeping its content and thumbnail, and resolves to its id
+	 * there: the same id, unless the source moves it by copying it, as a `CompositeLibrarySource`
+	 * does between its sources. Needs `deleteItem` on the library it leaves and `addItem` on
+	 * the one it joins. Optional: the UI offers "Move to" only for sources that have it.
 	 */
-	moveItem?(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): Promise<void>
+	moveItem?(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): Promise<TLLibraryItemId>
 
 	/**
 	 * Who libraries can belong to, each library naming one in its `ownerId`. Listed in the

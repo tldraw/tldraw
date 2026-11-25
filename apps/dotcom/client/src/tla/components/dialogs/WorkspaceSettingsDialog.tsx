@@ -381,7 +381,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 				)}
 
 				{isHomeWorkspace && librariesSource && (
-					<div className={styles.section}>
+					<div className={`${styles.section} ${styles.scrollingSection}`}>
 						<div className={styles.sectionLabel}>
 							<F {...messages.libraries} />
 						</div>
@@ -435,7 +435,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 								</TlaMenuTabsTabs>
 							</div>
 
-							<TlaMenuTabsPage id="members">
+							<TlaMenuTabsPage id="members" className={styles.scrollingSection}>
 								<div className={styles.tabPage} ref={scrollableRef}>
 									<div className={styles.membersList}>
 										{members.map((member) => {
@@ -521,14 +521,14 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 							</TlaMenuTabsPage>
 
 							{librariesSource && (
-								<TlaMenuTabsPage id="libraries">
+								<TlaMenuTabsPage id="libraries" className={styles.scrollingSection}>
 									<div className={styles.tabPage} ref={scrollableRef}>
 										<WorkspaceLibrariesList source={librariesSource} workspaceId={workspaceId} />
 									</div>
 								</TlaMenuTabsPage>
 							)}
 
-							<TlaMenuTabsPage id="settings">
+							<TlaMenuTabsPage id="settings" className={styles.scrollingSection}>
 								<div className={styles.tabPage} ref={scrollableRef}>
 									<div className={styles.settingsPage}>
 										{canManageWorkspace && (

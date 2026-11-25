@@ -35,6 +35,7 @@ export class TrackedLibrarySource implements LibrarySource {
 	readonly getLibraryOwners?: LibrarySource['getLibraryOwners']
 	readonly getDefaultOwnerId?: LibrarySource['getDefaultOwnerId']
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly getItemDetails?: LibrarySource['getItemDetails']
 	readonly loadItems?: LibrarySource['loadItems']
 	readonly isLoadingItems?: LibrarySource['isLoadingItems']
 	readonly mayHaveItemsMatching?: LibrarySource['mayHaveItemsMatching']
@@ -80,8 +81,12 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.moveItem) {
 			const moveItem = source.moveItem.bind(source)
 			this.moveItem = async (itemId, toLibraryId) => {
-				await this.watch({ action: 'move-library-item' }, moveItem(itemId, toLibraryId))
+				const movedId = await this.watch(
+					{ action: 'move-library-item' },
+					moveItem(itemId, toLibraryId)
+				)
 				this.track('move-library-item')
+				return movedId
 			}
 		}
 		if (source.copyLibrary) {
@@ -106,6 +111,7 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.getLibraryOwners) this.getLibraryOwners = source.getLibraryOwners.bind(source)
 		if (source.getDefaultOwnerId) this.getDefaultOwnerId = source.getDefaultOwnerId.bind(source)
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.getItemDetails) this.getItemDetails = source.getItemDetails.bind(source)
 		if (source.loadItems) this.loadItems = source.loadItems.bind(source)
 		if (source.isLoadingItems) this.isLoadingItems = source.isLoadingItems.bind(source)
 		if (source.getItemCount) this.getItemCount = source.getItemCount.bind(source)

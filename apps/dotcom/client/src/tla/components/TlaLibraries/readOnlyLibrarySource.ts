@@ -19,7 +19,7 @@ function refuse(action: TLLibraryAction, target?: TLLibraryTarget): Promise<neve
 /**
  * A source whose libraries can be browsed and their items placed, but not changed: `can` refuses
  * every action and every write rejects with a {@link LibraryPermissionError}. It has no placement
- * or libraries to add, so the panel lists its libraries as they come, without "This board" or
+ * or libraries to add, so the panel lists its libraries as they come, without "This file" or
  * "Browse libraries".
  */
 export abstract class ReadOnlyLibrarySource implements LibrarySource {
@@ -61,6 +61,7 @@ export abstract class ReadOnlyLibrarySource implements LibrarySource {
 export class ReadOnlyLibraryView extends ReadOnlyLibrarySource {
 	readonly id: string
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly getItemDetails?: LibrarySource['getItemDetails']
 	readonly loadItems?: LibrarySource['loadItems']
 	readonly isLoadingItems?: LibrarySource['isLoadingItems']
 	readonly mayHaveItemsMatching?: LibrarySource['mayHaveItemsMatching']
@@ -71,6 +72,7 @@ export class ReadOnlyLibraryView extends ReadOnlyLibrarySource {
 		super()
 		this.id = source.id
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.getItemDetails) this.getItemDetails = source.getItemDetails.bind(source)
 		if (source.loadItems) this.loadItems = source.loadItems.bind(source)
 		if (source.isLoadingItems) this.isLoadingItems = source.isLoadingItems.bind(source)
 		if (source.getItemCount) this.getItemCount = source.getItemCount.bind(source)

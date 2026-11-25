@@ -11,7 +11,6 @@ import {
 import type { LibrarySource } from '../lib/LibrarySource'
 import { saveErrorMessages } from '../lib/saveErrorMessages'
 import { createNewLibrary } from './new-library'
-import { recordRecentLibrary } from './recent-libraries'
 import { saveShapesToLibrary, type PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen, renamingLibraryId } from './state'
 
@@ -69,7 +68,6 @@ export function useSaveSelectionToLibrary(
 					severity: 'error',
 				})
 			saveShapesToLibrary(editor, source, libraryId, shapeIds, { prepareItemContent }).then(() => {
-				recordRecentLibrary(source.id, libraryId)
 				if (librariesPanelOpen.get(editor)) {
 					activeLibraryId.set(editor, libraryId)
 					return
@@ -106,7 +104,6 @@ export function useSaveSelectionToLibrary(
 		createNewLibrary(source, name)
 			.then(async (library) => {
 				await saveShapesToLibrary(editor, source, library.id, shapeIds, { prepareItemContent })
-				recordRecentLibrary(source.id, library.id)
 				showLibrary(editor, library.id)
 				renamingLibraryId.set(editor, library.id)
 			})

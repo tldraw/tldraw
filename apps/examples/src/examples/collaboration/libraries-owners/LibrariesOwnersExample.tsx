@@ -19,7 +19,7 @@ const source = new CompositeLibrarySource({
 	defaultOwnerId: 'personal',
 	parts: [
 		{
-			owner: { id: 'board', name: 'This board', icon: <BoardIcon /> },
+			owner: { id: 'board', name: 'This file', icon: <BoardIcon /> },
 			source: new InMemoryLibrarySource({ id: 'libraries-owners-board' }),
 		},
 		{

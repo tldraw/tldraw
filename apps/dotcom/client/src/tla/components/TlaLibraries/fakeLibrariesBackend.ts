@@ -68,8 +68,18 @@ export function createFakeLibrariesBackend({
 		return dark ? { light: upload(), dark: upload() } : upload()
 	}
 	const memberships = [
-		{ groupId: userId, role: 'owner', group: { name: 'Home' } },
-		...workspaces.map((w) => ({ groupId: w.id, role: 'member', group: { name: w.name } })),
+		{
+			groupId: userId,
+			role: 'owner',
+			group: { name: 'Home' },
+			groupMembers: [{ userId, userName: 'Me' }],
+		},
+		...workspaces.map((w) => ({
+			groupId: w.id,
+			role: 'member',
+			group: { name: w.name },
+			groupMembers: [{ userId, userName: 'Me' }],
+		})),
 	]
 	const isMember = (groupId: string) => memberships.some((m) => m.groupId === groupId)
 

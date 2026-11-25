@@ -9,6 +9,7 @@ import {
 	type TLLibrary,
 	type TLLibraryAction,
 	type TLLibraryId,
+	type TLLibraryItem,
 	type TLLibraryItemId,
 	type TLLibraryItemPartial,
 	type TLLibraryPlacement,
@@ -159,6 +160,10 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 
 	getItemContent(itemId: TLLibraryItemId) {
 		return this.libraries.getItemContent(itemId)
+	}
+
+	getItemDetails(item: TLLibraryItem) {
+		return this.libraries.getItemDetails(item)
 	}
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {

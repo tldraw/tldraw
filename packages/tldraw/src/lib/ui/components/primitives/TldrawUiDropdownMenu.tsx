@@ -73,6 +73,11 @@ export interface TLUiDropdownMenuContentProps {
 	sideOffset?: number
 	alignOffset?: number
 	collisionPadding?: number
+	/**
+	 * Called as the menu closes, before focus returns to its trigger. Call `preventDefault()` on the
+	 * event to leave focus where it is.
+	 */
+	onCloseAutoFocus?(event: Event): void
 	children: ReactNode
 }
 
@@ -84,6 +89,7 @@ export function TldrawUiDropdownMenuContent({
 	sideOffset = 8,
 	alignOffset = 8,
 	collisionPadding = 4,
+	onCloseAutoFocus,
 	children,
 }: TLUiDropdownMenuContentProps) {
 	const container = useContainer()
@@ -97,6 +103,7 @@ export function TldrawUiDropdownMenuContent({
 				align={align}
 				alignOffset={alignOffset}
 				collisionPadding={collisionPadding}
+				onCloseAutoFocus={onCloseAutoFocus}
 			>
 				{children}
 			</_DropdownMenu.Content>

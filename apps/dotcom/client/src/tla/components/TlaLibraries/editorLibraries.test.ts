@@ -81,15 +81,15 @@ function addImage(editor: Editor) {
 }
 
 describe('getEditorLibraries', () => {
-	it('lists the board last, with "This board", which is kept in the document from its first save', async () => {
+	it('lists the board last, with "This file", which is kept in the document from its first save', async () => {
 		const { editor, source } = setUp()
 		expect(source.getLibraryOwners?.()?.map(({ id, name }) => ({ id, name }))).toEqual([
 			{ id: 'home', name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
-			{ id: 'file-a', name: 'This board' },
+			{ id: 'file-a', name: 'This file' },
 		])
 		const [own] = source.getLibraries()
-		expect(own).toMatchObject({ name: 'This board', ownerId: 'file-a' })
+		expect(own).toMatchObject({ name: 'This file', ownerId: 'file-a' })
 		expect(source.can('addItem', own.id)).toBe(true)
 		expect(ofType(editor, 'library')).toEqual([])
 		const { id } = addImage(editor)
@@ -98,8 +98,22 @@ describe('getEditorLibraries', () => {
 				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
 			})
 		)
-		expect(ofType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
+		expect(ofType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This file' }])
 		expect(source.getItems(own.id)).toHaveLength(1)
+	})
+
+	it('lists a board library stored as "This board" as "This file", in the panel and its menus', async () => {
+		const { editor, source } = setUp()
+		const stored = new BoardLibrarySource(editor, { documentLibrary: { name: 'This board' } })
+		const [own] = stored.getLibraries()
+		const { id } = addImage(editor)
+		await added(
+			stored.addItem(own.id, {
+				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+			})
+		)
+		expect(ofType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
+		expect(source.getLibraries()).toMatchObject([{ id: own.id, name: 'This file' }])
 	})
 
 	it('creates no other libraries on the board, and lists ones it already houses', async () => {
@@ -108,7 +122,7 @@ describe('getEditorLibraries', () => {
 		await expect(source.createLibrary('Board kit', { ownerId: 'file-a' })).rejects.toThrow()
 		const kit = await new BoardLibrarySource(editor).createLibrary('Board kit')
 		expect(source.getLibraries().map(({ name, ownerId }) => ({ name, ownerId }))).toEqual([
-			{ name: 'This board', ownerId: 'file-a' },
+			{ name: 'This file', ownerId: 'file-a' },
 			{ name: 'Board kit', ownerId: 'file-a' },
 		])
 		expect(source.can('deleteLibrary', kit.id)).toBe(true)
@@ -133,7 +147,7 @@ describe('getEditorLibraries', () => {
 		expect(source.getLibraryPlacement!(inHome.id)).toBe('added')
 	})
 
-	it('lists "This board" read-only once saved to, and not before, for a viewer', async () => {
+	it('lists "This file" read-only once saved to, and not before, for a viewer', async () => {
 		const { editor, source } = setUp()
 		editor.updateInstanceState({ isReadonly: true })
 		expect(source.getLibraries()).toEqual([])
@@ -174,7 +188,7 @@ describe('getEditorLibraries', () => {
 		expect(ofType(editor, 'library')).toEqual([])
 	})
 
-	it('copies a board library to a workspace, and its item back into "This board", with its image', async () => {
+	it('copies a board library to a workspace, and its item back into "This file", with its image', async () => {
 		const { editor, source } = setUp()
 		const { id, assetId } = addImage(editor)
 		const library = await new BoardLibrarySource(editor).createLibrary('Photos')
@@ -199,7 +213,7 @@ describe('getEditorLibraries', () => {
 		expect(ofType(editor, 'asset').map((a) => a.id)).toContain(assetId)
 	})
 
-	it('copies the items of "This board" to a workspace in one request, in their order', async () => {
+	it('copies the items of "This file" to a workspace in one request, in their order', async () => {
 		const { editor, backend, source } = setUp()
 		const [library] = source.getLibraries()
 		const names = ['One', 'Two', 'Three', 'Four', 'Five']

@@ -40,5 +40,5 @@ export default function LibrariesGalleryExample() {
 /*
 [1]
 `LibrariesPanel` takes `components` to replace or hide its pieces. Setting a piece to `null` hides
-it: here the header, the + tile and the ⋯ menus, which leaves a gallery to place items from.
+it: here the header, the + tile and the menus, which leaves a gallery to place items from.
 */

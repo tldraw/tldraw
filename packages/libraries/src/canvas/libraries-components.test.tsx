@@ -1,6 +1,5 @@
 import { LibraryRecordType } from '@tldraw/tlschema'
-import { Tabs } from 'radix-ui'
-import { act, type ComponentProps, type ReactNode } from 'react'
+import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
 	ContainerProvider,
@@ -15,7 +14,6 @@ import {
 	useToasts,
 } from 'tldraw'
 import { vi } from 'vitest'
-import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryItemContentTooNewError, LibraryItemRecordType } from '../lib/schema'
@@ -82,22 +80,13 @@ vi.mock('tldraw', async (importOriginal) => ({
 // Libraries are licensed here; license.test.tsx covers the gate.
 vi.mock('./license', () => ({ useLibrariesEnabled: () => true }))
 
-// Keeps every tab's panel mounted, so a panel that leans on only the open tab being rendered shows it.
-vi.mock('radix-ui', async (importOriginal) => {
-	const original = await importOriginal<typeof import('radix-ui')>()
-	const Content = (props: ComponentProps<typeof Tabs.Content>) => (
-		<original.Tabs.Content {...props} forceMount />
-	)
-	return { ...original, Tabs: { ...original.Tabs, Content } }
-})
-
 let container: HTMLDivElement
 let root: Root
 let editor: Editor
 
 beforeAll(() => {
 	;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
-	// jsdom has no layout, so the tab strip's measuring and scrolling do nothing.
+	// jsdom has no layout, so thumbnail measuring and scrolling into view do nothing.
 	globalThis.ResizeObserver ??= class {
 		observe() {}
 		unobserve() {}
@@ -193,65 +182,17 @@ describe('LibrariesPanel components', () => {
 })
 
 describe('LibrariesPanel components with no libraries', () => {
-	it('passes the new-library action to the panel-level slots', async () => {
+	it('renders the panel-level slots', async () => {
 		const panel = await renderPanel(
 			{
 				LibrariesPanelHeader: null,
-				NoLibraries: ({ newLibrary }) => (
-					<button data-testid="empty" onClick={newLibrary?.onCreate}>
-						{newLibrary?.label}
-					</button>
-				),
+				NoLibraries: () => <p data-testid="empty" />,
 			},
 			undefined,
 			new InMemoryLibrarySource({ id: 'empty' })
 		)
 		expect(panel.querySelector('.tlui-libraries-panel__title')).toBeNull()
-		expect(panel.querySelector('[data-testid="empty"]')?.textContent).toBe('New library')
-	})
-})
-
-describe('LibrariesPanel components with a tab per owner', () => {
-	it('gives each tab’s NoLibraries its own owner’s new-library action', async () => {
-		const source = new CompositeLibrarySource({
-			id: 'owners',
-			parts: [
-				{
-					owner: { id: 'packs', name: 'Packs' },
-					source: new InMemoryLibrarySource({ id: 'packs', can: () => false }),
-				},
-				{
-					owner: { id: 'board', name: 'Board' },
-					source: new InMemoryLibrarySource({ id: 'board' }),
-				},
-			],
-		})
-		const panel = await renderPanel(
-			{
-				LibraryTabLabel: ({ owner, libraries }) => (
-					<span data-testid="tab">{`${owner?.id}:${libraries.length}`}</span>
-				),
-				NoLibraries: ({ owner, newLibrary }) => (
-					<p data-testid="empty" data-owner={owner?.id}>
-						{newLibrary?.label}
-					</p>
-				),
-			},
-			undefined,
-			source
-		)
-		const empties = [...panel.querySelectorAll('[data-testid="empty"]')].map((el) => [
-			el.getAttribute('data-owner'),
-			el.textContent,
-		])
-		expect([...panel.querySelectorAll('[data-testid="tab"]')].map((el) => el.textContent)).toEqual([
-			'packs:0',
-			'board:0',
-		])
-		expect(empties).toEqual([
-			['packs', ''],
-			['board', 'New library in Board'],
-		])
+		expect(panel.querySelector('[data-testid="empty"]')).not.toBeNull()
 	})
 })
 
@@ -274,24 +215,38 @@ describe('LibrariesPanel components with a custom library header', () => {
 			new InMemoryLibrarySource({ id: 'rename' }),
 			<MenuItem label="Host item" onClick={() => {}} />
 		)
-		const menuIn = (selector: string) =>
-			panel.querySelector(`${selector} [aria-label="Library options"]`)
-		const click = async (selector: string) => {
-			await act(async () => {
-				panel.querySelector<HTMLButtonElement>(selector)!.click()
-			})
-		}
-		expect(menuIn(':scope > header')).not.toBeNull()
+		const panelMenu = () => panel.querySelector(':scope > header [aria-label="Library options"]')
+		const sectionMenu = () =>
+			panel.querySelector('[data-testid="header"] [aria-label="Library options"]')
+		expect(panelMenu()).not.toBeNull()
 
-		await click(':scope > header button[aria-label="New library"]')
-		expect(panel.querySelector('[data-testid="done"]')).not.toBeNull()
-		expect(menuIn(':scope > header')).toBeNull()
-		expect(menuIn('[data-testid="header"]')).toBeNull()
+		act(() => {
+			panelMenu()!.dispatchEvent(
+				new MouseEvent('pointerdown', { bubbles: true, cancelable: true, button: 0 })
+			)
+		})
+		const create = await vi.waitFor(() => {
+			const item = [
+				...document.querySelectorAll<HTMLButtonElement>('.tlui-libraries-menu__item'),
+			].find((el) => el.textContent === 'Create library')
+			expect(item).toBeDefined()
+			return item!
+		})
+		await act(async () => create.click())
+		await vi.waitFor(() => expect(panel.querySelector('[data-testid="done"]')).not.toBeNull())
+		expect(panelMenu()).not.toBeNull()
+		expect(
+			panel.querySelectorAll('[data-testid="header"] [aria-label="Library options"]')
+		).toHaveLength(panel.querySelectorAll('[data-testid="header"]').length)
 
-		await click('[data-testid="done"]')
-		expect(panel.querySelector('[data-testid="name"]')?.textContent).toBe('Mine')
-		expect(menuIn(':scope > header')).not.toBeNull()
-		expect(menuIn('[data-testid="header"]')).not.toBeNull()
+		await act(async () => {
+			panel.querySelector<HTMLButtonElement>('[data-testid="done"]')!.click()
+		})
+		expect(
+			[...panel.querySelectorAll('[data-testid="name"]')].map((el) => el.textContent)
+		).toContain('Mine')
+		expect(panelMenu()).not.toBeNull()
+		expect(sectionMenu()).not.toBeNull()
 	})
 })
 
@@ -323,12 +278,11 @@ describe('LibrariesPanel item menus on right-click', () => {
 		expect(document.body.textContent).toContain('Host action')
 	})
 
-	it('leaves the right-click alone when the item has no menu', async () => {
+	it('opens Details for an item the source doesn’t let me change', async () => {
 		const panel = await renderPanel(undefined, undefined, makeReadOnlySource())
-		expect(panel.querySelector('button[aria-label="Item options"]')).toBeNull()
-		const event = await rightClickBox(panel)
-		expect(event.defaultPrevented).toBe(false)
-		expect(editor.menus.getOpenMenus()).toEqual([])
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		expect(document.body.textContent).toContain('Details')
 	})
 
 	it('closes the open menu when the panel scrolls', async () => {
@@ -341,24 +295,47 @@ describe('LibrariesPanel item menus on right-click', () => {
 		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 
-	it('closes the open menu when a tab’s panel scrolls', async () => {
-		const source = new CompositeLibrarySource({
-			id: 'owners',
-			parts: [
-				{ owner: { id: 'packs', name: 'Packs' }, source: await makeSource() },
-				{
-					owner: { id: 'board', name: 'Board' },
-					source: new InMemoryLibrarySource({ id: 'board' }),
-				},
-			],
-		})
-		const panel = await renderPanel(undefined, undefined, source)
+	it('opens with Insert first and Delete last, and no button of its own on the tile', async () => {
+		const panel = await renderPanel()
+		expect(panel.querySelector('.tlui-libraries-tile [aria-label="Item options"]')).toBeNull()
 		await rightClickBox(panel)
-		expect(editor.menus.getOpenMenus()).toHaveLength(1)
-		await act(async () => {
-			panel.querySelector('[role="tabpanel"]')!.dispatchEvent(new Event('scroll'))
+		const labels = await vi.waitFor(() => {
+			const items = [...document.querySelectorAll('.tlui-libraries-menu [role^="menuitem"]')]
+			expect(items.length).toBeGreaterThan(0)
+			return items.map((item) => item.textContent)
 		})
-		expect(editor.menus.getOpenMenus()).toEqual([])
+		expect(labels[0]).toBe('Insert')
+		expect(labels[1]).toBe('Details')
+		expect(labels).not.toContain('Rename')
+		expect(labels[labels.length - 1]).toBe('Delete')
+	})
+
+	it.each(['ContextMenu', 'F10'])(
+		'opens from the keyboard with %s on a focused tile',
+		async (key) => {
+			const panel = await renderPanel()
+			const tile = panel.querySelector<HTMLButtonElement>('button[aria-label="Box"]')!
+			await act(async () => {
+				tile.focus()
+				tile.dispatchEvent(
+					new KeyboardEvent('keydown', { key, shiftKey: key === 'F10', bubbles: true })
+				)
+			})
+			expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		}
+	)
+
+	it('opens the library menu on a right-click on its name, as well as from its ⋯', async () => {
+		const panel = await renderPanel()
+		expect(
+			panel.querySelector('.tlui-libraries-section [aria-label="Library options"]')
+		).not.toBeNull()
+		await act(async () => {
+			panel
+				.querySelector('.tlui-libraries-panel__toggle')!
+				.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+		})
+		expect(editor.menus.isMenuOpen(`libraries-library-menu-${library.id}`)).toBe(true)
 	})
 
 	it('leaves the right-click alone when the ItemMenu slot is null', async () => {
@@ -434,7 +411,6 @@ describe('useLibrariesComponents', () => {
 				'LibraryMenu',
 				'NoLibraries',
 				'LibrariesPanelHeader',
-				'LibraryTabLabel',
 			].sort()
 		)
 	})

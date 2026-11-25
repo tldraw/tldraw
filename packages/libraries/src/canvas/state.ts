@@ -8,9 +8,8 @@ import { EditorAtom, type Editor, type TLLibraryId } from 'tldraw'
 export const librariesPanelOpen = new EditorAtom<boolean>('librariesPanelOpen', () => false)
 
 /**
- * A library to bring into view: the panel switches to its owner's tab, unfolds it and scrolls to
- * it, then clears this. Set it with {@link librariesPanelOpen} to show a library, e.g. one just
- * saved to.
+ * A library to bring into view: the panel unfolds it and scrolls to it, then clears this. Set it
+ * with {@link librariesPanelOpen} to show a library, e.g. one just saved to.
  * @public
  */
 export const activeLibraryId = new EditorAtom<TLLibraryId | null>('activeLibraryId', () => null)
@@ -29,3 +28,6 @@ export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLib
  * @public
  */
 export const collapsedLibraryIds = new EditorAtom<TLLibraryId[]>('collapsedLibraryIds', () => [])
+
+/** What the panel's search field holds, kept while the panel is closed. */
+export const librariesSearchQuery = new EditorAtom<string>('librariesSearchQuery', () => '')

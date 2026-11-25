@@ -8,6 +8,7 @@ import {
 	type LibrarySource,
 	type TLCopyLibraryOptions,
 	type TLLibraryAction,
+	type TLLibraryItemDetails,
 	type TLLibraryOwner,
 	type TLLibraryPlacement,
 	type TLLibraryTarget,
@@ -66,7 +67,10 @@ export class CompositeLibrarySource implements LibrarySource {
 	 * Present when any part can move items. Within a part, the part moves the item; across parts,
 	 * the item is copied and the original deleted, so it gets a new id.
 	 */
-	readonly moveItem?: (itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => Promise<void>
+	readonly moveItem?: (
+		itemId: TLLibraryItemId,
+		toLibraryId: TLLibraryId
+	) => Promise<TLLibraryItemId>
 	/**
 	 * Present when any part has it, listing each part's in order. A part with a fixed owner lists
 	 * that owner when its source lists any; a part without it lists none.
@@ -90,6 +94,8 @@ export class CompositeLibrarySource implements LibrarySource {
 	readonly getPreviewItems?: (libraryId: TLLibraryId, count: number) => TLLibraryItem[]
 	/** Present when any part has it. A part without it may match any search. */
 	readonly mayHaveItemsMatching?: (libraryId: TLLibraryId, query: string) => boolean
+	/** Present when any part has it. */
+	readonly getItemDetails?: (item: TLLibraryItem) => TLLibraryItemDetails
 	/** Present when any part has it. */
 	readonly removeLibraryFromDocument?: (libraryId: TLLibraryId) => Promise<void>
 	private readonly parts: Part[]
@@ -201,6 +207,12 @@ export class CompositeLibrarySource implements LibrarySource {
 			this.mayHaveItemsMatching = (libraryId, query) => {
 				const source = this.partByLibrary$.get().get(libraryId)?.source
 				return source?.mayHaveItemsMatching ? source.mayHaveItemsMatching(libraryId, query) : true
+			}
+		}
+		if (this.parts.some((part) => part.source.getItemDetails)) {
+			this.getItemDetails = (item) => {
+				const source = this.partByLibrary$.get().get(item.libraryId)?.source
+				return source?.getItemDetails ? source.getItemDetails(item) : {}
 			}
 		}
 		if (this.parts.some((part) => part.source.removeLibraryFromDocument)) {
@@ -321,8 +333,9 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteItem', item.libraryId)) {
 			throw new LibraryPermissionError('deleteItem', item.libraryId)
 		}
-		const { stored } = await copyItem(from.source, item, to.source, toLibraryId)
+		const { copied, stored } = await copyItem(from.source, item, to.source, toLibraryId)
 		deleteOnceStored(stored, () => from.source.deleteItem(itemId))
+		return copied.id
 	}
 
 	private getDefaultPart() {

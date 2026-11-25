@@ -1,6 +1,9 @@
 import {
+	createContext,
 	type ReactNode,
+	type SyntheticEvent,
 	useCallback,
+	useContext,
 	useEffect,
 	useLayoutEffect,
 	useMemo,
@@ -11,12 +14,13 @@ import {
 	defineMessages,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	TldrawUiIcon,
+	useDialogs,
 	useDirection,
 	useEditor,
 	useToasts,
@@ -28,22 +32,41 @@ import {
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { getLibraryItemCount, getLibraryPreviewItems } from '../lib/librarySummary'
-import { getThumbnailForColorMode } from '../lib/schema'
-import { getBrowseSections } from './browse-groups'
-import { activeLibraryId } from './state'
+import { getThumbnailForColorMode, type TLLibraryItem } from '../lib/schema'
+import { getContextMenuHandlers, openContextMenu } from '../ui/context-menu'
+import { getItemMenuId, ItemMenu, type ItemMenuProps } from '../ui/item-menu'
+import { ItemTile } from '../ui/item-tile'
+import { LibraryMenu, type LibraryMenuProps } from '../ui/library-menu'
+import { RenameInput } from '../ui/rename-input'
+import {
+	type BrowseListedLibrary,
+	type BrowseSections,
+	getBrowseSections,
+	isAddedToDocument,
+	keepBrowsePlacement,
+} from './browse-groups'
+import { CreateLibraryButton } from './create-library-button'
+import { ItemDetailsDialog, ReadOnlyItemDetailsDialog } from './item-details-dialog'
+import { CreateLibraryItem, type LibrariesPanelHeaderCreate } from './libraries-panel-header'
+import { useLongPress, withHandlers } from './long-press'
+import { activeLibraryId, librariesPanelOpen } from './state'
+import { useLibraryActions } from './use-library-actions'
+import { useLibraryCan } from './use-library-can'
+import { useLibraryItemActions } from './use-library-item-actions'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 
-const PREVIEW_COUNT = 6
+/** Tiles in a row's strip. A library with more items shows one fewer, then a "+ N" tile. */
+const PREVIEW_COUNT = 5
 
 const messages = defineMessages({
+	renameLibrary: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename' },
 	title: { id: 'libraries.browse.title', defaultMessage: 'Browse libraries' },
-	thisFile: { id: 'libraries.browse.this-file', defaultMessage: 'In this file' },
-	ownerLibraries: { id: 'libraries.browse.owner', defaultMessage: '{name} libraries' },
-	otherLibraries: { id: 'libraries.browse.other', defaultMessage: 'Other libraries' },
 	empty: { id: 'libraries.browse.empty', defaultMessage: 'No libraries to add.' },
-	itemCount: {
-		id: 'libraries.browse.item-count',
-		defaultMessage: '{count, plural, one {# item} other {# items}}',
+	emptyLibrary: { id: 'libraries.browse.empty-library', defaultMessage: 'This library is empty.' },
+	more: { id: 'libraries.browse.more', defaultMessage: '{count, plural, other {+ #}}' },
+	moreLabel: {
+		id: 'libraries.browse.more-label',
+		defaultMessage: '{count, plural, one {# more item} other {# more items}}',
 	},
 	add: { id: 'libraries.browse.add', defaultMessage: 'Add to file' },
 	view: { id: 'libraries.browse.view', defaultMessage: 'View the items in {name}' },
@@ -58,7 +81,7 @@ const messages = defineMessages({
 		id: 'libraries.browse.add-error.title',
 		defaultMessage: "Couldn't add library",
 	},
-	remove: { id: 'libraries.browse.remove', defaultMessage: 'Remove' },
+	remove: { id: 'libraries.browse.remove', defaultMessage: 'Remove from file' },
 	changeErrorTitle: {
 		id: 'libraries.library-error.title',
 		defaultMessage: "Couldn't change library",
@@ -81,16 +104,17 @@ export interface LibraryBrowseEntry {
 	id: string
 	name: string
 	itemCount: number
-	/** Thumbnails of a few of its items. The first six are shown. */
+	/** Thumbnails of a few of its items. The first five are shown. */
 	previews: (TLLibraryThumbnail | undefined)[]
 	/**
-	 * Whether the document already shows it: listed under "In this file" as "Added", and can't be
-	 * added again.
+	 * Whether the document already shows it: listed with those added to the file as "Added", and
+	 * can't be added again.
 	 */
 	added: boolean
 	/**
-	 * The library the document shows for it, once added. The source's library with this id is then
-	 * listed only as this entry.
+	 * The library the document shows for it, once added. Where the source lists a library with this
+	 * id, the entry is then listed as that library, with the library's own actions, and listed again
+	 * as the entry once the document no longer shows it.
 	 */
 	libraryId?: TLLibraryId
 	canAdd: boolean
@@ -115,145 +139,296 @@ export interface LibraryBrowseEntryItem {
 	thumbnail?: TLLibraryThumbnail
 }
 
-/** What the dialog has opened to view, looked up again as the groups change. */
-type Viewing = { kind: 'source'; libraryId: TLLibraryId } | { kind: 'host'; entryId: string }
+/**
+ * What the dialog has opened to view, looked up again as the groups change: the source's library,
+ * or a host's entry, which is viewed as the library it's added as once it is, and as the entry again
+ * once that library is gone.
+ */
+interface Viewing {
+	libraryId?: TLLibraryId
+	entryId?: string
+}
 
 export interface BrowseLibrariesDialogProps {
 	source: LibrarySource
 	getBrowseGroups?(): LibraryBrowseGroup[]
+	/** For "Create library" in the header's menu and the footer. Left out where it isn't allowed. */
+	create?: LibrariesPanelHeaderCreate
+	/** Closes the dialog, as creating a library does to show it in the panel. */
+	onClose?(): void
+	/**
+	 * Shows it as a view in the libraries sheet in place of a dialog, with a Back button that calls
+	 * this where the dialog has its ✕.
+	 */
+	onBack?(): void
 }
 
-export function BrowseLibrariesDialog({
+/** Keeps the row the user last pressed or focused where it is on screen as the list changes. */
+const HoldInViewContext = createContext<((row: HTMLElement) => void) | undefined>(undefined)
+
+function useHoldInView() {
+	const held = useRef<{ row: HTMLElement; top: number; stop(): void } | undefined>(undefined)
+	useLayoutEffect(() => {
+		const hold = held.current
+		if (!hold || !hold.row.isConnected) return
+		const body = hold.row.closest('.tlui-dialog__body')
+		const top = hold.row.getBoundingClientRect().top
+		if (body && top !== hold.top) body.scrollTop += top - hold.top
+		hold.top = hold.row.getBoundingClientRect().top
+	})
+	useEffect(() => () => held.current?.stop(), [])
+	return useCallback((row: HTMLElement) => {
+		if (held.current && held.current.row === row) return
+		if (held.current) held.current.stop()
+		const body = row.closest('.tlui-dialog__body')
+		const onScroll = () => {
+			if (held.current) held.current.top = row.getBoundingClientRect().top
+		}
+		if (body) body.addEventListener('scroll', onScroll, { passive: true })
+		held.current = {
+			row,
+			top: row.getBoundingClientRect().top,
+			stop: () => body?.removeEventListener('scroll', onScroll),
+		}
+	}, [])
+}
+
+/** Set where Browse is a view in the libraries sheet: leaves it for the libraries again. */
+const SheetBackContext = createContext<(() => void) | undefined>(undefined)
+
+export function BrowseLibrariesDialog({ onBack, ...props }: BrowseLibrariesDialogProps) {
+	return (
+		<SheetBackContext.Provider value={onBack}>
+			<BrowseLibraries {...props} />
+		</SheetBackContext.Provider>
+	)
+}
+
+type BrowseRowEntry = BrowseListedLibrary & { key: string }
+
+interface BrowseLists {
+	/** The source's libraries, and the host's entries added to the file: those added first. */
+	rows: BrowseRowEntry[]
+	/** The host's groups, e.g. "Public libraries", each listed under its label. */
+	hostGroups: { id: string; label: string; rows: BrowseRowEntry[] }[]
+}
+
+/** The libraries `sections` lists, in its order. */
+function getBrowseLists(sections: BrowseSections): BrowseLists {
+	const row = (listed: BrowseListedLibrary): BrowseRowEntry => ({
+		...listed,
+		key: listed.kind === 'source' ? `source:${listed.library.id}` : `host:${listed.entry.id}`,
+	})
+	return {
+		rows: [
+			...sections.thisFile.map(row),
+			...sections.owners.flatMap((group) =>
+				group.libraries.map((library) => row({ kind: 'source', library }))
+			),
+		],
+		hostGroups: sections.hosts.map((group) => ({
+			id: group.id,
+			label: group.label,
+			rows: group.libraries.map(row),
+		})),
+	}
+}
+
+/** The row `viewing` is of, as `rows` list it now. */
+function findViewed(rows: BrowseRowEntry[], viewing: Viewing) {
+	const { libraryId, entryId } = viewing
+	const entryIdOf = (row: BrowseRowEntry) => (row.kind === 'source' ? row.entryId : row.entry.id)
+	return (
+		rows.find((row) => row.kind === 'source' && row.library.id === libraryId) ??
+		rows.find((row) => entryId !== undefined && entryIdOf(row) === entryId)
+	)
+}
+
+function BrowseLibraries({
 	source,
 	getBrowseGroups: getHostGroups,
-}: BrowseLibrariesDialogProps) {
+	create,
+	onClose,
+}: Omit<BrowseLibrariesDialogProps, 'onBack'>) {
+	const editor = useEditor()
+	const sheetBack = useContext(SheetBackContext)
 	const msg = useTranslation()
-	const sections = useValue(
+	const nextSections = useValue(
 		'browse sections',
 		() => getBrowseSections(source, getHostGroups ? getHostGroups() : []),
 		[source, getHostGroups]
 	)
-	const isEmpty =
-		sections.thisFile.length === 0 && sections.owners.length === 0 && sections.hosts.length === 0
+	const shownSections = useRef<BrowseSections | undefined>(undefined)
+	const sections = useMemo(
+		() => keepBrowsePlacement(shownSections.current, nextSections),
+		[nextSections]
+	)
+	useLayoutEffect(() => {
+		shownSections.current = sections
+	}, [sections])
+	const lists = useMemo(() => getBrowseLists(sections), [sections])
+	const rows = [...lists.rows, ...lists.hostGroups.flatMap((group) => group.rows)]
+	const holdInView = useHoldInView()
 	const [viewing, setViewing] = useState<Viewing | null>(null)
+	const viewed = viewing ? findViewed(rows, viewing) : undefined
+	const viewedLibraryId = viewed && viewed.kind === 'source' ? viewed.library.id : undefined
+	useLayoutEffect(() => {
+		if (viewedLibraryId === undefined) return
+		setViewing((current) => current && { ...current, libraryId: viewedLibraryId })
+	}, [viewedLibraryId])
+	const listRef = useRef<HTMLDivElement>(null)
+	useLayoutEffect(() => {
+		if (sheetBack || viewing) return
+		const content = listRef.current && listRef.current.closest('.tlui-dialog__content')
+		if (content instanceof HTMLElement) content.focus()
+	}, [sheetBack, viewing])
 	const back = () => setViewing(null)
-	const viewHost = (entry: LibraryBrowseEntry) =>
-		entry.getItems ? () => setViewing({ kind: 'host', entryId: entry.id }) : undefined
-
-	if (viewing?.kind === 'source') {
-		const addedLibrary = sections.thisFile.find(
-			(listed) => listed.kind === 'source' && listed.library.id === viewing.libraryId
-		)
-		const available = sections.owners
-			.flatMap((group) => group.libraries)
-			.find((library) => library.id === viewing.libraryId)
-		const library = addedLibrary?.kind === 'source' ? addedLibrary.library : available
-		if (library) {
-			return (
-				<SourceLibraryView
-					source={source}
-					library={library}
-					added={addedLibrary !== undefined}
-					onBack={back}
-				/>
-			)
-		}
+	const close = sheetBack ?? onClose
+	const createAndShow = create && {
+		owners: create.owners,
+		onCreate(ownerId?: string) {
+			create.onCreate(ownerId)
+			librariesPanelOpen.set(editor, true)
+			if (close) close()
+		},
 	}
-	if (viewing?.kind === 'host') {
-		const entry = [
-			...sections.thisFile.flatMap((listed) => (listed.kind === 'host' ? [listed.entry] : [])),
-			...sections.hosts.flatMap((group) => group.entries),
-		].find((e) => e.id === viewing.entryId)
-		if (entry) return <HostLibraryView entry={entry} onBack={back} />
+
+	const renderRow = (row: BrowseRowEntry) =>
+		row.kind === 'source' ? (
+			<SourceLibraryRow
+				key={row.key}
+				source={source}
+				library={row.library}
+				onView={() => setViewing({ libraryId: row.library.id, entryId: row.entryId })}
+			/>
+		) : (
+			<HostLibraryRow
+				key={row.key}
+				entry={row.entry}
+				onView={row.entry.getItems ? () => setViewing({ entryId: row.entry.id }) : undefined}
+			/>
+		)
+
+	if (viewed && viewed.kind === 'source') {
+		return <SourceLibraryView source={source} library={viewed.library} onBack={back} />
+	}
+	if (viewed && viewed.kind === 'host') {
+		return <HostLibraryView entry={viewed.entry} onBack={back} />
 	}
 
 	return (
-		<>
-			<BrowseHeader title={msg(messages.title)} />
+		<HoldInViewContext.Provider value={holdInView}>
+			<BrowseHeader
+				title={msg(messages.title)}
+				onBack={sheetBack}
+				menu={
+					createAndShow && (
+						<LibraryMenu id="libraries-browse-menu">
+							<CreateLibraryItem create={createAndShow} />
+						</LibraryMenu>
+					)
+				}
+			/>
 			<TldrawUiDialogBody className="tlui-libraries-browse">
-				{isEmpty && <p className="tlui-libraries-panel__empty">{msg(messages.empty)}</p>}
-				{sections.thisFile.length > 0 && (
-					<BrowseGroup label={msg(messages.thisFile)}>
-						{sections.thisFile.map((listed) =>
-							listed.kind === 'source' ? (
-								<SourceLibraryCard
-									key={listed.library.id}
-									source={source}
-									library={listed.library}
-									added
-									onView={() => setViewing({ kind: 'source', libraryId: listed.library.id })}
-								/>
-							) : (
-								<HostLibraryCard
-									key={`host:${listed.entry.id}`}
-									entry={listed.entry}
-									onView={viewHost(listed.entry)}
-								/>
-							)
-						)}
-					</BrowseGroup>
-				)}
-				{sections.owners.map((group) => (
-					<BrowseGroup
-						key={group.ownerId ?? ''}
-						label={
-							group.ownerName === undefined
-								? msg(messages.otherLibraries)
-								: msg(messages.ownerLibraries, { name: group.ownerName })
-						}
-					>
-						{group.libraries.map((library) => (
-							<SourceLibraryCard
-								key={library.id}
-								source={source}
-								library={library}
-								added={false}
-								onView={() => setViewing({ kind: 'source', libraryId: library.id })}
-							/>
-						))}
-					</BrowseGroup>
-				))}
-				{sections.hosts.map((group) => (
-					<BrowseGroup key={group.id} label={group.label}>
-						{group.entries.map((entry) => (
-							<HostLibraryCard key={entry.id} entry={entry} onView={viewHost(entry)} />
-						))}
-					</BrowseGroup>
-				))}
+				<div ref={listRef}>
+					{rows.length === 0 && (
+						<p className="tlui-libraries-panel__empty">{msg(messages.empty)}</p>
+					)}
+					{lists.rows.length > 0 && (
+						<ul className="tlui-libraries-browse__rows">{lists.rows.map(renderRow)}</ul>
+					)}
+					{lists.hostGroups.map((group) => (
+						<section
+							key={group.id}
+							className="tlui-libraries-browse__group"
+							aria-label={group.label}
+						>
+							<h3 className="tlui-libraries-browse__group-label">{group.label}</h3>
+							<ul className="tlui-libraries-browse__rows">{group.rows.map(renderRow)}</ul>
+						</section>
+					))}
+				</div>
 			</TldrawUiDialogBody>
-		</>
+			{createAndShow && (
+				<TldrawUiDialogFooter className="tlui-libraries-browse__footer">
+					<CreateLibraryButton create={createAndShow} />
+				</TldrawUiDialogFooter>
+			)}
+		</HoldInViewContext.Provider>
 	)
 }
 
-/** A Browse view's title, after a Back button where there's somewhere to go back to. */
-function BrowseHeader({ title, onBack }: { title: string; onBack?(): void }) {
+/**
+ * A Browse view's title, after a Back button where there's somewhere to go back to, and before its
+ * menu and the dialog's ✕. In the libraries sheet there's always a Back, which takes focus, and no
+ * ✕. While renaming, an input in place of the title.
+ */
+function BrowseHeader({
+	title,
+	onBack,
+	menu,
+	rename,
+	onStartRename,
+}: {
+	title: string
+	onBack?(): void
+	menu?: ReactNode
+	rename?: { onComplete(name: string): void; onCancel(): void }
+	/** Makes the title a button that starts renaming. */
+	onStartRename?(): void
+}) {
 	const msg = useTranslation()
 	const dir = useDirection()
+	const inSheet = useContext(SheetBackContext) !== undefined
+	const backRef = useRef<HTMLButtonElement>(null)
+	useLayoutEffect(() => {
+		if (inSheet && backRef.current) backRef.current.focus()
+	}, [inSheet])
 	return (
 		<TldrawUiDialogHeader className="tlui-libraries-browse__header">
 			{onBack && (
 				<TldrawUiButton
+					ref={backRef}
 					type="icon"
 					className="tlui-libraries-browse__back"
 					onClick={onBack}
+					onTouchEnd={(e) => {
+						if (!e.cancelable) return
+						e.preventDefault()
+						onBack()
+					}}
 					tooltip={msg(messages.back)}
 					title={msg(messages.back)}
 				>
 					<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-right' : 'chevron-left'} small />
 				</TldrawUiButton>
 			)}
-			<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
-			<TldrawUiDialogCloseButton />
+			{rename ? (
+				<RenameInput
+					className="tlui-libraries-browse__rename"
+					defaultValue={title}
+					onComplete={rename.onComplete}
+					onCancel={rename.onCancel}
+				/>
+			) : (
+				<TldrawUiDialogTitle>
+					{onStartRename ? (
+						<button
+							type="button"
+							className="tlui-libraries-browse__title-rename"
+							title={msg(messages.renameLibrary)}
+							onDoubleClick={onStartRename}
+						>
+							{title}
+						</button>
+					) : (
+						title
+					)}
+				</TldrawUiDialogTitle>
+			)}
+			{menu}
+			{!inSheet && <TldrawUiDialogCloseButton />}
 		</TldrawUiDialogHeader>
-	)
-}
-
-function BrowseGroup({ label, children }: { label: string; children: ReactNode }) {
-	return (
-		<section className="tlui-libraries-browse__group" aria-label={label}>
-			<h3 className="tlui-libraries-panel__group-label">{label}</h3>
-			<ul className="tlui-libraries-browse__cards">{children}</ul>
-		</section>
 	)
 }
 
@@ -297,14 +472,38 @@ function useRemove(remove: (() => Promise<void>) | undefined) {
 	return { removing, run }
 }
 
-function useSourceRemove(source: LibrarySource, libraryId: TLLibraryId, added: boolean) {
-	const canRemove = useValue(
-		'can remove library',
-		() => !!source.removeLibraryFromDocument && source.can('removeLibraryFromDocument', libraryId),
+/** Whether a library is in the file, and adding it to or removing it from the file. */
+interface LibraryPlacement {
+	added: boolean
+	/** Leave out where it can't be added now: it's added, being added, or the user may not. */
+	onAdd?(): void
+	/** Leave out where it isn't added, or can't be removed. */
+	onRemove?(): void
+	busy: boolean
+}
+
+/** Adding the source's library to the file and removing it, as Browse offers them. */
+function useSourcePlacement(source: LibrarySource, libraryId: TLLibraryId): LibraryPlacement {
+	const added = useValue('library added', () => isAddedToDocument(source, libraryId), [
+		source,
+		libraryId,
+	])
+	const can = useValue(
+		'library placement permissions',
+		() => ({
+			add: !!source.addLibraryToDocument && source.can('addLibraryToDocument', libraryId),
+			remove:
+				!!source.removeLibraryFromDocument && source.can('removeLibraryFromDocument', libraryId),
+		}),
 		[source, libraryId]
 	)
-	return useRemove(
-		added && canRemove
+	const add = useAdd(async () => {
+		if (!source.addLibraryToDocument) throw new Error(`Source ${source.id} can't add libraries`)
+		await source.addLibraryToDocument(libraryId)
+		return libraryId
+	})
+	const remove = useRemove(
+		added && can.remove
 			? async () => {
 					if (!source.removeLibraryFromDocument) {
 						throw new Error(`Source ${source.id} can't remove libraries`)
@@ -313,31 +512,63 @@ function useSourceRemove(source: LibrarySource, libraryId: TLLibraryId, added: b
 				}
 			: undefined
 	)
+	return {
+		added,
+		onAdd: !added && can.add && !add.adding ? add.run : undefined,
+		onRemove: remove.removing ? undefined : remove.run,
+		busy: add.adding || remove.removing,
+	}
 }
 
-function useSourceAdd(source: LibrarySource, library: TLLibrary, added: boolean) {
-	const libraryId = library.id
-	const canAdd = useValue('can add library', () => source.can('addLibraryToDocument', libraryId), [
-		source,
-		libraryId,
-	])
-	const { adding, run } = useAdd(async () => {
-		if (!source.addLibraryToDocument) throw new Error(`Source ${source.id} can't add libraries`)
-		await source.addLibraryToDocument(libraryId)
-		return libraryId
-	})
-	return { disabled: added || adding || !canAdd, run }
+/** Adding a host's entry to the file and removing it, as Browse offers them. */
+function useHostPlacement(entry: LibraryBrowseEntry): LibraryPlacement {
+	const add = useAdd(entry.add)
+	const remove = useRemove(entry.added ? entry.remove : undefined)
+	return {
+		added: entry.added,
+		onAdd: !entry.added && entry.canAdd && !add.adding ? add.run : undefined,
+		onRemove: remove.removing ? undefined : remove.run,
+		busy: add.adding || remove.removing,
+	}
 }
 
-function SourceLibraryCard({
+/**
+ * The menu for the source's library in Browse, and renaming it in place: the library's own
+ * actions, with adding it to and removing it from the file first.
+ */
+function useSourceLibraryMenu(
+	source: LibrarySource,
+	library: TLLibrary,
+	placement: LibraryPlacement
+) {
+	const { onRenameComplete, menuActions } = useLibraryActions(source, library)
+	const [renaming, setRenaming] = useState(false)
+	const menuProps: Omit<LibraryMenuProps, 'id'> = {
+		onAddToDocument: placement.onAdd,
+		onRemoveFromDocument: placement.onRemove,
+		onRename: menuActions.onRename && (() => setRenaming(true)),
+		copy: menuActions.copy,
+		onDelete: menuActions.onDelete,
+	}
+	const rename = renaming
+		? {
+				onComplete(name: string) {
+					setRenaming(false)
+					onRenameComplete(name)
+				},
+				onCancel: () => setRenaming(false),
+			}
+		: undefined
+	return { menuProps, rename, startRename: menuProps.onRename }
+}
+
+function SourceLibraryRow({
 	source,
 	library,
-	added,
 	onView,
 }: {
 	source: LibrarySource
 	library: TLLibrary
-	added: boolean
 	onView(): void
 }) {
 	const libraryId = library.id
@@ -352,152 +583,211 @@ function SourceLibraryCard({
 	)
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const urls = useLibraryThumbnailUrls(source, previews, { container: element })
-	const { disabled, run } = useSourceAdd(source, library, added)
-	const remove = useSourceRemove(source, libraryId, added)
+	const placement = useSourcePlacement(source, libraryId)
+	const { menuProps, rename } = useSourceLibraryMenu(source, library, placement)
 	return (
-		<LibraryCard
-			cardRef={setElement}
+		<BrowseRow
+			rowRef={setElement}
+			menuId={`libraries-browse-menu-${libraryId}`}
 			name={library.name}
 			itemCount={itemCount}
 			thumbnailUrls={previews.map((item) => urls[item.id] ?? undefined)}
-			added={added}
-			disabled={disabled}
-			onAdd={run}
-			removing={remove.removing}
-			onRemove={remove.run}
+			placement={placement}
+			menuProps={menuProps}
+			rename={rename}
 			onView={onView}
 		/>
 	)
 }
 
-function HostLibraryCard({ entry, onView }: { entry: LibraryBrowseEntry; onView?(): void }) {
+function HostLibraryRow({ entry, onView }: { entry: LibraryBrowseEntry; onView?(): void }) {
 	const editor = useEditor()
 	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
-	const { adding, run } = useAdd(entry.add)
-	const remove = useRemove(entry.added ? entry.remove : undefined)
+	const placement = useHostPlacement(entry)
 	return (
-		<LibraryCard
+		<BrowseRow
+			menuId={`libraries-browse-menu-host-${entry.id}`}
 			name={entry.name}
 			itemCount={entry.itemCount}
 			thumbnailUrls={entry.previews
 				.slice(0, PREVIEW_COUNT)
 				.map((thumbnail) => thumbnail && getThumbnailForColorMode(thumbnail, colorMode))}
-			added={entry.added}
-			disabled={entry.added || adding || !entry.canAdd}
-			onAdd={run}
-			removing={remove.removing}
-			onRemove={remove.run}
+			placement={placement}
+			menuProps={{ onAddToDocument: placement.onAdd, onRemoveFromDocument: placement.onRemove }}
 			onView={onView}
 		/>
 	)
 }
 
-function LibraryCard({
-	cardRef,
+/**
+ * A library in Browse: its name and action over a strip of its first items. Right-click, a long
+ * press, or the context menu key opens its menu.
+ */
+function BrowseRow({
+	rowRef,
+	menuId,
 	name,
 	itemCount,
 	thumbnailUrls,
-	added,
-	disabled,
-	onAdd,
-	removing,
-	onRemove,
+	placement,
+	menuProps,
+	rename,
 	onView,
 }: {
-	cardRef?(element: HTMLElement | null): void
+	rowRef?(element: HTMLElement | null): void
+	menuId: string
 	name: string
 	itemCount: number
 	thumbnailUrls: (string | undefined)[]
-	added: boolean
-	disabled: boolean
-	onAdd(): void
-	removing: boolean
-	onRemove?(): void
+	placement: LibraryPlacement
+	menuProps: Omit<LibraryMenuProps, 'id'>
+	/** Set while the name is being edited. */
+	rename?: { onComplete(name: string): void; onCancel(): void }
 	/** Opens the library to view its items. Leave out for one that can't be. */
 	onView?(): void
 }) {
+	const editor = useEditor()
 	const msg = useTranslation()
-	const thumbnails = Array.from({ length: PREVIEW_COUNT }, (_, i) => (
+	const holdInView = useContext(HoldInViewContext)
+	const hold = (e: SyntheticEvent<HTMLElement>) => {
+		if (holdInView) holdInView(e.currentTarget)
+	}
+	const contextMenu = getContextMenuHandlers((opener, point) =>
+		openContextMenu(editor, menuId, { opener, point })
+	)
+	const press = useLongPress(!rename)(() => openContextMenu(editor, menuId))
+	const overflows = itemCount > PREVIEW_COUNT
+	const tileCount = overflows ? PREVIEW_COUNT - 1 : Math.min(itemCount, PREVIEW_COUNT)
+	const tiles = Array.from({ length: tileCount }, (_, i) => (
 		<span key={i} className="tlui-libraries-tile__thumbnail">
 			{thumbnailUrls[i] && <img src={thumbnailUrls[i]} alt="" draggable={false} />}
 		</span>
 	))
+	if (overflows) {
+		const more = itemCount - tileCount
+		tiles.push(
+			<span
+				key="more"
+				className="tlui-libraries-tile__thumbnail tlui-libraries-browse__more"
+				aria-label={msg(messages.moreLabel, { count: more })}
+			>
+				{msg(messages.more, { count: more })}
+			</span>
+		)
+	}
 	return (
-		<li ref={cardRef} className="tlui-libraries-browse__card">
-			{onView ? (
-				<button
-					type="button"
-					className="tlui-libraries-browse__thumbnails tlui-libraries-browse__view"
-					aria-label={msg(messages.view, { name })}
-					onClick={onView}
-				>
-					{thumbnails}
-				</button>
-			) : (
-				<div className="tlui-libraries-browse__thumbnails" aria-hidden>
-					{thumbnails}
+		<li
+			ref={rowRef}
+			className="tlui-libraries-browse__row"
+			data-empty={itemCount === 0 || undefined}
+			data-viewable={(onView && !rename) || undefined}
+			onClick={
+				onView && !rename
+					? (e) => {
+							if (e.defaultPrevented) return
+							const target = e.target as Element
+							if (target.closest('[role="menu"], input, button:not(.tlui-libraries-browse__view)'))
+								return
+							onView()
+						}
+					: undefined
+			}
+			onPointerDownCapture={hold}
+			onFocusCapture={hold}
+			{...press}
+			{...(rename ? {} : contextMenu)}
+		>
+			<div className="tlui-libraries-browse__row-title">
+				{rename ? (
+					<RenameInput
+						className="tlui-libraries-browse__rename"
+						defaultValue={name}
+						onComplete={rename.onComplete}
+						onCancel={rename.onCancel}
+					/>
+				) : (
+					<>
+						{onView ? (
+							<button
+								type="button"
+								className="tlui-libraries-browse__name tlui-libraries-browse__view"
+								aria-label={msg(messages.view, { name })}
+							>
+								{name}
+							</button>
+						) : (
+							<span className="tlui-libraries-browse__name">{name}</span>
+						)}
+						<BrowseAction placement={placement} revealOnHover />
+					</>
+				)}
+				<LibraryMenu id={menuId} trigger="none" {...menuProps} />
+			</div>
+			{itemCount === 0 && (
+				<p className="tlui-libraries-browse__empty">{msg(messages.emptyLibrary)}</p>
+			)}
+			{itemCount > 0 && (
+				<div className="tlui-libraries-browse__strip" aria-hidden>
+					{tiles}
 				</div>
 			)}
-			<LibrarySummary
-				name={name}
-				itemCount={itemCount}
-				added={added}
-				disabled={disabled}
-				onAdd={onAdd}
-				removing={removing}
-				onRemove={onRemove}
-			/>
 		</li>
 	)
 }
 
-function LibrarySummary({
-	name,
-	itemCount,
-	added,
-	disabled,
-	onAdd,
-	removing,
-	onRemove,
+/**
+ * "Add to file" for a library not in the file, or "Remove from file" for one that is. In a row, with
+ * a pointer that hovers, it rests as a muted + or "Added ✓" until the row is hovered or focused.
+ * A library the user can't remove shows "Added ✓" alone.
+ */
+function BrowseAction({
+	placement,
+	revealOnHover = false,
 }: {
-	/** Leave out where the name is already shown, as in a library's view. */
-	name?: string
-	itemCount: number
-	added: boolean
-	disabled: boolean
-	onAdd(): void
-	removing: boolean
-	/** Removes it from the document. Leave out for one that isn't added or can't be removed. */
-	onRemove?(): void
+	placement: LibraryPlacement
+	revealOnHover?: boolean
 }) {
 	const msg = useTranslation()
-	return (
-		<div className="tlui-libraries-browse__footer">
-			<div className="tlui-libraries-browse__text">
-				{name !== undefined && <span className="tlui-libraries-browse__name">{name}</span>}
-				<span className="tlui-libraries-browse__detail">
-					{msg(messages.itemCount, { count: itemCount })}
-				</span>
-			</div>
-			<div className="tlui-libraries-browse__actions">
-				{added && onRemove ? (
-					<>
-						<span className="tlui-libraries-browse__added">
-							<TldrawUiIcon icon="check" label="" small />
-							{msg(messages.added)}
-						</span>
-						<TldrawUiButton type="normal" disabled={removing} onClick={onRemove}>
-							<TldrawUiButtonLabel>{msg(messages.remove)}</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</>
-				) : (
-					<TldrawUiButton type={added ? 'normal' : 'primary'} disabled={disabled} onClick={onAdd}>
-						{added && <TldrawUiButtonIcon icon="check" small />}
-						<TldrawUiButtonLabel>{msg(added ? messages.added : messages.add)}</TldrawUiButtonLabel>
-					</TldrawUiButton>
+	const { added, onAdd, onRemove, busy } = placement
+	const reveal = revealOnHover || undefined
+	if (added && !onRemove && !busy) {
+		return (
+			<span className="tlui-libraries-browse__added">
+				{msg(messages.added)}
+				<TldrawUiIcon icon="check" label="" small />
+			</span>
+		)
+	}
+	if (added) {
+		return (
+			<button
+				type="button"
+				className="tlui-libraries-browse__action"
+				data-reveal={reveal}
+				aria-disabled={!onRemove}
+				onClick={onRemove}
+			>
+				{revealOnHover && (
+					<span className="tlui-libraries-browse__action-rest" aria-hidden>
+						{msg(messages.added)}
+						<TldrawUiIcon icon="check" label="" small />
+					</span>
 				)}
-			</div>
-		</div>
+				<span className="tlui-libraries-browse__action-label">{msg(messages.remove)}</span>
+			</button>
+		)
+	}
+	return (
+		<button
+			type="button"
+			className="tlui-libraries-browse__action"
+			data-reveal={reveal}
+			aria-disabled={!onAdd}
+			onClick={onAdd}
+		>
+			<span className="tlui-libraries-browse__action-label">{msg(messages.add)}</span>
+			<TldrawUiIcon icon="plus" label="" small />
+		</button>
 	)
 }
 
@@ -507,32 +797,91 @@ interface ViewedItem {
 	thumbnailUrl?: string
 }
 
-/** A library opened from Browse: all its items, under the same "Add to file" as its card. */
+/** What a library opened from Browse offers for each of its items. */
+interface ViewedItemActions {
+	/** The content of the Details dialog opened over Browse for the item. */
+	renderDetails(item: ViewedItem, onClose: () => void): ReactNode
+	/** The item menu's actions besides Details. */
+	getMenuProps?(item: ViewedItem): Omit<ItemMenuProps, 'id' | 'trigger' | 'onShowDetails'>
+}
+
+/**
+ * An item of a library opened from Browse. Pressing it opens its Details over Browse, and
+ * right-click, a long press, or the context menu key opens its menu. Focus returns to it once
+ * Details closes.
+ */
+function BrowseItemTile({ item, actions }: { item: ViewedItem; actions: ViewedItemActions }) {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const tileRef = useRef<HTMLLIElement>(null)
+	const id = `browse-${item.id}`
+	const menuId = getItemMenuId(id)
+	const showDetails = () => {
+		const button = tileRef.current && tileRef.current.querySelector('button')
+		addDialog({
+			component: ({ onClose }) => actions.renderDetails(item, onClose),
+			onClose: () => {
+				editor.timers.requestAnimationFrame(() => {
+					if (button && button.isConnected) button.focus()
+				})
+			},
+		})
+	}
+	const contextMenu = getContextMenuHandlers((opener, point) =>
+		openContextMenu(editor, menuId, { opener, point })
+	)
+	const press = useLongPress(true)(() => openContextMenu(editor, menuId))
+	return (
+		<li ref={tileRef} className="tlui-libraries-browse__item">
+			<ItemTile
+				name={item.name}
+				accessibleLabel={item.name ?? msg(messages.unnamedItem)}
+				thumbnailUrl={item.thumbnailUrl}
+				buttonProps={withHandlers(
+					{ onClick: showDetails, onContextMenu: contextMenu.onContextMenu },
+					{ ...press, onKeyDown: contextMenu.onKeyDown }
+				)}
+				menu={
+					<ItemMenu
+						id={id}
+						trigger="none"
+						onShowDetails={showDetails}
+						{...(actions.getMenuProps ? actions.getMenuProps(item) : {})}
+					/>
+				}
+			/>
+		</li>
+	)
+}
+
+/** A library opened from Browse: all its items, with its menu above and its action below. */
 function LibraryView({
 	name,
-	itemCount,
 	items,
+	itemActions,
 	itemsRef,
-	added,
-	disabled,
-	onAdd,
-	removing,
-	onRemove,
+	placement,
+	menuId,
+	menuProps,
+	rename,
+	onStartRename,
 	onBack,
 }: {
 	name: string
-	itemCount: number
 	/** Undefined while they load. */
 	items: ViewedItem[] | undefined
+	itemActions: ViewedItemActions
 	itemsRef?(element: HTMLElement | null): void
-	added: boolean
-	disabled: boolean
-	onAdd(): void
-	removing: boolean
-	onRemove?(): void
+	placement: LibraryPlacement
+	menuId: string
+	menuProps: Omit<LibraryMenuProps, 'id'>
+	rename?: { onComplete(name: string): void; onCancel(): void }
+	onStartRename?(): void
 	onBack(): void
 }) {
 	const msg = useTranslation()
+	const inSheet = useContext(SheetBackContext) !== undefined
 	const listRef = useRef<HTMLUListElement | null>(null)
 	const setListRef = useCallback(
 		(element: HTMLUListElement | null) => {
@@ -542,35 +891,36 @@ function LibraryView({
 		[itemsRef]
 	)
 	useLayoutEffect(() => {
+		if (inSheet) return
 		const content = listRef.current && listRef.current.closest('.tlui-dialog__content')
 		if (content instanceof HTMLElement) content.focus()
-	}, [])
+	}, [inSheet])
 	return (
 		<>
-			<BrowseHeader title={name} onBack={onBack} />
+			<BrowseHeader
+				title={name}
+				onBack={onBack}
+				menu={<LibraryMenu id={menuId} {...menuProps} />}
+				rename={rename}
+				onStartRename={onStartRename}
+			/>
 			<TldrawUiDialogBody className="tlui-libraries-browse">
-				<LibrarySummary
-					itemCount={itemCount}
-					added={added}
-					disabled={disabled}
-					onAdd={onAdd}
-					removing={removing}
-					onRemove={onRemove}
-				/>
-				<ul ref={setListRef} className="tlui-libraries-browse__items" aria-busy={!items}>
-					{items &&
-						items.map((item) => (
-							<li key={item.id} className="tlui-libraries-browse__item">
-								<span className="tlui-libraries-tile__thumbnail">
-									{item.thumbnailUrl && <img src={item.thumbnailUrl} alt="" draggable={false} />}
-								</span>
-								<span className="tlui-libraries-browse__item-name">
-									{item.name ?? msg(messages.unnamedItem)}
-								</span>
-							</li>
-						))}
-				</ul>
+				{items && items.length === 0 ? (
+					<p className="tlui-libraries-browse__empty tlui-libraries-browse__empty--view">
+						{msg(messages.emptyLibrary)}
+					</p>
+				) : (
+					<ul ref={setListRef} className="tlui-libraries-browse__items" aria-busy={!items}>
+						{items &&
+							items.map((item) => (
+								<BrowseItemTile key={item.id} item={item} actions={itemActions} />
+							))}
+					</ul>
+				)}
 			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-libraries-browse__footer">
+				<BrowseAction placement={placement} />
+			</TldrawUiDialogFooter>
 		</>
 	)
 }
@@ -578,42 +928,63 @@ function LibraryView({
 function SourceLibraryView({
 	source,
 	library,
-	added,
 	onBack,
 }: {
 	source: LibrarySource
 	library: TLLibrary
-	added: boolean
 	onBack(): void
 }) {
 	const libraryId = library.id
 	const items = useValue('library items', () => source.getItems(libraryId), [source, libraryId])
-	const itemCount = useValue('library item count', () => getLibraryItemCount(source, libraryId), [
-		source,
-		libraryId,
-	])
 	useEffect(() => {
 		if (source.loadItems) source.loadItems(libraryId)
 	}, [source, libraryId])
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const urls = useLibraryThumbnailUrls(source, items, { container: element })
-	const { disabled, run } = useSourceAdd(source, library, added)
-	const remove = useSourceRemove(source, libraryId, added)
+	const placement = useSourcePlacement(source, libraryId)
+	const { menuProps, rename, startRename } = useSourceLibraryMenu(source, library, placement)
+	const canDelete = useLibraryCan(source, 'deleteItem', libraryId)
+	const { move, copy, requestDelete, moveTargets, copyTargets } = useLibraryItemActions(
+		source,
+		libraryId
+	)
+	const byId = new Map<string, TLLibraryItem>(items.map((item) => [item.id, item]))
+	const itemActions: ViewedItemActions = {
+		renderDetails: ({ id }, onClose) => {
+			const item = byId.get(id)
+			return (
+				item && (
+					<ItemDetailsDialog source={source} item={item} library={library} onClose={onClose} />
+				)
+			)
+		},
+		getMenuProps: ({ id }) => {
+			const item = byId.get(id)
+			if (!item) return {}
+			return {
+				moveTargets,
+				onMove: (toLibraryId) => move(item.id, toLibraryId as TLLibraryId),
+				copyTargets,
+				onCopy: (toLibraryId) => copy(item.id, toLibraryId as TLLibraryId),
+				onDelete: canDelete ? () => requestDelete(item.id) : undefined,
+			}
+		},
+	}
 	return (
 		<LibraryView
 			name={library.name}
-			itemCount={itemCount}
 			items={items.map((item) => ({
 				id: item.id,
 				name: item.name,
 				thumbnailUrl: urls[item.id] ?? undefined,
 			}))}
+			itemActions={itemActions}
 			itemsRef={setElement}
-			added={added}
-			disabled={disabled}
-			onAdd={run}
-			removing={remove.removing}
-			onRemove={remove.run}
+			placement={placement}
+			menuId={`libraries-browse-view-menu-${libraryId}`}
+			menuProps={menuProps}
+			rename={rename}
+			onStartRename={startRename}
 			onBack={onBack}
 		/>
 	)
@@ -624,8 +995,7 @@ function HostLibraryView({ entry, onBack }: { entry: LibraryBrowseEntry; onBack(
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
-	const { adding, run } = useAdd(entry.add)
-	const remove = useRemove(entry.added ? entry.remove : undefined)
+	const placement = useHostPlacement(entry)
 	const [loaded, setLoaded] = useState<LibraryBrowseEntryItem[]>()
 	const getItems = entry.getItems
 	useEffect(() => {
@@ -653,16 +1023,27 @@ function HostLibraryView({ entry, onBack }: { entry: LibraryBrowseEntry; onBack(
 			})),
 		[loaded, colorMode]
 	)
+	const thumbnails = useMemo(
+		() => new Map(loaded ? loaded.map((item) => [item.id, item.thumbnail]) : []),
+		[loaded]
+	)
+	const itemActions: ViewedItemActions = {
+		renderDetails: (item) => (
+			<ReadOnlyItemDetailsDialog
+				name={item.name}
+				libraryName={entry.name}
+				thumbnail={thumbnails.get(item.id)}
+			/>
+		),
+	}
 	return (
 		<LibraryView
 			name={entry.name}
-			itemCount={entry.itemCount}
 			items={items}
-			added={entry.added}
-			disabled={entry.added || adding || !entry.canAdd}
-			onAdd={run}
-			removing={remove.removing}
-			onRemove={remove.run}
+			itemActions={itemActions}
+			placement={placement}
+			menuId={`libraries-browse-view-menu-host-${entry.id}`}
+			menuProps={{ onAddToDocument: placement.onAdd, onRemoveFromDocument: placement.onRemove }}
 			onBack={onBack}
 		/>
 	)
