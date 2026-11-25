@@ -4825,17 +4825,16 @@ export class TLPluginHost {
     chain<In, Out>(slot: TLSlot<TLChainHandler<In, Out>>, input: In, terminal: (input: In) => Out): Out;
     // @internal (undocumented)
     dispose(): void;
+    // @internal
+    facade<T, S extends object>(capability: TLCapability<T>, select: (capability: T) => S): S;
     get<T>(capability: TLCapability<T>): T;
     getOptional<T>(capability: TLCapability<T>): T | undefined;
-    getOrStub<T extends object>(capability: TLCapability<T>): T;
     getPlugins(): readonly TLPlugin[];
     has(pluginId: string): boolean;
     list<T>(slot: TLSlot<T>): readonly T[];
     pipe<V, Args extends unknown[]>(slot: TLSlot<TLPipe<V, Args>>, value: V, ...args: Args): V;
     // @internal
     setup(): void;
-    // @internal
-    stub<S extends object>(capability: TLCapability<any>): S;
 }
 
 // @public (undocumented)

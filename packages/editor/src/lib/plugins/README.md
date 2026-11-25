@@ -8,7 +8,7 @@ const editor = createEditor({
 })
 ```
 
-`createEditor` installs only the plugins that it gets. It needs no DOM and does not load React (`noReact.test.ts` checks this).
+`createEditor` installs only the plugins that it gets. It needs no DOM. Its module graph (`plugins/createEditor.ts`, the `Editor` class and the kernel plugins) loads no React, and `noReact.test.ts` checks this. The package entry still loads React, because it also exports the React layer, and `@tldraw/editor` still depends on React. A separate headless entry or package is step 2 below.
 
 ## The model
 

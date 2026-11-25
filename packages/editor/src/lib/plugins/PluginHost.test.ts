@@ -107,6 +107,27 @@ describe('plugin setup', () => {
 		expect(seen).toBeUndefined()
 	})
 
+	it('disposes the plugins that set up when a later plugin fails to set up', () => {
+		const disposed: string[] = []
+		expect(() =>
+			editorWith(
+				{
+					id: 'loop',
+					setup(ctx) {
+						ctx.onDispose(() => disposed.push('loop'))
+					},
+				},
+				{
+					id: 'broken',
+					setup() {
+						throw Error('broken setup')
+					},
+				}
+			)
+		).toThrow('broken setup')
+		expect(disposed).toEqual(['loop'])
+	})
+
 	it('runs disposers in reverse setup order when the editor is disposed', () => {
 		const order: string[] = []
 		const plugin = (id: string): TLPlugin => ({

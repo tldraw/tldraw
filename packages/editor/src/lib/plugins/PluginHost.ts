@@ -28,6 +28,9 @@ export class TLPluginHost {
 	private readonly capabilities = new Map<string, unknown>()
 	private readonly slots = new Map<string, Atom<readonly Contribution[]>>()
 	private readonly disposers: (() => void)[] = []
+	// Slots are read on hot paths (rendering, snapping), so `list` reuses one values array per
+	// contribution list.
+	private readonly valuesCache = new WeakMap<readonly Contribution[], readonly unknown[]>()
 	private seq = 0
 
 	/**
@@ -57,13 +60,20 @@ export class TLPluginHost {
 
 	/** @internal Run `setup` for each plugin, in dependency order. */
 	setup() {
-		for (const plugin of this.plugins) {
-			plugin.setup?.(this.createContext(plugin))
-			for (const cap of plugin.provides ?? []) {
-				if (!this.capabilities.has(cap.id)) {
-					throw Error(`Plugin "${plugin.id}" declares that it provides "${cap.id}" but did not.`)
+		try {
+			for (const plugin of this.plugins) {
+				plugin.setup?.(this.createContext(plugin))
+				for (const cap of plugin.provides ?? []) {
+					if (!this.capabilities.has(cap.id)) {
+						throw Error(`Plugin "${plugin.id}" declares that it provides "${cap.id}" but did not.`)
+					}
 				}
 			}
+		} catch (error) {
+			// Undo the plugins that did set up, so that nothing they started (a frame loop, DOM
+			// listeners) outlives an editor that failed to construct.
+			this.dispose()
+			throw error
 		}
 	}
 
@@ -78,30 +88,31 @@ export class TLPluginHost {
 	}
 
 	/**
-	 * Get a capability, or a stub when no installed plugin provides it. Any use of the stub throws
-	 * the same error as {@link TLPluginHost.get}. Editor fields that predate plugins, such as
-	 * `editor.snaps`, use this so that they stay plain fields and fail only when used.
-	 */
-	getOrStub<T extends object>(capability: TLCapability<T>): T {
-		if (this.capabilities.has(capability.id)) return this.capabilities.get(capability.id) as T
-		return this.stub(capability)
-	}
-
-	/**
-	 * A stub object whose use throws the missing-plugin error for `capability`.
+	 * An object for an editor field that predates plugins, such as `editor.snaps`.
+	 *
+	 * When the capability is provided, this returns `select(capability)` itself. Otherwise it
+	 * returns a proxy: once a plugin provides the capability, the proxy forwards to
+	 * `select(capability)`. Until then, any use of it throws the same error as
+	 * {@link TLPluginHost.get}. So the field works in the setup of any plugin that
+	 * runs after the provider, and in an editor without the provider it fails only when used.
 	 *
 	 * @internal
 	 */
-	stub<S extends object>(capability: TLCapability<any>): S {
-		const fail = () => this.get(capability)
+	facade<T, S extends object>(capability: TLCapability<T>, select: (capability: T) => S): S {
+		if (this.capabilities.has(capability.id)) return select(this.get(capability))
+		const resolve = () => select(this.get(capability))
+		const isProvided = () => this.capabilities.has(capability.id)
 		return new Proxy({} as S, {
 			get(_target, key) {
-				// Let inspection (printing, promise resolution) see an empty object.
-				if (typeof key === 'symbol' || key === 'then') return undefined
-				return fail()
+				// Before the capability exists, let inspection (printing, promise resolution) see an
+				// empty object.
+				if (!isProvided() && (typeof key === 'symbol' || key === 'then')) return undefined
+				const target = resolve()
+				const value = Reflect.get(target, key, target)
+				return typeof value === 'function' ? value.bind(target) : value
 			},
-			set: fail,
-			has: fail,
+			set: (_target, key, value) => Reflect.set(resolve(), key, value),
+			has: (_target, key) => key in resolve(),
 		})
 	}
 
@@ -112,9 +123,13 @@ export class TLPluginHost {
 
 	/** The contributions to a slot, in run order. Reactive. */
 	list<T>(slot: TLSlot<T>): readonly T[] {
-		return this.getSlotAtom(slot.id)
-			.get()
-			.map((c) => c.value as T)
+		const contributions = this.getSlotAtom(slot.id).get()
+		let values = this.valuesCache.get(contributions)
+		if (!values) {
+			values = contributions.map((c) => c.value)
+			this.valuesCache.set(contributions, values)
+		}
+		return values as readonly T[]
 	}
 
 	/** Run the contributions to a pipe slot. Each one gets the result of the one before. */

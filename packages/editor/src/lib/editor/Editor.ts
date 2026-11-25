@@ -976,16 +976,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Plugins set up when the rest of the core exists (utils, tools and store side effects),
 		// and before the first tool is entered.
+		// Members that predate plugins are facades over plugin capabilities. During setup they
+		// forward to the capability once its plugin has set up. After setup, they are the
+		// capability itself, or a stub that throws when no plugin provides it.
+		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
+		this.textMeasure = this.plugins.facade(textMeasurementCapability, (c) => c)
+		this.externalContentHandlers = this.plugins.facade(
+			externalContentCapability,
+			(c) => c.contentHandlers
+		)
+		this.externalAssetContentHandlers = this.plugins.facade(
+			externalContentCapability,
+			(c) => c.assetHandlers
+		)
 		this.plugins.setup()
 		this.disposables.add(() => this.plugins.dispose())
-		// Members that predate plugins are facades over plugin capabilities.
-		this.snaps = this.plugins.getOrStub(snappingCapability)
-		this.textMeasure = this.plugins.getOrStub(textMeasurementCapability)
-		const externalContent = this.plugins.getOptional(externalContentCapability)
-		this.externalContentHandlers =
-			externalContent?.contentHandlers ?? this.plugins.stub(externalContentCapability)
-		this.externalAssetContentHandlers =
-			externalContent?.assetHandlers ?? this.plugins.stub(externalContentCapability)
+		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
+		this.textMeasure = this.plugins.facade(textMeasurementCapability, (c) => c)
+		this.externalContentHandlers = this.plugins.facade(
+			externalContentCapability,
+			(c) => c.contentHandlers
+		)
+		this.externalAssetContentHandlers = this.plugins.facade(
+			externalContentCapability,
+			(c) => c.assetHandlers
+		)
 
 		this.root.enter(undefined, 'initial')
 

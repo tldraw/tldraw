@@ -7,10 +7,17 @@ import { T } from '@tldraw/validate'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLExternalContent } from '../editor/types/external-content'
 import { Rectangle2d } from '../primitives/geometry/Rectangle2d'
-import { externalContentPlugin, externalContentSlot } from './builtin/externalContent'
+import {
+	externalContentCapability,
+	externalContentPlugin,
+	externalContentSlot,
+} from './builtin/externalContent'
 import { canSnapToShapeSlot } from './builtin/snapping'
 import { snappingPlugin } from './builtin/snappingPlugin'
-import { approximateTextMeasurementPlugin } from './builtin/textMeasurement'
+import {
+	approximateTextMeasurementPlugin,
+	textMeasurementCapability,
+} from './builtin/textMeasurement'
 import { createEditor } from './createEditor'
 import { TLPlugin, definePlugin } from './plugin'
 
@@ -87,6 +94,34 @@ describe('a headless editor', () => {
 		expect(editor.getIsFocused()).toBe(true)
 		editor.blur()
 		expect(editor.getIsFocused()).toBe(false)
+	})
+
+	it('lets a plugin use the legacy editor API in setup, after the plugins that it requires', async () => {
+		const handled: string[] = []
+		let measuredWidth = 0
+		const legacyStylePlugin = definePlugin({
+			id: 'legacyStyle',
+			requires: [externalContentCapability, textMeasurementCapability],
+			setup(ctx) {
+				ctx.editor.registerExternalContentHandler('text', (info) => {
+					handled.push(info.text)
+				})
+				measuredWidth = ctx.editor.textMeasure.measureText('abc', {
+					fontStyle: 'normal',
+					fontWeight: 'normal',
+					fontFamily: 'sans-serif',
+					fontSize: 10,
+					lineHeight: 1,
+					maxWidth: null,
+					padding: '0px',
+				}).w
+			},
+		})
+		// List the user before the provider: the host still sets up the provider first.
+		const editor = headlessEditor(legacyStylePlugin, externalContentPlugin)
+		await editor.putExternalContent({ type: 'text', text: 'pasted' })
+		expect(handled).toEqual(['pasted'])
+		expect(measuredWidth).toBe(18)
 	})
 
 	it('names the missing plugin when a feature is used without it', () => {

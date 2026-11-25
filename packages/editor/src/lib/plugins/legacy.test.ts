@@ -1,7 +1,7 @@
 // `new Editor()` is the legacy entry. It installs `legacyEditorPlugins`, so its behavior is the
 // behavior that the editor had before plugins. These tests pin that compatibility layer.
 import { vi } from 'vitest'
-import { Editor, TextManager, createTLStore, legacyEditorPlugins } from '../..'
+import { Editor, TextManager, createShapeId, createTLStore, legacyEditorPlugins } from '../..'
 import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
 import { renderShapeComponent, shapeComponentSlot } from '../react/shapeComponents'
 import { approximateTextMeasurementPlugin } from './builtin/textMeasurement'
@@ -68,6 +68,11 @@ describe('the React shape component slot', () => {
 		// The group util has no React. The React layer's group plugin renders it.
 		expect(group.component()).toBeNull()
 		expect(editor.plugins.list(shapeComponentSlot).map((c) => c.type)).toContain('group')
+		// An erasing group shows its outline, so the default contribution renders an element.
+		const id = createShapeId('g')
+		editor.createShape({ id, type: 'group' })
+		editor.setErasingShapes([id])
+		expect(renderShapeComponent(group, editor.getShape(id)!)).not.toBeNull()
 
 		const custom = legacyEditor({
 			plugins: [
