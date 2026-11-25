@@ -1,4 +1,5 @@
 import { Role, TlaFile, TlaUser } from '@tldraw/dotcom-shared'
+import type { TLLibraryErrorReason } from '@tldraw/libraries'
 import { createContext, useContext } from 'react'
 import { trackEvent } from '../../utils/analytics'
 import { TldrawAppSessionState } from './local-session-state'
@@ -26,6 +27,18 @@ export type TLAppUiEventSource =
 	| 'workspace-settings'
 	| 'workspace-home'
 	| 'command-palette'
+	| 'libraries'
+
+/** @public */
+export type TLAppLibraryAction =
+	| 'create-library'
+	| 'add-to-library'
+	| 'rename-library'
+	| 'delete-library'
+	| 'rename-library-item'
+	| 'delete-library-item'
+	| 'move-library-item'
+	| 'add-starter-pack'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -116,6 +129,21 @@ export interface TLAppUiEventMap {
 	'set-comments-filter': {
 		filter: 'onlyCurrentPage' | 'onlyMine' | 'onlyUnread' | 'showResolved'
 		value: boolean
+	}
+	'create-library':
+		| { owner: 'home' | 'workspace' | 'file'; method: 'new' }
+		| { owner: 'home' | 'workspace' | 'file'; method: 'copy'; item_count: number }
+	'add-to-library': { item_count: number }
+	'rename-library': null
+	'delete-library': null
+	'rename-library-item': null
+	'delete-library-item': null
+	'move-library-item': null
+	'add-starter-pack': { pack_id: string }
+	'library-error': {
+		action: TLAppLibraryAction
+		method?: 'new' | 'copy'
+		reason: TLLibraryErrorReason
 	}
 }
 

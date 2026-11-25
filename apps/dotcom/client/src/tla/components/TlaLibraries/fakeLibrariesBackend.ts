@@ -51,6 +51,7 @@ export function createFakeLibrariesBackend({
 	let requestHold: ReturnType<typeof createHold> | undefined
 	let rowHold: ReturnType<typeof createHold> | undefined
 	const showMutationRejectionToast = vi.fn()
+	const trackEvent = vi.fn()
 
 	const done = (rollback: () => void) => {
 		const forbidden = { type: 'error', error: { type: 'app', message: 'forbidden' } }
@@ -243,6 +244,7 @@ export function createFakeLibrariesBackend({
 		getLibraryRows: () => rows.get(),
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 		showMutationRejectionToast,
+		trackEvent,
 	} as unknown as TldrawApp
 
 	return {
@@ -252,6 +254,7 @@ export function createFakeLibrariesBackend({
 		fetch: fetchSpy,
 		getToken: async () => 'token',
 		showMutationRejectionToast,
+		trackEvent,
 		toasts,
 		holdServer: () => (serverHold = createHold()),
 		holdRequests: () => (requestHold = createHold()),

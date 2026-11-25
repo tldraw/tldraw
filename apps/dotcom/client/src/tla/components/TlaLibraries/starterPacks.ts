@@ -11,6 +11,7 @@ import {
 } from '@tldraw/libraries'
 import type { JsonObject } from '@tldraw/utils'
 import { atom, T } from 'tldraw'
+import { getUntrackedSource } from './trackedLibrarySource'
 
 /** What the starter packs dialog shows of a pack, without loading its items. */
 export interface StarterPackSummary {
@@ -196,10 +197,13 @@ export function canAddStarterPack(source: LibrarySource) {
 	return source.can('createLibrary', ownerId === undefined ? undefined : { ownerId })
 }
 
-/** Copies a starter pack into the source's default owner, or wherever the source puts new libraries. */
+/**
+ * Copies a starter pack into the source's default owner, or wherever the source puts new libraries.
+ * Tracked as adding the pack, not as creating a library and saving items to it.
+ */
 export function addStarterPack(source: LibrarySource, pack: LibraryPack) {
 	const ownerId = getDefaultOwnerId(source)
-	return copyPack(source, pack, ownerId === undefined ? {} : { ownerId })
+	return copyPack(getUntrackedSource(source), pack, ownerId === undefined ? {} : { ownerId })
 }
 
 /** The pack a library was copied from, as recorded by `copyPack`, if any. */

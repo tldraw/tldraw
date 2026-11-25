@@ -4,6 +4,7 @@ import {
 	TldrawUiButtonIcon,
 	useEditor,
 	useTranslation,
+	useUiEvents,
 	useValue,
 } from 'tldraw'
 import { LibraryIcon } from '../ui/library-icon'
@@ -22,6 +23,7 @@ const messages = defineMessages({
 export function LibrariesPanelButton() {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const label = msg(messages.title)
@@ -34,7 +36,10 @@ export function LibrariesPanelButton() {
 			aria-pressed={open}
 			tooltip={label}
 			title={label}
-			onClick={() => toggleLibrariesPanel(editor)}
+			onClick={() => {
+				trackEvent('toggle-libraries-panel', { source: 'libraries', open: !open })
+				toggleLibrariesPanel(editor)
+			}}
 		>
 			<TldrawUiButtonIcon icon={<LibraryIcon />} />
 		</TldrawUiButton>

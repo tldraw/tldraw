@@ -1,5 +1,6 @@
 import {
 	activeLibraryId,
+	getLibraryErrorReason,
 	LibraryMenuItem,
 	type LibrarySource,
 	librariesPanelOpen,
@@ -20,8 +21,10 @@ import {
 	useEditor,
 	useToasts,
 	useTranslation,
+	useUiEvents,
 	useValue,
 } from 'tldraw'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
 	addStarterPack,
 	canAddStarterPack,
@@ -50,14 +53,16 @@ const messages = defineMessages({
 export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySource }) {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
+	const trackEvent = useUiEvents()
 	return (
 		<LibraryMenuItem
 			label={msg(messages.browse)}
-			onClick={() =>
+			onClick={() => {
+				trackEvent('open-browse-libraries', { source: 'libraries' })
 				addDialog({
 					component: () => <TlaStarterPacksDialog source={source} />,
 				})
-			}
+			}}
 		/>
 	)
 }
@@ -97,6 +102,7 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: StarterPac
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
 	const [adding, setAdding] = useState(false)
 	const added = useValue('starter pack added', () => isStarterPackAdded(source, pack.id), [
 		source,
@@ -111,6 +117,7 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: StarterPac
 			.then((fullPack) => addStarterPack(source, fullPack))
 			.then(
 				(library) => {
+					trackEvent('add-starter-pack', { source: 'libraries', pack_id: pack.id })
 					activeLibraryId.set(editor, library.id)
 					addToast({
 						title: msg(messages.added),
@@ -127,12 +134,18 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: StarterPac
 						],
 					})
 				},
-				() =>
+				(error) => {
+					trackEvent('library-error', {
+						source: 'libraries',
+						action: 'add-starter-pack',
+						reason: getLibraryErrorReason(error),
+					})
 					addToast({
 						title: msg(messages.addError),
 						description: msg(messages.addErrorDescription),
 						severity: 'error',
 					})
+				}
 			)
 			.finally(() => setAdding(false))
 	}
