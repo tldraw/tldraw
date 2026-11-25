@@ -17,9 +17,6 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability('delete-shape')) {
-			return
-		}
 		this.parent.transition('pointing', info)
 	}
 
