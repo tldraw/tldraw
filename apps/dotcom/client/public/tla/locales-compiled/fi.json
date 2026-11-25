@@ -197,6 +197,12 @@
       "value": "Luo tiedosto"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Minun luomani"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -311,6 +317,16 @@
       "value": "Luo kutsulinkki uudelleen"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (sinä)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -413,6 +429,12 @@
       "value": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Toiminnot…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -467,6 +489,22 @@
     {
       "type": 0,
       "value": "Kiinnitä tiedosto"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Esine"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Muokattu "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -531,6 +569,18 @@
     {
       "type": 0,
       "value": "Sivuvalikko"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Ei tiedostoja täällä vielä."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Viedä…"
     }
   ],
   "53770fd374": [
@@ -603,6 +653,12 @@
       "value": "Tietosuojakäytäntö"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Arkistoidut tiedostot näkyvät täällä."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -661,6 +717,12 @@
     {
       "type": 0,
       "value": "Myöhemmin"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Viimeaikaiset"
     }
   ],
   "625fd29749": [
@@ -779,6 +841,12 @@
     {
       "type": 0,
       "value": "Poista työtila"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään tallentaaksesi"
     }
   ],
   "69ce6a28fb": [
@@ -946,6 +1014,12 @@
       "value": "Lähetä ongelma GitHubissa"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Tällä keskustelupalstalla nyt"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -970,10 +1044,22 @@
       "value": "Avaa tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Kirjaudu sisään muokataksesi profiiliasetuksia"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Unohtaa"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Arkistoitu"
     }
   ],
   "7daeced9ff": [
@@ -1078,6 +1164,12 @@
       "value": "Nimeä tiedosto uudelleen"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Nimetön työtila"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1144,6 +1236,12 @@
     {
       "type": 0,
       "value": "Tarkista sähköpostistasi vahvistuskoodi."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Kotiin"
     }
   ],
   "8eb2c00e96": [
@@ -1258,6 +1356,12 @@
     {
       "type": 0,
       "value": "Tyhjennä haku"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Tallentamaton tiedosto"
     }
   ],
   "9b33f5c63c": [
@@ -1540,6 +1644,12 @@
       "value": "Sähköpostiosoite"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Ruudukkonäkymä"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1638,6 +1748,12 @@
     {
       "type": 0,
       "value": "Nykyinen tiedosto"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Haku…"
     }
   ],
   "c17466812d": [
@@ -1870,6 +1986,12 @@
       "value": "Poistu työtilasta"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Sovelluksen virheenkorjausmerkinnät"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1936,6 +2058,12 @@
       "value": "Tili-valikko"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Hakuasi vastaavia tiedostoja ei löytynyt."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1980,6 +2108,12 @@
       "value": "valittu"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Jaettu kanssani"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1990,6 +2124,12 @@
     {
       "type": 0,
       "value": "Käyttäjäasetukset"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Listanäkymä"
     }
   ],
   "f2569594b2": [

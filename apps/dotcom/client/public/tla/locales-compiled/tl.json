@@ -193,6 +193,12 @@
       "value": "Lumikha ng file"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Nilikha ko"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -307,6 +313,16 @@
       "value": "Buuin muli ang link ng imbitasyon"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (ikaw)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -409,6 +425,12 @@
       "value": "Makipag-ugnayan sa may-ari para humiling ng access."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Mga Aksyon…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -463,6 +485,22 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Bagay"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Na-edit "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -527,6 +565,18 @@
     {
       "type": 0,
       "value": "Menu ng page"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Wala pang mga file dito."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "I-export…"
     }
   ],
   "53770fd374": [
@@ -599,6 +649,12 @@
       "value": "Patakaran sa privacy"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Lalabas dito ang mga naka-archive na file."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -657,6 +713,12 @@
     {
       "type": 0,
       "value": "Mamaya"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Mga Kamakailan"
     }
   ],
   "625fd29749": [
@@ -775,6 +837,12 @@
     {
       "type": 0,
       "value": "Burahin ang workspace"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Mag-sign in para i-save"
     }
   ],
   "69ce6a28fb": [
@@ -958,6 +1026,12 @@
       "value": "Magsumite ng isyu sa GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Nasa board na ito ngayon"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -982,10 +1056,22 @@
       "value": "Buksan ang tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Mag-sign in para i-edit ang mga setting ng profile"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Kalimutan"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Naka-archive"
     }
   ],
   "7daeced9ff": [
@@ -1090,6 +1176,12 @@
       "value": "Palitan ang pangalan ng file"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Walang pamagat na workspace"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1156,6 +1248,12 @@
     {
       "type": 0,
       "value": "Tingnan ang iyong email para sa isang verification code."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Tahanan"
     }
   ],
   "8eb2c00e96": [
@@ -1270,6 +1368,12 @@
     {
       "type": 0,
       "value": "I-clear ang paghahanap"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Hindi na-save na file"
     }
   ],
   "9b33f5c63c": [
@@ -1596,6 +1700,12 @@
       "value": "Email address"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Grid view"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1790,6 +1900,12 @@
     {
       "type": 0,
       "value": "Kasalukuyang file"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Maghanap…"
     }
   ],
   "c17466812d": [
@@ -2082,6 +2198,12 @@
       "value": "Umalis sa workspace"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Mga flag ng pag-debug ng app"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -2148,6 +2270,12 @@
       "value": "Menu ng account"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Walang mga file na tumutugma sa iyong paghahanap."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -2192,6 +2320,12 @@
       "value": "pinili"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Ibinahagi sa akin"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -2202,6 +2336,12 @@
     {
       "type": 0,
       "value": "Mga setting ng user"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Tingnan ang listahan"
     }
   ],
   "f2569594b2": [

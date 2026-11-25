@@ -193,6 +193,12 @@
       "value": "Tạo tệp"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Do tôi tạo ra"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -307,6 +313,16 @@
       "value": "Tạo lại liên kết mời"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (bạn)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -409,6 +425,12 @@
       "value": "Liên hệ với chủ sở hữu để yêu cầu quyền truy cập."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Hành động…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -463,6 +485,22 @@
     {
       "type": 0,
       "value": "Tệp ghim"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Sự vật"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Đã chỉnh sửa "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -527,6 +565,18 @@
     {
       "type": 0,
       "value": "Menu trang"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Chưa có tệp nào ở đây."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Xuất khẩu…"
     }
   ],
   "53770fd374": [
@@ -599,6 +649,12 @@
       "value": "Chính sách bảo mật"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Các tệp đã được lưu trữ sẽ xuất hiện ở đây."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -657,6 +713,12 @@
     {
       "type": 0,
       "value": "Để sau"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Gần đây"
     }
   ],
   "625fd29749": [
@@ -764,6 +826,12 @@
     {
       "type": 0,
       "value": "Xóa không gian làm việc"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Đăng nhập để lưu"
     }
   ],
   "69ce6a28fb": [
@@ -923,6 +991,12 @@
       "value": "Gửi vấn đề trên GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Hiện đang có trên diễn đàn này"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -947,10 +1021,22 @@
       "value": "Mở tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Đăng nhập để chỉnh sửa cài đặt hồ sơ"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Quên"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Đã lưu trữ"
     }
   ],
   "7daeced9ff": [
@@ -1055,6 +1141,12 @@
       "value": "Đổi tên tập tin"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Không gian làm việc chưa có tiêu đề"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1121,6 +1213,12 @@
     {
       "type": 0,
       "value": "Kiểm tra email của bạn để lấy mã xác minh."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Trang chủ"
     }
   ],
   "8eb2c00e96": [
@@ -1235,6 +1333,12 @@
     {
       "type": 0,
       "value": "Xóa tìm kiếm"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Tệp chưa được lưu"
     }
   ],
   "9b33f5c63c": [
@@ -1506,6 +1610,12 @@
       "value": "Địa chỉ email"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Chế độ xem dạng lưới"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1596,6 +1706,12 @@
     {
       "type": 0,
       "value": "Tệp hiện tại"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Tìm kiếm…"
     }
   ],
   "c17466812d": [
@@ -1813,6 +1929,12 @@
       "value": "Rời khỏi không gian làm việc"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Cờ gỡ lỗi ứng dụng"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1879,6 +2001,12 @@
       "value": "Menu tài khoản"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Không có tệp nào phù hợp với tìm kiếm của bạn."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1923,6 +2051,12 @@
       "value": "đã chọn"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Đã chia sẻ với tôi"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1933,6 +2067,12 @@
     {
       "type": 0,
       "value": "Cài đặt người dùng"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Chế độ xem danh sách"
     }
   ],
   "f2569594b2": [

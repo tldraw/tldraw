@@ -193,6 +193,12 @@
       "value": "Samee fayl"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Anigaa sameeyay"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -307,6 +313,16 @@
       "value": "Dib u soo celi xiriirka casuumaadda"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (adiga)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -409,6 +425,12 @@
       "value": "La xidhiidh mulkiilaha si aad u codsato gelitaanka"
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Ficillada…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -463,6 +485,22 @@
     {
       "type": 0,
       "value": "Gal gal"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Shay"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Wax laga beddelay "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -527,6 +565,18 @@
     {
       "type": 0,
       "value": "Liiska bogga"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Faylal halkan weli ma jiraan."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Dhoofinta…"
     }
   ],
   "53770fd374": [
@@ -599,6 +649,12 @@
       "value": "Siyaasada gaarka ah"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Faylasha la kaydiyay ayaa halkan ka soo muuqan doona."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -657,6 +713,12 @@
     {
       "type": 0,
       "value": "Ka dib"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Dhawaanahan"
     }
   ],
   "625fd29749": [
@@ -775,6 +837,12 @@
     {
       "type": 0,
       "value": "Tirtir goobta shaqada"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Soo gal si aad u kaydiso"
     }
   ],
   "69ce6a28fb": [
@@ -942,6 +1010,12 @@
       "value": "Ku soo gudbi arrin GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Hadda waxaa saaran looxan"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -966,10 +1040,22 @@
       "value": "Fur tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Soo gal si aad wax uga beddesho dejimaha bogga"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Iska ilow"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "La kaydiyay"
     }
   ],
   "7daeced9ff": [
@@ -1074,6 +1160,12 @@
       "value": "Magaca beddelo faylka"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Goobta shaqada ee aan cinwaan lahayn"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1140,6 +1232,12 @@
     {
       "type": 0,
       "value": "Hubi iimaylkaga koodka xaqiijinta"
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Bogga Hore"
     }
   ],
   "8eb2c00e96": [
@@ -1254,6 +1352,12 @@
     {
       "type": 0,
       "value": "Nadiifi raadinta"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Faylka aan la keydin"
     }
   ],
   "9b33f5c63c": [
@@ -1536,6 +1640,12 @@
       "value": "Ciwaanka iimaylka"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Aragtida shabaqyada"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1634,6 +1744,12 @@
     {
       "type": 0,
       "value": "Faylka hadda jira"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Raadi…"
     }
   ],
   "c17466812d": [
@@ -1866,6 +1982,12 @@
       "value": "Ka bax goobta shaqada"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Calamada khaladaadka abka"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1932,6 +2054,12 @@
       "value": "Liiska xisaabta"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Ma jiraan faylal la mid ah raadintaada."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1972,6 +2100,12 @@
       "value": "la doortay"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Aniga ayaa ila wadaagay"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1982,6 +2116,12 @@
     {
       "type": 0,
       "value": "Dejinta isticmaalaha"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Aragtida liiska"
     }
   ],
   "f2569594b2": [

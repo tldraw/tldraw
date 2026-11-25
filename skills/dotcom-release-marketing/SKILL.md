@@ -9,6 +9,8 @@ Summarize what's shipping in this week's dotcom release (the commits on `main` t
 
 This is the marketing counterpart to [[dotcom-release-crew]]. Same commit range, different audience: the release-crew message names engineers to have on hand; this one tells non-technical folks **what users will notice** so they can plan announcements, social posts, and changelog copy. No engineer pings, no release-risk framing.
 
+[[dotcom-release-clips]] films the bullets that can be shown as before/after clips, so keep track of which PRs each bullet comes from even though they don't go in the message.
+
 The output is a **draft for a human to edit**, not finished copy. It should read like a streamlined version of the SDK release notes: the same voice, the same discipline about describing bugs precisely, but only the highlights and with every developer-facing detail removed.
 
 **Arguments**: $ARGUMENTS

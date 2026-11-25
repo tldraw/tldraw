@@ -14,8 +14,7 @@ const messages = defineMessages({
 	},
 	deleteBody: {
 		id: 'libraries.delete-library-dialog.body',
-		defaultMessage:
-			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
+		defaultMessage: 'Delete “{name}” and its {count, plural, one {# item} other {# items}}?',
 	},
 	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
 	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
@@ -23,11 +22,7 @@ const messages = defineMessages({
 	copiedDescription: { id: 'libraries.copied.description', defaultMessage: 'Copied to {name}.' },
 	changeErrorTitle: {
 		id: 'libraries.library-error.title',
-		defaultMessage: "Couldn't change libraries",
-	},
-	changeErrorDescription: {
-		id: 'libraries.library-error.description',
-		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
+		defaultMessage: "Couldn't change library",
 	},
 })
 
@@ -66,7 +61,6 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
 	const showError = () =>
 		addToast({
 			title: msg(messages.changeErrorTitle),
-			description: msg(messages.changeErrorDescription),
 			severity: 'error',
 		})
 

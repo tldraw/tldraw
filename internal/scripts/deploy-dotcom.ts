@@ -44,6 +44,10 @@ const tldrawusercontent = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/tldrawusercontent-worker')
 )
+const renderWorker = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/render-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 const zeroCacheFolder = path.relative(
 	process.cwd(),
@@ -136,11 +140,14 @@ const flyioReplAppName =
 	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
-// needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
-const zeroRmv2 = env.TLDRAW_ENV === 'staging'
+// needs (see flyRmHandoff.ts). Rolling back to RMv1 resyncs the replica from Postgres.
+const zeroRmv2 = env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production'
 // RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
-// RMv1 with v5 backups before zeroRmv2 turns on for it.
-const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
+// RMv1 with v5 backups before zeroRmv2 turns on for it (production did in #11619).
+const zeroRmBackupV5 = zeroRmv2
+// View-syncers restore from the URL the RM hands them, with the v5 binary whatever this flag says.
+// So production's stays off: turning it on would restart all 13 in the deploy that changes it.
+const zeroVsBackupV5 = env.TLDRAW_ENV === 'staging'
 // The deploy gate hashes the config text, so any change to this line redeploys every zero app.
 // Off RMv2, pin the shared slot: 1.12 defaults to a slot per RM, which needs v5 backups and
 // asserts at startup without them.
@@ -163,7 +170,13 @@ interface TimingEntry {
 	durationMs: number
 }
 
-type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+type WorkerId =
+	| 'asset-upload'
+	| 'health'
+	| 'multiplayer'
+	| 'tldrawusercontent'
+	| 'image-resize'
+	| 'render'
 
 interface WorkerDeployment {
 	id: WorkerId
@@ -212,7 +225,9 @@ const workerDeployments: WorkerDeployment[] = [
 		id: 'multiplayer',
 		stepLabel: 'deploying multiplayer worker to cloudflare',
 		timingLabel: 'worker deploy: multiplayer',
-		dependsOn: [],
+		// The render worker must exist first, since the sync worker binds it (RENDER_WORKER) on dev,
+		// staging and production. For previews deployRenderWorker is a no-op, so this still resolves.
+		dependsOn: ['render'],
 		run: deployTlsyncWorker,
 	},
 	{
@@ -235,6 +250,14 @@ const workerDeployments: WorkerDeployment[] = [
 		timingLabel: 'worker deploy: image-resize',
 		dependsOn: ['multiplayer'],
 		run: deployImageResizeWorker,
+	},
+	{
+		id: 'render',
+		stepLabel: 'deploying render worker to cloudflare',
+		timingLabel: 'worker deploy: render',
+		// Binds nothing outbound, so it has no dependencies; the sync worker depends on it instead.
+		dependsOn: [],
+		run: deployRenderWorker,
 	},
 	{
 		id: 'health',
@@ -328,7 +351,9 @@ const zeroVmSizes = {
 	},
 	production: {
 		// Fly floors performance VMs at 2gb per CPU, so vs can't drop below 8gb without losing cores it uses at peak
-		rm: { cpus: 1, memory: '2gb', cpuKind: 'performance' },
+		// rm: litestream v5's compaction snapshot holds about 1.4gb on top of the 0.5gb baseline and grows with
+		// the replica. 8gb is Fly's cap per performance CPU.
+		rm: { cpus: 1, memory: '8gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
 		vsMinMachines: 13,
@@ -685,6 +710,27 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
+async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
+	// Deployed to dev, staging and production. Not to previews: they stay on the local render path (no
+	// RENDER_WORKER binding injected), so the worker is validated on staging rather than per-PR. The
+	// call site stays gated on THUMBNAIL_RENDER_VIA_WORKER, which production leaves unset (off), so a
+	// prod deploy ships the worker but routes nothing to it yet.
+	if (previewId) {
+		nicelog('skipping render-worker deploy for previews')
+		return
+	}
+	const workerId = `${env.TLDRAW_ENV}-tldraw-render-worker`
+	await wranglerDeploy({
+		location: renderWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+		},
+	})
+}
+
 let didUpdateHealthWorker = false
 async function deployHealthWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateHealthWorker) {
@@ -841,7 +887,7 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
 		.replace('__RMV2_ENV\n', rmv2Env)
-		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
+		.replaceAll('__BACKUP_V5', String(zeroRmBackupV5))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -877,8 +923,7 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
-		.replace('__RMV2_ENV\n', rmv2Env)
-		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
+		.replaceAll('__BACKUP_V5', String(zeroVsBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
@@ -914,7 +959,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	// v5 backups put each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
 	// replaces the env folder and the backup lands at the bucket root.
-	const backupPath = `${previewId ?? env.TLDRAW_ENV}${zeroBackupV5 ? '/' : ''}`
+	const backupPath = (v5: boolean) => `${previewId ?? env.TLDRAW_ENV}${v5 ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
@@ -928,13 +973,41 @@ async function deployZeroViaFlyIoMultiNode() {
 		`OTEL_EXPORTER_OTLP_HEADERS=${env.ZERO_OTEL_EXPORTER_OTLP_HEADERS}`,
 	]
 
+	const rmConfigFile = 'flyio-replication-manager.toml'
+	const rmInputs: FlyDeployInputs = {
+		config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath(zeroRmBackupV5)),
+		secrets,
+	}
+	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
+	const vsInputs: FlyDeployInputs = {
+		config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath(zeroVsBackupV5)),
+		dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
+		secrets,
+	}
+
+	// A restarted RMv1 fails its health check and serves no restores until its backup covers the
+	// replica, so view-syncers restarted in the same deploy hang on it: on 2026-11-10 that left 5 to
+	// 7 of 13 down for 18 and then 26 minutes. Refused before anything is touched. An RMv2 handoff
+	// keeps the old RM serving until the new one is ready, so it is exempt.
+	if (env.TLDRAW_ENV === 'production' && !zeroRmv2 && env.ZERO_FORCE_DEPLOY !== 'true') {
+		const pending = async (appName: string, inputs: FlyDeployInputs) => {
+			const deployed = await getDeployedInputHash(appName)
+			return !(deployed.reason === 'stamped' && deployed.hash === hashFlyDeployInputs(inputs))
+		}
+		if ((await pending(flyioReplAppName, rmInputs)) && (await pending(flyioAppName, vsInputs))) {
+			throw new Error(
+				`${flyioReplAppName} and ${flyioAppName} would both deploy (changed inputs or unhealthy machines). ` +
+					'Ship the replication-manager change first, wait for its backup, then the view-syncers.'
+			)
+		}
+	}
+
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)
-	const rmConfigFile = 'flyio-replication-manager.toml'
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
-		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
+		inputs: rmInputs,
 		deploy: zeroRmv2
 			? (renderedToml) =>
 					handOffReplicationManager({
@@ -943,20 +1016,24 @@ async function deployZeroViaFlyIoMultiNode() {
 						configFile: rmConfigFile,
 						pwd: zeroCacheFolder,
 					})
-			: undefined,
+			: // The backup gate holds the health check down for as long as the backup takes, which
+				// can pass flyctl's 5 minute default; a deploy that fails there invites a re-run, and a
+				// re-run restarts the RM and its backup.
+				async () => {
+					await exec(
+						'flyctl',
+						['deploy', '-a', flyioReplAppName, '-c', rmConfigFile, '--wait-timeout', '30m'],
+						{ pwd: zeroCacheFolder }
+					)
+				},
 	})
 
 	// Deploy view syncer with reference to replication manager
-	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
 	await ensureFlyApp(flyioAppName, apps)
 	await deployFlyAppIfChanged({
 		appName: flyioAppName,
 		configFile: 'flyio-view-syncer.toml',
-		inputs: {
-			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
-			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
-			secrets,
-		},
+		inputs: vsInputs,
 	})
 	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
 	await exec(

@@ -54,7 +54,13 @@ export type TabRenderOutcome =
 			}
 	  >
 	| {
-			status: 'no_tab' | 'reload_needed' | 'room_timeout' | 'ack_timeout' | 'work_timeout'
+			status:
+				| 'no_tab'
+				| 'tab_suspended'
+				| 'reload_needed'
+				| 'room_timeout'
+				| 'ack_timeout'
+				| 'work_timeout'
 	  }
 
 /**
@@ -124,6 +130,102 @@ export function keepDeliverableTabRenderSessions(
  * mean the tab they're in, and a write must run once, so those go to the one tab the user was last
  * active in. Reads go to several, where any answer will do and a second tab can cover for a dead one.
  */
+/**
+ * How long the file object remembers a keyed batch once it knows the batch landed. A resend comes
+ * moments after the attempt it repeats.
+ */
+export const BATCH_CLAIM_TTL_MS = 24 * 60 * 60 * 1000
+
+// A cached result bigger than this is dropped and the resend told only that the batch landed: the
+// object's storage caps a value, and a thousand-op result can approach it.
+const MAX_CACHED_RESULT_LENGTH = 100_000
+
+export const BATCH_CLAIM_PREFIX = 'batchClaim:'
+
+/** The storage key for a user's batch key. JSON, so a ':' in either part can't make two collide. */
+export function batchClaimStorageKey(userId: string, batchKey: string) {
+	return BATCH_CLAIM_PREFIX + JSON.stringify([userId, batchKey])
+}
+
+/**
+ * A keyed batch's one attempt, kept in the file object's storage. It is written before any tab may
+ * run the batch, and the batch isn't sent to a tab again while the attempt is unresolved: an attempt
+ * the server hasn't confirmed may still be in its tab, which pushes it on reconnect, however late, so
+ * a second attempt could land it twice.
+ */
+export interface BatchClaim {
+	/** The ops and page the key was used for. */
+	opsHash: string
+	/** The session the attempt went to. */
+	sessionId: string
+	/** The `document.meta` entry the tab writes with the batch; cleared when the claim expires. */
+	metaEntry: string
+	at: number
+	/** When the file object learned the batch landed. Unresolved claims never expire. */
+	resolvedAt?: number
+	/** The attempt's result, if its tab reported it applied. */
+	applied?: Extract<TabRenderOutcome, { status: 'applied' }>
+}
+
+/** What to do with a batch whose key has a claim. */
+export type ClaimedBatchPlan =
+	| { kind: 'answer'; outcome: TabRenderOutcome }
+	/** The claim expired: run the batch as new. */
+	| { kind: 'run' }
+	/**
+	 * The attempt is unresolved: ask its tab, the one place an unconfirmed copy can be, which knows
+	 * from its own store whether it holds the batch. Nobody else may run it.
+	 */
+	| { kind: 'ask_claimant'; sessionId: string }
+
+/** `landed` says whether the key is in the room's document, which the tab writes with the batch. */
+export function planClaimedBatch(
+	claim: BatchClaim,
+	opsHash: string,
+	landed: boolean,
+	now: number
+): ClaimedBatchPlan {
+	if (isExpiredBatchClaim(claim, now)) return { kind: 'run' }
+	if (claim.opsHash !== opsHash) {
+		return { kind: 'answer', outcome: { status: 'declined', reason: 'batch_key_reused' } }
+	}
+	if (claim.applied) return { kind: 'answer', outcome: claim.applied }
+	if (claim.resolvedAt !== undefined || landed) {
+		return { kind: 'answer', outcome: { status: 'declined', reason: 'already_applied' } }
+	}
+	return { kind: 'ask_claimant', sessionId: claim.sessionId }
+}
+
+/**
+ * The claim to keep after a tab ran or was asked about the batch, or null to free the key. A first
+ * attempt that applied nothing frees it. A resend to the claimant never does: a claimant that
+ * declines before checking its store, say mid-drag, may still hold the first attempt.
+ */
+export function batchClaimAfter(
+	claim: BatchClaim,
+	outcome: TabRenderOutcome,
+	{ resend, now }: { resend: boolean; now: number }
+): BatchClaim | null {
+	if (outcome.status === 'applied') {
+		return JSON.stringify(outcome).length <= MAX_CACHED_RESULT_LENGTH
+			? { ...claim, resolvedAt: now, applied: outcome }
+			: { ...claim, resolvedAt: now }
+	}
+	if (outcome.status === 'declined' && outcome.reason === 'already_applied') {
+		return { ...claim, resolvedAt: now }
+	}
+	const mayHaveLanded =
+		outcome.status === 'work_timeout' ||
+		(outcome.status === 'declined' &&
+			(outcome.reason === 'unconfirmed' || outcome.reason === 'apply_failed'))
+	return mayHaveLanded || resend ? claim : null
+}
+
+/** Claims the file object can drop: only resolved ones, a day after. */
+export function isExpiredBatchClaim(claim: BatchClaim, now: number) {
+	return claim.resolvedAt !== undefined && now - claim.resolvedAt >= BATCH_CLAIM_TTL_MS
+}
+
 export function pickTabRenderTargets(
 	mode: TabRenderRequest['mode'],
 	sessionIds: string[],

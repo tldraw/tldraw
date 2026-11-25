@@ -326,6 +326,36 @@ describe('LibrariesPanel item menus on right-click', () => {
 		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 
+	it('closes the open menu when the panel scrolls', async () => {
+		const panel = await renderPanel()
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		await act(async () => {
+			panel.querySelector('.tlui-libraries-sections')!.dispatchEvent(new Event('scroll'))
+		})
+		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
+	it('closes the open menu when a tab’s panel scrolls', async () => {
+		const source = new CompositeLibrarySource({
+			id: 'owners',
+			parts: [
+				{ owner: { id: 'packs', name: 'Packs' }, source: await makeSource() },
+				{
+					owner: { id: 'board', name: 'Board' },
+					source: new InMemoryLibrarySource({ id: 'board' }),
+				},
+			],
+		})
+		const panel = await renderPanel(undefined, undefined, source)
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		await act(async () => {
+			panel.querySelector('[role="tabpanel"]')!.dispatchEvent(new Event('scroll'))
+		})
+		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
 	it('leaves the right-click alone when the ItemMenu slot is null', async () => {
 		const panel = await renderPanel({ ItemMenu: null })
 		const event = await rightClickBox(panel)

@@ -197,6 +197,12 @@
       "value": "Buat fail"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Dicipta oleh saya"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -311,6 +317,16 @@
       "value": "Jana semula pautan jemputan"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (anda)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -413,6 +429,12 @@
       "value": "Hubungi pemilik untuk meminta akses."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Tindakan…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -467,6 +489,22 @@
     {
       "type": 0,
       "value": "Pin fail"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Objek"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Disunting "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -531,6 +569,18 @@
     {
       "type": 0,
       "value": "Menu halaman"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Tiada fail di sini lagi."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Eksport…"
     }
   ],
   "53770fd374": [
@@ -603,6 +653,12 @@
       "value": "Dasar privasi"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Fail yang diarkibkan akan dipaparkan di sini."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -661,6 +717,12 @@
     {
       "type": 0,
       "value": "Nanti"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Terkini"
     }
   ],
   "625fd29749": [
@@ -768,6 +830,12 @@
     {
       "type": 0,
       "value": "Padam ruang kerja"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Log masuk untuk menyimpan"
     }
   ],
   "69ce6a28fb": [
@@ -927,6 +995,12 @@
       "value": "Serahkan isu pada GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Di papan ini sekarang"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -951,10 +1025,22 @@
       "value": "Buka tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Log masuk untuk mengedit tetapan profil"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "lupa"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Diarkibkan"
     }
   ],
   "7daeced9ff": [
@@ -1059,6 +1145,12 @@
       "value": "Namakan semula fail"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Ruang kerja tanpa tajuk"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1114,6 +1206,12 @@
     {
       "type": 0,
       "value": "Semak e-mel anda untuk mendapatkan kod pengesahan."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Laman Utama"
     }
   ],
   "8eb2c00e96": [
@@ -1228,6 +1326,12 @@
     {
       "type": 0,
       "value": "Kosongkan carian"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Fail yang tidak disimpan"
     }
   ],
   "9b33f5c63c": [
@@ -1499,6 +1603,12 @@
       "value": "Alamat e-mel"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Paparan grid"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1589,6 +1699,12 @@
     {
       "type": 0,
       "value": "Fail semasa"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Cari…"
     }
   ],
   "c17466812d": [
@@ -1802,6 +1918,12 @@
       "value": "Tinggalkan ruang kerja"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Bendera penyahpepijatan aplikasi"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1868,6 +1990,12 @@
       "value": "Menu akaun"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Tiada fail yang sepadan dengan carian anda."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1912,6 +2040,12 @@
       "value": "dipilih"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Dikongsi dengan saya"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1922,6 +2056,12 @@
     {
       "type": 0,
       "value": "Tetapan pengguna"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Paparan senarai"
     }
   ],
   "f2569594b2": [

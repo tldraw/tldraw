@@ -1,3 +1,4 @@
+import { getBatchKeyMetaEntry } from '@tldraw/dotcom-shared'
 import { structuredClone } from '@tldraw/utils'
 import {
 	areAnglesCompatible,
@@ -431,6 +432,16 @@ export interface BatchContext {
 	apply(action: CanvasAction): string[]
 }
 
+// One `meta` entry per key, because sync patches `meta` one entry deep: a shared map would be sent
+// whole, and two tabs writing at once would erase each other's keys. The file object clears them.
+function recordBatchKey(editor: Editor, { batchKey, userId = '' }: Attribution) {
+	if (!batchKey) return
+	const meta = { ...editor.getDocumentSettings().meta }
+	meta[getBatchKeyMetaEntry(userId, batchKey)] = Date.now()
+	// Out of history, so undoing the batch doesn't make it look unapplied to a resend.
+	editor.updateDocumentSettings({ meta })
+}
+
 /**
  * Run a batch: one history entry and one batch id, stamped on every shape it creates or changes.
  * The body applies actions through `ctx.apply`. Returns the batch id.
@@ -459,7 +470,14 @@ export function runBatch(
 	}
 	// Ops mark their own stopping points so each can be rolled back; squashing leaves one undo step.
 	const mark = editor.markHistoryStoppingPoint('canvas ops batch')
-	editor.run(() => body(ctx), { history: 'record' })
+	// In the batch's own transaction, so the server commits the key with the edits or not at all.
+	editor.run(
+		() => {
+			recordBatchKey(editor, attribution)
+			body(ctx)
+		},
+		{ history: 'record' }
+	)
 	editor.squashToMark(mark)
 	return batchId
 }

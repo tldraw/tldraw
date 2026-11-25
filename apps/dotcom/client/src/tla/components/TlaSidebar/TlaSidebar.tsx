@@ -14,6 +14,7 @@ import {
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
+import { TlaSidebarMcpLink } from './components/TlaSidebarMcpLink'
 import { TlaSidebarNotificationsButton } from './components/TlaSidebarNotificationsButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaSidebarUserSettingsButton } from './components/TlaSidebarUserSettingsButton'
@@ -97,11 +98,12 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				</div>
 				<div className={styles.sidebarBottomArea}>
 					<div className={styles.sidebarDivider} />
-					{/* In `ui_v3` the settings dialog holds these two, and replaces the user menu. */}
+					<TlaSidebarMcpLink />
+					{/* In `ui_v3` the settings dialog holds the SDK link and feedback, and replaces the user menu. */}
 					{!isUiV3 && <TlaSidebarDotDevLink />}
-					{!isUiV3 && <TlaSidebarFeedbackButton />}
 					<div className={styles.sidebarBottomRow}>
 						{isUiV3 ? <TlaSidebarUserSettingsButton /> : <TlaUserSettingsMenu />}
+						{!isUiV3 && <TlaSidebarFeedbackButton />}
 						<TlaSidebarNotificationsButton />
 					</div>
 				</div>
