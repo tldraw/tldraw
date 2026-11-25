@@ -5,6 +5,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import {
 	DB,
 	FILE_PREFIX,
+	FileCapability,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -20,6 +21,7 @@ import {
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
+	getFileCapabilities,
 	type FeatureFlagValue,
 	type McpAgentClient,
 	type Role,
@@ -70,7 +72,12 @@ import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord, getFileRoomAccess } from './authorizeFileRecord'
+import {
+	SessionMeta,
+	authorizeFileRecord,
+	checkFileDiff,
+	getFileRoomAccess,
+} from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -457,6 +464,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						onSessionRemoved: async (room, args) => {
 							this._pendingFirstLoadEchoes.delete(args.sessionId)
+							this.sessionCapabilities.delete(args.sessionId)
 							this.logEvent({
 								type: 'client',
 								name: 'leave',
@@ -498,6 +506,16 @@ export class TLFileDurableObject extends DurableObject {
 								messageLength: stringified.length,
 							})
 							if (message.type === 'connect') {
+								// Deferred: the room drops a custom message to a session still connecting.
+								const capabilities = this.sessionCapabilities.get(sessionId) ?? []
+								setTimeout(
+									() =>
+										room.sendCustomMessage(sessionId, {
+											type: 'file_capabilities',
+											capabilities,
+										} satisfies TLCustomServerEvent),
+									0
+								)
 								const pending = this._pendingFirstLoadEchoes.get(sessionId)
 								if (pending) {
 									this._pendingFirstLoadEchoes.delete(sessionId)
@@ -522,6 +540,9 @@ export class TLFileDurableObject extends DurableObject {
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
 						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						// The enforcement: a push is judged by the capabilities its session holds.
+						checkDiff: (diff, { sessionId, userId }) =>
+							checkFileDiff(diff, this.sessionCapabilities.get(sessionId) ?? [], userId),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -532,6 +553,7 @@ export class TLFileDurableObject extends DurableObject {
 						socket: WebSocket
 						snapshot: SessionStateSnapshot
 						meta: SessionMeta
+						isReadonly: boolean
 					}[] = []
 					for (const ws of this.state.getWebSockets()) {
 						const attachment = ws.deserializeAttachment() as SocketAttachment | null
@@ -542,6 +564,7 @@ export class TLFileDurableObject extends DurableObject {
 								socket: ws,
 								snapshot: attachment.snapshot,
 								meta: attachment.meta,
+								isReadonly: attachment.isReadonly,
 							})
 						}
 					}
@@ -549,6 +572,11 @@ export class TLFileDurableObject extends DurableObject {
 					this.logEvent({ type: 'room', name: 'room_start', resumedSockets: resumes.length })
 
 					for (const resume of resumes) {
+						// Before the resume; otherwise its first push is judged with no capabilities.
+						this.sessionCapabilities.set(
+							resume.sessionId,
+							getFileCapabilities(resume.isReadonly ? 'read' : 'write')
+						)
 						room.handleSocketResume(resume)
 						this.sessionIdToWs.set(resume.sessionId, resume.socket)
 					}
@@ -593,6 +621,8 @@ export class TLFileDurableObject extends DurableObject {
 	private readonly log: Logger
 	/** Map sessionId → ws so onSessionSnapshot can serialize to the right socket. */
 	private readonly sessionIdToWs = new Map<string, WebSocket>()
+	/** Map sessionId → capabilities, because the room's `checkDiff` is synchronous. */
+	private readonly sessionCapabilities = new Map<string, readonly FileCapability[]>()
 
 	/**
 	 * Only legacy (non-app) rooms ever read from supabase, so don't construct the client until one
@@ -1226,8 +1256,7 @@ export class TLFileDurableObject extends DurableObject {
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
 			// Only authenticated users can write comments — authors are stored in Postgres with a
 			// foreign key to the user table, so an anonymous author can't be represented. Tier
-			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
-			// `isReadonly`.
+			// gating (view-only sessions) happens in `checkFileDiff`.
 			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
 			const attachment: SocketAttachment = {
 				sessionId,
@@ -1255,11 +1284,16 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			// all good
+			// Before the connect; otherwise its first push is judged with no capabilities.
+			this.sessionCapabilities.set(sessionId, getFileCapabilities(isReadonly ? 'read' : 'write'))
+			// App files don't set `isReadonly`: everyone joins with write access and `checkDiff` judges.
 			room.handleSocketConnect({
 				sessionId,
 				socket: serverWebSocket,
 				meta,
-				isReadonly,
+				userId: meta.userId,
+				// Legacy rooms keep the bit; otherwise their client, which has no capabilities, offers editing.
+				isReadonly: isReadonly && !this.documentInfo.isApp,
 				objectAccess,
 			})
 			// Mapped here and on resume, never from webSocketMessage: a superseded socket for the same
@@ -3362,8 +3396,8 @@ export class TLFileDurableObject extends DurableObject {
 		// in which case we should kick people out or change their permissions
 		//
 		// Only `edit` links grant guests canvas write; anything else fails closed. A tier change
-		// flips `isReadonly`, and the reconnect refreshes the session state the comment
-		// authorizers gate on — so comparing the readonly lane alone covers both.
+		// swaps the whole capability set on reconnect, so comparing canvas write alone covers
+		// comments too.
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
 
 		for (const session of room.getSessions()) {
@@ -3381,7 +3415,10 @@ export class TLFileDurableObject extends DurableObject {
 				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
-			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
+			} else if (
+				!this.sessionCapabilities.get(session.sessionId)?.includes('edit-shape') !==
+				roomIsReadOnlyForGuests
+			) {
 				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect
 					room.closeSession(session.sessionId)

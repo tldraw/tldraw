@@ -142,7 +142,7 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 	if (request.mode === 'read') return undefined
 	if (request.mode === 'user_state') return undefined
 	if (request.mode === 'apply_ops') {
-		if (editor.getIsReadonly()) return 'read_only'
+		if (editor.checkCapability('edit-shape')) return 'read_only'
 		// The user has to be watching: a hidden tab's edits wait for an animation frame before they're
 		// sent, so a batch could report success and be lost if the tab closed first.
 		if (document.visibilityState !== 'visible') return 'tab_hidden'

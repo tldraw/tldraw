@@ -1,6 +1,7 @@
 import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import type { FileCapability } from './fileCapabilities'
 import type { McpPageRead, PageSelector } from './mcpPageRead'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
 
@@ -409,6 +410,8 @@ export type TLCustomServerEvent =
 			boot_comments_ms?: number
 	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
 	| TabRenderServerEvent
+	// Sent to a session right after its connect reply.
+	| { type: 'file_capabilities'; capabilities: readonly FileCapability[] }
 
 /* ----------------------- Feature Flags ---------------------- */
 

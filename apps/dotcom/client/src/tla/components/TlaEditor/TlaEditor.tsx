@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import { FILE_CAPABILITIES } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	createDebugValue,
@@ -57,7 +58,12 @@ import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
 import { registerAgentBylineEditHandler } from './agentCommentEdits'
 import { CommentsOnCanvas, SignInToComment } from './CommentsOnCanvas'
-import { useFileEditorRef, useFileLoad, useFileSyncStore } from './fileSyncHostContext'
+import {
+	useFileCapabilities,
+	useFileEditorRef,
+	useFileLoad,
+	useFileSyncStore,
+} from './fileSyncHostContext'
 import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
@@ -83,10 +89,11 @@ const messages = defineMessages({
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
 // editable canvas get a sign-in prompt where the composers would be; view-only sessions
-// read threads without composers (the server rejects their writes in the authorizers).
+// read threads without composers (the server rejects their writes in its diff check).
 const tlaCommentTools = [
 	CommentTool.configure({
-		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
+		canComment: ({ editor, currentUserId }) =>
+			currentUserId !== null && editor.checkCapability('comment') === null,
 		components: {
 			ComposerFallback: SignInToComment,
 			CommentByline: TlaCommentByline,
@@ -129,6 +136,7 @@ export function TlaEditor(props: TlaEditorProps) {
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
 	const msg = useTranslation()
 	const fileLoad = useFileLoad()
+	const capabilities = useFileCapabilities()
 	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
@@ -192,6 +200,13 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+
+			// The default UI disables what the room did not grant.
+			for (const capability of FILE_CAPABILITIES) {
+				editor.registerCapabilityCheck(capability, () =>
+					capabilities.get()?.has(capability) ? null : { reason: capability }
+				)
+			}
 
 			if (!app) {
 				setIsReady()
@@ -290,6 +305,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		},
 		[
 			addDialog,
+			capabilities,
 			fileLoad,
 			trackRoomLoaded,
 			trackNewRoomCreation,
@@ -418,7 +434,9 @@ function CustomDebugMenu() {
 	const app = useMaybeApp()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
-	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const isReadOnly = useValue('isReadOnly', () => editor.checkCapability('edit-shape') !== null, [
+		editor,
+	])
 	const msg = useTranslation()
 	return (
 		<DefaultDebugMenu>
