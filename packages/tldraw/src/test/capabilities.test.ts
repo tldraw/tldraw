@@ -43,7 +43,17 @@ describe('the default tools ask capabilities', () => {
 		const editor = setupEditor()
 		editor.registerCapabilityCheck('delete-shape', () => false)
 		editor.setCurrentTool('eraser')
-		editor.pointerDown(50, 50).pointerUp()
+		editor.pointerDown(0, 50).pointerUp()
+		expect(editor.getShape(id)).toBeDefined()
+	})
+
+	it('does not erase with an accel-click in the draw tool without delete-shape', () => {
+		const editor = setupEditor()
+		editor.registerCapabilityCheck('delete-shape', () => false)
+		editor.setCurrentTool('draw')
+		editor
+			.pointerDown(0, 50, undefined, { ctrlKey: true })
+			.pointerUp(0, 50, undefined, { ctrlKey: true })
 		expect(editor.getShape(id)).toBeDefined()
 	})
 
