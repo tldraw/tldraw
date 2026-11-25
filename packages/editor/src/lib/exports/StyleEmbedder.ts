@@ -1,5 +1,5 @@
 import { assertExists, getOwnProperty, objectMapValues, uniqueId } from '@tldraw/utils'
-import { ReadonlyStyles, Styles, cssRules } from './cssRules'
+import { ReadonlyStyles, Styles, cssRules, isDefaultStyle } from './cssRules'
 import {
 	elementStyle,
 	getComputedStyle,
@@ -255,7 +255,7 @@ function styleFromComputedStyleMap(
 
 		const value = style.get(property)!.toString()
 
-		if (defaultStyles[property] === value) continue
+		if (isDefaultStyle(property, value, { defaultStyles, parentStyles })) continue
 
 		const rule = getOwnProperty(cssRules, property)
 		if (rule && rule(value, property, ruleOptions)) continue
@@ -284,7 +284,7 @@ function styleFromComputedStyle(
 
 		const value = style.getPropertyValue(property)
 
-		if (defaultStyles[property] === value) continue
+		if (isDefaultStyle(property, value, { defaultStyles, parentStyles })) continue
 
 		const rule = getOwnProperty(cssRules, property)
 		if (rule && rule(value, property, ruleOptions)) continue

@@ -1,3 +1,5 @@
+import { getOwnProperty } from '@tldraw/utils'
+
 export type Styles = { [K in string]?: string }
 export type ReadonlyStyles = { readonly [K in string]?: string }
 
@@ -124,3 +126,20 @@ export const cssRules = {
 	'border-block-start-width': isExcludedBorder('block-start'),
 	'border-inline-end-width': isExcludedBorder('inline-end'),
 } satisfies Record<string, CanSkipRule>
+
+/**
+ * Whether an element's style can leave out `value` because it's the element's default. Not for an
+ * inherited property an ancestor's style sets to something else: without the value, the element
+ * would inherit the ancestor's instead. e.g. `text-shadow: none` on a `mark` inside text with an
+ * outline: left out, the mark would get the outline.
+ */
+export function isDefaultStyle(
+	property: string,
+	value: string,
+	{ defaultStyles, parentStyles }: { defaultStyles: ReadonlyStyles; parentStyles: ReadonlyStyles }
+) {
+	if (defaultStyles[property] !== value) return false
+	const inherited = getOwnProperty(cssRules, property) === isInherited
+	const ancestors = parentStyles[property]
+	return !(inherited && ancestors !== undefined && ancestors !== value)
+}
