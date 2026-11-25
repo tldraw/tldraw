@@ -56,6 +56,8 @@ interface BoardItem {
 	name: string
 	date: number
 	isPinned: boolean
+	/** Set for boards shared with the user by someone else. */
+	ownerName?: string
 }
 
 export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
@@ -151,6 +153,7 @@ function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): Board
 					name,
 					isPinned,
 					date: getFileRecencyDate(app.getFileState(fileId), file),
+					ownerName: isShared ? file.ownerName.trim() || undefined : undefined,
 				})
 			}
 			return boards
@@ -471,7 +474,9 @@ function TlaBoardCard({
 								{viewMode === 'list' && !isRenaming && pinIcon}
 							</div>
 							<div className={styles.cardMeta}>
-								<span className={styles.cardMetaText}>{edited}</span>
+								<span className={styles.cardMetaText}>
+									{board.ownerName ? `${board.ownerName} • ${edited}` : edited}
+								</span>
 							</div>
 							{viewMode === 'list' && showVisitors && (
 								// Always rendered, even when empty, so the columns line up across rows.

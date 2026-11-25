@@ -410,13 +410,8 @@
 	inset-inline-end: 8px;
 }
 
-/* Shaped like the editor's top-right icon buttons, but white with a shadow: they sit on the canvas
-   colour, which a blank thumbnail shares, so their chip would vanish here. */
 .cardMenu .cardMenuTrigger {
-	width: 32px;
-	min-width: 32px;
-	height: 32px;
-	border-radius: 8px;
+	border-radius: 6px;
 	background-color: var(--tl-color-panel);
 	box-shadow: var(--tl-shadow-1);
 	color: var(--tl-color-text-1);
@@ -475,7 +470,7 @@
 	border-radius: inherit;
 	background-color: var(--tl-color-low);
 	/* Has opened the board; full opacity is reserved for whoever is on it now. */
-	opacity: 0.7;
+	opacity: 0.45;
 	transition: opacity 200ms ease;
 }
 
