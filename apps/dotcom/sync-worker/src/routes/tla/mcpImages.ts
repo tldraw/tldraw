@@ -222,6 +222,7 @@ async function storeImage(
 		fileId,
 		userId,
 		name,
+		onlyIfNew = false,
 	}: {
 		bytes: Uint8Array
 		info: ImageInfo
@@ -229,9 +230,12 @@ async function storeImage(
 		fileId: string
 		userId: string
 		name: string
+		/** Store nothing and return null when the object already exists. */
+		onlyIfNew?: boolean
 	}
-): Promise<StoredImage> {
-	await env.UPLOADS.put(objectName, bytes, {
+): Promise<StoredImage | null> {
+	const stored = await env.UPLOADS.put(objectName, bytes, {
+		onlyIf: onlyIfNew ? new Headers({ 'If-None-Match': '*' }) : undefined,
 		httpMetadata: { contentType: info.mimeType },
 		customMetadata: {
 			fileId,
@@ -241,6 +245,7 @@ async function storeImage(
 			isAnimated: String(info.isAnimated),
 		},
 	})
+	if (!stored) return null
 	await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
 	return {
 		objectName,
@@ -280,22 +285,23 @@ export async function uploadMcpImage(request: IRequest, env: Environment): Promi
 		)
 	}
 
-	// What makes the URL good for one file.
-	if (await env.UPLOADS.head(grant.objectName)) {
-		return Response.json(
-			{ error: 'A file was already uploaded to this URL. Pass its uploadId to add_image.' },
-			{ status: 409 }
-		)
-	}
-
-	await storeImage(env, {
+	// What makes the URL good for one file. The write decides, not a check before it: two requests
+	// arriving together would both pass a check and the second would replace the first.
+	const stored = await storeImage(env, {
 		bytes,
 		info,
 		objectName: grant.objectName,
 		fileId: grant.fileId,
 		userId: grant.userId,
 		name: grant.name,
+		onlyIfNew: true,
 	})
+	if (!stored) {
+		return Response.json(
+			{ error: 'A file was already uploaded to this URL. Pass its uploadId to add_image.' },
+			{ status: 409 }
+		)
+	}
 	return Response.json({ uploadId: grant.objectName, w: info.w, h: info.h })
 }
 
@@ -370,7 +376,8 @@ async function storeImageFromUrl(
 		userId,
 		name,
 	})
-	return { ok: true, image }
+	// Null only answers a conditional write, which this is not.
+	return { ok: true, image: assertExists(image) }
 }
 
 export type AddImageOutcome =

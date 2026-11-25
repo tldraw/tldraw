@@ -36,8 +36,11 @@ function makeEnv() {
 		USER_CONTENT_URL: 'https://content.example',
 		UPLOADS: {
 			head: async (key: string) => objects.get(key) ?? null,
-			put: async (key: string, bytes: Uint8Array, options: object) => {
+			// As R2 answers a conditional write: null, and nothing stored, when the condition fails.
+			put: async (key: string, bytes: Uint8Array, { onlyIf, ...options }: any) => {
+				if (onlyIf?.get('if-none-match') === '*' && objects.has(key)) return null
 				objects.set(key, { size: bytes.byteLength, ...options })
+				return {}
 			},
 		},
 		QUEUE: { send: vi.fn(async () => {}) },
@@ -158,6 +161,25 @@ describe('the upload route', () => {
 
 		const again = await uploadMcpImage(put(ticket.uploadUrl, pngBytes(1, 1)), env)
 		expect(again.status).toBe(409)
+		expect(queue).toHaveBeenCalledTimes(1)
+	})
+
+	// Two requests can both find the URL unused, so only the write itself can pick one.
+	it('stores one file when two arrive at the same URL together', async () => {
+		const { env, objects, queue } = makeEnv()
+		const ticket = await createUpload(env)
+		// The race itself: neither request can see the other's file before it writes.
+		;(env.UPLOADS as any).head = async () => null
+
+		const responses = await Promise.all([
+			uploadMcpImage(put(ticket.uploadUrl, pngBytes(800, 600)), env),
+			uploadMcpImage(put(ticket.uploadUrl, pngBytes(1, 1)), env),
+		])
+
+		expect(responses.map((response) => response.status).sort()).toEqual([200, 409])
+		// Either may win; what is stored has to be the file whose upload was told it succeeded.
+		const winner = await responses.find((response) => response.status === 200)!.json<any>()
+		expect(objects.get(ticket.uploadId).customMetadata.w).toBe(String(winner.w))
 		expect(queue).toHaveBeenCalledTimes(1)
 	})
 
