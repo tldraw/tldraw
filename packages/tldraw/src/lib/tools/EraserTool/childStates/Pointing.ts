@@ -4,6 +4,11 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onEnter(info: TLPointerEventInfo) {
+		// Checked here, not in Idle: other tools enter this state directly (accel-click in draw).
+		if (this.editor.checkCapability('delete-shape')) {
+			this.parent.transition('idle', info)
+			return
+		}
 		const onlyEraseTopShape = info.accelKey
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
