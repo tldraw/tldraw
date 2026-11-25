@@ -117,7 +117,20 @@ export interface LibrarySource {
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
+	/**
+	 * Adds an item to a library, and resolves with it once it is listed. A source may go on saving
+	 * it after that, e.g. while its thumbnail uploads, as a pasted image does; if saving fails, the
+	 * source removes the item again and reports the failure itself.
+	 */
 	addItem(libraryId: TLLibraryId, item: TLNewLibraryItem): Promise<TLLibraryItem>
+	/**
+	 * Adds several items to a library, in the order given, as one change where the source can, and
+	 * resolves with them in the same order once they are listed, as {@link LibrarySource.addItem}
+	 * does. Optional: for sources where adding items together is quicker than adding them one at a
+	 * time, e.g. in one request to a server. Without it, `addItemsToLibrary` adds them one at a time
+	 * through {@link LibrarySource.addItem}.
+	 */
+	addItems?(libraryId: TLLibraryId, items: TLNewLibraryItem[]): Promise<TLLibraryItem[]>
 	renameItem(itemId: TLLibraryItemId, name: string): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**

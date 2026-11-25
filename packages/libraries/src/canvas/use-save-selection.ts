@@ -9,6 +9,7 @@ import {
 	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { saveErrorMessages } from '../lib/saveErrorMessages'
 import { createNewLibrary } from './new-library'
 import { recordRecentLibrary } from './recent-libraries'
 import { saveShapesToLibrary, type PrepareItemContent } from './save-shapes'
@@ -18,10 +19,6 @@ const messages = defineMessages({
 	savedTitle: { id: 'libraries.saved.title', defaultMessage: 'Added to library' },
 	savedDescription: { id: 'libraries.saved.description', defaultMessage: 'Added to {name}.' },
 	savedOpen: { id: 'libraries.saved.open', defaultMessage: 'Open' },
-	saveErrorTitle: {
-		id: 'libraries.save-error.title',
-		defaultMessage: "Couldn't save to library",
-	},
 	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
 	newLibraryErrorTitle: {
 		id: 'libraries.save-to-new-library-error.title',
@@ -39,7 +36,7 @@ function showLibrary(editor: Editor, libraryId: TLLibraryId) {
  * library: with the panel open, the panel brings that library into view; otherwise a toast
  * confirms the save and can open it. `saveToNewLibrary` creates a library named "New
  * library" (or the next free variant), saves into it, and opens the panel with the new name
- * ready to edit. Failures show a toast.
+ * ready to edit. Failures show a toast; the source reports one saving the item after it was listed.
  */
 export function useSaveSelection(source: LibrarySource, prepareItemContent?: PrepareItemContent) {
 	const editor = useEditor()
@@ -50,35 +47,30 @@ export function useSaveSelection(source: LibrarySource, prepareItemContent?: Pre
 		(libraryId: TLLibraryId) => {
 			const shapeIds = editor.getSelectedShapeIds()
 			if (shapeIds.length === 0) return
-			saveShapesToLibrary(editor, source, libraryId, shapeIds, { prepareItemContent }).then(
-				() => {
-					recordRecentLibrary(source.id, libraryId)
-					if (librariesPanelOpen.get(editor)) {
-						activeLibraryId.set(editor, libraryId)
-						return
-					}
-					const library = source.getLibraries().find(({ id }) => id === libraryId)
-					addToast({
-						title: msg(messages.savedTitle),
-						description: library
-							? msg(messages.savedDescription, { name: library.name })
-							: undefined,
-						actions: [
-							{
-								label: msg(messages.savedOpen),
-								type: 'primary',
-								onClick: () => showLibrary(editor, libraryId),
-							},
-						],
-					})
-				},
-				() => {
-					addToast({
-						title: msg(messages.saveErrorTitle),
-						severity: 'error',
-					})
+			const showSaveError = () =>
+				addToast({
+					title: msg(saveErrorMessages.saveErrorTitle),
+					severity: 'error',
+				})
+			saveShapesToLibrary(editor, source, libraryId, shapeIds, { prepareItemContent }).then(() => {
+				recordRecentLibrary(source.id, libraryId)
+				if (librariesPanelOpen.get(editor)) {
+					activeLibraryId.set(editor, libraryId)
+					return
 				}
-			)
+				const library = source.getLibraries().find(({ id }) => id === libraryId)
+				addToast({
+					title: msg(messages.savedTitle),
+					description: library ? msg(messages.savedDescription, { name: library.name }) : undefined,
+					actions: [
+						{
+							label: msg(messages.savedOpen),
+							type: 'primary',
+							onClick: () => showLibrary(editor, libraryId),
+						},
+					],
+				})
+			}, showSaveError)
 		},
 		[editor, source, prepareItemContent, msg, addToast]
 	)
@@ -90,21 +82,19 @@ export function useSaveSelection(source: LibrarySource, prepareItemContent?: Pre
 			msg(messages.newLibraryName),
 			source.getLibraries().map((library) => library.name)
 		)
+		const showNewLibraryError = () =>
+			addToast({
+				title: msg(messages.newLibraryErrorTitle),
+				severity: 'error',
+			})
 		createNewLibrary(source, name)
 			.then(async (library) => {
-				await saveShapesToLibrary(editor, source, library.id, shapeIds, {
-					prepareItemContent,
-				})
+				await saveShapesToLibrary(editor, source, library.id, shapeIds, { prepareItemContent })
 				recordRecentLibrary(source.id, library.id)
 				showLibrary(editor, library.id)
 				renamingLibraryId.set(editor, library.id)
 			})
-			.catch(() => {
-				addToast({
-					title: msg(messages.newLibraryErrorTitle),
-					severity: 'error',
-				})
-			})
+			.catch(showNewLibraryError)
 	}, [editor, source, prepareItemContent, msg, addToast])
 
 	return { saveSelection, saveToNewLibrary }
