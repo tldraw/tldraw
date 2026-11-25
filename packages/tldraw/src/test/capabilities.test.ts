@@ -39,6 +39,22 @@ describe('the default tools ask capabilities', () => {
 		expect(editor.canEditShape(id)).toBe(false)
 	})
 
+	it('does not run double click handlers without edit-shape', () => {
+		const editor = setupEditor()
+		editor.registerCapabilityCheck('edit-shape', () => false)
+		editor.doubleClick(50, 50, id, { altKey: true })
+		expect(editor.getShape(id)!.props).toMatchObject({ geo: 'rectangle' })
+
+		const frameId = createShapeId('frame')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 200, y: 0, props: { w: 800, h: 600 } },
+			{ type: 'geo', parentId: frameId, x: 300, y: 200, props: { w: 100, h: 100 } },
+		])
+		editor.select(frameId)
+		editor.doubleClick(1000, 300, { target: 'selection', handle: 'right' })
+		expect(editor.getShape(frameId)!.props).toMatchObject({ w: 800, h: 600 })
+	})
+
 	it('does not erase without delete-shape', () => {
 		const editor = setupEditor()
 		editor.registerCapabilityCheck('delete-shape', () => false)

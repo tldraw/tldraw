@@ -214,7 +214,7 @@ export class EditingShape extends StateNode {
 		const util = this.editor.getShapeUtil(hitShape)
 		if (hitShape.isLocked) return
 
-		if (this.editor.getIsReadonly()) {
+		if (this.editor.checkCapability('edit-shape')) {
 			if (!util.canEditInReadonly(hitShape)) {
 				this.parent.transition('pointing_shape', info)
 				return
