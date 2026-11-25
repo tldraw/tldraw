@@ -148,9 +148,9 @@ const zeroRmBackupV5 = zeroRmv2
 // View-syncers restore from the URL the RM hands them, with the v5 binary whatever this flag says.
 // Changing it restarts them, which the zero 1.12 image change does anyway.
 const zeroVsBackupV5 = zeroRmv2
-// zero 1.12 defaults to a slot per RM, which every zero process asserts needs v5 backups, so pin
-// the shared slot wherever they're off. The deploy gate hashes the config text, so changing either
-// line redeploys the app it's in.
+// zero 1.12 defaults to a slot per RM, which every zero process asserts needs v5 backups. If RMv2
+// is turned off, v5 goes with it, so pin the shared slot. The deploy gate hashes the config text,
+// so changing either line redeploys the app it's in.
 const sharedSlotEnv = 'ZERO_UPSTREAM_PG_REPLICATION_SLOT_PER_REPLICA = "false"\n'
 const rmv2Env = zeroRmv2
 	? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n'
