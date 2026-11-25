@@ -780,7 +780,7 @@ export const libraryItemContentValidator: T.Validator<TLLibraryItemContentRecord
 // @internal (undocumented)
 export const libraryItemRecordValidator: T.Validator<TLLibraryItemRecord>;
 
-// @internal (undocumented)
+// @public
 export const LibraryRecordType: RecordType<TLLibrary, "name" | "ownerId" | "parentId">;
 
 // @public

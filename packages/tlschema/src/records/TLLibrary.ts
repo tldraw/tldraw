@@ -196,7 +196,16 @@ function createLibraryGuardMigrations(typeName: TLLibraryRecord['typeName']) {
 	})
 }
 
-/** @internal */
+/**
+ * The record type for libraries. A library source uses it to create libraries and their ids.
+ *
+ * @example
+ * ```ts
+ * const library = LibraryRecordType.create({ name: 'Wireframes' })
+ * ```
+ *
+ * @public
+ */
 export const LibraryRecordType = createRecordType<TLLibrary>('library', {
 	validator: libraryValidator,
 	scope: 'document',
