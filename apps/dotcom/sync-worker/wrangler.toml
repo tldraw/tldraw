@@ -172,7 +172,8 @@ THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 # (off), so the binding is wired yet dormant there until the flag flips.
 THUMBNAIL_RENDER_VIA_WORKER = "true"
 
-# One static-assets worker serves every MCP host and must exist before this worker deploys.
+# The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
+# worker serves every environment's host, and it must exist before this one deploys.
 [[env.staging.services]]
 binding = "MCP_WEB"
 service = "mcp-web"
@@ -207,7 +208,7 @@ MCP_SEARCH_NAME_MATCHING_ENABLED = "false"
 # THUMBNAIL_RENDER_VIA_WORKER is intentionally left unset here (off): the RENDER_WORKER binding below
 # is wired, but production stays on the local render path until this is set to "true".
 
-# Production uses the same MCP assets as staging.
+# The MCP host's landing page on mcp.tldraw.com. The same worker as staging's binding above.
 [[env.production.services]]
 binding = "MCP_WEB"
 service = "mcp-web"
