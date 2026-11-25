@@ -88,6 +88,9 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
 
+		// Dropped so the copy isn't taken for the starter pack's own copy.
+		const { packId: _packId, ...meta } = access.library.meta
+
 		const now = Date.now()
 		let refused: typeof ZErrorCode.max_libraries_reached | undefined
 		try {
@@ -117,7 +120,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 						createdBy: auth.userId,
 						createdAt: now,
 						updatedAt: now,
-						meta: access.library.meta,
+						meta,
 					})
 					.onConflict((oc) => oc.column('id').doNothing())
 					.returning('id')
@@ -140,6 +143,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 					// Items are listed by createdAt, so each copy's is a step later to keep their order.
 					createdAt: now + index,
 					updatedAt: now,
+					meta: item.meta,
 				}))
 				const inserted = await tx
 					.insertInto('library_item')

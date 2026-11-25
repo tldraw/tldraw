@@ -160,6 +160,22 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(await source.getItemContent(item.id)).toEqual(content)
 	})
 
+	it("sends an item's meta to the worker, and lists it while pending and from its row", async () => {
+		const { backend, source } = setUp()
+		const kit = await source.createLibrary('Kit')
+		const meta = { category: 'Actions', tags: ['button'] }
+		const item = await source.addItem(kit.id, { content, meta })
+		expect(item.meta).toEqual(meta)
+		await added(Promise.resolve(item))
+		const plain = await added(source.addItem(kit.id, { content }))
+		const [, init] = backend.fetch.mock.calls[0]
+		expect((init!.body as FormData).get(`meta:${rowId(item.id)}`)).toBe(JSON.stringify(meta))
+		expect(backend.rows.get()[0].items.map((i) => i.meta)).toEqual([meta, {}])
+		const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		expect(second.getItems(kit.id).map((i) => i.meta)).toEqual([meta, {}])
+		expect(plain.meta).toEqual({})
+	})
+
 	it("lists an item's thumbnail from its row, with no request", async () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
@@ -225,12 +241,17 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(getCopyName('Kit', {})).toBe('Kit')
 	})
 
-	it('renames, moves and deletes items through the mutators', async () => {
+	it('updates, moves and deletes items through the mutators', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Kit')
 		const other = await source.createLibrary('Other', { ownerId: 'acme' })
-		const item = await added(source.addItem(kit.id, { content }))
-		await source.renameItem(item.id, 'Star')
+		const item = await added(source.addItem(kit.id, { content, meta: { category: 'Shapes' } }))
+		await source.updateItem(item.id, { name: 'Star' })
+		expect(source.getItems(kit.id)).toMatchObject([{ name: 'Star', meta: { category: 'Shapes' } }])
+		await source.updateItem(item.id, { meta: { starred: true } })
+		expect(source.getItems(kit.id)).toMatchObject([
+			{ name: 'Star', meta: { category: 'Shapes', starred: true } },
+		])
 		await source.moveItem(item.id, other.id)
 		expect(source.getItems(other.id).map((i) => i.name)).toEqual(['Star'])
 		await source.deleteItem(item.id)
@@ -335,7 +356,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const item = await source.addItem(kit.id, { content, thumbnail: png() })
 			expect(source.getItems(kit.id)).toHaveLength(1)
 			const [pending] = source.getItems(kit.id)
-			const renaming = source.renameItem(pending.id, 'Moon')
+			const renaming = source.updateItem(pending.id, { name: 'Moon' })
 			requests.fail()
 			await expect(whenItemsStored([item.id])).rejects.toThrow("Couldn't add the items: 500")
 			expect(backend.toasts.addToast).toHaveBeenCalledWith(
@@ -427,7 +448,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const pending = source.getItems(kit.id)
 			expect(pending).toHaveLength(2)
 			const loading = source.getItemContent(pending[1].id)
-			const renaming = source.renameItem(pending[0].id, 'Moon')
+			const renaming = source.updateItem(pending[0].id, { name: 'Moon' })
 			requests.fail()
 			await expect(whenItemsStored(items.map((item) => item.id))).rejects.toThrow(
 				"Couldn't add the items: 500"
@@ -465,7 +486,9 @@ describe('TldrawAppLibrariesSource', () => {
 			const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
 			// a collaborator deletes the library
 			backend.rows.update((all) => all.filter((row) => row.id !== rowId(kit.id)))
-			await expect(source.renameItem(item.id, 'Moon')).rejects.toThrow(LibraryNotFoundError)
+			await expect(source.updateItem(item.id, { name: 'Moon' })).rejects.toThrow(
+				LibraryNotFoundError
+			)
 			expect(source.getItems(kit.id)).toEqual([])
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
 		})
@@ -476,7 +499,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const rows = backend.holdWorkerRows()
 			const item = await added(source.addItem(kit.id, { content }))
 			const server = backend.holdServer()
-			const renaming = source.renameItem(item.id, 'Moon')
+			const renaming = source.updateItem(item.id, { name: 'Moon' })
 			await source.deleteLibrary(kit.id)
 			await Promise.resolve()
 			expect(source.getItems(kit.id)).toMatchObject([{ id: item.id }])
@@ -494,7 +517,7 @@ describe('TldrawAppLibrariesSource', () => {
 			backend.holdWorkerRows()
 			const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
 			const server = backend.holdServer()
-			const renaming = source.renameItem(item.id, 'Moon')
+			const renaming = source.updateItem(item.id, { name: 'Moon' })
 			await source.deleteLibrary(kit.id)
 			server.release()
 			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
@@ -512,7 +535,7 @@ describe('TldrawAppLibrariesSource', () => {
 				const kit = await source.createLibrary('Kit')
 				backend.holdWorkerRows()
 				const item = await added(source.addItem(kit.id, { content, thumbnail: png() }))
-				const renaming = expect(source.renameItem(item.id, 'Moon')).rejects.toThrow(
+				const renaming = expect(source.updateItem(item.id, { name: 'Moon' })).rejects.toThrow(
 					LibraryNotFoundError
 				)
 				const copying = copyLibrary(source, kit.id, 'acme')
@@ -548,7 +571,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const requests = backend.holdRequests()
 			source.addItem(kit.id, { name: 'Star', content })
 			const [pending] = source.getItems(kit.id)
-			const renaming = source.renameItem(pending.id, 'Moon')
+			const renaming = source.updateItem(pending.id, { name: 'Moon' })
 			requests.release()
 			await renaming
 			expect(source.getItems(kit.id)).toMatchObject([{ name: 'Moon' }])
@@ -577,6 +600,41 @@ describe('TldrawAppLibrariesSource', () => {
 				{ name: 'Moon', libraryId: copy.id },
 			])
 			expect(source.can('renameLibrary', copy.id)).toBe(true)
+		})
+
+		it("keeps each item's meta on its copy, while it's copied and from its row", async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			await added(source.addItem(kit.id, { name: 'Star', content, meta: { category: 'Sky' } }))
+			const requests = backend.holdRequests()
+			const copying = source.copyLibrary(kit.id, 'acme')
+			const pending = source.getLibraries().find((c) => c.id !== kit.id)!
+			expect(source.getItems(pending.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
+			requests.release()
+			const copy = await copying
+			await vi.waitFor(() =>
+				expect(backend.rows.get().find((row) => row.id === rowId(copy.id))?.items).toHaveLength(1)
+			)
+			const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+			expect(second.getItems(copy.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
+		})
+
+		it("copies the library's meta without the starter pack's packId", async () => {
+			const { backend, source } = setUp()
+			const pack = await source.createLibrary('Icons', {
+				meta: { packId: 'icons', packVersion: 1 },
+			})
+			const requests = backend.holdRequests()
+			const copying = source.copyLibrary(pack.id, 'acme')
+			const pending = source.getLibraries().find((c) => c.id !== pack.id)!
+			expect(pending.meta).toEqual({ packVersion: 1 })
+			requests.release()
+			const copy = await copying
+			await vi.waitFor(() =>
+				expect(backend.rows.get().find((row) => row.id === rowId(copy.id))?.meta).toEqual({
+					packVersion: 1,
+				})
+			)
 		})
 
 		it('places an item being copied from its source item’s content', async () => {
@@ -684,8 +742,11 @@ describe('TldrawAppLibrariesSource', () => {
 				source.renameLibrary(kit.id, 'Renamed'),
 			deleteLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
 				source.deleteLibrary(kit.id),
-			renameItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
-				source.renameItem(source.getItems(kit.id)[0].id, 'Renamed'),
+			updateItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
+				source.updateItem(source.getItems(kit.id)[0].id, {
+					name: 'Renamed',
+					meta: { starred: true },
+				}),
 			moveItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary, other: TLLibrary) =>
 				source.moveItem(source.getItems(kit.id)[0].id, other.id),
 			deleteItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>

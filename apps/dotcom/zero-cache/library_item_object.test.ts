@@ -5,9 +5,9 @@ import pg from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 // Integration test for the library tables, the library_item_object rows naming the R2 objects
-// items use and their delete trigger, which queues an object for TLFileEffectProcessor to delete
-// once no row names it (all in 055). The cases that need a real Postgres are the
-// cascades, which must still queue objects, and deletes that race each other.
+// items use, their delete trigger, which queues an object for TLFileEffectProcessor to delete
+// once no row names it, and the item meta column (all in 055). The cases that need a real Postgres
+// are the cascades, which must still queue objects, and deletes that race each other.
 //
 // Like effect_outbox.test.ts, it runs the real migration chain in a throwaway database and is
 // opt-in: set ZERO_CACHE_TEST_POSTGRES_URL (local dev stack:
@@ -220,6 +220,11 @@ describeMaybe('library_item_object effect_outbox trigger', () => {
 			await copier.end()
 			await deleter.end()
 		}
+	})
+
+	it("gives an item inserted without meta an empty object, as a library's (058)", async () => {
+		const res = await client.query(`SELECT "meta" FROM library_item WHERE "id" = 'i1'`)
+		expect(res.rows).toEqual([{ meta: {} }])
 	})
 
 	it('refuses an object row for an item that does not exist', async () => {

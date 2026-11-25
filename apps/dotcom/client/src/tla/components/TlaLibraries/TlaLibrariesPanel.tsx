@@ -1,8 +1,10 @@
-import { AddToLibraryMenuItem, LibrariesPanel } from '@tldraw/libraries'
-import { useMemo } from 'react'
-import { useEditor, useToasts, useTranslation } from 'tldraw'
+import { AddToLibraryMenuItem, LibrariesPanel, librariesPanelOpen } from '@tldraw/libraries'
+import { useEffect, useMemo } from 'react'
+import { useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getEditorLibraries } from './editorLibraries'
+import { loadStarterPackSummaries } from './starterPacks'
+import { TlaBrowseStarterPacksMenuItem } from './TlaStarterPacksDialog'
 
 function useEditorLibraries(fileId: string) {
 	const app = useMaybeApp()
@@ -20,9 +22,20 @@ function useEditorLibraries(fileId: string) {
 }
 
 export function TlaLibrariesPanel({ fileId }: { fileId: string }) {
+	const editor = useEditor()
 	const source = useEditorLibraries(fileId)
+	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+
+	// Fetch the starter packs dialog's data before it's opened, so its cards show straight away.
+	// The dialog reports a failure itself.
+	useEffect(() => {
+		if (open && source) loadStarterPackSummaries().catch(() => {})
+	}, [open, source])
+
 	if (!source) return null
-	return <LibrariesPanel source={source} />
+	return (
+		<LibrariesPanel source={source} menuItems={<TlaBrowseStarterPacksMenuItem source={source} />} />
+	)
 }
 
 export function TlaAddToLibraryMenuItem({ fileId }: { fileId: string }) {

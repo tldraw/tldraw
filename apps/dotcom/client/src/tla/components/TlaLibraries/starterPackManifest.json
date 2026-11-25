@@ -1,0 +1,241 @@
+[
+	{
+		"id": "wireframing",
+		"name": "Wireframing",
+		"version": 5,
+		"itemCount": 6,
+		"itemNames": [
+			"Button",
+			"Input",
+			"Card",
+			"Avatar",
+			"Checkbox",
+			"Navigation bar"
+		],
+		"previews": [
+			{
+				"id": "button",
+				"thumbnail": {
+					"light": "thumbnails/button-light.webp",
+					"dark": "thumbnails/button-dark.webp"
+				}
+			},
+			{
+				"id": "input",
+				"thumbnail": {
+					"light": "thumbnails/input-light.webp",
+					"dark": "thumbnails/input-dark.webp"
+				}
+			},
+			{
+				"id": "card",
+				"thumbnail": {
+					"light": "thumbnails/card-light.webp",
+					"dark": "thumbnails/card-dark.webp"
+				}
+			},
+			{
+				"id": "avatar",
+				"thumbnail": {
+					"light": "thumbnails/avatar-light.webp",
+					"dark": "thumbnails/avatar-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "diagramming",
+		"name": "Diagramming",
+		"version": 3,
+		"itemCount": 6,
+		"itemNames": [
+			"Process",
+			"Decision",
+			"Start or end",
+			"Arrow",
+			"Note",
+			"Step to decision"
+		],
+		"previews": [
+			{
+				"id": "process",
+				"thumbnail": {
+					"light": "thumbnails/process-light.webp",
+					"dark": "thumbnails/process-dark.webp"
+				}
+			},
+			{
+				"id": "decision",
+				"thumbnail": {
+					"light": "thumbnails/decision-light.webp",
+					"dark": "thumbnails/decision-dark.webp"
+				}
+			},
+			{
+				"id": "terminal",
+				"thumbnail": {
+					"light": "thumbnails/terminal-light.webp",
+					"dark": "thumbnails/terminal-dark.webp"
+				}
+			},
+			{
+				"id": "arrow",
+				"thumbnail": {
+					"light": "thumbnails/arrow-light.webp",
+					"dark": "thumbnails/arrow-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "floor-plan",
+		"name": "Floor plan",
+		"version": 3,
+		"itemCount": 16,
+		"itemNames": [
+			"Sofa",
+			"Armchair",
+			"Double bed",
+			"Single bed",
+			"Dining table",
+			"Round table",
+			"Desk with chair",
+			"Bathtub",
+			"Toilet",
+			"Vanity",
+			"Kitchen counter",
+			"Door",
+			"Window",
+			"Stairs",
+			"Potted plant",
+			"Rug"
+		],
+		"previews": [
+			{
+				"id": "sofa",
+				"thumbnail": {
+					"light": "thumbnails/sofa-light.webp",
+					"dark": "thumbnails/sofa-dark.webp"
+				}
+			},
+			{
+				"id": "armchair",
+				"thumbnail": {
+					"light": "thumbnails/armchair-light.webp",
+					"dark": "thumbnails/armchair-dark.webp"
+				}
+			},
+			{
+				"id": "double-bed",
+				"thumbnail": {
+					"light": "thumbnails/double-bed-light.webp",
+					"dark": "thumbnails/double-bed-dark.webp"
+				}
+			},
+			{
+				"id": "single-bed",
+				"thumbnail": {
+					"light": "thumbnails/single-bed-light.webp",
+					"dark": "thumbnails/single-bed-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "tldraw-characters",
+		"name": "tldraw characters",
+		"version": 1,
+		"itemCount": 6,
+		"itemNames": [
+			"Penta",
+			"Cloudy",
+			"Cloudy 2",
+			"Cloudy 3",
+			"Arrow",
+			"Diamond"
+		],
+		"previews": [
+			{
+				"id": "penta",
+				"thumbnail": {
+					"light": "thumbnails/penta-light.webp",
+					"dark": "thumbnails/penta-dark.webp"
+				}
+			},
+			{
+				"id": "cloudy",
+				"thumbnail": {
+					"light": "thumbnails/cloudy-light.webp",
+					"dark": "thumbnails/cloudy-dark.webp"
+				}
+			},
+			{
+				"id": "cloudy-2",
+				"thumbnail": {
+					"light": "thumbnails/cloudy-2-light.webp",
+					"dark": "thumbnails/cloudy-2-dark.webp"
+				}
+			},
+			{
+				"id": "cloudy-3",
+				"thumbnail": {
+					"light": "thumbnails/cloudy-3-light.webp",
+					"dark": "thumbnails/cloudy-3-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "doodles",
+		"name": "Doodles",
+		"version": 1,
+		"itemCount": 15,
+		"itemNames": [
+			"Waving person",
+			"Fairy",
+			"Skateboarder",
+			"Car with passengers",
+			"Bunny",
+			"Driver",
+			"Dog",
+			"Happy dog",
+			"Builder in hi-vis",
+			"Builder in stripes",
+			"Bean",
+			"Standing person",
+			"Builder with sign",
+			"Dancing blob",
+			"Cheering blob"
+		],
+		"previews": [
+			{
+				"id": "waving-person",
+				"thumbnail": {
+					"light": "thumbnails/waving-person-light.webp",
+					"dark": "thumbnails/waving-person-dark.webp"
+				}
+			},
+			{
+				"id": "fairy",
+				"thumbnail": {
+					"light": "thumbnails/fairy-light.webp",
+					"dark": "thumbnails/fairy-dark.webp"
+				}
+			},
+			{
+				"id": "skateboarder",
+				"thumbnail": {
+					"light": "thumbnails/skateboarder-light.webp",
+					"dark": "thumbnails/skateboarder-dark.webp"
+				}
+			},
+			{
+				"id": "car-with-passengers",
+				"thumbnail": {
+					"light": "thumbnails/car-with-passengers-light.webp",
+					"dark": "thumbnails/car-with-passengers-dark.webp"
+				}
+			}
+		]
+	}
+]

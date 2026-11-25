@@ -10,6 +10,7 @@ import {
 	type TLLibraryAction,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
+	type TLLibraryItemPartial,
 	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
@@ -184,8 +185,8 @@ export class CompositeLibrarySource implements LibrarySource {
 		return addItemsToLibrary(this.getLibraryPart(libraryId).source, libraryId, items)
 	}
 
-	renameItem(itemId: TLLibraryItemId, name: string) {
-		return this.getItemPart(itemId).part.source.renameItem(itemId, name)
+	updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial) {
+		return this.getItemPart(itemId).part.source.updateItem(itemId, partial)
 	}
 
 	deleteItem(itemId: TLLibraryItemId) {

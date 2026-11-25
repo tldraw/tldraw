@@ -120,8 +120,8 @@ describe('CompositeLibrarySource', () => {
 		const item = await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
 		expect(source.getItems(kit.id)).toEqual(team.getItems(kit.id))
 		expect(await source.getItemContent(item.id)).toEqual(content('star'))
-		await source.renameItem(item.id, 'Heart')
-		expect(team.getItems(kit.id)[0].name).toBe('Heart')
+		await source.updateItem(item.id, { name: 'Heart', meta: { starred: true } })
+		expect(team.getItems(kit.id)[0]).toMatchObject({ name: 'Heart', meta: { starred: true } })
 		await source.renameLibrary(kit.id, 'Icons')
 		expect(team.getLibraries()[0].name).toBe('Icons')
 		await source.deleteItem(item.id)
@@ -253,6 +253,17 @@ describe('CompositeLibrarySource', () => {
 		await source.moveItem!(item.id, to.id)
 		expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
 		await vi.waitFor(() => expect(mine.getItems(from.id)).toEqual([]))
+	})
+
+	it("keeps an item's meta when moving it between parts", async () => {
+		const { source, team } = setUp()
+		const from = await source.createLibrary('Kit', { ownerId: 'home' })
+		const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
+		const item = await added(
+			source.addItem(from.id, { content: content('star'), meta: { category: 'Shapes' } })
+		)
+		await source.moveItem!(item.id, to.id)
+		expect(team.getItems(to.id).map((i) => i.meta)).toEqual([{ category: 'Shapes' }])
 	})
 
 	describe('a part that stores added items after listing them', () => {

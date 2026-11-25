@@ -1,0 +1,135 @@
+{
+	"id": "floor-plan",
+	"name": "Floor plan",
+	"version": 3,
+	"items": [
+		{
+			"id": "sofa",
+			"name": "Sofa",
+			"thumbnail": {
+				"light": "thumbnails/sofa-light.webp",
+				"dark": "thumbnails/sofa-dark.webp"
+			}
+		},
+		{
+			"id": "armchair",
+			"name": "Armchair",
+			"thumbnail": {
+				"light": "thumbnails/armchair-light.webp",
+				"dark": "thumbnails/armchair-dark.webp"
+			}
+		},
+		{
+			"id": "double-bed",
+			"name": "Double bed",
+			"thumbnail": {
+				"light": "thumbnails/double-bed-light.webp",
+				"dark": "thumbnails/double-bed-dark.webp"
+			}
+		},
+		{
+			"id": "single-bed",
+			"name": "Single bed",
+			"thumbnail": {
+				"light": "thumbnails/single-bed-light.webp",
+				"dark": "thumbnails/single-bed-dark.webp"
+			}
+		},
+		{
+			"id": "dining-table",
+			"name": "Dining table",
+			"thumbnail": {
+				"light": "thumbnails/dining-table-light.webp",
+				"dark": "thumbnails/dining-table-dark.webp"
+			}
+		},
+		{
+			"id": "round-table",
+			"name": "Round table",
+			"thumbnail": {
+				"light": "thumbnails/round-table-light.webp",
+				"dark": "thumbnails/round-table-dark.webp"
+			}
+		},
+		{
+			"id": "desk",
+			"name": "Desk with chair",
+			"thumbnail": {
+				"light": "thumbnails/desk-light.webp",
+				"dark": "thumbnails/desk-dark.webp"
+			}
+		},
+		{
+			"id": "bathtub",
+			"name": "Bathtub",
+			"thumbnail": {
+				"light": "thumbnails/bathtub-light.webp",
+				"dark": "thumbnails/bathtub-dark.webp"
+			}
+		},
+		{
+			"id": "toilet",
+			"name": "Toilet",
+			"thumbnail": {
+				"light": "thumbnails/toilet-light.webp",
+				"dark": "thumbnails/toilet-dark.webp"
+			}
+		},
+		{
+			"id": "vanity",
+			"name": "Vanity",
+			"thumbnail": {
+				"light": "thumbnails/vanity-light.webp",
+				"dark": "thumbnails/vanity-dark.webp"
+			}
+		},
+		{
+			"id": "kitchen-counter",
+			"name": "Kitchen counter",
+			"thumbnail": {
+				"light": "thumbnails/kitchen-counter-light.webp",
+				"dark": "thumbnails/kitchen-counter-dark.webp"
+			}
+		},
+		{
+			"id": "door",
+			"name": "Door",
+			"thumbnail": {
+				"light": "thumbnails/door-light.webp",
+				"dark": "thumbnails/door-dark.webp"
+			}
+		},
+		{
+			"id": "window",
+			"name": "Window",
+			"thumbnail": {
+				"light": "thumbnails/window-light.webp",
+				"dark": "thumbnails/window-dark.webp"
+			}
+		},
+		{
+			"id": "stairs",
+			"name": "Stairs",
+			"thumbnail": {
+				"light": "thumbnails/stairs-light.webp",
+				"dark": "thumbnails/stairs-dark.webp"
+			}
+		},
+		{
+			"id": "plant",
+			"name": "Potted plant",
+			"thumbnail": {
+				"light": "thumbnails/plant-light.webp",
+				"dark": "thumbnails/plant-dark.webp"
+			}
+		},
+		{
+			"id": "rug",
+			"name": "Rug",
+			"thumbnail": {
+				"light": "thumbnails/rug-light.webp",
+				"dark": "thumbnails/rug-dark.webp"
+			}
+		}
+	]
+}
