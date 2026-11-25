@@ -24,7 +24,7 @@ Public APIs stay on the editor or as free functions over it. The host does not m
 
 ## Compatibility: the old interface is a layer over plugins
 
-`new Editor(opts)` installs `legacyEditorPlugins` as defaults, and then `opts.plugins`. A plugin replaces a default when it has the same id or provides one of the same capabilities. So `new Editor({ plugins: [approximateTextMeasurementPlugin()] })` keeps every default except DOM text measurement.
+`plugins` is the complete list of plugins that an editor installs. When you leave it out, `new Editor()` and `TldrawEditor` install `createDefaultPlugins()`. To add plugins, spread the defaults: `plugins: [...createDefaultPlugins(), myPlugin]`. To replace one, filter it out by id and add yours. Two plugins that provide the same capability throw, so a duplicate is never silent. A list without the defaults, such as `[myPlugin]`, gives an editor without a frame loop, DOM focus or React group rendering.
 
 The old members are facades over the plugins. They stay plain fields. When no plugin provides the capability, the field holds a stub that throws a "no installed plugin provides" error when it is used.
 
@@ -39,7 +39,7 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 | `ShapeUtil.canSnap`                                                                               | the initial value of `canSnapToShapeSlot`                                                                              |
 | `ShapeUtil.component`                                                                             | the fallback when `shapeComponentSlot` has no contribution for the shape type                                          |
 
-The legacy preset lives in the React layer (`react/legacyEditorPlugins.ts`), because it includes the React plugins. `TldrawEditor` passes it explicitly. For a direct `new Editor()`, the package entry sets it as the default with `setDefaultEditorPlugins`. This is a provisional seam until the kernel moves to its own package.
+`createDefaultPlugins` lives in the React layer (`react/defaultPlugins.ts`), because it includes the React plugins. `TldrawEditor` calls it directly. For a direct `new Editor()`, the package entry registers it with `setDefaultEditorPlugins`. This is a provisional seam until the kernel moves to its own package.
 
 ## React is an output layer
 

@@ -595,6 +595,9 @@ export function createDebugValue<T>(name: string, { defaults, shouldStoreForSess
 export function createDeepLinkString(deepLink: TLDeepLink): string;
 
 // @public
+export function createDefaultPlugins(): TLPlugin[];
+
+// @public
 export function createEditor({ plugins, store, getContainer, ...rest }: TLCreateEditorOptions): Editor;
 
 // @public
@@ -928,7 +931,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, plugins, defaultPlugins, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, plugins, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -2518,9 +2521,6 @@ export function isSafeFloat(n: number): boolean;
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opts?: {
     filter?(parent: TLShape): boolean;
 }): void;
-
-// @public
-export const legacyEditorPlugins: readonly TLPlugin[];
 
 // @internal (undocumented)
 export const LICENSE_TIMEOUT = 5000;
@@ -4146,7 +4146,6 @@ export interface TLEditorOptions {
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
     colorScheme?: 'dark' | 'light' | 'system';
-    defaultPlugins?: readonly TLPlugin[];
     // (undocumented)
     fontAssetUrls?: {
         [key: string]: string | undefined;
@@ -4820,7 +4819,7 @@ export interface TLPluginContext {
 
 // @public
 export class TLPluginHost {
-    constructor(editor: Editor, plugins: readonly TLPlugin[], defaults?: readonly TLPlugin[]);
+    constructor(editor: Editor, plugins: readonly TLPlugin[]);
     chain<In, Out>(slot: TLSlot<TLChainHandler<In, Out>>, input: In, terminal: (input: In) => Out): Out;
     // @internal (undocumented)
     dispose(): void;

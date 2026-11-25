@@ -1,7 +1,7 @@
 // @vitest-environment node
 //
 // The headless entry (`createEditor`, the Editor class and the built-in kernel plugins) must not
-// load React. React is an output layer: the React plugins and `legacyEditorPlugins` bring it in.
+// load React. React is an output layer: the React plugins and `createDefaultPlugins` bring it in.
 import { vi } from 'vitest'
 
 vi.mock('react', () => {

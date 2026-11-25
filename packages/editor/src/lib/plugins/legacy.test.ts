@@ -1,7 +1,7 @@
-// `new Editor()` is the legacy entry. It installs `legacyEditorPlugins`, so its behavior is the
+// `new Editor()` without `plugins` installs `createDefaultPlugins()`, so its behavior is the
 // behavior that the editor had before plugins. These tests pin that compatibility layer.
 import { vi } from 'vitest'
-import { Editor, TextManager, createShapeId, createTLStore, legacyEditorPlugins } from '../..'
+import { Editor, TextManager, createDefaultPlugins, createShapeId, createTLStore } from '../..'
 import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
 import { renderShapeComponent, shapeComponentSlot } from '../react/shapeComponents'
 import { approximateTextMeasurementPlugin } from './builtin/textMeasurement'
@@ -19,19 +19,41 @@ function legacyEditor(opts: { plugins?: TLPlugin[]; autoFocus?: boolean } = {}) 
 }
 
 describe('new Editor()', () => {
-	it('installs the legacy plugins', () => {
+	it('installs the default plugins when no plugins are given', () => {
 		const editor = legacyEditor()
-		expect(editor.plugins.getPlugins().map((p) => p.id)).toEqual(
-			expect.arrayContaining(legacyEditorPlugins.map((p) => p.id))
+		expect(
+			editor.plugins
+				.getPlugins()
+				.map((p) => p.id)
+				.sort()
+		).toEqual(
+			createDefaultPlugins()
+				.map((p) => p.id)
+				.sort()
 		)
 		expect(editor.textMeasure).toBeInstanceOf(TextManager)
 	})
 
-	it('replaces a legacy plugin with a plugin that provides the same capability', () => {
+	it('installs exactly the given plugins', () => {
 		const editor = legacyEditor({ plugins: [approximateTextMeasurementPlugin()] })
+		expect(editor.plugins.getPlugins().map((p) => p.id)).toEqual(['approximateTextMeasurement'])
+	})
+
+	it('replaces a default plugin when the caller filters it out', () => {
+		const editor = legacyEditor({
+			plugins: [
+				...createDefaultPlugins().filter((p) => p.id !== 'domTextMeasurement'),
+				approximateTextMeasurementPlugin(),
+			],
+		})
 		expect(editor.textMeasure).not.toBeInstanceOf(TextManager)
-		expect(editor.plugins.has('domTextMeasurement')).toBe(false)
 		expect(editor.plugins.has('snapping')).toBe(true)
+	})
+
+	it('throws when a plugin duplicates a default capability', () => {
+		expect(() =>
+			legacyEditor({ plugins: [...createDefaultPlugins(), approximateTextMeasurementPlugin()] })
+		).toThrow('both provide')
 	})
 
 	it('applies autoFocus to the instance state', () => {

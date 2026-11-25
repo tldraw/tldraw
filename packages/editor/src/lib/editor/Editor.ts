@@ -256,16 +256,11 @@ export interface TLEditorOptions {
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
-	 * Plugins that add behavior to the editor. Their shape utils, binding utils and tools are added
-	 * to the ones above. A plugin replaces a built-in plugin that has the same id or provides one
-	 * of the same capabilities, for example a headless text measurer replaces the DOM one.
+	 * Every plugin that the editor installs. Their shape utils, binding utils and tools are added
+	 * to the ones above. Defaults to {@link createDefaultPlugins}. To keep the defaults and add
+	 * your own, pass `[...createDefaultPlugins(), ...yours]`.
 	 */
 	plugins?: readonly TLPlugin[]
-	/**
-	 * Plugins that are installed unless a plugin in `plugins` replaces them. The package entry sets
-	 * the default to {@link legacyEditorPlugins}. `createEditor` sets this to an empty list.
-	 */
-	defaultPlugins?: readonly TLPlugin[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -366,14 +361,14 @@ export interface TLRenderingShape {
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
 
-// The default plugins for `new Editor()`. The kernel has none. The `@tldraw/editor` entry sets
-// them to `legacyEditorPlugins`, which include the DOM and React plugins, so that this module
-// does not import React and `createEditor` stays headless.
-let defaultEditorPlugins: readonly TLPlugin[] = []
+// The plugins for `new Editor()` without `plugins`. The kernel has none. The `@tldraw/editor`
+// entry sets this to `createDefaultPlugins`, which includes the DOM and React plugins, so that
+// this module does not import React and `createEditor` stays headless.
+let createDefaultEditorPlugins: () => readonly TLPlugin[] = () => []
 
 /** @internal */
-export function setDefaultEditorPlugins(plugins: readonly TLPlugin[]) {
-	defaultEditorPlugins = plugins
+export function setDefaultEditorPlugins(create: () => readonly TLPlugin[]) {
+	createDefaultEditorPlugins = create
 }
 
 const AXIS = {
@@ -392,8 +387,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		assetUtils: assetUtilConstructors,
 		overlayUtils: overlayUtilConstructors,
 		tools,
-		plugins = [],
-		defaultPlugins = defaultEditorPlugins,
+		plugins = createDefaultEditorPlugins(),
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -431,7 +425,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		})
 
-		this.plugins = new TLPluginHost(this, plugins, defaultPlugins)
+		this.plugins = new TLPluginHost(this, plugins)
 		const installedPlugins = this.plugins.getPlugins()
 		// Members that predate plugins are facades over plugin capabilities. Until setup, they
 		// forward to the capability once its plugin has set up. After setup (below), they are the

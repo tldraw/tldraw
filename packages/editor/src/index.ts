@@ -1,6 +1,6 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 import { setDefaultEditorPlugins } from './lib/editor/Editor'
-import { legacyEditorPlugins as _legacyEditorPlugins } from './lib/react/legacyEditorPlugins'
+import { createDefaultPlugins as _createDefaultPlugins } from './lib/react/defaultPlugins'
 
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state'
@@ -52,7 +52,7 @@ export {
 	type TLSlot,
 } from './lib/plugins/plugin'
 export { TLPluginHost } from './lib/plugins/PluginHost'
-export { legacyEditorPlugins } from './lib/react/legacyEditorPlugins'
+export { createDefaultPlugins } from './lib/react/defaultPlugins'
 export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'
 export { reactRenderingPlugins, reactSvgExportPlugin } from './lib/react/reactRenderingPlugins'
 export {
@@ -572,8 +572,8 @@ export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalInd
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { uniq } from './lib/utils/uniq'
 
-// `new Editor()` keeps the behavior it had before plugins. See `legacyEditorPlugins`.
-setDefaultEditorPlugins(_legacyEditorPlugins)
+// `new Editor()` without `plugins` keeps the behavior it had before plugins.
+setDefaultEditorPlugins(_createDefaultPlugins)
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

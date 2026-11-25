@@ -56,7 +56,7 @@ import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import type { TLPlugin } from './plugins/plugin'
-import { legacyEditorPlugins } from './react/legacyEditorPlugins'
+import { createDefaultPlugins } from './react/defaultPlugins'
 import { TLDeepLinkOptions } from './utils/deepLinks'
 import { getGlobalDocument, getGlobalWindow } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
@@ -149,8 +149,9 @@ export interface TldrawEditorBaseProps {
 	tools?: readonly TLStateNodeConstructor[]
 
 	/**
-	 * Plugins that add behavior to the editor. Their shape utils, binding utils and tools are
-	 * added to the ones above. Keep the array stable between renders, because a new array
+	 * Every plugin that the editor installs. Defaults to {@link createDefaultPlugins}; to add your
+	 * own, pass `[...createDefaultPlugins(), ...yours]`. Their shape utils, binding utils and tools
+	 * are added to the ones above. Keep the array stable between renders, because a new array
 	 * creates a new editor. If you pass your own `store`, create it with the plugins' shape and
 	 * binding utils too, or the store rejects records of those types.
 	 */
@@ -626,9 +627,7 @@ function TldrawEditorWithReadyStore({
 				assetUtils,
 				overlayUtils,
 				tools,
-				plugins,
-				// The React layer installs the full legacy preset, which includes its own plugins.
-				defaultPlugins: legacyEditorPlugins,
+				plugins: plugins ?? createDefaultPlugins(),
 				getContainer: () => container,
 				user,
 				initialState,

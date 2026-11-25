@@ -60,7 +60,6 @@ export function createEditor({
 		bindingUtils: [],
 		tools: [],
 		plugins,
-		defaultPlugins: [],
 		getContainer:
 			getContainer ??
 			(() => {

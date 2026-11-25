@@ -34,18 +34,14 @@ export class TLPluginHost {
 	private seq = 0
 
 	/**
-	 * @param plugins - Plugins that the caller asked for. Two of them must not share an id or a
-	 * provided capability.
-	 * @param defaults - Plugins that are installed only when no plugin in `plugins` has the same id
-	 * or provides one of the same capabilities. The legacy `Editor` constructor uses this so that
-	 * a caller can replace a built-in behavior without removing it first.
+	 * @param plugins - Every plugin to install. Two of them must not share an id or a provided
+	 * capability.
 	 */
 	constructor(
 		private readonly editor: Editor,
-		plugins: readonly TLPlugin[],
-		defaults: readonly TLPlugin[] = []
+		plugins: readonly TLPlugin[]
 	) {
-		this.plugins = sortPlugins(resolveDefaults(plugins, defaults))
+		this.plugins = sortPlugins(plugins)
 	}
 
 	/** All installed plugins, in setup order. */
@@ -224,15 +220,6 @@ export class TLPluginHost {
 		}
 		return slotAtom
 	}
-}
-
-function resolveDefaults(plugins: readonly TLPlugin[], defaults: readonly TLPlugin[]) {
-	const ids = new Set(plugins.map((p) => p.id))
-	const caps = new Set(plugins.flatMap((p) => (p.provides ?? []).map((c) => c.id)))
-	const kept = defaults.filter(
-		(d) => !ids.has(d.id) && !(d.provides ?? []).some((c) => caps.has(c.id))
-	)
-	return [...kept, ...plugins]
 }
 
 /** Order plugins so that each capability provider is set up before the plugins that use it. */
