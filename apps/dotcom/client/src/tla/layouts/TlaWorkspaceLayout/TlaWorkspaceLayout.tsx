@@ -4,7 +4,6 @@ import { defineMessages, TldrawUiButton, useDialogs, useTranslation, useValue } 
 import { routes } from '../../../routeDefs'
 import { TlaSettingsDialog } from '../../components/dialogs/TlaSettingsDialog'
 import { TlaLogo } from '../../components/TlaLogo/TlaLogo'
-import { TlaSidebarNotificationsButton } from '../../components/TlaSidebar/components/TlaSidebarNotificationsButton'
 import { TlaUserAvatar } from '../../components/TlaUserAvatar/TlaUserAvatar'
 import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
@@ -37,7 +36,6 @@ export function TlaWorkspaceLayout({ children }: { children: ReactNode }) {
 					</Link>
 					<TlaWorkspaceSwitcher />
 					<div className={styles.spacer} />
-					<TlaSidebarNotificationsButton placement="header" />
 					<TldrawUiButton
 						type="icon"
 						className={styles.account}

@@ -63,7 +63,7 @@ export function TlaBoardVisitors({
 	const nameOf = (v: Visitor) =>
 		v.userId === app.userId ? msg(messages.you, { name: v.userName }) : v.userName
 	const describe = (v: Visitor): ReactNode => (
-		<div key={v.userId} className={styles.visitorTooltipLine}>
+		<div key={v.userId}>
 			{nameOf(v)}
 			{isPresent(v) && <span className={styles.visitorTooltipHere}>{msg(messages.hereNow)}</span>}
 		</div>
@@ -83,7 +83,7 @@ export function TlaBoardVisitors({
 			data-testid="tla-board-visitors"
 		>
 			{shown.map((visitor) => (
-				<TldrawUiTooltip key={visitor.userId} content={describe(visitor)} side="bottom">
+				<TldrawUiTooltip key={visitor.userId} content={describe(visitor)} side="top">
 					<div
 						className={classNames('tlui-people-menu__avatar', styles.visitor)}
 						data-present={isPresent(visitor)}
@@ -99,7 +99,7 @@ export function TlaBoardVisitors({
 				</TldrawUiTooltip>
 			))}
 			{overflow.length > 0 && (
-				<TldrawUiTooltip content={<div>{overflow.map(describe)}</div>} side="bottom">
+				<TldrawUiTooltip content={<div>{overflow.map(describe)}</div>} side="top">
 					<div
 						className={classNames(
 							'tlui-people-menu__avatar',
