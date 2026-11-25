@@ -19,7 +19,11 @@ export function toggleLibrariesPanel(editor: Editor) {
 	librariesPanelOpen.update(editor, (open) => !open)
 }
 
-/** The library whose name its section header is editing, e.g. straight after creating it. */
+/**
+ * The library whose name its section header is editing, e.g. straight after creating it. Set it
+ * with {@link activeLibraryId} to bring a library a host created into view ready to rename.
+ * @public
+ */
 export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLibraryId', () => null)
 
 /**

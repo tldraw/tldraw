@@ -236,3 +236,24 @@ describe('keepBrowsePlacement', () => {
 		expect(keepBrowsePlacement(undefined, next)).toBe(next)
 	})
 })
+
+it('lists only top-level libraries, added or available, the ones inside them coming with them', () => {
+	const added = library('Kit', 'acme')
+	const available = library('Forms', 'acme')
+	const nested = (name: string, parent: { id: ReturnType<typeof LibraryRecordType.createId> }) =>
+		LibraryRecordType.create({ name, ownerId: 'acme', parentId: parent.id })
+	const source = new InMemoryLibrarySource({
+		owners,
+		initial: {
+			libraries: [added, nested('Icons', added), available, nested('Inputs', available)],
+			items: [],
+			contents: {},
+		},
+		shownInDocument: [{ libraryId: added.id, placement: 'added' }],
+	})
+	const { thisFile, owners: groups } = getBrowseSections(source)
+	expect(thisFile.map((l) => (l.kind === 'source' ? l.library.name : l.entry.name))).toEqual([
+		'Kit',
+	])
+	expect(groups.flatMap((g) => g.libraries.map((l) => l.name))).toEqual(['Forms'])
+})

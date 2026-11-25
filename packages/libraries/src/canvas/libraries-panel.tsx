@@ -11,6 +11,7 @@ import {
 	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { flattenLibraryTree, getLibraryTree } from '../lib/libraryTree'
 import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
 import { BrowseMoreButton } from './browse-more-button'
 import { EmptyThisFile } from './empty-this-file'
@@ -133,7 +134,13 @@ function LibrariesPanelContent({
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const query = useValue('libraries search query', () => librariesSearchQuery.get(editor), [editor])
-	const libraries = useLibraries(source)
+	const listed = useLibraries(source)
+	const outline = useMemo(() => flattenLibraryTree(getLibraryTree(listed)), [listed])
+	const libraries = useMemo(() => outline.map((node) => node.library), [outline])
+	const depths = useMemo(
+		() => new Map(outline.map((node) => [node.library.id, node.depth])),
+		[outline]
+	)
 	const sections = useValue('library sections', () => getPanelSections(source, libraries), [
 		source,
 		libraries,
@@ -204,6 +211,7 @@ function LibrariesPanelContent({
 				key={library.id}
 				source={source}
 				library={library}
+				depth={depths.get(library.id) ?? 0}
 				getItemProps={getItemProps}
 				placeItem={placeItemOnClick}
 				prepareItemContent={prepareItemContent}

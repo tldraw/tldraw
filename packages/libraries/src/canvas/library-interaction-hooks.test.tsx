@@ -334,6 +334,21 @@ describe('useLibraryItemActions', () => {
 })
 
 describe('useLibraryActions', () => {
+	it('offers delete for a library inside one added to the document, which stays added', () => {
+		const kit = LibraryRecordType.create({ name: 'Kit' })
+		const inner = LibraryRecordType.create({ name: 'Inner', parentId: kit.id })
+		const source = new InMemoryLibrarySource({
+			initial: { libraries: [kit, inner], items: [], contents: {} },
+			shownInDocument: [{ libraryId: kit.id, placement: 'added' }],
+		})
+		const outer = renderHook(() => useLibraryActions(source, kit))
+		expect(outer().menuActions.onDelete).toBeUndefined()
+		expect(outer().menuActions.onRemoveFromDocument).toBeDefined()
+		const nested = renderHook(() => useLibraryActions(source, inner))
+		expect(nested().menuActions.onDelete).toBeDefined()
+		expect(nested().menuActions.onRemoveFromDocument).toBeUndefined()
+	})
+
 	it("offers no Rename for the user's default library", async () => {
 		const stash = LibraryRecordType.create({ name: 'My stash' })
 		const other = LibraryRecordType.create({ name: 'Shapes' })

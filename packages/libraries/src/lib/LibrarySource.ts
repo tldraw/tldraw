@@ -21,7 +21,9 @@ export type TLLibraryAction =
 
 /**
  * What {@link LibrarySource.can} answers for: a library, by its id, or an owner, by
- * `{ ownerId }`, e.g. whether a library may be created for that owner.
+ * `{ ownerId }`, e.g. whether a library may be created for that owner. A library inside another has
+ * no permissions of its own: it has those of the library at the top of its tree. With a library id,
+ * `'createLibrary'` asks whether a library may be created, or moved, inside it.
  */
 export type TLLibraryTarget = TLLibraryId | { ownerId: string }
 
@@ -47,14 +49,27 @@ export interface TLLibraryOwner {
 
 /** Choices for a new library. */
 export interface TLNewLibraryOptions {
-	/** Who it belongs to. Left out, the source decides, e.g. its default owner. */
+	/**
+	 * Who it belongs to. Left out, the source decides, e.g. its default owner, or, inside a library,
+	 * that library's owner.
+	 */
 	ownerId?: string
+	/**
+	 * The library it goes inside. It then belongs to that library's owner, so `ownerId`, if given,
+	 * must be the same. Left out, it goes at the top level.
+	 */
+	parentId?: TLLibraryId
 	/** Stored on the library as its `meta`, e.g. the pack it was copied from. */
 	meta?: JsonObject
 }
 
-/** How {@link LibrarySource.copyLibrary} names the copy. */
+/** Where {@link LibrarySource.copyLibrary} puts the copy, and how it names it. */
 export interface TLCopyLibraryOptions {
+	/**
+	 * The library to put the copy inside, which must belong to the owner the copy goes to. Left out,
+	 * the copy goes at the top level.
+	 */
+	parentId?: TLLibraryId
 	/**
 	 * The copy's name, from the library's, e.g. "Shapes (Copy)" from "Shapes". Left out, the copy
 	 * has the library's name. A source that limits names' length may shorten the name it passes, so
@@ -124,6 +139,9 @@ export interface LibrarySource {
 	 * these are the ones housed in it, added to it and the user's default (see
 	 * {@link LibrarySource.getLibraryPlacement}); the rest the user may add are
 	 * {@link LibrarySource.getAvailableLibraries}.
+	 *
+	 * Listed flat, a library inside another naming it as its `parentId` (see `getLibraryTree`).
+	 * A library is listed with everything inside it, and never without the library it is in.
 	 */
 	getLibraries(): TLLibrary[]
 	getItems(libraryId: TLLibraryId): TLLibraryItem[]
@@ -145,7 +163,8 @@ export interface LibrarySource {
 	/**
 	 * Fetches a library's items, for a source that lists them only once they are fetched, e.g. from
 	 * a download per library. The panel calls it for each library whose items it is about to show:
-	 * an unfolded section, and every library while a search is active. Called again on each of
+	 * an unfolded section, and every library while a search is active. Only that library's items:
+	 * the libraries inside it load their own when the panel asks. Called again on each of
 	 * those, so return straight away once the items are fetched or being fetched. Failures are the
 	 * source's to report. Optional: a source that lists its items straight away leaves it out.
 	 */
@@ -199,6 +218,7 @@ export interface LibrarySource {
 	 */
 	createLibrary(name: string, options?: TLNewLibraryOptions): Promise<TLLibrary>
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
+	/** Deletes a library with everything inside it: its items, and the libraries in it and theirs. */
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
 	/**
@@ -242,14 +262,18 @@ export interface LibrarySource {
 	 */
 	getDefaultOwnerId?(): string | undefined
 	/**
-	 * Copies a library and its items to an owner, as a new library named by `options.getName`,
-	 * and returns the copy. The items keep their names. Optional: for sources that can copy without the caller loading and adding
-	 * every item again, e.g. on a server. Without it, `copyLibrary` loads each item's content through
+	 * Copies a library, with its items and the libraries inside it and theirs, to the top level of
+	 * `ownerId` or inside `options.parentId`, which must then belong to `ownerId`, as a new library
+	 * named by `options.getName`, and returns the copy. The items, and the libraries inside it, keep
+	 * their names. Left out, `ownerId` is the parent's owner, or the source's default: a source
+	 * without owners leaves it out. Optional: for sources that can copy without the caller loading
+	 * and adding every item again, e.g. on a server. Without it, `copyLibrary` loads each item's
+	 * content through
 	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(
 		libraryId: TLLibraryId,
-		ownerId: string,
+		ownerId: string | undefined,
 		options?: TLCopyLibraryOptions
 	): Promise<TLLibrary>
 
@@ -261,25 +285,30 @@ export interface LibrarySource {
 	 */
 	getNewLibraryOwnerIds?(): string[]
 	/**
-	 * Why a library is shown in this document, or undefined for one it doesn't show. Optional:
+	 * Why a library is shown in this document, or undefined for one it doesn't show. A library
+	 * inside another is shown for the reason the library at the top of its tree is. Optional:
 	 * sources that don't distinguish leave it out, and their libraries are shown without a reason.
 	 */
 	getLibraryPlacement?(libraryId: TLLibraryId): TLLibraryPlacement | undefined
 	/**
 	 * The libraries the user could add to this document: those they may see that it doesn't show
-	 * yet. {@link LibrarySource.getItems} answers for them too, so they can be browsed before being
-	 * added. Optional, with {@link LibrarySource.addLibraryToDocument}: sources whose libraries
+	 * yet, listed flat with everything inside them, as {@link LibrarySource.getLibraries} lists
+	 * libraries. {@link LibrarySource.getItems} answers for them too, so they can be browsed before
+	 * being added. Optional, with {@link LibrarySource.addLibraryToDocument}: sources whose libraries
 	 * are all shown leave both out.
 	 */
 	getAvailableLibraries?(): TLLibrary[]
 	/**
-	 * Shows an available library in this document, for everyone who opens it, and resolves once it
-	 * is listed in {@link LibrarySource.getLibraries}. Adding one already shown does nothing.
+	 * Shows an available library in this document, with everything inside it, for everyone who opens
+	 * it, and resolves once it is listed in {@link LibrarySource.getLibraries}. Only a library at the
+	 * top level is added: the libraries inside it come with it. Adding one already shown does
+	 * nothing.
 	 */
 	addLibraryToDocument?(libraryId: TLLibraryId): Promise<void>
 	/**
 	 * Stops showing a library added to this document. The library and its items stay where they
-	 * are kept, available to add again. Only `'added'` libraries can be removed: one housed in the
+	 * are kept, available to add again, with everything inside them. Only `'added'` libraries at the
+	 * top level can be removed: one inside another goes with it, one housed in the
 	 * document is deleted instead, and the user's default is always shown.
 	 */
 	removeLibraryFromDocument?(libraryId: TLLibraryId): Promise<void>
@@ -304,4 +333,12 @@ export class LibraryNotFoundError extends Error {
 	constructor(readonly id: string) {
 		super(`No library, item or owner with id ${id}`)
 	}
+}
+
+/**
+ * Thrown by a source when a library can't go where it was asked to: inside a library of another
+ * owner than the one named.
+ */
+export class LibraryNestingError extends Error {
+	override name = 'LibraryNestingError'
 }

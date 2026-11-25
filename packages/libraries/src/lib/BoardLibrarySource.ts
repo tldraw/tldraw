@@ -29,6 +29,7 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getLibraryDescendants } from './libraryTree'
 import { mapConcurrently } from './mapConcurrently'
 import { saveErrorMessages } from './saveErrorMessages'
 import {
@@ -234,10 +235,11 @@ export class BoardLibrarySource implements LibrarySource {
 
 	// The board doesn't track owners, so a library can't be given one.
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		this.assertCan('createLibrary')
+		this.assertCan('createLibrary', options.parentId)
 		if (options.ownerId !== undefined) throw new LibraryNotFoundError(options.ownerId)
 		const library = LibraryRecordType.create({
 			name,
+			...(options.parentId === undefined ? {} : { parentId: options.parentId }),
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.write([library])
@@ -255,16 +257,20 @@ export class BoardLibrarySource implements LibrarySource {
 	async deleteLibrary(libraryId: TLLibraryId) {
 		this.getLibrary(libraryId)
 		this.assertCan('deleteLibrary', libraryId)
-		const records = this.query('library-item', () => ({
-			libraryId: { eq: libraryId },
-		})).get()
+		const libraryIds = [
+			libraryId,
+			...getLibraryDescendants(this.getLibraries(), libraryId).map((library) => library.id),
+		]
+		const records = libraryIds.flatMap((id) =>
+			this.query('library-item', () => ({ libraryId: { eq: id } })).get()
+		)
 		const itemIds = records.map((item) => item.id)
 		this.write(
 			[],
-			[libraryId, ...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
+			[...libraryIds, ...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
 			records.flatMap(getThumbnailAssetIds)
 		)
-		this.itemsByLibrary.delete(libraryId)
+		for (const id of libraryIds) this.itemsByLibrary.delete(id)
 	}
 
 	/**

@@ -18,6 +18,7 @@ import {
 	type TLNewLibraryOptions,
 } from './LibrarySource'
 import { getLibraryItemCount, getLibraryPreviewItems } from './librarySummary'
+import { resolveLibraryParent } from './libraryTree'
 import { getThumbnailForColorMode, type TLLibraryItem } from './schema'
 
 /** @public */
@@ -272,15 +273,23 @@ export class CompositeLibrarySource implements LibrarySource {
 		return part.source.getDefaultOwnerId?.() ?? ownersOf(part)[0]?.id
 	}
 
+	/** Inside a library, it is created by that library's part, and takes its owner. */
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
+		const { parentId, meta } = options
+		if (parentId !== undefined) {
+			resolveLibraryParent(this.getLibraries(), parentId, options.ownerId)
+			const part = this.getLibraryPart(parentId)
+			const library = await part.source.createLibrary(name, {
+				parentId,
+				...(meta === undefined ? {} : { meta }),
+			})
+			return part.owner ? { ...library, ownerId: part.owner.id } : library
+		}
 		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
 		if (ownerId === undefined) throw new LibraryPermissionError('createLibrary')
 		const part = this.getOwnerPart(ownerId)
 		if (!part.owner) return part.source.createLibrary(name, { ...options, ownerId })
-		const library = await part.source.createLibrary(
-			name,
-			options.meta === undefined ? {} : { meta: options.meta }
-		)
+		const library = await part.source.createLibrary(name, meta === undefined ? {} : { meta })
 		return { ...library, ownerId: part.owner.id }
 	}
 
@@ -311,16 +320,32 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	/**
 	 * Within a part whose source can copy libraries itself, that source makes the copy; anywhere
-	 * else, each item is loaded and added to the new library.
+	 * else, each library inside it is created again and each item is loaded and added again.
 	 */
-	async copyLibrary(libraryId: TLLibraryId, ownerId: string, options?: TLCopyLibraryOptions) {
+	async copyLibrary(
+		libraryId: TLLibraryId,
+		ownerId: string | undefined,
+		options: TLCopyLibraryOptions = {}
+	) {
 		const from = this.getLibraryPart(libraryId)
-		const to = this.getOwnerPart(ownerId)
+		const { part: to, ownerId: toOwnerId } = this.getDestination(ownerId, options.parentId)
 		if (from === to && !from.owner && from.source.copyLibrary) {
-			return from.source.copyLibrary(libraryId, ownerId, options)
+			return from.source.copyLibrary(libraryId, toOwnerId, options)
 		}
-		const { copied } = await copyLibraryItems(this, libraryId, ownerId, options)
+		const { copied } = await copyLibraryItems(this, libraryId, toOwnerId, options)
 		return copied
+	}
+
+	// Where a library copied to `ownerId` or inside `parentId` goes: the parent's part, or the
+	// owner's, and whose it then is.
+	private getDestination(ownerId: string | undefined, parentId: TLLibraryId | undefined) {
+		if (parentId !== undefined) {
+			const parent = resolveLibraryParent(this.getLibraries(), parentId, ownerId)
+			return { part: this.getLibraryPart(parentId), ownerId: parent.ownerId }
+		}
+		const toOwnerId = ownerId ?? this.getDefaultOwnerId()
+		if (toOwnerId === undefined) throw new LibraryPermissionError('createLibrary')
+		return { part: this.getOwnerPart(toOwnerId), ownerId: toOwnerId }
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {

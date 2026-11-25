@@ -781,7 +781,7 @@ export const libraryItemContentValidator: T.Validator<TLLibraryItemContentRecord
 export const libraryItemRecordValidator: T.Validator<TLLibraryItemRecord>;
 
 // @internal (undocumented)
-export const LibraryRecordType: RecordType<TLLibrary, "name" | "ownerId">;
+export const LibraryRecordType: RecordType<TLLibrary, "name" | "ownerId" | "parentId">;
 
 // @public
 export const librarySchemaRecords: {
@@ -1685,6 +1685,7 @@ export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
     // (undocumented)
     name: string;
     ownerId?: string;
+    parentId?: TLLibraryId;
 }
 
 // @public (undocumented)

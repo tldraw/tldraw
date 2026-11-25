@@ -1,20 +1,25 @@
 import type { TLLibrary } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { flattenLibraryTree, getLibraryTree } from '../lib/libraryTree'
 import type { LibraryMenuTarget } from '../ui/menu-items'
 import { getPanelSections } from './panel-sections'
 
 /**
  * Libraries as menu targets, in the panel's order: the user's default and the document's own first,
- * then the rest. One of the rest is named with its owner when another listed library has its name,
+ * then the rest, each followed by the libraries inside it. One of the rest is named with its owner when another listed library has its name,
  * or when the rest belong to two or more owners.
  */
 export function getLibraryMenuTargets(
 	source: LibrarySource,
 	libraries: TLLibrary[]
 ): LibraryMenuTarget[] {
-	const sections = getPanelSections(source, libraries)
+	const included = new Set(libraries.map((library) => library.id))
+	const ordered = flattenLibraryTree(getLibraryTree(source.getLibraries()))
+		.map((node) => node.library)
+		.filter((library) => included.has(library.id))
+	const sections = getPanelSections(source, ordered)
 	const first = sections ? [...sections.defaults, ...sections.document] : []
-	const rest = sections ? sections.thisFile : libraries
+	const rest = sections ? sections.thisFile : ordered
 	const owners = new Map(
 		(source.getLibraryOwners ? source.getLibraryOwners() : []).map((owner) => [
 			owner.id,

@@ -89,3 +89,23 @@ it("lists a source that doesn't place its libraries as it comes, naming owners w
 	})
 	expect(rows(single)).toEqual(['A', 'B'])
 })
+
+it('lists a library inside another after it, by its own name', () => {
+	const kit = library('kit', 'Kit', 'team')
+	const icons = LibraryRecordType.create({
+		id: LibraryRecordType.createId('icons'),
+		name: 'Icons',
+		ownerId: 'team',
+		parentId: kit.id,
+	})
+	const loose = library('loose', 'Loose', 'team')
+	const source = new InMemoryLibrarySource({
+		owners,
+		initial: { libraries: [icons, loose, kit], items: [], contents: {} },
+	})
+	expect(rows(source)).toEqual(['Loose', 'Kit', 'Icons'])
+	expect(getLibraryMenuTargets(source, [loose, icons]).map(({ name }) => name)).toEqual([
+		'Loose',
+		'Icons',
+	])
+})

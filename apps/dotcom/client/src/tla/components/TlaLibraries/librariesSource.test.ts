@@ -306,6 +306,21 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(getCopyName('Kit', {})).toBe('Kit')
 	})
 
+	it('creates and copies a library at the top level when asked to put it inside another', async () => {
+		const { source } = setUp()
+		const kit = await source.createLibrary('Kit')
+		expect(source.can('createLibrary', kit.id)).toBe(false)
+		const icons = await source.createLibrary('Icons', { parentId: kit.id })
+		const copy = await source.copyLibrary(kit.id, 'acme', { parentId: kit.id })
+		expect(icons.parentId).toBeUndefined()
+		expect(copy.parentId).toBeUndefined()
+		expect(source.getLibraries().map((library) => [library.name, library.parentId])).toEqual([
+			['Kit', undefined],
+			['Icons', undefined],
+			['Kit', undefined],
+		])
+	})
+
 	it('updates, moves and deletes items through the mutators', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Kit')

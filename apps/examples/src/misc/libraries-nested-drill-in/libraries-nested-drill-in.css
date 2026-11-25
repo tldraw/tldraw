@@ -1,0 +1,249 @@
+.drill-in {
+	position: absolute;
+	top: 48px;
+	left: 8px;
+	width: 280px;
+	max-height: calc(100% - 56px);
+	z-index: var(--tl-layer-panels);
+	pointer-events: auto;
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-3);
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+	overflow: hidden;
+}
+
+:where(.drill-in button) {
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+}
+
+.drill-in__header {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-height: 40px;
+	padding: 0 12px;
+}
+
+.drill-in__title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.drill-in__back {
+	padding: 0 6px;
+	font-size: 18px;
+	line-height: 1;
+}
+
+.drill-in__breadcrumb {
+	min-width: 0;
+	padding: 8px 0;
+	font-weight: 600;
+}
+
+.drill-in__breadcrumb button {
+	padding: 0;
+	color: var(--tl-color-text-3);
+	font-weight: 600;
+}
+
+.drill-in__breadcrumb button:hover {
+	color: var(--tl-color-text-1);
+}
+
+.drill-in__search {
+	margin: 0 12px 8px;
+	padding: 6px 8px;
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+	color: inherit;
+	font: inherit;
+}
+
+.drill-in__body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 0 12px 12px;
+	overflow-y: auto;
+}
+
+.drill-in__heading {
+	margin: 4px 0 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+}
+
+.drill-in__card {
+	display: grid;
+	gap: 2px;
+	padding: 8px;
+	border-radius: var(--tl-radius-3);
+	background: var(--tl-color-muted-2);
+}
+
+.drill-in__card:hover,
+.drill-in__row:hover,
+.drill-in__tile:hover {
+	background: var(--tl-color-hint);
+}
+
+.drill-in__card-previews {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	grid-template-rows: 64px;
+	gap: 4px;
+	margin-bottom: 4px;
+}
+
+.drill-in__card-previews > .drill-in__thumbnail {
+	padding: 4px;
+}
+
+.drill-in__card-name,
+.drill-in__row-name {
+	font-weight: 600;
+}
+
+.drill-in__detail {
+	color: var(--tl-color-text-3);
+}
+
+.drill-in__thumbnail {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+}
+
+.drill-in__thumbnail img,
+.drill-in__tile-thumbnail img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	pointer-events: none;
+}
+
+.drill-in__rows,
+.drill-in__grid,
+.drill-in__destinations {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.drill-in__row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 4px;
+	border-radius: var(--tl-radius-2);
+}
+
+.drill-in__row .drill-in__thumbnail {
+	flex-shrink: 0;
+	width: 32px;
+	height: 32px;
+	padding: 2px;
+	background: var(--tl-color-muted-2);
+}
+
+.drill-in__row-name {
+	flex: 1;
+	min-width: 0;
+}
+
+.drill-in__grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 8px;
+}
+
+.drill-in__tile {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	padding: 4px;
+	border-radius: var(--tl-radius-2);
+	touch-action: pan-y;
+}
+
+.drill-in__tile-thumbnail {
+	display: flex;
+	overflow: hidden;
+	align-items: center;
+	justify-content: center;
+	height: 88px;
+	padding: 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+}
+
+.drill-in__tile-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--tl-color-text-3);
+}
+
+.drill-in__actions {
+	display: flex;
+	gap: 4px;
+}
+
+.drill-in__actions button,
+.drill-in__add-more {
+	padding: 6px 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+}
+
+.drill-in__actions button:disabled,
+.drill-in__add-more:disabled {
+	color: var(--tl-color-text-3);
+	cursor: default;
+}
+
+.drill-in__add-more {
+	text-align: center;
+}
+
+.drill-in__empty {
+	margin: 0;
+	color: var(--tl-color-text-3);
+}
+
+.drill-in__destinations button {
+	width: 100%;
+	padding: 6px 8px;
+	padding-inline-start: calc(8px + var(--drill-in-depth, 0) * 16px);
+	border: none;
+	border-radius: var(--tl-radius-2);
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-align: start;
+	cursor: pointer;
+}
+
+.drill-in__destinations button:hover:not(:disabled) {
+	background: var(--tl-color-hint);
+}
