@@ -1,17 +1,13 @@
-import { type ReactNode, useCallback, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
 	useEditor,
-	useToasts,
 	useTranslation,
-	useUiEvents,
 	useValue,
 	type TLLibrary,
-	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { getContentTooNewToast } from './content-too-new-toast'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
@@ -32,18 +28,17 @@ import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
-import { placeLibraryItem } from './place-item'
+import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
-import { getLibraryErrorReason } from './ui-events'
 import { useCreateLibrary } from './use-create-library'
-import { useItemDrag } from './use-item-drag'
+import { useLibraryItemDrag } from './use-item-drag'
+import { useLibraries } from './use-libraries'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 	newLibrary: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	newLibraryIn: { id: 'libraries.group.new-library', defaultMessage: 'New library in {name}' },
-	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
 })
 
 /** @public */
@@ -60,6 +55,11 @@ export interface LibrariesPanelProps {
 	prepareItemContent?: PrepareItemContent
 	/** Replaces or hides pieces of the panel. See {@link LibrariesComponents}. */
 	components?: LibrariesComponents
+	/**
+	 * Places an item when it's clicked or dragged out, e.g. without selecting it. Defaults to
+	 * {@link defaultPlaceLibraryItem}.
+	 */
+	placeItem?: LibraryItemPlacer
 }
 
 /**
@@ -69,6 +69,25 @@ export interface LibrariesPanelProps {
  * active tab's owner. Setting {@link activeLibraryId} switches to the tab holding that library.
  * Clicking an item places a copy of it in the middle of the viewport; dragging one out drops it
  * under the pointer.
+ *
+ * A drag starts once the pointer has left the panel and moved past the editor's
+ * `uiDragDistanceSquared` option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a
+ * tool out of the toolbar does. Set them with `<Tldraw options={{ … }}>`.
+ *
+ * Its size and position follow CSS variables set on the panel or any element around it:
+ *
+ * - `--tlui-libraries-panel-inset-top`: the gap above the panel. Defaults to `48px`, below the
+ *   main menu.
+ * - `--tlui-libraries-panel-inset-side`: the gap between the panel and its side of the canvas.
+ *   Defaults to `8px`.
+ * - `--tlui-libraries-panel-max-height`: the tallest the panel grows before it scrolls. Defaults to
+ *   the canvas's height less the two insets, at most `720px`.
+ * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
+ *
+ * `--tlui-libraries-tile-width` is the width of a tile, `86.67px` by default, and the panel is three
+ * tiles wide (280px with its 20px of gutter) whatever the number of columns. The default is set on the panel itself, so override
+ * it with a rule on `.tlui-libraries-panel`. Read it to size an `ItemTile` override or anything
+ * else to match the tiles.
  * @public @react
  */
 export function LibrariesPanel({ components, ...props }: LibrariesPanelProps) {
@@ -84,39 +103,17 @@ function LibrariesPanelContent({
 	side = 'left',
 	menuItems,
 	prepareItemContent,
+	placeItem,
 }: Omit<LibrariesPanelProps, 'components'>) {
 	const editor = useEditor()
 	const { LibrariesPanelHeader = DefaultLibrariesPanelHeader, NoLibraries = DefaultNoLibraries } =
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
-	const { addToast } = useToasts()
-	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
-	const libraries = useValue('libraries', () => source.getLibraries(), [source])
+	const libraries = useLibraries(source)
 	const grouping = useLibraryGrouping(source)
-	const placeItem = useCallback(
-		(itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).then(
-				() => trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
-				(error) => {
-					trackEvent('library-error', {
-						source: 'libraries',
-						action: 'place-library-item',
-						reason: getLibraryErrorReason(error),
-					})
-					addToast(
-						getContentTooNewToast(error, msg) ?? {
-							title: msg(messages.placeErrorTitle),
-							severity: 'error',
-						}
-					)
-				}
-			)
-		},
-		[editor, source, addToast, msg, trackEvent]
-	)
-	const getItemProps = useItemDrag(source, placeItem)
+	const getItemProps = useLibraryItemDrag(source, { placeItem })
 	const createLibrary = useCreateLibrary(source)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()

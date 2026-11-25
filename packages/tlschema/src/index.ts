@@ -131,6 +131,7 @@ export {
 	type TLLibraryItemId,
 	type TLLibraryItemRecord,
 	type TLLibraryRecord,
+	type TLLibraryRecordPropsMap,
 	type TLLibraryThumbnail,
 } from './records/TLLibrary'
 export {

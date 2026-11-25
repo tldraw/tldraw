@@ -17,21 +17,49 @@ export {
 	type NewLibraryAction,
 } from './canvas/libraries-panel-header'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
-export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
+export { LibrariesQuickActions, LibrariesToolbarButton } from './canvas/libraries-quick-actions'
 export {
 	LibrarySectionHeader,
 	type LibrarySectionHeaderProps,
 } from './canvas/library-section-header'
 export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
 export { useLibrariesEnabled } from './canvas/license'
+export { type TLLibraryItemOrdering } from './canvas/item-order'
+export { useLibraries } from './canvas/use-libraries'
+export { useLibraryCan } from './canvas/use-library-can'
+export { useLibraryCollapsed } from './canvas/use-library-collapsed'
+export { type LibraryItemOrder, useLibraryItemOrder } from './canvas/use-library-item-order'
+export { type LibraryItemsOptions, useLibraryItems } from './canvas/use-library-items'
+export {
+	type LibraryThumbnailUrlsOptions,
+	useLibraryThumbnailUrls,
+} from './canvas/use-library-thumbnail-urls'
+export { type LibraryItemDragOptions, useLibraryItemDrag } from './canvas/use-item-drag'
+export { type LibraryActions, useLibraryActions } from './canvas/use-library-actions'
+export { type LibraryItemActions, useLibraryItemActions } from './canvas/use-library-item-actions'
+export {
+	type SaveSelectionToLibrary,
+	useSaveSelectionToLibrary,
+} from './canvas/use-save-selection-to-library'
 export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
-export { placeLibraryItem } from './canvas/place-item'
+export {
+	defaultPlaceLibraryItem,
+	type LibraryItemPlacer,
+	placeLibraryItem,
+	type TLLibraryItemPlacement,
+	type TLPlaceLibraryItemOptions,
+} from './canvas/place-item'
 export {
 	saveShapesToLibrary,
 	type PrepareItemContent,
 	type SaveShapesOptions,
 } from './canvas/save-shapes'
-export { activeLibraryId, librariesPanelOpen, toggleLibrariesPanel } from './canvas/state'
+export {
+	activeLibraryId,
+	collapsedLibraryIds,
+	librariesPanelOpen,
+	toggleLibrariesPanel,
+} from './canvas/state'
 export {
 	getLibraryErrorReason,
 	type TLLibrariesUiEventMap,

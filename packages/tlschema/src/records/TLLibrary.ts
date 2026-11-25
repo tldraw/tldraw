@@ -14,7 +14,7 @@ import { CustomRecordInfo } from './TLCustomRecord'
 import { TLShape, TLShapeId } from './TLShape'
 import { TLUser } from './TLUser'
 
-/** @internal */
+/** @public */
 export type TLLibraryId = RecordId<TLLibrary>
 
 /**
@@ -23,7 +23,7 @@ export type TLLibraryId = RecordId<TLLibrary>
  * Libraries kept in a document are opt-in: register `librarySchemaRecords` with
  * `createTLSchema({ records })` on the server and the matching `records` option on the client.
  *
- * @internal
+ * @public
  */
 export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
 	name: string
@@ -41,11 +41,11 @@ export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
  * both. `Src` is what names each image: an asset id on a stored item, a URL on a listed one, a
  * `Blob` when adding one.
  *
- * @internal
+ * @public
  */
 export type TLLibraryThumbnail<Src = string> = Src | { light: Src; dark: Src }
 
-/** @internal */
+/** @public */
 export type TLLibraryItemId = RecordId<TLLibraryItemRecord>
 
 /**
@@ -54,7 +54,7 @@ export type TLLibraryItemId = RecordId<TLLibraryItemRecord>
  * content is a separate {@link TLLibraryItemContentRecord}, so listing a library never reads
  * shapes.
  *
- * @internal
+ * @public
  */
 export interface TLLibraryItemRecord extends BaseRecord<'library-item', TLLibraryItemId> {
 	libraryId: TLLibraryId
@@ -69,7 +69,7 @@ export interface TLLibraryItemRecord extends BaseRecord<'library-item', TLLibrar
 	meta: JsonObject
 }
 
-/** @internal */
+/** @public */
 export type TLLibraryItemContentRecordId = RecordId<TLLibraryItemContentRecord>
 
 /**
@@ -80,7 +80,7 @@ export type TLLibraryItemContentRecordId = RecordId<TLLibraryItemContentRecord>
  * document does with its assets happens to these too. The shapes stay at the schema they were
  * saved with, in `content.schema`, and are migrated when the content is loaded.
  *
- * @internal
+ * @public
  */
 export interface TLLibraryItemContentRecord extends BaseRecord<
 	'library-item-content',
@@ -98,8 +98,32 @@ export interface TLLibraryItemContentRecord extends BaseRecord<
 	meta: JsonObject
 }
 
-/** @internal */
+/** @public */
 export type TLLibraryRecord = TLLibrary | TLLibraryItemRecord | TLLibraryItemContentRecord
+
+/**
+ * The library record types by type name, for a host to add to `TLGlobalRecordPropsMap` so that
+ * `TLRecord` includes them. Do so only where the store registers {@link librarySchemaRecords}:
+ * the types then match what the store holds.
+ *
+ * @example
+ * ```ts
+ * const schema = createTLSchema({ records: librarySchemaRecords })
+ *
+ * declare module 'tldraw' {
+ * 	interface TLGlobalRecordPropsMap extends TLLibraryRecordPropsMap {}
+ * }
+ *
+ * editor.store.query.records('library-item') // typed as TLLibraryItemRecord
+ * ```
+ *
+ * @public
+ */
+export interface TLLibraryRecordPropsMap {
+	library: TLLibrary
+	'library-item': TLLibraryItemRecord
+	'library-item-content': TLLibraryItemContentRecord
+}
 
 const nonEmptyString = T.string.check((value) => {
 	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
@@ -181,7 +205,7 @@ export const LibraryItemContentRecordType = createRecordType<TLLibraryItemConten
  * The `records` map to pass to `createTLSchema` / the client `records` option so a document can
  * hold libraries. Register the types together, and identically on both sides of a connection.
  *
- * @internal
+ * @public
  */
 export const librarySchemaRecords = {
 	library: {
