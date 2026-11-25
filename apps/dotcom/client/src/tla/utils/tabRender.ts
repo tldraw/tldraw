@@ -1,4 +1,6 @@
 import {
+	TAB_RENDER_MAX_EXPORT_TEXT_SHAPES,
+	TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE,
 	TabRenderApplyOpsRequest,
 	TabRenderDeclineReason,
 	TabRenderReadRequest,
@@ -8,6 +10,7 @@ import {
 	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
 	findMcpPage,
+	getBatchKeyMetaEntry,
 	readMcpPage,
 	toShapeMeasurements,
 } from '@tldraw/dotcom-shared'
@@ -49,8 +52,11 @@ const SLICE_MS = 8
 const FONT_WAIT_MS = 1_500
 
 // An export can't be sliced: it renders every shape in one synchronous flush, on the main thread of a
-// tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
-const MAX_EXPORT_SHAPES = 500
+// tab that may be in use, and nothing else answers a screenshot it declines. The flush is mostly
+// embedding the computed styles of each text label, about 2.5ms a label on an M2, while a shape
+// without text costs about a fiftieth of that. In a benchmark, 500 diagram shapes froze the tab for a
+// second, and 4,000 freehand strokes for under a quarter of one. 200 labels is about half a second.
+// The budget itself is TAB_RENDER_MAX_EXPORT_TEXT_SHAPES, shared so the worker can quote it.
 
 // Longer than this since the job arrived and its answer may not reach the worker before the job's
 // timeout. For a read that would be main thread time spent on nobody. For a write it's worse: the agent
@@ -71,15 +77,24 @@ function enqueueWork(run: () => Promise<TabRenderReply>) {
 	return result
 }
 
+// Sends the tab's edits now and resolves once the server has committed them. Edits normally go out on
+// an animation frame, and a hidden tab gets none.
+type FlushChanges = () => Promise<boolean>
+
 export async function answerTabRender(
 	editor: Editor | null,
+	flushChanges: FlushChanges | null,
 	fileId: string,
 	{ jobId, request }: TabRenderServerEvent
 ) {
 	const receivedAt = Date.now()
 	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, body)
 
-	const refusal = editor ? getRefusal(editor, request) : 'editor_not_ready'
+	// A hidden tab applies what the server sends on an animation frame it never gets, so without this
+	// it answers from a board that's behind everyone else's. The catch-up is synchronous; waiting on the
+	// server to confirm this tab's own edits is only for writes.
+	void flushChanges?.()
+	const refusal = editor ? getRefusal(editor, request, flushChanges) : 'editor_not_ready'
 	if (refusal || !editor) {
 		await reply({ status: 'declined', reason: refusal ?? 'editor_not_ready' })
 		return
@@ -95,21 +110,26 @@ export async function answerTabRender(
 	}
 
 	try {
-		await reply(await doWork(editor, request, receivedAt))
+		await reply(await doWork(editor, flushChanges, request, receivedAt))
 	} catch (error) {
 		console.error('Could not answer a tab render job', error)
 		await reply({ status: 'declined', reason: 'failed' })
 	}
 }
 
-function doWork(editor: Editor, request: TabRenderRequest, receivedAt: number) {
+function doWork(
+	editor: Editor,
+	flushChanges: FlushChanges | null,
+	request: TabRenderRequest,
+	receivedAt: number
+) {
 	switch (request.mode) {
 		case 'read':
 			return readPage(editor, request)
 		case 'screenshot':
-			return queueCapture(editor, request, receivedAt)
+			return queueCapture(editor, flushChanges, request, receivedAt)
 		case 'apply_ops':
-			return queueApplyOps(editor, request, receivedAt)
+			return queueApplyOps(editor, flushChanges, request, receivedAt)
 		case 'user_state':
 			return readUserState(editor)
 	}
@@ -132,15 +152,19 @@ function getApplyPageId(editor: Editor, page: TabRenderApplyOpsRequest['page']) 
 	return page.kind === 'id' ? (page.id as TLPageId) : editor.getPages()[page.ordinal]?.id
 }
 
-function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDeclineReason | undefined {
+function getRefusal(
+	editor: Editor,
+	request: TabRenderRequest,
+	flushChanges: FlushChanges | null
+): TabRenderDeclineReason | undefined {
 	// A page this tab doesn't have is part of a read's answer: it says which pages there are.
 	if (request.mode === 'read') return undefined
 	if (request.mode === 'user_state') return undefined
 	if (request.mode === 'apply_ops') {
 		if (editor.getIsReadonly()) return 'read_only'
-		// The user has to be watching: a hidden tab's edits wait for an animation frame before they're
-		// sent, so a batch could report success and be lost if the tab closed first.
-		if (document.visibilityState !== 'visible') return 'tab_hidden'
+		// Without a way to send them now, a hidden tab's edits wait for an animation frame it never
+		// gets, so a batch could report success and be lost if the tab closed first.
+		if (!flushChanges && document.visibilityState !== 'visible') return 'tab_hidden'
 		const pageId = getApplyPageId(editor, request.page)
 		if (!pageId || !editor.getPage(pageId)) return 'page_missing'
 		// Ops place shapes on the page in view, so a batch meant for another page would land on the
@@ -158,31 +182,69 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 	if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
 	const ids = getRequestedShapeIds(editor, request.shapeIds)
 	if (ids.length === 0) return 'shapes_missing'
-	if (editor.getShapeAndDescendantIds(ids).size > MAX_EXPORT_SHAPES) return 'too_many_shapes'
+	if (isTooCostlyToExport(editor, ids)) return 'too_many_shapes'
 	if (editor.inputs.getIsDragging()) return 'busy'
 	return undefined
 }
 
+function isTooCostlyToExport(editor: Editor, ids: TLShapeId[]) {
+	let textShapes = 0
+	for (const id of editor.getShapeAndDescendantIds(ids)) {
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		textShapes += editor.getShapeUtil(shape).getText(shape)?.trim()
+			? 1
+			: 1 / TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE
+		if (textShapes > TAB_RENDER_MAX_EXPORT_TEXT_SHAPES) return true
+	}
+	return false
+}
+
 // Checked again at the front of the queue, because the page, the shapes and the user's drag can all
 // have moved on while it waited.
-function queueCapture(editor: Editor, request: TabRenderScreenshotRequest, receivedAt: number) {
+function queueCapture(
+	editor: Editor,
+	flushChanges: FlushChanges | null,
+	request: TabRenderScreenshotRequest,
+	receivedAt: number
+) {
 	return enqueueWork(async () => {
-		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+		void flushChanges?.()
+		const reason =
+			Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request, null)
 		return reason ? { status: 'declined', reason } : capturePage(editor, request)
 	})
 }
 
-function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest, receivedAt: number) {
+function queueApplyOps(
+	editor: Editor,
+	flushChanges: FlushChanges | null,
+	request: TabRenderApplyOpsRequest,
+	receivedAt: number
+) {
 	return enqueueWork(async (): Promise<TabRenderReply> => {
-		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
+		// Waited on, unlike a read's catch-up: the batch must not land on top of this tab's own unsent
+		// edits from before, or report them as its own if the server refuses them.
+		const flushed = flushChanges ? await flushChanges() : true
+		// A resend comes only to the tab that took the first attempt, the one place an unconfirmed copy
+		// can be. The key is in this store if that copy is here or already on the server, and missing if
+		// this tab lost it, by a reload or a refused push, in which case nothing can land it any more.
+		const { batchKey, userId } = request.attribution
+		if (
+			batchKey &&
+			Object.hasOwn(editor.getDocumentSettings().meta, getBatchKeyMetaEntry(userId, batchKey))
+		) {
+			return { status: 'declined', reason: flushed ? 'already_applied' : 'unconfirmed' }
+		}
+		if (!flushed) return { status: 'declined', reason: 'failed' }
+		// Again, because the flush can take long enough for the worker to have given up.
+		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
+		const reason = getRefusal(editor, request, flushChanges)
 		if (reason) return { status: 'declined', reason }
+		let result
 		try {
-			const result = createCanvasOpsReceiver(editor).applyBatch(
-				{ ops: request.ops },
-				request.attribution
-			)
-			const page = editor.getCurrentPage()
-			return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
+			result = createCanvasOpsReceiver(editor).applyBatch({ ops: request.ops }, request.attribution)
 		} catch (error) {
 			if (error instanceof z.ZodError) {
 				return {
@@ -196,6 +258,14 @@ function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest, receiv
 			console.error('A batch of ops failed partway', error)
 			return { status: 'declined', reason: 'apply_failed' }
 		}
+		// Before the wait below, during which the user can switch pages.
+		const page = editor.getCurrentPage()
+		// Applied here isn't applied for anyone else until the server commits it. If it doesn't, the
+		// edits may still land when the tab reconnects, so the agent must check before resending.
+		if (flushChanges && !(await flushChanges())) {
+			return { status: 'declined', reason: 'unconfirmed' }
+		}
+		return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 	})
 }
 

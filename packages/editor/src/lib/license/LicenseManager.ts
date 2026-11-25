@@ -4,7 +4,7 @@ import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
-const GRACE_PERIOD_DAYS = 30
+const GRACE_PERIOD_DAYS = 5
 
 export const FLAGS = {
 	// -- MUTUALLY EXCLUSIVE FLAGS
@@ -30,6 +30,8 @@ export const FLAGS = {
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
 	TRACKED: 1 << 8,
+	// Libraries is a sub-feature of collaboration.
+	FEAT_LIBRARIES: 1 << 9,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -80,19 +82,21 @@ export interface LicenseInfo {
 
 /**
  * Names of the licensable product features gated by the license. `collaboration` is an umbrella
- * that also grants all of its sub-features (currently just `commenting`).
+ * that also grants all of its sub-features (currently `commenting` and `libraries`).
  *
  * @internal
  */
-export type LicenseFeatureName = 'collaboration' | 'commenting'
+export type LicenseFeatureName = 'collaboration' | 'commenting' | 'libraries'
 
 const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: false,
 	commenting: false,
+	libraries: false,
 }
 const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: true,
 	commenting: true,
+	libraries: true,
 }
 
 /** @internal */
@@ -102,7 +106,7 @@ export type LicenseState =
 	| 'licensed-with-watermark' // License is valid but shows watermark (evaluation licenses, WITH_WATERMARK licenses)
 	| 'unlicensed' // No valid license found or license is invalid (development)
 	| 'unlicensed-production' // No valid license in production deployment (missing, invalid, or wrong domain)
-	| 'expired' // License has been expired (30 days past expiration for regular licenses, immediately for evaluation licenses)
+	| 'expired' // License has been expired (+ grace period days past expiration for regular licenses, immediately for evaluation licenses)
 /** @internal */
 export type InvalidLicenseReason =
 	| 'invalid-license-key'
@@ -136,6 +140,7 @@ export interface ValidLicenseKeyResult {
 	isEvaluationLicenseExpired: boolean
 	isCollaborationEnabled: boolean
 	isCommentingEnabled: boolean
+	isLibrariesEnabled: boolean
 	daysSinceExpiry: number
 }
 
@@ -253,7 +258,7 @@ export class LicenseManager {
 	/**
 	 * The license tldraw's own domains get without a key. It keeps the watermark — our properties
 	 * advertise the SDK the same way any other watermarked deployment does — and grants the
-	 * collaboration features our apps are built on.
+	 * collaboration and libraries features our apps are built on.
 	 *
 	 * Every expiry-derived field is a literal rather than something computed from a date, because
 	 * there is no key here to expire: the grant lasts as long as the host is ours.
@@ -264,7 +269,11 @@ export class LicenseManager {
 			license: {
 				id: CANONICAL_HOST_LICENSE_ID,
 				hosts: [window.location.hostname.toLowerCase()],
-				flags: FLAGS.WITH_WATERMARK | FLAGS.FEAT_COLLABORATION | FLAGS.FEAT_COMMENTING,
+				flags:
+					FLAGS.WITH_WATERMARK |
+					FLAGS.FEAT_COLLABORATION |
+					FLAGS.FEAT_COMMENTING |
+					FLAGS.FEAT_LIBRARIES,
 				expiryDate: CANONICAL_HOST_NEVER_EXPIRES.toISOString(),
 			},
 			isDevelopment: this.isDevelopment,
@@ -281,6 +290,7 @@ export class LicenseManager {
 			isEvaluationLicenseExpired: false,
 			isCollaborationEnabled: true,
 			isCommentingEnabled: true,
+			isLibrariesEnabled: true,
 			daysSinceExpiry: 0,
 		}
 	}
@@ -450,11 +460,13 @@ export class LicenseManager {
 			const isPerpetualLicenseExpired =
 				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
 
-			// The collaboration umbrella grants all of its sub-features, so commenting is enabled
-			// by either the commenting flag or the collaboration flag.
+			// The collaboration umbrella grants all of its sub-features, so commenting and libraries
+			// are each enabled by their own flag or the collaboration flag.
 			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
 			const isCommentingEnabled =
 				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
+			const isLibrariesEnabled =
+				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_LIBRARIES)
 
 			// For perpetual licenses, the calendar expiry date only gates access to future
 			// major/minor releases; it does not "expire" the license itself. While the user
@@ -481,6 +493,7 @@ export class LicenseManager {
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
 				isCollaborationEnabled,
 				isCommentingEnabled,
+				isLibrariesEnabled,
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -674,7 +687,7 @@ export function getEnabledFeatures(
 		return { ...ALL_FEATURES }
 	}
 
-	// Features require an active, valid license. Both the 30-day grace-period 'licensed' state and
+	// Features require an active, valid license. Both the grace-period 'licensed' state and
 	// the watermark state count as valid; unlicensed/expired/pending do not.
 	if (
 		!result.isLicenseParseable ||
@@ -693,6 +706,7 @@ export function getEnabledFeatures(
 	return {
 		collaboration: result.isCollaborationEnabled,
 		commenting: result.isCommentingEnabled,
+		libraries: result.isLibrariesEnabled,
 	}
 }
 
@@ -748,7 +762,7 @@ export function getLicenseState(
 	// Handle expired regular licenses (both annual and perpetual)
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
 		outputMessages([
-			'Your tldraw license has been expired for more than 30 days!',
+			`Your tldraw license has been expired for more than ${GRACE_PERIOD_DAYS} days!`,
 			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
 		])
 		return 'expired'
@@ -762,7 +776,7 @@ export function getLicenseState(
 			`License expired ${daysSinceExpiry} days ago.`,
 			`Please reach out to ${LICENSE_EMAIL} to renew your license.`,
 		])
-		// Within 30-day grace period: still licensed (no watermark)
+		// Within grace period: still licensed (no watermark)
 		return 'licensed'
 	}
 

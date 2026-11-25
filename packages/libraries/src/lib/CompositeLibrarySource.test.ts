@@ -1,11 +1,31 @@
 import { react } from '@tldraw/state'
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import {
+	LibraryRecordType,
+	createShapeId,
+	createTLSchema,
+	type TLLibraryId,
+	type TLLibraryItemId,
+} from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType, type TLLibraryItemContent } from './schema'
+import {
+	LibraryNotFoundError,
+	LibraryPermissionError,
+	type LibrarySource,
+	type TLLibraryThumbnailContext,
+	type TLNewLibraryItem,
+} from './LibrarySource'
+import { LibraryItemRecordType, type TLLibraryItem, type TLLibraryItemContent } from './schema'
+import { trackItemsStoring, whenItemsStored } from './whenItemsStored'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 function content(name: string): TLLibraryItemContent {
 	const id = createShapeId(name)
@@ -20,6 +40,16 @@ function content(name: string): TLLibraryItemContent {
 		},
 	}
 }
+
+// The source as one written without addItems would be.
+const withoutAddItems = (source: LibrarySource): LibrarySource =>
+	new Proxy(source, {
+		get: (target, key) => {
+			if (key === 'addItems') return undefined
+			const value = Reflect.get(target, key)
+			return typeof value === 'function' ? value.bind(target) : value
+		},
+	})
 
 const tldraw = { id: 'tldraw', name: 'tldraw' }
 const personal = { id: 'home', name: 'Personal' }
@@ -87,11 +117,11 @@ describe('CompositeLibrarySource', () => {
 		const { source, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
 		expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id])
-		const item = await source.addItem(kit.id, { name: 'Star', content: content('star') })
+		const item = await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
 		expect(source.getItems(kit.id)).toEqual(team.getItems(kit.id))
 		expect(await source.getItemContent(item.id)).toEqual(content('star'))
-		await source.renameItem(item.id, 'Heart')
-		expect(team.getItems(kit.id)[0].name).toBe('Heart')
+		await source.updateItem(item.id, { name: 'Heart', meta: { starred: true } })
+		expect(team.getItems(kit.id)[0]).toMatchObject({ name: 'Heart', meta: { starred: true } })
 		await source.renameLibrary(kit.id, 'Icons')
 		expect(team.getLibraries()[0].name).toBe('Icons')
 		await source.deleteItem(item.id)
@@ -100,6 +130,38 @@ describe('CompositeLibrarySource', () => {
 
 		const [button] = source.getItems(wireframing)
 		expect(await source.getItemContent(button.id)).toEqual(content('button'))
+	})
+
+	it('adds several items through the part holding the library, together where it can', async () => {
+		const { source, team } = setUp()
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		const addItems = vi.spyOn(team, 'addItems')
+		const items = await added(
+			source.addItems(kit.id, [
+				{ name: 'Star', content: content('star') },
+				{ name: 'Heart', content: content('heart') },
+			])
+		)
+		expect(addItems).toHaveBeenCalledTimes(1)
+		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
+		expect(team.getItems(kit.id)).toEqual(expect.arrayContaining(items))
+	})
+
+	it('adds several items one at a time to a part without addItems', async () => {
+		const mine = new InMemoryLibrarySource({ id: 'mine' })
+		const addItem = vi.spyOn(mine, 'addItem')
+		const source = new CompositeLibrarySource({
+			parts: [{ owner: personal, source: withoutAddItems(mine) }],
+		})
+		const kit = await source.createLibrary('Kit')
+		const items = await added(
+			source.addItems(kit.id, [
+				{ name: 'Star', content: content('star') },
+				{ name: 'Heart', content: content('heart') },
+			])
+		)
+		expect(addItem).toHaveBeenCalledTimes(2)
+		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
 	})
 
 	it('delegates permissions to the part', () => {
@@ -167,13 +229,6 @@ describe('CompositeLibrarySource', () => {
 		expect(team.getLibraries()).toHaveLength(1)
 	})
 
-	it("won't move a library out of a read-only part, and copies nothing", async () => {
-		const { source, mine, kits } = setUp()
-		await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
-		expect(mine.getLibraries()).toEqual([])
-		expect(kits.getLibraries()).toHaveLength(1)
-	})
-
 	it("copies a read-only part's library into a writable part, leaving the original", async () => {
 		const { source, mine, kits } = setUp()
 		await copyLibrary(source, wireframing, 'home')
@@ -190,25 +245,103 @@ describe('CompositeLibrarySource', () => {
 		])
 	})
 
-	it('moves a library between writable parts', async () => {
-		const { source, mine, team } = setUp()
-		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
-		await source.addItem(kit.id, { name: 'Star', content: content('star') })
-		await source.moveLibrary(kit.id, 'acme')
-		expect(mine.getLibraries()).toEqual([])
-		const [moved] = team.getLibraries()
-		expect(moved.name).toBe('Kit')
-		expect(team.getItems(moved.id).map((item) => item.name)).toEqual(['Star'])
-	})
-
 	it('moves an item between parts by copying it and deleting the original', async () => {
 		const { source, mine, team } = setUp()
 		const from = await source.createLibrary('Kit', { ownerId: 'home' })
 		const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
-		const item = await source.addItem(from.id, { name: 'Star', content: content('star') })
+		const item = await added(source.addItem(from.id, { name: 'Star', content: content('star') }))
 		await source.moveItem!(item.id, to.id)
-		expect(mine.getItems(from.id)).toEqual([])
 		expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
+		await vi.waitFor(() => expect(mine.getItems(from.id)).toEqual([]))
+	})
+
+	it("keeps an item's meta when moving it between parts", async () => {
+		const { source, team } = setUp()
+		const from = await source.createLibrary('Kit', { ownerId: 'home' })
+		const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
+		const item = await added(
+			source.addItem(from.id, { content: content('star'), meta: { category: 'Shapes' } })
+		)
+		await source.moveItem!(item.id, to.id)
+		expect(team.getItems(to.id).map((i) => i.meta)).toEqual([{ category: 'Shapes' }])
+	})
+
+	describe('a part that stores added items after listing them', () => {
+		// Lists added items at once, then fails to store them and removes them again.
+		function failingToStore(source: InMemoryLibrarySource): LibrarySource {
+			const failToStore = (itemIds: TLLibraryItemId[]) => {
+				const stored = (async () => {
+					await new Promise((resolve) => setTimeout(resolve, 1))
+					for (const itemId of itemIds) await source.deleteItem(itemId)
+					throw new Error('storing failed')
+				})()
+				trackItemsStoring(itemIds, stored)
+			}
+			return new Proxy(source, {
+				get: (target, key) => {
+					if (key === 'addItem') {
+						return async (libraryId: TLLibraryId, newItem: TLNewLibraryItem) => {
+							const item = await target.addItem(libraryId, newItem)
+							failToStore([item.id])
+							return item
+						}
+					}
+					if (key === 'addItems') {
+						return async (libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) => {
+							const items = await target.addItems(libraryId, newItems)
+							failToStore(items.map((item) => item.id))
+							return items
+						}
+					}
+					const value = Reflect.get(target, key)
+					return typeof value === 'function' ? value.bind(target) : value
+				},
+			})
+		}
+
+		function setUpFailing() {
+			const mine = new InMemoryLibrarySource({ id: 'mine' })
+			const team = new InMemoryLibrarySource({ id: 'team' })
+			const source = new CompositeLibrarySource({
+				parts: [
+					{ owner: personal, source: mine },
+					{ owner: acme, source: failingToStore(team) },
+				],
+			})
+			return { source, mine, team }
+		}
+
+		it('resolves an add to the part once listed, while the part goes on storing it', async () => {
+			const { source, team } = setUpFailing()
+			const kit = await source.createLibrary('Team kit', { ownerId: 'acme' })
+			const item = await source.addItem(kit.id, { content: content('star') })
+			expect(team.getItems(kit.id)).toEqual([item])
+			await expect(whenItemsStored([item.id])).rejects.toThrow('storing failed')
+			expect(team.getItems(kit.id)).toEqual([])
+		})
+
+		it('resolves a move once the copy is listed, and keeps the original if saving fails', async () => {
+			const { source, mine, team } = setUpFailing()
+			const from = await source.createLibrary('Kit', { ownerId: 'home' })
+			const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
+			const item = await added(source.addItem(from.id, { name: 'Star', content: content('star') }))
+			await source.moveItem!(item.id, to.id)
+			expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
+
+			await vi.waitFor(() => expect(team.getItems(to.id)).toEqual([]))
+			await new Promise((resolve) => setTimeout(resolve, 5))
+			expect(mine.getItems(from.id).map((i) => i.name)).toEqual(['Star'])
+		})
+
+		it('resolves a copy once listed, deleting the copy and keeping the original if saving fails', async () => {
+			const { source, mine, team } = setUpFailing()
+			const kit = await source.createLibrary('Kit', { ownerId: 'home' })
+			await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
+			const copy = await copyLibrary(source, kit.id, 'acme')
+			expect(team.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
+			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
+			expect(mine.getItems(kit.id).map((i) => i.name)).toEqual(['Star'])
+		})
 	})
 
 	describe('a part that lists its own owners', () => {
@@ -235,20 +368,60 @@ describe('CompositeLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBe('acme')
 			const kit = await source.createLibrary('Kit')
 			expect(kit.ownerId).toBe('acme')
-			await source.moveLibrary(kit.id, 'home')
-			expect(mine.getLibraries()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
-		})
-
-		it("won't move a read-only part's library to one of its owners", async () => {
-			const { source, mine } = setUpOwned()
-			await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
-			expect(mine.getLibraries()).toEqual([])
+			const home = await source.createLibrary('Home kit', { ownerId: 'home' })
+			expect(mine.getLibraries()).toMatchObject([
+				{ id: kit.id, ownerId: 'acme' },
+				{ id: home.id, ownerId: 'home' },
+			])
 		})
 
 		it("copies a read-only part's library to one of its owners", async () => {
 			const { source, mine } = setUpOwned()
 			await copyLibrary(source, wireframing, 'home')
 			expect(mine.getLibraries()).toMatchObject([{ name: 'Wireframing', ownerId: 'home' }])
+		})
+	})
+
+	describe('parts naming the same owner', () => {
+		// A writable part, then a read-only part listed beside it under the same owner.
+		function setUpShared() {
+			const team = new InMemoryLibrarySource({ id: 'team' })
+			const generated = new InMemoryLibrarySource({
+				owners: [personal, { ...acme, name: 'Generated' }],
+				can: () => false,
+				initial: {
+					libraries: [
+						LibraryRecordType.create({ id: wireframing, name: 'Wireframing', ownerId: 'acme' }),
+					],
+					items: [],
+					contents: {},
+				},
+			})
+			const source = new CompositeLibrarySource({
+				parts: [{ owner: acme, source: team }, { source: generated }],
+			})
+			return { source, team, generated }
+		}
+
+		it('lists the owner once, as the first part gives it, with the libraries of both parts', async () => {
+			const { source } = setUpShared()
+			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+			expect(source.getLibraryOwners()).toEqual([acme, personal])
+			expect(source.getLibraries().map((c) => [c.id, c.ownerId])).toEqual([
+				[kit.id, 'acme'],
+				[wireframing, 'acme'],
+			])
+		})
+
+		it('sends writes for the owner to the first part, and keeps the later part read-only', async () => {
+			const { source, team, generated } = setUpShared()
+			expect(source.can('createLibrary', { ownerId: 'acme' })).toBe(true)
+			expect(source.can('deleteLibrary', wireframing)).toBe(false)
+			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id])
+			const copy = await copyLibrary(source, wireframing, 'acme')
+			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id, copy.id])
+			expect(generated.getLibraries()).toHaveLength(1)
 		})
 	})
 
@@ -260,5 +433,181 @@ describe('CompositeLibrarySource', () => {
 			parts: [{ owner: tldraw, source: unmovable }],
 		})
 		expect(withoutMoving.moveItem).toBeUndefined()
+	})
+
+	describe('resolveThumbnail', () => {
+		const icons = LibraryRecordType.createId('icons')
+		const star = LibraryItemRecordType.create({
+			libraryId: icons,
+			name: 'Star',
+			thumbnail: { light: 'https://x/star-light.png', dark: 'https://x/star-dark.png' },
+		})
+		const context = (colorMode: 'light' | 'dark'): TLLibraryThumbnailContext => ({
+			colorMode,
+			width: 128,
+			dpr: 2,
+			networkEffectiveType: '4g',
+		})
+
+		function setUpThumbnails() {
+			const plain = new InMemoryLibrarySource({
+				id: 'plain',
+				initial: {
+					libraries: [LibraryRecordType.create({ id: icons, name: 'Icons' })],
+					items: [star],
+					contents: { [star.id]: content('star') },
+				},
+			})
+			const sized = Object.assign(shared(), {
+				resolveThumbnail: vi.fn(() => 'https://x/sized.png'),
+			})
+			const source = new CompositeLibrarySource({
+				parts: [
+					{ owner: personal, source: plain },
+					{ owner: tldraw, source: sized },
+				],
+			})
+			return { source, sized }
+		}
+
+		it("asks the item's part when it resolves thumbnails", () => {
+			const { source, sized } = setUpThumbnails()
+			const button = sized.getItems(wireframing)[0]
+			expect(source.resolveThumbnail(button, context('light'))).toBe('https://x/sized.png')
+			expect(sized.resolveThumbnail).toHaveBeenCalledWith(button, context('light'))
+		})
+
+		it("gives the item's own thumbnail for a part that doesn't, in the colour mode", () => {
+			const { source, sized } = setUpThumbnails()
+			expect(source.resolveThumbnail(star, context('light'))).toBe('https://x/star-light.png')
+			expect(source.resolveThumbnail(star, context('dark'))).toBe('https://x/star-dark.png')
+			expect(sized.resolveThumbnail).not.toHaveBeenCalled()
+		})
+
+		it('gives null for an item without a thumbnail in a part that does not resolve them', () => {
+			const { source } = setUpThumbnails()
+			const { thumbnail: _thumbnail, ...bare } = star
+			expect(source.resolveThumbnail(bare, context('light'))).toBeNull()
+		})
+	})
+})
+
+describe('CompositeLibrarySource shown in a document', () => {
+	const kit = LibraryRecordType.createId('kit')
+	const mine = LibraryRecordType.createId('mine')
+
+	function setUp() {
+		const workspaces = new InMemoryLibrarySource({
+			id: 'workspaces',
+			owners: [personal, acme],
+			initial: {
+				libraries: [
+					LibraryRecordType.create({ id: kit, name: 'Kit', ownerId: 'acme' }),
+					LibraryRecordType.create({ id: mine, name: 'My stash', ownerId: 'home' }),
+				],
+				items: [],
+				contents: {},
+			},
+			shownInDocument: [{ libraryId: mine, placement: 'default' }],
+		})
+		const kits = shared()
+		const source = new CompositeLibrarySource({
+			parts: [{ source: workspaces }, { owner: tldraw, source: kits }],
+		})
+		return { source, workspaces, kits }
+	}
+
+	it("offers the parts' available libraries, and adds each through its own part", async () => {
+		const { source, workspaces } = setUp()
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['My stash', 'Wireframing'])
+		expect(source.getAvailableLibraries!().map((c) => c.name)).toEqual(['Kit'])
+		expect(source.can('addLibraryToDocument', kit)).toBe(true)
+		expect(source.can('addLibraryToDocument', wireframing)).toBe(false)
+
+		await source.addLibraryToDocument!(kit)
+		expect(workspaces.getLibraryPlacement!(kit)).toBe('added')
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['Kit', 'My stash', 'Wireframing'])
+		expect(source.getAvailableLibraries!()).toEqual([])
+
+		await source.removeLibraryFromDocument!(kit)
+		expect(source.getAvailableLibraries!().map((c) => c.name)).toEqual(['Kit'])
+	})
+
+	it("answers each library's placement from its part, and none from a part without them", () => {
+		const { source } = setUp()
+		expect(source.getLibraryPlacement!(mine)).toBe('default')
+		expect(source.getLibraryPlacement!(wireframing)).toBeUndefined()
+	})
+
+	it('lists the items of an available library', async () => {
+		const { source, workspaces } = setUp()
+		const item = await added(workspaces.addItem(kit, { name: 'Star', content: content('star') }))
+		expect(source.getItems(kit)).toEqual([item])
+		expect(await source.getItemContent(item.id)).toEqual(content('star'))
+	})
+
+	it("refuses to add or remove through a part that doesn't add libraries", async () => {
+		const { source } = setUp()
+		await expect(source.addLibraryToDocument!(wireframing)).rejects.toThrow(LibraryPermissionError)
+		await expect(source.removeLibraryFromDocument!(wireframing)).rejects.toThrow(
+			LibraryPermissionError
+		)
+	})
+
+	it("lists each part's owners for new libraries, a fixed-owner part as its owner", () => {
+		const workspaces = Object.assign(new InMemoryLibrarySource({ owners: [personal, acme] }), {
+			getNewLibraryOwnerIds: () => ['acme', 'home'],
+		})
+		const kits = Object.assign(shared(), { getNewLibraryOwnerIds: () => ['anything'] })
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ source: workspaces },
+				{ owner: tldraw, source: kits },
+				{ owner: { id: 'board', name: 'Board' }, source: shared() },
+			],
+		})
+		expect(source.getNewLibraryOwnerIds!()).toEqual(['acme', 'home', 'tldraw'])
+	})
+
+	it('has none of the document members when no part has them', () => {
+		const source = new CompositeLibrarySource({ parts: [{ owner: tldraw, source: shared() }] })
+		expect(source.getAvailableLibraries).toBeUndefined()
+		expect(source.getLibraryPlacement).toBeUndefined()
+		expect(source.addLibraryToDocument).toBeUndefined()
+		expect(source.removeLibraryFromDocument).toBeUndefined()
+		expect(source.getNewLibraryOwnerIds).toBeUndefined()
+	})
+})
+
+describe('copyLibrary', () => {
+	// A part listing its own owners, which copies libraries itself, as a server-backed source does.
+	function setUpWithCopyingPart() {
+		const copies: [string, string][] = []
+		class CopyingSource extends InMemoryLibrarySource {
+			async copyLibrary(libraryId: TLLibraryId, ownerId: string) {
+				copies.push([libraryId, ownerId])
+				return this.createLibrary('Server copy', { ownerId })
+			}
+		}
+		const workspaces = new CopyingSource({ id: 'workspaces', owners: [personal, acme] })
+		const source = new CompositeLibrarySource({
+			parts: [{ source: workspaces }, { owner: tldraw, source: shared() }],
+		})
+		return { source, workspaces, copies }
+	}
+
+	it("lets a part's own copyLibrary copy within that part", async () => {
+		const { source, copies } = setUpWithCopyingPart()
+		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
+		const copy = await copyLibrary(source, kit.id, 'acme')
+		expect(copies).toEqual([[kit.id, 'acme']])
+		expect(copy.name).toBe('Server copy')
+	})
+
+	it('copies the items from another part', async () => {
+		const { source, workspaces, copies } = setUpWithCopyingPart()
+		const copy = await copyLibrary(source, wireframing, 'home')
+		expect(copies).toEqual([])
+		expect(workspaces.getItems(copy.id).map((item) => item.name)).toEqual(['Button', 'Card'])
 	})
 })

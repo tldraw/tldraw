@@ -30,12 +30,14 @@ import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/Erro
 import { TlaRouteHandle } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/AnalyticsTrackers'
+import { withAppOrigin } from '../../utils/appOriginLinks'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
 import { markFirstLoad } from '../../utils/firstLoad'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
+import { TlaSettingsAfterSignIn } from '../components/dialogs/TlaSettingsAfterSignIn'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
@@ -70,6 +72,8 @@ function WatermarkOverride() {
 						.replace('utm_source=sdk', 'utm_source=dotcom')
 						.replace('utm_campaign=watermark', 'utm_campaign=made-with-tldraw')
 					trackEvent('click-watermark', { url })
+					// Only here: openWindow also opens links in people's own boards.
+					url = withAppOrigin(url)
 				}
 				originalOpenWindow(url, target, allowReferrer)
 			},
@@ -231,6 +235,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
 					<WorkspaceInviteHandler />
+					<TlaSettingsAfterSignIn />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>

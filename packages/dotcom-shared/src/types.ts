@@ -177,6 +177,14 @@ export interface ThumbnailShapeMeasurement {
  */
 export const TAB_RENDER_PARAM = 'tabRender'
 
+/**
+ * The close code a tab's sync socket uses when the browser is about to freeze the tab. A frozen tab
+ * can't answer jobs, so it leaves rather than letting them time out, and the room remembers why, so an
+ * agent can be told the tab was suspended rather than that the board isn't open. It reconnects when
+ * the browser resumes it.
+ */
+export const TAB_FROZEN_CLOSE_CODE = 4090
+
 export interface TabRenderScreenshotRequest {
 	mode: 'screenshot'
 	pageId: string
@@ -203,8 +211,23 @@ export interface TabRenderApplyOpsRequest {
 	ops: unknown[]
 	/** Which page the agent means. Absent means whichever page the tab is on. */
 	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
-	attribution: { userId: string; runId?: string }
+	/**
+	 * `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }`
+	 * refs to this batch. `batchKey` is the agent's name for the batch: the file object runs a keyed
+	 * batch at most once, and the tab records the key at `getBatchKeyMetaEntry` in the same commit.
+	 */
+	attribution: { userId: string; runId?: string; batchKey?: string }
+}
+
+const BATCH_KEY_META_PREFIX = 'agentBatchKey:'
+
+/**
+ * The `document.meta` entry a tab writes with a keyed batch, which tells the file object the batch
+ * reached the server. Per user, since agents pick their own keys; JSON, so a ':' in either part can't
+ * make two pairs collide.
+ */
+export function getBatchKeyMetaEntry(userId: string, batchKey: string) {
+	return BATCH_KEY_META_PREFIX + JSON.stringify([userId, batchKey])
 }
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
@@ -222,7 +245,17 @@ export interface TabRenderServerEvent {
 	type: 'mcp_tab_render'
 	jobId: string
 	request: TabRenderRequest
+	/** Whether a hidden tab may take the job: the `mcp_hidden_tab` kill switch. Absent means no. */
+	hiddenTab?: boolean
 }
+
+/**
+ * How many shapes with text one tab screenshot draws, counting a shape without text as
+ * `1 / TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE` of one. Past it the tab declines with
+ * `too_many_shapes`; tabRender.ts in the client says where the numbers come from.
+ */
+export const TAB_RENDER_MAX_EXPORT_TEXT_SHAPES = 200
+export const TAB_RENDER_TEXTLESS_SHAPES_PER_TEXT_SHAPE = 50
 
 export const TAB_RENDER_DECLINE_REASONS = [
 	'editor_not_ready',
@@ -242,6 +275,21 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'tab_hidden',
 	/** Something threw while a batch was applying, so some of it may have landed. */
 	'apply_failed',
+	/**
+	 * The batch applied in the tab but the server didn't confirm it: it timed out, the connection
+	 * dropped, or the server discarded it. A push isn't cancelled, so after a timeout or a drop it may
+	 * still land.
+	 */
+	'unconfirmed',
+	/** A resend of a keyed batch the server has, so nothing was done. */
+	'already_applied',
+	/**
+	 * From the file object: a resend of a keyed batch whose only attempt isn't on the server yet. Its
+	 * tab may still push it, so it isn't run again.
+	 */
+	'batch_unresolved',
+	/** From the file object: a batch key already used for different ops. */
+	'batch_key_reused',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
@@ -330,7 +378,9 @@ export const ZErrorCode = stringEnum(
 	'bad_request',
 	'rate_limit_exceeded',
 	'max_workspaces_reached',
-	'max_files_reached'
+	'max_files_reached',
+	'max_libraries_reached',
+	'max_library_items_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
@@ -414,6 +464,7 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_render_push',
 	'headless_shadow',
 	'ui_v3',
+	'mcp_hidden_tab',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
@@ -461,6 +512,13 @@ export interface AllowlistFeatureFlag {
 	 * this existed must not start admitting everyone when the code that reads it is deployed.
 	 */
 	allowEveryone?: boolean
+	/**
+	 * 0–100. Also admits everyone else whose `hash(userId + flagName)` falls below it, the same
+	 * bucketing a percentage flag uses, so a hand-picked group can be ramped out to all users.
+	 *
+	 * Optional because stored values predate it, and absent reads as 0.
+	 */
+	percentage?: number
 	description: string
 }
 

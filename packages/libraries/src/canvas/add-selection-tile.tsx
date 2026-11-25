@@ -1,5 +1,10 @@
-import { defineMessages, TldrawUiIcon, TldrawUiTooltip, useTranslation } from 'tldraw'
-import type { TLLibrary } from '../lib/schema'
+import {
+	defineMessages,
+	TldrawUiIcon,
+	TldrawUiTooltip,
+	useTranslation,
+	type TLLibrary,
+} from 'tldraw'
 
 const messages = defineMessages({
 	addSelection: { id: 'libraries.add-selection', defaultMessage: 'Add selection' },

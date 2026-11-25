@@ -1,28 +1,89 @@
-import { PointerEvent, useMemo } from 'react'
-import { getPointerInfo, react, TLContent, useEditor, Vec, VecModel } from 'tldraw'
+import {
+	type ButtonHTMLAttributes,
+	type PointerEvent,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
+import {
+	getPointerInfo,
+	react,
+	TLLibraryItemId,
+	TLContent,
+	useEditor,
+	useUiEvents,
+	Vec,
+	VecModel,
+} from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryItemId } from '../lib/schema'
+import { defaultPlaceLibraryItem, findListedItem, type LibraryItemPlacer } from './place-item'
+import { usePlaceItem } from './use-place-item'
+
+/** @public */
+export interface LibraryItemDragOptions {
+	/**
+	 * Places the item, on a click or once a drag starts. Defaults to
+	 * {@link defaultPlaceLibraryItem}.
+	 */
+	placeItem?: LibraryItemPlacer
+	/**
+	 * The element the pointer has to leave before a press on a tile becomes a drag. Defaults to the
+	 * {@link LibrariesPanel} around the tile, or the tile itself outside one. Return the element
+	 * that holds the tiles in a layout of your own, so a drag doesn't start while the pointer is
+	 * still over it.
+	 */
+	getDragRegion?(tile: HTMLElement): Element | null
+}
 
 type DragState =
 	| { name: 'idle' }
-	| { name: 'pointing'; itemId: TLLibraryItemId; screenSpaceStart: VecModel; panelRect: DOMRect }
+	| { name: 'pointing'; itemId: TLLibraryItemId; screenSpaceStart: VecModel; regionRect: DOMRect }
 	| { name: 'dragging' }
 
 /**
- * Pointer handlers that let a tile be dragged out of the panel onto the canvas, the way tools are
- * dragged out of the toolbar: past the drag distance and outside the panel, the item's shapes are
- * placed under the pointer and follow it until release. A click without a drag calls `onPlace`.
+ * Props for an item's tile, the button that shows it, so that clicking it places the item in the
+ * middle of the viewport and dragging it out drops the item under the pointer: the props the
+ * {@link LibrariesPanel} gives its tiles.
+ *
+ * A drag starts once the pointer has left the drag region (see
+ * {@link LibraryItemDragOptions.getDragRegion}) and moved past the editor's `uiDragDistanceSquared`
+ * option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a tool out of the toolbar
+ * does. The item's shapes are then placed under the pointer, selected, and follow it until release.
+ * A failed click shows a toast.
+ *
+ * @example
+ * ```tsx
+ * const getItemProps = useLibraryItemDrag(source)
+ * return items.map((item) => <button key={item.id} {...getItemProps(item.id)}>{item.name}</button>)
+ * ```
+ * @public
  */
-export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryItemId) => void) {
+export function useLibraryItemDrag(
+	source: LibrarySource,
+	options: LibraryItemDragOptions = {}
+): (itemId: TLLibraryItemId) => ButtonHTMLAttributes<HTMLButtonElement> {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
+	const placeOnClick = usePlaceItem(source, options.placeItem)
+	// Read through a ref so that new options each render don't drop a drag in progress.
+	const latest = useRef({ options, trackEvent })
+	useLayoutEffect(() => {
+		latest.current = { options, trackEvent }
+	})
 
 	return useMemo(() => {
+		const getDragRegion = (tile: HTMLElement) => {
+			const { getDragRegion } = latest.current.options
+			const region = getDragRegion ? getDragRegion(tile) : tile.closest('.tlui-libraries-panel')
+			return region ?? tile
+		}
+
 		let state: DragState = { name: 'idle' }
 		// Items are never replaced, only deleted and re-added, so loaded content stays valid.
 		const contents = new Map<TLLibraryItemId, TLContent>()
 
-		const hasLeftPanel = (e: PointerEvent, screenSpaceStart: VecModel, panelRect: DOMRect) => {
-			const { left, top, right, bottom } = panelRect
+		const hasLeftRegion = (e: PointerEvent, screenSpaceStart: VecModel, regionRect: DOMRect) => {
+			const { left, top, right, bottom } = regionRect
 			const { clientX: x, clientY: y } = e
 			if (x >= left && x <= right && y >= top && y <= bottom) return false
 			const minDistanceSq =
@@ -32,7 +93,14 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			return Vec.Dist2(screenSpaceStart, { x, y }) > minDistanceSq
 		}
 
-		const startDrag = (e: PointerEvent, screenSpaceStart: VecModel, content: TLContent) => {
+		const startDrag = (
+			e: PointerEvent,
+			screenSpaceStart: VecModel,
+			itemId: TLLibraryItemId,
+			content: TLContent
+		) => {
+			const item = findListedItem(source, itemId)
+			if (!item) return
 			editor.run(() => {
 				editor.setCurrentTool('select')
 				editor.dispatch({
@@ -45,10 +113,15 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				editor.selectNone()
 
 				const markId = editor.markHistoryStoppingPoint('drag library item')
-				editor.putContentOntoCurrentPage(content, {
+				const { placeItem = defaultPlaceLibraryItem } = latest.current.options
+				const ids = placeItem(editor, {
+					item,
+					content,
 					point: editor.inputs.getCurrentPagePoint(),
 					select: true,
+					via: 'drag',
 				})
+				editor.setSelectedShapes(ids)
 				const shape = editor.getSelectedShapes()[0]
 				if (!shape) {
 					editor.setCurrentTool('select.idle')
@@ -66,6 +139,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 					creatingMarkId: markId,
 					onCreate() {
 						editor.setCurrentTool('select.idle')
+						latest.current.trackEvent('place-library-item', { source: 'libraries', method: 'drag' })
 					},
 				})
 
@@ -97,12 +171,11 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 		return (itemId: TLLibraryItemId) => ({
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
 				if (e.button !== 0) return
-				const panel = e.currentTarget.closest('.tlui-libraries-panel') ?? e.currentTarget
 				state = {
 					name: 'pointing',
 					itemId,
 					screenSpaceStart: { x: e.clientX, y: e.clientY },
-					panelRect: panel.getBoundingClientRect(),
+					regionRect: getDragRegion(e.currentTarget).getBoundingClientRect(),
 				}
 				e.currentTarget.setPointerCapture(e.pointerId)
 				if (!contents.has(itemId)) {
@@ -117,10 +190,10 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				if ((e as any).isSpecialRedispatchedEvent) return
 				if (state.name !== 'pointing' || state.itemId !== itemId) return
 				const content = contents.get(itemId)
-				if (!content || !hasLeftPanel(e, state.screenSpaceStart, state.panelRect)) return
+				if (!content || !hasLeftRegion(e, state.screenSpaceStart, state.regionRect)) return
 				const { screenSpaceStart } = state
 				state = { name: 'dragging' }
-				startDrag(e, screenSpaceStart, content)
+				startDrag(e, screenSpaceStart, itemId, content)
 				showMoveCursorWhileTranslating()
 			},
 			onPointerUp(e: PointerEvent<HTMLButtonElement>) {
@@ -141,8 +214,8 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			onClick() {
 				const wasDrag = state.name === 'dragging'
 				state = { name: 'idle' }
-				if (!wasDrag) onPlace(itemId)
+				if (!wasDrag) placeOnClick(itemId, 'libraries')
 			},
 		})
-	}, [editor, source, onPlace])
+	}, [editor, source, placeOnClick])
 }

@@ -6,15 +6,16 @@ import {
 	useEditor,
 	useTranslation,
 	useValue,
+	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId } from '../lib/schema'
 import { InContextMenu, MenuItem, MenuTargetItems } from '../ui/menu-items'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
+import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary } from './new-library'
 import { sortByRecentlyAddedTo } from './recent-libraries'
 import type { PrepareItemContent } from './save-shapes'
-import { useSaveSelection } from './use-save-selection'
+import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
 const messages = defineMessages({
 	addToLibrary: { id: 'libraries.add-to-library', defaultMessage: 'Add to library' },
@@ -38,6 +39,7 @@ export interface AddToLibraryMenuItemProps {
 export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibraryMenuItemProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const librariesEnabled = useLibrariesEnabled()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
@@ -52,9 +54,9 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 	)
 	const grouping = useLibraryGrouping(source)
 	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
-	const { saveSelection, saveToNewLibrary } = useSaveSelection(source, prepareItemContent)
+	const { saveSelection, saveToNewLibrary } = useSaveSelectionToLibrary(source, prepareItemContent)
 
-	if (!hasSelection || (libraries.length === 0 && !canCreate)) return null
+	if (!librariesEnabled || !hasSelection || (libraries.length === 0 && !canCreate)) return null
 
 	return (
 		<TldrawUiMenuGroup id="libraries">

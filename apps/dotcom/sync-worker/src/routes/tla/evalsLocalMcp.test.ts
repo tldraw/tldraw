@@ -227,5 +227,9 @@ describe('local eval fixture MCP', () => {
 		const write = await call('write_comment', { boardId: 'roadmap', text: 'Hi', threadId: 't' })
 		expect(write.isError).toBe(true)
 		expect(write.content[0].text).toContain('[harness-gap]')
+
+		const feedback = await call('send_feedback', { message: 'Broken' })
+		expect(feedback.isError).toBe(true)
+		expect(feedback.content[0].text).toContain('[harness-gap]')
 	})
 })

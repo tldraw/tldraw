@@ -1,35 +1,14 @@
 import type { TLContent } from '@tldraw/editor'
+import { createRecordType, type BaseRecord } from '@tldraw/store'
 import {
-	createRecordMigrationSequence,
-	createRecordType,
-	type BaseRecord,
-	type RecordId,
-} from '@tldraw/store'
-import { idValidator, shapeIdValidator } from '@tldraw/tlschema'
+	idValidator,
+	shapeIdValidator,
+	type TLLibraryId,
+	type TLLibraryItemId,
+	type TLLibraryThumbnail,
+} from '@tldraw/tlschema'
 import type { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-
-export type TLLibraryId = RecordId<TLLibrary>
-
-/** A named list of items. Where it is stored is up to the source that provides it. */
-export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
-	name: string
-	/**
-	 * Who the library belongs to, such as a user or a workspace, as the source names them in
-	 * `LibrarySource.getLibraryOwners`. What an owner is stays up to the source. Left out by
-	 * sources that don't track owners.
-	 */
-	ownerId?: string
-	meta: JsonObject
-}
-
-export type TLLibraryItemId = RecordId<TLLibraryItem>
-
-/**
- * An item's preview: one image for every colour mode, or a light and a dark one for apps that have
- * both. `Src` is a URL on a listed item and a `Blob` when adding one.
- */
-export type TLLibraryThumbnail<Src = string> = Src | { light: Src; dark: Src }
 
 function isThumbnailPair<Src>(
 	thumbnail: TLLibraryThumbnail<Src>
@@ -79,55 +58,43 @@ export interface TLLibraryItem extends BaseRecord<'library-item', TLLibraryItemI
 	meta: JsonObject
 }
 
-export type TLLibraryRecord = TLLibrary | TLLibraryItem
-
-const nonEmptyString = T.string.check((value) => {
+export const nonEmptyString = T.string.check((value) => {
 	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
 })
 
-export const libraryValidator: T.Validator<TLLibrary> = T.object({
-	id: idValidator<TLLibraryId>('library'),
-	typeName: T.literal('library'),
-	name: nonEmptyString,
-	ownerId: nonEmptyString.optional(),
-	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
-})
+/** A thumbnail: one image's URL, or a light and a dark one. */
+export const libraryThumbnailValidator: T.Validator<TLLibraryThumbnail> = T.or(
+	nonEmptyString,
+	T.object({ light: nonEmptyString, dark: nonEmptyString })
+)
 
 export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
 	id: idValidator<TLLibraryItemId>('library-item'),
 	typeName: T.literal('library-item'),
 	libraryId: idValidator<TLLibraryId>('library'),
 	name: nonEmptyString.optional(),
-	thumbnail: T.or(
-		nonEmptyString,
-		T.object({ light: nonEmptyString, dark: nonEmptyString })
-	).optional(),
+	thumbnail: libraryThumbnailValidator.optional(),
 	createdAt: T.number.optional(),
 	version: T.positiveInteger,
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
-export const LibraryRecordType = createRecordType<TLLibrary>('library', {
-	validator: libraryValidator,
-	scope: 'document',
-}).withDefaultProperties(() => ({ meta: {} }))
+/** The item with an `updateItem` partial applied: meta merged key by key, as shapes' is. */
+export function applyLibraryItemPartial<T extends TLLibraryItem>(
+	item: T,
+	partial: Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
+): T {
+	return {
+		...item,
+		...(partial.name === undefined ? {} : { name: partial.name }),
+		...(partial.meta === undefined ? {} : { meta: { ...item.meta, ...partial.meta } }),
+	}
+}
 
 export const LibraryItemRecordType = createRecordType<TLLibraryItem>('library-item', {
 	validator: libraryItemValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({ version: 1, meta: {} }))
-
-export const libraryMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw.library',
-	recordType: 'library',
-	sequence: [],
-})
-
-export const libraryItemMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw.library-item',
-	recordType: 'library-item',
-	sequence: [],
-})
 
 /** The newest item content format this version of the package can read. */
 export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
@@ -163,15 +130,22 @@ const formatVersionValidator = T.object({
 }).allowUnknownProperties()
 
 /**
- * Thrown when item content was written by a newer version of the package. Reading it anyway
- * would silently drop whatever the newer format added, so callers should ask for an update.
+ * Thrown when item content was written by a newer version of tldraw than this one: its format is
+ * newer than this package reads, its shapes were saved at schema versions the editor can't migrate
+ * down from, or it has a shape or binding type the editor has no util for. Reading it anyway would
+ * drop or break whatever the newer version added, so callers should ask for an update.
  */
 export class LibraryItemContentTooNewError extends Error {
 	override name = 'LibraryItemContentTooNewError'
-	constructor(readonly formatVersion: number) {
+	/** The content's format version, when the format is what's too new. */
+	readonly formatVersion?: number
+	constructor(reason: { formatVersion: number } | { message: string }) {
 		super(
-			`Library item content has format version ${formatVersion}, but this version of @tldraw/libraries only reads up to ${CURRENT_ITEM_CONTENT_FORMAT_VERSION}.`
+			'formatVersion' in reason
+				? `Library item content has format version ${reason.formatVersion}, but this version of @tldraw/libraries only reads up to ${CURRENT_ITEM_CONTENT_FORMAT_VERSION}.`
+				: reason.message
 		)
+		if ('formatVersion' in reason) this.formatVersion = reason.formatVersion
 	}
 }
 
@@ -179,7 +153,7 @@ export class LibraryItemContentTooNewError extends Error {
 export function parseLibraryItemContent(value: unknown): TLLibraryItemContent {
 	const { formatVersion } = formatVersionValidator.validate(value)
 	if (formatVersion > CURRENT_ITEM_CONTENT_FORMAT_VERSION) {
-		throw new LibraryItemContentTooNewError(formatVersion)
+		throw new LibraryItemContentTooNewError({ formatVersion })
 	}
 	return itemContentValidator.validate(value)
 }

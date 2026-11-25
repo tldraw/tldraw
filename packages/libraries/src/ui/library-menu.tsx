@@ -18,9 +18,12 @@ const messages = defineMessages({
 	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
 	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
+	removeFromDocument: {
+		id: 'libraries.library-menu.remove-from-document',
+		defaultMessage: 'Remove from this file',
+	},
 	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort items by' },
 	reverse: { id: 'libraries.library-menu.reverse', defaultMessage: 'Reverse order' },
-	move: { id: 'libraries.library-menu.move', defaultMessage: 'Move to' },
 	copy: { id: 'libraries.library-menu.copy', defaultMessage: 'Copy to' },
 })
 
@@ -32,15 +35,6 @@ export interface LibraryMenuSort {
 	onValueChange(id: string): void
 	reversed: boolean
 	onReversedChange(reversed: boolean): void
-}
-
-/** @public */
-export interface LibraryMenuMove {
-	/** Who the library can move to, in the order to list them. */
-	owners: TLLibraryOwner[]
-	/** The library's current owner, checked in the list. */
-	value?: string
-	onValueChange(ownerId: string): void
 }
 
 /** @public */
@@ -61,10 +55,10 @@ export interface LibraryMenuProps {
 	onCreate?(): void
 	onRename?(): void
 	onDelete?(): void
+	/** Stops showing the library in the document, without deleting it. */
+	onRemoveFromDocument?(): void
 	/** A "Sort items by" submenu. Leave out to hide it. */
 	sort?: LibraryMenuSort
-	/** A "Move to" submenu of owners. Leave out to hide it. */
-	move?: LibraryMenuMove
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: LibraryMenuCopy
 	/**
@@ -83,8 +77,8 @@ export function LibraryMenu({
 	onCreate,
 	onRename,
 	onDelete,
+	onRemoveFromDocument,
 	sort,
-	move,
 	copy,
 	children,
 }: LibraryMenuProps) {
@@ -93,9 +87,11 @@ export function LibraryMenu({
 	const create = isReadonly ? undefined : onCreate
 	const rename = isReadonly ? undefined : onRename
 	const remove = isReadonly ? undefined : onDelete
-	const moveTo = isReadonly ? undefined : move
+	const removeFromDocument = isReadonly ? undefined : onRemoveFromDocument
 	const copyTo = isReadonly ? undefined : copy
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
+	if (!create && !rename && !remove && !removeFromDocument && !sort && !copyTo && !children) {
+		return null
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -136,20 +132,6 @@ export function LibraryMenu({
 							/>
 						</MenuSubmenu>
 					)}
-					{moveTo && (
-						<MenuSubmenu id={`${id}-move`} label={msg(messages.move)}>
-							{moveTo.owners.map((owner) => (
-								<MenuCheckboxItem
-									key={owner.id}
-									label={owner.name}
-									checked={owner.id === moveTo.value}
-									onSelect={() => {
-										if (owner.id !== moveTo.value) moveTo.onValueChange(owner.id)
-									}}
-								/>
-							))}
-						</MenuSubmenu>
-					)}
 					{copyTo && (
 						<MenuSubmenu id={`${id}-copy`} label={msg(messages.copy)}>
 							{copyTo.owners.map((owner) => (
@@ -160,6 +142,9 @@ export function LibraryMenu({
 								/>
 							))}
 						</MenuSubmenu>
+					)}
+					{removeFromDocument && (
+						<MenuItem label={msg(messages.removeFromDocument)} onClick={removeFromDocument} />
 					)}
 					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
 				</TldrawUiDropdownMenuGroup>

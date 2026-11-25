@@ -134,6 +134,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
  *   MCP_TAB_PER_USER_RATE_LIMIT        ->  MCP_SERVER_TAB_RATE_LIMITER      (limit = 90)
+ *   MCP_FEEDBACK_PER_USER_RATE_LIMIT   ->  MCP_SERVER_FEEDBACK_RATE_LIMITER (limit = 5)
  *
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
@@ -173,6 +174,12 @@ export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
  * a page cluster by cluster.
  */
 export const MCP_TAB_PER_USER_RATE_LIMIT = 90
+
+/**
+ * The `send_feedback` budget. Each call is a Discord post a person reads, and a Discord webhook
+ * itself only takes about 30 a minute, so an agent stuck reporting the same failure is cut off early.
+ */
+export const MCP_FEEDBACK_PER_USER_RATE_LIMIT = 5
 
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 

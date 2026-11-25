@@ -1,15 +1,20 @@
 import { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+	BATCH_CLAIM_TTL_MS,
+	BatchClaim,
 	TAB_RENDER_ACK_TIMEOUT_MS,
 	TAB_RENDER_MAX_PING_AGE_MS,
 	TAB_RENDER_WORK_TIMEOUT_MS,
 	TabRenderBroker,
 	TabRenderSocket,
 	TabRenderTarget,
+	batchClaimAfter,
+	isExpiredBatchClaim,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
 	pickTabRenderTargets,
+	planClaimedBatch,
 } from './tabRenderBroker'
 
 const NOW = 1_000_000
@@ -90,6 +95,95 @@ describe('pickTabRenderTargets', () => {
 	it('sends a read to several tabs, capped so one call cannot work every copy of a board', () => {
 		const tabs = ['a', 'b', 'c', 'd', 'e']
 		expect(pickTabRenderTargets('read', tabs, lastActiveAt)).toEqual(['a', 'b', 'c'])
+	})
+})
+
+// An attempt the server hasn't confirmed may still be in its tab, which pushes it on reconnect however
+// late, so only that tab may decide what happens to a resend.
+describe('planClaimedBatch', () => {
+	const claim: BatchClaim = { opsHash: 'ops', sessionId: 'first', metaEntry: 'entry', at: NOW }
+	const applied = {
+		status: 'applied',
+		pageId: 'page:a',
+		pageName: 'A',
+		result: { applied: 1 },
+	} as const
+
+	it("answers a resend with the attempt's result", () => {
+		const resolved = { ...claim, resolvedAt: NOW, applied }
+		expect(planClaimedBatch(resolved, 'ops', false, NOW)).toEqual({
+			kind: 'answer',
+			outcome: applied,
+		})
+	})
+
+	it('says a resend whose attempt reached the board has landed', () => {
+		expect(planClaimedBatch(claim, 'ops', true, NOW)).toEqual({
+			kind: 'answer',
+			outcome: { status: 'declined', reason: 'already_applied' },
+		})
+	})
+
+	it('asks the tab with the attempt while it is unresolved, however long that takes', () => {
+		expect(planClaimedBatch(claim, 'ops', false, NOW + 30 * BATCH_CLAIM_TTL_MS)).toEqual({
+			kind: 'ask_claimant',
+			sessionId: 'first',
+		})
+	})
+
+	it('refuses a key reused for different ops', () => {
+		expect(planClaimedBatch(claim, 'other ops', false, NOW)).toEqual({
+			kind: 'answer',
+			outcome: { status: 'declined', reason: 'batch_key_reused' },
+		})
+	})
+
+	it('lets a key run again a day after its batch landed', () => {
+		const resolved = { ...claim, resolvedAt: NOW, applied }
+		expect(planClaimedBatch(resolved, 'ops', false, NOW + BATCH_CLAIM_TTL_MS)).toEqual({
+			kind: 'run',
+		})
+		expect(isExpiredBatchClaim(resolved, NOW + BATCH_CLAIM_TTL_MS)).toBe(true)
+		expect(isExpiredBatchClaim(claim, NOW + 30 * BATCH_CLAIM_TTL_MS)).toBe(false)
+	})
+})
+
+describe('batchClaimAfter', () => {
+	const claim: BatchClaim = { opsHash: 'ops', sessionId: 'first', metaEntry: 'entry', at: NOW }
+	const first = { resend: false, now: NOW }
+	const resend = { resend: true, now: NOW }
+
+	it('keeps the result of an applied batch', () => {
+		const applied = { status: 'applied', pageId: 'page:a', pageName: 'A', result: {} } as const
+		expect(batchClaimAfter(claim, applied, first)).toEqual({ ...claim, resolvedAt: NOW, applied })
+	})
+
+	it('resolves the key when the claimant says the batch is on the server', () => {
+		const landed = { status: 'declined', reason: 'already_applied' } as const
+		expect(batchClaimAfter(claim, landed, resend)).toEqual({ ...claim, resolvedAt: NOW })
+	})
+
+	it.each([
+		{ status: 'work_timeout' },
+		{ status: 'declined', reason: 'unconfirmed' },
+		{ status: 'declined', reason: 'apply_failed' },
+	] as const)('keeps the key unresolved after %j, which may have landed', (outcome) => {
+		expect(batchClaimAfter(claim, outcome, first)).toEqual(claim)
+	})
+
+	it.each([
+		{ status: 'ack_timeout' },
+		{ status: 'declined', reason: 'busy' },
+		{ status: 'declined', reason: 'invalid_ops' },
+		{ status: 'declined', reason: 'failed' },
+	] as const)('frees the key after a first attempt that answered %j', (outcome) => {
+		expect(batchClaimAfter(claim, outcome, first)).toBeNull()
+	})
+
+	// A claimant that declines before checking its store, say mid-drag, may still hold the attempt.
+	it('keeps the key after a resend the claimant declined', () => {
+		const busy = { status: 'declined', reason: 'busy' } as const
+		expect(batchClaimAfter(claim, busy, resend)).toEqual(claim)
 	})
 })
 

@@ -1,0 +1,117 @@
+import { useCallback } from 'react'
+import {
+	defineMessages,
+	getIncrementedName,
+	useEditor,
+	useToasts,
+	useTranslation,
+	type Editor,
+	type TLLibraryId,
+} from 'tldraw'
+import type { LibrarySource } from '../lib/LibrarySource'
+import { saveErrorMessages } from '../lib/saveErrorMessages'
+import { createNewLibrary } from './new-library'
+import { recordRecentLibrary } from './recent-libraries'
+import { saveShapesToLibrary, type PrepareItemContent } from './save-shapes'
+import { activeLibraryId, librariesPanelOpen, renamingLibraryId } from './state'
+
+const messages = defineMessages({
+	savedTitle: { id: 'libraries.saved.title', defaultMessage: 'Added to library' },
+	savedDescription: { id: 'libraries.saved.description', defaultMessage: 'Added to {name}.' },
+	savedOpen: { id: 'libraries.saved.open', defaultMessage: 'Open' },
+	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
+	newLibraryErrorTitle: {
+		id: 'libraries.save-to-new-library-error.title',
+		defaultMessage: "Couldn't create library",
+	},
+})
+
+function showLibrary(editor: Editor, libraryId: TLLibraryId) {
+	activeLibraryId.set(editor, libraryId)
+	librariesPanelOpen.set(editor, true)
+}
+
+/** @public */
+export interface SaveSelectionToLibrary {
+	/**
+	 * Saves the selected shapes to a library as one item. With the {@link LibrariesPanel} open, the
+	 * panel brings that library into view; otherwise a toast confirms the save and can open it.
+	 */
+	saveSelection(libraryId: TLLibraryId): void
+	/**
+	 * Creates a library named "New library" (or the next free variant), saves the selected shapes
+	 * into it, and opens the panel with the new name ready to edit.
+	 */
+	saveToNewLibrary(): void
+}
+
+/**
+ * Functions that save the current selection to a library, as the panel's + tile and
+ * {@link AddToLibraryMenuItem} do. Both do nothing without a selection. Failures show a toast;
+ * the source reports one saving the item after it was listed.
+ * @public
+ */
+export function useSaveSelectionToLibrary(
+	source: LibrarySource,
+	prepareItemContent?: PrepareItemContent
+): SaveSelectionToLibrary {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const { addToast } = useToasts()
+
+	const saveSelection = useCallback(
+		(libraryId: TLLibraryId) => {
+			const shapeIds = editor.getSelectedShapeIds()
+			if (shapeIds.length === 0) return
+			const showSaveError = () =>
+				addToast({
+					title: msg(saveErrorMessages.saveErrorTitle),
+					severity: 'error',
+				})
+			saveShapesToLibrary(editor, source, libraryId, shapeIds, { prepareItemContent }).then(() => {
+				recordRecentLibrary(source.id, libraryId)
+				if (librariesPanelOpen.get(editor)) {
+					activeLibraryId.set(editor, libraryId)
+					return
+				}
+				const library = source.getLibraries().find(({ id }) => id === libraryId)
+				addToast({
+					title: msg(messages.savedTitle),
+					description: library ? msg(messages.savedDescription, { name: library.name }) : undefined,
+					actions: [
+						{
+							label: msg(messages.savedOpen),
+							type: 'primary',
+							onClick: () => showLibrary(editor, libraryId),
+						},
+					],
+				})
+			}, showSaveError)
+		},
+		[editor, source, prepareItemContent, msg, addToast]
+	)
+
+	const saveToNewLibrary = useCallback(() => {
+		const shapeIds = editor.getSelectedShapeIds()
+		if (shapeIds.length === 0) return
+		const name = getIncrementedName(
+			msg(messages.newLibraryName),
+			source.getLibraries().map((library) => library.name)
+		)
+		const showNewLibraryError = () =>
+			addToast({
+				title: msg(messages.newLibraryErrorTitle),
+				severity: 'error',
+			})
+		createNewLibrary(source, name)
+			.then(async (library) => {
+				await saveShapesToLibrary(editor, source, library.id, shapeIds, { prepareItemContent })
+				recordRecentLibrary(source.id, library.id)
+				showLibrary(editor, library.id)
+				renamingLibraryId.set(editor, library.id)
+			})
+			.catch(showNewLibraryError)
+	}, [editor, source, prepareItemContent, msg, addToast])
+
+	return { saveSelection, saveToNewLibrary }
+}

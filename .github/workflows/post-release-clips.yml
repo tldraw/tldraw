@@ -1,0 +1,105 @@
+name: Post release clips to Discord
+
+# Record before/after clips of this week's dotcom release and post them to Discord as drafts.
+# Manual for now while we try it out; once the clips are reliably good, schedule it after
+# post-release-marketing.yml. The clips are always uploaded as an artifact, so a dry run can be
+# reviewed without posting anything.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Record and encode, but print the posts instead of sending them'
+        type: boolean
+        default: true
+      prs:
+        description: 'Comma-separated PR numbers to film (leave empty to choose from the release)'
+        type: string
+        default: ''
+      range:
+        description: 'Commit range (default origin/production...origin/main)'
+        type: string
+        default: ''
+
+concurrency:
+  group: post-release-clips
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  post-release-clips:
+    name: Post release clips to Discord
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          # sources.sh compares production with main, and build-examples.sh checks out old commits
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fail fast if the Discord webhook is not configured
+        if: ${{ !inputs.dry_run }}
+        run: |
+          if [ -z "$DISCORD_CLIPS_WEBHOOK_URL" ]; then
+            echo "::error::DISCORD_CLIPS_WEBHOOK_URL secret is not set; run with dry_run or add the secret."
+            exit 1
+          fi
+        env:
+          DISCORD_CLIPS_WEBHOOK_URL: ${{ secrets.DISCORD_CLIPS_WEBHOOK_URL }}
+
+      - uses: ./.github/actions/setup
+
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
+
+      - name: Install ffmpeg and ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg ripgrep
+
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli@0.61.0
+
+      # On Actions, Gemini CLI strips every env var it doesn't allowlist from its shell commands.
+      # Names matching /TOKEN/ can't be allowlisted at all, so gh gets a stored login instead.
+      - name: Configure Gemini CLI
+        run: |
+          mkdir -p ~/.gemini
+          echo '{"security":{"environmentVariableRedaction":{"allowed":["DISCORD_CLIPS_WEBHOOK_URL"]}}}' > ~/.gemini/settings.json
+          gh auth login --with-token <<< "$GH_LOGIN_TOKEN"
+        env:
+          GH_LOGIN_TOKEN: ${{ github.token }}
+
+      - name: Run dotcom-release-clips skill
+        run: |
+          ARGS=""
+          if [ "$DRY_RUN" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ -n "$PRS" ]; then ARGS="$ARGS --prs $PRS"; fi
+          if [ -n "$RANGE" ]; then ARGS="$ARGS --range $RANGE"; fi
+          gemini --yolo --prompt "Read skills/dotcom-release-clips/SKILL.md and follow its instructions. Arguments:$ARGS"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          DISCORD_CLIPS_WEBHOOK_URL: ${{ secrets.DISCORD_CLIPS_WEBHOOK_URL }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          PRS: ${{ inputs.prs }}
+          RANGE: ${{ inputs.range }}
+
+      - name: Upload clips
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-clips
+          path: |
+            skills/dotcom-release-clips/tmp/*.mp4
+            skills/dotcom-release-clips/tmp/*.gif
+            skills/dotcom-release-clips/tmp/*-sheet.png
+            skills/dotcom-release-clips/tmp/*/shot.mjs
+            skills/dotcom-release-clips/tmp/*/caption.txt
+          if-no-files-found: warn

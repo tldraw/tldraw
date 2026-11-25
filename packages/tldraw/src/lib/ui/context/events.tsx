@@ -25,6 +25,7 @@ export type TLUiEventSource =
 	| 'image-toolbar'
 	| 'video-toolbar'
 	| 'command-palette'
+	| 'libraries'
 	| 'unknown'
 
 /** @public */

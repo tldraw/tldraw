@@ -1,3 +1,4 @@
+import { LibraryRecordType } from '@tldraw/tlschema'
 import { Tabs } from 'radix-ui'
 import { act, type ComponentProps, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
@@ -11,12 +12,13 @@ import {
 	Editor,
 	EditorContext,
 	TldrawUiContextProvider,
+	useToasts,
 } from 'tldraw'
 import { vi } from 'vitest'
 import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType } from '../lib/schema'
+import { LibraryItemContentTooNewError, LibraryItemRecordType } from '../lib/schema'
 import { ItemMenu } from '../ui/item-menu'
 import { MenuItem } from '../ui/menu-items'
 import { type LibrariesComponents, LibrariesComponentsProvider } from './libraries-components'
@@ -76,6 +78,9 @@ vi.mock('tldraw', async (importOriginal) => ({
 	...(await importOriginal<typeof import('tldraw')>()),
 	EditorPortal: ({ children }: { children: ReactNode }) => children,
 }))
+
+// Libraries are licensed here; license.test.tsx covers the gate.
+vi.mock('./license', () => ({ useLibrariesEnabled: () => true }))
 
 // Keeps every tab's panel mounted, so a panel that leans on only the open tab being rendered shows it.
 vi.mock('radix-ui', async (importOriginal) => {
@@ -326,11 +331,87 @@ describe('LibrariesPanel item menus on right-click', () => {
 		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 
+	it('closes the open menu when the panel scrolls', async () => {
+		const panel = await renderPanel()
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		await act(async () => {
+			panel.querySelector('.tlui-libraries-sections')!.dispatchEvent(new Event('scroll'))
+		})
+		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
+	it('closes the open menu when a tab’s panel scrolls', async () => {
+		const source = new CompositeLibrarySource({
+			id: 'owners',
+			parts: [
+				{ owner: { id: 'packs', name: 'Packs' }, source: await makeSource() },
+				{
+					owner: { id: 'board', name: 'Board' },
+					source: new InMemoryLibrarySource({ id: 'board' }),
+				},
+			],
+		})
+		const panel = await renderPanel(undefined, undefined, source)
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		await act(async () => {
+			panel.querySelector('[role="tabpanel"]')!.dispatchEvent(new Event('scroll'))
+		})
+		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
 	it('leaves the right-click alone when the ItemMenu slot is null', async () => {
 		const panel = await renderPanel({ ItemMenu: null })
 		const event = await rightClickBox(panel)
 		expect(event.defaultPrevented).toBe(false)
 		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+})
+
+describe('LibrariesPanel placing an item', () => {
+	async function clickBoxAndGetToasts(error: Error) {
+		const source = await makeSource()
+		vi.spyOn(source, 'getItemContent').mockRejectedValue(error)
+		let toasts: ReturnType<typeof useToasts> | undefined
+		const ToastsProbe = () => {
+			toasts = useToasts()
+			return null
+		}
+		await act(async () => {
+			root.render(
+				<ContainerProvider container={container}>
+					<EditorContext.Provider value={editor}>
+						<TldrawUiContextProvider>
+							<LibrariesPanel source={source} />
+							<ToastsProbe />
+						</TldrawUiContextProvider>
+					</EditorContext.Provider>
+				</ContainerProvider>
+			)
+		})
+		await act(async () => {
+			container.querySelector<HTMLButtonElement>('button[aria-label="Box"]')!.click()
+		})
+		return toasts!.toasts.get()
+	}
+
+	it('says an item made with a newer version of tldraw needs a reload', async () => {
+		const toasts = await clickBoxAndGetToasts(
+			new LibraryItemContentTooNewError({ message: 'newer shapes' })
+		)
+		expect(toasts).toMatchObject([
+			{
+				title: 'Made with a newer version of tldraw',
+				description: 'Reload tldraw to use this item.',
+				severity: 'error',
+			},
+		])
+	})
+
+	it('keeps the general error for other failures', async () => {
+		const toasts = await clickBoxAndGetToasts(new Error('offline'))
+		expect(toasts).toMatchObject([{ title: "Couldn't place item", severity: 'error' }])
 	})
 })
 

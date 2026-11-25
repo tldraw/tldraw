@@ -1,10 +1,9 @@
-import { defineMessages, useTranslation } from 'tldraw'
-import type { TLLibrary } from '../lib/schema'
+import { defineMessages, useTranslation, type TLLibrary } from 'tldraw'
 
 const messages = defineMessages({
 	emptyLibrary: {
 		id: 'libraries.empty-library',
-		defaultMessage: 'Nothing saved here yet.',
+		defaultMessage: 'No items yet.',
 	},
 })
 
@@ -14,7 +13,7 @@ export interface EmptyLibraryProps {
 }
 
 /**
- * A "Nothing saved here yet." message. The default for {@link LibrariesComponents.EmptyLibrary}.
+ * A "No items yet." message. The default for {@link LibrariesComponents.EmptyLibrary}.
  * @public @react
  */
 export function EmptyLibrary(_props: EmptyLibraryProps) {

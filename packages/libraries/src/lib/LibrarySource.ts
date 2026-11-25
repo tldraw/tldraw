@@ -1,13 +1,7 @@
+import type { TLLibrary, TLLibraryId, TLLibraryItemId, TLLibraryThumbnail } from '@tldraw/tlschema'
 import type { JsonObject } from '@tldraw/utils'
 import type { TLUiIconJsx, TLUiIconType } from 'tldraw'
-import type {
-	TLLibrary,
-	TLLibraryId,
-	TLLibraryItem,
-	TLLibraryItemContent,
-	TLLibraryItemId,
-	TLLibraryThumbnail,
-} from './schema'
+import type { TLLibraryItem, TLLibraryItemContent } from './schema'
 
 /**
  * A change a user can try to make. Sources answer {@link LibrarySource.can}.
@@ -20,14 +14,28 @@ export type TLLibraryAction =
 	| 'renameLibrary'
 	| 'deleteLibrary'
 	| 'addItem'
-	| 'renameItem'
+	| 'updateItem'
 	| 'deleteItem'
+	| 'addLibraryToDocument'
+	| 'removeLibraryFromDocument'
 
 /**
  * What {@link LibrarySource.can} answers for: a library, by its id, or an owner, by
  * `{ ownerId }`, e.g. whether a library may be created for that owner.
  */
 export type TLLibraryTarget = TLLibraryId | { ownerId: string }
+
+/**
+ * Why a library is shown in the document, answered by {@link LibrarySource.getLibraryPlacement}:
+ *
+ * - `'housed'`: it is kept in the document itself, and goes wherever the document goes.
+ * - `'added'`: it is kept elsewhere, such as in a workspace, and was added to the document.
+ * - `'default'`: it is the user's own default library, shown in every document they open. It
+ *   can't be renamed or deleted.
+ * - `'document'`: it is the document's own library, kept in it, which the panel shows first under
+ *   "This file", before the libraries housed in or added to the document.
+ */
+export type TLLibraryPlacement = 'housed' | 'added' | 'default' | 'document'
 
 /** Something a library can belong to, such as a user or a workspace. */
 export interface TLLibraryOwner {
@@ -45,6 +53,16 @@ export interface TLNewLibraryOptions {
 	meta?: JsonObject
 }
 
+/** How {@link LibrarySource.copyLibrary} names the copy. */
+export interface TLCopyLibraryOptions {
+	/**
+	 * The copy's name, from the library's, e.g. "Shapes (Copy)" from "Shapes". Left out, the copy
+	 * has the library's name. A source that limits names' length may shorten the name it passes, so
+	 * that the result fits.
+	 */
+	getName?(name: string): string
+}
+
 /** What a source needs to store a new item. */
 export interface TLNewLibraryItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
@@ -55,7 +73,14 @@ export interface TLNewLibraryItem {
 	 * UI shows a placeholder.
 	 */
 	thumbnail?: TLLibraryThumbnail<Blob>
+	/** Stored on the item as its `meta`, e.g. the category it had in the pack it was copied from. */
+	meta?: JsonObject
 }
+
+/**
+ * The changes {@link LibrarySource.updateItem} makes to an item. Fields left out stay as they are.
+ */
+export type TLLibraryItemPartial = Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
 
 /**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
@@ -84,7 +109,12 @@ export interface TLLibraryThumbnailContext {
 export interface LibrarySource {
 	readonly id: string
 
-	/** The libraries this user may see. */
+	/**
+	 * The libraries shown in this document. For a source where libraries are added to a document,
+	 * these are the ones housed in it, added to it and the user's default (see
+	 * {@link LibrarySource.getLibraryPlacement}); the rest the user may add are
+	 * {@link LibrarySource.getAvailableLibraries}.
+	 */
 	getLibraries(): TLLibrary[]
 	getItems(libraryId: TLLibraryId): TLLibraryItem[]
 	/** Loads an item's content. Kept separate from the listing because content can be large. */
@@ -109,12 +139,34 @@ export interface LibrarySource {
 	 */
 	can(action: TLLibraryAction, target?: TLLibraryTarget): boolean
 
+	/**
+	 * Creates a library, listed in {@link LibrarySource.getLibraries} once it resolves: a source
+	 * where libraries are added to a document adds the new one to it. So does
+	 * {@link LibrarySource.copyLibrary} for the copy.
+	 */
 	createLibrary(name: string, options?: TLNewLibraryOptions): Promise<TLLibrary>
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
+	/**
+	 * Adds an item to a library, and resolves with it once it is listed. A source may go on saving
+	 * it after that, e.g. while its thumbnail uploads, as a pasted image does; if saving fails, the
+	 * source removes the item again and reports the failure itself.
+	 */
 	addItem(libraryId: TLLibraryId, item: TLNewLibraryItem): Promise<TLLibraryItem>
-	renameItem(itemId: TLLibraryItemId, name: string): Promise<void>
+	/**
+	 * Adds several items to a library, in the order given, as one change where the source can, and
+	 * resolves with them in the same order once they are listed, as {@link LibrarySource.addItem}
+	 * does. Optional: for sources where adding items together is quicker than adding them one at a
+	 * time, e.g. in one request to a server. Without it, `addItemsToLibrary` adds them one at a time
+	 * through {@link LibrarySource.addItem}.
+	 */
+	addItems?(libraryId: TLLibraryId, items: TLNewLibraryItem[]): Promise<TLLibraryItem[]>
+	/**
+	 * Changes an item's name or meta. A name is never blank, so it can be changed but not removed.
+	 * Meta is merged into the item's meta key by key, as `editor.updateShape` merges a shape's.
+	 */
+	updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**
 	 * Moves an item to another library, keeping its id, content and thumbnail. Needs
@@ -136,10 +188,47 @@ export interface LibrarySource {
 	 */
 	getDefaultOwnerId?(): string | undefined
 	/**
-	 * Gives a library to another owner. Its items stay in it. Optional: sources that don't track
-	 * owners, or can't move libraries between them, leave it out.
+	 * Copies a library and its items to an owner, as a new library named by `options.getName`,
+	 * and returns the copy. The items keep their names. Optional: for sources that can copy without the caller loading and adding
+	 * every item again, e.g. on a server. Without it, `copyLibrary` loads each item's content through
+	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
-	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<void>
+	copyLibrary?(
+		libraryId: TLLibraryId,
+		ownerId: string,
+		options?: TLCopyLibraryOptions
+	): Promise<TLLibrary>
+
+	/**
+	 * Who a library created from this document may belong to, in the order to offer them, such as
+	 * the user's own workspace and the document's. Optional: without it, any owner the user may
+	 * create a library for is offered. Owners stay listed by
+	 * {@link LibrarySource.getLibraryOwners} for moving and copying libraries.
+	 */
+	getNewLibraryOwnerIds?(): string[]
+	/**
+	 * Why a library is shown in this document, or undefined for one it doesn't show. Optional:
+	 * sources that don't distinguish leave it out, and their libraries are shown without a reason.
+	 */
+	getLibraryPlacement?(libraryId: TLLibraryId): TLLibraryPlacement | undefined
+	/**
+	 * The libraries the user could add to this document: those they may see that it doesn't show
+	 * yet. {@link LibrarySource.getItems} answers for them too, so they can be browsed before being
+	 * added. Optional, with {@link LibrarySource.addLibraryToDocument}: sources whose libraries
+	 * are all shown leave both out.
+	 */
+	getAvailableLibraries?(): TLLibrary[]
+	/**
+	 * Shows an available library in this document, for everyone who opens it, and resolves once it
+	 * is listed in {@link LibrarySource.getLibraries}. Adding one already shown does nothing.
+	 */
+	addLibraryToDocument?(libraryId: TLLibraryId): Promise<void>
+	/**
+	 * Stops showing a library added to this document. The library and its items stay where they
+	 * are kept, available to add again. Only `'added'` libraries can be removed: one housed in the
+	 * document is deleted instead, and the user's default is always shown.
+	 */
+	removeLibraryFromDocument?(libraryId: TLLibraryId): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

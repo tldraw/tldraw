@@ -1,4 +1,4 @@
-import { deleteFromSessionStorage, setInSessionStorage } from 'tldraw'
+import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } from 'tldraw'
 import { SESSION_STORAGE_KEYS } from './session-storage'
 
 export function setRedirect(path: string) {
@@ -14,6 +14,38 @@ export function setRedirectOnSignIn() {
 
 export function clearRedirectOnSignIn() {
 	deleteFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)
+}
+
+/**
+ * v3 lands a signed-in visit to `/` on the workspace page. A sign-in begun on the signed-out board
+ * there has to keep the visitor on a board, as it does without v3, so the sign-in dialog leaves
+ * this mark for the root page to find once the app has loaded. It is in session storage because
+ * Google sign-in leaves the page and comes back.
+ */
+export function setStayOnBoardAfterSignIn() {
+	if (window.location.pathname !== '/') return
+	setInSessionStorage(SESSION_STORAGE_KEYS.STAY_ON_BOARD, 'true')
+}
+
+export function getStayOnBoardAfterSignIn() {
+	return getFromSessionStorage(SESSION_STORAGE_KEYS.STAY_ON_BOARD) === 'true'
+}
+
+export function clearStayOnBoardAfterSignIn() {
+	deleteFromSessionStorage(SESSION_STORAGE_KEYS.STAY_ON_BOARD)
+}
+
+/** Set by a sign-in from the settings dialog, for `TlaSettingsAfterSignIn` to open it again. */
+export function setReopenSettingsAfterSignIn() {
+	setInSessionStorage(SESSION_STORAGE_KEYS.REOPEN_SETTINGS, 'true')
+}
+
+export function getReopenSettingsAfterSignIn() {
+	return getFromSessionStorage(SESSION_STORAGE_KEYS.REOPEN_SETTINGS) === 'true'
+}
+
+export function clearReopenSettingsAfterSignIn() {
+	deleteFromSessionStorage(SESSION_STORAGE_KEYS.REOPEN_SETTINGS)
 }
 
 export const OPEN_SIGN_IN = 'openSignIn'

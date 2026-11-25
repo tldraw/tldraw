@@ -3,6 +3,15 @@ export {
 	AddToLibraryMenuItem,
 	type AddToLibraryMenuItemProps,
 } from './canvas/add-to-library-menu-item'
+export {
+	type LibraryBrowseEntry,
+	type LibraryBrowseEntryItem,
+	type LibraryBrowseGroup,
+} from './canvas/browse-libraries-dialog'
+export {
+	CommandPaletteLibrariesGroup,
+	type CommandPaletteLibrariesGroupProps,
+} from './canvas/command-palette-libraries-group'
 export { EmptyLibrary, type EmptyLibraryProps } from './canvas/empty-library'
 export {
 	type LibrariesComponents,
@@ -17,25 +26,58 @@ export {
 	type NewLibraryAction,
 } from './canvas/libraries-panel-header'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
-export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
+export { LibrariesQuickActions, LibrariesToolbarButton } from './canvas/libraries-quick-actions'
 export {
 	LibrarySectionHeader,
 	type LibrarySectionHeaderProps,
 } from './canvas/library-section-header'
 export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
+export { useLibrariesEnabled } from './canvas/license'
+export { type TLLibraryItemOrdering } from './canvas/item-order'
+export { useLibraries } from './canvas/use-libraries'
+export { useLibraryCan } from './canvas/use-library-can'
+export { useLibraryCollapsed } from './canvas/use-library-collapsed'
+export { type LibraryItemOrder, useLibraryItemOrder } from './canvas/use-library-item-order'
+export { type LibraryItemsOptions, useLibraryItems } from './canvas/use-library-items'
+export {
+	type LibraryThumbnailUrlsOptions,
+	useLibraryThumbnailUrls,
+} from './canvas/use-library-thumbnail-urls'
+export { type LibraryItemDragOptions, useLibraryItemDrag } from './canvas/use-item-drag'
+export { type LibraryActions, useLibraryActions } from './canvas/use-library-actions'
+export { type LibraryItemActions, useLibraryItemActions } from './canvas/use-library-item-actions'
+export {
+	type SaveSelectionToLibrary,
+	useSaveSelectionToLibrary,
+} from './canvas/use-save-selection-to-library'
 export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
-export { placeLibraryItem } from './canvas/place-item'
+export {
+	defaultPlaceLibraryItem,
+	type LibraryItemPlacer,
+	placeLibraryItem,
+	type TLLibraryItemPlacement,
+	type TLPlaceLibraryItemOptions,
+} from './canvas/place-item'
 export {
 	saveShapesToLibrary,
 	type PrepareItemContent,
 	type SaveShapesOptions,
 } from './canvas/save-shapes'
-export { activeLibraryId, librariesPanelOpen, toggleLibrariesPanel } from './canvas/state'
+export {
+	activeLibraryId,
+	collapsedLibraryIds,
+	librariesPanelOpen,
+	toggleLibrariesPanel,
+} from './canvas/state'
+export {
+	getLibraryErrorReason,
+	type TLLibrariesUiEventMap,
+	type TLLibraryErrorReason,
+} from './canvas/ui-events'
 export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,
 	type LibraryMenuCopy,
-	type LibraryMenuMove,
 	type LibraryMenuProps,
 	type LibraryMenuSort,
 } from './ui/library-menu'
@@ -62,19 +104,27 @@ export {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemPartial,
 	type TLLibraryOwner,
+	type TLLibraryPlacement,
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
+	type TLCopyLibraryOptions,
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
+export { addItemsToLibrary } from './lib/addItemsToLibrary'
+export { saveErrorMessages } from './lib/saveErrorMessages'
+export { trackItemsStoring, whenItemsStored } from './lib/whenItemsStored'
+export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
 export {
 	CompositeLibrarySource,
 	type CompositeLibrarySourceOptions,
 	type CompositeLibrarySourcePart,
 } from './lib/CompositeLibrarySource'
-export type { LibraryPack, LibraryPackItem } from './lib/LibraryPack'
+export { parseLibraryPack, type LibraryPack, type LibraryPackItem } from './lib/LibraryPack'
 export { copyLibrary } from './lib/copyLibrary'
+export { addPackToDocument, findPackCopy } from './lib/addPackToDocument'
 export { copyPack } from './lib/copyPack'
 export {
 	InMemoryLibrarySource,
@@ -83,20 +133,19 @@ export {
 export {
 	LibraryItemContentTooNewError,
 	LibraryItemRecordType,
-	libraryItemMigrations,
-	libraryMigrations,
-	LibraryRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	libraryItemValidator,
-	libraryValidator,
+	libraryThumbnailValidator,
 	getThumbnailForColorMode,
 	mapThumbnail,
 	parseLibraryItemContent,
-	type TLLibrary,
-	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
-	type TLLibraryItemId,
-	type TLLibraryRecord,
-	type TLLibraryThumbnail,
 } from './lib/schema'
+export {
+	LibraryRecordType,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemId,
+	type TLLibraryThumbnail,
+} from '@tldraw/tlschema'

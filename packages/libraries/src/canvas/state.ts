@@ -1,5 +1,4 @@
-import { EditorAtom, type Editor } from 'tldraw'
-import type { TLLibraryId } from '../lib/schema'
+import { EditorAtom, type Editor, type TLLibraryId } from 'tldraw'
 
 /**
  * Whether the libraries panel is open. Scoped per editor, so two editors on one page don't share
@@ -24,5 +23,9 @@ export function toggleLibrariesPanel(editor: Editor) {
 /** The library whose name its section header is editing, e.g. straight after creating it. */
 export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLibraryId', () => null)
 
-/** The libraries folded shut in the panel, kept while the panel is closed. */
+/**
+ * The libraries folded shut in the {@link LibrariesPanel}, kept while the panel is closed. Scoped
+ * per editor, like {@link librariesPanelOpen}.
+ * @public
+ */
 export const collapsedLibraryIds = new EditorAtom<TLLibraryId[]>('collapsedLibraryIds', () => [])

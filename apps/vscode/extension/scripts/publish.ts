@@ -49,9 +49,12 @@ function getVsixPath(): string {
 }
 
 async function publishToVSCodeMarketplace(preRelease: boolean) {
+	const vsixPath = getVsixPath()
 	// eslint-disable-next-line no-console
 	console.log(`Publishing to VS Code Marketplace${preRelease ? ' (pre-release)' : ''}`)
-	await publishWithRetry(`vsce publish${preRelease ? ' --pre-release' : ''}`)
+	await publishWithRetry(
+		`vsce publish --oidc${preRelease ? ' --pre-release' : ''} --packagePath ${vsixPath}`
+	)
 	// eslint-disable-next-line no-console
 	console.log('Successfully published to VS Code Marketplace')
 }
@@ -62,7 +65,7 @@ async function publishToOpenVSX(preRelease: boolean) {
 	console.log('Publishing to Open VSX...')
 	// An upload can succeed even if its response is lost; retrying must accept that version.
 	await publishWithRetry(
-		`npx ovsx publish --skip-duplicate${preRelease ? ' --pre-release' : ''} ${vsixPath}`
+		`npx ovsx publish --trusted-publishing --skip-duplicate${preRelease ? ' --pre-release' : ''} ${vsixPath}`
 	)
 	// eslint-disable-next-line no-console
 	console.log('Successfully published to Open VSX')

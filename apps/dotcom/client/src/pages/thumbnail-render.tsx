@@ -37,6 +37,7 @@ import {
 	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { useFileSnapshotStore } from '../hooks/useFileSnapshotStore'
 import { assetUrls } from '../utils/assetUrls'
 import {
 	getRequestedBounds,
@@ -132,7 +133,8 @@ function sendErrorBeacon(message: string) {
 export type ThumbnailRenderData =
 	| {
 			ok: true
-			token: string
+			/** Absent on a token-free push (the private render worker sends none); present on a pull. */
+			token?: string
 			records: TLRecord[]
 			schema: SerializedSchema
 			renderParams: ThumbnailRenderParams
@@ -173,13 +175,11 @@ function awaitPushedSnapshot(): Promise<ThumbnailPushedSnapshot> {
 /** The render job the URL's token names: the records to draw and how to draw them. */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
 	pageTimings.bootAt = performance.now()
-	const token = url.searchParams.get('token')
-	pageTimings.token = token ?? undefined
+	const token = url.searchParams.get('token') ?? undefined
+	pageTimings.token = token
 
-	if (!token) {
-		return { ok: false, message: 'Missing render token' }
-	}
-
+	// Push first: a pushed render carries its records in the page, so it needs no token — the private
+	// render worker sends none. The token, when present, is only for the timings/error beacon.
 	const pushed =
 		window[THUMBNAIL_RENDER_GLOBAL] ??
 		(url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1' ? await awaitPushedSnapshot() : null)
@@ -193,6 +193,11 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 			schema: pushed.schema,
 			renderParams: pushed.renderParams,
 		}
+	}
+
+	// Pull path: the page fetches its records with the token, so here a token is required.
+	if (!token) {
+		return { ok: false, message: 'Missing render token' }
 	}
 
 	const result = await fetch(
@@ -251,6 +256,7 @@ function ThumbnailRenderPage({
 		}),
 		[schema, records]
 	)
+	const store = useFileSnapshotStore(snapshot, embedShapeUtils, renderAssetStore)
 
 	// Once the export is ready it's shown as a full-viewport <img>, so the worker's Browser Rendering
 	// screenshot captures the exact editor.toImage output rather than the live editor canvas. An
@@ -276,10 +282,9 @@ function ThumbnailRenderPage({
 			<Tldraw
 				hideUi
 				assetUrls={assetUrls}
-				assets={renderAssetStore}
 				shapeUtils={embedShapeUtils}
 				components={{ ErrorFallback: ThumbnailRenderCrash }}
-				snapshot={snapshot}
+				store={store}
 				onMount={(editor) => {
 					pageTimings.mountAt = performance.now()
 					editor.user.updateUserPreferences({ colorScheme: theme })

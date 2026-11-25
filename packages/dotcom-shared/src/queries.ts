@@ -42,6 +42,17 @@ const canAccessCommentFile =
 			)
 		)
 
+/** {@link canAccessCommentFile}, for a library added to a file. */
+const canAccessLibraryFile =
+	(userId: string) =>
+	({ or, exists }: ExpressionBuilder<'file_library', TlaSchema>) =>
+		or(
+			exists('fileStates', (s) => s.where('userId', '=', userId)),
+			exists('groupFiles', (gf) =>
+				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
+			)
+		)
+
 /** The access gate as the deprecated `comments` query reaches it, through `file`. */
 const legacyCanAccessFile = (userId: string) => (file: Query<'file', TlaSchema>) =>
 	file.where(({ or, exists }) =>
@@ -134,6 +145,42 @@ export const queries = defineQueries({
 			.related('group', (group) => group.one())
 			.related('groupFiles', (gf) => gf.related('file', (file) => file.one()))
 			.related('groupMembers')
+	),
+
+	/**
+	 * Libraries of every workspace the user is a member of, with their items. Libraries private
+	 * to the user come through the same path: their home workspace has a group_user row for them.
+	 */
+	libraries: defineQuery(({ ctx }) =>
+		zql.library
+			.whereExists('group', (g) =>
+				g.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+			)
+			.related('items', (items) => items.orderBy('createdAt', 'asc'))
+			.orderBy('createdAt', 'asc')
+	),
+
+	/**
+	 * The libraries a file's panel shows: those added to the file, to anyone who can access it
+	 * (opened it, or a member of its workspace), members of the library's workspace or not; and
+	 * the caller's default library, on every file. With their items, and the file's
+	 * `fileLibraries` row for a library added to it.
+	 */
+	fileLibraries: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
+		zql.library
+			.where(({ or, and, cmp, exists }) =>
+				or(
+					and(cmp('owningGroupId', '=', ctx.userId), cmp('isDefault', '=', true)),
+					exists('fileLibraries', (fl) =>
+						fl.where('fileId', '=', args.fileId).where(canAccessLibraryFile(ctx.userId))
+					)
+				)
+			)
+			.related('items', (items) => items.orderBy('createdAt', 'asc'))
+			.related('fileLibraries', (fl) =>
+				fl.where('fileId', '=', args.fileId).where(canAccessLibraryFile(ctx.userId))
+			)
+			.orderBy('createdAt', 'asc')
 	),
 
 	/**

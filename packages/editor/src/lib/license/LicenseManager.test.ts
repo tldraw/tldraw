@@ -23,6 +23,7 @@ vi.mock('../../version', () => {
 })
 
 const now = new Date()
+const EXPECTED_GRACE_PERIOD_DAYS = 5
 const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 5).toISOString()
 
 const STANDARD_LICENSE_INFO = JSON.stringify([
@@ -728,12 +729,17 @@ describe('LicenseManager', () => {
 					isLicensedWithWatermark: true,
 					isCollaborationEnabled: true,
 					isCommentingEnabled: true,
+					isLibrariesEnabled: true,
 					isAnnualLicenseExpired: false,
 					isPerpetualLicenseExpired: false,
 					daysSinceExpiry: 0,
 				})
 				expect(manager.state.get()).toBe('licensed-with-watermark')
-				expect(manager.featureFlags.get()).toEqual({ collaboration: true, commenting: true })
+				expect(manager.featureFlags.get()).toEqual({
+					collaboration: true,
+					commenting: true,
+					libraries: true,
+				})
 				manager.dispose()
 			}
 		})
@@ -755,7 +761,11 @@ describe('LicenseManager', () => {
 					reason: 'no-key-provided',
 				})
 				expect(manager.state.get()).toBe('unlicensed-production')
-				expect(manager.featureFlags.get()).toEqual({ collaboration: false, commenting: false })
+				expect(manager.featureFlags.get()).toEqual({
+					collaboration: false,
+					commenting: false,
+					libraries: false,
+				})
 				manager.dispose()
 			}
 		})
@@ -994,8 +1004,24 @@ describe('LicenseManager', () => {
 				collaborationLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(true)
-			// The collaboration umbrella grants the commenting sub-feature.
+			// The collaboration umbrella grants the commenting and libraries sub-features.
 			expect(result.isCommentingEnabled).toBe(true)
+			expect(result.isLibrariesEnabled).toBe(true)
+		})
+
+		it('Checks for the libraries feature flag', async () => {
+			const librariesLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			librariesLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_LIBRARIES
+			const librariesLicenseKey = await generateLicenseKey(
+				JSON.stringify(librariesLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				librariesLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isLibrariesEnabled).toBe(true)
+			expect(result.isCollaborationEnabled).toBe(false)
+			expect(result.isCommentingEnabled).toBe(false)
 		})
 
 		it('Leaves feature flags off when no feature bits are set', async () => {
@@ -1005,6 +1031,7 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(false)
 			expect(result.isCommentingEnabled).toBe(false)
+			expect(result.isLibrariesEnabled).toBe(false)
 		})
 
 		it('Enables features synchronously in development, before validation resolves', () => {
@@ -1020,6 +1047,7 @@ describe('LicenseManager', () => {
 				const devLicenseManager = new LicenseManager('', keyPair.publicKey)
 				expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
 				expect(devLicenseManager.isFeatureEnabled('collaboration')).toBe(true)
+				expect(devLicenseManager.isFeatureEnabled('libraries')).toBe(true)
 			} finally {
 				process.env.NODE_ENV = 'test'
 			}
@@ -1083,7 +1111,7 @@ describe('LicenseManager', () => {
 	describe('License expiry and grace period', () => {
 		it('Fails if the license key has expired beyond grace period', async () => {
 			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 40) // 40 days ago (beyond 30-day grace period)
+			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 10)
 			expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiryDate
 			const expiredLicenseKey = await generateLicenseKey(
 				JSON.stringify(expiredLicenseInfo),
@@ -1097,7 +1125,7 @@ describe('LicenseManager', () => {
 
 		it('Allows a grace period for expired licenses', async () => {
 			const almostExpiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 5) // 5 days ago
+			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 4)
 			almostExpiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiryDate
 			const almostExpiredLicenseKey = await generateLicenseKey(
 				JSON.stringify(almostExpiredLicenseInfo),
@@ -1109,15 +1137,15 @@ describe('LicenseManager', () => {
 			expect(result.isAnnualLicenseExpired).toBe(false)
 		})
 
-		it('Handles grace period correctly - 20 days expired should still be within grace period', async () => {
+		it('Handles grace period correctly - 4 days expired should still be within grace period', async () => {
 			// Pin the clock and use a date-only UTC expiry so the calculation is timezone
-			// independent. The named day is fully usable, so an expiry 20 calendar days before
-			// "now" has been past its usable window for 19 full days.
+			// independent. The named day is fully usable, so an expiry 4 calendar days before
+			// "now" has been past its usable window for 3 full days.
 			vi.useFakeTimers()
 			vi.setSystemTime(new Date('2026-06-26T12:00:00.000Z'))
 			try {
 				const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-06' // 20 days before now
+				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-22' // 4 days before now
 
 				const expiredLicenseKey = await generateLicenseKey(
 					JSON.stringify(expiredLicenseInfo),
@@ -1129,8 +1157,8 @@ describe('LicenseManager', () => {
 					expiredLicenseKey
 				)) as ValidLicenseKeyResult
 				expect(result.isAnnualLicense).toBe(true)
-				expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
-				expect(result.daysSinceExpiry).toBe(19)
+				expect(result.isAnnualLicenseExpired).toBe(false) // Within grace period
+				expect(result.daysSinceExpiry).toBe(3)
 			} finally {
 				vi.useRealTimers()
 			}
@@ -1311,6 +1339,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isEvaluationLicenseExpired: false,
 		isCollaborationEnabled: false,
 		isCommentingEnabled: false,
+		isLibrariesEnabled: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
@@ -1495,12 +1524,12 @@ describe('getLicenseState', () => {
 	})
 
 	describe('Grace period handling', () => {
-		it('returns "licensed" for license 0-30 days past expiry', () => {
+		it('returns "licensed" for license within grace period', () => {
 			const messages: string[][] = []
 			const licenseResult = getDefaultLicenseResult({
 				isAnnualLicense: true,
-				isAnnualLicenseExpired: false, // Still within 30-day grace period
-				daysSinceExpiry: 20, // 20 days past expiry
+				isAnnualLicenseExpired: false, // Still within grace period
+				daysSinceExpiry: 4,
 				isInternalLicense: false,
 			})
 
@@ -1509,19 +1538,19 @@ describe('getLicenseState', () => {
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
 				'Your tldraw license has expired.',
-				'License expired 20 days ago.',
+				'License expired 4 days ago.',
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
 	})
 
 	describe('Expired licenses', () => {
-		it('returns "expired" for license 30+ days past expiry', () => {
+		it('returns "expired" for license past expiry+grace period', () => {
 			const messages: string[][] = []
 			const licenseResult = getDefaultLicenseResult({
 				isAnnualLicense: true,
-				isAnnualLicenseExpired: true, // Beyond 30-day grace period
-				daysSinceExpiry: 35, // 35 days past expiry
+				isAnnualLicenseExpired: true, // Beyond grace period
+				daysSinceExpiry: 10,
 				isInternalLicense: false,
 			})
 
@@ -1529,7 +1558,7 @@ describe('getLicenseState', () => {
 
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
-				'Your tldraw license has been expired for more than 30 days!',
+				`Your tldraw license has been expired for more than ${EXPECTED_GRACE_PERIOD_DAYS} days!`,
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
@@ -1586,7 +1615,7 @@ describe('getLicenseState', () => {
 
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
-				'Your tldraw license has been expired for more than 30 days!',
+				`Your tldraw license has been expired for more than ${EXPECTED_GRACE_PERIOD_DAYS} days!`,
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
@@ -1606,7 +1635,7 @@ describe('getLicenseState', () => {
 
 			expect(messages).toHaveLength(1)
 			expect(messages[0]).toEqual([
-				'Your tldraw license has been expired for more than 30 days!',
+				`Your tldraw license has been expired for more than ${EXPECTED_GRACE_PERIOD_DAYS} days!`,
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
 		})
@@ -1618,10 +1647,12 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: false,
 			isCommentingEnabled: false,
+			isLibrariesEnabled: false,
 		})
 		expect(getEnabledFeatures(result, 'unlicensed', true)).toEqual({
 			collaboration: true,
 			commenting: true,
+			libraries: true,
 		})
 	})
 
@@ -1633,6 +1664,7 @@ describe('getEnabledFeatures', () => {
 		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
 			collaboration: false,
 			commenting: true,
+			libraries: false,
 		})
 	})
 
@@ -1640,10 +1672,12 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: true,
 			isCommentingEnabled: true,
+			isLibrariesEnabled: true,
 		})
 		expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
 			collaboration: true,
 			commenting: true,
+			libraries: true,
 		})
 	})
 
@@ -1653,10 +1687,12 @@ describe('getEnabledFeatures', () => {
 			const result = getDefaultLicenseResult({
 				isCollaborationEnabled: true,
 				isCommentingEnabled: true,
+				isLibrariesEnabled: true,
 			})
 			expect(getEnabledFeatures(result, state, false)).toEqual({
 				collaboration: false,
 				commenting: false,
+				libraries: false,
 			})
 		}
 	)
@@ -1666,10 +1702,12 @@ describe('getEnabledFeatures', () => {
 			isEvaluationLicense: true,
 			isCollaborationEnabled: false,
 			isCommentingEnabled: false,
+			isLibrariesEnabled: false,
 		})
 		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
 			collaboration: true,
 			commenting: true,
+			libraries: true,
 		})
 	})
 
@@ -1679,10 +1717,12 @@ describe('getEnabledFeatures', () => {
 			isEvaluationLicenseExpired: true,
 			isCollaborationEnabled: false,
 			isCommentingEnabled: false,
+			isLibrariesEnabled: false,
 		})
 		expect(getEnabledFeatures(result, 'expired', false)).toEqual({
 			collaboration: false,
 			commenting: false,
+			libraries: false,
 		})
 	})
 
@@ -1696,6 +1736,7 @@ describe('getEnabledFeatures', () => {
 		).toEqual({
 			collaboration: false,
 			commenting: false,
+			libraries: false,
 		})
 	})
 })

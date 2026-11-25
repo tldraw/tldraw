@@ -173,6 +173,33 @@ describe('feed query shape', () => {
 // missing the groupMembers hop, or a feed that lost `authorId != me` all keep the same shape. The
 // client re-derives each reason from the rows it gets, so e2e can't see an over-fetch either.
 // These run the real queries over a seeded in-memory replica instead.
+type Rows = Record<string, Record<string, unknown>[]>
+
+function seed(rows: Rows) {
+	const lc: any = { withContext: () => lc, info() {}, warn() {}, error() {} }
+	const db = new Database(lc, ':memory:')
+	for (const [name, table] of Object.entries(schema.tables)) {
+		const ident = (c: string) => `"${c}"`
+		db.exec(`CREATE TABLE "${name}" (${Object.keys(table.columns).map(ident).join(', ')})`)
+		db.exec(
+			`CREATE UNIQUE INDEX "${name}_pk" ON "${name}" (${table.primaryKey.map(ident).join(', ')})`
+		)
+		for (const row of rows[name] ?? []) {
+			const cols = Object.keys(row)
+			db.prepare(
+				`INSERT INTO "${name}" (${cols.map(ident).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
+			).run(
+				...cols.map((c) => {
+					const v = row[c]
+					const type = (table.columns as Record<string, { type: string }>)[c].type
+					return type === 'boolean' ? (v ? 1 : 0) : type === 'json' ? JSON.stringify(v) : v
+				})
+			)
+		}
+	}
+	return new QueryDelegate(lc, db, schema)
+}
+
 describe('feed query results', () => {
 	const me = ctx.userId
 	const other = 'user_other'
@@ -180,7 +207,6 @@ describe('feed query results', () => {
 	const W = 'group_w' // a workspace I'm in
 	const X = 'group_x' // a workspace I'm not in
 
-	type Rows = Record<string, Record<string, unknown>[]>
 	const file = (id: string, owningGroupId: string, isDeleted = false) => ({
 		id,
 		owningGroupId,
@@ -268,31 +294,6 @@ describe('feed query results', () => {
 		],
 	}
 
-	function seed(rows: Rows) {
-		const lc: any = { withContext: () => lc, info() {}, warn() {}, error() {} }
-		const db = new Database(lc, ':memory:')
-		for (const [name, table] of Object.entries(schema.tables)) {
-			const ident = (c: string) => `"${c}"`
-			db.exec(`CREATE TABLE "${name}" (${Object.keys(table.columns).map(ident).join(', ')})`)
-			db.exec(
-				`CREATE UNIQUE INDEX "${name}_pk" ON "${name}" (${table.primaryKey.map(ident).join(', ')})`
-			)
-			for (const row of rows[name] ?? []) {
-				const cols = Object.keys(row)
-				db.prepare(
-					`INSERT INTO "${name}" (${cols.map(ident).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
-				).run(
-					...cols.map((c) => {
-						const v = row[c]
-						const type = (table.columns as Record<string, { type: string }>)[c].type
-						return type === 'boolean' ? (v ? 1 : 0) : type === 'json' ? JSON.stringify(v) : v
-					})
-				)
-			}
-		}
-		return new QueryDelegate(lc, db, schema)
-	}
-
 	const delegate = seed(rows)
 	async function ids(name: keyof typeof queries) {
 		const query = (queries as any)[name].fn({ ctx, args: {} })
@@ -335,5 +336,130 @@ describe('feed query results', () => {
 		['comments'],
 	] as const)('bounds %s to the most recent comments', (name) => {
 		expect(astOf(name).limit).toBe(50)
+	})
+})
+
+describe('libraries query', () => {
+	const me = ctx.userId
+	const W = 'group_w' // a workspace I'm in
+	const X = 'group_x' // a workspace I'm not in
+
+	const delegate = seed({
+		group: [
+			{ id: me, isDeleted: false },
+			{ id: W, isDeleted: false },
+			{ id: X, isDeleted: false },
+		],
+		group_user: [
+			{ userId: me, groupId: me },
+			{ userId: me, groupId: W },
+			{ userId: 'user_other', groupId: X },
+		],
+		library: [
+			{ id: 'c_private', owningGroupId: me, createdAt: 1 },
+			{ id: 'c_w', owningGroupId: W, createdAt: 2 },
+			{ id: 'c_x', owningGroupId: X, createdAt: 3 },
+		],
+		library_item: [
+			{ id: 'i_w', libraryId: 'c_w', createdAt: 1 },
+			{ id: 'i_x', libraryId: 'c_x', createdAt: 1 },
+		],
+	})
+
+	it("returns the libraries of every workspace I'm in, home included, with their items", async () => {
+		const result = await delegate.run(queries.libraries.fn({ ctx, args: undefined }))
+		expect(result.map((c) => [c.id, c.items.map((i) => i.id)])).toEqual([
+			['c_private', []],
+			['c_w', ['i_w']],
+		])
+	})
+})
+
+describe('fileLibraries query', () => {
+	const me = ctx.userId
+	const other = 'user_other'
+	const W = 'group_w' // a workspace I'm in
+	const X = 'group_x' // a workspace I'm not in
+	const added = (fileId: string, libraryId: string) => ({
+		fileId,
+		libraryId,
+		addedBy: other,
+		addedAt: 1,
+	})
+
+	const delegate = seed({
+		group_user: [
+			{ userId: me, groupId: me },
+			{ userId: me, groupId: W },
+			{ userId: other, groupId: other },
+			{ userId: other, groupId: X },
+		],
+		file: [
+			{ id: 'f_w', owningGroupId: W, isDeleted: false },
+			// opened via a share link
+			{ id: 'f_shared', owningGroupId: X, isDeleted: false },
+			// X's board I've never opened
+			{ id: 'f_x', owningGroupId: X, isDeleted: false },
+		],
+		group_file: [
+			{ fileId: 'f_w', groupId: W },
+			{ fileId: 'f_shared', groupId: X },
+			{ fileId: 'f_x', groupId: X },
+		],
+		file_state: [{ userId: me, fileId: 'f_shared' }],
+		library: [
+			{ id: 'c_default', owningGroupId: me, isDefault: true, createdAt: 1 },
+			{ id: 'c_private', owningGroupId: me, isDefault: false, createdAt: 2 },
+			{ id: 'c_w', owningGroupId: W, isDefault: false, createdAt: 3 },
+			{ id: 'c_w_unadded', owningGroupId: W, isDefault: false, createdAt: 4 },
+			{ id: 'c_x', owningGroupId: X, isDefault: false, createdAt: 5 },
+			{ id: 'c_other_default', owningGroupId: other, isDefault: true, createdAt: 6 },
+		],
+		library_item: [
+			{ id: 'i_default', libraryId: 'c_default', createdAt: 1 },
+			{ id: 'i_x', libraryId: 'c_x', createdAt: 1 },
+		],
+		file_library: [
+			added('f_w', 'c_w'),
+			added('f_w', 'c_default'),
+			added('f_shared', 'c_x'),
+			added('f_shared', 'c_other_default'),
+			added('f_x', 'c_private'),
+			added('f_x', 'c_w'),
+		],
+	})
+
+	async function run(fileId: string) {
+		const result = await delegate.run(queries.fileLibraries.fn({ ctx, args: { fileId } }))
+		return result.map((c) => [
+			c.id,
+			c.items.map((i) => i.id),
+			c.fileLibraries.map((fl) => fl.fileId),
+		])
+	}
+
+	it("returns the libraries added to a board in my workspace, with my default, and nothing I haven't added", async () => {
+		expect(await run('f_w')).toEqual([
+			['c_default', ['i_default'], ['f_w']],
+			['c_w', [], ['f_w']],
+		])
+	})
+
+	it("returns a board's libraries to someone who opened it, from workspaces they aren't in", async () => {
+		expect(await run('f_shared')).toEqual([
+			['c_default', ['i_default'], []],
+			['c_x', ['i_x'], ['f_shared']],
+			['c_other_default', [], ['f_shared']],
+		])
+	})
+
+	it("returns only my default for a board I can't access, without its rows there", async () => {
+		expect(await run('f_x')).toEqual([['c_default', ['i_default'], []]])
+	})
+
+	it('stays within the planner EXISTS limit', () => {
+		expect(countExists(astOf('fileLibraries', { fileId: 'f_w' }))).toBeLessThanOrEqual(
+			MAX_PLANNABLE_EXISTS
+		)
 	})
 })

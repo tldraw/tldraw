@@ -1,0 +1,62 @@
+.libraries-list-layout {
+	--tlui-libraries-columns: 1;
+}
+
+.tlui-libraries-tile.libraries-list-row {
+	flex-direction: row;
+	align-items: center;
+	min-width: 0;
+}
+
+.libraries-list-row:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.libraries-list-row__button {
+	all: unset;
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	padding: 4px 40px 4px 4px;
+	cursor: pointer;
+}
+
+.libraries-list-row__button[aria-disabled='true'] {
+	color: var(--tl-color-text-3);
+	cursor: default;
+}
+
+.libraries-list-row__thumbnail {
+	flex-shrink: 0;
+	display: flex;
+	width: 32px;
+	height: 32px;
+	border-radius: var(--tl-radius-1);
+	background: var(--tl-color-background);
+}
+
+.libraries-list-row__thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.libraries-list-row__add {
+	align-items: center;
+	justify-content: center;
+	color: var(--tl-color-text-3);
+}
+
+.libraries-list-row__name {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.libraries-list-row__date {
+	color: var(--tl-color-text-3);
+	font-size: 11px;
+}

@@ -1,6 +1,7 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { Queue } from '@cloudflare/workers-types'
+import type { RenderWorkerRpc } from '@tldraw/dotcom-render-worker'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import type { HeadlessWorkerRpc } from './routes/tla/headlessShadow'
 import type { TLFileDurableObject } from './TLFileDurableObject'
@@ -39,6 +40,8 @@ export interface Environment {
 	HYPERDRIVE_DISABLED?: string
 
 	DISCORD_FEEDBACK_WEBHOOK_URL?: string
+	// Where the MCP server's send_feedback tool posts. Separate from the in-app form's channel.
+	DISCORD_MCP_FEEDBACK_WEBHOOK_URL?: string
 	PLAIN_API_KEY?: string
 	PLAIN_LABEL_TYPE_ID?: string
 	PLAIN_WORKSPACE_ID?: string
@@ -110,6 +113,8 @@ export interface Environment {
 	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
 	/** Per-account calls to the tools that go through a board's durable object. Bounds load on a shared board. */
 	MCP_SERVER_TAB_RATE_LIMITER: RateLimit | undefined
+	/** Per-account `send_feedback` calls. Bounds posts to the feedback channel. */
+	MCP_SERVER_FEEDBACK_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -128,6 +133,15 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
+	// RPC to the private render worker (apps/dotcom/render-worker), reached only here — it has no
+	// public routes. It owns the render page, the Browser Run calls, the deadline, result parsing,
+	// and the browser_run_session ledger; this worker keeps auth, snapshot selection, rate limits,
+	// caching and the request-level telemetry. Undefined where the binding is absent (tests, and any
+	// environment not yet wired to it). Typed as the RPC interface rather than Cloudflare's
+	// `Service<RenderWorker>`: the latter wants the entrypoint class (branding), which would pull
+	// `cloudflare:workers` into this worker's types. The binding stub's callable surface is the
+	// interface — every method already returns a Promise of plain, structured-cloneable data.
+	RENDER_WORKER: RenderWorkerRpc | undefined
 	/**
 	 * Whether `search_boards` will match on board names. Unset means yes, so previews, local dev and
 	 * tests keep working; production sets it to "false" while the unindexed `ILIKE` scan it drives is
@@ -146,6 +160,10 @@ export interface Environment {
 	// the page fetching them back from the snapshot route, for every board. Where it is unset
 	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
 	THUMBNAIL_RENDER_PUSH: string | undefined
+	// 'true' hands rendering to the private render worker (RENDER_WORKER) instead of the local render
+	// path in thumbnailRender.ts. Off everywhere it is unset; flipped per environment once the worker
+	// renders end-to-end. See apps/dotcom/render-worker.
+	THUMBNAIL_RENDER_VIA_WORKER: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
@@ -161,7 +179,7 @@ export interface Environment {
 	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
 	// the host has no route (production for now, dev, previews).
 	MCP_HOST_ORIGIN: string | undefined
-	// The MCP host's landing page: a static-assets worker with no route or public URL of its own.
+	// The MCP host's static-assets worker with no route or public URL of its own.
 	// mcpHostRouter hands it every GET and HEAD it doesn't serve itself.
 	// Bound per environment in wrangler.toml; unbound, the host 404s those paths as before.
 	MCP_WEB: Fetcher | undefined
@@ -175,10 +193,10 @@ export interface Environment {
 	LOCAL_SCREENSHOT_SERVICE_URL: string | undefined
 
 	// The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
-	// Unbound everywhere for now — the worker is not yet deployed or named in any wrangler.toml — so the
-	// shadow is inert until a binding is added and the `headless_shadow` flag samples a caller. Typed as
-	// the RPC surface rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for
-	// its branding, which lives in another repo and would pull the worker in as a build dependency.
+	// Bound on staging only. Its presence also stands in for the render worker's own binding when
+	// sync-worker decides to sample a screenshot (`headless_shadow`). Typed as the RPC surface
+	// rather than `Service<HeadlessWorkerRpc>`: the latter wants the entrypoint class for its branding,
+	// which is deployed separately and would pull the worker in as a build dependency.
 	HEADLESS_WORKER: HeadlessWorkerRpc | undefined
 }
 

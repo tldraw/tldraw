@@ -1,0 +1,136 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1
+			}
+		},
+		"shapes": [
+			{
+				"x": 2.83499852907061,
+				"y": 3.1845617334604506,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-plant",
+				"type": "group",
+				"parentId": "page:fpn7yrgrbpscf",
+				"index": "a28zw",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": -2.83499852907061,
+				"y": -3.1845617334604506,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-plant-0",
+				"type": "geo",
+				"props": {
+					"w": 90,
+					"h": 84,
+					"geo": "cloud",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:floor-plan-plant",
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 25.16500147092939,
+				"y": 21.815438266539548,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-plant-1",
+				"type": "geo",
+				"props": {
+					"w": 34,
+					"h": 34,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:floor-plan-plant",
+				"index": "a2fUg",
+				"typeName": "shape"
+			}
+		],
+		"rootShapeIds": ["shape:floor-plan-plant"],
+		"bindings": [],
+		"assets": [],
+		"users": []
+	}
+}

@@ -1,0 +1,839 @@
+{
+	"id": "architecture",
+	"name": "Software architecture",
+	"version": 1,
+	"items": [
+		{
+			"id": "mobile-client",
+			"name": "Mobile client",
+			"thumbnail": {
+				"light": "thumbnails/mobile-client-light.webp",
+				"dark": "thumbnails/mobile-client-dark.webp"
+			},
+			"meta": {
+				"category": "People and clients",
+				"tags": ["Mobile client", "mobile-client", "People and clients"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "users",
+			"name": "Users",
+			"thumbnail": {
+				"light": "thumbnails/users-light.webp",
+				"dark": "thumbnails/users-dark.webp"
+			},
+			"meta": {
+				"category": "People and clients",
+				"tags": ["Users", "users", "People and clients"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "browser",
+			"name": "Browser / web client",
+			"thumbnail": {
+				"light": "thumbnails/browser-light.webp",
+				"dark": "thumbnails/browser-dark.webp"
+			},
+			"meta": {
+				"category": "People and clients",
+				"tags": ["Browser / web client", "browser", "People and clients"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "user",
+			"name": "User",
+			"thumbnail": {
+				"light": "thumbnails/user-light.webp",
+				"dark": "thumbnails/user-dark.webp"
+			},
+			"meta": {
+				"category": "People and clients",
+				"tags": ["User", "user", "People and clients"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "desktop-client",
+			"name": "Desktop client",
+			"thumbnail": {
+				"light": "thumbnails/desktop-client-light.webp",
+				"dark": "thumbnails/desktop-client-dark.webp"
+			},
+			"meta": {
+				"category": "People and clients",
+				"tags": ["Desktop client", "desktop-client", "People and clients"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "terminal",
+			"name": "Terminal / CLI",
+			"thumbnail": {
+				"light": "thumbnails/terminal-light.webp",
+				"dark": "thumbnails/terminal-dark.webp"
+			},
+			"meta": {
+				"category": "People and clients",
+				"tags": ["Terminal / CLI", "terminal", "People and clients"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "server",
+			"name": "Server",
+			"thumbnail": {
+				"light": "thumbnails/server-light.webp",
+				"dark": "thumbnails/server-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Server", "server", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "worker",
+			"name": "Worker",
+			"thumbnail": {
+				"light": "thumbnails/worker-light.webp",
+				"dark": "thumbnails/worker-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Worker", "worker", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "function",
+			"name": "Function",
+			"thumbnail": {
+				"light": "thumbnails/function-light.webp",
+				"dark": "thumbnails/function-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Function", "function", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "service",
+			"name": "Service",
+			"thumbnail": {
+				"light": "thumbnails/service-light.webp",
+				"dark": "thumbnails/service-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Service", "service", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "pod",
+			"name": "Pod",
+			"thumbnail": {
+				"light": "thumbnails/pod-light.webp",
+				"dark": "thumbnails/pod-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Pod", "pod", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "virtual-machine",
+			"name": "Virtual machine",
+			"thumbnail": {
+				"light": "thumbnails/virtual-machine-light.webp",
+				"dark": "thumbnails/virtual-machine-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Virtual machine", "virtual-machine", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "scheduled-job",
+			"name": "Scheduled job",
+			"thumbnail": {
+				"light": "thumbnails/scheduled-job-light.webp",
+				"dark": "thumbnails/scheduled-job-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Scheduled job", "scheduled-job", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "container",
+			"name": "Container",
+			"thumbnail": {
+				"light": "thumbnails/container-light.webp",
+				"dark": "thumbnails/container-dark.webp"
+			},
+			"meta": {
+				"category": "Compute",
+				"tags": ["Container", "container", "Compute"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "relational-database",
+			"name": "Relational database",
+			"thumbnail": {
+				"light": "thumbnails/relational-database-light.webp",
+				"dark": "thumbnails/relational-database-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Relational database", "relational-database", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "document-database",
+			"name": "Document database",
+			"thumbnail": {
+				"light": "thumbnails/document-database-light.webp",
+				"dark": "thumbnails/document-database-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Document database", "document-database", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "key-value-store",
+			"name": "Key–value store",
+			"thumbnail": {
+				"light": "thumbnails/key-value-store-light.webp",
+				"dark": "thumbnails/key-value-store-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Key–value store", "key-value-store", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "column-database",
+			"name": "Column database",
+			"thumbnail": {
+				"light": "thumbnails/column-database-light.webp",
+				"dark": "thumbnails/column-database-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Column database", "column-database", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "file",
+			"name": "File",
+			"thumbnail": {
+				"light": "thumbnails/file-light.webp",
+				"dark": "thumbnails/file-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["File", "file", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "graph-database",
+			"name": "Graph database",
+			"thumbnail": {
+				"light": "thumbnails/graph-database-light.webp",
+				"dark": "thumbnails/graph-database-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Graph database", "graph-database", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "cache",
+			"name": "Cache",
+			"thumbnail": {
+				"light": "thumbnails/cache-light.webp",
+				"dark": "thumbnails/cache-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Cache", "cache", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "object-store",
+			"name": "Object store",
+			"thumbnail": {
+				"light": "thumbnails/object-store-light.webp",
+				"dark": "thumbnails/object-store-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Object store", "object-store", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "data-warehouse",
+			"name": "Data warehouse",
+			"thumbnail": {
+				"light": "thumbnails/data-warehouse-light.webp",
+				"dark": "thumbnails/data-warehouse-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Data warehouse", "data-warehouse", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "backup",
+			"name": "Backup",
+			"thumbnail": {
+				"light": "thumbnails/backup-light.webp",
+				"dark": "thumbnails/backup-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Backup", "backup", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "search-index",
+			"name": "Search index",
+			"thumbnail": {
+				"light": "thumbnails/search-index-light.webp",
+				"dark": "thumbnails/search-index-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Search index", "search-index", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "archive",
+			"name": "Archive / cold storage",
+			"thumbnail": {
+				"light": "thumbnails/archive-light.webp",
+				"dark": "thumbnails/archive-dark.webp"
+			},
+			"meta": {
+				"category": "Data and storage",
+				"tags": ["Archive / cold storage", "archive", "Data and storage"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "event-bus",
+			"name": "Event bus",
+			"thumbnail": {
+				"light": "thumbnails/event-bus-light.webp",
+				"dark": "thumbnails/event-bus-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Event bus", "event-bus", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "load-balancer",
+			"name": "Load balancer",
+			"thumbnail": {
+				"light": "thumbnails/load-balancer-light.webp",
+				"dark": "thumbnails/load-balancer-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Load balancer", "load-balancer", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "api-gateway",
+			"name": "API gateway",
+			"thumbnail": {
+				"light": "thumbnails/api-gateway-light.webp",
+				"dark": "thumbnails/api-gateway-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["API gateway", "api-gateway", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "message-queue",
+			"name": "Message queue",
+			"thumbnail": {
+				"light": "thumbnails/message-queue-light.webp",
+				"dark": "thumbnails/message-queue-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Message queue", "message-queue", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "cdn",
+			"name": "CDN",
+			"thumbnail": {
+				"light": "thumbnails/cdn-light.webp",
+				"dark": "thumbnails/cdn-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["CDN", "cdn", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "topic",
+			"name": "Pub/sub topic",
+			"thumbnail": {
+				"light": "thumbnails/topic-light.webp",
+				"dark": "thumbnails/topic-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Pub/sub topic", "topic", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "stream",
+			"name": "Event stream",
+			"thumbnail": {
+				"light": "thumbnails/stream-light.webp",
+				"dark": "thumbnails/stream-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Event stream", "stream", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "data-pipeline",
+			"name": "Data pipeline",
+			"thumbnail": {
+				"light": "thumbnails/data-pipeline-light.webp",
+				"dark": "thumbnails/data-pipeline-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Data pipeline", "data-pipeline", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "email",
+			"name": "Email service",
+			"thumbnail": {
+				"light": "thumbnails/email-light.webp",
+				"dark": "thumbnails/email-dark.webp"
+			},
+			"meta": {
+				"category": "Delivery and messaging",
+				"tags": ["Email service", "email", "Delivery and messaging"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "router",
+			"name": "Router",
+			"thumbnail": {
+				"light": "thumbnails/router-light.webp",
+				"dark": "thumbnails/router-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["Router", "router", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "dns",
+			"name": "DNS",
+			"thumbnail": {
+				"light": "thumbnails/dns-light.webp",
+				"dark": "thumbnails/dns-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["DNS", "dns", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "reverse-proxy",
+			"name": "Reverse proxy",
+			"thumbnail": {
+				"light": "thumbnails/reverse-proxy-light.webp",
+				"dark": "thumbnails/reverse-proxy-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["Reverse proxy", "reverse-proxy", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "switch",
+			"name": "Switch",
+			"thumbnail": {
+				"light": "thumbnails/switch-light.webp",
+				"dark": "thumbnails/switch-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["Switch", "switch", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "identity-provider",
+			"name": "Identity / auth",
+			"thumbnail": {
+				"light": "thumbnails/identity-provider-light.webp",
+				"dark": "thumbnails/identity-provider-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["Identity / auth", "identity-provider", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "secret-store",
+			"name": "Secrets / keys",
+			"thumbnail": {
+				"light": "thumbnails/secret-store-light.webp",
+				"dark": "thumbnails/secret-store-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["Secrets / keys", "secret-store", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "firewall",
+			"name": "Firewall",
+			"thumbnail": {
+				"light": "thumbnails/firewall-light.webp",
+				"dark": "thumbnails/firewall-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["Firewall", "firewall", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "vpn",
+			"name": "VPN",
+			"thumbnail": {
+				"light": "thumbnails/vpn-light.webp",
+				"dark": "thumbnails/vpn-dark.webp"
+			},
+			"meta": {
+				"category": "Networking and security",
+				"tags": ["VPN", "vpn", "Networking and security"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "logs",
+			"name": "Logs",
+			"thumbnail": {
+				"light": "thumbnails/logs-light.webp",
+				"dark": "thumbnails/logs-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Logs", "logs", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "traces",
+			"name": "Traces",
+			"thumbnail": {
+				"light": "thumbnails/traces-light.webp",
+				"dark": "thumbnails/traces-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Traces", "traces", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "alert",
+			"name": "Alert",
+			"thumbnail": {
+				"light": "thumbnails/alert-light.webp",
+				"dark": "thumbnails/alert-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Alert", "alert", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "metrics",
+			"name": "Metrics",
+			"thumbnail": {
+				"light": "thumbnails/metrics-light.webp",
+				"dark": "thumbnails/metrics-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Metrics", "metrics", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "repository",
+			"name": "Code repository",
+			"thumbnail": {
+				"light": "thumbnails/repository-light.webp",
+				"dark": "thumbnails/repository-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Code repository", "repository", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "artifact-registry",
+			"name": "Artifact registry",
+			"thumbnail": {
+				"light": "thumbnails/artifact-registry-light.webp",
+				"dark": "thumbnails/artifact-registry-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Artifact registry", "artifact-registry", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "health-check",
+			"name": "Health check",
+			"thumbnail": {
+				"light": "thumbnails/health-check-light.webp",
+				"dark": "thumbnails/health-check-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["Health check", "health-check", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "ci-cd",
+			"name": "CI / CD",
+			"thumbnail": {
+				"light": "thumbnails/ci-cd-light.webp",
+				"dark": "thumbnails/ci-cd-dark.webp"
+			},
+			"meta": {
+				"category": "Operations and delivery",
+				"tags": ["CI / CD", "ci-cd", "Operations and delivery"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "replica-set",
+			"name": "Replicas",
+			"thumbnail": {
+				"light": "thumbnails/replica-set-light.webp",
+				"dark": "thumbnails/replica-set-dark.webp"
+			},
+			"meta": {
+				"category": "Reliability and scale",
+				"tags": ["Replicas", "replica-set", "Reliability and scale"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "rate-limiter",
+			"name": "Rate limiter",
+			"thumbnail": {
+				"light": "thumbnails/rate-limiter-light.webp",
+				"dark": "thumbnails/rate-limiter-dark.webp"
+			},
+			"meta": {
+				"category": "Reliability and scale",
+				"tags": ["Rate limiter", "rate-limiter", "Reliability and scale"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "shard-set",
+			"name": "Shards",
+			"thumbnail": {
+				"light": "thumbnails/shard-set-light.webp",
+				"dark": "thumbnails/shard-set-dark.webp"
+			},
+			"meta": {
+				"category": "Reliability and scale",
+				"tags": ["Shards", "shard-set", "Reliability and scale"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "circuit-breaker",
+			"name": "Circuit breaker",
+			"thumbnail": {
+				"light": "thumbnails/circuit-breaker-light.webp",
+				"dark": "thumbnails/circuit-breaker-dark.webp"
+			},
+			"meta": {
+				"category": "Reliability and scale",
+				"tags": ["Circuit breaker", "circuit-breaker", "Reliability and scale"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "subnet",
+			"name": "Subnet",
+			"thumbnail": {
+				"light": "thumbnails/subnet-light.webp",
+				"dark": "thumbnails/subnet-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Subnet", "subnet", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "cluster",
+			"name": "Cluster",
+			"thumbnail": {
+				"light": "thumbnails/cluster-light.webp",
+				"dark": "thumbnails/cluster-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Cluster", "cluster", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "network",
+			"name": "Network",
+			"thumbnail": {
+				"light": "thumbnails/network-light.webp",
+				"dark": "thumbnails/network-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Network", "network", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "cloud",
+			"name": "Cloud",
+			"thumbnail": {
+				"light": "thumbnails/cloud-light.webp",
+				"dark": "thumbnails/cloud-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Cloud", "cloud", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "vpc",
+			"name": "VPC / private network",
+			"thumbnail": {
+				"light": "thumbnails/vpc-light.webp",
+				"dark": "thumbnails/vpc-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["VPC / private network", "vpc", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "region",
+			"name": "Region",
+			"thumbnail": {
+				"light": "thumbnails/region-light.webp",
+				"dark": "thumbnails/region-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Region", "region", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "availability-zone",
+			"name": "Availability zone",
+			"thumbnail": {
+				"light": "thumbnails/availability-zone-light.webp",
+				"dark": "thumbnails/availability-zone-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Availability zone", "availability-zone", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "external-system",
+			"name": "External system",
+			"thumbnail": {
+				"light": "thumbnails/external-system-light.webp",
+				"dark": "thumbnails/external-system-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["External system", "external-system", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "software-system",
+			"name": "Software system",
+			"thumbnail": {
+				"light": "thumbnails/software-system-light.webp",
+				"dark": "thumbnails/software-system-dark.webp"
+			},
+			"meta": {
+				"category": "Boundaries and systems",
+				"tags": ["Software system", "software-system", "Boundaries and systems"],
+				"source": "tldraw"
+			}
+		}
+	]
+}

@@ -2,7 +2,9 @@ import { TlaEffectOutbox } from '@tldraw/dotcom-shared'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
+import { getNextLibraryObjectDeleteDueAt, selectEffectOutboxBatch } from './effectOutboxQueries'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
+import { LibraryItemObjectEffectDeps, processLibraryItemObjectEffect } from './libraryEffects'
 import {
 	EFFECT_TIMEOUT_MS,
 	MAX_ATTEMPTS,
@@ -24,6 +26,9 @@ const SWEEP_INTERVAL_MS = 30_000
 // (workspace-delete cascade) and lost pokes.
 export class TLFileEffectProcessor extends DurableObject<Environment> {
 	private drainPromise: Promise<void> | null = null
+	// When the last drain's earliest deferred library object delete becomes due (see
+	// LIBRARY_OBJECT_DELETE_GRACE_MS), so the next alarm can fire then.
+	private nextLibraryObjectDeleteDueAt: number | null = null
 	private sentry
 	private measure: Analytics | undefined
 
@@ -80,7 +85,12 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			// the drain set alarm(now), which is past-due by now; computeNextAlarm re-arms it at
 			// ~1s (a past-due alarm can't be trusted to fire on its own). null => leave as-is.
 			const scheduled = await this.ctx.storage.getAlarm()
-			const next = computeNextAlarm(scheduled, Date.now(), SWEEP_INTERVAL_MS)
+			const next = computeNextAlarm(
+				scheduled,
+				Date.now(),
+				SWEEP_INTERVAL_MS,
+				this.nextLibraryObjectDeleteDueAt
+			)
 			if (next !== null) await this.ctx.storage.setAlarm(next)
 		}
 	}
@@ -100,6 +110,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 
 	private async _drain() {
 		const drainStart = Date.now()
+		this.nextLibraryObjectDeleteDueAt = null
 		let processed = 0
 		let failed = 0
 		const db = createPostgresConnectionPool(this.env, 'TLFileEffectProcessor')
@@ -116,24 +127,29 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 				),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
 		}
+		const libraryItemObjectDeps: LibraryItemObjectEffectDeps = {
+			isObjectUsed: async ({ bucket, objectName }) => {
+				const row = await db
+					.selectFrom('library_item_object')
+					.select('itemId')
+					.where('bucket', '=', bucket)
+					.where('objectName', '=', objectName)
+					.limit(1)
+					.executeTakeFirst()
+				return row !== undefined
+			},
+			deleteObject: ({ bucket, objectName }) =>
+				(bucket === 'rooms' ? this.env.ROOMS : this.env.UPLOADS).delete(objectName),
+		}
 		// One handler per source table. Future effect sources (e.g. notifications)
 		// register here alongside their trigger.
 		const handlers: Record<string, (row: TlaEffectOutbox) => Promise<void>> = {
 			file: (row) => processFileEffect(fileDeps, row),
+			library_item_object: (row) => processLibraryItemObjectEffect(libraryItemObjectDeps, row),
 		}
 		try {
 			await drainOutbox({
-				getBatch: () =>
-					db
-						.selectFrom('effect_outbox')
-						.selectAll()
-						.where('attempts', '<', MAX_ATTEMPTS)
-						.where((eb) =>
-							eb.or([eb('nextRetryAt', 'is', null), eb('nextRetryAt', '<=', sql<Date>`now()`)])
-						)
-						.orderBy('id')
-						.limit(50)
-						.execute(),
+				getBatch: () => selectEffectOutboxBatch(db),
 				deleteRow: async (id) => {
 					await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
 					processed++
@@ -220,6 +236,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					}
 				},
 			})
+			this.nextLibraryObjectDeleteDueAt = await getNextLibraryObjectDeleteDueAt(db)
 		} finally {
 			await db.destroy()
 			// Per-drain summary: throughput (processed/failed) and how long the drain took.

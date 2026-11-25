@@ -1,0 +1,287 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 599,
+				"y": 2218,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "load-balancer",
+						"pack": "architecture",
+						"name": "Load balancer",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Delivery and messaging",
+						"tags": ["Load balancer", "load-balancer", "Delivery and messaging"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-load-balancer",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b0wSqM",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 47,
+				"y": 20,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-load-balancer-body",
+				"type": "geo",
+				"parentId": "shape:full-catalog-load-balancer",
+				"props": {
+					"w": 74,
+					"h": 74,
+					"geo": "diamond",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 57,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-load-balancer-in",
+				"type": "arrow",
+				"parentId": "shape:full-catalog-load-balancer",
+				"props": {
+					"kind": "arc",
+					"elbowMidPoint": 0.5,
+					"dash": "draw",
+					"size": "s",
+					"fill": "none",
+					"color": "black",
+					"labelColor": "black",
+					"bend": 0,
+					"start": {
+						"x": 0,
+						"y": 0
+					},
+					"end": {
+						"x": 47,
+						"y": 0
+					},
+					"arrowheadStart": "none",
+					"arrowheadEnd": "arrow",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					},
+					"labelPosition": 0.5,
+					"font": "draw",
+					"scale": 1
+				},
+				"index": "a2UPUV",
+				"typeName": "shape"
+			},
+			{
+				"x": 121,
+				"y": 57,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-load-balancer-out-top",
+				"type": "arrow",
+				"parentId": "shape:full-catalog-load-balancer",
+				"props": {
+					"kind": "arc",
+					"elbowMidPoint": 0.5,
+					"dash": "draw",
+					"size": "s",
+					"fill": "none",
+					"color": "black",
+					"labelColor": "black",
+					"bend": 0,
+					"start": {
+						"x": 0,
+						"y": 0
+					},
+					"end": {
+						"x": 61,
+						"y": -57
+					},
+					"arrowheadStart": "none",
+					"arrowheadEnd": "arrow",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					},
+					"labelPosition": 0.5,
+					"font": "draw",
+					"scale": 1
+				},
+				"index": "a3mAn",
+				"typeName": "shape"
+			},
+			{
+				"x": 121,
+				"y": 57,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-load-balancer-out-middle",
+				"type": "arrow",
+				"parentId": "shape:full-catalog-load-balancer",
+				"props": {
+					"kind": "arc",
+					"elbowMidPoint": 0.5,
+					"dash": "draw",
+					"size": "s",
+					"fill": "none",
+					"color": "black",
+					"labelColor": "black",
+					"bend": 0,
+					"start": {
+						"x": 0,
+						"y": 0
+					},
+					"end": {
+						"x": 61,
+						"y": 0
+					},
+					"arrowheadStart": "none",
+					"arrowheadEnd": "arrow",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					},
+					"labelPosition": 0.5,
+					"font": "draw",
+					"scale": 1
+				},
+				"index": "a49aX",
+				"typeName": "shape"
+			},
+			{
+				"x": 121,
+				"y": 57,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-load-balancer-out-bottom",
+				"type": "arrow",
+				"parentId": "shape:full-catalog-load-balancer",
+				"props": {
+					"kind": "arc",
+					"elbowMidPoint": 0.5,
+					"dash": "draw",
+					"size": "s",
+					"fill": "none",
+					"color": "black",
+					"labelColor": "black",
+					"bend": 0,
+					"start": {
+						"x": 0,
+						"y": 0
+					},
+					"end": {
+						"x": 61,
+						"y": 57
+					},
+					"arrowheadStart": "none",
+					"arrowheadEnd": "arrow",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					},
+					"labelPosition": 0.5,
+					"font": "draw",
+					"scale": 1
+				},
+				"index": "a5JS2",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-load-balancer"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

@@ -33,6 +33,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
+			percentage: 0,
 			description:
 				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
 		},
@@ -49,6 +50,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
+			percentage: 0,
 			description:
 				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
@@ -68,19 +70,27 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 		},
 		headless_shadow: {
 			type: 'percentage',
-			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. Bucketed per user:
-			// the sync worker passes the caller's user id, so a stable sample of accounts runs the shadow.
+			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. One percentage, two
+			// ids: MCP reads bucket by the caller's user id, OG and thumbnail renders by the board's kind and
+			// slug, so a stable sample of accounts and of boards runs the shadow.
 			percentage: 0,
 			enabled: true,
 			description:
-				'Runs the headless editor over an MCP page read in shadow mode, off the critical path, and records how its clustering compares with the open tab. Does nothing unless the HEADLESS_WORKER binding is present. Bucketed per user. A change lands within about a minute',
+				'Runs the headless editor in shadow mode, off the critical path: over MCP page reads, recording how its clustering compares with the open tab, and over OG and thumbnail renders, recording how its image and timing compare with Browser Run. Does nothing unless the HEADLESS_WORKER binding is present. MCP reads are bucketed per user, renders per BOARD (kind and slug). A change lands within about a minute',
 		},
 		ui_v3: {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
+			percentage: 0,
 			description:
 				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
+		},
+		mcp_hidden_tab: {
+			type: 'boolean',
+			enabled: true,
+			description:
+				'MCP tools work through a board tab the user has in the background. Turning it off is the kill switch: a hidden tab declines every job, and agents ask the user to bring the board into view. A change lands within about a minute',
 		},
 	}
 }
@@ -183,7 +193,8 @@ export function getFeatureFlagType(
 
 /**
  * Evaluate a flag for a specific user. Percentage flags use a deterministic
- * hash of userId+flagName. Allowlist flags check the user against the named ids.
+ * hash of userId+flagName. Allowlist flags check the user against the named ids, then
+ * against their own percentage, bucketed the same way.
  * Boolean flags use the `enabled` field directly.
  */
 export function evaluateFlagForUser(
@@ -214,8 +225,15 @@ export function evaluateFlagForUser(
 			// Missing or malformed `users` denies rather than admits: this is read from KV, where a
 			// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
 			// that silently opens to everyone.
+			if (
+				Array.isArray(flag.users) &&
+				flag.users.some((entry) => entry && entry.userId === userId)
+			) {
+				return true
+			}
+			// Same type check as `users`: a hand-edited `"50"` would compare by coercion.
 			return (
-				Array.isArray(flag.users) && flag.users.some((entry) => entry && entry.userId === userId)
+				typeof flag.percentage === 'number' && hashToPercentage(userId, flagName) < flag.percentage
 			)
 		default:
 			exhaustiveSwitchError(flag)
@@ -300,6 +318,15 @@ async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean
 	}
 }
 
+/**
+ * Whether a caller may reach the libraries routes and mutators: the `libraries` flag, which also
+ * decides whether the client shows them. Read without the stale value, like `canUseMcpServer`, so a
+ * removal from the list lands even while KV is failing.
+ */
+export async function canUseLibraries(env: Environment, userId: string): Promise<boolean> {
+	return await isFeatureFlagEnabledForUser(env, 'libraries', userId, { staleOnError: false })
+}
+
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
@@ -321,7 +348,7 @@ export async function isFeatureFlagEnabledForUser(
 export type FeatureFlagUpdate =
 	| { type: 'boolean'; enabled?: boolean }
 	| { type: 'percentage'; enabled?: boolean; percentage?: number }
-	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean }
+	| { type: 'allowlist'; users?: AllowlistEntry[]; allowEveryone?: boolean; percentage?: number }
 
 /** Thrown when an update names a different type than the flag it addresses. */
 export class FeatureFlagTypeError extends Error {}
@@ -376,6 +403,7 @@ export async function setFeatureFlag(
 				// not a separate operation the admin UI would have to model.
 				users: update.users ?? value.users,
 				allowEveryone: update.allowEveryone ?? value.allowEveryone ?? false,
+				percentage: update.percentage ?? value.percentage ?? 0,
 			})
 		}
 		default:

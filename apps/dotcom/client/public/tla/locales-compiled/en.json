@@ -173,6 +173,12 @@
       "value": "Unpin file"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "This workspace has reached the maximum number of libraries. Delete old libraries before creating new ones."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -197,6 +203,12 @@
       "value": "Create file"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Created by me"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -219,6 +231,12 @@
     {
       "type": 0,
       "value": "A workspace must keep at least one owner. Make someone else an owner first."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "My stash"
     }
   ],
   "21f66c9c00": [
@@ -251,6 +269,12 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "This library has reached the maximum number of items. Delete old items before adding new ones."
     }
   ],
   "28b2464e1f": [
@@ -393,12 +417,6 @@
       "value": "Unable to publish the changes."
     }
   ],
-  "3bf4ed96b1": [
-    {
-      "type": 0,
-      "value": "Recently viewed"
-    }
-  ],
   "3c5e891bff": [
     {
       "type": 0,
@@ -423,10 +441,22 @@
       "value": "Color theme"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Library menu"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
       "value": "Contact the owner to request access."
+    }
+  ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Actions…"
     }
   ],
   "44db318ee5": [
@@ -483,6 +513,12 @@
     {
       "type": 0,
       "value": "Pin file"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Object"
     }
   ],
   "49800157c1": [
@@ -565,6 +601,12 @@
       "value": "No files here yet."
     }
   ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Export…"
+    }
+  ],
   "53770fd374": [
     {
       "type": 0,
@@ -609,6 +651,12 @@
     {
       "type": 0,
       "value": "PNG"
+    }
+  ],
+  "5555e27b9f": [
+    {
+      "type": 0,
+      "value": "This board"
     }
   ],
   "5638176be5": [
@@ -699,6 +747,12 @@
     {
       "type": 0,
       "value": "Later"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Recents"
     }
   ],
   "625fd29749": [
@@ -817,6 +871,12 @@
     {
       "type": 0,
       "value": "Delete workspace"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Sign in to save"
     }
   ],
   "69ce6a28fb": [
@@ -972,6 +1032,12 @@
       "value": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "No libraries yet."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1014,10 +1080,22 @@
       "value": "Open tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Sign in to edit profile settings"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Forget"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Archived"
     }
   ],
   "7daeced9ff": [
@@ -1304,6 +1382,12 @@
       "value": "Terms of Use"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Try the MCP server"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1314,6 +1398,12 @@
     {
       "type": 0,
       "value": "Clear search"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Unsaved file"
     }
   ],
   "9b33f5c63c": [
@@ -1348,6 +1438,38 @@
       "value": "You appear to be offline. Check your connection and try again."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1358,6 +1480,60 @@
     {
       "type": 0,
       "value": "Publish this file"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " and its "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1494,6 +1670,12 @@
     {
       "type": 0,
       "value": "File is getting large"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Delete library"
     }
   ],
   "a9ded1e5ce": [
@@ -1950,6 +2132,12 @@
       "value": "OK"
     }
   ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Couldn't change library"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1966,12 +2154,6 @@
     {
       "type": 0,
       "value": "Terms of service"
-    }
-  ],
-  "e727b00944": [
-    {
-      "type": 0,
-      "value": "Archive"
     }
   ],
   "e81c4e4f2b": [
@@ -2084,6 +2266,12 @@
       "value": "User settings"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Not in any file"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2164,6 +2352,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Public libraries"
     }
   ],
   "ff2fefd3c6": [

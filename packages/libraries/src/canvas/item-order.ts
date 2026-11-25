@@ -13,9 +13,15 @@ const messages = defineMessages({
 	name: { id: 'libraries.item-order.name', defaultMessage: 'Name' },
 })
 
+/**
+ * A way to order a library's items: the source's own order, newest first, or A to Z by name.
+ * @public
+ */
+export type TLLibraryItemOrdering = 'source' | 'newest' | 'name'
+
 /** A way to order a library's items. Leave out `compare` for the source's own order. */
 export interface ItemOrdering {
-	id: string
+	id: TLLibraryItemOrdering
 	label: string
 	compare?(a: TLLibraryItem, b: TLLibraryItem): number
 }
@@ -45,7 +51,12 @@ const nameItemOrder: ItemOrdering = {
 }
 
 /** The orderings offered in the panel's sort menu; the first is the default. */
-export const itemOrderings = [sourceItemOrder, newestItemOrder, nameItemOrder]
+export const itemOrderings: ItemOrdering[] = [sourceItemOrder, newestItemOrder, nameItemOrder]
+
+/** The ordering with this id, or the default for an id that names none, e.g. a stale stored one. */
+export function getItemOrdering(id: string | undefined) {
+	return itemOrderings.find((ordering) => ordering.id === id) ?? itemOrderings[0]
+}
 
 /** The current user's choice of ordering for one library, kept in this browser. */
 export interface ItemOrderChoice {

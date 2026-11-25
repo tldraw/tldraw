@@ -1,14 +1,16 @@
-import { type ReactNode, useCallback, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	useDialogs,
 	useEditor,
-	useToasts,
 	useTranslation,
+	useUiEvents,
 	useValue,
+	type TLLibrary,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
+import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
@@ -26,23 +28,20 @@ import {
 } from './library-groups'
 import { LibrarySection } from './library-section'
 import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
+import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
-import { placeLibraryItem } from './place-item'
+import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useCreateLibrary } from './use-create-library'
-import { useItemDrag } from './use-item-drag'
+import { useLibraryItemDrag } from './use-item-drag'
+import { useLibraries } from './use-libraries'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 	newLibrary: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	newLibraryIn: { id: 'libraries.group.new-library', defaultMessage: 'New library in {name}' },
-	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
-	placeErrorDescription: {
-		id: 'libraries.place-error.description',
-		defaultMessage: 'It may have been deleted. Try again, or pick another item.',
-	},
 })
 
 /** @public */
@@ -59,6 +58,18 @@ export interface LibrariesPanelProps {
 	prepareItemContent?: PrepareItemContent
 	/** Replaces or hides pieces of the panel. See {@link LibrariesComponents}. */
 	components?: LibrariesComponents
+	/**
+	 * Places an item when it's clicked or dragged out, e.g. without selecting it. Defaults to
+	 * {@link defaultPlaceLibraryItem}.
+	 */
+	placeItem?: LibraryItemPlacer
+	/**
+	 * Groups of the host's own for the "Browse libraries" dialog, after the libraries the source
+	 * has available to add, such as libraries the app ships as data. Called reactively, so it can
+	 * read signals. With it, "Browse libraries" is offered even by a source that doesn't add
+	 * libraries to documents.
+	 */
+	getBrowseGroups?(): LibraryBrowseGroup[]
 }
 
 /**
@@ -68,6 +79,25 @@ export interface LibrariesPanelProps {
  * active tab's owner. Setting {@link activeLibraryId} switches to the tab holding that library.
  * Clicking an item places a copy of it in the middle of the viewport; dragging one out drops it
  * under the pointer.
+ *
+ * A drag starts once the pointer has left the panel and moved past the editor's
+ * `uiDragDistanceSquared` option (`uiCoarseDragDistanceSquared` for touch and pen), as dragging a
+ * tool out of the toolbar does. Set them with `<Tldraw options={{ … }}>`.
+ *
+ * Its size and position follow CSS variables set on the panel or any element around it:
+ *
+ * - `--tlui-libraries-panel-inset-top`: the gap above the panel. Defaults to `48px`, below the
+ *   main menu.
+ * - `--tlui-libraries-panel-inset-side`: the gap between the panel and its side of the canvas.
+ *   Defaults to `8px`.
+ * - `--tlui-libraries-panel-max-height`: the tallest the panel grows before it scrolls. Defaults to
+ *   the canvas's height less the two insets, at most `720px`.
+ * - `--tlui-libraries-columns`: tiles to a row. Defaults to `3`.
+ *
+ * `--tlui-libraries-tile-width` is the width of a tile, `86.67px` by default, and the panel is three
+ * tiles wide (280px with its 20px of gutter) whatever the number of columns. The default is set on the panel itself, so override
+ * it with a rule on `.tlui-libraries-panel`. Read it to size an `ItemTile` override or anything
+ * else to match the tiles.
  * @public @react
  */
 export function LibrariesPanel({ components, ...props }: LibrariesPanelProps) {
@@ -83,28 +113,20 @@ function LibrariesPanelContent({
 	side = 'left',
 	menuItems,
 	prepareItemContent,
+	placeItem,
+	getBrowseGroups,
 }: Omit<LibrariesPanelProps, 'components'>) {
 	const editor = useEditor()
 	const { LibrariesPanelHeader = DefaultLibrariesPanelHeader, NoLibraries = DefaultNoLibraries } =
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
-	const { addToast } = useToasts()
+	const { addDialog } = useDialogs()
+	const trackEvent = useUiEvents()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
-	const libraries = useValue('libraries', () => source.getLibraries(), [source])
+	const libraries = useLibraries(source)
 	const grouping = useLibraryGrouping(source)
-	const placeItem = useCallback(
-		(itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).catch(() => {
-				addToast({
-					title: msg(messages.placeErrorTitle),
-					description: msg(messages.placeErrorDescription),
-					severity: 'error',
-				})
-			})
-		},
-		[editor, source, addToast, msg]
-	)
-	const getItemProps = useItemDrag(source, placeItem)
+	const getItemProps = useLibraryItemDrag(source, { placeItem })
 	const createLibrary = useCreateLibrary(source)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()
@@ -141,7 +163,16 @@ function LibrariesPanelContent({
 		[source, grouping]
 	)
 
-	if (!open) return null
+	const canBrowse =
+		!!(source.getAvailableLibraries && source.addLibraryToDocument) || !!getBrowseGroups
+	const browse = () => {
+		trackEvent('open-browse-libraries', { source: 'libraries' })
+		addDialog({
+			component: () => <BrowseLibrariesDialog source={source} getBrowseGroups={getBrowseGroups} />,
+		})
+	}
+
+	if (!librariesEnabled || !open) return null
 
 	const newLibraryAction = (ownerName: string | undefined, ownerId: string | undefined) => ({
 		label: ownerName ? msg(messages.newLibraryIn, { name: ownerName }) : msg(messages.newLibrary),
@@ -177,7 +208,11 @@ function LibrariesPanelContent({
 				onContextMenu={(e) => e.stopPropagation()}
 			>
 				{LibrariesPanelHeader && (
-					<LibrariesPanelHeader newLibrary={getNewLibrary(activeGroup)} menuItems={menuItems} />
+					<LibrariesPanelHeader
+						newLibrary={getNewLibrary(activeGroup)}
+						menuItems={menuItems}
+						onBrowse={canBrowse ? browse : undefined}
+					/>
 				)}
 				{grouping ? (
 					<LibraryTabs groups={groups} value={tab} onValueChange={setChosenTab}>
@@ -188,7 +223,9 @@ function LibrariesPanelContent({
 						))}
 					</LibraryTabs>
 				) : (
-					<div className="tlui-libraries-sections">{renderSections(libraries)}</div>
+					<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
+						{renderSections(libraries)}
+					</div>
 				)}
 			</section>
 		</EditorPortal>
