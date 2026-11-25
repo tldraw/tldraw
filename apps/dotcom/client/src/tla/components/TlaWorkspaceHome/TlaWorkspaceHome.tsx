@@ -46,7 +46,7 @@ const messages = defineMessages({
 	pinned: { defaultMessage: 'Pinned' },
 })
 
-type Tab = 'recent' | 'mine' | 'shared' | 'archive'
+type Tab = 'recent' | 'archive' | 'shared'
 type ViewMode = 'grid' | 'list'
 
 const VIEW_MODE_KEY = 'tla-workspace-home-view-mode'
@@ -61,11 +61,7 @@ interface BoardItem {
 }
 
 export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
-	const app = useApp()
-	const [selectedTab, setTab] = useState<Tab>('recent')
-	// Only the home workspace lists boards from other workspaces; a team workspace lists only its own.
-	const showSharedTab = workspaceId === app.getHomeWorkspaceId()
-	const tab = selectedTab === 'shared' && !showSharedTab ? 'recent' : selectedTab
+	const [tab, setTab] = useState<Tab>('recent')
 	const [query, setQuery] = useState('')
 	const [viewMode, setViewMode] = useState<ViewMode>(() =>
 		getFromLocalStorage(VIEW_MODE_KEY) === 'list' ? 'list' : 'grid'
@@ -87,7 +83,6 @@ export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
 			<TlaWorkspaceHomeToolbar
 				tab={tab}
 				onTabChange={setTab}
-				showSharedTab={showSharedTab}
 				query={query}
 				onQueryChange={setQuery}
 				viewMode={viewMode}
@@ -145,9 +140,6 @@ function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): Board
 				// The sidebar's test for its "Shared by" badge: boards the user can't administer.
 				const isShared = !app.canUpdateFile(fileId)
 				if (tab === 'shared' && !isShared) continue
-				// TODO: files don't record who created them. In the home workspace every board that isn't
-				// shared is the user's own, but a team workspace can't tell yet.
-				if (tab === 'mine' && (isShared || workspaceId !== app.getHomeWorkspaceId())) continue
 				boards.push({
 					fileId,
 					name,
@@ -165,7 +157,6 @@ function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): Board
 function TlaWorkspaceHomeToolbar({
 	tab,
 	onTabChange,
-	showSharedTab,
 	query,
 	onQueryChange,
 	viewMode,
@@ -173,7 +164,6 @@ function TlaWorkspaceHomeToolbar({
 }: {
 	tab: Tab
 	onTabChange(tab: Tab): void
-	showSharedTab: boolean
 	query: string
 	onQueryChange(query: string): void
 	viewMode: ViewMode
@@ -186,18 +176,13 @@ function TlaWorkspaceHomeToolbar({
 		<div className={styles.toolbar}>
 			<div className={styles.tabs} role="tablist">
 				<TlaWorkspaceHomeTab tab="recent" current={tab} onSelect={onTabChange}>
-					<F defaultMessage="Recents" />
+					<F defaultMessage="Recently viewed" />
 				</TlaWorkspaceHomeTab>
-				<TlaWorkspaceHomeTab tab="mine" current={tab} onSelect={onTabChange}>
-					<F defaultMessage="Created by me" />
+				<TlaWorkspaceHomeTab tab="shared" current={tab} onSelect={onTabChange}>
+					<F defaultMessage="Shared with me" />
 				</TlaWorkspaceHomeTab>
-				{showSharedTab && (
-					<TlaWorkspaceHomeTab tab="shared" current={tab} onSelect={onTabChange}>
-						<F defaultMessage="Shared with me" />
-					</TlaWorkspaceHomeTab>
-				)}
 				<TlaWorkspaceHomeTab tab="archive" current={tab} onSelect={onTabChange}>
-					<F defaultMessage="Archived" />
+					<F defaultMessage="Archive" />
 				</TlaWorkspaceHomeTab>
 			</div>
 			<div className={styles.spacer} />
@@ -373,29 +358,6 @@ function TlaBoardCard({
 
 	const isDragEnabled = !isCoarsePointer
 
-	const pinIcon = board.isPinned && (
-		<TlaIcon icon="pin" className={styles.cardPinned} aria-label={msg(messages.pinned)} />
-	)
-
-	const fileMenu = (
-		<TlaFileMenu
-			fileId={board.fileId}
-			workspaceId={workspaceId}
-			source="workspace-home"
-			onRenameAction={handleRenameAction}
-			trigger={
-				<TldrawUiButton
-					type="icon"
-					className={styles.cardMenuTrigger}
-					tooltip={fileMenuLbl}
-					title={fileMenuLbl}
-				>
-					<TlaIcon icon="dots-vertical-strong" />
-				</TldrawUiButton>
-			}
-		/>
-	)
-
 	const visitors = showVisitors && (
 		<TlaBoardVisitors
 			fileId={board.fileId}
@@ -434,46 +396,45 @@ function TlaBoardCard({
 							onClick={() => trackEvent('click-file-link', { source: 'workspace-home' })}
 						/>
 					)}
-					{viewMode === 'grid' && (
-						<TlaBoardThumbnail fileId={board.fileId}>
-							{pinIcon && <div className={styles.cardPinnedBadge}>{pinIcon}</div>}
-							<div className={styles.cardMenu}>{fileMenu}</div>
-						</TlaBoardThumbnail>
-					)}
+					{viewMode === 'grid' && <TlaBoardThumbnail fileId={board.fileId} />}
 					<div className={styles.cardFooter}>
 						{viewMode === 'list' && showListThumbnail && (
 							<TlaBoardThumbnail fileId={board.fileId} small />
 						)}
 						<div className={styles.cardText}>
-							<div className={styles.cardTitle}>
-								{isRenaming ? (
-									<TlaSidebarRenameInline
-										source="workspace-home"
-										fileId={board.fileId}
-										onClose={() => setIsRenaming(false)}
-										wrapperClassName={styles.cardRename}
-										className={styles.cardRenameInput}
-									/>
-								) : (
-									<div
-										className={classNames(styles.cardName, 'notranslate')}
-										data-renamable={hasAdminRights}
-										onClick={hasAdminRights ? handleNameClick : undefined}
-										onDoubleClick={
-											hasAdminRights
-												? () => {
-														clearTimeout(rPendingOpen.current)
-														handleRenameAction()
-													}
-												: undefined
-										}
-									>
-										{board.name}
-									</div>
-								)}
-								{viewMode === 'list' && !isRenaming && pinIcon}
-							</div>
+							{isRenaming ? (
+								<TlaSidebarRenameInline
+									source="workspace-home"
+									fileId={board.fileId}
+									onClose={() => setIsRenaming(false)}
+									wrapperClassName={styles.cardRename}
+									className={styles.cardRenameInput}
+								/>
+							) : (
+								<div
+									className={classNames(styles.cardName, 'notranslate')}
+									data-renamable={hasAdminRights}
+									onClick={hasAdminRights ? handleNameClick : undefined}
+									onDoubleClick={
+										hasAdminRights
+											? () => {
+													clearTimeout(rPendingOpen.current)
+													handleRenameAction()
+												}
+											: undefined
+									}
+								>
+									{board.name}
+								</div>
+							)}
 							<div className={styles.cardMeta}>
+								{board.isPinned && (
+									<TlaIcon
+										icon="pin"
+										className={styles.cardPinned}
+										aria-label={msg(messages.pinned)}
+									/>
+								)}
 								<span className={styles.cardMetaText}>
 									{board.ownerName ? `${board.ownerName} • ${edited}` : edited}
 								</span>
@@ -484,7 +445,22 @@ function TlaBoardCard({
 							)}
 						</div>
 						{viewMode === 'grid' && visitors}
-						{viewMode === 'list' && fileMenu}
+						<TlaFileMenu
+							fileId={board.fileId}
+							workspaceId={workspaceId}
+							source="workspace-home"
+							onRenameAction={handleRenameAction}
+							trigger={
+								<TldrawUiButton
+									type="icon"
+									className={styles.cardMenuTrigger}
+									tooltip={fileMenuLbl}
+									title={fileMenuLbl}
+								>
+									<TlaIcon icon="dots-vertical-strong" />
+								</TldrawUiButton>
+							}
+						/>
 					</div>
 				</div>
 			</_ContextMenu.Trigger>
@@ -506,15 +482,7 @@ function TlaBoardCard({
 	)
 }
 
-function TlaBoardThumbnail({
-	fileId,
-	small,
-	children,
-}: {
-	fileId: string
-	small?: boolean
-	children?: ReactNode
-}) {
+function TlaBoardThumbnail({ fileId, small }: { fileId: string; small?: boolean }) {
 	// A board nobody has edited since thumbnails shipped has none yet; the endpoint 404s.
 	const [failed, setFailed] = useState(false)
 	return (
@@ -531,7 +499,6 @@ function TlaBoardThumbnail({
 					onError={() => setFailed(true)}
 				/>
 			)}
-			{children}
 		</div>
 	)
 }

@@ -197,12 +197,6 @@
       "value": "Create file"
     }
   ],
-  "1914dedd04": [
-    {
-      "type": 0,
-      "value": "Created by me"
-    }
-  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -397,6 +391,12 @@
     {
       "type": 0,
       "value": "Unable to publish the changes."
+    }
+  ],
+  "3bf4ed96b1": [
+    {
+      "type": 0,
+      "value": "Recently viewed"
     }
   ],
   "3c5e891bff": [
@@ -699,12 +699,6 @@
     {
       "type": 0,
       "value": "Later"
-    }
-  ],
-  "623cddd380": [
-    {
-      "type": 0,
-      "value": "Recents"
     }
   ],
   "625fd29749": [
@@ -1024,12 +1018,6 @@
     {
       "type": 0,
       "value": "Forget"
-    }
-  ],
-  "7d69b3cb4c": [
-    {
-      "type": 0,
-      "value": "Archived"
     }
   ],
   "7daeced9ff": [
@@ -1984,6 +1972,12 @@
     {
       "type": 0,
       "value": "Terms of service"
+    }
+  ],
+  "e727b00944": [
+    {
+      "type": 0,
+      "value": "Archive"
     }
   ],
   "e81c4e4f2b": [
