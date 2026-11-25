@@ -3,12 +3,10 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
-	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
-	ThumbnailShapeMeasurement,
 	ThumbnailSnapshotResponseBody,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -19,7 +17,6 @@ import {
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
-	TLShapeId,
 	Tldraw,
 	sleep,
 	useEditor,
@@ -37,7 +34,6 @@ import {
 	getRequestedBounds,
 	getRequestedShapeIds,
 	getThumbnailContentInset,
-	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../utils/boardCapture'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
@@ -46,9 +42,10 @@ import { resolveUserContentImageUrl } from '../utils/resolveUserContentImageUrl'
 // The thumbnail render page: a real editor, loaded with one board's records, that exports itself
 // and displays the export for Browser Run to screenshot. Served as its own Vite entry
 // (thumbnail-render.html + thumbnail-render-main.tsx) rather than as an SPA route, so a capture
-// boots the SDK and nothing else — no router, no Clerk, no service worker. /__thumbnail-render is
-// rewritten to that entry at the edge (scripts/build.ts) and in dev
-// (vite-thumbnail-screenshot-plugin.ts), so the URL the sync-worker renders never moves.
+// boots the SDK and nothing else — no router, no Clerk, no service worker. The client's own build
+// leaves it out: the render worker builds this entry and serves it at /__thumbnail-render
+// (render-worker/page.vite.config.ts), and in dev this dev server does
+// (vite-thumbnail-screenshot-plugin.ts).
 
 export type ThumbnailRenderData =
 	| {
@@ -177,10 +174,6 @@ function ThumbnailRenderPage({
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
-					// Before readonly, which the editor's own write guards honour.
-					if (renderParams.capture === 'live' && renderParams.shapeIds?.length) {
-						if (!prepareLiveCapture(editor, renderParams.shapeIds)) return
-					}
 					editor.updateInstanceState({ isReadonly: true })
 					// `content` is what every surface asks for today; an explicit viewport is still honoured
 					// (see ThumbnailRenderParams) so the worker can start sending one without waiting on a
@@ -198,19 +191,14 @@ function ThumbnailRenderPage({
 					}
 				}}
 			>
-				{renderParams.mode === 'measure' ? (
-					<ThumbnailMeasureSignal />
-				) : (
-					<ThumbnailExportSignal
-						theme={theme}
-						width={width}
-						height={height}
-						camera={renderParams.camera}
-						shapeIds={renderParams.shapeIds}
-						capture={renderParams.capture}
-						onImage={handleImage}
-					/>
-				)}
+				<ThumbnailExportSignal
+					theme={theme}
+					width={width}
+					height={height}
+					camera={renderParams.camera}
+					shapeIds={renderParams.shapeIds}
+					onImage={handleImage}
+				/>
 			</Tldraw>
 		</div>
 	)
@@ -245,9 +233,7 @@ export function ThumbnailImage({
 // Refuses to mark success once the page has failed. `setThumbnailError` is terminal, but the
 // worker's capture selector is `body[data-thumbnail-ready="true"]` and says nothing about an error,
 // so a path that marks an error and then goes on to mark ready hands back a screenshot of whatever
-// is on screen — and it gets cached as the real thing. Live capture reaches here exactly that way:
-// prepareLiveCapture's refusal returns from onMount, but ThumbnailExportSignal is a child of
-// <Tldraw> and runs its effect regardless, ending at signalThumbnailReady with the page unpruned.
+// is on screen — and it gets cached as the real thing.
 export function signalThumbnailReady() {
 	if (document.body.dataset.thumbnailError !== undefined) return
 	document.body.dataset.thumbnailReady = 'true'
@@ -259,9 +245,6 @@ export function signalThumbnailReady() {
 export function setThumbnailError(message: string) {
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
-	// A measure's `/content` read returns the whole document, and a pushed board's script would
-	// otherwise ride back with every failure.
-	for (const script of document.querySelectorAll('script')) script.remove()
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case
@@ -356,55 +339,10 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 	fitBoundsCamera(editor, editor.getCurrentPageBounds(), width, height)
 }
 
-// What both capture paths refuse: a job whose shapes are no longer on the page it named. The
+// What the export refuses: a job whose shapes are no longer on the page it named. The
 // snapshot endpoint proves every requested id still exists *somewhere* on the board, which is all it
 // can see, so a live shared-file snapshot that moved them to another page since the mint gets here.
 export const SHAPES_NOT_ON_PAGE = 'requested shapes are not on the requested page'
-
-// Readies the canvas for a live capture, or refuses the render. Returns false once the error marker
-// is set, which is terminal — the worker's screenshot wait resolves on it.
-//
-// The refusal is the point: pruning to an empty set deletes every shape on the page, and the
-// screenshot would hand back that blank canvas as a picture of the requested shapes, cached under
-// their key. The snapshot endpoint refuses a job whose shapes have gone for exactly this reason,
-// but existence is all it can check — the ids are resolved against a live shared-file snapshot, so
-// shapes that still exist and have moved to another page since the mint pass it and arrive here.
-export function prepareLiveCapture(editor: Editor, shapeIds: string[]): boolean {
-	const requested = getRequestedShapeIds(editor, shapeIds)
-	if (requested.length === 0) {
-		setThumbnailError(SHAPES_NOT_ON_PAGE)
-		return false
-	}
-	pruneToRequestedShapes(editor, requested)
-	return true
-}
-
-// Brings the live canvas to the picture the export draws: only the requested shapes and their
-// descendants. The store holds the whole board, and a live capture would rasterize everything in
-// the fitted viewport — a frame's fill, label and clipping across the cluster, every neighbour at
-// the edge. Reparenting the roots to the page keeps their page position while freeing them from
-// any frame; deleting the rest is the unbind that moves each arrow's stored terminal to where its
-// neighbour actually sat, which is why the neighbours are deleted rather than never loaded.
-function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
-	const keep = editor.getShapeAndDescendantIds(requestedIds)
-	const requested = new Set(requestedIds)
-	// Roots in page rendering order, reparented one at a time: each lands above the page's current
-	// children, so two roots from different parents keep the stacking the export would draw. A
-	// single reparentShapes call orders by the roots' own indices, which are only comparable
-	// between siblings.
-	const roots = editor
-		.getCurrentPageShapesSorted()
-		.filter((shape) => requested.has(shape.id) && !keep.has(shape.parentId as TLShapeId))
-	// Locked shapes are otherwise skipped by deleteShapes, and a locked background is exactly the
-	// kind of neighbour that must not end up in the picture.
-	editor.run(
-		() => {
-			for (const root of roots) editor.reparentShapes([root.id], editor.getCurrentPageId())
-			editor.deleteShapes([...editor.getCurrentPageShapeIds()].filter((id) => !keep.has(id)))
-		},
-		{ ignoreShapeLock: true }
-	)
-}
 
 // Like fitContentCamera, but framed on a subset of the page. Uses the same inset so a shapes
 // screenshot and a page screenshot of the same board have matching margins. Run again before export
@@ -450,7 +388,6 @@ export function ThumbnailExportSignal({
 	camera,
 	shapeIds,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
-	capture,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
@@ -459,8 +396,6 @@ export function ThumbnailExportSignal({
 	camera?: 'content'
 	shapeIds?: string[]
 	settleTimeoutMs?: number
-	/** `live`: signal ready after settle and fit, without exporting — see ThumbnailRenderParams. */
-	capture?: 'live'
 	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
@@ -487,19 +422,6 @@ export function ThumbnailExportSignal({
 			// Runs again because the race may have timed out before the fit above: without this the
 			// export would fall back to onMount's pre-font camera and clip re-measured text.
 			fitExportCamera(editor, shapeIds, camera, width, height)
-			// Live capture: the settled, fitted canvas is the picture — the screenshotting browser
-			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
-			if (capture === 'live') {
-				// The refit above is a store write the canvas catches up with on a later commit, and
-				// shapes culled at the pre-fit camera have no DOM yet. Two animation frames guarantee a
-				// commit and a paint at the fitted camera land before the marker; without them the
-				// screenshot can race the paint and capture a mis-framed or incomplete canvas.
-				await nextAnimationFrame()
-				await nextAnimationFrame()
-				if (cancelled) return
-				signalThumbnailReady()
-				return
-			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
 			await onImage(blob)
@@ -517,54 +439,9 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, onImage])
 
 	return null
-}
-
-// Measure mode. The page exists only to be a real editor: it settles, measures, leaves the result in
-// the DOM, and marks itself ready. The worker reads the page's HTML through `/content`.
-function ThumbnailMeasureSignal() {
-	const editor = useEditor()
-
-	useEffect(() => {
-		let cancelled = false
-		;(async () => {
-			// Fonts first, for the same reason the export waits: autosizing text has no correct size
-			// until the real web font has loaded, and its measured bounds are the whole point here.
-			await Promise.race([waitForFonts(editor), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
-			if (cancelled) return
-
-			const bounds: Record<string, ThumbnailShapeMeasurement> = {}
-			for (const id of editor.getCurrentPageShapeIds()) {
-				const measured = measureShapeForMcp(editor, id)
-				if (measured) bounds[id] = measured
-			}
-			if (cancelled) return
-			publishMeasureResult(bounds)
-			signalThumbnailReady()
-		})().catch((error) => {
-			if (cancelled) return
-			setThumbnailError(error instanceof Error ? error.message : String(error))
-		})
-		return () => {
-			cancelled = true
-		}
-	}, [editor])
-
-	return null
-}
-
-// Everything else goes first: `/content` returns the whole document, and a pushed board's script
-// alone can be megabytes the worker would read only to discard.
-function publishMeasureResult(bounds: Record<string, ThumbnailShapeMeasurement>) {
-	const result = document.createElement('script')
-	result.type = 'application/json'
-	result.id = THUMBNAIL_MEASURE_RESULT_ID
-	// Escaped so shape text containing `</script>` cannot end the element early in the serialized HTML.
-	result.textContent = JSON.stringify(bounds).replace(/</g, '\\u003c')
-	document.head.replaceChildren()
-	document.body.replaceChildren(result)
 }
 
 // Exports the exact viewport rectangle through editor.toImage: bounds are the viewport in page
@@ -590,8 +467,8 @@ export async function exportThumbnailImage(
 
 	// A shapes request with nothing left on the page is a stale job, not an empty board, so it fails
 	// rather than falling through to the blank below — which would be returned, and cached, as a
-	// picture of the shapes that were asked for. The live path refuses the same case up front in
-	// prepareLiveCapture; here the throw becomes the error marker via the caller's catch.
+	// picture of the shapes that were asked for. The throw becomes the error marker via the caller's
+	// catch.
 	if (requestedShapeIds?.length && shapeIds.length === 0) {
 		throw new Error(SHAPES_NOT_ON_PAGE)
 	}
@@ -621,10 +498,6 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 			'image/png'
 		)
 	})
-}
-
-function nextAnimationFrame() {
-	return new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 }
 
 // `document.fonts.ready` is not a barrier on its own: the editor's FontManager adds a FontFace to

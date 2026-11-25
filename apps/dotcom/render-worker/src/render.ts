@@ -1,14 +1,11 @@
 import {
-	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
 	renderPushScript,
-	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
-	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import { RenderContentSummary, RenderPayload } from './api'
-import { BrowserRenderError, classifyScreenshotFailure, RenderPageError } from './errors'
+import { BrowserRenderError, classifyScreenshotFailure } from './errors'
 import { Environment } from './types'
 
 // The render session, copied from sync-worker's thumbnailRender.ts and reduced to this worker's job:
@@ -18,19 +15,13 @@ import { Environment } from './types'
 // away; a pushed session's page never fetches, so page reach is `reached` on a capture and `unknown`
 // on a dead session.
 
-type BrowserRunAction = 'screenshot' | 'content'
-type ThumbnailRenderRequestBody =
-	| ReturnType<typeof getThumbnailScreenshotRequestBody>
-	| ReturnType<typeof getThumbnailContentRequestBody>
+type ThumbnailRenderRequestBody = ReturnType<typeof getThumbnailScreenshotRequestBody>
 
 /** What a browser session was created for, stamped on its `browser_run_session` datapoint. */
 export interface BrowserRunSessionContext {
 	source: 'mcp' | 'og' | 'queue'
-	mode: 'measure' | 'screenshot'
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: 'crawler' | 'publish' | 'edit'
-	/** `live` when the render was asked to rasterize the live canvas; absent means the page exports. */
-	capture?: 'live'
 }
 
 // A capture that came back OK, fully read, and how long the whole thing took. The transports read the
@@ -56,10 +47,9 @@ function buildRenderUrl(env: Environment): string {
 }
 
 /**
- * One Browser Run session against the render page: a `/screenshot` returning the PNG for a
- * screenshot, a `/content` returning the page's HTML for a measure. Writes the session to the
+ * One Browser Run `/screenshot` session against the render page. Writes the session to the
  * `browser_run_session` spend ledger at this choke point — ok, or the session-level failure code for
- * a session that died — then returns the raw bytes, or throws for the caller to classify.
+ * a session that died — then returns the PNG, or throws for the caller to classify.
  */
 export async function runRenderSession(
 	env: Environment,
@@ -70,14 +60,11 @@ export async function runRenderSession(
 	}: { session: BrowserRunSessionContext; payload: RenderPayload; content: RenderContentSummary }
 ): Promise<{ buffer: ArrayBuffer; durationMs: number }> {
 	const { width, height } = payload.renderParams
-	const action: BrowserRunAction = session.mode === 'measure' ? 'content' : 'screenshot'
 	const pushScript = renderPushScript(payload)
 	const pushChars = pushScript.length
 	// Built by one function so the wait strategy, capture target and timeout cannot drift between
 	// Browser Run and its development stand-in.
-	const requestBody = (
-		action === 'content' ? getThumbnailContentRequestBody : getThumbnailScreenshotRequestBody
-	)({
+	const requestBody = getThumbnailScreenshotRequestBody({
 		renderUrl: buildRenderUrl(env),
 		width,
 		height,
@@ -88,8 +75,8 @@ export async function runRenderSession(
 	const startedAt = Date.now()
 	const callCapture = () =>
 		env.LOCAL_SCREENSHOT_SERVICE_URL
-			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, action, requestBody)
-			: callBrowserRun(env, action, requestBody)
+			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
+			: callBrowserRun(env, requestBody)
 
 	let timed: TimedCapture
 	try {
@@ -114,20 +101,6 @@ export async function runRenderSession(
 	}
 
 	const buffer = timed.buffer
-	const pageError = action === 'content' ? readRenderPageError(buffer) : undefined
-	if (pageError !== undefined) {
-		writeBrowserRunSessionTelemetry(env, session, {
-			outcome: 'page_error',
-			durationMs: timed.durationMs,
-			width,
-			height,
-			page: 'reached',
-			browserMsUsed: timed.browserMsUsed,
-			pushChars,
-			content,
-		})
-		throw new RenderPageError({ detail: pageError })
-	}
 	if (buffer.byteLength === 0) {
 		// The session ran to completion — the spend is real — it just produced nothing usable.
 		writeBrowserRunSessionTelemetry(env, session, {
@@ -156,43 +129,10 @@ export async function runRenderSession(
 	return { buffer, durationMs: timed.durationMs }
 }
 
-// The page's result element out of a `/content` response, in the page's own `{ x, y, w, h, text? }`
-// form; sync-worker adapts it to clustering coordinates. Malformed boxes are dropped rather than
-// kept: a non-finite value would produce NaN distances and silently detach that shape downstream.
-export function readMeasureResult(buffer: ArrayBuffer): Record<string, ThumbnailShapeMeasurement> {
-	const html = new TextDecoder().decode(buffer)
-	const match = new RegExp(
-		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
-	).exec(html)
-	if (!match) throw new Error('The render page did not report any measurements')
-	const reported = JSON.parse(match[1]) as Record<string, ThumbnailShapeMeasurement>
-
-	const bounds: Record<string, ThumbnailShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		bounds[shapeId] = {
-			x: box.x,
-			y: box.y,
-			w: box.w,
-			h: box.h,
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-		}
-	}
-	return bounds
-}
-
 // --- Browser Run transports ---------------------------------------------------------------------
 
 async function callBrowserRun(
 	env: Environment,
-	action: BrowserRunAction,
 	requestBody: ThumbnailRenderRequestBody
 ): Promise<TimedCapture> {
 	if (!env.BROWSER) {
@@ -204,7 +144,7 @@ async function callBrowserRun(
 	const startedAt = Date.now()
 	// A Browser Rendering Quick Action, invoked straight through the binding (no puppeteer, no API
 	// token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
-	const response = await env.BROWSER.quickAction(action, requestBody)
+	const response = await env.BROWSER.quickAction('screenshot', requestBody)
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
@@ -226,7 +166,7 @@ async function callBrowserRun(
 		})
 	})
 	return {
-		buffer: action === 'content' ? unwrapContentResult(buffer, response.status, startedAt) : buffer,
+		buffer,
 		durationMs: Date.now() - startedAt,
 		browserMsUsed: browserMsUsedOf(response),
 	}
@@ -238,13 +178,10 @@ async function callBrowserRun(
 // that it works in production.
 async function callLocalScreenshotService(
 	serviceUrl: string,
-	action: BrowserRunAction,
 	requestBody: ThumbnailRenderRequestBody
 ): Promise<TimedCapture> {
 	const startedAt = Date.now()
-	const url = new URL(serviceUrl)
-	url.searchParams.set('action', action)
-	const response = await fetch(url, {
+	const response = await fetch(serviceUrl, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
@@ -256,48 +193,15 @@ async function callLocalScreenshotService(
 		)
 	}
 	// A dev server that has not loaded the screenshot plugin answers this path with the client's
-	// index.html — a 200 full of bytes that would otherwise be cached as if it were a thumbnail. For
-	// the same reason the page's HTML comes back wrapped in JSON rather than as text/html.
-	const expected = action === 'content' ? 'application/json' : 'image/png'
+	// index.html — a 200 full of bytes that would otherwise be cached as if it were a thumbnail.
 	const contentType = response.headers.get('content-type') ?? ''
-	if (!contentType.includes(expected)) {
+	if (!contentType.includes('image/png')) {
 		throw new Error(
-			`Local screenshot service returned ${contentType || 'no content type'}, expected ${expected}. Is the client dev server running with the thumbnail screenshot plugin?`
+			`Local screenshot service returned ${contentType || 'no content type'}, expected image/png. Is the client dev server running with the thumbnail screenshot plugin?`
 		)
 	}
-	const buffer =
-		action === 'content'
-			? (new TextEncoder().encode(((await response.json()) as { html: string }).html)
-					.buffer as ArrayBuffer)
-			: await response.arrayBuffer()
+	const buffer = await response.arrayBuffer()
 	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
-}
-
-// `/content` answers `{ success, result: "<html>…" }` rather than the HTML itself. Anything else is a
-// session that ran and gave nothing usable, so it fails the way a broken capture body does.
-function unwrapContentResult(buffer: ArrayBuffer, status: number, startedAt: number): ArrayBuffer {
-	let parsed: unknown
-	try {
-		parsed = JSON.parse(new TextDecoder().decode(buffer))
-	} catch {
-		parsed = undefined
-	}
-	// `null` and scalars are valid JSON too; they must fail as a BrowserRenderError, which is what puts
-	// the session on the ledger, not as a TypeError reading `.success`.
-	const body = (parsed && typeof parsed === 'object' ? parsed : {}) as {
-		success?: unknown
-		result?: unknown
-		errors?: unknown
-	}
-	if (body.success !== true || typeof body.result !== 'string') {
-		throw new BrowserRenderError({
-			status,
-			detail: truncate(`Unusable content response: ${JSON.stringify(body.errors ?? parsed)}`),
-			durationMs: Date.now() - startedAt,
-			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
-		})
-	}
-	return new TextEncoder().encode(body.result).buffer as ArrayBuffer
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -331,25 +235,6 @@ async function abandonAtRenderTimeout(
 	} finally {
 		clearTimeout(timer)
 	}
-}
-
-// The page's `data-thumbnail-error` from a `/content` response, or undefined if it has none. Read off
-// <html>, which the page marks along with <body> and never clears.
-function readRenderPageError(buffer: ArrayBuffer): string | undefined {
-	const html = new TextDecoder().decode(buffer)
-	const tag = /<html\b[^>]*>/i.exec(html)?.[0]
-	if (!tag) return undefined
-	const attribute = /\sdata-thumbnail-error(?:="([^"]*)")?/.exec(tag)
-	return attribute ? decodeHtmlAttribute(attribute[1] ?? '') || '(no message)' : undefined
-}
-
-function decodeHtmlAttribute(value: string) {
-	return value
-		.replace(/&quot;/g, '"')
-		.replace(/&lt;/g, '<')
-		.replace(/&gt;/g, '>')
-		.replace(/&nbsp;/g, ' ')
-		.replace(/&amp;/g, '&')
 }
 
 // Both transports read the billing header through this, so the ledger column means one thing.
@@ -426,11 +311,13 @@ function writeBrowserRunSessionTelemetry(
 	writeDataPoint(env.MEASURE, env.WORKER_NAME, 'browser_run_session', {
 		blobs: [
 			`source:${session.source}`,
-			`mode:${session.mode}`,
+			// Fixed since this worker stopped measuring; kept because the blob positions are the layout.
+			`mode:screenshot`,
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
 			`page:${page}`,
-			`capture:${session.mode === 'measure' ? 'none' : (session.capture ?? 'export')}`,
+			// Likewise fixed: the page always exports.
+			`capture:export`,
 			`transport:push`,
 		],
 		doubles: [

@@ -1,5 +1,3 @@
-import { ThumbnailRenderPhase } from '@tldraw/dotcom-shared'
-
 // Render failure types and classifier, copied from sync-worker's thumbnailShared.ts and trimmed to
 // what can occur inside this worker: it renders a payload it is handed, so there is no board
 // resolution or snapshot read here, and the rate-limiter and snapshot-read error cases are gone.
@@ -34,27 +32,11 @@ export class BrowserRenderError extends Error {
 	}
 }
 
-// The render page's own `data-thumbnail-error`, read off a measure's `/content` response. The page's
-// message stays out of `message` for the same Sentry grouping reason as BrowserRenderError.
-export class RenderPageError extends Error {
-	readonly detail: string
-	/** Absent when read off `/content`, which carries the message but not how far the page got. */
-	readonly phase?: ThumbnailRenderPhase
-
-	constructor(options: { detail: string; phase?: ThumbnailRenderPhase }) {
-		super('Render page failed')
-		this.name = 'RenderPageError'
-		this.detail = options.detail
-		this.phase = options.phase
-	}
-}
-
 // Maps a render error to a bounded reason code for the `failure` telemetry blob. Raw `error.message`
 // strings are unbounded and must never reach that dimension, so this stays a small, stable
 // vocabulary. The typed cases are matched first and by type.
 export function classifyScreenshotFailure(error: unknown): string {
 	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
-	if (error instanceof RenderPageError) return 'page_error'
 	const message = error instanceof Error ? error.message : String(error)
 	if (/not configured/i.test(message)) return 'not_configured'
 	if (/timeout|timed out/i.test(message)) return 'browser_timeout'
@@ -80,9 +62,6 @@ function classifyBrowserRenderFailure(error: BrowserRenderError): string {
 // The fields the error types keep out of their message, lifted into the Sentry event context so they
 // don't file a new issue per distinct detail string.
 export function browserRenderContextOf(error: unknown): Record<string, unknown> | null {
-	if (error instanceof RenderPageError) {
-		return { render_page_error: error.detail, render_page_phase: error.phase }
-	}
 	if (!(error instanceof BrowserRenderError)) return null
 	return {
 		browser_render_status: error.status,

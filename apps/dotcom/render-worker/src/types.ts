@@ -4,13 +4,12 @@ import { HeadlessWorkerRpc } from './headlessShadow'
 
 // The Browser Rendering binding's Quick Actions method, copied from sync-worker's BrowserBinding.
 // Cloudflare exposes `env.BROWSER.quickAction` so a Worker can call the Quick Action endpoints
-// (`screenshot`, `content`, …) straight through the binding — no @cloudflare/puppeteer, no API
-// token. Requires compatibility_date >= 2026-03-24. Not in @cloudflare/workers-types yet, so the
-// small surface used here is declared locally; it resolves to a standard `Response` (PNG bytes for
-// `screenshot`, `{ success, result: "<html>…" }` JSON for `content`, with an `X-Browser-Ms-Used`
-// header).
+// straight through the binding — no @cloudflare/puppeteer, no API token. Requires
+// compatibility_date >= 2026-03-24. Not in @cloudflare/workers-types yet, so the small surface used
+// here is declared locally; it resolves to a standard `Response` (PNG bytes, with an
+// `X-Browser-Ms-Used` header).
 export interface BrowserBinding {
-	quickAction(action: 'screenshot' | 'content', options: unknown): Promise<Response>
+	quickAction(action: 'screenshot', options: unknown): Promise<Response>
 }
 
 export interface Environment extends SentryEnvironment {

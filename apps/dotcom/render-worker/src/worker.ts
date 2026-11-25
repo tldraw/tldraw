@@ -1,17 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 import { createSentry } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import {
-	MeasureRequest,
-	MeasureResult,
-	RenderFailureReason,
-	RenderWorkerRpc,
-	ScreenshotRequest,
-	ScreenshotResult,
-} from './api'
+import { RenderFailureReason, RenderWorkerRpc, ScreenshotRequest, ScreenshotResult } from './api'
 import { BrowserRenderError, browserRenderContextOf, classifyScreenshotFailure } from './errors'
 import { BrowserRender, compareScreenshotInShadow } from './headlessShadow'
-import { readMeasureResult, runRenderSession } from './render'
+import { runRenderSession } from './render'
 import { Environment } from './types'
 
 /**
@@ -26,12 +19,7 @@ export class RenderWorker extends WorkerEntrypoint<Environment> implements Rende
 		let browser: BrowserRender
 		try {
 			const { buffer, durationMs } = await runRenderSession(this.env, {
-				session: {
-					source: telemetry.source,
-					mode: 'screenshot',
-					reason: telemetry.reason,
-					capture: payload.renderParams.capture,
-				},
+				session: { source: telemetry.source, reason: telemetry.reason },
 				payload,
 				content: telemetry.content,
 			})
@@ -56,23 +44,8 @@ export class RenderWorker extends WorkerEntrypoint<Environment> implements Rende
 		return browser.ok ? { ok: true, png: browser.png } : { ok: false, reason: browser.reason }
 	}
 
-	async measure(request: MeasureRequest): Promise<MeasureResult> {
-		const { payload, telemetry } = request
-		try {
-			const { buffer } = await runRenderSession(this.env, {
-				session: { source: telemetry.source, mode: 'measure', reason: telemetry.reason },
-				payload,
-				content: telemetry.content,
-			})
-			return { ok: true, measurements: readMeasureResult(buffer) }
-		} catch (error) {
-			this.reportRenderError(error)
-			return { ok: false, reason: classifyScreenshotFailure(error) as RenderFailureReason }
-		}
-	}
-
 	// The render detail that stays out of the bounded reason code — Browser Run's status and body, or
-	// the render page's own message — goes to this worker's Sentry as event context, never over the
+	// its timeout budget — goes to this worker's Sentry as event context, never over the
 	// RPC boundary. Failure-proof: reporting must never be the thing that throws. Falls back to a log
 	// when there is no execution context or Sentry is unconfigured (createSentry throws without a DSN).
 	private reportRenderError(error: unknown) {

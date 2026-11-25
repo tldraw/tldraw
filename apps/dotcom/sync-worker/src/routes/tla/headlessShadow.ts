@@ -157,7 +157,6 @@ function buildMeasurePayload(snapshot: RoomSnapshot, pageId: string): HeadlessRe
 	const body = thumbnailSnapshotBodyFor(snapshot, {
 		camera: 'content',
 		pageId,
-		mode: 'measure',
 		x: 0,
 		y: 0,
 		z: 1,

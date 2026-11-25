@@ -116,16 +116,6 @@ export interface ThumbnailRenderParams {
 	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
 	 */
 	shapeIds?: string[]
-	/**
-	 * `live` means: prune the page to `shapeIds`, settle and fit as normal, then signal ready
-	 * without running `editor.toImage` — the screenshotting browser rasterizes the live canvas
-	 * instead of the page rasterizing itself. Skips the export phase (the expensive part on heavy
-	 * boards) at the cost of the export path's pixel-exact sizing, so only agent-facing surfaces
-	 * opt in. Absent means export as always.
-	 */
-	capture?: 'live'
-	/** `measure` means: skip the export, POST the page's measured geometry back, then signal ready. */
-	mode?: 'screenshot' | 'measure'
 	x: number
 	y: number
 	z: number
@@ -308,10 +298,6 @@ export type TabRenderReply =
 			selectedShapeIds: string[]
 			viewport: { x: number; y: number; w: number; h: number }
 	  }
-
-/** The last render page phase that completed before a failure, in the order the page runs them. */
-export const THUMBNAIL_RENDER_PHASES = ['boot', 'data', 'mount', 'settle'] as const
-export type ThumbnailRenderPhase = (typeof THUMBNAIL_RENDER_PHASES)[number]
 
 export type ThumbnailSnapshotResponseBody =
 	| {
