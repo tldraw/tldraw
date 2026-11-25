@@ -12,6 +12,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { trackEvent } from '../../../utils/analytics'
+import { getDotDevUrl } from '../../../utils/appOriginLinks'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import styles from './TlaAnonDotDevLink.module.css'
 
@@ -38,7 +39,7 @@ export function TlaAnonDotDevLink() {
 		<div className={styles.anonDotDevLink} data-debug={isDebugMode}>
 			<div>
 				<ExternalLink
-					to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=anon-overlay-link"
+					to={getDotDevUrl('anon-overlay-link')}
 					data-testid="tla-anon-dotdev-link"
 					eventName="anon-dotdev-link-clicked"
 				>

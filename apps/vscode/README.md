@@ -33,15 +33,9 @@ The code is hot-reloaded, so the developer experience is quite nice.
 
 Update the version in the `apps/vscode/extension/package.json`. Update the `apps/vscode/extension/CHANGELOG.md` with the new version number and the changes.
 
-To publish:
+The `Publish editor extensions` workflow publishes to the VS Code Marketplace and Open VSX with GitHub OIDC trusted publishing, so no access tokens are stored. Pushes to `main` publish a pre-release and pushes to `production` publish a stable release. To publish a stable release from `main`, run the workflow manually from the Actions tab.
 
-- Install `vsce` globally
-- Run `vsce login tldraw-org` and sign in. For this to work you need to create a [personal access token](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token) and you also need to be added to the `tldraw-org` organization on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/manage).
-
-In the `apps/vscode/extension` folder:
-
-- Run `pnpm package`
-- Run `pnpm run publish`
+Both registries trust only `.github/workflows/publish-editor-extensions.yml` running in the `vsce publish` environment. Renaming either breaks publishing until the trusted publisher settings are updated on the [Visual Studio Marketplace](https://marketplace.visualstudio.com/manage/publishers/tldraw-org) and [Open VSX](https://open-vsx.org/user-settings/trusted-publishers).
 
 ## Project overview
 

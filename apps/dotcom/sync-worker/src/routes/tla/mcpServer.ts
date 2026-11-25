@@ -3,6 +3,7 @@ import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
+	MCP_FEEDBACK_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_TAB_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
@@ -34,6 +35,7 @@ import {
 	McpPageRead,
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
+	SEND_FEEDBACK_TOOL_NAME,
 	ToolResult,
 	USER_STATE_TOOL_NAME,
 	WRITE_COMMENT_TOOL_NAME,
@@ -63,6 +65,7 @@ import {
 	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseSendFeedbackInput,
 	pageLookupFailure,
 	resolveSnapshotPage,
 	parseUserStateInput,
@@ -76,6 +79,7 @@ import { createBoardForUser } from './createBoard'
 import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
+import { feedbackErrorContext, isMcpFeedbackConfigured, sendMcpFeedback } from './mcpFeedback'
 import {
 	PUBLISHED_BOARD_FAILURE,
 	TabRenderContext,
@@ -174,6 +178,10 @@ function renameRateLimitKey(userId: string) {
 
 function tabRateLimitKey(userId: string) {
 	return `tab:${userId}`
+}
+
+function feedbackRateLimitKey(userId: string) {
+	return `feedback:${userId}`
 }
 
 async function isRateLimited(
@@ -449,6 +457,7 @@ const TOOL_HANDLERS = new Map<
 	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
 	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
 	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
+	[SEND_FEEDBACK_TOOL_NAME, callSendFeedbackTool],
 ])
 
 export async function mcpServer(
@@ -994,6 +1003,51 @@ async function callWriteCommentTool(
 	}
 }
 
+async function callSendFeedbackTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext,
+	clientId: string | null = null
+) {
+	const parsed = parseToolInput(() => parseSendFeedbackInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+	if (!isMcpFeedbackConfigured(env)) {
+		return toolError(
+			'Feedback is not set up on this deployment, so it was not sent.',
+			'feedback_not_configured'
+		)
+	}
+
+	try {
+		const refusal = await checkFeedbackRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const userAgent = request.headers.get('user-agent')
+		await sendMcpFeedback(env, input, {
+			userId,
+			agentClient: getMcpAgentClient(clientId),
+			clientId,
+			userAgent,
+			viaCodexApp: normalizeMcpClient(userAgent) === 'codex-plugin',
+		})
+		return toolJsonResult({ sent: true, type: input.type })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_feedback',
+			// The message is something the caller wrote, so it stays off the Sentry event.
+			extras: { type: input.type, ...feedbackErrorContext(error) },
+			summary: 'Could not send the feedback',
+			recordAs: () => 'feedback_send_error',
+		})
+	}
+}
+
 async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1324,6 +1378,30 @@ async function checkRenameRateLimit(
 	return toolError(
 		`Rate limited. Renaming boards is limited to about ${MCP_RENAME_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_rename'
+	)
+}
+
+/** The per-caller ceiling on `send_feedback`, which keeps a looping agent from flooding the channel. */
+async function checkFeedbackRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_FEEDBACK_RATE_LIMITER, feedbackRateLimitKey(userId), {
+			fallbackLimit: MCP_FEEDBACK_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_feedback',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Feedback is limited to about ${MCP_FEEDBACK_PER_USER_RATE_LIMIT} reports per minute per account.`,
+		'rate_limited_feedback'
 	)
 }
 

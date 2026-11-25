@@ -6,6 +6,17 @@ function visit(url: string, referrer = '') {
 	vi.spyOn(document, 'referrer', 'get').mockReturnValue(referrer)
 }
 
+function followLink(href: string) {
+	const link = document.createElement('a')
+	link.href = href
+	document.body.appendChild(link)
+	// jsdom can't navigate; stop it trying once the service's capture listener has run.
+	link.addEventListener('click', (event) => event.preventDefault())
+	link.click()
+	link.remove()
+	return link.href
+}
+
 beforeEach(() => {
 	vi.useFakeTimers()
 	;(globalThis as any).jsdom.cookieJar.removeAllCookiesSync()
@@ -96,5 +107,19 @@ describe('attributionService', () => {
 		vi.advanceTimersByTime(5000)
 		attributionService.trackPageview()
 		expect(document.cookie).not.toContain('tl_attribution')
+	})
+
+	test("adds the app's first touch to tldraw.dev links only while consent is granted", () => {
+		const dotDevLink = 'https://tldraw.dev/?utm_source=flash&utm_medium=organic'
+		visit('https://flash.tldraw.com/?utm_source=google&utm_medium=cpc', 'https://www.google.com/')
+		attributionService.initialize()
+
+		expect(followLink(dotDevLink)).toBe(dotDevLink)
+
+		attributionService.enable()
+		expect(followLink(dotDevLink)).toBe(`${dotDevLink}&tl_os=google&tl_om=cpc&tl_or=www.google.com`)
+
+		attributionService.disable()
+		expect(followLink(dotDevLink)).toBe(dotDevLink)
 	})
 })

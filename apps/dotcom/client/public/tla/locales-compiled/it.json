@@ -193,6 +193,12 @@
       "value": "Crea file"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Creato da me"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -307,6 +313,16 @@
       "value": "Rigenera il link di invito"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (tu)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -409,6 +425,12 @@
       "value": "Contatta il proprietario per richiedere l'accesso."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Azioni…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -463,6 +485,22 @@
     {
       "type": 0,
       "value": "File Pin"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Oggetto"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Modificato "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -527,6 +565,18 @@
     {
       "type": 0,
       "value": "Menu pagina"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Nessun file ancora presente."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Esportare…"
     }
   ],
   "53770fd374": [
@@ -599,6 +649,12 @@
       "value": "Politica sulla riservatezza"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "I file archiviati appariranno qui."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -657,6 +713,12 @@
     {
       "type": 0,
       "value": "Più tardi"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Recenti"
     }
   ],
   "625fd29749": [
@@ -775,6 +837,12 @@
     {
       "type": 0,
       "value": "Elimina l'area di lavoro"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Accedi per salvare"
     }
   ],
   "69ce6a28fb": [
@@ -942,6 +1010,12 @@
       "value": "Segnala un problema su GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Su questa bacheca ora"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -966,10 +1040,22 @@
       "value": "Apri tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Accedi per modificare le impostazioni del profilo"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Dimentica"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Archiviato"
     }
   ],
   "7daeced9ff": [
@@ -1074,6 +1160,12 @@
       "value": "Rinomina file"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Spazio di lavoro senza titolo"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1140,6 +1232,12 @@
     {
       "type": 0,
       "value": "Controlla la tua email per un codice di verifica."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Casa"
     }
   ],
   "8eb2c00e96": [
@@ -1254,6 +1352,12 @@
     {
       "type": 0,
       "value": "Cancella ricerca"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "File non salvato"
     }
   ],
   "9b33f5c63c": [
@@ -1536,6 +1640,12 @@
       "value": "Indirizzo e-mail"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Visualizzazione a griglia"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1634,6 +1744,12 @@
     {
       "type": 0,
       "value": "File corrente"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Ricerca…"
     }
   ],
   "c17466812d": [
@@ -1866,6 +1982,12 @@
       "value": "Lasciare l'area di lavoro"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Flag di debug dell'app"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1932,6 +2054,12 @@
       "value": "Menu account"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Nessun file corrisponde alla ricerca."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1976,6 +2104,12 @@
       "value": "selezionato"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Condiviso con me"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1986,6 +2120,12 @@
     {
       "type": 0,
       "value": "Impostazioni utente"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Visualizzazione elenco"
     }
   ],
   "f2569594b2": [

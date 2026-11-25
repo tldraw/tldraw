@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest'
-import { getClerkFrontendApiOrigin, getSignInRedirect, isClerkFrontendApiUrl } from './redirect'
+import { afterEach, describe, expect, it } from 'vitest'
+import {
+	clearStayOnBoardAfterSignIn,
+	getClerkFrontendApiOrigin,
+	getSignInRedirect,
+	getStayOnBoardAfterSignIn,
+	isClerkFrontendApiUrl,
+	setStayOnBoardAfterSignIn,
+} from './redirect'
 
 const appOrigin = 'https://www.tldraw.com'
 const clerkOrigin = 'https://clerk.tldraw.com'
@@ -65,5 +72,27 @@ describe('isClerkFrontendApiUrl', () => {
 		expect(isClerkFrontendApiUrl('https://evil.example/', clerkOrigin)).toBe(false)
 		expect(isClerkFrontendApiUrl('not a url', clerkOrigin)).toBe(false)
 		expect(isClerkFrontendApiUrl(`${clerkOrigin}/x`, null)).toBe(false)
+	})
+})
+
+describe('staying on a board after sign-in', () => {
+	afterEach(() => {
+		clearStayOnBoardAfterSignIn()
+		window.history.replaceState({}, '', '/')
+	})
+
+	it('is marked by a sign-in on the board at the root', () => {
+		window.history.replaceState({}, '', '/')
+		expect(getStayOnBoardAfterSignIn()).toBe(false)
+		setStayOnBoardAfterSignIn()
+		expect(getStayOnBoardAfterSignIn()).toBe(true)
+		clearStayOnBoardAfterSignIn()
+		expect(getStayOnBoardAfterSignIn()).toBe(false)
+	})
+
+	it('is not marked by a sign-in on a file, which stays on that file anyway', () => {
+		window.history.replaceState({}, '', '/f/abc')
+		setStayOnBoardAfterSignIn()
+		expect(getStayOnBoardAfterSignIn()).toBe(false)
 	})
 })

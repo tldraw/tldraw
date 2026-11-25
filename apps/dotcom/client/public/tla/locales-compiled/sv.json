@@ -197,6 +197,12 @@
       "value": "Skapa fil"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Skapad av mig"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -311,6 +317,16 @@
       "value": "Återskapa inbjudningslänken"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (du)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -413,6 +429,12 @@
       "value": "Kontakta ägaren för att begära åtkomst."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Åtgärder…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -467,6 +489,22 @@
     {
       "type": 0,
       "value": "Fäst fil"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Objekt"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Redigerad "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -531,6 +569,18 @@
     {
       "type": 0,
       "value": "Sidmenyn"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Inga filer här ännu."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Exportera…"
     }
   ],
   "53770fd374": [
@@ -603,6 +653,12 @@
       "value": "Sekretesspolicy"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Arkiverade filer kommer att visas här."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -661,6 +717,12 @@
     {
       "type": 0,
       "value": "Senare"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Senaste"
     }
   ],
   "625fd29749": [
@@ -779,6 +841,12 @@
     {
       "type": 0,
       "value": "Ta bort arbetsyta"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Logga in för att spara"
     }
   ],
   "69ce6a28fb": [
@@ -946,6 +1014,12 @@
       "value": "Skicka ett problem på GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· På den här tavlan nu"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -970,10 +1044,22 @@
       "value": "Öppna tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Logga in för att redigera profilinställningar"
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Glöm"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Arkiverad"
     }
   ],
   "7daeced9ff": [
@@ -1078,6 +1164,12 @@
       "value": "Byt namn på filen"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Namnlös arbetsyta"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1144,6 +1236,12 @@
     {
       "type": 0,
       "value": "Kontrollera din e-post för en verifieringskod."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Hem"
     }
   ],
   "8eb2c00e96": [
@@ -1258,6 +1356,12 @@
     {
       "type": 0,
       "value": "Rensa sökningen"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Osparad fil"
     }
   ],
   "9b33f5c63c": [
@@ -1540,6 +1644,12 @@
       "value": "E-postadress"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Rutnätsvy"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1638,6 +1748,12 @@
     {
       "type": 0,
       "value": "Aktuell fil"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Söka…"
     }
   ],
   "c17466812d": [
@@ -1870,6 +1986,12 @@
       "value": "Lämna arbetsytan"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App-felsökningsflaggor"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1936,6 +2058,12 @@
       "value": "Kontomeny"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Inga filer matchar din sökning."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1980,6 +2108,12 @@
       "value": "vald"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Delade med mig"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1990,6 +2124,12 @@
     {
       "type": 0,
       "value": "Användarinställningar"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Listvy"
     }
   ],
   "f2569594b2": [

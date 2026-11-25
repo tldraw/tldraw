@@ -193,6 +193,12 @@
       "value": "Buat file"
     }
   ],
+  "1914dedd04": [
+    {
+      "type": 0,
+      "value": "Dibuat oleh saya"
+    }
+  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -307,6 +313,16 @@
       "value": "Buat ulang tautan undangan"
     }
   ],
+  "2f42560ef5": [
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " (Anda)"
+    }
+  ],
   "31246941ad": [
     {
       "type": 0,
@@ -409,6 +425,12 @@
       "value": "Hubungi pemilik untuk meminta akses."
     }
   ],
+  "42ff290cc4": [
+    {
+      "type": 0,
+      "value": "Tindakan…"
+    }
+  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -463,6 +485,22 @@
     {
       "type": 0,
       "value": "Berkas pin"
+    }
+  ],
+  "4970317944": [
+    {
+      "type": 0,
+      "value": "Obyek"
+    }
+  ],
+  "49800157c1": [
+    {
+      "type": 0,
+      "value": "Diedit "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -527,6 +565,18 @@
     {
       "type": 0,
       "value": "Menu halaman"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "Belum ada berkas di sini."
+    }
+  ],
+  "536b51486d": [
+    {
+      "type": 0,
+      "value": "Ekspor…"
     }
   ],
   "53770fd374": [
@@ -599,6 +649,12 @@
       "value": "Kebijakan privasi"
     }
   ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Berkas yang diarsipkan akan muncul di sini."
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -657,6 +713,12 @@
     {
       "type": 0,
       "value": "Nanti"
+    }
+  ],
+  "623cddd380": [
+    {
+      "type": 0,
+      "value": "Terbaru"
     }
   ],
   "625fd29749": [
@@ -775,6 +837,12 @@
     {
       "type": 0,
       "value": "Hapus ruang kerja"
+    }
+  ],
+  "697c59072d": [
+    {
+      "type": 0,
+      "value": "Masuk untuk menyimpan"
     }
   ],
   "69ce6a28fb": [
@@ -934,6 +1002,12 @@
       "value": "Kirimkan masalah di GitHub"
     }
   ],
+  "797c5be9a7": [
+    {
+      "type": 0,
+      "value": "· Di papan ini sekarang"
+    }
+  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -958,10 +1032,22 @@
       "value": "Buka tldraw"
     }
   ],
+  "7c10d4771a": [
+    {
+      "type": 0,
+      "value": "Masuk untuk mengedit pengaturan profil."
+    }
+  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Abaikan"
+    }
+  ],
+  "7d69b3cb4c": [
+    {
+      "type": 0,
+      "value": "Diarsipkan"
     }
   ],
   "7daeced9ff": [
@@ -1066,6 +1152,12 @@
       "value": "Ganti nama berkas"
     }
   ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Ruang kerja tanpa judul"
+    }
+  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1132,6 +1224,12 @@
     {
       "type": 0,
       "value": "Periksa email Anda untuk mendapatkan kode verifikasi."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Rumah"
     }
   ],
   "8eb2c00e96": [
@@ -1246,6 +1344,12 @@
     {
       "type": 0,
       "value": "Hapus pencarian"
+    }
+  ],
+  "9ac3b80777": [
+    {
+      "type": 0,
+      "value": "Berkas yang belum disimpan"
     }
   ],
   "9b33f5c63c": [
@@ -1517,6 +1621,12 @@
       "value": "Alamat email"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Tampilan kisi"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1607,6 +1717,12 @@
     {
       "type": 0,
       "value": "Berkas saat ini"
+    }
+  ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Mencari…"
     }
   ],
   "c17466812d": [
@@ -1820,6 +1936,12 @@
       "value": "Tinggalkan ruang kerja"
     }
   ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "Bendera debug aplikasi"
+    }
+  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1886,6 +2008,12 @@
       "value": "Menu akun"
     }
   ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "Tidak ada berkas yang sesuai dengan pencarian Anda."
+    }
+  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1930,6 +2058,12 @@
       "value": "terpilih"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Dibagikan kepada saya"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1940,6 +2074,12 @@
     {
       "type": 0,
       "value": "Pengaturan pengguna"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "Tampilan daftar"
     }
   ],
   "f2569594b2": [

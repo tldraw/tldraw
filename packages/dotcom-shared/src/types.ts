@@ -407,6 +407,18 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
+/** Caps the durable objects one gallery poll wakes. */
+export const MAX_BOARD_PRESENCE_FILE_IDS = 60
+
+export interface BoardPresenceRequestBody {
+	fileIds: string[]
+}
+
+export interface BoardPresenceResponseBody {
+	/** The signed-in users connected to each board, by file id. Boards with nobody on them are absent. */
+	presence: Record<string, string[]>
+}
+
 export const CONNECT_STEPS = [
 	'route',
 	'do_init',
@@ -498,6 +510,13 @@ export interface AllowlistFeatureFlag {
 	 * this existed must not start admitting everyone when the code that reads it is deployed.
 	 */
 	allowEveryone?: boolean
+	/**
+	 * 0–100. Also admits everyone else whose `hash(userId + flagName)` falls below it, the same
+	 * bucketing a percentage flag uses, so a hand-picked group can be ramped out to all users.
+	 *
+	 * Optional because stored values predate it, and absent reads as 0.
+	 */
+	percentage?: number
 	description: string
 }
 

@@ -44,6 +44,10 @@ const tldrawusercontent = path.relative(
 	process.cwd(),
 	path.resolve(REPO_ROOT, './apps/dotcom/tldrawusercontent-worker')
 )
+const renderWorker = path.relative(
+	process.cwd(),
+	path.resolve(REPO_ROOT, './apps/dotcom/render-worker')
+)
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 const zeroCacheFolder = path.relative(
 	process.cwd(),
@@ -70,6 +74,7 @@ const env = makeEnv([
 	'MCP_SCREENSHOT_TOKEN_SECRET',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_FEEDBACK_WEBHOOK_URL',
+	'DISCORD_MCP_FEEDBACK_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
 	'GC_MAPS_API_KEY',
 	'GH_TOKEN',
@@ -162,7 +167,13 @@ interface TimingEntry {
 	durationMs: number
 }
 
-type WorkerId = 'asset-upload' | 'health' | 'multiplayer' | 'tldrawusercontent' | 'image-resize'
+type WorkerId =
+	| 'asset-upload'
+	| 'health'
+	| 'multiplayer'
+	| 'tldrawusercontent'
+	| 'image-resize'
+	| 'render'
 
 interface WorkerDeployment {
 	id: WorkerId
@@ -211,7 +222,9 @@ const workerDeployments: WorkerDeployment[] = [
 		id: 'multiplayer',
 		stepLabel: 'deploying multiplayer worker to cloudflare',
 		timingLabel: 'worker deploy: multiplayer',
-		dependsOn: [],
+		// The render worker must exist first, since the sync worker binds it (RENDER_WORKER) on dev,
+		// staging and production. For previews deployRenderWorker is a no-op, so this still resolves.
+		dependsOn: ['render'],
 		run: deployTlsyncWorker,
 	},
 	{
@@ -234,6 +247,14 @@ const workerDeployments: WorkerDeployment[] = [
 		timingLabel: 'worker deploy: image-resize',
 		dependsOn: ['multiplayer'],
 		run: deployImageResizeWorker,
+	},
+	{
+		id: 'render',
+		stepLabel: 'deploying render worker to cloudflare',
+		timingLabel: 'worker deploy: render',
+		// Binds nothing outbound, so it has no dependencies; the sync worker depends on it instead.
+		dependsOn: [],
+		run: deployRenderWorker,
 	},
 	{
 		id: 'health',
@@ -619,6 +640,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			ZERO_SERVER: getZeroUrl(),
 			DISCORD_FEEDBACK_WEBHOOK_URL: env.DISCORD_FEEDBACK_WEBHOOK_URL,
+			DISCORD_MCP_FEEDBACK_WEBHOOK_URL: env.DISCORD_MCP_FEEDBACK_WEBHOOK_URL,
 			PLAIN_API_KEY: env.PLAIN_API_KEY,
 			PLAIN_LABEL_TYPE_ID: env.PLAIN_LABEL_TYPE_ID,
 			PLAIN_WORKSPACE_ID: env.PLAIN_WORKSPACE_ID,
@@ -679,6 +701,27 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
 			MULTIPLAYER_SERVER: multiplayerServer,
+		},
+	})
+}
+
+async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
+	// Deployed to dev, staging and production. Not to previews: they stay on the local render path (no
+	// RENDER_WORKER binding injected), so the worker is validated on staging rather than per-PR. The
+	// call site stays gated on THUMBNAIL_RENDER_VIA_WORKER, which production leaves unset (off), so a
+	// prod deploy ships the worker but routes nothing to it yet.
+	if (previewId) {
+		nicelog('skipping render-worker deploy for previews')
+		return
+	}
+	const workerId = `${env.TLDRAW_ENV}-tldraw-render-worker`
+	await wranglerDeploy({
+		location: renderWorker,
+		dryRun,
+		env: env.TLDRAW_ENV,
+		vars: {
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
 		},
 	})
 }

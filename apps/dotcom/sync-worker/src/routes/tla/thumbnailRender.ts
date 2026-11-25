@@ -1,11 +1,14 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	RENDER_PUSH_BUDGET_BYTES,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
+	renderPushByteLength,
+	renderPushScript,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { AssetRecordType, isShape, isShapeId } from '@tldraw/tlschema'
@@ -43,6 +46,7 @@ import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
 	RenderPageError,
+	RenderWorkerError,
 	classifyScreenshotFailure,
 } from './thumbnailShared'
 
@@ -235,6 +239,15 @@ async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
 	return evaluateFlagForUser(flag, 'thumbnail_render_push', `${job.kind}/${job.slug}`)
 }
 
+// OG and thumbnail renders only, where the volume and the Browser Run spend are; MCP is left out so a
+// tool call never adds load to someone's session. Bucketed per board, like push, so a board's renders
+// are either all compared or none are.
+async function isHeadlessScreenshotShadowFor(env: Environment, job: ThumbnailRenderJob) {
+	if (!env.HEADLESS_WORKER || job.surface === 'mcp') return false
+	const flag = await getFeatureFlagValue(env, 'headless_shadow')
+	return evaluateFlagForUser(flag, 'headless_shadow', `${job.kind}/${job.slug}`)
+}
+
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
 	const url = new URL(THUMBNAIL_RENDER_PATH, renderOrigin)
 	url.searchParams.set('token', token)
@@ -326,6 +339,38 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
+
+	// Flag-gated hand-off to the private render worker (apps/dotcom/render-worker). Off by default;
+	// when on and bound it renders instead of the local path below. Push-only, so it needs the
+	// snapshot the caller read — without one there is nothing to push, so fall through to the local
+	// path. The worker writes browser_run_session and reports detail to its own Sentry; a failure
+	// returns as a bounded reason, re-thrown as RenderWorkerError so this function's callers keep the
+	// same throw/catch and request-level telemetry. See the render worker's api.ts.
+	if (envFlagWord(env.THUMBNAIL_RENDER_VIA_WORKER) === 'true' && env.RENDER_WORKER && snapshot) {
+		const body = thumbnailSnapshotBodyFor(snapshot, job)
+		// The same page/shape re-check the snapshot route does; with no pull path, a vanished page or
+		// shape fails the render rather than falling back to a fetch.
+		if (body.error) throw new Error(body.message)
+		// Refuse a page too large to push before spending any RPC (decision #1: no pull fallback). The
+		// push carries only the records the chosen page draws, so this measures the page, not the board.
+		// The injected script is the larger of the two 32 MiB hops, so measuring it covers both.
+		if (renderPushByteLength(renderPushScript(body)) > RENDER_PUSH_BUDGET_BYTES) {
+			throw new RenderWorkerError('page_too_large')
+		}
+		const result = await env.RENDER_WORKER.screenshot({
+			payload: body,
+			telemetry: {
+				source: telemetry.source,
+				reason: telemetry.reason,
+				content: content ?? EMPTY_CONTENT_SUMMARY,
+			},
+			shadow: await isHeadlessScreenshotShadowFor(env, job),
+		})
+		if (!result.ok) throw new RenderWorkerError(result.reason)
+		// Callers read only `base64`; render time now lives on the worker's ledger, not here.
+		return { base64: arrayBufferToBase64(result.png.buffer as ArrayBuffer), durationMs: 0 }
+	}
+
 	// Minted even for a push: the page still beacons with it.
 	const token = await mintRecordedRenderToken(env, job)
 	try {
