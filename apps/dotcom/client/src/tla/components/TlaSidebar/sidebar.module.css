@@ -313,6 +313,11 @@
 	flex: 0 0 auto;
 }
 
+/* Overlaps the bell by 4px so the two 32px hover pills sit flush, as in the design. */
+.sidebarFeedbackButton {
+	margin-inline-end: -4px;
+}
+
 /* ----------------- Link button ---------------- */
 
 .sidebarLinkButton {
@@ -342,6 +347,14 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.sidebarLinkButtonNewDot {
+	flex-shrink: 0;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: var(--tl-color-selected);
 }
 
 .sidebarLinkButton:focus-visible {

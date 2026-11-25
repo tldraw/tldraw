@@ -1,0 +1,200 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 251,
+				"y": 6056.85675,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "braces",
+						"pack": "math",
+						"name": "Braces",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Algebra scaffolds",
+						"tags": ["Braces", "braces", "Algebra scaffolds"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-braces",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "arUti",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 24,
+				"y": 0.27999999999974534,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-braces-left",
+				"type": "line",
+				"parentId": "shape:full-catalog-braces",
+				"props": {
+					"dash": "draw",
+					"size": "l",
+					"color": "black",
+					"spline": "cubic",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": -15,
+							"y": 5
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": -14,
+							"y": 34
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": -24,
+							"y": 48
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": -14,
+							"y": 60
+						},
+						"a6": {
+							"id": "a6",
+							"index": "a6",
+							"x": -15,
+							"y": 89
+						},
+						"a7": {
+							"id": "a7",
+							"index": "a7",
+							"x": 0,
+							"y": 96
+						}
+					},
+					"scale": 1
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 74.00000000000003,
+				"y": 0.27999999999974534,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-braces-right",
+				"type": "line",
+				"parentId": "shape:full-catalog-braces",
+				"props": {
+					"dash": "draw",
+					"size": "l",
+					"color": "black",
+					"spline": "cubic",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 15,
+							"y": 5
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": 14,
+							"y": 34
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 24,
+							"y": 48
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": 14,
+							"y": 60
+						},
+						"a6": {
+							"id": "a6",
+							"index": "a6",
+							"x": 15,
+							"y": 89
+						},
+						"a7": {
+							"id": "a7",
+							"index": "a7",
+							"x": 0,
+							"y": 96
+						}
+					},
+					"scale": 1
+				},
+				"index": "a28Hv",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-braces"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

@@ -312,6 +312,23 @@ describe('computeNextAlarm', () => {
 	it('leaves a sooner future alarm (imminent poke) untouched', () => {
 		expect(computeNextAlarm(now + 1_000, now, SWEEP)).toBe(null)
 	})
+
+	it('arms for a deferred row due before the next sweep', () => {
+		expect(computeNextAlarm(null, now, SWEEP, now + 10_000)).toBe(now + 10_000)
+		expect(computeNextAlarm(now + SWEEP, now, SWEEP, now + 10_000)).toBe(now + 10_000)
+	})
+
+	it('keeps the next sweep for a deferred row due after it', () => {
+		expect(computeNextAlarm(null, now, SWEEP, now + SWEEP + 60_000)).toBe(now + SWEEP)
+	})
+
+	it('arms no sooner than now+1s for a deferred row already due', () => {
+		expect(computeNextAlarm(null, now, SWEEP, now - 5_000)).toBe(now + 1_000)
+	})
+
+	it('leaves a sooner future alarm untouched for a deferred row due later', () => {
+		expect(computeNextAlarm(now + 2_000, now, SWEEP, now + 10_000)).toBe(null)
+	})
 })
 
 describe('shouldReportEffectFailure', () => {

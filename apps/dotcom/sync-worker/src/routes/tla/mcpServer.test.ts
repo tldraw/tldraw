@@ -533,15 +533,15 @@ describe('authentication', () => {
 		expect(hasReadAccessToFile).not.toHaveBeenCalled()
 	})
 
-	// The one number that matters most during a flag-gated rollout, and nothing recorded it: the
-	// per-call event is written by the tools/call dispatcher, which a refused request never reaches.
+	// The per-call event is written by the tools/call dispatcher, which a refused request never
+	// reaches, so the refusal needs its own.
 	it('records the refusal with its reason', async () => {
-		refuseAuth('not_allowlisted')
+		refuseAuth('invalid_token')
 		const env = makeEnv()
 
 		await mcpServer(makeRpcRequest('tools/list'), env)
 
-		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
+		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['invalid_token'])
 		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'route')).toEqual(['mcp'])
 		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
 	})

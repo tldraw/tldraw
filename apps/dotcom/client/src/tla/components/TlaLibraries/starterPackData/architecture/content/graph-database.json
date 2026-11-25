@@ -1,0 +1,394 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 114,
+				"y": 1679.5,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "graph-database",
+						"pack": "architecture",
+						"name": "Graph database",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Data and storage",
+						"tags": ["Graph database", "graph-database", "Data and storage"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-graph-database",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b2RSSb",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 21,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-left",
+				"type": "line",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 81
+						}
+					},
+					"scale": 1
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 112,
+				"y": 21,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-right",
+				"type": "line",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 81
+						}
+					},
+					"scale": 1
+				},
+				"index": "a2Rbb",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 102,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-bottom",
+				"type": "line",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "cubic",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 16,
+							"y": 14
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": 56,
+							"y": 19
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 96,
+							"y": 14
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": 112,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a3DYQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-body",
+				"type": "geo",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"w": 112,
+					"h": 40,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a4ftr",
+				"typeName": "shape"
+			},
+			{
+				"x": 29,
+				"y": 68,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-edges",
+				"type": "line",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 44,
+							"y": -6
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": 29,
+							"y": 26
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 0,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a5tU9",
+				"typeName": "shape"
+			},
+			{
+				"x": 23,
+				"y": 62,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-node0",
+				"type": "geo",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"w": 12,
+					"h": 12,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a64aQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 67,
+				"y": 56,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-node1",
+				"type": "geo",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"w": 12,
+					"h": 12,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a7e0r",
+				"typeName": "shape"
+			},
+			{
+				"x": 52,
+				"y": 88,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-graph-database-node2",
+				"type": "geo",
+				"parentId": "shape:full-catalog-graph-database",
+				"props": {
+					"w": 12,
+					"h": 12,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a8V5v",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-graph-database"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

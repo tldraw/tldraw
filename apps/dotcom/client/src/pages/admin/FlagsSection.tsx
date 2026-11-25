@@ -12,34 +12,11 @@ import styles from './admin.module.css'
 
 const FLAG_TYPE_ORDER: FeatureFlagValue['type'][] = ['boolean', 'percentage', 'allowlist']
 
-// Flags whose name title-cased does not say what they do. `Mcp Server Enabled` reads like a
-// capability toggle; it is the switch that takes the whole server down, and somebody reaching for it
-// under pressure should not have to infer that.
-const FLAG_LABELS: Record<string, string> = {
-	mcp_server_access: 'MCP server access',
-}
-
-// Access a flag grants on top of whatever the panel is showing. Kept per flag rather than written
-// into AllowlistFlag: the staff bypass belongs to `canUseMcpServer`, not to allowlists in general,
-// and a second allowlist flag inheriting this sentence would be the panel stating an access rule
-// that does not hold for it.
-const FLAG_IMPLICIT_ACCESS: Record<string, string> = {
-	mcp_server_access: '@tldraw.com accounts have access either way.',
-}
-
-// Rendered above the rest rather than interleaved alphabetically with commenting and version
-// chains: this is the one flag that decides whether an outside caller can drive the product at all,
-// and it is the one an operator comes to this page to find.
-const MCP_FLAGS = ['mcp_server_access']
-
 function flagLabel(flagName: string) {
-	return (
-		FLAG_LABELS[flagName] ??
-		flagName
-			.split('_')
-			.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-			.join(' ')
-	)
+	return flagName
+		.split('_')
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(' ')
 }
 
 export function FlagsSection() {
@@ -169,7 +146,6 @@ function FeatureFlags() {
 					label={label}
 					flagValue={flagValue}
 					isSaving={isSaving}
-					implicitAccess={FLAG_IMPLICIT_ACCESS[flagName]}
 					onSetAllowEveryone={(allowEveryone) => {
 						if (
 							!window.confirm(
@@ -263,10 +239,7 @@ function FeatureFlags() {
 				<p>Loading flags...</p>
 			) : (
 				<div className={styles.featureFlagsContainer}>
-					{MCP_FLAGS.filter((name) => flags[name]).map((name) => renderFlag(name, flags[name]))}
-					{MCP_FLAGS.some((name) => flags[name]) && <hr className={styles.featureFlagsDivider} />}
 					{Object.entries(flags)
-						.filter(([name]) => !MCP_FLAGS.includes(name))
 						.sort(([a], [b]) => {
 							// Grouped by type — boolean, then percentage, then allowlist — and alphabetical
 							// within a group. Ranked rather than compared pairwise so the ordering stays a
@@ -291,7 +264,6 @@ function AllowlistFlag({
 	label,
 	flagValue,
 	isSaving,
-	implicitAccess,
 	onSaveEmails,
 	onSavePercentage,
 	onSetAllowEveryone,
@@ -300,7 +272,6 @@ function AllowlistFlag({
 	label: string
 	flagValue: AllowlistFeatureFlag
 	isSaving: boolean
-	implicitAccess: string | undefined
 	onSaveEmails(emails: string[]): void
 	onSavePercentage(percentage: number): void
 	onSetAllowEveryone(allowEveryone: boolean): void
@@ -340,8 +311,7 @@ function AllowlistFlag({
 					<strong>{label}</strong>
 				</span>
 				{/* No master toggle: an empty list already admits nobody, so an "off" beside it would be
-				    a second way to say the same thing — and on mcp_server_access it could not say it at
-				    all, since the staff bypass never consults this flag. The mode is the whole control. */}
+				    a second way to say the same thing. The mode is the whole control. */}
 				<div
 					role="radiogroup"
 					aria-label={`${label} mode`}
@@ -369,7 +339,6 @@ function AllowlistFlag({
 							<span>{mode.label}</span>
 						</label>
 					))}
-					{implicitAccess && <span style={{ opacity: 0.7 }}>{implicitAccess}</span>}
 				</div>
 				<span className={flagValue.allowEveryone === true ? styles.featureFlagDisabled : ''}>
 					Plus

@@ -6,17 +6,8 @@ export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 export const DEFAULT_FLAGS: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	load_rum: { enabled: false },
-	// Nothing in the client reads this one — it gates the MCP server, which is enforced worker-side
-	// for callers that are not this app. It rides along because the flags endpoint returns every flag;
-	// a client-side check would not be a check at all, since the callers are Claude and ChatGPT.
-	mcp_server_access: { enabled: false },
-	// Server-side only: the sync worker evaluates this per room to pick the version write mode. The
-	// per-user value here means nothing to the client.
-	version_chain: { enabled: false },
 	libraries: { enabled: false },
-	// Server-side only: the sync worker reads these to pick the render transport.
-	thumbnail_render_push: { enabled: false },
-	mcp_render_push: { enabled: false },
+	libraries_anonymous: { enabled: false },
 	// Server-side only: the sync worker reads this to sample MCP reads and OG and thumbnail renders for
 	// the headless shadow compare.
 	headless_shadow: { enabled: false },

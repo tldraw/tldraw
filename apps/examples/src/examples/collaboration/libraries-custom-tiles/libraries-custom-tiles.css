@@ -1,0 +1,30 @@
+.libraries-custom-tile {
+	position: relative;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.libraries-custom-tile__badge {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	padding: 1px 6px;
+	border-radius: var(--tl-radius-1);
+	background: var(--tl-color-primary);
+	color: var(--tl-color-selected-contrast);
+	font-size: 10px;
+	font-weight: 600;
+	pointer-events: none;
+}
+
+.libraries-custom-tile__caption {
+	padding: 0 4px 6px;
+	overflow: hidden;
+	color: var(--tl-color-text-3);
+	font-size: 11px;
+	text-align: center;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}

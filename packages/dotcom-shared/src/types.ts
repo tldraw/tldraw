@@ -378,7 +378,9 @@ export const ZErrorCode = stringEnum(
 	'bad_request',
 	'rate_limit_exceeded',
 	'max_workspaces_reached',
-	'max_files_reached'
+	'max_files_reached',
+	'max_libraries_reached',
+	'max_library_items_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
@@ -455,11 +457,8 @@ export type TLCustomServerEvent =
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
-	'mcp_server_access',
-	'version_chain',
 	'libraries',
-	'thumbnail_render_push',
-	'mcp_render_push',
+	'libraries_anonymous',
 	'headless_shadow',
 	'ui_v3',
 	'mcp_hidden_tab',
@@ -499,8 +498,7 @@ export interface PercentageFeatureFlag {
 export interface AllowlistFeatureFlag {
 	type: 'allowlist'
 	// No master toggle, unlike the other two. An empty list already admits nobody, so a separate
-	// "off" would only be a second way to say the same thing — and on `mcp_server_access` it could
-	// not even say it, since the staff bypass in `canUseMcpServer` does not consult this flag.
+	// "off" would only be a second way to say the same thing.
 	/** The users the flag is on for. Anyone not named here evaluates false. */
 	users: AllowlistEntry[]
 	/**

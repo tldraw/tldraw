@@ -22,7 +22,6 @@ import {
 	WELCOME_CREATE_SOURCE,
 	can,
 	getBatchKeyMetaEntry,
-	type FeatureFlagValue,
 	type McpAgentClient,
 	type Role,
 	type RoomOpenMode,
@@ -50,8 +49,6 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	commentSchemaRecords,
-	createTLSchema,
 	defaultShapeSchemas,
 	isCommentId,
 	isCommentReactionId,
@@ -93,6 +90,7 @@ import {
 	upsertCommentThreadRows,
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
+import { fileSyncSchema } from './fileSchema'
 import { Logger } from './Logger'
 import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
 import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
@@ -178,7 +176,6 @@ import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { requireHistoryAccess } from './utils/tla/requireHistoryAccess'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
-import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
 	loadChainIndexForVersion,
@@ -290,12 +287,6 @@ async function canAccessTestProductionFile(
 
 const MB = 1024 * 1024
 
-// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
-// through the room; comments are persisted to Postgres rather than the main document blob (see
-// drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
-// client (see useSync in the dotcom client) or the schemas won't match.
-const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
-
 // Record types served through the room's object-store lane rather than the document lane.
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
@@ -351,8 +342,6 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		if (!this._storage) {
 			this.setBootStage('storage-load:sqlite-init')
-			// Kicked off here so the KV read resolves alongside the room load instead of after it.
-			this.versionChainRollout()
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
 				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
@@ -365,18 +354,12 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
-					this.setBootStage('storage-load:kv-rollout')
 					// The next persist diffs against this rather than cutting a keyframe every time the
 					// durable object wakes. It is usually what R2 holds, but not always: a previous
 					// incarnation can die with edits SQLite has and R2 does not. That is safe because the
 					// seed is never trusted as the chain head — decideVersionWrite checks it against the
-					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
-					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
-					// for where chains are off.
-					const rollout = await this.versionChainRollout()
-					if (resolveVersionChainMode(rollout, getR2KeyForRoom(this.documentInfo)) !== 'off') {
-						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
-					}
+					// head the chain recorded and cuts a keyframe when they differ.
+					this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
 					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
 					// blip during the last-out drain). Retries are otherwise onChange-driven
 					// (triggerPersist), so a reopened room where users only view would never drain.
@@ -873,14 +856,6 @@ export class TLFileDurableObject extends DurableObject {
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
 	// refetched from the segment object in R2, which is the durable copy.
 	_pendingDeltas: PendingDelta[] | null = null
-	_versionChainRollout: Promise<FeatureFlagValue> | null = null
-
-	// One KV read per incarnation, by design: the rollout is config, not room state, and a KV flip
-	// landing as objects wake is the contract (see loadVersionChainRollout).
-	private versionChainRollout(): Promise<FeatureFlagValue> {
-		this._versionChainRollout ??= loadVersionChainRollout(this.env)
-		return this._versionChainRollout
-	}
 
 	private async getVersionChain(): Promise<ChainState | null> {
 		if (!this._versionChainLoaded) {
@@ -2401,8 +2376,6 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
-
 		// A chain failure that outlasted its retries is a metric, not a failed persist: the outer retry
 		// would re-upload the rooms object 100 times and raise persistence_bad. This persist records no
 		// version, but the chain is untouched and the next persist's delta carries its changes; only
@@ -2410,22 +2383,18 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
 			// newer content that deserves its own version.
-			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString(), mode === 'off')
+			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString())
 		} catch (error) {
 			this.logEvent({ type: 'version_chain_error' })
 			this.reportError(error)
 		}
 	}
 
-	/**
-	 * Writes this snapshot into the chain under `iso`: as a delta where the chain allows one, or
-	 * always as a keyframe when `keyframesOnly` (the `off` mode).
-	 */
+	/** Writes this snapshot into the chain under `iso`, as a delta where the chain allows one. */
 	private async _writeVersionChainEntry(
 		snapshot: RoomSnapshot,
 		key: string,
-		iso: string,
-		keyframesOnly: boolean
+		iso: string
 	): Promise<void> {
 		let chain = await this.getVersionChain()
 		// A persist retried after the chain already took this exact version must not write it again
@@ -2434,8 +2403,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (chain && isChainHead(chain, snapshot)) return
 		let pending: PendingDelta[] = []
 		let noChainReason: 'segment-lost' | undefined
-		// A keyframe discards the open segment, so there is nothing to rehydrate.
-		if (chain && !keyframesOnly) {
+		if (chain) {
 			const rehydrated = await this.getPendingDeltas(chain)
 			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
 			// segment without the deltas its metadata still promises, so start a fresh chain instead.
@@ -2466,7 +2434,6 @@ export class TLFileDurableObject extends DurableObject {
 						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
-						keyframesOnly,
 					})
 				),
 			VERSION_CHAIN_R2_RETRY
@@ -2475,10 +2442,8 @@ export class TLFileDurableObject extends DurableObject {
 		this._pendingDeltas = result.pending
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
-		// Only a delta needs the diff base; in `off` mode it would pin a decoded copy of the board
-		// for nothing, as the wake seed gate says.
-		this._lastPersistedSnapshot = keyframesOnly ? null : snapshot
-		this._lastPersistedHeadHash = keyframesOnly ? null : result.chain.headHash
+		this._lastPersistedSnapshot = snapshot
+		this._lastPersistedHeadHash = result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,

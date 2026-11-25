@@ -1,0 +1,55 @@
+{
+	"id": "tldraw-characters",
+	"name": "tldraw characters",
+	"version": 1,
+	"items": [
+		{
+			"id": "penta",
+			"name": "Penta",
+			"thumbnail": {
+				"light": "thumbnails/penta-light.webp",
+				"dark": "thumbnails/penta-dark.webp"
+			}
+		},
+		{
+			"id": "cloudy",
+			"name": "Cloudy",
+			"thumbnail": {
+				"light": "thumbnails/cloudy-light.webp",
+				"dark": "thumbnails/cloudy-dark.webp"
+			}
+		},
+		{
+			"id": "cloudy-2",
+			"name": "Cloudy 2",
+			"thumbnail": {
+				"light": "thumbnails/cloudy-2-light.webp",
+				"dark": "thumbnails/cloudy-2-dark.webp"
+			}
+		},
+		{
+			"id": "cloudy-3",
+			"name": "Cloudy 3",
+			"thumbnail": {
+				"light": "thumbnails/cloudy-3-light.webp",
+				"dark": "thumbnails/cloudy-3-dark.webp"
+			}
+		},
+		{
+			"id": "arrow",
+			"name": "Arrow",
+			"thumbnail": {
+				"light": "thumbnails/arrow-light.webp",
+				"dark": "thumbnails/arrow-dark.webp"
+			}
+		},
+		{
+			"id": "diamond",
+			"name": "Diamond",
+			"thumbnail": {
+				"light": "thumbnails/diamond-light.webp",
+				"dark": "thumbnails/diamond-dark.webp"
+			}
+		}
+	]
+}

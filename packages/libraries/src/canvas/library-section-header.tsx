@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
-import { TldrawUiIcon } from 'tldraw'
+import type { TLLibrary } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
-import type { LibraryMenuSort } from '../ui/library-menu'
+import { CaretDownIcon } from '../ui/caret-down-icon'
 import { RenameInput } from '../ui/rename-input'
 
 /** @public */
@@ -13,12 +12,11 @@ export interface LibrarySectionHeaderProps {
 	/** Whether the library is folded shut, hiding its items. */
 	collapsed: boolean
 	onToggleCollapsed(): void
-	/** The library's item order, for a menu's "Sort items by". */
-	sort: LibraryMenuSort
 	/**
-	 * The library's ⋯ menu: the `LibraryMenu` slot, wired to rename, delete, move and copy the
-	 * library as the source allows. Null while renaming, when a closing menu would hand focus back
-	 * to its trigger and blur the name input.
+	 * The library's menu: the `LibraryMenu` slot, wired to rename, delete, copy and remove the
+	 * library from the file as the source allows. It has no button of its own: it opens on a
+	 * right-click, a long press on touch, or the context menu key or Shift+F10 on the header, over
+	 * the header, so render it inside the header. It stays while renaming.
 	 */
 	menu: ReactNode
 	/**
@@ -33,7 +31,7 @@ export interface LibrarySectionHeaderProps {
 }
 
 /**
- * A library's name, which folds it shut, and its ⋯ menu. While renaming, an input in place of the
+ * A library's name, which folds it shut, and its menu. While renaming, an input in place of the
  * name. The default for {@link LibrariesComponents.LibrarySectionHeader}.
  * @public @react
  */
@@ -63,7 +61,7 @@ export function LibrarySectionHeader({
 					onClick={onToggleCollapsed}
 				>
 					<span className="tlui-libraries-panel__name">{library.name}</span>
-					<TldrawUiIcon icon="chevron-down" label="" small className="tlui-libraries-chevron" />
+					<CaretDownIcon className="tlui-libraries-chevron" />
 				</button>
 			)}
 			<div className="tlui-libraries-panel__header-actions">{menu}</div>

@@ -15,3 +15,8 @@ declare module '*.svg' {
 	const content: React.FunctionComponent<React.SVGAttributes<SVGElement>>
 	export default content
 }
+
+// Only Vite's glob import, not all of vite/client, whose `*.svg` module would clash with the one above.
+interface ImportMeta {
+	glob: import('vite/types/importGlob').ImportGlobFunction
+}

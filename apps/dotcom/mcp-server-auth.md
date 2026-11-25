@@ -1,6 +1,6 @@
 # Authentication for the board screenshot MCP server
 
-Status: implemented on this branch, not yet enabled
+Status: enabled for every signed-in tldraw.com account; the `mcp_server_access` rollout flag has been removed
 Scope: `apps/dotcom/sync-worker` — the MCP server at `POST /api/app/mcp`
 
 Companion to [`browser-run-thumbnails.md`](./browser-run-thumbnails.md), which documents the server this covers. The reference material now lives there, under "Authentication on the MCP server"; this document is the reasoning behind it, kept because most of it is about choices that are not visible in the result.
@@ -21,9 +21,9 @@ Client registration is settled: clients identify themselves with Client ID Metad
 
 The MCP server at `POST /api/app/mcp` was anonymous by design. It is now behind a signed-in tldraw.com account, using OAuth 2.1 so that MCP clients (Claude, ChatGPT, Cursor) can complete the sign-in themselves.
 
-**The eventual bar is any signed-in tldraw.com user** — no staff restriction, no `@tldraw.com` requirement, no permanent allowlist. **For now, a feature flag restricts access to a specific subset of users**, and the rollout widens from there.
+**The bar is any signed-in tldraw.com user** — no staff restriction, no `@tldraw.com` requirement, no allowlist. The rollout was staged behind an allowlist flag, `mcp_server_access`, which was removed once it was open to everyone.
 
-This layer's job is to establish identity and hand a verified `userId` to that flag gate. It does not decide who is eligible.
+This layer's job is to establish identity. It does not decide who is eligible.
 
 **Auth is required, not optional.** Every call to `/api/app/mcp` needs a valid token; there is no anonymous tier. This retires the "point any agent at a public tldraw board" use case the server was built for, deliberately.
 
@@ -43,7 +43,7 @@ It costs every existing anonymous caller. Since the tools only reached boards th
 
 **Adding a per-user access check** is the part that makes auth load-bearing. Once the gate is "can this user see this board" rather than "is this board public", identity is doing real work, and the server can serve boards that are not public at all. It does — see the next section for why that was the choice.
 
-The flag stages the rollout: required auth goes on for the flagged population first, then widens. The target is every signed-in user — the flag is the dial, not a narrower entitlement. See [What auth hands to the feature flag gate](#what-auth-hands-to-the-feature-flag-gate).
+The rollout was staged by a flag: required auth went on for the flagged population first, then widened to every signed-in user, and the flag was removed. See [What auth hands to the feature flag gate](#what-auth-hands-to-the-feature-flag-gate).
 
 ## Where this started
 
@@ -166,7 +166,7 @@ The auth check sits inside `mcpServer`, before the JSON-RPC body is read. It is 
 - The advertised protocol version is `2025-11-25`, `initialize` echoes the client's when we speak it, and `2025-06-18` and `2025-03-26` stay accepted. `2024-11-05` is not in the supported list, which is the point: it predates MCP authorization, so advertising it would leave a client unable to obtain a token but convinced the server was behaving to spec.
 - Protected resource metadata at `/.well-known/oauth-protected-resource/api/app/mcp`, and `401` + `WWW-Authenticate` from the route when no valid token is present. Every call needs one.
 - Bearer tokens verified with `@clerk/backend`'s `authenticateRequest` (`acceptsToken: 'oauth_token'`) against the Clerk instance's JWKS — signature, `sub`, `exp` and `typ: at+jwt`. Not `verifyToken`, which is for _session_ tokens and refuses an access token on its header alone (`Invalid JWT type "at+jwt". Expected "JWT"`). Before [#10005](https://github.com/tldraw/tldraw/issues/10005) moved the worker to v3 this was a `jose` check against the authorization server's public JWKS with an explicit `iss` pin; the SDK binds the issuer through the key set instead, since the JWKS it fetches is the accepting instance's own. There is no `aud` check — see the TL;DR and open question 8.
-- The `mcp_server_access` flag is evaluated for the authenticated user; a user it does not name gets `403`.
+- The `mcp_server_access` flag was evaluated for the authenticated user; a user it did not name got `403`. The flag has since been removed: every signed-in account is admitted.
 - The public-viewability gate is replaced by a per-user access check, which gates the cache read as well as the render.
 - Rate limits re-keyed from `ip-shot:` to `user:`. `ip-info:` was already gone. IP limits still make sense for endpoints with no caller identity — `/app/thumbnail-render/snapshot` and the discovery endpoint — and there are none there today.
 - The hashed-IP telemetry dimension became a hashed user ID in the same blob position, keeping the "failures and rate limits only" shape that bounds its cardinality.
@@ -174,6 +174,8 @@ The auth check sits inside `mcpServer`, before the JSON-RPC body is read. It is 
 The estimate held up, with one exception. The protocol upgrade, discovery/401 handling, token verification, and the re-keying were each small; the access check was the substantial one. What was not in the estimate: the discovery **routing**, which needed a second wrangler route pattern, a vite proxy entry, and an SPA-fallback exclusion, each failing silently if missed. Client interop testing across Claude desktop and web, ChatGPT, Cursor, and `mcp-remote` remains untouched and still does not compress.
 
 ## What auth hands to the feature flag gate
+
+Historical: this describes the `mcp_server_access` gate as it ran during the rollout. The flag has since been removed and every signed-in account is admitted.
 
 Auth is not the thing deciding who gets in. Auth produces a trustworthy identity; the flag decides which users are switched on. Initially that's a specific subset, widening to all signed-in users. The split is kept clean in the code, which is what lets the rollout widen with a KV edit rather than a deploy — and keeps the auth layer from ever encoding who is eligible.
 
@@ -210,15 +212,15 @@ The code steps landed together on this branch rather than in the sequence below,
 3. ~~Add discovery endpoints and token verification.~~ Done. **Announce the cutover date before enabling** — every existing anonymous caller breaks at step 5.
 4. **Verify each client end to end**, using [Connecting a client](#connecting-a-client) below. The server side is proven — a real OAuth token drives `get_board_info` → `get_page_info` → `get_cluster_screenshot` on the preview, render included — but each _client_ still has to be walked through its own flow. This is a gate, not a formality: connector-side OAuth failures produce opaque errors with nothing in our logs. **Include one browser-context client** (MCP Inspector, or a web connector): it takes a different path through the worker's CORS handling than Claude Desktop or `mcp-remote`, so one client passing is not evidence for the others.
    4b. **Re-confirm the Clerk client registry, and check the approved client list is what you expect.** Dynamic client registration off, **Only allow pre-registered clients to connect** on, **Block implicitly allowed clients** on — all three verified on the instance, and all three worth checking again here. This is a standing invariant rather than a one-time step: with no `aud` on Clerk's tokens it is the entire client-authorization story, and nothing in this repo would notice one of them being turned off.
-5. **Enforce for flag-enabled users.** The code enforces already; the flag ships `enabled: false` with an empty list, so today the endpoint answers `403` to every authenticated caller and `401` to everyone else. Turning the flag on is the breaking moment, and there is no anonymous path to fall back to. **Re-enter the friends-and-family cohort by hand first.** `mcp_friends_and_family_users` is orphaned rather than migrated — nothing carries it into `mcp_server_access.users` — so that population loses access on deploy until an admin pastes the addresses back in. The direction is fail-safe, but it is silent, and the list is only readable from the old KV key. The admin panel accepts an allowlist while the flag is still off, so this can be staged before step 5 rather than during it.
+5. ~~Enforce for flag-enabled users.~~ Done. The flag shipped `enabled: false` with an empty list, so the endpoint answered `403` to every authenticated caller and `401` to everyone else. Turning the flag on was the breaking moment, as there is no anonymous path to fall back to.
 6. ~~Land the per-user board access check and switch the tool to minting `render`.~~ Done.
-7. **Widen the flag as confidence builds**, toward the stated bar of any signed-in user.
+7. ~~Widen the flag as confidence builds, toward the stated bar of any signed-in user.~~ Done, and the `mcp_server_access` flag removed.
 
 Steps 5 and 6 were worth keeping apart when this was a deployment plan: step 5 is the disruptive one for existing callers, step 6 changes what the tools can reach. They are one change here, which means the first enablement exercises both at once — worth remembering if something misbehaves.
 
 ## Connecting a client
 
-The endpoint is `https://www.tldraw.com/api/app/mcp` (staging: `https://staging.tldraw.com/…`, previews: `https://pr-{number}-preview-deploy.tldraw.com/…`). Every client needs an OAuth access token from the tldraw Clerk instance and an account the `mcp_server_access` flag names.
+The endpoint is `https://www.tldraw.com/api/app/mcp` (staging: `https://staging.tldraw.com/…`, previews: `https://pr-{number}-preview-deploy.tldraw.com/…`). Every client needs an OAuth access token from the tldraw Clerk instance.
 
 **Use the `www` host exactly, for every client.** `tldraw.com/api/app/mcp` answers, but with a Vercel `308` to the `www` form, and a redirect does not change what the client believes the resource is. It then reads metadata advertising `resource: https://www.tldraw.com/api/app/mcp`, finds that is not the URL it was configured with, and refuses before authentication begins — naming the correct URL in the error, which reads like a server fault rather than a typo:
 

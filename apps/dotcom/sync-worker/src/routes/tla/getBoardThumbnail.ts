@@ -113,7 +113,7 @@ type Authenticated = { ok: true; userId: string } | { ok: false; response: Respo
  * Clerk session JWT the web client sends as a bearer — goes to `getAuth`. Routed on the token's
  * `typ` rather than trying one and falling back to the other, so each request is verified once.
  *
- * Refusals are plain 401s and 403s, not the MCP endpoint's challenge: its `WWW-Authenticate` points
+ * Refusals are plain 401s, not the MCP endpoint's challenge: its `WWW-Authenticate` points
  * at the MCP resource metadata, which describes that endpoint rather than this one.
  */
 async function authenticate(
@@ -126,9 +126,7 @@ async function authenticate(
 			const bearer = await getMcpTokenAuth(request, env)
 			if (bearer.ok) return { ok: true, userId: bearer.userId }
 			writeMcpAuthRefusalTelemetry(env, request, bearer.reason, 'thumbnail')
-			// A valid token for a user outside the mcp_server_access flag: signing in again won't help.
-			const status = bearer.reason === 'not_allowlisted' ? 403 : 401
-			return { ok: false, response: new Response(null, { status }) }
+			return { ok: false, response: new Response(null, { status: 401 }) }
 		} catch (error) {
 			reportThumbnailError(error, { ctx, env, request, surface: 'board_view', extras: {} })
 			return { ok: false, response: new Response(null, { status: 500 }) }
