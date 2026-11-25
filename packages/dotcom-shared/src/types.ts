@@ -378,7 +378,9 @@ export const ZErrorCode = stringEnum(
 	'bad_request',
 	'rate_limit_exceeded',
 	'max_workspaces_reached',
-	'max_files_reached'
+	'max_files_reached',
+	'max_libraries_reached',
+	'max_library_items_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 

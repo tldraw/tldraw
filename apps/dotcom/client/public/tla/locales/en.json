@@ -65,6 +65,9 @@
   "12a6766ba1": {
     "translation": "Unpin file"
   },
+  "13cad4c2e8": {
+    "translation": "This workspace has reached the maximum number of libraries. Delete old libraries before creating new ones."
+  },
   "13ddd375ad": {
     "translation": "Export as"
   },
@@ -103,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "26111f65cc": {
+    "translation": "This library has reached the maximum number of items. Delete old items before adding new ones."
   },
   "28b2464e1f": {
     "translation": "Could not submit feedback"
