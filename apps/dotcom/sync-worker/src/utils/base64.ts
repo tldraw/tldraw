@@ -14,8 +14,7 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
 	return binaryStringToBytes(atob(base64)).buffer
 }
 
-// Base64url (RFC 4648 §5): the URL-safe alphabet with padding stripped, used for the signed
-// render tokens that ride in the render page's query string.
+// Base64url (RFC 4648 §5): the URL-safe alphabet with padding stripped.
 export function base64UrlEncode(bytes: Uint8Array): string {
 	return btoa(bytesToBinaryString(bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }

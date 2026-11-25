@@ -167,10 +167,10 @@ describe('POST /app/admin/feature-flags', () => {
 	it('refuses a percentage sent for a boolean flag', async () => {
 		const env = makeEnv()
 
-		const response = await post(env, { flag: 'mcp_render_push', percentage: 50 })
+		const response = await post(env, { flag: 'mcp_hidden_tab', percentage: 50 })
 
 		expect(response.status).toBe(400)
-		expect(kv.has('mcp_render_push')).toBe(false)
+		expect(kv.has('mcp_hidden_tab')).toBe(false)
 	})
 
 	it('refuses an unknown flag', async () => {

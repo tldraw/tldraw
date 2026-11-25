@@ -4,15 +4,11 @@ import {
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
 	THUMBNAIL_MEASURE_RESULT_ID,
-	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
-	ThumbnailRenderErrorRequestBody,
 	ThumbnailRenderParams,
-	ThumbnailRenderPhase,
 	ThumbnailShapeMeasurement,
-	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -25,7 +21,6 @@ import {
 	TLRecord,
 	TLShapeId,
 	Tldraw,
-	fetch,
 	sleep,
 	useEditor,
 	TLAssetId,
@@ -55,85 +50,9 @@ import { resolveUserContentImageUrl } from '../utils/resolveUserContentImageUrl'
 // rewritten to that entry at the edge (scripts/build.ts) and in dev
 // (vite-thumbnail-screenshot-plugin.ts), so the URL the sync-worker renders never moves.
 
-const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
-const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
-
-// Phase stamps for the timing beacon, module-scoped because the page renders exactly once. Each is
-// performance.now() at the moment the phase completed; the beacon ships them after the export so
-// the deltas — boot, acquire, mount, settle, export — can be read per render from telemetry
-// (`render_page_timings`). Worker-side timing can only see the session total; this is what ranks
-// the page's own phases against each other.
-const pageTimings: {
-	/** Authorises the beacon. Never set on the dev fixture page, which therefore sends none. */
-	token?: string
-	acquiredBy?: 'push' | 'fetch'
-	bootAt?: number
-	dataAt?: number
-	mountAt?: number
-	settledAt?: number
-} = {}
-
-// Fire-and-forget: nothing waits on this, and `keepalive` lets the request outlive the page —
-// which it must, because the screenshot (and the session's teardown) follows the ready marker
-// almost immediately.
-function sendTimingsBeacon(exportedAt: number) {
-	const { token, acquiredBy, bootAt, dataAt, mountAt, settledAt } = pageTimings
-	if (
-		!token ||
-		bootAt === undefined ||
-		dataAt === undefined ||
-		mountAt === undefined ||
-		settledAt === undefined
-	) {
-		return
-	}
-	const body: ThumbnailRenderTimingsRequestBody = {
-		token,
-		acquiredBy,
-		timings: { bootAt, dataAt, mountAt, settledAt, exportedAt },
-	}
-	// A plain same-origin fetch: forcing it into no-cors mode turned out to stop delivery entirely.
-	fetch(THUMBNAIL_RESULT_ENDPOINT, {
-		method: 'POST',
-		keepalive: true,
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(body),
-	}).catch(() => {})
-}
-
-// The page's own reason for a failure. Without it the worker sees only Browser Run's "capture
-// element missing", which is the same for every way the page can fail. Once per page: an error is
-// terminal, but more than one path can mark it.
-let errorReported = false
-function sendErrorBeacon(message: string) {
-	const { token, dataAt, mountAt, settledAt } = pageTimings
-	if (!token || errorReported) return
-	errorReported = true
-	const phase: ThumbnailRenderPhase =
-		settledAt !== undefined
-			? 'settle'
-			: mountAt !== undefined
-				? 'mount'
-				: dataAt !== undefined
-					? 'data'
-					: 'boot'
-	const body: ThumbnailRenderErrorRequestBody = {
-		token,
-		error: { message: message.slice(0, THUMBNAIL_RENDER_ERROR_MAX_LENGTH), phase },
-	}
-	fetch(THUMBNAIL_RESULT_ENDPOINT, {
-		method: 'POST',
-		keepalive: true,
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(body),
-	}).catch(() => {})
-}
-
 export type ThumbnailRenderData =
 	| {
 			ok: true
-			/** Absent on a token-free push (the private render worker sends none); present on a pull. */
-			token?: string
 			records: TLRecord[]
 			schema: SerializedSchema
 			renderParams: ThumbnailRenderParams
@@ -171,54 +90,21 @@ function awaitPushedSnapshot(): Promise<ThumbnailPushedSnapshot> {
 	})
 }
 
-/** The render job the URL's token names: the records to draw and how to draw them. */
+/**
+ * The render job the worker pushes into the page: the records to draw and how to draw them. A page
+ * nobody announced a push to (someone opening the URL by hand) fails straight away instead of waiting
+ * for records that are not coming.
+ */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
-	pageTimings.bootAt = performance.now()
-	const token = url.searchParams.get('token') ?? undefined
-	pageTimings.token = token
-
-	// Push first: a pushed render carries its records in the page, so it needs no token — the private
-	// render worker sends none. The token, when present, is only for the timings/error beacon.
 	const pushed =
 		window[THUMBNAIL_RENDER_GLOBAL] ??
 		(url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1' ? await awaitPushedSnapshot() : null)
-	if (pushed) {
-		pageTimings.acquiredBy = 'push'
-		pageTimings.dataAt = performance.now()
-		return {
-			ok: true,
-			token,
-			records: pushed.records,
-			schema: pushed.schema,
-			renderParams: pushed.renderParams,
-		}
-	}
-
-	// Pull path: the page fetches its records with the token, so here a token is required.
-	if (!token) {
-		return { ok: false, message: 'Missing render token' }
-	}
-
-	const result = await fetch(
-		`${THUMBNAIL_SNAPSHOT_ENDPOINT}?token=${encodeURIComponent(token)}`
-	).catch(() => null)
-	if (!result?.ok) {
-		return { ok: false, message: `Could not load render job (${result?.status ?? 'network'})` }
-	}
-
-	const data = (await result.json()) as ThumbnailSnapshotResponseBody
-	if (data.error) {
-		return { ok: false, message: data.message }
-	}
-
-	pageTimings.acquiredBy = 'fetch'
-	pageTimings.dataAt = performance.now()
+	if (!pushed) return { ok: false, message: 'No render job was pushed' }
 	return {
 		ok: true,
-		token,
-		records: data.records,
-		schema: data.schema,
-		renderParams: data.renderParams,
+		records: pushed.records,
+		schema: pushed.schema,
+		renderParams: pushed.renderParams,
 	}
 }
 
@@ -285,9 +171,8 @@ function ThumbnailRenderPage({
 				components={{ ErrorFallback: ThumbnailRenderCrash }}
 				snapshot={snapshot}
 				onMount={(editor) => {
-					pageTimings.mountAt = performance.now()
 					editor.user.updateUserPreferences({ colorScheme: theme })
-					// Render the specific page the token asked for; without one, keep the page the
+					// Render the specific page the job asked for; without one, keep the page the
 					// snapshot opens to (used by OG images).
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
@@ -372,8 +257,6 @@ export function signalThumbnailReady() {
 // Marks the terminal failure state on both <html> and <body>: the worker's screenshot wait resolves
 // on either marker, and success marks both, so failure does too.
 export function setThumbnailError(message: string) {
-	// Before the marker, like the timings beacon before the ready one: the marker ends the session.
-	sendErrorBeacon(message)
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
 	// A measure's `/content` read returns the whole document, and a pushed board's script would
@@ -533,7 +416,7 @@ function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, heig
 }
 
 // The pre-export fit for either capture kind. An explicit viewport capture is deliberately left
-// alone: its camera is the one the token asked for, set on mount.
+// alone: its camera is the one the job asked for, set on mount.
 function fitExportCamera(
 	editor: Editor,
 	shapeIds: string[] | undefined,
@@ -601,13 +484,11 @@ export function ThumbnailExportSignal({
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
-			pageTimings.settledAt = performance.now()
 			// Runs again because the race may have timed out before the fit above: without this the
 			// export would fall back to onMount's pre-font camera and clip re-measured text.
 			fitExportCamera(editor, shapeIds, camera, width, height)
 			// Live capture: the settled, fitted canvas is the picture — the screenshotting browser
 			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
-			// The beacon's exportedAt stamp doubles as ready here; the deltas still read correctly.
 			if (capture === 'live') {
 				// The refit above is a store write the canvas catches up with on a later commit, and
 				// shapes culled at the pre-fit camera have no DOM yet. Two animation frames guarantee a
@@ -616,14 +497,11 @@ export function ThumbnailExportSignal({
 				await nextAnimationFrame()
 				await nextAnimationFrame()
 				if (cancelled) return
-				sendTimingsBeacon(performance.now())
 				signalThumbnailReady()
 				return
 			}
 			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
 			if (cancelled) return
-			// Before onImage: the ready marker (and the session's teardown) follows the image paint.
-			sendTimingsBeacon(performance.now())
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
@@ -752,7 +630,7 @@ function nextAnimationFrame() {
 // `document.fonts.ready` is not a barrier on its own: the editor's FontManager adds a FontFace to
 // document.fonts only once its load resolves, so fonts still in flight are invisible to it. And
 // TldrawEditor's pre-render font gate covers only the page the snapshot opens to, while onMount
-// switches to the page the token asked for — that page's fonts can still be loading here. Waiting
+// switches to the page the job asked for — that page's fonts can still be loading here. Waiting
 // on the editor's own loader (what toImage awaits internally) keeps autosized text from
 // re-measuring mid-export, after the camera fit: the capture would clip, and the shapes the wider
 // bounds reveal would be drawn unwarmed.

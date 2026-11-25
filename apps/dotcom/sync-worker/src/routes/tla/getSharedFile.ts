@@ -71,8 +71,7 @@ export function isFileViewableFor(
  *
  * - **Omitted (the default): re-read.** The row is fetched fresh, so a board un-shared since the
  *   caller last looked stops resolving. This is what a read separated from its resolve by a network
- *   hop needs — `getThumbnailSnapshot` serves a *private* board's document to the render page inside
- *   a token's window, and the un-share must land inside that window.
+ *   hop needs.
  * - **Supplied: reuse.** For a caller that resolved this board microseconds ago in the same function,
  *   a second query returns the same row and buys nothing but a Postgres connection. The gate is still
  *   applied to the row that was passed, so the check is not skipped — only the round trip is.

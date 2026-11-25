@@ -3468,9 +3468,8 @@ export class TLFileDurableObject extends DurableObject {
 			// deleted when a board is unshared (it stays useful behind auth, and resharing makes it an
 			// immediate hit), and the published-slug one only goes when the board is unpublished. Nothing
 			// else would ever remove either — `og/…` keys carry no version, so each board owns exactly one
-			// object, in a bucket with no lifecycle rule to sweep it. The render token record is dropped
-			// for the same reason. MCP screenshots need no equivalent: their keys carry a content version
-			// and their bucket has an expiration rule.
+			// object, in a bucket with no lifecycle rule to sweep it. MCP screenshots need no equivalent:
+			// their keys carry a content version and their bucket has an expiration rule.
 			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
 
 			// finally clear storage so we don't keep the data around. deleteAll() leaves alarms

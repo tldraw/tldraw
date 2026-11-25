@@ -1,12 +1,12 @@
+import type { ScreenshotRequest, ScreenshotResult } from '@tldraw/dotcom-render-worker'
 import type { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { vi } from 'vitest'
 import type { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
-// mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
-// and token helpers belong here rather than in any one test file, so that all four exercise the same
-// stand-ins.
+// mcpServer, ogImageQueue, getOgImage). The R2/render-worker/queue fakes and the snapshot builder
+// belong here rather than in any one test file, so that all four exercise the same stand-ins.
 
 // Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
 // directly to their page, which is what enumerateBoardPages checks for "has content".
@@ -64,7 +64,6 @@ export function makeFakeThumbnailsBucket() {
 				...etagOf(value),
 				body: value.body,
 				arrayBuffer: async () => value.body,
-				// R2 objects expose both; the render-result read uses text, the PNG cache uses bytes.
 				text: async () => new TextDecoder().decode(value.body),
 			}
 		},
@@ -90,17 +89,6 @@ export function makeFakeThumbnailsBucket() {
 		async delete(key: string) {
 			store.delete(key)
 		},
-		// Prefix listing, which the render-token cleanup uses now that a board's records are spread
-		// across one key per surface (and, for MCP, per page and theme). `truncated` is always false:
-		// the real bucket paginates at 1000 and a board never approaches that.
-		async list({ prefix = '' }: { prefix?: string } = {}) {
-			return {
-				truncated: false as const,
-				objects: [...store.keys()]
-					.filter((key) => key.startsWith(prefix))
-					.map((key) => ({ key, ...etagOf(store.get(key)!) })),
-			}
-		},
 	}
 }
 
@@ -114,13 +102,15 @@ export function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
 	}
 }
 
-// The BROWSER binding's `.quickAction('screenshot', body)` returns a Response whose body is the PNG
-// bytes. [1,2,3] base64-encodes to AQID. Pass a custom impl to simulate failures.
-export function makeBrowserBinding(
-	screenshot: (body: any) => Promise<Response> = async () =>
-		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+// The RENDER_WORKER binding's `screenshot()` answers with the PNG bytes, or a bounded failure reason.
+// [1,2,3] base64-encodes to AQID. Pass a custom impl to simulate failures.
+export function makeRenderWorkerBinding(
+	screenshot: (request: ScreenshotRequest) => Promise<ScreenshotResult> = async () => ({
+		ok: true,
+		png: new Uint8Array([1, 2, 3]),
+	})
 ) {
-	return { quickAction: vi.fn((_action: string, body: any) => screenshot(body)) }
+	return { screenshot: vi.fn(screenshot) }
 }
 
 export function makeFakeQueue() {
@@ -149,26 +139,26 @@ export function makeFakeFileDurableObjectNamespace(
 
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
-		BROWSER: makeBrowserBinding(),
 		// Empty: every flag reads as its default.
 		FEATURE_FLAGS: { get: async () => null },
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
+		RENDER_WORKER: makeRenderWorkerBinding(),
 		TLDR_DOC: makeFakeFileDurableObjectNamespace(),
 		...overrides,
 	} as unknown as Environment
 }
 
 export function screenshotOf(env: Environment) {
-	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
+	return (env.RENDER_WORKER as any).screenshot as ReturnType<
+		typeof makeRenderWorkerBinding
+	>['screenshot']
 }
 
-// The datapoints for one event name (blob1). The MCP route writes two events per screenshot tool
-// call — the render ledger (`mcp_shared_board_screenshot`, request-level) and the spend ledger
-// (`browser_run_session`, one per browser session) — and they share prefixes (`reason:`), so a test
-// asserting on one has to say which.
+// The datapoints for one event name (blob1). Events share prefixes (`reason:`), so a test asserting
+// on one has to say which.
 export function datapointsNamed(
 	env: Environment,
 	name: string
@@ -200,46 +190,10 @@ export function failureBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'failure:')
 }
 
-// Every browser_run_session datapoint, parsed for whole-object assertions: one entry per browser
-// session actually created, in creation order. `durationMs` is that session's own wall-clock —
-// request rows carry no durations at all under the split ledger.
-export function sessionsOf(env: Environment): Array<{
-	source: string
-	mode: string
-	outcome: string
-	reason: string
-	page: string
-	durationMs: number
-	browserMsUsed: number
-	/** records, page shapes, media assets, bbox width, bbox height */
-	content: number[]
-}> {
-	return datapointsNamed(env, 'browser_run_session').map((point) => {
-		const value = (prefix: string) =>
-			point.blobs.find((blob) => blob.startsWith(prefix))!.slice(prefix.length)
-		return {
-			source: value('source:'),
-			mode: value('mode:'),
-			outcome: value('outcome:'),
-			reason: value('reason:'),
-			page: value('page:'),
-			durationMs: point.doubles[2],
-			browserMsUsed: point.doubles[3],
-			content: point.doubles.slice(4, 9),
-		}
-	})
-}
-
 // The index (index1) of every datapoint written. Always `undefined`, since the dataset carries no
 // board identity — this exists to pin that, not to read a value out.
 export function indexesOf(env: Environment): (string | undefined)[] {
 	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
 		(call: any[]) => (call[0].indexes as [string] | undefined)?.[0]
 	)
-}
-
-// quickAction is called as quickAction('screenshot', body); the render URL rides in body (arg 1).
-export function tokenFromScreenshot(env: Environment): string {
-	const body = screenshotOf(env).mock.calls[0]![1] as { url: string }
-	return new URL(body.url).searchParams.get('token')!
 }

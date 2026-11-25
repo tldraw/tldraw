@@ -1,4 +1,4 @@
-import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
+import { RENDER_PUSH_BUDGET_BYTES, THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
@@ -9,8 +9,7 @@ import {
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
 import { OgImageRenderQueueMessage } from '../../types'
-import { hashToPercentage, resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
-import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
@@ -25,18 +24,15 @@ import {
 	isOgImageRepairOnCooldown,
 } from './ogImageQueue'
 import {
-	blobValuesOf,
 	blobsWithPrefix,
 	failureBlobsOf,
-	makeBrowserBinding,
 	makeFakeQueue,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
+	makeRenderWorkerBinding,
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
-	sessionsOf,
 	screenshotOf,
-	tokenFromScreenshot,
 } from './screenshotTestHelpers'
 
 vi.mock('./getPublishedFile', () => ({
@@ -159,14 +155,11 @@ describe('enqueueOgImageRender', () => {
 
 	// The marker must outlive a job's worst-case retry chain: every capture running to its full
 	// timeout, plus every backoff delay between deliveries. If it lapsed while a job was still alive,
-	// a fresh ask would enqueue a second job for the same board, the two captures could overlap, and
-	// each would clobber the other's per-board render token record (renderTokens.ts) — 403ing the
-	// loser's snapshot read mid-capture. The record's per-board key is safe only because this marker
-	// single-flights renders per board.
+	// a fresh ask would enqueue a second job for the same board and spend a second browser session
+	// on it.
 	//
-	// Pricing a capture at one THUMBNAIL_RENDER_TIMEOUT_MS is sound only because the worker abandons
-	// the call at that budget ("abandons a capture at the render timeout" below); without that
-	// ceiling the real chain runs past this TTL.
+	// Pricing a capture at one THUMBNAIL_RENDER_TIMEOUT_MS is sound only because the render worker
+	// abandons the call at that budget; without that ceiling the real chain runs past this TTL.
 	it('has a marker TTL longer than the worst-case retry chain', () => {
 		const backoffMs = Array.from(
 			{ length: OG_MAX_RENDER_ATTEMPTS - 1 },
@@ -344,9 +337,7 @@ describe('enqueuePublishThumbnailRender', () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const board = { kind: 'published', slug: 'published-slug' } as const
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => {
-				throw new Error('browser session failed')
-			}),
+			RENDER_WORKER: makeRenderWorkerBinding(async () => ({ ok: false, reason: 'browser_failed' })),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 		})
 
@@ -380,28 +371,17 @@ describe('enqueuePublishThumbnailRender', () => {
 // version and THUMBNAILS has no lifecycle rule, whatever is left behind is an object nothing will
 // ever read, overwrite or sweep.
 describe('deleteBoardThumbnails', () => {
-	// A board's token records are spread across one key per surface, and for MCP one per page and theme
-	// besides — which is why the cleanup lists the prefix rather than deleting a key it knows. Written
-	// out longhand here so the layout is pinned by the test rather than borrowed from the code under it.
-	const ogTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}/og`
-	const mcpTokenKey = (kind: string, slug: string, pageId: string) =>
-		`render-tokens/${kind}/${slug}/mcp/light/${pageId}`
-
 	async function seedBoard(bucket: ReturnType<typeof makeFakeThumbnailsBucket>, env: any) {
 		const file = { kind: 'shared_file', slug: 'file-1' } as const
 		const published = { kind: 'published', slug: 'published-slug' } as const
 		for (const board of [file, published]) {
-			// An enqueue writes the pending marker, so the fixture covers image, marker and token records.
+			// An enqueue writes the pending marker, so the fixture covers image and marker.
 			await enqueueOgImageRender(env, board, { reason: 'publish' })
 			await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
-			await bucket.put(ogTokenKey(board.kind, board.slug), new Uint8Array().buffer)
-			// Two of them, as two concurrent MCP captures of different pages would leave.
-			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:a'), new Uint8Array().buffer)
-			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:b'), new Uint8Array().buffer)
 		}
 	}
 
-	it('removes both images, both markers and every surface’s render token records', async () => {
+	it('removes both images and both markers', async () => {
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
 		await seedBoard(bucket, env)
@@ -417,18 +397,10 @@ describe('deleteBoardThumbnails', () => {
 		await seedBoard(bucket, env)
 		const other = { kind: 'shared_file', slug: 'file-2' } as const
 		await bucket.put(getOgImageCacheKey(other), new Uint8Array([2]).buffer)
-		await bucket.put(ogTokenKey(other.kind, other.slug), new Uint8Array().buffer)
-		await bucket.put(mcpTokenKey(other.kind, other.slug, 'page:a'), new Uint8Array().buffer)
 
 		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
 
-		expect([...bucket.store.keys()].sort()).toEqual(
-			[
-				getOgImageCacheKey(other),
-				ogTokenKey(other.kind, other.slug),
-				mcpTokenKey(other.kind, other.slug, 'page:a'),
-			].sort()
-		)
+		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(other)])
 	})
 
 	// An empty published slug would address `og/published//light.png`, which is not this board's key
@@ -447,9 +419,6 @@ describe('deleteBoardThumbnails', () => {
 					/\.png$/,
 					'.pending'
 				),
-				ogTokenKey('published', 'published-slug'),
-				mcpTokenKey('published', 'published-slug', 'page:a'),
-				mcpTokenKey('published', 'published-slug', 'page:b'),
 			].sort()
 		)
 	})
@@ -469,7 +438,7 @@ describe('deleteBoardThumbnails', () => {
 })
 
 describe('handleOgImageRenderMessage', () => {
-	it('renders a published board with a content-fit token and refreshes the cache', async () => {
+	it('renders a published board content-fit and refreshes the cache', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -483,17 +452,10 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
-		expect(job).toMatchObject({
-			kind: 'published',
-			slug: 'published-board',
-			version: 1751234567890,
-			camera: 'content',
-			width: 1200,
-			height: 630,
-			// The consumer renders every board, private ones included, so its tokens read under the weaker
-			// gate — and are the only ones a minted-token record is kept for.
-			access: 'render',
+		expect(screenshotOf(env).mock.calls[0]![0]).toMatchObject({
+			payload: { renderParams: { camera: 'content', width: 1200, height: 630, theme: 'light' } },
+			telemetry: { source: 'queue' },
+			shadow: false,
 		})
 		// the worker writes the rendered image to the cache key itself, stamping both versions
 		expect(
@@ -506,15 +468,9 @@ describe('handleOgImageRenderMessage', () => {
 		})
 	})
 
-	describe('pushing the records into the render page', () => {
+	describe('handing the board to the render worker', () => {
 		const board = { kind: 'published', slug: 'board' } as const
 		beforeEach(() => resetFeatureFlagCacheForTests())
-		// Run as the page would, so a script that evaluates differently from JSON.parse fails here.
-		function runPushedScript(script: string) {
-			const window: Record<string, unknown> = {}
-			new Function('window', script)(window)
-			return window.__TLDRAW_RENDER__ as any
-		}
 
 		function arrange(overrides: Partial<Record<string, unknown>> = {}) {
 			vi.mocked(getPublishedFileInfo).mockResolvedValue({
@@ -528,175 +484,73 @@ describe('handleOgImageRenderMessage', () => {
 					{ id: 'page:two', index: 'a2', shapes: 3 },
 				])
 			)
-			return makeEnv({
-				THUMBNAILS: makeFakeThumbnailsBucket(),
-				THUMBNAIL_RENDER_PUSH: 'true',
-				...overrides,
-			})
+			return makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), ...overrides })
 		}
 
-		function requestsOf(env: ReturnType<typeof makeEnv>) {
-			return screenshotOf(env).mock.calls.map((call) => {
-				const body = call[1] as { url: string; addScriptTag?: { content: string }[] }
-				const script = body.addScriptTag?.[0]?.content
-				return {
-					push: new URL(body.url).searchParams.get('push'),
-					payload: script ? runPushedScript(script) : undefined,
-				}
-			})
-		}
-
-		it("injects the rendered page's records and announces the push on the URL", async () => {
+		it("sends the rendered page's records and what the board holds", async () => {
 			const env = arrange()
 
-			await handleOgImageRenderMessage(env, makeMessage(board))
+			await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'edit' }))
 
-			const [request] = requestsOf(env)
-			expect(request.push).toBe('1')
-			expect(request.payload).toMatchObject({
-				error: false,
-				renderParams: { pageId: 'page:one', camera: 'content' },
-			})
-			// Sliced to the rendered page, the same as the snapshot route would answer.
+			const [request] = screenshotOf(env).mock.calls[0]!
+			expect(request.payload.renderParams).toMatchObject({ pageId: 'page:one', camera: 'content' })
+			// Sliced to the rendered page: the rest of the board is not sent.
 			const shapeIds = request.payload.records
-				.filter((record: { typeName: string }) => record.typeName === 'shape')
-				.map((record: { id: string }) => record.id)
+				.filter((record) => record.typeName === 'shape')
+				.map((record) => record.id)
 			expect(shapeIds).toEqual(['shape:page:one-0', 'shape:page:one-1'])
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
+			expect(request.telemetry).toEqual({
+				source: 'queue',
+				reason: 'edit',
+				content: {
+					// Counted over the whole board, which the render worker never sees.
+					records: 8,
+					pageShapes: 2,
+					mediaAssets: 0,
+					bboxWidth: 180,
+					bboxHeight: 80,
+					imageMegapixels: 0,
+				},
+			})
 		})
 
-		it('pushes a "__proto__" key as a property, the way the fetch delivers it', async () => {
+		// A page too large for the RPC is refused before it is sent: there is no other way to get the
+		// records to the page.
+		it('refuses a page too large to push without calling the render worker', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
 			const env = arrange()
 			const snapshot = makeSnapshot([{ id: 'page:one', index: 'a1', shapes: 1 }])
-			snapshot.documents[1].state.meta = JSON.parse('{"__proto__":{"label":"example"}}')
+			snapshot.documents[2].state.meta = { filler: 'x'.repeat(RENDER_PUSH_BUDGET_BYTES) }
 			vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshot)
 
+			await handleOgImageRenderMessage(env, makeMessage(board, OG_MAX_RENDER_ATTEMPTS))
+
+			expect(screenshotOf(env)).not.toHaveBeenCalled()
+			expect(failureBlobsOf(env)).toEqual(['failure:page_too_large'])
+		})
+
+		it('samples a board for the headless shadow where its worker is bound', async () => {
+			const env = arrange({
+				HEADLESS_WORKER: {},
+				FEATURE_FLAGS: {
+					get: async (key: string) =>
+						key === 'headless_shadow' ? JSON.stringify({ enabled: true, percentage: 100 }) : null,
+				},
+			})
+
 			await handleOgImageRenderMessage(env, makeMessage(board))
 
-			const [request] = requestsOf(env)
-			const page = request.payload.records.find(
-				(record: { id: string }) => record.id === 'page:one'
-			)
-			expect(Object.keys(page.meta)).toEqual(['__proto__'])
-			expect(Object.getPrototypeOf(page.meta)).toBe(Object.prototype)
+			expect(screenshotOf(env).mock.calls[0]![0].shadow).toBe(true)
 		})
 
-		it('leaves the page to fetch when push is off', async () => {
-			const env = arrange({ THUMBNAIL_RENDER_PUSH: undefined })
-
-			await handleOgImageRenderMessage(env, makeMessage(board))
-
-			expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-		})
-
-		describe('the thumbnail_render_push rollout, where the deployment does not force push', () => {
-			const bucket = hashToPercentage('published/board', 'thumbnail_render_push')
-
-			function arrangeRollout(flag: object) {
-				return arrange({
-					THUMBNAIL_RENDER_PUSH: undefined,
-					FEATURE_FLAGS: {
-						get: async (key: string) =>
-							key === 'thumbnail_render_push' ? JSON.stringify(flag) : null,
-					},
-				})
-			}
-
-			it('pushes a board whose bucket is inside the percentage', async () => {
-				const env = arrangeRollout({ enabled: true, percentage: bucket + 1 })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(requestsOf(env).map((request) => request.push)).toEqual(['1'])
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
-			})
-
-			it('leaves a board whose bucket is outside the percentage to fetch', async () => {
-				const env = arrangeRollout({ enabled: true, percentage: bucket })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-			})
-
-			it('fetches for every board when the flag is disabled, whatever the percentage', async () => {
-				const env = arrangeRollout({ enabled: false, percentage: 100 })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-			})
-
-			it('fetches when the flag cannot be read', async () => {
-				const env = arrange({
-					THUMBNAIL_RENDER_PUSH: undefined,
-					FEATURE_FLAGS: {
-						get: async () => {
-							throw new Error('KV is down')
-						},
-					},
-				})
-				vi.spyOn(console, 'error').mockImplementation(() => {})
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-			})
-		})
-
-		describe('the thumbnail_render_worker rollout', () => {
-			const bucket = hashToPercentage('published/board', 'thumbnail_render_worker')
-
-			function arrangeRollout(flag: object | null) {
-				const screenshot = vi.fn(async () => ({ ok: true, png: new Uint8Array([1, 2, 3]) }))
-				const env = arrange({
-					RENDER_WORKER: { screenshot },
-					FEATURE_FLAGS: {
-						get: async (key: string) =>
-							key === 'thumbnail_render_worker' && flag ? JSON.stringify(flag) : null,
-					},
-				})
-				return { env, screenshot }
-			}
-
-			it('hands a board whose bucket is inside the percentage to the render worker', async () => {
-				const { env, screenshot } = arrangeRollout({ enabled: true, percentage: bucket + 1 })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(screenshot).toHaveBeenCalledTimes(1)
-				expect(screenshotOf(env)).not.toHaveBeenCalled()
-			})
-
-			it('renders a board whose bucket is outside the percentage locally', async () => {
-				const { env, screenshot } = arrangeRollout({ enabled: true, percentage: bucket })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(screenshot).not.toHaveBeenCalled()
-				expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
-			})
-
-			it('renders locally when the flag has never been set', async () => {
-				const { env, screenshot } = arrangeRollout(null)
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(screenshot).not.toHaveBeenCalled()
-				expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
-			})
-		})
-
-		it('keeps pushing after a pushed capture times out', async () => {
+		it('retries after the render worker reports a failure, and records its reason', async () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 			let calls = 0
 			const env = arrange({
-				BROWSER: makeBrowserBinding(async () =>
+				RENDER_WORKER: makeRenderWorkerBinding(async () =>
 					calls++ === 0
-						? new Response('{"errors":[{"message":"waitForSelector timeout"}]}', { status: 422 })
-						: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+						? { ok: false, reason: 'browser_timeout' }
+						: { ok: true, png: new Uint8Array([1, 2, 3]) }
 				),
 			})
 
@@ -708,39 +562,18 @@ describe('handleOgImageRenderMessage', () => {
 			await handleOgImageRenderMessage(env, second)
 			expect(second.ack).toHaveBeenCalledTimes(1)
 
-			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', '1'])
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push', 'push'])
-			expect(sessionsOf(env).map((session) => session.outcome)).toEqual(['browser_timeout', 'ok'])
+			expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout', 'failure:none'])
 		})
 
-		it('keeps pushing after a pushed capture fails for a reason other than a timeout', async () => {
+		// Previews bind no render worker. A job cannot be enqueued there, but one already on the queue
+		// when the binding went away must end rather than throw.
+		it('gives up as not configured where no render worker is bound', async () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
-			let calls = 0
-			const env = arrange({
-				BROWSER: makeBrowserBinding(async () =>
-					calls++ === 0
-						? new Response('{"errors":[{"message":"page crashed"}]}', { status: 500 })
-						: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-				),
-			})
+			const env = arrange({ RENDER_WORKER: undefined })
 
-			await handleOgImageRenderMessage(env, makeMessage(board, 1))
-			await handleOgImageRenderMessage(env, makeMessage(board, 2))
+			await handleOgImageRenderMessage(env, makeMessage(board, OG_MAX_RENDER_ATTEMPTS))
 
-			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', '1'])
-		})
-
-		it('does not retry a pushed capture that failed for any other reason', async () => {
-			vi.spyOn(console, 'error').mockImplementation(() => {})
-			const env = arrange({
-				BROWSER: makeBrowserBinding(async () => {
-					throw new Error('browser session failed')
-				}),
-			})
-
-			await handleOgImageRenderMessage(env, makeMessage(board))
-
-			expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+			expect(failureBlobsOf(env)).toEqual(['failure:not_configured'])
 		})
 	})
 
@@ -761,8 +594,9 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, message)
 
-		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
-		expect(job).toMatchObject({ pageId: 'page:full' })
+		expect(screenshotOf(env).mock.calls[0]![0].payload.renderParams).toMatchObject({
+			pageId: 'page:full',
+		})
 	})
 
 	it('skips the capture and removes the stale image when no page has content', async () => {
@@ -791,7 +625,6 @@ describe('handleOgImageRenderMessage', () => {
 		expect(message.ack).toHaveBeenCalledTimes(1)
 		expect(message.retry).not.toHaveBeenCalled()
 		expect(failureBlobsOf(env)).toEqual(['failure:board_empty'])
-		expect(sessionsOf(env)).toEqual([])
 	})
 
 	it('arms the repair cooldown when a crawler-triggered job finds no content, and only then', async () => {
@@ -930,13 +763,7 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
-		expect(job).toMatchObject({
-			kind: 'shared_file',
-			slug: 'shared-file',
-			version: 'etag-1',
-			camera: 'content',
-		})
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
 		expect(
 			bucket.store.get(getOgImageCacheKey({ kind: 'shared_file', slug: 'shared-file' }))
 				?.customMetadata?.version
@@ -1160,12 +987,12 @@ describe('handleOgImageRenderMessage', () => {
 			published: true,
 			lastPublished: 1,
 		})
-		// A readable snapshot, so the failure under test is the browser call itself rather than the
+		// A readable snapshot, so the failure under test is the render call itself rather than the
 		// earlier snapshot bail.
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => {
-				throw new Error('browser session failed')
+			RENDER_WORKER: makeRenderWorkerBinding(async () => {
+				throw new Error('render worker unreachable')
 			}),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 		})
@@ -1254,8 +1081,8 @@ describe('handleOgImageRenderMessage', () => {
 		const board = { kind: 'published', slug: 'board' } as const
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => {
-				throw new Error('browser session failed')
+			RENDER_WORKER: makeRenderWorkerBinding(async () => {
+				throw new Error('render worker unreachable')
 			}),
 			THUMBNAILS: bucket,
 		})
@@ -1287,8 +1114,8 @@ describe('handleOgImageRenderMessage', () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const board = { kind: 'published', slug: 'board' } as const
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => {
-				throw new Error('browser session failed')
+			RENDER_WORKER: makeRenderWorkerBinding(async () => {
+				throw new Error('render worker unreachable')
 			}),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 		})
@@ -1316,8 +1143,8 @@ describe('handleOgImageRenderMessage', () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const board = { kind: 'published', slug: 'board' } as const
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => {
-				throw new Error('browser session failed')
+			RENDER_WORKER: makeRenderWorkerBinding(async () => {
+				throw new Error('render worker unreachable')
 			}),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 		})
@@ -1344,8 +1171,8 @@ describe('handleOgImageRenderMessage', () => {
 		})
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => {
-				throw new Error('browser session failed')
+			RENDER_WORKER: makeRenderWorkerBinding(async () => {
+				throw new Error('render worker unreachable')
 			}),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 		})
@@ -1361,263 +1188,6 @@ describe('handleOgImageRenderMessage', () => {
 		const context = reported.mock.calls[0]![1]
 		expect(context).toEqual({ kind: 'published', attempts: 3 })
 		expect(JSON.stringify(context)).not.toContain('board')
-	})
-
-	// Browser Run answers 422 for a crashed page, an out-of-memory render and every one of its timers
-	// alike, so the reason code has to come from the response body. Classify on the status alone and
-	// every timeout files as `browser_failed`, leaving the dashboard's timeout rate structurally zero.
-	it('classifies a Browser Run timeout from the response body, not the status', async () => {
-		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(
-				async () =>
-					new Response(
-						JSON.stringify({
-							success: false,
-							errors: [{ code: 500, message: 'Navigation timeout of 45000 ms exceeded' }],
-						}),
-						{ status: 422 }
-					)
-			),
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-
-		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
-		// The unbounded original goes to Sentry, where the cardinality that keeps it out of the blob
-		// doesn't matter and it is the only thing that says what actually went wrong.
-		expect(reported.mock.calls[0]![1]).toMatchObject({
-			browser_render_status: 422,
-			browser_render_detail: 'Navigation timeout of 45000 ms exceeded',
-		})
-	})
-
-	// Pins the worker-side deadline the inequalities above lean on: they price a capture at one
-	// THUMBNAIL_RENDER_TIMEOUT_MS, and only abandonAtRenderTimeout (thumbnailRender.ts) makes that
-	// a real ceiling — the quick action's own timers are per-phase and allow roughly twice it.
-	it('abandons a capture at the render timeout instead of waiting out both quick action timers', async () => {
-		// Only the pieces the deadline uses; setImmediate stays real so the test can yield the event
-		// loop below while fake time stands still.
-		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			// A capture that never returns — the shape of a page stalling through both phases.
-			BROWSER: makeBrowserBinding(() => new Promise<never>(() => {})),
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		const delivery = handleOgImageRenderMessage(
-			env,
-			makeMessage({ kind: 'published', slug: 'board' }, 3)
-		)
-		// The deadline is armed a few event-loop turns into the delivery (token minting rides
-		// webcrypto), so yield until it exists before advancing past it.
-		while (vi.getTimerCount() === 0) {
-			await new Promise((resolve) => setImmediate(resolve))
-		}
-		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 1)
-		await delivery
-
-		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
-		// The abandoned session spent its whole budget holding a browser; the ledger records that
-		// rather than losing the session that cost the most.
-		expect(sessionsOf(env)).toEqual([
-			expect.objectContaining({
-				outcome: 'browser_timeout',
-				durationMs: THUMBNAIL_RENDER_TIMEOUT_MS,
-				// The page never fetched its snapshot, so the browser, not the page, is where this died.
-				page: 'unreached',
-				browserMsUsed: 0,
-			}),
-		])
-	})
-
-	it('records the billed browser time, the page reach and what the board held on a completed session', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		const snapshot = makeOnePageSnapshot()
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshot)
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(
-				async () =>
-					new Response(new Uint8Array([1, 2, 3]), {
-						status: 200,
-						headers: { 'X-Browser-Ms-Used': '1234' },
-					})
-			),
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 1))
-
-		expect(sessionsOf(env)).toEqual([
-			expect.objectContaining({
-				outcome: 'ok',
-				page: 'reached',
-				browserMsUsed: 1234,
-				content: [
-					snapshot.documents.length,
-					expect.any(Number),
-					expect.any(Number),
-					expect.any(Number),
-					expect.any(Number),
-				],
-			}),
-		])
-	})
-
-	// A body stream that fails outright is still a session that existed and spent: it must land on
-	// the ledger like any other died session, not vanish because the error left the transport as a
-	// raw stream error instead of a Browser Run refusal.
-	it('puts a failed body read on the session ledger', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			BROWSER: {
-				quickAction: vi.fn(async () => ({
-					ok: true,
-					status: 200,
-					arrayBuffer: () => Promise.reject(new TypeError('network connection lost')),
-				})),
-			},
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-
-		expect(failureBlobsOf(env)).toEqual(['failure:browser_failed'])
-		expect(sessionsOf(env)).toEqual([expect.objectContaining({ outcome: 'browser_failed' })])
-	})
-
-	// The ceiling has to cover the body read too: a 200 whose headers arrive in time but whose body
-	// stream then stalls would otherwise hold the delivery unbounded — past the marker TTL, which
-	// re-opens the overlapping-jobs case the TTL test above excludes.
-	it('abandons a capture whose response body stalls after the headers arrive', async () => {
-		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			// Headers come back OK immediately; the body never does.
-			BROWSER: {
-				quickAction: vi.fn(async () => ({
-					ok: true,
-					status: 200,
-					arrayBuffer: () => new Promise<never>(() => {}),
-				})),
-			},
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		const delivery = handleOgImageRenderMessage(
-			env,
-			makeMessage({ kind: 'published', slug: 'board' }, 3)
-		)
-		while (vi.getTimerCount() === 0) {
-			await new Promise((resolve) => setImmediate(resolve))
-		}
-		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 1)
-		await delivery
-
-		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
-	})
-
-	// The same 422 with a different cause: the render page marked data-thumbnail-error, so the
-	// success-only capture selector was absent and the call came back early.
-	it('classifies an early 422 as a render failure', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(
-				async () =>
-					new Response('Element not found: body[data-thumbnail-ready="true"]', { status: 422 })
-			),
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-
-		expect(failureBlobsOf(env)).toEqual(['failure:browser_failed'])
-	})
-
-	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording -1
-	// there would understate what an uncapped render path costs, which is the one number the "no global
-	// cap" design leans on watching.
-	it('puts a failed render on the session ledger, and nothing where no browser ran', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => new Response('boom', { status: 422 })),
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-		})
-
-		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-		// The session that failed still held a browser; its spend and outcome live on its own row,
-		// while the delivery's request row records only the failure reason.
-		expect(sessionsOf(env)).toEqual([
-			{
-				source: 'queue',
-				mode: 'screenshot',
-				outcome: 'browser_failed',
-				reason: 'crawler',
-				// The fake browser never fetches the snapshot, so the page never called home.
-				page: 'unreached',
-				durationMs: expect.any(Number),
-				browserMsUsed: 0,
-				content: [
-					makeOnePageSnapshot().documents.length,
-					expect.any(Number),
-					expect.any(Number),
-					expect.any(Number),
-					expect.any(Number),
-				],
-			},
-		])
-
-		// An empty board never reaches the capture: no session existed, so none is on the ledger.
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(null as any)
-		const emptyBoardEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
-		await handleOgImageRenderMessage(
-			emptyBoardEnv,
-			makeMessage({ kind: 'published', slug: 'board' }, 3)
-		)
-		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
-		expect(sessionsOf(emptyBoardEnv)).toEqual([])
 	})
 
 	it('records the trigger that asked for a completed render', async () => {

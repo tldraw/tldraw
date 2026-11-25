@@ -633,16 +633,14 @@ describe('getAllFeatureFlagValues', () => {
 		const env = makeEnv()
 		const flags = await getAllFeatureFlagValues(env as any)
 
-		// headless_shadow and thumbnail_render_worker are absent here: makeEnv binds neither worker, and
-		// each flag is hidden until its worker is bound in the environment (see the tests below).
+		// headless_shadow is absent here: makeEnv does not bind its worker, and the flag is hidden until
+		// the worker is bound in the environment (see the test below).
 		expect(Object.keys(flags).sort()).toEqual([
 			'libraries',
 			'load_rum',
 			'mcp_hidden_tab',
-			'mcp_render_push',
 			'mcp_server_access',
 			'rum_enabled',
-			'thumbnail_render_push',
 			'ui_v3',
 			'version_chain',
 		])
@@ -654,14 +652,6 @@ describe('getAllFeatureFlagValues', () => {
 
 		const bound = await getAllFeatureFlagValues({ ...makeEnv(), HEADLESS_WORKER: {} } as any)
 		expect(bound).toHaveProperty('headless_shadow')
-	})
-
-	it('lists thumbnail_render_worker only where RENDER_WORKER is bound', async () => {
-		const unbound = await getAllFeatureFlagValues(makeEnv() as any)
-		expect(unbound).not.toHaveProperty('thumbnail_render_worker')
-
-		const bound = await getAllFeatureFlagValues({ ...makeEnv(), RENDER_WORKER: {} } as any)
-		expect(bound).toHaveProperty('thumbnail_render_worker')
 	})
 })
 

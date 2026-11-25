@@ -9,11 +9,9 @@ import { BoxModel } from '@tldraw/tlschema'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { evaluateFlagForUser, getFeatureFlagValue } from '../../utils/featureFlags'
-import { ThumbnailRenderJob } from '../../utils/renderTokens'
 import { readSnapshotPage } from './boardTools'
-import { thumbnailSnapshotBodyFor } from './getThumbnailSnapshot'
 import { resolveSharedBoardForUser } from './mcpServer'
-import { ResolvedThumbnailBoard, loadBoardSnapshot } from './thumbnailRender'
+import { loadBoardSnapshot, thumbnailSnapshotBodyFor } from './thumbnailRender'
 
 // Shadow mode for the headless editor's measure path. Page measurement for MCP now happens in the
 // caller's own open tab (#11416); this runs the same page through the headless editor off the
@@ -54,8 +52,8 @@ export interface HeadlessWorkerRpc {
 }
 
 // Measure returns geometry, which is theme-independent, and sizing never reads the viewport — so a
-// fixed job is enough, and two measures of one page are identical (see renderTokens' note on measure
-// records). Light matches the measure path's long-standing convention.
+// fixed job is enough, and two measures of one page are identical. Light matches the measure path's
+// long-standing convention.
 const SHADOW_MEASURE_VIEWPORT = { width: 1200, height: 800 } as const
 
 /**
@@ -152,23 +150,11 @@ function writeShadowCompareTelemetry(
 }
 
 /**
- * The fixed measure job for a resolved board's page. Only `pageId`, `mode` and the render params are
- * read by `thumbnailSnapshotBodyFor`; the signed fields are filled from the resolution so the payload
- * is byte-identical to what a real measure render would push. `null` when the (possibly stale) R2
- * snapshot no longer has the page the tab read.
+ * The fixed measure payload for a board's page. `null` when the (possibly stale) R2 snapshot no longer has
+ * the page the tab read.
  */
-function buildMeasurePayload(
-	snapshot: RoomSnapshot,
-	board: ResolvedThumbnailBoard,
-	pageId: string
-): HeadlessRenderPayload | null {
-	const job: ThumbnailRenderJob = {
-		v: 1,
-		kind: board.kind,
-		slug: board.slug,
-		version: board.version,
-		access: board.access,
-		surface: 'mcp',
+function buildMeasurePayload(snapshot: RoomSnapshot, pageId: string): HeadlessRenderPayload | null {
+	const body = thumbnailSnapshotBodyFor(snapshot, {
 		camera: 'content',
 		pageId,
 		mode: 'measure',
@@ -178,9 +164,7 @@ function buildMeasurePayload(
 		width: SHADOW_MEASURE_VIEWPORT.width,
 		height: SHADOW_MEASURE_VIEWPORT.height,
 		theme: 'light',
-		exp: Date.now() + 60_000,
-	}
-	const body = thumbnailSnapshotBodyFor(snapshot, job)
+	})
 	return body.error ? null : body
 }
 
@@ -211,7 +195,7 @@ export async function compareMeasureInShadow(
 		})
 		if (!snapshot) return writeShadowCompareTelemetry(env, 'no_snapshot', headlessMs)
 
-		const payload = buildMeasurePayload(snapshot, resolved.board, read.pageId)
+		const payload = buildMeasurePayload(snapshot, read.pageId)
 		if (!payload) return writeShadowCompareTelemetry(env, 'page_missing', headlessMs)
 
 		const startedAt = Date.now()

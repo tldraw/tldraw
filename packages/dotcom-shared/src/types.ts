@@ -87,7 +87,7 @@ export type AcceptInviteResponseBody =
  */
 export const MAX_THUMBNAIL_PAGES = 40
 
-// Thumbnail output dimensions, shared by the worker (cache keys, render tokens) and the client
+// Thumbnail output dimensions, shared by the worker (cache keys, render jobs) and the client
 // render page (page sizing, clamping) so both sides agree on the size and bounds.
 export const DEFAULT_THUMBNAIL_WIDTH = 1200
 export const DEFAULT_THUMBNAIL_HEIGHT = 630
@@ -106,8 +106,7 @@ export const THUMBNAIL_SETTLE_TIMEOUT_MS = 10_000
 export interface ThumbnailRenderParams {
 	/**
 	 * `content` fits the page's content to the requested output size. When omitted, the render page
-	 * sets the x/y/z viewport below directly. Every surface mints `content` today; the viewport path
-	 * is kept because the render page and the worker deploy separately (see ThumbnailRenderJob).
+	 * sets the x/y/z viewport below directly. Every surface asks for `content` today.
 	 */
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */
@@ -310,50 +309,9 @@ export type TabRenderReply =
 			viewport: { x: number; y: number; w: number; h: number }
 	  }
 
-/**
- * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
- * page is ready. All values are `performance.now()` stamps (ms since navigation start), so the
- * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
- * fetch, editor mount, the settle wait, and the export itself (on a `live` capture there is no
- * export, and `exportedAt` is the ready stamp).
- */
-export interface ThumbnailRenderTimingsRequestBody {
-	token: string
-	/**
-	 * How the page got its records: `push` read them off the injected global, `fetch` asked the
-	 * snapshot route. The worker can only say what it sent; this is what the page actually used.
-	 * Optional because a page from before this field existed sends none.
-	 */
-	acquiredBy?: 'push' | 'fetch'
-	timings: {
-		bootAt: number
-		dataAt: number
-		mountAt: number
-		settledAt: number
-		exportedAt: number
-	}
-}
-
 /** The last render page phase that completed before a failure, in the order the page runs them. */
 export const THUMBNAIL_RENDER_PHASES = ['boot', 'data', 'mount', 'settle'] as const
 export type ThumbnailRenderPhase = (typeof THUMBNAIL_RENDER_PHASES)[number]
-
-// Both ends cap the message: the page so a huge one never leaves the browser, the worker because
-// the beacon is signed but its body is still caller-shaped.
-export const THUMBNAIL_RENDER_ERROR_MAX_LENGTH = 500
-
-/**
- * The render page's failure beacon, POSTed to the result route when the page marks
- * `data-thumbnail-error`. Browser Run only tells the worker that the capture element was missing;
- * this is the page's own reason, and how far it got.
- */
-export interface ThumbnailRenderErrorRequestBody {
-	token: string
-	error: {
-		message: string
-		phase: ThumbnailRenderPhase
-	}
-}
 
 export type ThumbnailSnapshotResponseBody =
 	| {
@@ -458,9 +416,6 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'libraries',
-	'thumbnail_render_push',
-	'mcp_render_push',
-	'thumbnail_render_worker',
 	'headless_shadow',
 	'ui_v3',
 	'mcp_hidden_tab',

@@ -61,9 +61,8 @@ export const OG_RENDER_MAX_WAIT_MS = 5 * 60_000
  * change how often a board renders, change OG_RENDER_DEBOUNCE_MS.
  *
  * Must outlive a job's worst-case retry chain — every capture running to its timeout plus every
- * backoff delay — or the marker lapses while the job is still alive, a fresh ask enqueues a second
- * job for the same board, and the two clobber each other's per-board render token record
- * (renderTokens.ts is keyed on the single-flight this marker provides). A test in
+ * backoff delay — or the marker lapses while the job is still alive and a fresh ask enqueues a second
+ * job for the same board, spending a second browser session on it. A test in
  * ogImageQueue.test.ts pins the inequality against OG_MAX_RENDER_ATTEMPTS, OG_RETRY_DELAY_SECONDS
  * and THUMBNAIL_RENDER_TIMEOUT_MS.
  */
@@ -109,18 +108,6 @@ export const OG_REPAIR_COOLDOWN_MS = 60 * 60_000
 export const OG_FRESH_IMAGE_MAX_AGE_SECONDS = 5 * 60
 export const OG_STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
 export const OG_FALLBACK_MAX_AGE_SECONDS = 60
-
-/**
- * How long a minted render token stays valid.
- *
- * Sized against what a capture needs rather than generously, because this token is what stands between
- * an HMAC signature and a *private* board's full document: thumbnails are rendered for every board, not
- * only public ones. Measured renders run 4s at p50 and 12-17s at p90, so 60s is several times p90.
- *
- * Queue linger and retry backoff do not eat into it — a token is minted immediately before the
- * `quickAction` call, not at enqueue. A render slower than this fails and retries with a fresh token.
- */
-export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
 
 /**
  * MCP rate limits, applied in mcpServer.ts: one budget per tool family, each per account.

@@ -9,16 +9,6 @@ import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { KeyframeReason } from './versionChain'
 
-// The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
-// so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
-// binding — no API token, no @cloudflare/puppeteer. Requires compatibility_date >= 2026-03-24. Not
-// in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
-// standard `Response` (PNG bytes for `screenshot`, `{ success, result: "<html>…" }` JSON for
-// `content`, with an `X-Browser-Ms-Used` header).
-export interface BrowserBinding {
-	quickAction(action: 'screenshot' | 'content', options: unknown): Promise<Response>
-}
-
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
 	writeDataPoint(data: {
@@ -118,26 +108,18 @@ export interface Environment {
 
 	QUEUE: Queue<QueueMessage>
 
-	// R2 cache for board OG images (`og/…` keys), their pending-render markers and render token
-	// records. None of those keys carry a version, so a board costs one object per key however often it
+	// R2 cache for board OG images (`og/…` keys) and their pending-render markers. None of those keys
+	// carry a version, so a board costs one object per key however often it
 	// re-renders, nothing accumulates, and the bucket must have NO expiration rule — the current
 	// thumbnail has to outlive any lifecycle window.
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
 
-	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
-	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and
-	// no API token. Chrome runs in Cloudflare's fleet, not in this isolate. The dev binding is
-	// deliberately NOT marked `remote` (that would make plain `wrangler dev` require a
-	// CLOUDFLARE_API_TOKEN, breaking the credential-free e2e stack), so under `wrangler dev` it is a
-	// non-functional local binding and the render path fails closed; real local captures need
-	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
-	BROWSER: BrowserBinding | undefined
 	// RPC to the private render worker (apps/dotcom/render-worker), reached only here — over HTTP it
-	// serves nothing but its static render page. It owns the render page, the Browser Run calls, the deadline, result parsing,
-	// and the browser_run_session ledger; this worker keeps auth, snapshot selection, rate limits,
-	// caching and the request-level telemetry. Undefined where the binding is absent (tests, and any
-	// environment not yet wired to it). Typed as the RPC interface rather than Cloudflare's
+	// serves nothing but its static render page. It owns the render page, the Browser Run calls, the
+	// deadline, result parsing, and the browser_run_session ledger; this worker keeps auth, snapshot
+	// selection, rate limits, caching and the request-level telemetry. Undefined on preview deploys,
+	// which render no thumbnails. Typed as the RPC interface rather than Cloudflare's
 	// `Service<RenderWorker>`: the latter wants the entrypoint class (branding), which would pull
 	// `cloudflare:workers` into this worker's types. The binding stub's callable surface is the
 	// interface — every method already returns a Promise of plain, structured-cloneable data.
@@ -148,19 +130,10 @@ export interface Environment {
 	 * still being watched.
 	 */
 	MCP_SEARCH_NAME_MATCHING_ENABLED: string | undefined
-	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
+	// The client's public origin, for the URLs this worker emits (see getPublicOrigin). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
-	// 'true' opts MCP screenshots into live-canvas capture: the page prunes the canvas to the
-	// requested shapes, settles and fits, and the screenshotting browser rasterizes it instead of
-	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
-	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
-	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
-	// 'true' pushes the board's records into the render page with the screenshot request, instead of
-	// the page fetching them back from the snapshot route, for every board. Where it is unset
-	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
-	THUMBNAIL_RENDER_PUSH: string | undefined
-	// HMAC secret for short-lived thumbnail render job tokens.
+	// HMAC secret behind the ids of the render jobs handed to a caller's open tab (tabRenderJobIds.ts).
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
 	// resource metadata and in the `WWW-Authenticate` challenge. Not compared against anything on an
@@ -182,12 +155,6 @@ export interface Environment {
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
 	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
-	// Development only: a local HTTP screenshot service to use instead of the BROWSER binding, which
-	// cannot reach Browser Run in local dev. Set in [env.dev.vars] to the client dev server's
-	// screenshot endpoint; unset everywhere else, which is what keeps deployed environments on
-	// Browser Run.
-	LOCAL_SCREENSHOT_SERVICE_URL: string | undefined
-
 	// The headless-editor worker, measured against the open tab in shadow mode (see headlessShadow.ts).
 	// Bound on staging only. Its presence also stands in for the render worker's own binding when
 	// sync-worker decides to sample a screenshot (`headless_shadow`). Typed as the RPC surface
@@ -331,20 +298,9 @@ export interface ThumbnailBoardRef {
  * publicly, so it only requires that the board exists and has content.
  *
  * Required at every call site rather than defaulted: a default would be wrong for half of them, and
- * silence is the wrong way to pick a gate. It also rides inside the signed render job, so the gate a
- * board was resolved under is the same one the snapshot route applies when it is read.
+ * silence is the wrong way to pick a gate.
  */
 export type ThumbnailBoardAccess = 'public' | 'render'
-
-/**
- * Which pipeline asked for a render. `og` covers the social-preview route and its queue consumer;
- * `mcp` is the board screenshot MCP server.
- *
- * Unlike `OgImageRenderReason` this is not telemetry — it is signed into the render job and
- * namespaces the minted-token record, so two surfaces rendering the same board at the same time do
- * not overwrite each other's proof of mint. See `recordMintedRenderToken`.
- */
-export type ThumbnailRenderSurface = 'og' | 'mcp'
 
 // What prompted a board thumbnail render, so renders can be attributed to the thing that asked for
 // them. `publish` and `edit` are the trigger producers; `crawler` is the OG route's published-board
