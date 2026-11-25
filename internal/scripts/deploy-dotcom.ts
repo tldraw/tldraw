@@ -918,7 +918,6 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
-		.replace('__RMV2_ENV\n', rmv2Env)
 		.replaceAll('__BACKUP_V5', String(zeroVsBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
