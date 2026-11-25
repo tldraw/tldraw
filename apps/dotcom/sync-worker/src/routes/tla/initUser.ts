@@ -38,9 +38,8 @@ const OUTCOME_RESPONSES: Record<EnsureUserOutcome, { body: string; status: numbe
  * account that signed up on the consent screen and has never opened tldraw.com. Routed on the
  * token's `typ`, as the thumbnail route is, so each request is verified once.
  *
- * No `mcp_server_access` check on the access token: like the session path, any Clerk account gets
- * its rows. It also keeps creation here, where `init_user` records it, rather than inside that
- * check, which creates missing rows itself.
+ * Like the session path, any Clerk account gets its rows. Creation is recorded here as `init_user`;
+ * `ensureMcpUserRows` also creates missing rows on MCP requests, unrecorded.
  */
 export async function handleInitUser(req: IRequest, env: Environment): Promise<Response> {
 	const token = getBearerToken(req)
@@ -197,4 +196,34 @@ async function insertHomeWorkspace(
 		})
 		.onConflict((oc) => oc.doNothing())
 		.execute()
+}
+
+// Accounts this isolate has already seen with their rows in place, so an MCP caller pays for the
+// ensureUser read once per isolate rather than on every request its token makes.
+// Capped because a long-lived isolate would otherwise hold every user it has ever served.
+const mcpUsersWithRows = new Set<string>()
+const MAX_MCP_USERS_WITH_ROWS = 10_000
+
+export function resetMcpUsersWithRowsForTests() {
+	mcpUsersWithRows.clear()
+}
+
+/**
+ * Creates an MCP caller's rows when they have none: an account that signed up on the consent screen
+ * and never opened tldraw.com otherwise has no workspace for create_board. Best effort: a database
+ * or Clerk blip costs the rows, not the access, and is retried on the next request.
+ */
+export async function ensureMcpUserRows(env: Environment, userId: string): Promise<void> {
+	if (mcpUsersWithRows.has(userId)) return
+	const db = createPostgresConnectionPool(env, 'sync-worker/ensureMcpUser')
+	try {
+		const result = await ensureUser(env, db, userId)
+		if (!('email' in result)) return
+		if (mcpUsersWithRows.size >= MAX_MCP_USERS_WITH_ROWS) mcpUsersWithRows.clear()
+		mcpUsersWithRows.add(userId)
+	} catch (e) {
+		console.error('MCP caller rows could not be ensured (Postgres, Clerk or rate limiter):', e)
+	} finally {
+		await db.destroy()
+	}
 }

@@ -302,10 +302,7 @@ const router = createRouter<Environment>()
 	.get('/app/zero/schema', async (req, env) => {
 		const auth = await getMcpTokenAuth(req, env)
 		if (!auth.ok) {
-			return Response.json(
-				{ error: 'Unauthorized' },
-				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
-			)
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
 		if (!env.ZERO_SERVER) {
 			return Response.json({ error: 'Zero is not deployed here' }, { status: 503 })

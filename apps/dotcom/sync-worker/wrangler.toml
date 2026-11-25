@@ -147,8 +147,6 @@ MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # to the client dev server, which drives Playwright. Deployed environments leave this unset and use
 # the BROWSER binding.
 LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
-# The local screenshot service injects addScriptTag like Browser Run, so dev exercises push too.
-THUMBNAIL_RENDER_PUSH = "true"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
@@ -169,9 +167,6 @@ MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
 # volume the trial is judged on; production stays on the export until it is.
 THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
-# Staging pushes every board's records into the render page (see THUMBNAIL_RENDER_PUSH in
-# types.ts). Production leaves it unset: thumbnail_render_push decides there.
-THUMBNAIL_RENDER_PUSH = "true"
 # Staging routes thumbnail and OG screenshots through the private render worker (the RENDER_WORKER
 # binding below) instead of the local render path. Production binds the worker but leaves this unset
 # (off), so the binding is wired yet dormant there until the flag flips.
@@ -608,10 +603,8 @@ binding = "READONLY_SLUG_TO_SLUG"
 id = "96be6637b281412ab35b2544539d78e8"
 
 #################### Feature flags KV store ####################
-# Dev and preview SHARE a namespace; staging and production each have their own.
-# Newly load-bearing: mcp_server_access is what decides who may drive the MCP server, so enabling the
-# flag locally enables it on every preview deploy at once. Give preview its own namespace before
-# anything here gates something that matters on a preview URL.
+# Dev and preview SHARE a namespace; staging and production each have their own. Give preview its
+# own namespace before anything here gates something that matters on a preview URL.
 [[env.dev.kv_namespaces]]
 binding = "FEATURE_FLAGS"
 id = "81a6f84741754ac4a9171f575f2aeece"
