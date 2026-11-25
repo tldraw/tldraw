@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - production
+  workflow_dispatch:
 
 env:
   CI: 1
@@ -24,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     concurrency: vscode-extension-publish
 
     steps:
@@ -59,9 +61,7 @@ jobs:
         timeout-minutes: 10
         run: pnpm exec tsx ./internal/scripts/publish-editor-extensions.ts
         env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-          TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
+          TLDRAW_ENV: ${{ (github.event_name == 'workflow_dispatch' && 'production') || (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       # Preserve the setup action for post-job cleanup when checkout already succeeded.
