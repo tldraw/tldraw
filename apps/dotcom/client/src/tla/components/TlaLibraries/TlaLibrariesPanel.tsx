@@ -1,12 +1,21 @@
-import { AddToLibraryMenuItem, LibrariesPanel, librariesPanelOpen } from '@tldraw/libraries'
+import {
+	AddToLibraryMenuItem,
+	CommandPaletteLibrariesGroup,
+	LibrariesPanel,
+	librariesPanelOpen,
+} from '@tldraw/libraries'
 import { useEffect, useMemo } from 'react'
 import { useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { getEditorLibraries } from './editorLibraries'
 import { loadStarterPackSummaries } from './starterPacks'
-import { TlaBrowseStarterPacksMenuItem } from './TlaStarterPacksDialog'
+import {
+	TlaBrowseStarterPacksCommandPaletteItem,
+	TlaBrowseStarterPacksMenuItem,
+} from './TlaStarterPacksDialog'
 
-function useEditorLibraries(fileId: string) {
+function useEditorLibraries(fileId: string | undefined) {
 	const app = useMaybeApp()
 	const editor = useEditor()
 	const toasts = useToasts()
@@ -14,7 +23,7 @@ function useEditorLibraries(fileId: string) {
 	const userLibraries = app?.libraries
 	return useMemo(
 		() =>
-			app && userLibraries
+			app && userLibraries && fileId
 				? getEditorLibraries(app, userLibraries, editor, fileId, { toasts, msg })
 				: null,
 		[app, userLibraries, editor, fileId, toasts, msg]
@@ -42,4 +51,14 @@ export function TlaAddToLibraryMenuItem({ fileId }: { fileId: string }) {
 	const source = useEditorLibraries(fileId)
 	if (!source) return null
 	return <AddToLibraryMenuItem source={source} />
+}
+
+export function TlaLibrariesCommandPaletteGroup() {
+	const source = useEditorLibraries(useCurrentFileId())
+	if (!source) return null
+	return (
+		<CommandPaletteLibrariesGroup source={source}>
+			<TlaBrowseStarterPacksCommandPaletteItem source={source} />
+		</CommandPaletteLibrariesGroup>
+	)
 }

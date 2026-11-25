@@ -346,6 +346,8 @@
 	"libraries.add-selection": "Add selection",
 	"libraries.add-to-library": "Add to library",
 	"libraries.add-to-new-library": "New library",
+	"libraries.command-palette.insert-from": "Insert from {name}",
+	"libraries.command-palette.toggle-panel": "Toggle libraries panel",
 	"libraries.copied.description": "Copied to {name}.",
 	"libraries.copied.title": "Copied",
 	"libraries.copy-error.title": "Couldn't copy item",

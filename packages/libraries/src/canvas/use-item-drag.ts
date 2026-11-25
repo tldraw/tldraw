@@ -6,31 +6,18 @@ import {
 	useRef,
 } from 'react'
 import {
-	defineMessages,
 	getPointerInfo,
 	react,
 	TLLibraryItemId,
 	TLContent,
 	useEditor,
-	useToasts,
-	useTranslation,
 	useUiEvents,
 	Vec,
 	VecModel,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { getContentTooNewToast } from './content-too-new-toast'
-import {
-	defaultPlaceLibraryItem,
-	findListedItem,
-	type LibraryItemPlacer,
-	placeItemWith,
-} from './place-item'
-import { getLibraryErrorReason } from './ui-events'
-
-const messages = defineMessages({
-	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
-})
+import { defaultPlaceLibraryItem, findListedItem, type LibraryItemPlacer } from './place-item'
+import { usePlaceItem } from './use-place-item'
 
 /** @public */
 export interface LibraryItemDragOptions {
@@ -76,38 +63,15 @@ export function useLibraryItemDrag(
 	options: LibraryItemDragOptions = {}
 ): (itemId: TLLibraryItemId) => ButtonHTMLAttributes<HTMLButtonElement> {
 	const editor = useEditor()
-	const msg = useTranslation()
-	const { addToast } = useToasts()
 	const trackEvent = useUiEvents()
+	const placeOnClick = usePlaceItem(source, options.placeItem)
 	// Read through a ref so that new options each render don't drop a drag in progress.
-	const latest = useRef({ options, msg, addToast, trackEvent })
+	const latest = useRef({ options, trackEvent })
 	useLayoutEffect(() => {
-		latest.current = { options, msg, addToast, trackEvent }
+		latest.current = { options, trackEvent }
 	})
 
 	return useMemo(() => {
-		const onPlace = (itemId: TLLibraryItemId) => {
-			const { placeItem = defaultPlaceLibraryItem } = latest.current.options
-			placeItemWith(editor, source, itemId, {}, placeItem, 'click').then(
-				() =>
-					latest.current.trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
-				(error) => {
-					const { msg, addToast, trackEvent } = latest.current
-					trackEvent('library-error', {
-						source: 'libraries',
-						action: 'place-library-item',
-						reason: getLibraryErrorReason(error),
-					})
-					addToast(
-						getContentTooNewToast(error, msg) ?? {
-							title: msg(messages.placeErrorTitle),
-							severity: 'error',
-						}
-					)
-				}
-			)
-		}
-
 		const getDragRegion = (tile: HTMLElement) => {
 			const { getDragRegion } = latest.current.options
 			const region = getDragRegion ? getDragRegion(tile) : tile.closest('.tlui-libraries-panel')
@@ -250,8 +214,8 @@ export function useLibraryItemDrag(
 			onClick() {
 				const wasDrag = state.name === 'dragging'
 				state = { name: 'idle' }
-				if (!wasDrag) onPlace(itemId)
+				if (!wasDrag) placeOnClick(itemId, 'libraries')
 			},
 		})
-	}, [editor, source])
+	}, [editor, source, placeOnClick])
 }

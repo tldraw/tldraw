@@ -3,6 +3,10 @@ export {
 	AddToLibraryMenuItem,
 	type AddToLibraryMenuItemProps,
 } from './canvas/add-to-library-menu-item'
+export {
+	CommandPaletteLibrariesGroup,
+	type CommandPaletteLibrariesGroupProps,
+} from './canvas/command-palette-libraries-group'
 export { EmptyLibrary, type EmptyLibraryProps } from './canvas/empty-library'
 export {
 	type LibrariesComponents,
