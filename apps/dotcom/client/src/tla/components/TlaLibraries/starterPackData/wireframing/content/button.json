@@ -3,29 +3,39 @@
 	"content": {
 		"shapes": [
 			{
-				"id": "shape:wireframing-button-0",
-				"typeName": "shape",
-				"x": 0,
-				"y": 0,
+				"x": 139.33333333333337,
+				"y": 8708,
 				"rotation": 0,
-				"index": "a1",
-				"parentId": "page:pack",
 				"isLocked": false,
 				"opacity": 1,
-				"meta": {},
+				"meta": {
+					"libraryItem": {
+						"id": "button",
+						"pack": "wireframing",
+						"name": "Primary button",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Actions",
+						"tags": ["Primary button", "button", "Actions"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-button",
 				"type": "geo",
+				"parentId": "page:full-native-libraries",
 				"props": {
+					"w": 148,
+					"h": 64,
 					"geo": "rectangle",
 					"dash": "draw",
-					"url": "",
-					"w": 180,
-					"h": 68,
 					"growY": 0,
+					"url": "",
 					"scale": 1,
 					"flipX": false,
 					"flipY": false,
-					"labelColor": "black",
 					"color": "blue",
+					"labelColor": "black",
 					"fill": "solid",
 					"size": "m",
 					"font": "draw",
@@ -45,11 +55,13 @@
 							}
 						]
 					}
-				}
+				},
+				"index": "a4asb",
+				"typeName": "shape"
 			}
 		],
 		"bindings": [],
-		"rootShapeIds": ["shape:wireframing-button-0"],
+		"rootShapeIds": ["shape:full-catalog-button"],
 		"assets": [],
 		"schema": {
 			"schemaVersion": 2,
@@ -68,20 +80,23 @@
 				"com.tldraw.asset.image": 6,
 				"com.tldraw.asset.video": 5,
 				"com.tldraw.asset.bookmark": 2,
-				"com.tldraw.shape.group": 0,
-				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.arrow": 8,
 				"com.tldraw.shape.bookmark": 2,
 				"com.tldraw.shape.draw": 5,
-				"com.tldraw.shape.geo": 12,
-				"com.tldraw.shape.note": 13,
-				"com.tldraw.shape.line": 5,
-				"com.tldraw.shape.frame": 1,
-				"com.tldraw.shape.arrow": 8,
-				"com.tldraw.shape.highlight": 4,
 				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
 				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
 				"com.tldraw.shape.video": 4,
-				"com.tldraw.binding.arrow": 1
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
 			}
 		}
 	}
