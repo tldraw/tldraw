@@ -411,6 +411,38 @@ it('asks a source to load the items of unfolded libraries only, and shows none w
 	expect(source.requested).toEqual([open.library.id])
 })
 
+it("loads an unfolded library once it scrolls near the panel's view", async () => {
+	const observed = new Map<Element, (entries: Partial<IntersectionObserverEntry>[]) => void>()
+	vi.stubGlobal(
+		'IntersectionObserver',
+		class {
+			constructor(private callback: (entries: Partial<IntersectionObserverEntry>[]) => void) {}
+			observe(element: Element) {
+				observed.set(element, this.callback)
+			}
+			disconnect() {}
+		}
+	)
+	try {
+		const near = makeLibrary('Near', ['Box'])
+		const far = makeLibrary('Far', ['Star'])
+		const source = makeSource(LazySource, [near, far], () => false)
+		const container = await renderPanel(source)
+		await vi.waitFor(() => expect(observed.size).toBe(2))
+		const [nearSection, farSection] = container.querySelectorAll('.tlui-libraries-section')
+		const scrollNear = (section: Element) =>
+			act(() => observed.get(section)!([{ isIntersecting: true, target: section }]))
+
+		scrollNear(nearSection)
+		await vi.waitFor(() => expect(source.requested).toEqual([near.library.id]))
+
+		scrollNear(farSection)
+		await vi.waitFor(() => expect(source.requested).toEqual([near.library.id, far.library.id]))
+	} finally {
+		vi.unstubAllGlobals()
+	}
+})
+
 it('loads every library for a search, and says it is still searching until a match arrives', async () => {
 	const open = makeLibrary('Open', ['Box'])
 	const folded = makeLibrary('Folded', ['Star'])

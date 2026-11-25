@@ -182,10 +182,11 @@ export interface LibrarySource {
 	/**
 	 * Fetches a library's items, for a source that lists them only once they are fetched, e.g. from
 	 * a download per library. The panel calls it for each library whose items it is about to show:
-	 * an unfolded section, and every library while a search is active. Only that library's items:
-	 * the libraries inside it load their own when the panel asks. Called again on each of
-	 * those, so return straight away once the items are fetched or being fetched. Failures are the
-	 * source's to report. Optional: a source that lists its items straight away leaves it out.
+	 * an unfolded section once it comes near the panel's scrolled view, and every library while a
+	 * search is active. Only that library's items: the libraries inside it load their own when the
+	 * panel asks. Called again on each of those, so return straight away once the items are fetched
+	 * or being fetched. Failures are the source's to report. Optional: a source that lists its items
+	 * straight away leaves it out.
 	 */
 	loadItems?(libraryId: TLLibraryId): void
 	/**
