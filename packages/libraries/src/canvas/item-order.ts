@@ -50,7 +50,7 @@ const nameItemOrder: ItemOrdering = {
 	},
 }
 
-/** The orderings offered in the panel's sort menu; the first is the default. */
+/** The orderings offered in the panel's "Sort by" menu; the first is the default. */
 export const itemOrderings: ItemOrdering[] = [sourceItemOrder, newestItemOrder, nameItemOrder]
 
 /** The ordering with this id, or the default for an id that names none, e.g. a stale stored one. */
@@ -58,7 +58,7 @@ export function getItemOrdering(id: string | undefined) {
 	return itemOrderings.find((ordering) => ordering.id === id) ?? itemOrderings[0]
 }
 
-/** The current user's choice of ordering for one library, kept in this browser. */
+/** The current user's choice of ordering for a source's items, kept in this browser. */
 export interface ItemOrderChoice {
 	orderingId: string
 	reversed: boolean
@@ -68,20 +68,16 @@ const DEFAULT_CHOICE: ItemOrderChoice = { orderingId: sourceItemOrder.id, revers
 
 const choices = new Map<string, Atom<ItemOrderChoice>>()
 
-function choiceKey(sourceId: string, libraryId: string) {
-	return `${sourceId}:${libraryId}`
+function storageKey(sourceId: string) {
+	return `tldraw-libraries-item-order:${sourceId}`
 }
 
-function storageKey(key: string) {
-	return `tldraw-libraries-item-order:${key}`
-}
-
-function getChoiceAtom(key: string) {
-	let choice = choices.get(key)
+function getChoiceAtom(sourceId: string) {
+	let choice = choices.get(sourceId)
 	if (!choice) {
 		let stored = DEFAULT_CHOICE
 		try {
-			const parsed = JSON.parse(getFromLocalStorage(storageKey(key)) ?? 'null')
+			const parsed = JSON.parse(getFromLocalStorage(storageKey(sourceId)) ?? 'null')
 			if (typeof parsed?.orderingId === 'string' && typeof parsed?.reversed === 'boolean') {
 				stored = { orderingId: parsed.orderingId, reversed: parsed.reversed }
 			}
@@ -89,20 +85,19 @@ function getChoiceAtom(key: string) {
 			// A corrupt entry falls back to the default.
 		}
 		choice = atom('item order', stored)
-		choices.set(key, choice)
+		choices.set(sourceId, choice)
 	}
 	return choice
 }
 
-/** The current user's ordering for a library's items. Reactive. */
-export function getItemOrderChoice(sourceId: string, libraryId: string) {
-	return getChoiceAtom(choiceKey(sourceId, libraryId)).get()
+/** The current user's ordering for a source's items. Reactive. */
+export function getItemOrderChoice(sourceId: string) {
+	return getChoiceAtom(sourceId).get()
 }
 
-export function setItemOrderChoice(sourceId: string, libraryId: string, choice: ItemOrderChoice) {
-	const key = choiceKey(sourceId, libraryId)
-	getChoiceAtom(key).set(choice)
-	setInLocalStorage(storageKey(key), JSON.stringify(choice))
+export function setItemOrderChoice(sourceId: string, choice: ItemOrderChoice) {
+	getChoiceAtom(sourceId).set(choice)
+	setInLocalStorage(storageKey(sourceId), JSON.stringify(choice))
 }
 
 /** Items in the given ordering, reversed if asked. Items the ordering ties keep the source's order. */

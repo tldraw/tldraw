@@ -8,6 +8,7 @@ import {
 	type LibrarySource,
 	type TLCopyLibraryOptions,
 	type TLLibraryAction,
+	type TLLibraryItemDetails,
 	type TLLibraryOwner,
 	type TLLibraryPlacement,
 	type TLLibraryTarget,
@@ -16,6 +17,8 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getLibraryItemCount, getLibraryPreviewItems } from './librarySummary'
+import { resolveLibraryParent } from './libraryTree'
 import { getThumbnailForColorMode, type TLLibraryItem } from './schema'
 
 /** @public */
@@ -65,7 +68,10 @@ export class CompositeLibrarySource implements LibrarySource {
 	 * Present when any part can move items. Within a part, the part moves the item; across parts,
 	 * the item is copied and the original deleted, so it gets a new id.
 	 */
-	readonly moveItem?: (itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => Promise<void>
+	readonly moveItem?: (
+		itemId: TLLibraryItemId,
+		toLibraryId: TLLibraryId
+	) => Promise<TLLibraryItemId>
 	/**
 	 * Present when any part has it, listing each part's in order. A part with a fixed owner lists
 	 * that owner when its source lists any; a part without it lists none.
@@ -79,6 +85,18 @@ export class CompositeLibrarySource implements LibrarySource {
 	 */
 	readonly getAvailableLibraries?: () => TLLibrary[]
 	readonly addLibraryToDocument?: (libraryId: TLLibraryId) => Promise<void>
+	/** Present when any part has it, asking the part that holds the library. */
+	readonly loadItems?: (libraryId: TLLibraryId) => void
+	/** Present when any part has it. A part without it is never loading. */
+	readonly isLoadingItems?: (libraryId: TLLibraryId) => boolean
+	/** Present when any part has it. A part without it counts its listed items. */
+	readonly getItemCount?: (libraryId: TLLibraryId) => number
+	/** Present when any part has it. A part without it previews its listed items. */
+	readonly getPreviewItems?: (libraryId: TLLibraryId, count: number) => TLLibraryItem[]
+	/** Present when any part has it. A part without it may match any search. */
+	readonly mayHaveItemsMatching?: (libraryId: TLLibraryId, query: string) => boolean
+	/** Present when any part has it. */
+	readonly getItemDetails?: (item: TLLibraryItem) => TLLibraryItemDetails
 	/** Present when any part has it. */
 	readonly removeLibraryFromDocument?: (libraryId: TLLibraryId) => Promise<void>
 	private readonly parts: Part[]
@@ -160,6 +178,44 @@ export class CompositeLibrarySource implements LibrarySource {
 				return source.addLibraryToDocument(libraryId)
 			}
 		}
+		if (this.parts.some((part) => part.source.loadItems)) {
+			this.loadItems = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				if (source?.loadItems) source.loadItems(libraryId)
+			}
+		}
+		if (this.parts.some((part) => part.source.isLoadingItems)) {
+			this.isLoadingItems = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				return source?.isLoadingItems ? source.isLoadingItems(libraryId) : false
+			}
+		}
+		if (this.parts.some((part) => part.source.getItemCount)) {
+			this.getItemCount = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				if (!source) return 0
+				return getLibraryItemCount(source, libraryId)
+			}
+		}
+		if (this.parts.some((part) => part.source.getPreviewItems)) {
+			this.getPreviewItems = (libraryId, count) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				if (!source) return []
+				return getLibraryPreviewItems(source, libraryId, count)
+			}
+		}
+		if (this.parts.some((part) => part.source.mayHaveItemsMatching)) {
+			this.mayHaveItemsMatching = (libraryId, query) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				return source?.mayHaveItemsMatching ? source.mayHaveItemsMatching(libraryId, query) : true
+			}
+		}
+		if (this.parts.some((part) => part.source.getItemDetails)) {
+			this.getItemDetails = (item) => {
+				const source = this.partByLibrary$.get().get(item.libraryId)?.source
+				return source?.getItemDetails ? source.getItemDetails(item) : {}
+			}
+		}
 		if (this.parts.some((part) => part.source.removeLibraryFromDocument)) {
 			this.removeLibraryFromDocument = async (libraryId) => {
 				const { source } = this.getLibraryPart(libraryId)
@@ -217,15 +273,23 @@ export class CompositeLibrarySource implements LibrarySource {
 		return part.source.getDefaultOwnerId?.() ?? ownersOf(part)[0]?.id
 	}
 
+	/** Inside a library, it is created by that library's part, and takes its owner. */
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
+		const { parentId, meta } = options
+		if (parentId !== undefined) {
+			resolveLibraryParent(this.getLibraries(), parentId, options.ownerId)
+			const part = this.getLibraryPart(parentId)
+			const library = await part.source.createLibrary(name, {
+				parentId,
+				...(meta === undefined ? {} : { meta }),
+			})
+			return part.owner ? { ...library, ownerId: part.owner.id } : library
+		}
 		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
 		if (ownerId === undefined) throw new LibraryPermissionError('createLibrary')
 		const part = this.getOwnerPart(ownerId)
 		if (!part.owner) return part.source.createLibrary(name, { ...options, ownerId })
-		const library = await part.source.createLibrary(
-			name,
-			options.meta === undefined ? {} : { meta: options.meta }
-		)
+		const library = await part.source.createLibrary(name, meta === undefined ? {} : { meta })
 		return { ...library, ownerId: part.owner.id }
 	}
 
@@ -256,16 +320,32 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	/**
 	 * Within a part whose source can copy libraries itself, that source makes the copy; anywhere
-	 * else, each item is loaded and added to the new library.
+	 * else, each library inside it is created again and each item is loaded and added again.
 	 */
-	async copyLibrary(libraryId: TLLibraryId, ownerId: string, options?: TLCopyLibraryOptions) {
+	async copyLibrary(
+		libraryId: TLLibraryId,
+		ownerId: string | undefined,
+		options: TLCopyLibraryOptions = {}
+	) {
 		const from = this.getLibraryPart(libraryId)
-		const to = this.getOwnerPart(ownerId)
+		const { part: to, ownerId: toOwnerId } = this.getDestination(ownerId, options.parentId)
 		if (from === to && !from.owner && from.source.copyLibrary) {
-			return from.source.copyLibrary(libraryId, ownerId, options)
+			return from.source.copyLibrary(libraryId, toOwnerId, options)
 		}
-		const { copied } = await copyLibraryItems(this, libraryId, ownerId, options)
+		const { copied } = await copyLibraryItems(this, libraryId, toOwnerId, options)
 		return copied
+	}
+
+	// Where a library copied to `ownerId` or inside `parentId` goes: the parent's part, or the
+	// owner's, and whose it then is.
+	private getDestination(ownerId: string | undefined, parentId: TLLibraryId | undefined) {
+		if (parentId !== undefined) {
+			const parent = resolveLibraryParent(this.getLibraries(), parentId, ownerId)
+			return { part: this.getLibraryPart(parentId), ownerId: parent.ownerId }
+		}
+		const toOwnerId = ownerId ?? this.getDefaultOwnerId()
+		if (toOwnerId === undefined) throw new LibraryPermissionError('createLibrary')
+		return { part: this.getOwnerPart(toOwnerId), ownerId: toOwnerId }
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
@@ -278,8 +358,9 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteItem', item.libraryId)) {
 			throw new LibraryPermissionError('deleteItem', item.libraryId)
 		}
-		const { stored } = await copyItem(from.source, item, to.source, toLibraryId)
+		const { copied, stored } = await copyItem(from.source, item, to.source, toLibraryId)
 		deleteOnceStored(stored, () => from.source.deleteItem(itemId))
+		return copied.id
 	}
 
 	private getDefaultPart() {

@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getLibraryItemCount } from '../lib/librarySummary'
 import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getContentTooNewToast } from './content-too-new-toast'
@@ -81,6 +82,7 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 	)
 	const stopRenaming = () => renamingLibraryId.set(editor, null)
 
+	const isNested = library.parentId !== undefined
 	const can = useValue(
 		'library permissions',
 		() => {
@@ -91,13 +93,12 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 				rename: source.can('renameLibrary', libraryId),
 				delete:
 					source.can('deleteLibrary', libraryId) &&
-					placement !== 'added' &&
-					placement !== 'default',
+					(isNested || (placement !== 'added' && placement !== 'default')),
 				removeFromDocument:
 					!!source.removeLibraryFromDocument && source.can('removeLibraryFromDocument', libraryId),
 			}
 		},
-		[source, libraryId]
+		[source, libraryId, isNested]
 	)
 	const copyOwners = useValue('library copy owners', () => getCopyOwners(source, library.ownerId), [
 		source,
@@ -119,7 +120,7 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 	}
 
 	const deleteLibrary = () => {
-		const count = source.getItems(libraryId).length
+		const count = getLibraryItemCount(source, libraryId)
 		const housed =
 			source.getLibraryPlacement !== undefined && source.getLibraryPlacement(libraryId) === 'housed'
 		addDialog({

@@ -135,8 +135,8 @@ describe('useLibraryItemOrder', () => {
 	it('defaults to the source’s order and shares a choice between callers', () => {
 		const source = makeSource([], { id: 'shared' })
 		const result = renderHook(() => ({
-			a: useLibraryItemOrder(source, library.id),
-			b: useLibraryItemOrder(source, library.id),
+			a: useLibraryItemOrder(source),
+			b: useLibraryItemOrder(source),
 		}))
 		expect(result().a).toMatchObject({ ordering: 'source', reversed: false })
 		act(() => result().a.setOrdering('name'))
@@ -147,10 +147,10 @@ describe('useLibraryItemOrder', () => {
 	it('reads a stale stored ordering as the default', () => {
 		const source = makeSource([], { id: 'stale' })
 		setInLocalStorage(
-			`tldraw-libraries-item-order:stale:${library.id}`,
+			'tldraw-libraries-item-order:stale',
 			JSON.stringify({ orderingId: 'gone', reversed: false })
 		)
-		const result = renderHook(() => useLibraryItemOrder(source, library.id))
+		const result = renderHook(() => useLibraryItemOrder(source))
 		expect(result().ordering).toBe('source')
 	})
 })

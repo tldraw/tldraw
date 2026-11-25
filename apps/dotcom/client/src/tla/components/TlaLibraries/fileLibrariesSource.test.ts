@@ -247,6 +247,11 @@ describe('TldrawAppFileLibrariesSource', () => {
 		const theirs = LibraryRecordType.createId('theirs')
 		expect(source.getLibraries()).toMatchObject([{ id: theirs, ownerId: 'elsewhere' }])
 		expect(source.getLibraryPlacement(theirs)).toBe('added')
+		expect(source.getItemCount(theirs)).toBe(1)
+		expect(source.getPreviewItems(theirs, 4)).toMatchObject([{ name: 'Star' }])
+		expect(source.isLoadingItems(theirs)).toBe(true)
+		expect(source.getItems(theirs)).toEqual([])
+		source.loadItems(theirs)
 		expect(source.getItems(theirs)).toMatchObject([
 			{ name: 'Star', thumbnail: 'https://content.test/star.png' },
 		])

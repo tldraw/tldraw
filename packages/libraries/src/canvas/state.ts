@@ -8,9 +8,8 @@ import { EditorAtom, type Editor, type TLLibraryId } from 'tldraw'
 export const librariesPanelOpen = new EditorAtom<boolean>('librariesPanelOpen', () => false)
 
 /**
- * A library to bring into view: the panel switches to its owner's tab, unfolds it and scrolls to
- * it, then clears this. Set it with {@link librariesPanelOpen} to show a library, e.g. one just
- * saved to.
+ * A library to bring into view: the panel unfolds it and scrolls to it, then clears this. Set it
+ * with {@link librariesPanelOpen} to show a library, e.g. one just saved to.
  * @public
  */
 export const activeLibraryId = new EditorAtom<TLLibraryId | null>('activeLibraryId', () => null)
@@ -20,7 +19,11 @@ export function toggleLibrariesPanel(editor: Editor) {
 	librariesPanelOpen.update(editor, (open) => !open)
 }
 
-/** The library whose name its section header is editing, e.g. straight after creating it. */
+/**
+ * The library whose name its section header is editing, e.g. straight after creating it. Set it
+ * with {@link activeLibraryId} to bring a library a host created into view ready to rename.
+ * @public
+ */
 export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLibraryId', () => null)
 
 /**
@@ -29,3 +32,6 @@ export const renamingLibraryId = new EditorAtom<TLLibraryId | null>('renamingLib
  * @public
  */
 export const collapsedLibraryIds = new EditorAtom<TLLibraryId[]>('collapsedLibraryIds', () => [])
+
+/** What the panel's search field holds, kept while the panel is closed. */
+export const librariesSearchQuery = new EditorAtom<string>('librariesSearchQuery', () => '')

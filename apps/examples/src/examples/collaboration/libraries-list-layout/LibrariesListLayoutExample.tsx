@@ -100,7 +100,7 @@ export default function LibrariesListLayoutExample() {
 /*
 [1]
 An `ItemTile` override can replace the tile entirely. Spreading `buttonProps` onto its button
-keeps clicking and dragging the item, and rendering `menu` keeps the item's ⋯ menu.
+keeps clicking and dragging the item, and rendering `menu` keeps the menu its right-click opens.
 
 [2]
 `--tlui-libraries-columns` sets how many tiles sit in a row. Set on an element around the panel,

@@ -22,8 +22,8 @@ export { useLibrariesComponents } from './canvas/use-libraries-components'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
 export {
 	LibrariesPanelHeader,
+	type LibrariesPanelHeaderCreate,
 	type LibrariesPanelHeaderProps,
-	type NewLibraryAction,
 } from './canvas/libraries-panel-header'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
 export { LibrariesQuickActions, LibrariesToolbarButton } from './canvas/libraries-quick-actions'
@@ -31,7 +31,6 @@ export {
 	LibrarySectionHeader,
 	type LibrarySectionHeaderProps,
 } from './canvas/library-section-header'
-export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
 export { useLibrariesEnabled } from './canvas/license'
 export { type TLLibraryItemOrdering } from './canvas/item-order'
 export { useLibraries } from './canvas/use-libraries'
@@ -50,7 +49,7 @@ export {
 	type SaveSelectionToLibrary,
 	useSaveSelectionToLibrary,
 } from './canvas/use-save-selection-to-library'
-export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
+export { NoLibraries } from './canvas/no-libraries'
 export {
 	defaultPlaceLibraryItem,
 	type LibraryItemPlacer,
@@ -67,6 +66,7 @@ export {
 	activeLibraryId,
 	collapsedLibraryIds,
 	librariesPanelOpen,
+	renamingLibraryId,
 	toggleLibrariesPanel,
 } from './canvas/state'
 export {
@@ -100,10 +100,12 @@ export {
 } from './ui/menu-items'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'
 export {
+	LibraryNestingError,
 	LibraryNotFoundError,
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemDetails,
 	type TLLibraryItemPartial,
 	type TLLibraryOwner,
 	type TLLibraryPlacement,
@@ -114,6 +116,7 @@ export {
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
 export { addItemsToLibrary } from './lib/addItemsToLibrary'
+export { getLibraryTree, type TLLibraryTreeNode } from './lib/libraryTree'
 export { saveErrorMessages } from './lib/saveErrorMessages'
 export { trackItemsStoring, whenItemsStored } from './lib/whenItemsStored'
 export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
@@ -124,6 +127,7 @@ export {
 } from './lib/CompositeLibrarySource'
 export { parseLibraryPack, type LibraryPack, type LibraryPackItem } from './lib/LibraryPack'
 export { copyLibrary } from './lib/copyLibrary'
+export { getLibraryItemCount, getLibraryPreviewItems } from './lib/librarySummary'
 export { addPackToDocument, findPackCopy } from './lib/addPackToDocument'
 export { copyPack } from './lib/copyPack'
 export {

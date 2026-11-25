@@ -98,6 +98,10 @@ export async function placeItemWith(
 	if (!item) throw new LibraryNotFoundError(itemId)
 	const { content } = await source.getItemContent(itemId)
 	editor.markHistoryStoppingPoint('place library item')
+	if (select && via === 'click' && !editor.isIn('select') && editor.getStateDescendant('select')) {
+		editor.complete()
+		editor.setCurrentTool('select')
+	}
 	return placeItem(editor, { item, content, point, select, via })
 }
 

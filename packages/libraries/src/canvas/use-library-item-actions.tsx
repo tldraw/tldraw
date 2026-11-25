@@ -14,7 +14,7 @@ import type { LibrarySource } from '../lib/LibrarySource'
 import type { LibraryMenuTarget } from '../ui/menu-items'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getContentTooNewToast } from './content-too-new-toast'
-import { toMenuTargets, useLibraryGrouping } from './library-groups'
+import { getLibraryMenuTargets } from './menu-targets'
 import { activeLibraryId, librariesPanelOpen } from './state'
 
 const messages = defineMessages({
@@ -52,8 +52,11 @@ export interface LibraryItemActions {
 	 * names are never blank.
 	 */
 	rename(itemId: TLLibraryItemId, name: string): void
-	/** Moves an item to one of {@link LibraryItemActions.moveTargets}, then shows a toast. */
-	move(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): void
+	/**
+	 * Moves an item to one of {@link LibraryItemActions.moveTargets}, then shows a toast. Resolves
+	 * to the item's id in the library it joins, or undefined if it couldn't move.
+	 */
+	move(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): Promise<TLLibraryItemId | undefined>
 	/** Copies an item to one of {@link LibraryItemActions.copyTargets}, then shows a toast. */
 	copy(itemId: TLLibraryItemId, toLibraryId: TLLibraryId): void
 	/** Asks the user to confirm in a dialog, then deletes the item. */
@@ -63,7 +66,7 @@ export interface LibraryItemActions {
 	 * can move items and they may leave this library. Empty otherwise.
 	 */
 	moveTargets: LibraryMenuTarget[]
-	/** The source's other libraries the user may add items to, grouped by owner. */
+	/** The source's other libraries the user may add items to, in the panel's order. */
 	copyTargets: LibraryMenuTarget[]
 }
 
@@ -82,15 +85,14 @@ export function useLibraryItemActions(
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const grouping = useLibraryGrouping(source)
 	const copyTargets = useValue(
 		'copy targets',
 		() =>
-			toMenuTargets(
-				source.getLibraries().filter((c) => c.id !== libraryId && source.can('addItem', c.id)),
-				grouping
+			getLibraryMenuTargets(
+				source,
+				source.getLibraries().filter((c) => c.id !== libraryId && source.can('addItem', c.id))
 			),
-		[source, libraryId, grouping]
+		[source, libraryId]
 	)
 	// Items may move only where they may be copied, and only when they may leave this library.
 	const moveTargets = useValue(
@@ -129,16 +131,21 @@ export function useLibraryItemActions(
 	)
 	const move = useCallback(
 		(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => {
-			if (!source.moveItem) return
+			if (!source.moveItem) return Promise.resolve(undefined)
 			const target = moveTargets.find((c) => c.id === toLibraryId)
-			source.moveItem(itemId, toLibraryId).then(
-				() =>
+			return source.moveItem(itemId, toLibraryId).then(
+				(movedId) => {
 					showDone(
 						msg(messages.movedTitle),
 						target ? msg(messages.movedDescription, { name: target.name }) : undefined,
 						toLibraryId
-					),
-				() => showChangeError(msg(messages.moveErrorTitle))
+					)
+					return movedId
+				},
+				() => {
+					showChangeError(msg(messages.moveErrorTitle))
+					return undefined
+				}
 			)
 		},
 		[source, moveTargets, msg, showDone, showChangeError]
@@ -181,16 +188,16 @@ export function useLibraryItemActions(
 	const requestDelete = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const item = getItem(itemId)
-			const library = source.getLibraries().find((l) => l.id === libraryId)
-			if (!item || !library) return
+			if (!item) return
+			const library = source.getLibraries().find((c) => c.id === libraryId)?.name ?? ''
 			addDialog({
 				component: ({ onClose }) => (
 					<ConfirmDeleteDialog
 						title={msg(messages.deleteItemTitle)}
 						body={
 							item.name
-								? msg(messages.deleteItemBody, { name: item.name, library: library.name })
-								: msg(messages.deleteUnnamedItemBody, { library: library.name })
+								? msg(messages.deleteItemBody, { name: item.name, library })
+								: msg(messages.deleteUnnamedItemBody, { library })
 						}
 						onClose={onClose}
 						onConfirm={() =>
@@ -200,7 +207,7 @@ export function useLibraryItemActions(
 				),
 			})
 		},
-		[getItem, source, libraryId, addDialog, msg, showChangeError]
+		[getItem, addDialog, msg, source, libraryId, showChangeError]
 	)
 	return { rename, move, copy, requestDelete, moveTargets, copyTargets }
 }

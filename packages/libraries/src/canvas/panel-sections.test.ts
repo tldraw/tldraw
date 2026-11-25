@@ -35,7 +35,7 @@ it("puts the document's own library, then housed and added ones, under this file
 	).toEqual({ document: ['own'], thisFile: ['housed', 'added'], defaults: ['mine'] })
 })
 
-describe('the offers in an empty "This board"', () => {
+describe('the offers in an empty "This file"', () => {
 	const entry = (id: string, state: Partial<LibraryBrowseEntry> = {}): LibraryBrowseEntry => ({
 		id,
 		name: id,
@@ -65,7 +65,7 @@ describe('the offers in an empty "This board"', () => {
 		expect(getEmptyThisFileOffers(withOwn, groups).map((e) => e.id)).toEqual(['a', 'b', 'c'])
 	})
 
-	it('offers nothing once "This board" has a library, or without "This board"', () => {
+	it('offers nothing once "This file" has a library, or without "This file"', () => {
 		expect(getEmptyThisFileOffers({ ...empty, thisFile: [library('kit')] }, groups)).toEqual([])
 		expect(getEmptyThisFileOffers(undefined, groups)).toEqual([])
 	})

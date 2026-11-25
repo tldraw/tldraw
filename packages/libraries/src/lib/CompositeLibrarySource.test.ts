@@ -102,6 +102,46 @@ describe('CompositeLibrarySource', () => {
 		expect(kit).not.toHaveProperty('ownerId')
 	})
 
+	it("answers an item's details from its part, and none from a part without them", async () => {
+		const mine = Object.assign(new InMemoryLibrarySource({ id: 'mine' }), {
+			getItemDetails: () => ({ creatorName: 'Ada' }),
+		})
+		const kits = shared()
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: personal, source: mine },
+				{ owner: tldraw, source: kits },
+			],
+		})
+		const kit = await mine.createLibrary('Kit')
+		const star = await added(mine.addItem(kit.id, { name: 'Star', content: content('star') }))
+		expect(source.getItemDetails!(star)).toEqual({ creatorName: 'Ada' })
+		expect(source.getItemDetails!(kits.getItems(wireframing)[0])).toEqual({})
+	})
+
+	it("counts and previews each library from its part's summary, or else its listed items", async () => {
+		const counted = new InMemoryLibrarySource({ id: 'counted' })
+		const listed = new InMemoryLibrarySource({ id: 'listed' })
+		const big = await counted.createLibrary('Big')
+		const small = await listed.createLibrary('Small')
+		await added(listed.addItem(small.id, { name: 'One', content: content('one') }))
+		const preview = LibraryItemRecordType.create({ libraryId: big.id, name: 'First' })
+		Object.assign(counted, {
+			getItemCount: () => 40,
+			getPreviewItems: () => [preview],
+		})
+		const composite = new CompositeLibrarySource({
+			parts: [
+				{ owner: { id: 'a', name: 'A' }, source: counted },
+				{ owner: { id: 'b', name: 'B' }, source: listed },
+			],
+		})
+		expect(composite.getItemCount!(big.id)).toBe(40)
+		expect(composite.getPreviewItems!(big.id, 4)).toEqual([preview])
+		expect(composite.getItemCount!(small.id)).toBe(1)
+		expect(composite.getPreviewItems!(small.id, 4).map((i) => i.name)).toEqual(['One'])
+	})
+
 	it('updates its listing when a part changes', async () => {
 		const { source, team } = setUp()
 		const seen: string[][] = []
@@ -576,6 +616,7 @@ describe('CompositeLibrarySource shown in a document', () => {
 		expect(source.addLibraryToDocument).toBeUndefined()
 		expect(source.removeLibraryFromDocument).toBeUndefined()
 		expect(source.getNewLibraryOwnerIds).toBeUndefined()
+		expect(source.getItemDetails).toBeUndefined()
 	})
 })
 

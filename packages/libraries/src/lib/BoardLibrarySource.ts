@@ -29,6 +29,7 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getLibraryDescendants } from './libraryTree'
 import { mapConcurrently } from './mapConcurrently'
 import { saveErrorMessages } from './saveErrorMessages'
 import {
@@ -58,10 +59,13 @@ export interface BoardLibrarySourceOptions {
 	/**
 	 * Gives the document a library of its own under this name, placed as `'document'`: listed while
 	 * the document can be changed even before anything is saved to it, and kept in the document from
-	 * the first save. It can't be renamed or deleted, and no other library can be created in the
-	 * document; ones it already houses stay listed after it.
+	 * the first save. It's always listed under this name, whatever name the document stored it
+	 * with, so pass the name translated for the current user. It can't be renamed or deleted, and no
+	 * other library can be created in the document; ones it already houses stay listed after it.
+	 * With `hideUntilSaved`, it's listed only once the document holds it, e.g. for a viewer who
+	 * can't save to it.
 	 */
-	documentLibrary?: { name: string }
+	documentLibrary?: { name: string; hideUntilSaved?: boolean }
 }
 
 const DOCUMENT_LIBRARY_ID = LibraryRecordType.createId('document')
@@ -93,6 +97,7 @@ export class BoardLibrarySource implements LibrarySource {
 	private readonly toasts: BoardLibrarySourceOptions['toasts']
 	private readonly msg: BoardLibrarySourceOptions['msg']
 	private readonly documentLibraryName: string | undefined
+	private readonly hideDocumentLibraryUntilSaved: boolean
 
 	constructor(
 		private readonly editor: Editor,
@@ -102,6 +107,8 @@ export class BoardLibrarySource implements LibrarySource {
 		this.toasts = options.toasts
 		this.msg = options.msg
 		this.documentLibraryName = options.documentLibrary && options.documentLibrary.name
+		this.hideDocumentLibraryUntilSaved =
+			!!options.documentLibrary && !!options.documentLibrary.hideUntilSaved
 		for (const typeName of ['library', 'library-item', 'library-item-content']) {
 			if (!editor.store.schema.types[typeName as TLRecord['typeName']]) {
 				throw new Error(
@@ -116,7 +123,9 @@ export class BoardLibrarySource implements LibrarySource {
 			if (name === undefined) return libraries
 			const own = libraries.find((library) => library.id === DOCUMENT_LIBRARY_ID)
 			const housed = libraries.filter((library) => library.id !== DOCUMENT_LIBRARY_ID)
-			if (!own && this.editor.getIsReadonly()) return housed
+			if (!own && (this.hideDocumentLibraryUntilSaved || this.editor.getIsReadonly())) {
+				return housed
+			}
 			return [own ? { ...own, name } : createDocumentLibrary(name), ...housed]
 		})
 	}
@@ -226,10 +235,11 @@ export class BoardLibrarySource implements LibrarySource {
 
 	// The board doesn't track owners, so a library can't be given one.
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		this.assertCan('createLibrary')
+		this.assertCan('createLibrary', options.parentId)
 		if (options.ownerId !== undefined) throw new LibraryNotFoundError(options.ownerId)
 		const library = LibraryRecordType.create({
 			name,
+			...(options.parentId === undefined ? {} : { parentId: options.parentId }),
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.write([library])
@@ -247,16 +257,20 @@ export class BoardLibrarySource implements LibrarySource {
 	async deleteLibrary(libraryId: TLLibraryId) {
 		this.getLibrary(libraryId)
 		this.assertCan('deleteLibrary', libraryId)
-		const records = this.query('library-item', () => ({
-			libraryId: { eq: libraryId },
-		})).get()
+		const libraryIds = [
+			libraryId,
+			...getLibraryDescendants(this.getLibraries(), libraryId).map((library) => library.id),
+		]
+		const records = libraryIds.flatMap((id) =>
+			this.query('library-item', () => ({ libraryId: { eq: id } })).get()
+		)
 		const itemIds = records.map((item) => item.id)
 		this.write(
 			[],
-			[libraryId, ...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
+			[...libraryIds, ...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
 			records.flatMap(getThumbnailAssetIds)
 		)
-		this.itemsByLibrary.delete(libraryId)
+		for (const id of libraryIds) this.itemsByLibrary.delete(id)
 	}
 
 	/**
@@ -356,8 +370,9 @@ export class BoardLibrarySource implements LibrarySource {
 		this.getLibrary(toLibraryId)
 		this.assertCan('deleteItem', item.libraryId)
 		this.assertCan('addItem', toLibraryId)
-		if (item.libraryId === toLibraryId) return
+		if (item.libraryId === toLibraryId) return itemId
 		this.write([...this.unstoredLibrary(toLibraryId), { ...item, libraryId: toLibraryId }])
+		return itemId
 	}
 
 	// Assets join the document at its current schema, as pasting brings them in.

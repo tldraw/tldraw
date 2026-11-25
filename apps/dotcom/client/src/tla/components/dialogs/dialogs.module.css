@@ -202,10 +202,25 @@
 /* ----------------- Group Settings Dialog ---------------- */
 
 .workspaceSettingsBody {
+	display: flex;
+	flex-direction: column;
+	flex: 0 1 auto;
+	min-height: 0;
 	padding-top: 0px;
 	max-width: 360px;
-	max-height: max(420px, 80%);
 	width: calc(100vw - 48px);
+	overflow: hidden;
+}
+
+.workspaceSettingsBody > * {
+	flex-shrink: 0;
+}
+
+.workspaceSettingsBody > .scrollingSection {
+	display: flex;
+	flex-direction: column;
+	flex: 0 1 auto;
+	min-height: 0;
 }
 
 .section {
@@ -220,6 +235,7 @@
 }
 
 .sectionLabel {
+	flex-shrink: 0;
 	height: 36px;
 	display: flex;
 	align-items: center;
@@ -269,41 +285,87 @@
 .librariesList {
 	display: flex;
 	flex-direction: column;
+	gap: 8px;
 }
 
 .libraryItem {
 	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 8px;
+	border-radius: var(--tl-radius-4);
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
+}
+
+.libraryThumbnails {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.libraryThumbnail {
+	display: flex;
 	align-items: center;
-	gap: 10px;
-	height: 36px;
+	justify-content: center;
+	aspect-ratio: 1;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+	background: var(--tl-color-background);
+	overflow: hidden;
+}
+
+.libraryThumbnail > img {
+	max-width: 80%;
+	max-height: 80%;
+	object-fit: contain;
+}
+
+.libraryFooter {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-inline-start: 2px;
+}
+
+.libraryText {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
 }
 
 .libraryName {
-	flex: 1;
-	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	font-size: 13px;
+	line-height: 20px;
+	font-weight: 500;
+	color: var(--tl-color-text-0);
+}
+
+.libraryText > .dialogInput {
+	height: 24px;
 }
 
 .libraryCount {
-	flex-shrink: 0;
-	color: var(--tl-color-text-3);
 	font-size: 12px;
+	line-height: 18px;
+	color: var(--tl-color-text-3);
 }
 
 .libraryNotInAnyFile {
 	margin-inline-start: 4px;
 }
 
-/* A bare icon, like the sidebar's file menu trigger, flush with the content's right edge. */
+/* A bare icon, like the sidebar's file menu trigger. */
 .libraryMenuTrigger {
 	flex: 0 0 auto;
-	width: 36px;
-	height: 36px;
+	width: 32px;
+	height: 32px;
 	min-width: 0;
 	padding: 0;
-	margin-inline-end: -10px;
+	margin-inline-end: -4px;
 	background: none;
 	color: var(--tl-color-text-3);
 }
@@ -311,6 +373,18 @@
 .libraryMenuTrigger:hover,
 .libraryMenuTrigger[data-state='open'] {
 	color: var(--tl-color-text-1);
+}
+
+@media (hover: hover) {
+	.libraryMenuTrigger {
+		opacity: 0;
+	}
+
+	.libraryItem:hover .libraryMenuTrigger,
+	.libraryMenuTrigger:focus-visible,
+	.libraryMenuTrigger[data-state='open'] {
+		opacity: 1;
+	}
 }
 
 /* Menus portal into the editor container beside the dialog, on the menus layer below it. Raise
@@ -343,16 +417,16 @@
 /* Tab pages sit below the tab bar, which already provides the horizontal rule.
    The page sizes to its content (so neither tab leaves an empty gap), growing until the
    dialog reaches its max-height (see WorkspaceSettingsDialog: 20vh top anchor + 70vh max),
-   past which the members list scrolls while the name/invite/tabs stay put. The 70vh − 280px
-   bound matches the dialog's max-height minus the fixed content above this page, so the
-   list fills exactly the available space. The scroll container clips both axes (CSS forces
-   overflow-x to clip when overflow-y is auto), so bleed it 12px past the content on each
-   side — matching the tab strip — and pad it back, giving row hover highlights and the
-   member role select room to render without clipping their corners. */
+   past which it shrinks and scrolls while the name/invite/tabs stay put. The scroll
+   container clips both axes (CSS forces overflow-x to clip when overflow-y is auto), so
+   bleed it 12px past the content on each side — matching the tab strip — and pad it back,
+   giving row hover highlights and the member role select room to render without clipping
+   their corners. */
 .tabPage {
+	flex: 0 1 auto;
+	min-height: 0;
 	padding: 16px 12px 0;
 	margin: 0 -12px;
-	max-height: calc(70vh - 280px);
 	/* Hidden by default so no scrollbar shows when the content fits. The component
 	   measures the content and adds .scrollable to flip overflow to auto only when it
 	   actually overflows — avoids a permanent scrollbar/gutter on systems that always

@@ -707,7 +707,7 @@ describe('BoardLibrarySource', () => {
 			const source = new CompositeLibrarySource({
 				parts: [
 					{ owner: { id: 'kits', name: 'Kits' }, source: kits },
-					{ owner: { id: 'board', name: 'This board' }, source: board },
+					{ owner: { id: 'board', name: 'This file' }, source: board },
 				],
 			})
 			return { source, board, kit, toasts }
@@ -855,7 +855,7 @@ describe('BoardLibrarySource', () => {
 	})
 
 	describe("the document's own library", () => {
-		const documentLibrary = { name: 'This board' }
+		const documentLibrary = { name: 'This file' }
 
 		function setUp() {
 			const editor = makeEditor()
@@ -867,7 +867,7 @@ describe('BoardLibrarySource', () => {
 		it('is listed and can be saved to before the document holds it', () => {
 			const { editor, source, own } = setUp()
 			expect(source.getLibraries()).toEqual([own])
-			expect(own.name).toBe('This board')
+			expect(own.name).toBe('This file')
 			expect(source.getLibraryPlacement(own.id)).toBe('document')
 			expect(source.can('addItem', own.id)).toBe(true)
 			expect(source.getItems(own.id)).toEqual([])
@@ -879,7 +879,7 @@ describe('BoardLibrarySource', () => {
 			const item = await added(
 				source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) })
 			)
-			expect(allOfType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This board' }])
+			expect(allOfType(editor, 'library')).toMatchObject([{ id: own.id, name: 'This file' }])
 			expect(source.getItems(own.id)).toEqual([item])
 			expect(source.getLibraries()).toEqual([own])
 		})
@@ -889,6 +889,16 @@ describe('BoardLibrarySource', () => {
 			await added(source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) }))
 			const elsewhere = new BoardLibrarySource(editor, { documentLibrary: { name: 'Ce tableau' } })
 			expect(elsewhere.getLibraries()).toMatchObject([{ id: own.id, name: 'Ce tableau' }])
+		})
+
+		it('is listed only once the document holds it, with hideUntilSaved, under the name it is given', async () => {
+			const { editor, source, own } = setUp()
+			const viewer = new BoardLibrarySource(editor, {
+				documentLibrary: { name: 'Ce fichier', hideUntilSaved: true },
+			})
+			expect(viewer.getLibraries()).toEqual([])
+			await added(source.addItem(own.id, { content: contentOf(editor, [addImage(editor)]) }))
+			expect(viewer.getLibraries()).toMatchObject([{ id: own.id, name: 'Ce fichier' }])
 		})
 
 		it("can't be renamed or deleted, and no other library can be created", async () => {
@@ -937,5 +947,42 @@ describe('BoardLibrarySource', () => {
 			expect(source.getItems(own.id)).toEqual([item])
 			expect(source.can('addItem', own.id)).toBe(false)
 		})
+	})
+})
+
+describe('BoardLibrarySource nesting', () => {
+	it('creates and deletes libraries inside others, everything inside going along', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor)
+		const kit = await source.createLibrary('Kit')
+		const icons = await source.createLibrary('Icons', { parentId: kit.id })
+		const arrows = await source.createLibrary('Arrows', { parentId: icons.id })
+		await source.createLibrary('Other')
+		const item = await added(
+			source.addItem(arrows.id, { content: contentOf(editor, [addImage(editor)]) })
+		)
+		expect(arrows.parentId).toBe(icons.id)
+
+		await source.deleteLibrary(icons.id)
+		expect(
+			source
+				.getLibraries()
+				.map((c) => c.name)
+				.sort()
+		).toEqual(['Kit', 'Other'])
+		expect(editor.store.has(item.id as any)).toBe(false)
+		expect(allOfType(editor, 'library-item-content')).toEqual([])
+	})
+})
+
+describe("the document's own library stays flat", () => {
+	it('allows no library inside it', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor, { documentLibrary: { name: 'This file' } })
+		const [own] = source.getLibraries()
+		expect(source.can('createLibrary', own.id)).toBe(false)
+		await expect(source.createLibrary('Inside', { parentId: own.id })).rejects.toThrow(
+			LibraryPermissionError
+		)
 	})
 })

@@ -76,6 +76,7 @@ import {
 } from '../menu-items/menu-items'
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { useAnonLibrariesOffered } from '../TlaLibraries/useAnonLibrariesOffered'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
@@ -312,6 +313,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					<DefaultPageMenu />
 				</>
 			)}
+			{!app && <LibrariesPanelButton />}
 			{!hasLogoMenu && mainMenu}
 		</>
 	)
@@ -553,7 +555,8 @@ function LibrariesPanelButton() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
-	const hasLibraries = !!useMaybeApp()?.libraries
+	const anonLibrariesOffered = useAnonLibrariesOffered()
+	const hasLibraries = !!useMaybeApp()?.libraries || anonLibrariesOffered
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const label = msg(messages.libraries)
 
@@ -562,7 +565,7 @@ function LibrariesPanelButton() {
 	return (
 		<TldrawUiButton
 			type="icon"
-			className={styles.topLeftMainMenuTrigger}
+			className={`${styles.topLeftMainMenuTrigger} ${styles.librariesButton}`}
 			data-testid="tla-libraries-button"
 			aria-pressed={open}
 			tooltip={label}
@@ -572,7 +575,7 @@ function LibrariesPanelButton() {
 				toggleLibrariesPanel(editor)
 			}}
 		>
-			<TlaIcon icon="library" />
+			<TlaIcon icon="library-strong" />
 		</TldrawUiButton>
 	)
 }

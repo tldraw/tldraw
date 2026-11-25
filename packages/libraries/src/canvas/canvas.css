@@ -4,14 +4,14 @@
    the cap with --tlui-libraries-panel-max-height, and resize its tiles with
    --tlui-libraries-tile-width. The tile width's default must match LIBRARIES_TILE_WIDTH. */
 .tlui-libraries-panel {
-	--tlui-libraries-tile-width: 86.67px;
+	--tlui-libraries-tile-width: 96px;
 	--tlui-libraries-panel-top: var(--tlui-libraries-panel-inset-top, 48px);
 	--tlui-libraries-panel-side: var(--tlui-libraries-panel-inset-side, 8px);
 	position: absolute;
 	top: var(--tlui-libraries-panel-top);
 	left: var(--tlui-libraries-panel-side);
-	/* Three tiles, between the grid's 10px sides. */
-	width: calc(3 * var(--tlui-libraries-tile-width) + 20px);
+	/* Three tiles, 12px apart and 12px from the sides. */
+	width: calc(3 * var(--tlui-libraries-tile-width) + 48px);
 	max-height: var(
 		--tlui-libraries-panel-max-height,
 		min(calc(100% - var(--tlui-libraries-panel-top) - var(--tlui-libraries-panel-side)), 720px)
@@ -21,7 +21,7 @@
 	display: flex;
 	flex-direction: column;
 	background: var(--tl-color-panel);
-	border-radius: var(--tl-radius-4);
+	border-radius: var(--tl-radius-3);
 	box-shadow: var(--tl-shadow-3);
 	overflow: hidden;
 	color: var(--tl-color-text-1);
@@ -42,6 +42,101 @@
 	right: var(--tlui-libraries-panel-side);
 }
 
+/* On phones the panel is a modal sheet along the bottom, its top and height set as it moves. It sits
+   over the toolbar and under menus, so the menus opened from it show above it. */
+.tlui-libraries-sheet__overlay {
+	position: absolute;
+	inset: 0;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	background-color: var(--tl-color-overlay);
+	animation: tl-fade-in 0.12s ease-out;
+}
+
+.tlui-libraries-panel.tlui-libraries-sheet {
+	left: 0;
+	right: 0;
+	width: auto;
+	max-height: none;
+	z-index: calc(var(--tl-layer-menus) - 1);
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+	border-radius: var(--tl-radius-4) var(--tl-radius-4) 0 0;
+	outline: none;
+	-webkit-touch-callout: none;
+}
+
+.tlui-libraries-sheet__title {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* For screen readers and the keyboard: shown only while it has keyboard focus. */
+.tlui-libraries-sheet__close {
+	all: unset;
+	position: absolute;
+	top: 4px;
+	right: 8px;
+	z-index: 1;
+	padding: 2px 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+	font-size: 12px;
+	outline: 2px solid var(--tl-color-selected);
+}
+
+.tlui-libraries-sheet__close:not(:focus-visible) {
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.tlui-libraries-sheet__handle {
+	all: unset;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 20px;
+	touch-action: none;
+	cursor: grab;
+}
+
+.tlui-libraries-sheet__handle::before {
+	content: '';
+	width: 36px;
+	height: 4px;
+	border-radius: 2px;
+	background-color: var(--tl-color-text-3);
+	opacity: 0.5;
+}
+
+.tlui-libraries-sheet__handle:focus-visible::before {
+	opacity: 1;
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+.tlui-libraries-sheet .tlui-libraries-sections {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.tlui-libraries-sheet > .tlui-dialog__body {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.tlui-libraries-sheet .tlui-libraries-tile__button {
+	user-select: none;
+}
+
 /* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */
 .tlui-libraries-panel__header {
 	flex-shrink: 0;
@@ -51,6 +146,11 @@
 	gap: 4px;
 	padding: 2px;
 	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+/* 40px, its buttons flush to the panel's edges, like the page menu's rows. */
+.tlui-libraries-panel > .tlui-libraries-panel__header {
+	padding: 0;
 }
 
 .tlui-libraries-panel__title {
@@ -81,14 +181,16 @@
 .tlui-libraries-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--tlui-libraries-columns, 3), minmax(0, 1fr));
+	gap: 12px;
 	margin: 0;
-	padding: 4px 10px 8px;
+	padding: 4px 12px 12px;
 	list-style: none;
 	overflow-y: auto;
 }
 
 /* Points down while open, and to the side while folded shut. */
-.tlui-icon.tlui-libraries-chevron {
+.tlui-libraries-chevron {
+	flex-shrink: 0;
 	width: 12px;
 	height: 12px;
 	transition: transform 120ms ease-out;
@@ -99,165 +201,40 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.tlui-icon.tlui-libraries-chevron {
+	.tlui-libraries-chevron {
 		transition: none;
 	}
 }
 
 .tlui-libraries-sections {
 	overflow-y: auto;
+	padding-top: 12px;
 }
 
-.tlui-libraries-menu-heading {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	padding: 6px 10px 2px;
-	font-size: 11px;
-	color: var(--tl-color-text-3);
-	cursor: default;
-}
-
-.tlui-libraries-tabs {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-}
-
-/* Fades at an edge only while there are more owners to scroll to on that side. */
-.tlui-libraries-tabs__bar {
-	position: relative;
+.tlui-libraries-panel__footer {
 	flex-shrink: 0;
-	border-bottom: 1px solid var(--tl-color-divider);
+	margin: 0;
+	border-top: 1px solid var(--tl-color-divider);
+	border-radius: 0;
 }
 
-.tlui-libraries-tabs__bar::before,
-.tlui-libraries-tabs__bar::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	z-index: 1;
-	width: 32px;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 120ms ease-out;
+.tlui-libraries-panel__browse-more {
+	padding: 0 12px;
 }
 
-/* 1px in from each side, so they don't paint over the panel's inset edge ring. */
-.tlui-libraries-tabs__bar::before {
-	left: 1px;
-	background: linear-gradient(90deg, var(--tl-color-panel) 20%, transparent);
-}
-
-.tlui-libraries-tabs__bar::after {
-	right: 1px;
-	background: linear-gradient(270deg, var(--tl-color-panel) 20%, transparent);
-}
-
-.tlui-libraries-tabs__bar[data-overflow-start='true']::before,
-.tlui-libraries-tabs__bar[data-overflow-end='true']::after {
-	opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.tlui-libraries-tabs__bar::before,
-	.tlui-libraries-tabs__bar::after {
-		transition: none;
-	}
-}
-
-/* Scrolls sideways when the owners don't fit, the active tab centred. Positioned so it is the tabs'
-   offsetParent, which centring measures against. */
-.tlui-libraries-tabs__list {
-	position: relative;
-	display: flex;
-	padding: 0 6px;
-	overflow-x: auto;
-	scrollbar-width: none;
-}
-
-.tlui-libraries-tabs__list::-webkit-scrollbar {
-	display: none;
-}
-
-.tlui-libraries-tabs__tab {
-	all: unset;
-	position: relative;
-	flex-shrink: 0;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	max-width: 160px;
-	height: 40px;
-	padding: 0 8px;
-	font-weight: 500;
-	color: var(--tl-color-text-3);
-	cursor: pointer;
-}
-
-.tlui-libraries-tabs__tab::after {
-	content: '';
-	position: absolute;
-	left: 8px;
-	right: 8px;
-	bottom: 0;
-	height: 2px;
-	border-radius: 1px;
-	background: var(--tl-color-text-1);
-	visibility: hidden;
-}
-
-.tlui-libraries-tabs__tab[data-state='active'] {
-	color: var(--tl-color-text-1);
-}
-
-.tlui-libraries-tabs__tab[data-state='active']::after {
-	visibility: visible;
-}
-
-@media (hover: hover) {
-	.tlui-libraries-tabs__tab:hover {
-		color: var(--tl-color-text-1);
-	}
-}
-
-.tlui-libraries-tabs__tab:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -6px;
-	border-radius: var(--tl-radius-3);
-}
-
-.tlui-libraries-tabs__icon {
-	flex-shrink: 0;
-}
-
-.tlui-libraries-tabs__label {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-libraries-tabs > .tlui-libraries-sections {
+.tlui-libraries-panel__browse-more > .tlui-button__label {
 	flex: 1;
-	min-height: 0;
+	text-align: start;
+	font-weight: 500;
 }
 
-.tlui-libraries-tabs > .tlui-libraries-sections:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
+.tlui-libraries-panel__browse-more > .tlui-icon {
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-sections .tlui-libraries-grid {
 	overflow: visible;
-	padding: 0 10px 4px;
-}
-
-/* The last row stands as far from the panel's bottom as the tiles do from its sides. */
-.tlui-libraries-section:last-child .tlui-libraries-grid {
-	padding-bottom: 10px;
+	padding: 4px 12px 12px;
 }
 
 /* Stays at the top of the list while its own items scroll under it, until the next section's header
@@ -267,6 +244,13 @@
 	top: 0;
 	z-index: 1;
 	border-bottom: none;
+	box-sizing: border-box;
+	min-height: 40px;
+}
+
+/* A library inside others, listed after the library it's in. */
+.tlui-libraries-section {
+	margin-inline-start: calc(var(--tlui-libraries-section-depth, 0) * 12px);
 }
 
 /* The whole name row folds the section, with the chevron straight after the name. */
@@ -291,11 +275,10 @@
 }
 
 .tlui-libraries-panel__toggle > .tlui-libraries-chevron {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
 }
 
-/* Each tile's button fills its grid cell and insets the thumbnail with its own padding, so
-   neighbouring buttons meet with no gap between them, as toolbar buttons do. */
+/* Each tile's button fills its grid cell. */
 .tlui-libraries-grid > li {
 	display: flex;
 }
@@ -316,8 +299,10 @@
 	flex-direction: column;
 	gap: 4px;
 	width: 100%;
-	padding: 4px;
 	cursor: pointer;
+	/* A vertical swipe scrolls the list; any other touch drag is left to the tile, to pull the item
+	   out. With the browser free to pan either way, it cancels the drag as it starts. */
+	touch-action: pan-y;
 }
 
 .tlui-libraries-dragging,
@@ -327,68 +312,47 @@
 
 .tlui-libraries-tile__button:focus-visible {
 	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
-	border-radius: var(--tl-radius-2);
+	outline-offset: 0;
+	border-radius: var(--tl-radius-1);
 }
 
-/* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu
-   is open. */
+/* A menu without a button of its own opens against this box: over the element around it, or at the
+   pointer once a right-click places it there. */
+.tlui-libraries-menu-anchor {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+}
+
 .tlui-libraries-tile__menu {
 	position: absolute;
-	top: 4px;
-	right: 4px;
-	opacity: 0;
+	inset: 0;
+	pointer-events: none;
 }
 
-.tlui-libraries-tile:hover .tlui-libraries-tile__menu,
-.tlui-libraries-tile:focus-within .tlui-libraries-tile__menu,
-.tlui-libraries-tile__menu:has([data-state='open']) {
-	opacity: 1;
-}
-
-.tlui-libraries-tile__menu-button {
-	height: 28px;
-	width: 28px;
-	min-width: 28px;
-	border-radius: var(--tl-radius-2);
-}
-
-.tlui-libraries-tile__menu-button::after {
-	content: none;
-}
-
+/* A card: the canvas's colour inside a faint border. */
 .tlui-libraries-tile__thumbnail {
 	position: relative;
+	box-sizing: border-box;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	aspect-ratio: 1;
+	border: 1px solid var(--tl-color-muted-2);
 	border-radius: var(--tl-radius-1);
 	background: var(--tl-color-background);
 	overflow: hidden;
 }
 
 @media (hover: hover) {
-	.tlui-libraries-tile:hover:not(
-			:has(.tlui-libraries-tile__menu-button:hover, [aria-disabled='true'])
-		)
-		.tlui-libraries-tile__thumbnail {
-		background: var(--tl-color-muted-2);
-	}
-
-	.tlui-libraries-tile__menu-button:hover {
-		background: linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2))
-			var(--tl-color-panel);
+	.tlui-libraries-tile:hover:not(:has([aria-disabled='true'])) .tlui-libraries-tile__thumbnail {
+		border-color: var(--tl-color-muted-1);
 	}
 }
 
-.tlui-libraries-tile__menu-button[data-state='open'] {
-	background: var(--tl-muted-gradient-to-bottom) var(--tl-color-panel);
-}
-
-.tlui-libraries-tile:has(.tlui-libraries-tile__menu-button[data-state='open'])
+.tlui-libraries-tile:has(.tlui-libraries-menu-anchor[data-state='open'])
 	.tlui-libraries-tile__thumbnail {
-	background: var(--tl-color-background);
+	border-color: var(--tl-color-muted-1);
 }
 
 .tlui-libraries-tile__thumbnail > img {
@@ -403,8 +367,19 @@
 	visibility: hidden;
 }
 
+.tlui-libraries-grid .tlui-libraries-tile__thumbnail,
+.tlui-libraries-grid .tlui-libraries-tile__button:focus-visible {
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-libraries-grid .tlui-libraries-add-tile .tlui-libraries-tile__thumbnail,
+.tlui-libraries-grid .tlui-libraries-add-tile .tlui-libraries-tile__button:focus-visible {
+	border-radius: var(--tl-radius-1);
+}
+
 .tlui-libraries-add-tile .tlui-libraries-tile__thumbnail {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
+	background: var(--tl-color-panel);
 }
 
 .tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] {
@@ -415,62 +390,41 @@
 	opacity: 0.4;
 }
 
-@media (hover: hover) {
-	.tlui-libraries-add-tile:not(:has([aria-disabled='true'])):hover .tlui-libraries-tile__thumbnail {
-		color: var(--tl-color-text-1);
-	}
+/* Menus portal into the editor container beside any dialog, on the menus layer below it. Browse and
+   Details open these menus from a dialog, so they take the dialog's layer. Radix copies the
+   content's z-index onto its popper wrapper. */
+.tlui-menu.tlui-libraries-menu,
+.tlui-menu__submenu__content:has(> .tlui-libraries-menu__submenu) {
+	z-index: var(--tl-layer-canvas-overlays);
 }
 
 .tlui-libraries-menu,
 .tlui-libraries-menu__submenu {
 	min-width: 100px;
-	padding: 4px;
+	max-height: var(--radix-dropdown-menu-content-available-height);
+	padding: 2px 4px;
+	font-weight: 500;
 }
 
-.tlui-libraries-menu__heading {
-	display: flex;
-	align-items: center;
-	width: 200px;
-	min-height: 36px;
-	padding: 0 10px;
-	font-size: 12px;
-	color: var(--tl-color-text-1);
-	cursor: default;
+.tlui-libraries-menu > .tlui-menu__group {
+	width: auto;
+	margin: 0 -4px;
+	padding: 0 4px;
+	border-color: var(--tl-color-low);
 }
 
-.tlui-libraries-menu__heading > strong {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+.tlui-libraries-menu > .tlui-menu__group + .tlui-menu__group {
+	padding-top: 1px;
 }
 
-.tlui-libraries-menu__heading .tlui-input__wrapper {
-	height: 36px;
-}
-
-.tlui-libraries-menu__heading:has(.tlui-libraries-menu__rename) {
-	position: relative;
-	padding: 0;
-}
-
-.tlui-libraries-menu__heading:has(.tlui-libraries-menu__rename)::before {
-	content: '';
-	position: absolute;
-	inset: 2px;
-	border-radius: var(--tl-radius-2);
-	border: 1px solid var(--tl-color-primary);
-	pointer-events: none;
-}
-
-.tlui-input.tlui-libraries-menu__rename {
-	width: 100%;
-	padding: 0 12px;
+.tlui-libraries-menu > .tlui-menu__group:has(+ .tlui-menu__group) {
+	padding-bottom: 2px;
 }
 
 .tlui-libraries-menu__divider {
 	height: 1px;
-	margin: 4px -4px;
-	background: var(--tl-color-divider);
+	margin: 2px -4px 1px;
+	background: var(--tl-color-low);
 }
 
 .tlui-libraries-menu__item {
@@ -479,7 +433,7 @@
 	align-items: center;
 	width: 100%;
 	min-height: 36px;
-	padding: 0 10px;
+	padding: 0 8px;
 	border: none;
 	background: transparent;
 	font: inherit;
@@ -491,7 +445,7 @@
 .tlui-libraries-menu__item::after {
 	content: '';
 	position: absolute;
-	inset: 2px;
+	inset: 2px 0;
 	border-radius: var(--tl-radius-2);
 }
 
@@ -503,27 +457,49 @@
 	height: 36px;
 	min-height: 36px;
 	margin: 0;
-	padding: 0 4px 0 10px;
+	padding: 0 8px;
 	color: var(--tl-color-text-1);
 }
 
 .tlui-libraries-menu__submenu-trigger > .tlui-menu__submenu__trigger.tlui-button::after {
-	inset: 2px;
+	inset: 2px 0;
 }
 
 .tlui-libraries-menu__submenu > .tlui-button__checkbox {
 	height: 36px;
 	min-height: 36px;
 	margin: 0;
-	padding: 0 10px;
+	padding: 0 8px;
 }
 
 .tlui-libraries-menu__submenu > .tlui-button__checkbox::after {
-	inset: 2px;
+	inset: 2px 0;
+}
+
+.tlui-libraries-menu__item-detail {
+	margin-inline-start: var(--tl-space-3);
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-menu__item--danger {
 	color: var(--tl-color-danger);
+}
+
+/* A section header's ⋯ shows while the header is hovered or focused, or its menu is open. Touch has
+   no hover, so there it always shows. */
+@media (hover: hover) {
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__header-actions {
+		opacity: 0;
+	}
+
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header:is(:hover, :has(:focus-visible))
+		> .tlui-libraries-panel__header-actions,
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header
+		> .tlui-libraries-panel__header-actions:has([data-state='open']) {
+		opacity: 1;
+	}
 }
 
 .tlui-libraries-panel__header-actions {
@@ -538,14 +514,9 @@
 	height: 40px;
 }
 
-.tlui-libraries-section > .tlui-libraries-panel__header:has(.tlui-input__wrapper) {
-	min-height: 44px;
-}
-
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-input__wrapper {
 	height: 32px;
-	margin-left: 4px;
-	margin-right: 44px;
+	margin: 0 12px 0 4px;
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-libraries-panel__rename {
@@ -562,8 +533,8 @@
 	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
 }
 
-/* A section header has no background of its own, so items scroll under it; its name and ⋯ sit on
-   opaque pills to stay readable over them. */
+/* A section header has no background of its own, so items scroll under it; its name sits on an
+   opaque pill to stay readable over them. */
 .tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__toggle {
 	flex: 0 1 auto;
 	height: 32px;
@@ -575,17 +546,18 @@
 	background: var(--tl-color-panel);
 }
 
-.tlui-libraries-section > .tlui-libraries-panel__header .tlui-button::before {
-	content: '';
-	position: absolute;
-	inset: 4px;
-	z-index: -1;
-	border-radius: var(--tl-radius-2);
-	background: var(--tl-color-panel);
+@media (hover: hover) {
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__toggle:hover {
+		background: linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2))
+			var(--tl-color-panel);
+	}
 }
 
-.tlui-libraries-section > .tlui-libraries-panel__header .tlui-button[data-state='open']::before {
-	background: var(--tl-muted-gradient-to-bottom) var(--tl-color-panel);
+.tlui-libraries-section
+	> .tlui-libraries-panel__header:has(.tlui-libraries-menu-anchor[data-state='open'])
+	> .tlui-libraries-panel__toggle {
+	background: linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2))
+		var(--tl-color-panel);
 }
 
 .tlui-libraries-panel > .tlui-libraries-panel__header .tlui-button[data-state='open']::after {
@@ -593,128 +565,276 @@
 	opacity: 1;
 }
 
-.tlui-libraries-panel__group-label {
-	margin: 0;
-	padding: 0 14px;
-	line-height: 32px;
-	font-size: 12px;
-	font-weight: 500;
-	color: var(--tl-color-text-3);
-}
-
 .tlui-libraries-browse {
 	display: flex;
 	flex-direction: column;
-	gap: var(--tl-space-4);
 	flex-basis: auto;
-	width: 560px;
+	width: 572px;
 	max-width: 100%;
-	height: min(560px, 70vh);
-}
-
-.tlui-libraries-browse .tlui-libraries-panel__group-label {
-	padding: 0 var(--tl-space-2);
-	color: var(--tl-color-text-3);
-}
-
-.tlui-libraries-browse .tlui-libraries-browse__cards {
-	display: flex;
-	flex-direction: column;
-	gap: var(--tl-space-4);
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.tlui-libraries-browse__card {
-	display: flex;
-	flex-direction: column;
-	padding: var(--tl-space-3);
-	border-radius: var(--tl-radius-4);
-	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
-}
-
-.tlui-libraries-browse__thumbnails {
-	display: grid;
-	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: var(--tl-space-3);
-}
-
-.tlui-libraries-browse__thumbnails > .tlui-libraries-tile__thumbnail {
-	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-3);
+	height: min(752px, 80vh);
+	padding: 6px var(--tl-space-4);
+	font-weight: 500;
 }
 
 .tlui-dialog__header.tlui-libraries-browse__header {
 	flex-shrink: 0;
 	border-bottom: 1px solid var(--tl-color-divider);
+	font-weight: 500;
+}
+
+.tlui-libraries-browse__back + .tlui-dialog__header__title {
+	margin-inline-start: var(--tl-space-3);
 }
 
 .tlui-dialog__header.tlui-libraries-browse__header:has(> .tlui-libraries-browse__back) {
 	padding-inline-start: 0;
 }
 
-/* .tlui-dialog__body's `overflow-wrap: anywhere` would let the action's label wrap mid-word. */
-.tlui-libraries-browse__footer {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--tl-space-2) var(--tl-space-4);
-	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
-	overflow-wrap: normal;
+.tlui-libraries-browse__title-rename {
+	all: unset;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: default;
 }
 
-.tlui-libraries-browse__actions {
+.tlui-libraries-browse__title-rename:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+	border-radius: var(--tl-radius-1);
+}
+
+.tlui-libraries-browse__header .tlui-button__icon,
+.tlui-libraries-details__header .tlui-dialog__header__title {
+	font-weight: 500;
+}
+
+.tlui-libraries-details__header .tlui-button__icon {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-browse__header .tlui-dialog__header__close,
+.tlui-libraries-details__header .tlui-dialog__header__close {
+	margin-inline-start: -4px;
+}
+
+.tlui-libraries-browse__header .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 32px;
+	margin-inline-end: var(--tl-space-3);
+}
+
+.tlui-input.tlui-libraries-browse__rename {
+	height: 32px;
+	padding: 0 8px 2px;
+	border-radius: var(--tl-radius-2);
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
+	font-weight: 500;
+}
+
+.tlui-dialog__footer.tlui-libraries-browse__footer {
+	flex-shrink: 0;
 	display: flex;
-	flex: none;
 	align-items: center;
-	gap: var(--tl-space-4);
-	margin-inline-start: auto;
+	justify-content: flex-end;
+	height: 40px;
+	padding: 0 0 0 var(--tl-space-2);
+	border-top: 1px solid var(--tl-color-divider);
+	font-weight: 500;
+}
+
+.tlui-libraries-browse__create {
+	gap: 6px;
+}
+
+.tlui-libraries-browse .tlui-libraries-browse__rows,
+.tlui-libraries-browse .tlui-libraries-browse__group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tlui-libraries-browse .tlui-libraries-browse__rows {
+	gap: 12px;
+}
+
+.tlui-libraries-browse__group-label {
+	margin: 0;
+	padding: 0 10px;
+	line-height: 40px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-browse__rows + .tlui-libraries-browse__group {
+	margin-top: 8px;
+}
+
+/* .tlui-dialog__body's `overflow-wrap: anywhere` would let the action's label wrap mid-word. */
+.tlui-libraries-browse__row {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 0 10px 22px;
+	border-radius: var(--tl-radius-2);
+	overflow-wrap: normal;
+	-webkit-touch-callout: none;
+}
+
+@media (hover: hover) {
+	.tlui-libraries-browse__row:hover:not(
+			:has(.tlui-libraries-browse__action:not([aria-disabled='true']):hover)
+		) {
+		background: var(--tl-color-muted-2);
+	}
+}
+
+.tlui-libraries-browse__row-title {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+	height: 40px;
+}
+
+.tlui-libraries-browse__row-title > .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 32px;
+}
+
+.tlui-libraries-browse__name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+/* A text button in the primary colour, on a pill while hovered. */
+.tlui-libraries-browse__action {
+	all: unset;
+	box-sizing: border-box;
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 4px;
+	height: 32px;
+	margin-inline-end: -12px;
+	padding: 0 12px;
+	border-radius: var(--tl-radius-2);
+	font-size: 12px;
+	color: var(--tl-color-primary);
+	white-space: nowrap;
+	cursor: pointer;
+	position: relative;
+}
+
+.tlui-libraries-browse__action::before {
+	content: '';
+	position: absolute;
+	inset: -4px 0;
+}
+
+.tlui-libraries-browse__action[aria-disabled='true'] {
+	cursor: default;
+	opacity: 0.5;
+}
+
+.tlui-libraries-browse__action:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+}
+
+@media (hover: hover) {
+	.tlui-libraries-browse__action:not([aria-disabled='true']):hover {
+		background: var(--tl-color-muted-2);
+	}
+}
+
+.tlui-libraries-browse__action-rest,
+.tlui-libraries-browse__added {
+	display: none;
+	align-items: center;
+	gap: 4px;
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-browse__added {
 	display: flex;
-	align-items: center;
-	gap: var(--tl-space-2);
+	flex-shrink: 0;
 	font-size: 12px;
-	color: var(--tl-color-text-3);
 }
 
-.tlui-libraries-browse__text {
-	display: flex;
-	flex: 1 1 160px;
-	flex-direction: column;
-	min-width: 0;
+.tlui-libraries-browse__footer > .tlui-libraries-browse__added {
+	margin-inline-end: 4px;
+	padding: 0 8px;
 }
 
-.tlui-libraries-browse__name,
-.tlui-libraries-browse__detail {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+.tlui-libraries-browse__footer > .tlui-libraries-browse__action {
+	margin-inline-end: 4px;
+	padding: 0 8px;
 }
 
-.tlui-libraries-browse__name {
-	font-size: 13px;
-	line-height: 20px;
-	font-weight: 500;
-	color: var(--tl-color-text-0);
+/* With a pointer that hovers, a row's action rests as a muted + or "Added ✓" until the row is hovered
+   or has focus. Touch shows the action itself. */
+@media (hover: hover) {
+	.tlui-libraries-browse__row:not(:hover, :focus-within)
+		.tlui-libraries-browse__action[data-reveal] {
+		color: var(--tl-color-text-3);
+	}
+
+	.tlui-libraries-browse__row[data-empty]:not(:hover, :focus-within)
+		.tlui-libraries-browse__action[data-reveal] {
+		color: var(--tl-color-text-1);
+	}
+
+	.tlui-libraries-browse__row:not(:hover, :focus-within)
+		.tlui-libraries-browse__action[data-reveal]
+		> .tlui-libraries-browse__action-label {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+	}
+
+	.tlui-libraries-browse__row:not(:hover, :focus-within)
+		.tlui-libraries-browse__action[data-reveal]
+		> .tlui-libraries-browse__action-rest {
+		display: flex;
+	}
 }
 
-.tlui-libraries-browse__detail {
-	font-size: 12px;
-	line-height: 18px;
-	color: var(--tl-color-text-3);
+.tlui-libraries-browse__strip {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.tlui-libraries-browse__row[data-viewable] {
+	cursor: pointer;
 }
 
 .tlui-libraries-browse__view {
 	all: unset;
 	box-sizing: border-box;
-	display: grid;
-	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: var(--tl-space-3);
-	border-radius: var(--tl-radius-3);
-	cursor: pointer;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+	border-radius: var(--tl-radius-1);
 }
 
 .tlui-libraries-browse__view:focus-visible {
@@ -722,43 +842,274 @@
 	outline-offset: 2px;
 }
 
-@media (hover: hover) {
-	.tlui-libraries-browse__view:hover > .tlui-libraries-tile__thumbnail {
-		border-color: var(--tl-color-muted-1);
-	}
+.tlui-libraries-browse .tlui-libraries-tile__thumbnail {
+	border-radius: var(--tl-radius-2);
 }
 
+.tlui-libraries-browse .tlui-libraries-tile__thumbnail.tlui-libraries-browse__more {
+	border-radius: var(--tl-radius-1);
+}
+
+.tlui-libraries-tile__thumbnail.tlui-libraries-browse__more {
+	color: var(--tl-color-text-3);
+	background: transparent;
+}
+
+.tlui-libraries-browse__empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	aspect-ratio: 11 / 2;
+	margin: 0;
+	text-align: center;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-browse__empty--view {
+	flex: 1;
+	aspect-ratio: auto;
+}
+
+/* As many columns as fit, five in the dialog. */
 .tlui-libraries-browse .tlui-libraries-browse__items {
 	flex-shrink: 0;
 	display: grid;
-	grid-template-columns: repeat(6, minmax(0, 1fr));
-	gap: var(--tl-space-4) var(--tl-space-3);
-	min-height: 80px;
+	grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+	gap: 12px;
+	margin: 0;
+	padding: 20px 10px;
+	list-style: none;
+}
+
+.tlui-libraries-browse__item {
+	display: flex;
+	min-width: 0;
+}
+
+.tlui-libraries-browse__item > .tlui-libraries-tile {
+	flex: 1;
+}
+
+.tlui-libraries-details {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 424px;
+	max-width: 100%;
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+
+.tlui-libraries-details__description {
+	margin: 0;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-details__facts {
+	display: grid;
+	grid-template-columns: 88px minmax(0, 1fr);
+	align-items: center;
+	margin: 0;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.tlui-libraries-details__facts > dt {
+	line-height: 36px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-details__facts > dd {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	height: 36px;
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-details__name {
+	all: unset;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: text;
+}
+
+.tlui-libraries-details__name:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+	border-radius: var(--tl-radius-1);
+}
+
+.tlui-libraries-details__facts > dd:has(.tlui-input__wrapper, .tlui-libraries-details__name) {
+	overflow: visible;
+}
+
+.tlui-libraries-details__facts .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 32px;
+	margin-inline-start: -8px;
+}
+
+.tlui-input.tlui-libraries-details__rename {
+	height: 32px;
+	font-weight: 500;
+	padding: 0 8px 2px;
+	border-radius: var(--tl-radius-2);
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
+}
+
+/* Like the tldraw.com sidebar's search row: an icon, the input, and a ✕ once it has text, in a box
+   that takes the primary colour while focused. */
+.tlui-libraries-search {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	height: 32px;
+	margin: 2px 12px 6px;
+	padding-left: 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+}
+
+.tlui-libraries-panel__header:has(+ .tlui-libraries-search) {
+	border-bottom: none;
+}
+
+.tlui-libraries-search + .tlui-libraries-sections {
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.tlui-libraries-search:focus-within {
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
+}
+
+.tlui-libraries-search > .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	gap: 6px;
+}
+
+.tlui-libraries-search__icon {
+	flex-shrink: 0;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-input.tlui-libraries-search__input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+	font-weight: 500;
+}
+
+.tlui-libraries-search__clear {
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+}
+
+.tlui-libraries-search__clear::after {
+	inset: 4px;
+}
+
+.tlui-libraries-this-file-empty {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 0 12px 12px;
+}
+
+.tlui-libraries-panel__suggested {
+	padding: 0 12px 12px;
+}
+
+.tlui-libraries-this-file-empty__text {
+	margin: 0;
+	padding: 0 4px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-offers {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.tlui-libraries-offers__heading {
+	margin: 0;
+	padding: 0 4px;
+	font-size: inherit;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-offers__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
-.tl-container:has(.tlui-layout__mobile) .tlui-libraries-browse .tlui-libraries-browse__items {
-	grid-template-columns: repeat(4, minmax(0, 1fr));
+.tlui-libraries-offer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 10px 8px 8px;
+	border-radius: var(--tl-radius-3);
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
 }
 
-.tlui-libraries-browse__item {
+.tlui-libraries-offer__icon {
 	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-offer__text {
+	display: flex;
+	flex: 1;
 	flex-direction: column;
-	gap: var(--tl-space-2);
+	gap: 2px;
 	min-width: 0;
 }
 
-.tlui-libraries-browse__item > .tlui-libraries-tile__thumbnail {
-	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-3);
+.tlui-libraries-offer__name {
+	font-weight: 500;
+	color: var(--tl-color-text-1);
 }
 
-.tlui-libraries-browse__item-name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-size: 12px;
-	color: var(--tl-color-text-1);
+.tlui-libraries-offer__detail {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-button.tlui-libraries-offer__add {
+	flex-shrink: 0;
+	height: 32px;
+	padding: 0 12px;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-primary);
+}
+
+.tlui-button.tlui-libraries-offer__add::after {
+	inset: 0;
+	border-radius: inherit;
 }

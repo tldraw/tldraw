@@ -101,7 +101,7 @@ export default function LibrariesMenuActionsExample() {
 
 /*
 [1]
-`LibraryMenu` and `ItemMenu` are the default ⋯ menus. Children passed to them join the default
-items, so an override that renders the default with children of its own keeps rename, delete and
-the rest.
+`LibraryMenu` and `ItemMenu` are the default menus that a right-click on a library's name or an
+item opens. Children passed to them join the default items, so an override that renders the
+default with children of its own, passing on the props it gets, keeps rename, delete and the rest.
 */

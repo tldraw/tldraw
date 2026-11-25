@@ -1,3 +1,5 @@
+import type { QueryResultType } from '@rocicorp/zero'
+import type { queries } from '@tldraw/dotcom-shared'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -72,21 +74,16 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 		[...this.shown$.get().values()].map(({ library }) => library)
 	)
 
-	// Libraries added to the file from workspaces the user isn't a member of, whose items only the
-	// file's query has.
-	private readonly otherItems$ = computed('items of libraries from other workspaces', () => {
+	// The rows of libraries added to the file from workspaces the user isn't a member of, which
+	// only the file's query has: their item counts and first items.
+	private readonly otherRows$ = computed('rows of libraries from other workspaces', () => {
 		const workspaceLibraries = this.workspaceLibraries$.get()
-		const items = new Map<TLLibraryId, TLLibraryItem[]>()
+		const rows = new Map<TLLibraryId, QueryResultType<typeof queries.fileLibraries>[number]>()
 		for (const row of this.watch.rows.get()) {
 			const id = LibraryRecordType.createId(row.id)
-			if (!workspaceLibraries.has(id)) {
-				items.set(
-					id,
-					row.items.map((item) => toLibraryItem(item))
-				)
-			}
+			if (!workspaceLibraries.has(id)) rows.set(id, row)
 		}
-		return items
+		return rows
 	})
 
 	constructor(
@@ -132,11 +129,41 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 	}
 
 	getItems(libraryId: TLLibraryId) {
-		return this.otherItems$.get().get(libraryId) ?? this.libraries.getItems(libraryId)
+		return this.libraries.getItems(libraryId)
+	}
+
+	loadItems(libraryId: TLLibraryId) {
+		this.libraries.loadItems(libraryId)
+	}
+
+	isLoadingItems(libraryId: TLLibraryId) {
+		const other = this.otherRows$.get().get(libraryId)
+		if (!other) return this.libraries.isLoadingItems(libraryId)
+		return !this.libraries.areItemsLoaded(libraryId) && other.itemCount > 0
+	}
+
+	getItemCount(libraryId: TLLibraryId) {
+		const other = this.otherRows$.get().get(libraryId)
+		if (!other || this.libraries.areItemsLoaded(libraryId)) {
+			return this.libraries.getItemCount(libraryId)
+		}
+		return other.itemCount
+	}
+
+	getPreviewItems(libraryId: TLLibraryId, count: number) {
+		const other = this.otherRows$.get().get(libraryId)
+		if (!other || this.libraries.areItemsLoaded(libraryId)) {
+			return this.libraries.getPreviewItems(libraryId, count)
+		}
+		return other.items.slice(0, count).map((item) => toLibraryItem(item))
 	}
 
 	getItemContent(itemId: TLLibraryItemId) {
 		return this.libraries.getItemContent(itemId)
+	}
+
+	getItemDetails(item: TLLibraryItem) {
+		return this.libraries.getItemDetails(item)
 	}
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
@@ -180,12 +207,12 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 	 * Whether removing the library from the file asks to delete it too, as deleting it loses
 	 * nothing: it looks empty, or it's a starter pack's copy nobody has changed that no other file
 	 * shows. Only when the user may delete it, so never their default, and only once the libraries
-	 * have synced, since until then a library's items may not have arrived. The server checks
-	 * again, and keeps the library if it has changed since.
+	 * have synced, since until then a library's row may not have arrived. The server checks again,
+	 * and keeps the library if it has changed since.
 	 */
 	deletesOnRemove(libraryId: TLLibraryId) {
 		if (!this.app.areLibrariesLoaded() || !this.can('deleteLibrary', libraryId)) return false
-		if (this.getItems(libraryId).length === 0) return true
+		if (this.getItemCount(libraryId) === 0) return true
 		const row = this.watch.rows.get().find((r) => r.id === rowId(libraryId))
 		return !!row && row.meta.packId !== undefined && row.fileCount <= 1
 	}

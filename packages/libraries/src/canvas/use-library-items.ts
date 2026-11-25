@@ -13,7 +13,7 @@ export interface LibraryItemsOptions {
 /**
  * A library's items, in the given order. Updates when the source changes. Items the ordering ties
  * keep the source's order. Pass the result of {@link useLibraryItemOrder} to follow the order
- * chosen in the panel's sort menu.
+ * chosen in the panel's "Sort by" menu.
  * @public
  */
 export function useLibraryItems(

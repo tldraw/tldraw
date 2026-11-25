@@ -19,6 +19,7 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getLibraryDescendants, getRootLibraryIds, resolveLibraryParent } from './libraryTree'
 import {
 	applyLibraryItemPartial,
 	LibraryItemRecordType,
@@ -48,7 +49,7 @@ export interface InMemoryLibrarySourceOptions {
 	/**
 	 * The libraries the document shows, and why. Give it for a source where libraries are added to
 	 * a document: the starting libraries left out of it are available to add, and new libraries
-	 * are added. Leave it out and every library is shown, and the source has no
+	 * are added. Name only libraries at the top level: the libraries inside one are shown with it. Leave it out and every library is shown, and the source has no
 	 * `getAvailableLibraries`, `getLibraryPlacement`, `addLibraryToDocument` or
 	 * `removeLibraryFromDocument`.
 	 */
@@ -56,7 +57,9 @@ export interface InMemoryLibrarySourceOptions {
 	/**
 	 * Decides what the user may do, answering `can` for the source. Leave it out to allow
 	 * everything. A library or owner that doesn't exist is refused before this is asked. New
-	 * libraries are asked about with the owner they will belong to, when there is one. Listing
+	 * libraries are asked about with the owner they will belong to, when there is one, or with the
+	 * library they go inside. A library inside another is asked about as the library at the top of
+	 * its tree, whose permissions it has. Listing
 	 * items and loading their content aren't actions, so they work even when this refuses
 	 * everything.
 	 *
@@ -103,10 +106,15 @@ export class InMemoryLibrarySource implements LibrarySource {
 	private readonly store = new Store<ListedRecord>({ schema, props: {} })
 	private readonly libraries = this.store.query.records('library')
 	private readonly placements: Atom<ReadonlyMap<TLLibraryId, TLLibraryPlacement>> | undefined
+	private readonly rootIds = computed('in-memory library roots', () =>
+		getRootLibraryIds(this.libraries.get())
+	)
 	private readonly shownLibraries = computed('in-memory shown libraries', () => {
 		const placements = this.placements?.get()
 		const all = this.libraries.get()
-		return placements ? all.filter((library) => placements.has(library.id)) : all
+		if (!placements) return all
+		const roots = this.rootIds.get()
+		return all.filter((library) => placements.has(roots.get(library.id) ?? library.id))
 	})
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly contents = new Map<TLLibraryItemId, TLLibraryItemContent>()
@@ -134,6 +142,21 @@ export class InMemoryLibrarySource implements LibrarySource {
 				if (library.ownerId !== undefined && !isOwner(library.ownerId)) {
 					throw new Error(`Library ${library.id} belongs to missing owner ${library.ownerId}`)
 				}
+				if (library.parentId === undefined) continue
+				const parent = libraries.find((c) => c.id === library.parentId)
+				if (!parent) throw new Error(`Library ${library.id} is inside missing ${library.parentId}`)
+				if (parent.ownerId !== library.ownerId) {
+					throw new Error(`Library ${library.id} belongs to another owner than its parent`)
+				}
+				const above = new Set([library.id])
+				for (
+					let id: TLLibraryId | undefined = library.parentId;
+					id !== undefined;
+					id = libraries.find((c) => c.id === id)?.parentId
+				) {
+					if (above.has(id)) throw new Error(`Library ${library.id} is in a loop of parents`)
+					above.add(id)
+				}
 			}
 			for (const item of items) {
 				if (!libraries.some((c) => c.id === item.libraryId)) {
@@ -151,16 +174,25 @@ export class InMemoryLibrarySource implements LibrarySource {
 		}
 		if (options.shownInDocument) {
 			for (const { libraryId } of options.shownInDocument) {
-				if (!this.store.has(libraryId)) throw new Error(`Shown library ${libraryId} is missing`)
+				const library = this.store.get(libraryId)
+				if (!library) throw new Error(`Shown library ${libraryId} is missing`)
+				if (library.parentId !== undefined) {
+					throw new Error(`Shown library ${libraryId} is inside another, which is shown instead`)
+				}
 			}
 			const placements = atom(
 				'in-memory library placements',
 				new Map(options.shownInDocument.map((shown) => [shown.libraryId, shown.placement]))
 			)
 			this.placements = placements
-			this.getLibraryPlacement = (libraryId) => placements.get().get(libraryId)
-			this.getAvailableLibraries = () =>
-				this.libraries.get().filter((library) => !placements.get().has(library.id))
+			this.getLibraryPlacement = (libraryId) =>
+				placements.get().get(this.rootIds.get().get(libraryId) ?? libraryId)
+			this.getAvailableLibraries = () => {
+				const roots = this.rootIds.get()
+				return this.libraries
+					.get()
+					.filter((library) => !placements.get().has(roots.get(library.id) ?? library.id))
+			}
 			this.addLibraryToDocument = async (libraryId) => {
 				this.getLibrary(libraryId)
 				if (placements.get().has(libraryId)) return
@@ -211,6 +243,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 		}
 		if (action === 'addLibraryToDocument' || action === 'removeLibraryFromDocument') {
 			if (typeof target !== 'string' || !this.placements) return false
+			if (this.store.get(target)?.parentId !== undefined) return false
 			const placement = this.placements.get().get(target)
 			const fits = action === 'addLibraryToDocument' ? !placement : placement === 'added'
 			if (!fits) return false
@@ -218,6 +251,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 		if (typeof target === 'object' && this.getLibraryOwners().length > 0) {
 			if (!this.hasOwner(target.ownerId)) return false
 		}
+		if (typeof target === 'string') return this.allows(action, this.rootIds.get().get(target))
 		return this.allows(action, target)
 	}
 
@@ -230,16 +264,25 @@ export class InMemoryLibrarySource implements LibrarySource {
 	}
 
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		const ownerId = options.ownerId ?? this.getDefaultOwnerId() ?? this.getLibraryOwners()[0]?.id
+		const { parentId } = options
+		const parent =
+			parentId === undefined
+				? undefined
+				: resolveLibraryParent(this.libraries.get(), parentId, options.ownerId)
+		const ownerId = parent
+			? parent.ownerId
+			: (options.ownerId ?? this.getDefaultOwnerId() ?? this.getLibraryOwners()[0]?.id)
 		if (ownerId !== undefined && !this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
-		this.assertCan('createLibrary', ownerId === undefined ? undefined : { ownerId })
+		if (parent) this.assertCan('createLibrary', parent.id)
+		else this.assertCan('createLibrary', ownerId === undefined ? undefined : { ownerId })
 		const library = LibraryRecordType.create({
 			name,
 			...(ownerId === undefined ? {} : { ownerId }),
+			...(parent ? { parentId: parent.id } : {}),
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.store.put([library])
-		this.placements?.update((all) => new Map(all).set(library.id, 'added'))
+		if (!parent) this.placements?.update((all) => new Map(all).set(library.id, 'added'))
 		return library
 	}
 
@@ -252,10 +295,14 @@ export class InMemoryLibrarySource implements LibrarySource {
 	async deleteLibrary(libraryId: TLLibraryId) {
 		this.getLibrary(libraryId)
 		this.assertCan('deleteLibrary', libraryId)
-		const items = this.getItems(libraryId)
+		const libraryIds = [
+			libraryId,
+			...getLibraryDescendants(this.libraries.get(), libraryId).map((library) => library.id),
+		]
+		const items = libraryIds.flatMap((id) => this.getItems(id))
 		for (const item of items) this.forgetItem(item.id)
-		this.store.remove([libraryId, ...items.map((item) => item.id)])
-		this.itemsByLibrary.delete(libraryId)
+		this.store.remove([...libraryIds, ...items.map((item) => item.id)])
+		for (const id of libraryIds) this.itemsByLibrary.delete(id)
 		this.placements?.update((all) => {
 			const rest = new Map(all)
 			rest.delete(libraryId)
@@ -323,8 +370,9 @@ export class InMemoryLibrarySource implements LibrarySource {
 		this.getLibrary(toLibraryId)
 		this.assertCan('deleteItem', item.libraryId)
 		this.assertCan('addItem', toLibraryId)
-		if (item.libraryId === toLibraryId) return
+		if (item.libraryId === toLibraryId) return itemId
 		this.store.put([{ ...item, libraryId: toLibraryId }])
+		return itemId
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */

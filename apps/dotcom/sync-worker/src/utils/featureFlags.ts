@@ -54,6 +54,12 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
+		libraries_anonymous: {
+			type: 'boolean',
+			enabled: false,
+			description:
+				'Lets signed-out visitors browse and place libraries read-only: the starter packs, and the libraries kept in a shared file. Saving to a library asks them to sign in. Signed-in users follow the libraries flag instead. A change reaches a tab when it next reloads',
+		},
 		thumbnail_render_push: {
 			type: 'percentage',
 			// 0% by default: a deployment whose KV read fails keeps fetching, the path that predates push.

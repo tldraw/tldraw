@@ -87,7 +87,11 @@ afterEach(() => {
 })
 
 /** Renders `useHook` inside the editor's UI and returns a getter for its latest result. */
-function renderHook<T>(useHook: () => T, children?: (value: T) => React.ReactNode) {
+function renderHook<T>(
+	useHook: () => T,
+	children?: (value: T) => React.ReactNode,
+	{ forceMobile = false } = {}
+) {
 	const result: { current?: T } = {}
 	function Probe() {
 		result.current = useHook()
@@ -97,7 +101,7 @@ function renderHook<T>(useHook: () => T, children?: (value: T) => React.ReactNod
 		root.render(
 			<ContainerProvider container={container}>
 				<EditorContext.Provider value={editor}>
-					<TldrawUiContextProvider>
+					<TldrawUiContextProvider forceMobile={forceMobile}>
 						<Probe />
 					</TldrawUiContextProvider>
 				</EditorContext.Provider>
@@ -118,7 +122,12 @@ async function flush() {
 }
 
 describe('useLibraryItemDrag', () => {
-	function renderTile(source: InMemoryLibrarySource, itemId: TLLibraryItemId, options = {}) {
+	function renderTile(
+		source: InMemoryLibrarySource,
+		itemId: TLLibraryItemId,
+		options = {},
+		{ forceMobile = false } = {}
+	) {
 		renderHook(
 			() => useLibraryItemDrag(source, options as LibraryItemDragOptions),
 			(getItemProps) => (
@@ -128,7 +137,8 @@ describe('useLibraryItemDrag', () => {
 						{...(getItemProps(itemId) as ButtonHTMLAttributes<HTMLButtonElement>)}
 					/>
 				</div>
-			)
+			),
+			{ forceMobile }
 		)
 		const tile = container.querySelector<HTMLButtonElement>('.tile')!
 		const region = container.querySelector<HTMLDivElement>('.region')!
@@ -159,6 +169,22 @@ describe('useLibraryItemDrag', () => {
 		await act(async () => tile.dispatchEvent(pointer('pointermove', 100, 100)))
 		expect(editor.getCurrentPageShapes()).toHaveLength(1)
 		expect(editor.isIn('select.translating')).toBe(true)
+	})
+
+	it("doesn't drag the item out on a phone, where a click still places it", async () => {
+		const { source, box } = await makeSource()
+		const tile = renderTile(source, box.id, {}, { forceMobile: true })
+		await act(async () => tile.dispatchEvent(pointer('pointerdown', 10, 10)))
+		await flush()
+		await act(async () => tile.dispatchEvent(pointer('pointermove', 400, 400)))
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.isIn('select.translating')).toBe(false)
+		await act(async () => {
+			tile.dispatchEvent(pointer('pointerup', 400, 400))
+			tile.click()
+		})
+		await flush()
+		expect(editor.getCurrentPageShapes()).toHaveLength(1)
 	})
 
 	it('waits for the pointer to leave the region getDragRegion gives', async () => {
@@ -265,8 +291,11 @@ describe('useLibraryItemActions', () => {
 		act(() => actions().copy(box.id, icons.id))
 		await flush()
 		expect(source.getItems(icons.id).map((i) => i.name)).toEqual(['Box (Copy)'])
-		act(() => actions().move(box.id, icons.id))
-		await flush()
+		let movedId: TLLibraryItemId | undefined
+		await act(async () => {
+			movedId = await actions().move(box.id, icons.id)
+		})
+		expect(movedId).toBe(box.id)
 		expect(source.getItems(shapes.id)).toEqual([])
 		expect(
 			source
@@ -305,6 +334,21 @@ describe('useLibraryItemActions', () => {
 })
 
 describe('useLibraryActions', () => {
+	it('offers delete for a library inside one added to the document, which stays added', () => {
+		const kit = LibraryRecordType.create({ name: 'Kit' })
+		const inner = LibraryRecordType.create({ name: 'Inner', parentId: kit.id })
+		const source = new InMemoryLibrarySource({
+			initial: { libraries: [kit, inner], items: [], contents: {} },
+			shownInDocument: [{ libraryId: kit.id, placement: 'added' }],
+		})
+		const outer = renderHook(() => useLibraryActions(source, kit))
+		expect(outer().menuActions.onDelete).toBeUndefined()
+		expect(outer().menuActions.onRemoveFromDocument).toBeDefined()
+		const nested = renderHook(() => useLibraryActions(source, inner))
+		expect(nested().menuActions.onDelete).toBeDefined()
+		expect(nested().menuActions.onRemoveFromDocument).toBeUndefined()
+	})
+
 	it("offers no Rename for the user's default library", async () => {
 		const stash = LibraryRecordType.create({ name: 'My stash' })
 		const other = LibraryRecordType.create({ name: 'Shapes' })

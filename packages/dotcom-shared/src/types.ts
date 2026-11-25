@@ -460,6 +460,7 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'libraries',
+	'libraries_anonymous',
 	'thumbnail_render_push',
 	'mcp_render_push',
 	'headless_shadow',

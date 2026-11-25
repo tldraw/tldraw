@@ -141,7 +141,7 @@ function makeComponents(file: DocumentFile): TLComponents {
 				parts: [
 					{ source: file.libraries },
 					{
-						owner: { id: file.id, name: 'This board', icon: <BoardIcon /> },
+						owner: { id: file.id, name: 'This file', icon: <BoardIcon /> },
 						source: new BoardLibrarySource(editor, { id: `board:${file.id}`, toasts, msg }),
 					},
 				],
