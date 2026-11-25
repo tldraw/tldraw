@@ -55,6 +55,8 @@ import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
+import type { TLPlugin } from './plugins/plugin'
+import { legacyEditorPlugins } from './react/legacyEditorPlugins'
 import { TLDeepLinkOptions } from './utils/deepLinks'
 import { getGlobalDocument, getGlobalWindow } from './utils/dom'
 import { TLTextOptions } from './utils/richText'
@@ -145,6 +147,13 @@ export interface TldrawEditorBaseProps {
 	 * An array of tools to add to the editor's state chart.
 	 */
 	tools?: readonly TLStateNodeConstructor[]
+
+	/**
+	 * Plugins that add behavior to the editor. Their shape utils, binding utils and tools are
+	 * added to the ones above. Keep the array stable between renders, because a new array
+	 * creates a new editor.
+	 */
+	plugins?: readonly TLPlugin[]
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.
@@ -409,6 +418,7 @@ function TldrawEditorWithOwnStore(
 		shapeUtils,
 		bindingUtils,
 		assetUtils,
+		plugins,
 		persistenceKey,
 		sessionId,
 		user,
@@ -418,9 +428,20 @@ function TldrawEditorWithOwnStore(
 		themes,
 	} = props
 
+	const pluginShapeUtils = useMemo(
+		() => plugins?.flatMap((p) => p.shapeUtils ?? []) ?? [],
+		[plugins]
+	)
+	const pluginBindingUtils = useMemo(
+		() => plugins?.flatMap((p) => p.bindingUtils ?? []) ?? [],
+		[plugins]
+	)
 	const syncedStore = useLocalStore({
-		shapeUtils,
-		bindingUtils,
+		shapeUtils: useMemo(() => [...shapeUtils, ...pluginShapeUtils], [shapeUtils, pluginShapeUtils]),
+		bindingUtils: useMemo(
+			() => [...bindingUtils, ...pluginBindingUtils],
+			[bindingUtils, pluginBindingUtils]
+		),
 		assetUtils,
 		initialData,
 		persistenceKey,
@@ -516,6 +537,7 @@ function TldrawEditorWithReadyStore({
 	bindingUtils,
 	assetUtils,
 	overlayUtils,
+	plugins,
 	user,
 	initialState,
 	autoFocus = true,
@@ -603,6 +625,9 @@ function TldrawEditorWithReadyStore({
 				assetUtils,
 				overlayUtils,
 				tools,
+				plugins,
+				// The React layer installs the full legacy preset, which includes its own plugins.
+				defaultPlugins: legacyEditorPlugins,
 				getContainer: () => container,
 				user,
 				initialState,
@@ -648,6 +673,7 @@ function TldrawEditorWithReadyStore({
 			container,
 			options,
 			overlayUtils,
+			plugins,
 			shapeUtils,
 			store,
 			tools,

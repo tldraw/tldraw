@@ -119,13 +119,23 @@ import {
 	STYLUS_ERASER_BUTTON,
 } from '../constants'
 import { getOwnerWindow } from '../exports/domUtils'
-import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { registerMountedEditor, unregisterMountedEditor } from '../globals/editors'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { LicenseManager } from '../license/LicenseManager'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
+import { containerFocusCapability } from '../plugins/builtin/domFocus'
+import {
+	TLExternalAssetHandlers,
+	TLExternalContentHandlers,
+	externalContentCapability,
+} from '../plugins/builtin/externalContent'
+import { snappingCapability } from '../plugins/builtin/snapping'
+import { svgExportCapability } from '../plugins/builtin/svgExport'
+import { TLTextMeasurer, textMeasurementCapability } from '../plugins/builtin/textMeasurement'
+import type { TLPlugin } from '../plugins/plugin'
+import { TLPluginHost } from '../plugins/PluginHost'
 import { Box, BoxLike } from '../primitives/Box'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
@@ -165,7 +175,6 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
-import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
@@ -173,9 +182,7 @@ import { PerformanceManager } from './managers/PerformanceManager/PerformanceMan
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
-import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
-import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
@@ -248,6 +255,19 @@ export interface TLEditorOptions {
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
 	tools: readonly TLStateNodeConstructor[]
+	/**
+	 * Plugins that add behavior to the editor. Their shape utils, binding utils and tools are added
+	 * to the ones above. A plugin replaces a built-in plugin that has the same id or provides one
+	 * of the same capabilities, for example a headless text measurer replaces the DOM one.
+	 */
+	plugins?: readonly TLPlugin[]
+	/**
+	 * Plugins that are installed unless a plugin in `plugins` replaces them. The package entry sets
+	 * the default to {@link legacyEditorPlugins}. `createEditor` sets this to an empty list.
+	 *
+	 * @internal
+	 */
+	defaultPlugins?: readonly TLPlugin[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -348,6 +368,16 @@ export interface TLRenderingShape {
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
 
+// The default plugins for `new Editor()`. The kernel has none. The `@tldraw/editor` entry sets
+// them to `legacyEditorPlugins`, which include the DOM and React plugins, so that this module
+// does not import React and `createEditor` stays headless.
+let defaultEditorPlugins: readonly TLPlugin[] = []
+
+/** @internal */
+export function setDefaultEditorPlugins(plugins: readonly TLPlugin[]) {
+	defaultEditorPlugins = plugins
+}
+
 const AXIS = {
 	horizontal: { val: 'x', min: 'minX', max: 'maxX', dim: 'width' },
 	vertical: { val: 'y', min: 'minY', max: 'maxY', dim: 'height' },
@@ -364,6 +394,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		assetUtils: assetUtilConstructors,
 		overlayUtils: overlayUtilConstructors,
 		tools,
+		plugins = [],
+		defaultPlugins = defaultEditorPlugins,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -401,7 +433,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		})
 
-		this.snaps = new SnapManager(this)
+		this.plugins = new TLPluginHost(this, plugins, defaultPlugins)
+		const installedPlugins = this.plugins.getPlugins()
 
 		this._spatialIndex = new SpatialIndexManager(this)
 		this.disposables.add(() => this._spatialIndex.dispose())
@@ -422,17 +455,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
 
-		this.textMeasure = new TextManager(this)
-		this.disposables.add(() => this.textMeasure.dispose())
-
 		this._themeManager = new ThemeManager(this, {
 			themes: resolveThemes(themes),
 			initial: initialTheme ?? 'default',
 		})
 		this.disposables.add(() => this._themeManager.dispose())
 
-		this._tickManager = new TickManager(this)
-		this.disposables.add(() => this._tickManager.dispose())
 		this.disposables.add(() => {
 			this._setCameraState('idle')
 		})
@@ -455,7 +483,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.markEventAsHandled = this.markEventAsHandled.bind(this)
 
-		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
+		const allShapeUtils = checkShapesAndAddCore([
+			...shapeUtils,
+			...installedPlugins.flatMap((p) => p.shapeUtils ?? []),
+		])
 
 		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
 		const _styleProps = {} as Record<string, Map<StyleProp<unknown>, string>>
@@ -493,7 +524,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		this._shapeUtilsByAssetType = _shapeUtilsByAssetType
 
-		const allBindingUtils = checkBindings(bindingUtils)
+		const allBindingUtils = checkBindings([
+			...bindingUtils,
+			...installedPlugins.flatMap((p) => p.bindingUtils ?? []),
+		])
 		const _bindingUtils = {} as Record<string, BindingUtil<any>>
 		for (const Util of allBindingUtils) {
 			const util = new Util(this)
@@ -515,7 +549,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const Tool of [...tools]) {
+		for (const Tool of [...tools, ...installedPlugins.flatMap((p) => p.tools ?? [])]) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}
@@ -940,11 +974,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 			throw Error(`No state found for initialState "${initialState}".`)
 		}
 
+		// Plugins set up when the rest of the core exists (utils, tools and store side effects),
+		// and before the first tool is entered.
+		this.plugins.setup()
+		this.disposables.add(() => this.plugins.dispose())
+		// Members that predate plugins are facades over plugin capabilities.
+		this.snaps = this.plugins.getOrStub(snappingCapability)
+		this.textMeasure = this.plugins.getOrStub(textMeasurementCapability)
+		const externalContent = this.plugins.getOptional(externalContentCapability)
+		this.externalContentHandlers =
+			externalContent?.contentHandlers ?? this.plugins.stub(externalContentCapability)
+		this.externalAssetContentHandlers =
+			externalContent?.assetHandlers ?? this.plugins.stub(externalContentCapability)
+
 		this.root.enter(undefined, 'initial')
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
-		this.focusManager = new FocusManager(this, autoFocus)
-		this.disposables.add(() => this.focusManager.dispose())
+		if (!!autoFocus !== this.getInstanceState().isFocused) {
+			this.updateInstanceState({ isFocused: !!autoFocus })
+		}
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
@@ -960,10 +1008,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.on('unmount', () => {
 			this._isMounted.set(false)
 			unregisterMountedEditor(this)
-		})
-
-		this.timers.requestAnimationFrame(() => {
-			this._tickManager.start()
 		})
 
 		this.performanceTracker = new PerformanceTracker()
@@ -1115,7 +1159,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * A manager for the editor's tick events.
 	 *
 	 * @internal */
-	private readonly _tickManager: TickManager
 
 	/**
 	 * A manager for the editor's input state.
@@ -1125,7 +1168,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly inputs: InputsManager
 
 	/**
-	 * A manager for the editor's snapping feature.
+	 * The editor's plugins: their capabilities and slot contributions.
+	 *
+	 * @public
+	 */
+	readonly plugins: TLPluginHost
+
+	/**
+	 * A manager for the editor's snapping feature. The snapping plugin provides it.
 	 *
 	 * @public
 	 */
@@ -1175,11 +1225,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private readonly _themeManager: ThemeManager
 
 	/**
-	 * A helper for measuring text.
+	 * A helper for measuring text. A text measurement plugin provides it.
 	 *
 	 * @public
 	 */
-	readonly textMeasure: TextManager
+	readonly textMeasure: TLTextMeasurer
 
 	/**
 	 * A utility for managing the set of fonts that should be rendered in the document.
@@ -1215,13 +1265,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	edgeScrollManager: EdgeScrollManager
-
-	/**
-	 * A manager for ensuring correct focus. See FocusManager for details.
-	 *
-	 * @internal
-	 */
-	private focusManager: FocusManager
 
 	/**
 	 * The current HTML element containing the editor.
@@ -9438,14 +9481,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Content -------------------- */
 
 	/** @internal */
-	externalAssetContentHandlers: {
-		[K in TLExternalAsset['type']]: {
-			[Key in K]: null | ((info: TLExternalAsset & { type: Key }) => Promise<TLAsset | undefined>)
-		}[K]
-	} = {
-		file: null,
-		url: null,
-	}
+	readonly externalAssetContentHandlers: TLExternalAssetHandlers
 
 	/** @internal */
 	private readonly temporaryAssetPreview = new Map<TLAssetId, string>()
@@ -9540,7 +9576,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The asset.
 	 */
 	async getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined> {
-		return await this.externalAssetContentHandlers[info.type]?.(info as any)
+		return await this.plugins.get(externalContentCapability).getAsset(info)
 	}
 
 	hasExternalAssetHandler(type: TLExternalAsset['type']): boolean {
@@ -9548,20 +9584,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	externalContentHandlers: {
-		[K in TLExternalContent<any>['type']]: {
-			[Key in K]: null | ((info: Extract<TLExternalContent<any>, { type: Key }>) => void)
-		}[K]
-	} = {
-		text: null,
-		files: null,
-		'file-replace': null,
-		embed: null,
-		'svg-text': null,
-		url: null,
-		tldraw: null,
-		excalidraw: null,
-	}
+	readonly externalContentHandlers: TLExternalContentHandlers
 
 	/**
 	 * Register an external content handler. This handler will be called when the editor receives
@@ -9607,8 +9630,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
-
-		return this.externalContentHandlers[info.type]?.(info as any)
+		return this.plugins.get(externalContentCapability).putContent(info)
 	}
 
 	/**
@@ -9622,7 +9644,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
-		return this.externalContentHandlers[info.type]?.(info as any)
+		return this.plugins.get(externalContentCapability).putContent(info)
 	}
 
 	/**
@@ -10182,7 +10204,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// after the editor mounts) is sized and laid out with fallback-font metrics.
 		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
 
-		return exportToSvg(this, ids, opts)
+		return this.plugins.get(svgExportCapability).exportToSvg(ids, opts)
 	}
 
 	/**
@@ -10409,7 +10431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	focus({ focusContainer = true } = {}): this {
 		if (this.getIsFocused()) return this
-		if (focusContainer) this.focusManager.focus()
+		if (focusContainer) this.plugins.getOptional(containerFocusCapability)?.focus()
 		this.updateInstanceState({ isFocused: true })
 		return this
 	}
@@ -10434,7 +10456,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	blur({ blurContainer = true } = {}): this {
 		if (!this.getIsFocused()) return this
-		this.focusManager.blur({ blurContainer })
+		this.complete() // stop any interaction
+		if (blurContainer) this.plugins.getOptional(containerFocusCapability)?.blur()
 		this.updateInstanceState({ isFocused: false })
 		return this
 	}

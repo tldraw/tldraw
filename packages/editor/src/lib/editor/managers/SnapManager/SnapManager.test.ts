@@ -63,6 +63,8 @@ describe('SnapManager', () => {
 
 	beforeEach(() => {
 		editor = {
+			// No plugin contributes to the canSnapToShape slot, so the pipe returns its input.
+			plugins: { pipe: (_slot: unknown, value: unknown) => value },
 			getZoomLevel: vi.fn(() => 1),
 			options: { snapThreshold: 8 },
 			getViewportPageBounds: vi.fn(() => new Box(0, 0, 1000, 1000)),

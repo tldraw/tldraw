@@ -99,30 +99,6 @@ describe('FocusManager', () => {
 			focusManager = new FocusManager(editor)
 			expect(document.body.addEventListener).toHaveBeenCalledWith('mousedown', expect.any(Function))
 		})
-
-		it('should set focus state to true when autoFocus is true', () => {
-			editor.getInstanceState.mockReturnValue({ isFocused: false })
-			focusManager = new FocusManager(editor, true)
-			expect(editor.updateInstanceState).toHaveBeenCalledWith({ isFocused: true })
-		})
-
-		it('should set focus state to false when autoFocus is false', () => {
-			editor.getInstanceState.mockReturnValue({ isFocused: true })
-			focusManager = new FocusManager(editor, false)
-			expect(editor.updateInstanceState).toHaveBeenCalledWith({ isFocused: false })
-		})
-
-		it('should not change focus state when autoFocus matches current state', () => {
-			editor.getInstanceState.mockReturnValue({ isFocused: true })
-			focusManager = new FocusManager(editor, true)
-			expect(editor.updateInstanceState).not.toHaveBeenCalled()
-		})
-
-		it('should handle undefined autoFocus parameter', () => {
-			editor.getInstanceState.mockReturnValue({ isFocused: true })
-			focusManager = new FocusManager(editor)
-			expect(editor.updateInstanceState).toHaveBeenCalledWith({ isFocused: false })
-		})
 	})
 
 	describe('side effect handler', () => {
@@ -316,31 +292,9 @@ describe('FocusManager', () => {
 			focusManager = new FocusManager(editor)
 		})
 
-		it('should complete editor interactions', () => {
-			focusManager.blur()
-			expect(editor.complete).toHaveBeenCalled()
-		})
-
 		it('should blur the container', () => {
 			focusManager.blur()
 			expect(mockContainer.blur).toHaveBeenCalled()
-		})
-
-		it('should complete before bluring', () => {
-			const callOrder: string[] = []
-			editor.complete.mockImplementation(() => callOrder.push('complete'))
-			mockContainer.blur = vi.fn(() => callOrder.push('blur'))
-
-			focusManager.blur()
-
-			expect(callOrder).toEqual(['complete', 'blur'])
-		})
-
-		it('should complete without blurring the container when blurContainer is false', () => {
-			focusManager.blur({ blurContainer: false })
-
-			expect(editor.complete).toHaveBeenCalled()
-			expect(mockContainer.blur).not.toHaveBeenCalled()
 		})
 	})
 

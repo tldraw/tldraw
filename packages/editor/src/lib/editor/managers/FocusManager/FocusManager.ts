@@ -12,7 +12,7 @@ import { EditorManager } from '../EditorManager'
  * @internal
  */
 export class FocusManager extends EditorManager {
-	constructor(editor: Editor, autoFocus?: boolean) {
+	constructor(editor: Editor) {
 		super(editor)
 
 		const disposeSideEffectListener = editor.sideEffects.registerAfterChangeHandler(
@@ -25,10 +25,6 @@ export class FocusManager extends EditorManager {
 		)
 		this.register(() => disposeSideEffectListener?.())
 
-		const currentFocusState = editor.getInstanceState().isFocused
-		if (autoFocus !== currentFocusState) {
-			editor.updateInstanceState({ isFocused: !!autoFocus })
-		}
 		this.updateContainerClass()
 
 		const body = editor.getContainerDocument().body
@@ -82,8 +78,7 @@ export class FocusManager extends EditorManager {
 		this.editor.getContainer().focus()
 	}
 
-	blur({ blurContainer = true } = {}) {
-		this.editor.complete() // stop any interaction
-		if (blurContainer) this.editor.getContainer().blur() // blur the container
+	blur() {
+		this.editor.getContainer().blur()
 	}
 }

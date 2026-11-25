@@ -9,6 +9,7 @@ import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
 import { useShapeCulling } from '../hooks/useShapeCulling'
 import { Mat } from '../primitives/Mat'
+import { renderShapeComponent } from '../react/shapeComponents'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { moveElementInto, setStyleProperty } from '../utils/dom'
 import { OptionalErrorBoundary } from './ErrorBoundary'
@@ -252,7 +253,7 @@ export const InnerShape = memo(
 			() =>
 				// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
 				// calling the render method with stale data.
-				util.component(util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
+				renderShapeComponent(util, util.editor.store.unsafeGetWithoutCapture(shape.id) as T),
 			[util, shape.id]
 		)
 	},

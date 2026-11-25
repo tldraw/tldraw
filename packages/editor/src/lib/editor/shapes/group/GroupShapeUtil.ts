@@ -1,12 +1,10 @@
 import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
-import { SVGContainer } from '../../../components/SVGContainer'
 import { defineMessages, translateMessage } from '../../../config/TLI18n'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
 import { ShapeUtil } from '../ShapeUtil'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { DashedOutlineBox } from './DashedOutlineBox'
 
 const messages = defineMessages({
 	name: { id: 'a11y.shape-group', defaultMessage: 'Group' },
@@ -78,34 +76,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return new Group2d({ children: geometries })
 	}
 
-	component(shape: TLGroupShape) {
-		const isErasing = this.editor.getErasingShapeIds().includes(shape.id)
-
-		const { hintingShapeIds } = this.editor.getCurrentPageState()
-		const isHintingOtherGroup =
-			hintingShapeIds.length > 0 &&
-			hintingShapeIds.some(
-				(id) => id !== shape.id && this.editor.isShapeOfType(this.editor.getShape(id)!, 'group')
-			)
-
-		const isFocused = this.editor.getCurrentPageState().focusedGroupId !== shape.id
-
-		if (
-			!isErasing && // always show the outline while we're erasing the group
-			// show the outline while the group is focused unless something outside of the group is being hinted
-			// this happens dropping shapes from a group onto some outside group
-			(isFocused || isHintingOtherGroup)
-		) {
-			return null
-		}
-
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-
-		return (
-			<SVGContainer>
-				<DashedOutlineBox className="tl-group" bounds={bounds} />
-			</SVGContainer>
-		)
+	// The React layer renders groups, see `groupShapeComponentPlugin`. The util stays free of
+	// React so that a headless editor can use it.
+	component() {
+		return null
 	}
 
 	override getIndicatorPath(shape: TLGroupShape): Path2D {

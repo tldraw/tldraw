@@ -1,5 +1,6 @@
 import { EMPTY_ARRAY, atom, computed } from '@tldraw/state'
 import { TLParentId, TLShapeId, isShapeId } from '@tldraw/tlschema'
+import { canSnapToShapeSlot } from '../../../plugins/builtin/snapping'
 import { Vec, VecLike } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
 import { BoundsSnaps } from './BoundsSnaps'
@@ -83,8 +84,9 @@ export class SnapManager {
 				const childShape = editor.getShape(childId)
 				if (!childShape) continue
 				const util = editor.getShapeUtil(childShape)
-				// Skip any shapes that don't allow snapping
-				if (!util.canSnap(childShape)) continue
+				// Skip any shapes that don't allow snapping. `ShapeUtil.canSnap` gives the initial
+				// value, and plugins can change it through the slot.
+				if (!editor.plugins.pipe(canSnapToShapeSlot, util.canSnap(childShape), childShape)) continue
 				// Only consider shapes if they're inside of the viewport page bounds
 				const pageBounds = editor.getShapePageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue

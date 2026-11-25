@@ -1,5 +1,5 @@
 import { Awaitable } from '@tldraw/utils'
-import { ComponentType, Fragment } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { DEFAULT_CAMERA_OPTIONS } from './constants'
 import type { Editor } from './editor/Editor'
 import { TLContent } from './editor/types/clipboard-types'
@@ -117,7 +117,7 @@ export interface TldrawOptions {
 	readonly createTextOnCanvasDoubleClick: boolean
 	/**
 	 * The react provider to use when exporting an image. This is useful if your shapes depend on
-	 * external context providers. By default, this is `React.Fragment`.
+	 * external context providers. By default, it renders its children unchanged.
 	 */
 	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
 	/**
@@ -334,7 +334,8 @@ export const defaultTldrawOptions = {
 	temporaryAssetPreviewLifetimeMs: 180000,
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
-	exportProvider: Fragment,
+	// A pass-through provider. A function component needs no React import.
+	exportProvider: ({ children }: { children: ReactNode }) => children as any,
 	enableToolbarKeyboardShortcuts: true,
 	maxFontsToLoadBeforeRender: Infinity,
 	nonce: undefined,

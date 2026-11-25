@@ -1,0 +1,53 @@
+# Editor plugins
+
+The editor is a small core plus plugins. The core holds the store, history, camera, shape and binding records, the state chart, and the plugin host. Plugins add everything else.
+
+```ts
+const editor = createEditor({
+	plugins: [myShapesPlugin, approximateTextMeasurementPlugin(), snappingPlugin],
+})
+```
+
+`createEditor` installs only the plugins that it gets. It needs no DOM and does not load React (`noReact.test.ts` checks this).
+
+## The model
+
+A plugin (`definePlugin`) can:
+
+- declare **records** statically: `shapeUtils`, `bindingUtils`, `tools`. The store schema needs them before the store exists. `createEditor` builds the store from them.
+- **provide a capability** (`defineCapability<T>`): a typed service, for example `textMeasurementCapability`. Exactly one plugin provides each capability. Several plugins can implement the same capability, for example DOM and approximate text measurement.
+- **require** or **optionally use** capabilities. The host sets up providers first. A missing provider, a duplicate id, two providers of one capability, a dependency cycle, and an undeclared `ctx.get` all throw when the editor is created.
+- **contribute to a slot** (`defineSlot<T>`): an extension point. The plugin that owns a behavior owns its slot. Other plugins contribute to it, with `before` and `after` constraints on other plugin ids. The owner runs the contributions as a `pipe` (transform a value) or a `chain` (first handler that does not call `next` wins). Slots are reactive, so a computed that reads one updates when contributions change.
+- run cleanup with `ctx.onDispose`. Disposers run in reverse setup order.
+
+Public APIs stay on the editor or as free functions over it. The host does not merge plugin APIs into the editor type.
+
+## Compatibility: the old interface is a layer over plugins
+
+`new Editor(opts)` installs `legacyEditorPlugins` as defaults, and then `opts.plugins`. A plugin replaces a default when it has the same id or provides one of the same capabilities. So `new Editor({ plugins: [approximateTextMeasurementPlugin()] })` keeps every default except DOM text measurement.
+
+The old members are facades over the plugins. They stay plain fields. When no plugin provides the capability, the field holds a stub that throws a "no installed plugin provides" error when it is used.
+
+| Old API                                                                                           | Now                                                                                                                    |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `editor.snaps`                                                                                    | `snappingCapability`, from `snappingPlugin`                                                                            |
+| `editor.textMeasure`                                                                              | `textMeasurementCapability`, from `domTextMeasurementPlugin`                                                           |
+| `registerExternalContentHandler`, `putExternalContent`, `externalContentHandlers`, asset handlers | `externalContentCapability`, from `externalContentPlugin`. The legacy handler map is the end of `externalContentSlot`. |
+| `editor.focus()` and `editor.blur()` container focus                                              | `containerFocusCapability`, from `domFocusPlugin`. The focused state stays in instance data.                           |
+| the frame loop (`tick` and `frame` events)                                                        | `animationFrameTickPlugin`. A headless editor gets ticks only when the caller emits them.                              |
+| `getSvgElement`, `getSvgString`, `toImage`                                                        | `svgExportCapability`, from `reactSvgExportPlugin`                                                                     |
+| `ShapeUtil.canSnap`                                                                               | the initial value of `canSnapToShapeSlot`                                                                              |
+| `ShapeUtil.component`                                                                             | the fallback when `shapeComponentSlot` has no contribution for the shape type                                          |
+
+The legacy preset lives in the React layer (`react/legacyEditorPlugins.ts`), because it includes the React plugins. `TldrawEditor` passes it explicitly. For a direct `new Editor()`, the package entry sets it as the default with `setDefaultEditorPlugins`. This is a provisional seam until the kernel moves to its own package.
+
+## React is an output layer
+
+The `react/` folder is the only place in this design that imports React. `reactRenderingPlugins` contributes the group shape component (`GroupShapeUtil` now has no JSX) and provides SVG export. `components/Shape.tsx` renders through `shapeComponentSlot`.
+
+## Next steps
+
+1. Move each default shape's `component`, `toSvg` and `backgroundComponent` into `shapeComponentSlot` contributions. Then `ShapeUtil` has no render methods and shape utils are headless.
+2. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
+3. Lift the other managers the same way: fonts, edge scroll, scribbles, clicks, collaborators.
+4. Turn shapes, bindings and tools into plugins in `packages/tldraw`, so that `defaultShapeUtils` becomes a list of plugins.

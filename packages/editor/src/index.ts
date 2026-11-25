@@ -1,4 +1,6 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
+import { setDefaultEditorPlugins } from './lib/editor/Editor'
+import { legacyEditorPlugins as _legacyEditorPlugins } from './lib/react/legacyEditorPlugins'
 
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state'
@@ -14,6 +16,51 @@ export * from '@tldraw/utils'
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
+export { animationFrameTickPlugin } from './lib/plugins/builtin/animationFrameTick'
+export {
+	containerFocusCapability,
+	domFocusPlugin,
+	type TLContainerFocus,
+} from './lib/plugins/builtin/domFocus'
+export { domTextMeasurementPlugin } from './lib/plugins/builtin/domTextMeasurement'
+export {
+	externalContentCapability,
+	externalContentPlugin,
+	externalContentSlot,
+	type TLExternalAssetHandlers,
+	type TLExternalContentHandlers,
+	type TLExternalContentService,
+} from './lib/plugins/builtin/externalContent'
+export { canSnapToShapeSlot, snappingCapability } from './lib/plugins/builtin/snapping'
+export { snappingPlugin } from './lib/plugins/builtin/snappingPlugin'
+export {
+	approximateTextMeasurementPlugin,
+	textMeasurementCapability,
+	type TLTextMeasurer,
+} from './lib/plugins/builtin/textMeasurement'
+export { createEditor, type TLCreateEditorOptions } from './lib/plugins/createEditor'
+export {
+	defineCapability,
+	definePlugin,
+	defineSlot,
+	type TLCapability,
+	type TLChainHandler,
+	type TLContributionOrder,
+	type TLPipe,
+	type TLPlugin,
+	type TLPluginContext,
+	type TLSlot,
+} from './lib/plugins/plugin'
+export { TLPluginHost } from './lib/plugins/PluginHost'
+export { legacyEditorPlugins } from './lib/react/legacyEditorPlugins'
+export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'
+export {
+	groupShapeComponentPlugin,
+	reactRenderingPlugins,
+	reactSvgExportPlugin,
+	shapeComponentSlot,
+	type TLShapeComponent,
+} from './lib/react/shapeComponents'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
@@ -51,11 +98,8 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export {
-	createTLCurrentUser,
-	useTldrawCurrentUser,
-	type TLCurrentUser,
-} from './lib/config/createTLCurrentUser'
+export { createTLCurrentUser, type TLCurrentUser } from './lib/config/createTLCurrentUser'
+export { useTldrawCurrentUser } from './lib/hooks/useTldrawCurrentUser'
 export {
 	createTLSchemaFromUtils,
 	createTLStore,
@@ -528,6 +572,9 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { uniq } from './lib/utils/uniq'
+
+// `new Editor()` keeps the behavior it had before plugins. See `legacyEditorPlugins`.
+setDefaultEditorPlugins(_legacyEditorPlugins)
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

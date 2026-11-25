@@ -16,7 +16,7 @@ import {
 } from '@tldraw/tlschema'
 import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
-import { ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Vec } from '../../primitives/Vec'
@@ -25,7 +25,7 @@ import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
-import { SvgExportContext } from '../types/SvgExportContext'
+import type { SvgExportContext } from '../types/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {

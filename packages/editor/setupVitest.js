@@ -16,34 +16,37 @@ global.FontFace = class FontFace {
 	}
 }
 
-// Document fonts API mock
-document.fonts = {
-	add: () => {},
-	delete: () => {},
-	forEach: () => {},
-	[Symbol.iterator]: () => [][Symbol.iterator](),
-}
-
-// Window fetch mock for network requests
-window.fetch = async (input, init) => {
-	return {
-		ok: true,
-		json: async () => [],
+// DOM mocks. Headless tests run with `@vitest-environment node` and skip these.
+if (typeof document !== 'undefined') {
+	// Document fonts API mock
+	document.fonts = {
+		add: () => {},
+		delete: () => {},
+		forEach: () => {},
+		[Symbol.iterator]: () => [][Symbol.iterator](),
 	}
-}
 
-// Window.matchMedia polyfill for media queries
-// Use a conditional approach to avoid conflicts with jsdom
-window.matchMedia = (query) => ({
-	matches: false,
-	media: query,
-	onchange: null,
-	addListener: () => {},
-	removeListener: () => {},
-	addEventListener: () => {},
-	removeEventListener: () => {},
-	dispatchEvent: () => {},
-})
+	// Window fetch mock for network requests
+	window.fetch = async (input, init) => {
+		return {
+			ok: true,
+			json: async () => [],
+		}
+	}
+
+	// Window.matchMedia polyfill for media queries
+	// Use a conditional approach to avoid conflicts with jsdom
+	window.matchMedia = (query) => ({
+		matches: false,
+		media: query,
+		onchange: null,
+		addListener: () => {},
+		removeListener: () => {},
+		addEventListener: () => {},
+		removeEventListener: () => {},
+		dispatchEvent: () => {},
+	})
+}
 
 // Mock DragEvent for jsdom
 if (typeof window !== 'undefined' && !window.DragEvent) {
