@@ -7,6 +7,7 @@ import { T } from '@tldraw/validate'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLExternalContent } from '../editor/types/external-content'
 import { Rectangle2d } from '../primitives/geometry/Rectangle2d'
+import { domImageExportPlugin } from './builtin/domImageExport'
 import {
 	externalContentCapability,
 	externalContentPlugin,
@@ -129,8 +130,19 @@ describe('a headless editor', () => {
 		expect(() => editor.snaps.getSnappableShapes()).toThrow(
 			'No installed plugin provides "snapping"'
 		)
-		return expect(editor.getSvgElement([createShapeId('x')])).rejects.toThrow(
-			'No installed plugin provides "svgExport"'
+		return Promise.all([
+			expect(editor.getSvgElement([createShapeId('x')])).rejects.toThrow(
+				'No installed plugin provides "svgExport"'
+			),
+			expect(editor.toImage([createShapeId('x')])).rejects.toThrow(
+				'No installed plugin provides "imageExport"'
+			),
+		])
+	})
+
+	it('refuses DOM image export without an SVG exporter', () => {
+		expect(() => headlessEditor(domImageExportPlugin)).toThrow(
+			'Plugin "domImageExport" requires "svgExport", but no installed plugin provides it.'
 		)
 	})
 

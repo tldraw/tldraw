@@ -4,8 +4,8 @@ import type { TLSvgExportOptions } from '../../editor/types/misc-types'
 import { defineCapability } from '../plugin'
 
 /**
- * Renders shapes to an SVG element. `editor.getSvgElement`, `getSvgString` and `toImage` use it.
- * The React layer provides it.
+ * Renders shapes to an SVG element. `editor.getSvgElement` uses it, and image export builds on
+ * that. The React layer provides it.
  *
  * @public
  */

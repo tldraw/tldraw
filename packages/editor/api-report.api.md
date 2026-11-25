@@ -872,6 +872,14 @@ export const domFocusPlugin: {
 };
 
 // @public
+export const domImageExportPlugin: {
+    readonly id: "domImageExport";
+    readonly provides: readonly [TLCapability<TLImageExporter>];
+    readonly requires: readonly [TLCapability<TLSvgExporter>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public
 export const domTextMeasurementPlugin: {
     readonly id: "domTextMeasurement";
     readonly provides: readonly [TLCapability<TLTextMeasurer>];
@@ -2329,6 +2337,9 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 
 // @public (undocumented)
 export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
+
+// @public (undocumented)
+export const imageExportCapability: TLCapability<TLImageExporter>;
 
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
@@ -4514,6 +4525,26 @@ export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & {
 
 // @public
 export type TLI18nValues = Record<string, bigint | boolean | Date | null | number | string | undefined>;
+
+// @public
+export interface TLImageExporter {
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts: TLSvgExportOptions): Promise<{
+        height: number;
+        svg: string;
+        trimPadding: number;
+        width: number;
+    } | undefined>;
+    toImage(shapes: TLShape[] | TLShapeId[], opts: TLImageExportOptions): Promise<{
+        blob: Blob;
+        height: number;
+        width: number;
+    }>;
+    toImageDataUrl(shapes: TLShape[] | TLShapeId[], opts: TLImageExportOptions): Promise<{
+        height: number;
+        url: string;
+        width: number;
+    }>;
+}
 
 // @public (undocumented)
 export interface TLImageExportOptions extends TLSvgExportOptions {

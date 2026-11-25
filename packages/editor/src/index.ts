@@ -22,6 +22,7 @@ export {
 	domFocusPlugin,
 	type TLContainerFocus,
 } from './lib/plugins/builtin/domFocus'
+export { domImageExportPlugin } from './lib/plugins/builtin/domImageExport'
 export { domTextMeasurementPlugin } from './lib/plugins/builtin/domTextMeasurement'
 export {
 	externalContentCapability,
@@ -58,6 +59,7 @@ export {
 } from './lib/plugins/plugin'
 export { TLPluginHost } from './lib/plugins/PluginHost'
 export { createDefaultPlugins } from './lib/react/defaultPlugins'
+export { imageExportCapability, type TLImageExporter } from './lib/plugins/builtin/imageExport'
 export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'
 export { reactRenderingPlugins, reactSvgExportPlugin } from './lib/react/reactRenderingPlugins'
 export {

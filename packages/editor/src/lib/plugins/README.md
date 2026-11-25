@@ -35,7 +35,8 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 | `registerExternalContentHandler`, `putExternalContent`, `externalContentHandlers`, asset handlers | `externalContentCapability`, from `externalContentPlugin`. The legacy handler map is the end of `externalContentSlot`. |
 | `editor.focus()` and `editor.blur()` container focus                                              | `containerFocusCapability`, from `domFocusPlugin`. The focused state stays in instance data.                           |
 | the frame loop (`tick` and `frame` events)                                                        | `animationFrameTickPlugin`. A headless editor gets ticks only when the caller emits them.                              |
-| `getSvgElement`, `getSvgString`, `toImage`                                                        | `svgExportCapability`, from `reactSvgExportPlugin`                                                                     |
+| `getSvgElement`                                                                                   | `svgExportCapability`, from `reactSvgExportPlugin`                                                                     |
+| `getSvgString`, `toImage`, `toImageDataUrl`                                                       | `imageExportCapability`, from `domImageExportPlugin`, which builds on `getSvgElement`                                  |
 | `ShapeUtil.canSnap`                                                                               | the initial value of `canSnapToShapeSlot`                                                                              |
 | `ShapeUtil.component`                                                                             | the fallback when `shapeComponentSlot` has no contribution for the shape type                                          |
 
