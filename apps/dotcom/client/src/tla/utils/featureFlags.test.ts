@@ -15,6 +15,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		mcp_server_access: { enabled: false },
 		version_chain: { enabled: false },
 		libraries: { enabled: false },
+		libraries_anonymous: { enabled: false },
 		thumbnail_render_push: { enabled: false },
 		mcp_render_push: { enabled: false },
 		headless_shadow: { enabled: false },
