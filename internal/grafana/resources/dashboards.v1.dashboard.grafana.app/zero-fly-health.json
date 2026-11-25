@@ -31,12 +31,12 @@
             "uid": "${DS_PROM}"
           },
           "enable": true,
-          "expr": "sum by (service_name) (resets(zero_server_uptime_seconds{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$__interval])) > 0",
+          "expr": "sum by (service_name) (resets(zero_server_uptime_seconds{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$__interval])) > 0",
           "hide": false,
           "iconColor": "purple",
           "name": "Deploys / restarts",
           "target": {
-            "expr": "sum by (service_name) (resets(zero_server_uptime_seconds{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$__interval])) > 0",
+            "expr": "sum by (service_name) (resets(zero_server_uptime_seconds{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$__interval])) > 0",
             "interval": "",
             "legendFormat": "{{service_name}}",
             "refId": "Anno"
@@ -213,7 +213,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "max(zero_replication_total_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+            "expr": "max(zero_replication_total_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "max",
             "range": true,
@@ -301,7 +301,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "max({__name__=~\"zero_replication_slot_health(_ratio)?\", deployment_environment=~\"$env\", service_name=~\"$rm\", status=\"ok\"})",
+            "expr": "max({__name__=~\"zero_replication_slot_health(_ratio)?\", deployment_environment=~\"$env\", service_name=~\"$rm\", status=\"ok\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "ok",
             "range": true,
@@ -380,7 +380,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "min(zero_replication_slot_safe_wal_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+            "expr": "min(zero_replication_slot_safe_wal_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "headroom",
             "range": true,
@@ -459,7 +459,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "max(zero_replica_backup_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+            "expr": "max(zero_replica_backup_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "lag",
             "range": true,
@@ -874,7 +874,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "sum(zero_replica_db_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"} or vector(0)) + sum(zero_replica_wal_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"} or vector(0)) + sum(zero_replica_wal2_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"} or vector(0))",
+            "expr": "sum(zero_replica_db_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"} or vector(0)) + sum(zero_replica_wal_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"} or vector(0)) + sum(zero_replica_wal2_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"} or vector(0))",
             "instant": false,
             "legendFormat": "on disk",
             "range": true,
@@ -942,7 +942,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "sum(rate(zero_mutation_crud_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval])) + sum(rate(zero_mutation_custom_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval]))",
+            "expr": "(sum(rate(zero_mutation_crud_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])) or vector(0)) + (sum(rate(zero_mutation_custom_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])) or vector(0))",
             "instant": false,
             "legendFormat": "mutations",
             "range": true,
@@ -1024,7 +1024,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "sum(rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", result!=\"success\"}[$__rate_interval])) / clamp_min(sum(rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval])), 0.0001)",
+            "expr": "sum(rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", result!=\"success\", instance=~\"$inst\"}[$__rate_interval])) / clamp_min(sum(rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])), 0.0001)",
             "instant": false,
             "legendFormat": "error ratio",
             "range": true,
@@ -1278,7 +1278,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "max(zero_replication_total_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+            "expr": "max(zero_replication_total_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "total",
             "range": true,
@@ -1290,7 +1290,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "max(zero_replication_upstream_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+            "expr": "max(zero_replication_upstream_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "upstream",
             "range": true,
@@ -1302,7 +1302,7 @@
               "uid": "${DS_PROM}"
             },
             "editorMode": "code",
-            "expr": "max(zero_replication_replica_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+            "expr": "max(zero_replication_replica_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
             "instant": false,
             "legendFormat": "replica",
             "range": true,
@@ -1928,7 +1928,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_sync_websocket_connection_failures_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])) / clamp_min(sum(rate(zero_sync_websocket_connection_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])), 0.0001)",
+                "expr": "(sum(rate(zero_sync_websocket_connection_failures_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(zero_sync_websocket_connection_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])), 0.0001)",
                 "instant": false,
                 "legendFormat": "failure ratio",
                 "range": true,
@@ -4504,7 +4504,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max by (status) ({__name__=~\"zero_replication_slot_health(_ratio)?\", deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max by (status) ({__name__=~\"zero_replication_slot_health(_ratio)?\", deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "{{status}}",
                 "range": true,
@@ -4632,7 +4632,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replication_slot_retained_wal_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replication_slot_retained_wal_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "retained WAL",
                 "range": true,
@@ -4644,7 +4644,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "min(zero_replication_slot_safe_wal_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "min(zero_replication_slot_safe_wal_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "headroom before loss",
                 "range": true,
@@ -4740,7 +4740,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_replication_transactions_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(rate(zero_replication_transactions_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "transactions/s",
                 "range": true,
@@ -4752,7 +4752,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_replication_changes_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(rate(zero_replication_changes_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "changes/s",
                 "range": true,
@@ -4764,7 +4764,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_replication_events_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(rate(zero_replication_events_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "events/s",
                 "range": true,
@@ -4877,7 +4877,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(zero_replication_flow_control_active_subscribers{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "sum(zero_replication_flow_control_active_subscribers{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "active",
                 "range": true,
@@ -4889,7 +4889,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(zero_replication_flow_control_queued_subscribers{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "sum(zero_replication_flow_control_queued_subscribers{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "queued",
                 "range": true,
@@ -5003,7 +5003,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replication_flow_control_backlog_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replication_flow_control_backlog_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "backlog bytes",
                 "range": true,
@@ -5015,7 +5015,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replication_flow_control_max_backlog_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replication_flow_control_max_backlog_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "max single-subscriber bytes",
                 "range": true,
@@ -5027,7 +5027,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replication_flow_control_pending_messages{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replication_flow_control_pending_messages{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "pending messages",
                 "range": true,
@@ -5171,7 +5171,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.5, sum by (le) (rate(zero_replication_flow_control_wait_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.5, sum by (le) (rate(zero_replication_flow_control_wait_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "p50",
                 "range": true,
@@ -5183,7 +5183,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replication_flow_control_wait_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replication_flow_control_wait_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "p99",
                 "range": true,
@@ -5195,7 +5195,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_replication_flow_control_waits_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(rate(zero_replication_flow_control_waits_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "checkpoints/s",
                 "range": true,
@@ -5291,7 +5291,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum by (result) (increase(zero_replication_initial_sync_runs_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum by (result) (increase(zero_replication_initial_sync_runs_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "runs ({{result}})",
                 "range": true,
@@ -5303,7 +5303,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_replication_initial_sync_rows_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(rate(zero_replication_initial_sync_rows_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "rows copied/s",
                 "range": true,
@@ -5413,7 +5413,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replica_db_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replica_db_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "db",
                 "range": true,
@@ -5425,7 +5425,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replica_wal_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replica_wal_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "wal",
                 "range": true,
@@ -5437,7 +5437,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replica_wal2_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replica_wal2_size_bytes{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "wal2",
                 "range": true,
@@ -5537,7 +5537,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "max(zero_replica_backup_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\"})",
+                "expr": "max(zero_replica_backup_lag_millisecond{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "backup lag",
                 "range": true,
@@ -5650,7 +5650,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(increase(zero_replica_litestream_backup_process_runs_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(increase(zero_replica_litestream_backup_process_runs_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "process exits",
                 "range": true,
@@ -5662,7 +5662,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(increase(zero_replica_purge_blocked_total{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$__rate_interval]))",
+                "expr": "sum(increase(zero_replica_purge_blocked_total{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "purges blocked",
                 "range": true,
@@ -5758,7 +5758,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replica_litestream_backup_list_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replica_litestream_backup_list_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "list p99",
                 "range": true,
@@ -5770,7 +5770,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replica_litestream_backup_verification_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replica_litestream_backup_verification_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "verification p99",
                 "range": true,
@@ -5782,7 +5782,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replica_litestream_snapshot_reservation_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_replica_litestream_snapshot_reservation_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "snapshot reservation p99",
                 "range": true,
@@ -5878,7 +5878,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum by (result) (increase(zero_replica_litestream_restore_runs_total{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$__rate_interval]))",
+                "expr": "sum by (result) (increase(zero_replica_litestream_restore_runs_total{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "runs ({{result}})",
                 "range": true,
@@ -5890,7 +5890,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(increase(zero_replica_litestream_restore_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$__rate_interval]))",
+                "expr": "sum(increase(zero_replica_litestream_restore_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "attempts",
                 "range": true,
@@ -5905,7 +5905,7 @@
               "type": "prometheus",
               "uid": "${DS_PROM}"
             },
-            "description": "Total restore wall-clock vs its phases (waiting for a snapshot reservation, the subprocess itself, and validation). This is your view-syncer cold-start budget on Fly.",
+            "description": "Total restore wall-clock vs its phases (the subprocess itself and validation). This is your view-syncer cold-start budget on Fly.",
             "fieldConfig": {
               "defaults": {
                 "color": {
@@ -6007,7 +6007,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "total p95",
                 "range": true,
@@ -6019,19 +6019,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_wait_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$win])))",
-                "instant": false,
-                "legendFormat": "wait p95",
-                "range": true,
-                "refId": "B"
-              },
-              {
-                "datasource": {
-                  "type": "prometheus",
-                  "uid": "${DS_PROM}"
-                },
-                "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_process_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_process_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "process p95",
                 "range": true,
@@ -6043,7 +6031,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_validation_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_replica_litestream_restore_validation_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "validation p95",
                 "range": true,
@@ -6273,7 +6261,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum by (operation, result) (rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval]))",
+                "expr": "sum by (operation, result) (rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "{{operation}} \u00b7 {{result}}",
                 "range": true,
@@ -6373,7 +6361,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum by (operation) (rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", result!=\"success\"}[$__rate_interval])) / clamp_min(sum by (operation) (rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval])), 0.0001)",
+                "expr": "sum by (operation) (rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", result!=\"success\", instance=~\"$inst\"}[$__rate_interval])) / clamp_min(sum by (operation) (rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])), 0.0001)",
                 "instant": false,
                 "legendFormat": "{{operation}}",
                 "range": true,
@@ -6531,7 +6519,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.5, sum by (le) (rate(zero_server_api_request_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$win])))",
+                "expr": "histogram_quantile(0.5, sum by (le) (rate(zero_server_api_request_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "p50",
                 "range": true,
@@ -6543,7 +6531,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_server_api_request_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$win])))",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_server_api_request_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "p95",
                 "range": true,
@@ -6555,7 +6543,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_server_api_request_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$win])))",
+                "expr": "histogram_quantile(0.99, sum by (le) (rate(zero_server_api_request_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "p99",
                 "range": true,
@@ -6567,7 +6555,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_server_api_request_duration_seconds_sum{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$win])) / sum(rate(zero_server_api_request_duration_seconds_count{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$win]))",
+                "expr": "sum(rate(zero_server_api_request_duration_seconds_sum{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$win])) / sum(rate(zero_server_api_request_duration_seconds_count{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$win]))",
                 "instant": false,
                 "legendFormat": "avg",
                 "range": true,
@@ -6684,7 +6672,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(rate(zero_server_api_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval])) / clamp_min(sum(rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval])), 0.0001)",
+                "expr": "sum(rate(zero_server_api_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])) / clamp_min(sum(rate(zero_server_api_requests_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval])), 0.0001)",
                 "instant": false,
                 "legendFormat": "attempts per request",
                 "range": true,
@@ -6696,7 +6684,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum(zero_server_api_in_flight{deployment_environment=~\"$env\", service_name=~\"$vs\"})",
+                "expr": "sum(zero_server_api_in_flight{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "in flight",
                 "range": true,
@@ -6792,7 +6780,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum by (http_status_class, result) (rate(zero_server_api_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\"}[$__rate_interval]))",
+                "expr": "sum by (http_status_class, result) (rate(zero_server_api_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "{{http_status_class}} \u00b7 {{result}}",
                 "range": true,
@@ -7118,7 +7106,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "sum by (http_status_code) (rate(zero_server_api_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\", operation=\"query\"}[$__rate_interval]))",
+                "expr": "sum by (http_status_code) (rate(zero_server_api_attempts_total{deployment_environment=~\"$env\", service_name=~\"$vs\", operation=\"query\", instance=~\"$inst\"}[$__rate_interval]))",
                 "instant": false,
                 "legendFormat": "{{http_status_code}}",
                 "range": true,
@@ -7228,7 +7216,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "min by (service_name, instance) (zero_server_uptime_seconds{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"})",
+                "expr": "min by (service_name, instance) (zero_server_uptime_seconds{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "{{service_name}} \u00b7 {{instance}}",
                 "range": true,
@@ -7324,7 +7312,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_server_startup_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_server_startup_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "zero-cache p95",
                 "range": true,
@@ -7336,7 +7324,7 @@
                   "uid": "${DS_PROM}"
                 },
                 "editorMode": "code",
-                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_server_worker_startup_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\"}[$win])))",
+                "expr": "histogram_quantile(0.95, sum by (le) (rate(zero_server_worker_startup_duration_seconds_bucket{deployment_environment=~\"$env\", service_name=~\"$vs|$rm\", instance=~\"$inst\"}[$win])))",
                 "instant": false,
                 "legendFormat": "worker p95",
                 "range": true,
@@ -7437,7 +7425,7 @@
                   "uid": "${DS_FLY}"
                 },
                 "editorMode": "code",
-                "expr": "1 - (fly_instance_memory_mem_available{app=~\"$fly_app\"} / fly_instance_memory_mem_total{app=~\"$fly_app\"})",
+                "expr": "1 - (fly_instance_memory_mem_available{app=~\"$fly_app\", instance=~\"$inst\"} / fly_instance_memory_mem_total{app=~\"$fly_app\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "{{app}} \u00b7 {{instance}}",
                 "range": true,
@@ -7534,7 +7522,7 @@
                   "uid": "${DS_FLY}"
                 },
                 "editorMode": "code",
-                "expr": "1 - (sum by (app, instance) (rate(fly_instance_cpu{app=~\"$fly_app\", mode=\"idle\"}[$__rate_interval])) / clamp_min(sum by (app, instance) (rate(fly_instance_cpu{app=~\"$fly_app\"}[$__rate_interval])), 0.0001))",
+                "expr": "1 - (sum by (app, instance) (rate(fly_instance_cpu{app=~\"$fly_app\", mode=\"idle\", instance=~\"$inst\"}[$__rate_interval])) / clamp_min(sum by (app, instance) (rate(fly_instance_cpu{app=~\"$fly_app\", instance=~\"$inst\"}[$__rate_interval])), 0.0001))",
                 "instant": false,
                 "legendFormat": "{{app}} \u00b7 {{instance}}",
                 "range": true,
@@ -7635,7 +7623,7 @@
                   "uid": "${DS_FLY}"
                 },
                 "editorMode": "code",
-                "expr": "1 - (fly_instance_filesystem_blocks_avail{app=~\"$fly_app\", mount=\"/data\"} / fly_instance_filesystem_blocks{app=~\"$fly_app\", mount=\"/data\"})",
+                "expr": "1 - (fly_instance_filesystem_blocks_avail{app=~\"$fly_app\", mount=\"/data\", instance=~\"$inst\"} / fly_instance_filesystem_blocks{app=~\"$fly_app\", mount=\"/data\", instance=~\"$inst\"})",
                 "instant": false,
                 "legendFormat": "{{app}} \u00b7 {{instance}}",
                 "range": true,
@@ -7795,7 +7783,6 @@
           "type": "query"
         },
         {
-          "allValue": ".*",
           "allowCustomValue": true,
           "current": {
             "text": "All",
@@ -7826,7 +7813,6 @@
           "type": "query"
         },
         {
-          "allValue": ".*",
           "allowCustomValue": true,
           "current": {
             "text": "All",
@@ -7836,7 +7822,7 @@
             "type": "prometheus",
             "uid": "${DS_PROM}"
           },
-          "definition": "label_values(zero_replication_total_lag_millisecond{deployment_environment=~\"$env\"}, service_name)",
+          "definition": "label_values(zero_replication_slot_safe_wal_bytes{deployment_environment=~\"$env\"}, service_name)",
           "description": "service.name of the replication-manager deployment. Auto-discovered from the replication metrics.",
           "hide": 0,
           "includeAll": true,
@@ -7846,7 +7832,7 @@
           "options": [],
           "query": {
             "qryType": 1,
-            "query": "label_values(zero_replication_total_lag_millisecond{deployment_environment=~\"$env\"}, service_name)",
+            "query": "label_values(zero_replication_slot_safe_wal_bytes{deployment_environment=~\"$env\"}, service_name)",
             "refId": "rm"
           },
           "refresh": 2,
