@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { createShapeId, toRichText } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 const id = createShapeId('a')
@@ -53,6 +53,36 @@ describe('the default tools ask capabilities', () => {
 		editor.select(frameId)
 		editor.doubleClick(1000, 300, { target: 'selection', handle: 'right' })
 		expect(editor.getShape(frameId)!.props).toMatchObject({ w: 800, h: 600 })
+	})
+
+	it('does not move an arrow label without edit-shape', () => {
+		const editor = setupEditor()
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 100,
+				y: 300,
+				props: { richText: toRichText('label'), start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+			},
+		])
+		editor.registerCapabilityCheck('edit-shape', () => false)
+		const before = editor.getShape(arrowId)!.props
+		const shape = editor.getShape(arrowId)!
+		editor.pointerDown(200, 300, { target: 'shape', shape }).pointerMove(220, 320)
+		editor.expectToBeIn('select.pointing_arrow_label')
+		editor.pointerMove(260, 300).pointerUp()
+		expect(editor.getShape(arrowId)!.props).toEqual(before)
+	})
+
+	it('does not replace external content without edit-shape', async () => {
+		const editor = setupEditor()
+		const handler = vi.fn()
+		editor.registerExternalContentHandler('text', handler)
+		editor.registerCapabilityCheck('edit-shape', () => false)
+		await editor.replaceExternalContent({ type: 'text', text: 'hi' })
+		expect(handler).not.toHaveBeenCalled()
 	})
 
 	it('does not erase without delete-shape', () => {

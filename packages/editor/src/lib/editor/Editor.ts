@@ -9730,7 +9730,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		if (!opts.force && this.checkCapability('edit-shape')) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

@@ -89,6 +89,7 @@ export class PointingArrowLabel extends StateNode {
 			this.parent.transition('brushing', this.info)
 			return
 		}
+		if (this.editor.checkCapability('edit-shape')) return
 
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
