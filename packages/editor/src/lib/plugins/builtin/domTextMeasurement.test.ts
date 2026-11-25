@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
-import { Editor } from '../../Editor'
-import { TextManager, TLMeasureTextSpanOpts } from './TextManager'
+import { Editor } from '../../editor/Editor'
+import { DomTextMeasurer } from './domTextMeasurement'
+import { TLMeasureTextSpanOpts } from './textMeasurement'
 
 // Create a simple mock DOM environment
 function createMockStyle() {
@@ -99,17 +100,17 @@ global.Range = vi.fn(function () {
 	}
 }) as any
 
-describe('TextManager', () => {
-	let textManager: TextManager
+describe('DomTextMeasurer', () => {
+	let textManager: DomTextMeasurer
 
 	beforeEach(() => {
 		vi.clearAllMocks()
-		textManager = new TextManager(mockEditor)
+		textManager = new DomTextMeasurer(mockEditor)
 	})
 
 	describe('constructor', () => {
-		it('should create a TextManager instance', () => {
-			expect(textManager).toBeInstanceOf(TextManager)
+		it('should create a DomTextMeasurer instance', () => {
+			expect(textManager).toBeInstanceOf(DomTextMeasurer)
 		})
 	})
 

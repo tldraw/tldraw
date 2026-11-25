@@ -14,7 +14,6 @@ import {
 } from 'tldraw'
 import uuid from 'uuid-by-string'
 import readable from 'uuid-readable'
-import { vi } from 'vitest'
 import { prettyPrintDiff } from '../../../tldraw/src/test/testutils/pretty'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { FuzzEditor, Op } from './FuzzEditor'
@@ -23,16 +22,6 @@ import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
 const schema = createTLSchema()
-
-vi.mock('@tldraw/editor/src/lib/editor/managers/TickManager/TickManager.ts', () => {
-	return {
-		TickManager: class {
-			start() {
-				// noop
-			}
-		},
-	}
-})
 
 // @ts-expect-error
 global.requestAnimationFrame = (cb: () => any) => {

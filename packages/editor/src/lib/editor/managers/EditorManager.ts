@@ -24,7 +24,7 @@ import type { TLEventMap } from '../types/emit-types'
  * manager, use `editor.disposables`.
  *
  * If a manager needs ordered teardown (e.g. pause a loop before cancelling it), override
- * `dispose()` and call `super.dispose()` last — see `TickManager`.
+ * `dispose()` and call `super.dispose()` last — see `AnimationFrameTicker`.
  *
  * @public
  */

@@ -1,7 +1,7 @@
 // `new Editor()` without `plugins` installs `createDefaultPlugins()`, so its behavior is the
 // behavior that the editor had before plugins. These tests pin that compatibility layer.
 import { vi } from 'vitest'
-import { Editor, TextManager, createDefaultPlugins, createShapeId, createTLStore } from '../..'
+import { Editor, createDefaultPlugins, createShapeId, createTLStore } from '../..'
 import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
 import { renderShapeComponent, shapeComponentSlot } from '../react/shapeComponents'
 import { approximateTextMeasurementPlugin } from './builtin/textMeasurement'
@@ -31,7 +31,7 @@ describe('new Editor()', () => {
 				.map((p) => p.id)
 				.sort()
 		)
-		expect(editor.textMeasure).toBeInstanceOf(TextManager)
+		expect(editor.plugins.has('domTextMeasurement')).toBe(true)
 	})
 
 	it('installs exactly the given plugins', () => {
@@ -46,7 +46,8 @@ describe('new Editor()', () => {
 				approximateTextMeasurementPlugin(),
 			],
 		})
-		expect(editor.textMeasure).not.toBeInstanceOf(TextManager)
+		expect(editor.plugins.has('domTextMeasurement')).toBe(false)
+		expect(editor.plugins.has('approximateTextMeasurement')).toBe(true)
 		expect(editor.plugins.has('snapping')).toBe(true)
 	})
 

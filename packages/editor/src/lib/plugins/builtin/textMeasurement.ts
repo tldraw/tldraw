@@ -1,15 +1,73 @@
 // This module is part of the headless editor kernel. It must not import React or touch the DOM.
-import type { BoxModel } from '@tldraw/tlschema'
-import type {
-	BatchMeasurementRequest,
-	TLMeasuredTextSize,
-	TLMeasureTextOpts,
-	TLMeasureTextSpanOpts,
-} from '../../editor/managers/TextManager/TextManager'
+import type { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { defineCapability, definePlugin } from '../plugin'
 
 /**
- * Measures text for shape geometry and SVG export. The DOM implementation is `TextManager`.
+ * The whole-pixel line-height for a given font size and tldraw's unitless line-height
+ * multiplier. tldraw's theme stores line-height as a multiplier (e.g. 1.35); resolving it
+ * to a whole pixel keeps line spacing identical across rendering engines, which otherwise
+ * disagree on fractional line boxes (WebKit snaps them to whole pixels, Blink keeps the
+ * fraction) and let multi-line text drift apart. Apply it everywhere line-height is used —
+ * measurement, on-canvas render, and export — so geometry and rendering agree.
+ * See https://github.com/tldraw/tldraw/issues/8970.
+ *
+ * @public
+ */
+export function resolveLineHeightPx(fontSize: number, lineHeight: number): number {
+	return Math.round(fontSize * lineHeight)
+}
+
+/** @public */
+export interface BatchMeasurementRequest {
+	html: string
+	opts: TLMeasureTextOpts
+}
+
+/** @public */
+export type TLMeasuredTextSize = BoxModel & {
+	scrollWidth: number
+}
+
+/** @public */
+export interface TLMeasureTextOpts {
+	fontStyle: string
+	fontWeight: string
+	fontFamily: string
+	fontSize: number
+	/** This must be a number, e.g. 1.35, not a pixel value. */
+	lineHeight: number
+	/**
+	 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+	 * is null, the text will be measured without wrapping, but explicit line breaks and
+	 * space are preserved.
+	 */
+	maxWidth: null | number
+	minWidth?: null | number
+	// todo: make this a number so that it is consistent with other TLMeasureTextSpanOpts
+	padding: string
+	otherStyles?: Record<string, string>
+	disableOverflowWrapBreaking?: boolean
+	measureScrollWidth?: boolean
+}
+
+/** @public */
+export interface TLMeasureTextSpanOpts {
+	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
+	width: number
+	height: number
+	padding: number
+	fontSize: number
+	fontWeight: string
+	fontFamily: string
+	fontStyle: string
+	lineHeight: number
+	textAlign: TLDefaultHorizontalAlignStyle
+	otherStyles?: Record<string, string>
+	measureScrollWidth?: boolean
+}
+
+/**
+ * Measures text for shape geometry and SVG export. The DOM implementation is `domTextMeasurementPlugin`.
  *
  * @public
  */

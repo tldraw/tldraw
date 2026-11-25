@@ -1,11 +1,11 @@
 import { Mock, Mocked, vi } from 'vitest'
-import { Editor } from '../../Editor'
-import { FocusManager } from './FocusManager'
+import { Editor } from '../../editor/Editor'
+import { DomContainerFocus } from './domFocus'
 
 // Mock the Editor class
-vi.mock('../../Editor')
+vi.mock('../../editor/Editor')
 
-describe('FocusManager', () => {
+describe('DomContainerFocus', () => {
 	let editor: Mocked<
 		Editor & {
 			sideEffects: {
@@ -19,7 +19,7 @@ describe('FocusManager', () => {
 			complete: Mock
 		}
 	>
-	let focusManager: FocusManager
+	let focusManager: DomContainerFocus
 	let mockContainer: HTMLElement
 	let mockDispose: Mock
 	let originalAddEventListener: typeof document.body.addEventListener
@@ -72,13 +72,13 @@ describe('FocusManager', () => {
 
 	describe('constructor', () => {
 		it('should initialize with editor reference', () => {
-			focusManager = new FocusManager(editor)
-			expect(focusManager).toBeInstanceOf(FocusManager)
+			focusManager = new DomContainerFocus(editor)
+			expect(focusManager).toBeInstanceOf(DomContainerFocus)
 			expect(editor.sideEffects.registerAfterChangeHandler).toHaveBeenCalled()
 		})
 
 		it('should register side effect listener for instance state changes', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			expect(editor.sideEffects.registerAfterChangeHandler).toHaveBeenCalledWith(
 				'instance',
 				expect.any(Function)
@@ -86,24 +86,24 @@ describe('FocusManager', () => {
 		})
 
 		it('should update container class on initialization', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			expect(mockContainer.classList.add).toHaveBeenCalledWith('tl-container__no-focus-ring')
 		})
 
 		it('should set up keyboard event listener', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			expect(document.body.addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function))
 		})
 
 		it('should set up mouse event listener', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			expect(document.body.addEventListener).toHaveBeenCalledWith('mousedown', expect.any(Function))
 		})
 	})
 
 	describe('side effect handler', () => {
 		it('should update container class when focus state changes', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 
 			// Get the registered handler function
 			const handlerCall = editor.sideEffects.registerAfterChangeHandler.mock.calls[0]
@@ -123,7 +123,7 @@ describe('FocusManager', () => {
 		})
 
 		it('should not update container class when focus state does not change', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 
 			const handlerCall = editor.sideEffects.registerAfterChangeHandler.mock.calls[0]
 			const handler = handlerCall[1]
@@ -145,7 +145,7 @@ describe('FocusManager', () => {
 		let handler: (prev: any, next: any) => void
 
 		beforeEach(() => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			// Get the handler before clearing mocks
 			const handlerCall = editor.sideEffects.registerAfterChangeHandler.mock.calls[0]
 			handler = handlerCall[1]
@@ -181,7 +181,7 @@ describe('FocusManager', () => {
 		let keydownHandler: (event: KeyboardEvent) => void
 
 		beforeEach(() => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 
 			// Get the keydown handler that was registered
 			const addEventListenerCalls = (document.body.addEventListener as Mock).mock.calls
@@ -259,7 +259,7 @@ describe('FocusManager', () => {
 		let mousedownHandler: () => void
 
 		beforeEach(() => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 
 			// Get the mousedown handler that was registered
 			const addEventListenerCalls = (document.body.addEventListener as Mock).mock.calls
@@ -278,7 +278,7 @@ describe('FocusManager', () => {
 
 	describe('focus', () => {
 		beforeEach(() => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 		})
 
 		it('should focus the container', () => {
@@ -289,7 +289,7 @@ describe('FocusManager', () => {
 
 	describe('blur', () => {
 		beforeEach(() => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 		})
 
 		it('should blur the container', () => {
@@ -300,7 +300,7 @@ describe('FocusManager', () => {
 
 	describe('dispose', () => {
 		beforeEach(() => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			vi.clearAllMocks()
 		})
 
@@ -328,7 +328,7 @@ describe('FocusManager', () => {
 		it('should handle missing side effect disposal gracefully', () => {
 			// Create a focus manager where the side effect registration returns undefined
 			editor.sideEffects.registerAfterChangeHandler.mockReturnValue(undefined)
-			const focusManagerWithoutDispose = new FocusManager(editor)
+			const focusManagerWithoutDispose = new DomContainerFocus(editor)
 
 			expect(() => focusManagerWithoutDispose.dispose()).not.toThrow()
 		})
@@ -336,7 +336,7 @@ describe('FocusManager', () => {
 
 	describe('integration scenarios', () => {
 		it('should handle rapid focus state changes', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			const handlerCall = editor.sideEffects.registerAfterChangeHandler.mock.calls[0]
 			const handler = handlerCall[1]
 
@@ -357,7 +357,7 @@ describe('FocusManager', () => {
 		})
 
 		it('should handle keyboard navigation while editing', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			const addEventListenerCalls = (document.body.addEventListener as Mock).mock.calls
 			const keydownCall = addEventListenerCalls.find((call: any) => call[0] === 'keydown')
 			const keydownHandler = keydownCall![1]
@@ -372,7 +372,7 @@ describe('FocusManager', () => {
 		})
 
 		it('should handle mouse and keyboard interaction sequence', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			const addEventListenerCalls = (document.body.addEventListener as Mock).mock.calls
 
 			const mousedownCall = addEventListenerCalls.find((call: any) => call[0] === 'mousedown')
@@ -398,17 +398,17 @@ describe('FocusManager', () => {
 		it('should handle container being null', () => {
 			editor.getContainer.mockReturnValue(null as any)
 
-			expect(() => new FocusManager(editor)).toThrow()
+			expect(() => new DomContainerFocus(editor)).toThrow()
 		})
 
 		it('should handle missing instance state', () => {
 			editor.getInstanceState.mockReturnValue(null as any)
 
-			expect(() => new FocusManager(editor)).toThrow()
+			expect(() => new DomContainerFocus(editor)).toThrow()
 		})
 
 		it('should handle disposed manager gracefully', () => {
-			focusManager = new FocusManager(editor)
+			focusManager = new DomContainerFocus(editor)
 			focusManager.dispose()
 
 			// Should not throw when calling methods after disposal

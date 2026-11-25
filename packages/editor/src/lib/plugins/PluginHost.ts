@@ -111,8 +111,6 @@ export class TLPluginHost {
 			},
 			set: (_target, key, value) => Reflect.set(resolve(), key, value),
 			has: (_target, key) => key in resolve(),
-			// So that `editor.textMeasure instanceof TextManager` holds once the plugin has set up.
-			getPrototypeOf: () => (isProvided() ? Object.getPrototypeOf(resolve()) : Object.prototype),
 		})
 	}
 

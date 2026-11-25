@@ -35,7 +35,12 @@ export { canSnapToShapeSlot, snappingCapability } from './lib/plugins/builtin/sn
 export { snappingPlugin } from './lib/plugins/builtin/snappingPlugin'
 export {
 	approximateTextMeasurementPlugin,
+	resolveLineHeightPx,
 	textMeasurementCapability,
+	type BatchMeasurementRequest,
+	type TLMeasuredTextSize,
+	type TLMeasureTextOpts,
+	type TLMeasureTextSpanOpts,
 	type TLTextMeasurer,
 } from './lib/plugins/builtin/textMeasurement'
 export { createEditor, type TLCreateEditorOptions } from './lib/plugins/createEditor'
@@ -190,17 +195,8 @@ export {
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
-export {
-	TextManager,
-	resolveLineHeightPx,
-	type BatchMeasurementRequest,
-	type TLMeasuredTextSize,
-	type TLMeasureTextOpts,
-	type TLMeasureTextSpanOpts,
-} from './lib/editor/managers/TextManager/TextManager'
 export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
 export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
-export { TickManager } from './lib/editor/managers/TickManager/TickManager'
 export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
 export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
 export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'

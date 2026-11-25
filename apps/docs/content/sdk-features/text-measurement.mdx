@@ -5,7 +5,7 @@ updated_at: 12/20/2025
 keywords:
   - text
   - measurement
-  - TextManager
+  - domTextMeasurementPlugin
   - fonts
   - dimensions
   - wrapping
@@ -20,14 +20,14 @@ accuracy: 9
 notes: Example links should use relative paths instead of GitHub URLs. measureHtml needs its own example. Performance section is dense - use bullet formatting.
 ---
 
-The editor measures text to calculate shape bounds, handle text wrapping, and position labels. Two managers handle this: [TextManager](?) measures text dimensions using a hidden DOM element, and [FontManager](?) loads custom fonts before measurement so dimensions are accurate. Access them through `editor.textMeasure` and `editor.fonts`.
+The editor measures text to calculate shape bounds, handle text wrapping, and position labels. Two parts handle this: [domTextMeasurementPlugin](?) measures text dimensions using a hidden DOM element, and [FontManager](?) loads custom fonts before measurement so dimensions are accurate. Access them through `editor.textMeasure` and `editor.fonts`.
 
 ## How text measurement works
 
-The `TextManager` creates a hidden measurement element on initialization and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, so repeated measurements don't pay the cost of creating and removing elements.
+The DOM text measurement plugin creates a hidden measurement element when it sets up and appends it to the editor container. This element stays in the DOM throughout the editor's lifecycle, so repeated measurements don't pay the cost of creating and removing elements.
 
 ```typescript
-// Simplified for clarity - see TextManager.ts for full implementation
+// Simplified for clarity - see domTextMeasurement.ts for full implementation
 const elm = this.editor.getContainerDocument().createElement('div')
 elm.classList.add('tl-text', 'tl-text-measure')
 elm.setAttribute('dir', 'auto')
@@ -59,7 +59,7 @@ You can also use `measureHtml` to measure HTML content directly instead of plain
 
 ### Text wrapping
 
-Set `maxWidth` to a number and the browser wraps text to fit within that width. The `TextManager` uses the browser's native text layout algorithm rather than implementing its own wrapping logic.
+Set `maxWidth` to a number and the browser wraps text to fit within that width. The DOM text measurer uses the browser's native text layout algorithm rather than implementing its own wrapping logic.
 
 ```typescript
 const wrapped = editor.textMeasure.measureText('This is a long line of text', {
@@ -182,7 +182,7 @@ Pass a `limit` argument to skip the wait entirely when the page needs more than 
 
 ## Performance considerations
 
-The `TextManager` doesn't cache measurements itself. Shape utilities cache their own results using reactive computed values, so text is only remeasured when font properties or content change.
+The DOM text measurer doesn't cache measurements itself. Shape utilities cache their own results using reactive computed values, so text is only remeasured when font properties or content change.
 
 The `FontManager` computes each shape's font faces once and caches them until the shape's props or meta change. Concurrent requests for the same font share one loading promise, and `requestFonts` batches requests into a single microtask.
 

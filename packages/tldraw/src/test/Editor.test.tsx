@@ -277,7 +277,7 @@ describe('Editor.setOpacity', () => {
 	})
 })
 
-describe('Editor.TickManager', () => {
+describe('Editor ticks', () => {
 	it('Does not produce NaN values when elapsed is 0', () => {
 		// a helper that calls update pointer velocity with a given elapsed time.
 		// usually this is called by the app's tick manager, using the elapsed time

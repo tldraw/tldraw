@@ -63,7 +63,7 @@ import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultColor } from '@tldraw/tlschema';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
-import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
+import type { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLFontFace } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
@@ -3518,30 +3518,6 @@ export const Table: {
 };
 
 // @public (undocumented)
-export class TextManager extends EditorManager {
-    constructor(editor: Editor);
-    measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
-        shouldTruncateToFirstLine?: boolean;
-    }): {
-        didTruncate: boolean;
-        spans: {
-            box: BoxModel;
-            text: string;
-        }[];
-    };
-    // (undocumented)
-    measureHtml(html: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
-    // (undocumented)
-    measureHtmlBatch(requests: BatchMeasurementRequest[]): TLMeasuredTextSize[];
-    // (undocumented)
-    measureText(textToMeasure: string, opts: TLMeasureTextOpts): TLMeasuredTextSize;
-    measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
-        box: BoxModel;
-        text: string;
-    }[];
-}
-
-// @public (undocumented)
 export const textMeasurementCapability: TLCapability<TLTextMeasurer>;
 
 // @public
@@ -3560,23 +3536,6 @@ export class ThemeManager {
     setCurrentTheme(id: TLThemeId): void;
     updateTheme(theme: TLTheme): void;
     updateThemes(themes: ((themes: TLThemes) => TLThemes) | TLThemes): void;
-}
-
-// @internal (undocumented)
-export class TickManager extends EditorManager {
-    constructor(editor: Editor);
-    // (undocumented)
-    cancelRaf?: (() => void) | null;
-    // (undocumented)
-    dispose(): void;
-    // (undocumented)
-    isPaused: boolean;
-    // (undocumented)
-    now: number;
-    // (undocumented)
-    start(): void;
-    // (undocumented)
-    tick(): void;
 }
 
 // @public

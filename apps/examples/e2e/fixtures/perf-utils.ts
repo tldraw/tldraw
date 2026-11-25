@@ -406,7 +406,7 @@ export class PerformanceTestSuite {
 
 				// Repeatedly create text shapes and frames during the measurement
 				// window. Each cycle deletes the previous batch so text layouts
-				// can't be cached, forcing TextManager.measureText /
+				// can't be cached, forcing the DOM text measurer's measureText /
 				// measureTextSpans to run every time. The samples mix ASCII with
 				// emoji ZWJ sequences, flags, and accents so the grapheme
 				// segmenter path is exercised. See

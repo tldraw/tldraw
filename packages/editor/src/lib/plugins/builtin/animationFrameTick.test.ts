@@ -1,9 +1,9 @@
 import { Mock, Mocked, vi } from 'vitest'
-import { Editor } from '../../Editor'
-import { TickManager } from './TickManager'
+import { Editor } from '../../editor/Editor'
+import { AnimationFrameTicker } from './animationFrameTick'
 
 // Mock the Editor class
-vi.mock('../../Editor')
+vi.mock('../../editor/Editor')
 
 // Mock Date.now to control time
 const mockDateNow = vi.fn()
@@ -15,9 +15,9 @@ const mockCancelAnimationFrame = vi.fn()
 global.requestAnimationFrame = mockRequestAnimationFrame
 global.cancelAnimationFrame = mockCancelAnimationFrame
 
-describe('TickManager', () => {
+describe('AnimationFrameTicker', () => {
 	let editor: Mocked<Editor>
-	let tickManager: TickManager
+	let tickManager: AnimationFrameTicker
 	let mockEmit: Mock
 
 	beforeEach(() => {
@@ -42,7 +42,7 @@ describe('TickManager', () => {
 			emit: mockEmit,
 		} as unknown as Mocked<Editor>
 
-		tickManager = new TickManager(editor)
+		tickManager = new AnimationFrameTicker(editor)
 	})
 
 	afterEach(() => {
@@ -182,7 +182,7 @@ describe('TickManager', () => {
 
 	describe('RAF throttling behavior', () => {
 		it('should use test-specific RAF behavior in test environment', () => {
-			// The TickManager should detect test environment and use requestAnimationFrame directly
+			// The AnimationFrameTicker should detect test environment and use requestAnimationFrame directly
 			// This is already handled by the mock, but we can verify the behavior
 			expect(mockRequestAnimationFrame).toHaveBeenCalled()
 		})

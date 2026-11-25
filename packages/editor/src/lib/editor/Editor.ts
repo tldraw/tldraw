@@ -3681,7 +3681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Reject non-finite values before anything else, so the call is a no-op rather than a
 		// partial one. An animated move writes the camera from a 'tick' listener, and a listener
-		// that throws stops TickManager scheduling the next frame, which kills every frame-driven
+		// that throws stops the frame loop scheduling the next frame, which kills every frame-driven
 		// behavior for the rest of the session instead of surfacing the error to the caller.
 		if (!Number.isFinite(_point.x) || !Number.isFinite(_point.y) || !Number.isFinite(_point.z)) {
 			throw Error(
