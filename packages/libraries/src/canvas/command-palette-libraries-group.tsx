@@ -4,6 +4,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	useDialogs,
 	useEditor,
 	useTranslation,
 	useUiEvents,
@@ -11,6 +12,7 @@ import {
 	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary } from './new-library'
@@ -33,6 +35,7 @@ const messages = defineMessages({
 		id: 'libraries.command-palette.insert-from',
 		defaultMessage: 'Insert from {name}',
 	},
+	browseMore: { id: 'libraries.browse-more', defaultMessage: 'Browse more libraries' },
 })
 
 /** @public */
@@ -42,13 +45,16 @@ export interface CommandPaletteLibrariesGroupProps {
 	placeItem?: LibraryItemPlacer
 	/** Changes an item's content before the selection is saved, e.g. {@link wrapInGroup}. */
 	prepareItemContent?: PrepareItemContent
+	/** The host's own libraries to browse, as the {@link LibrariesPanel} takes them. */
+	getBrowseGroups?(): LibraryBrowseGroup[]
 	/** Command palette items of the host's own, listed after the group's commands. */
 	children?: ReactNode
 }
 
 /**
  * The libraries' commands for tldraw's command palette: open or close the {@link LibrariesPanel},
- * and add the selection to a library, as {@link AddToLibraryMenuItem} does. While the palette has a
+ * add the selection to a library, as {@link AddToLibraryMenuItem} does, and browse more libraries,
+ * as the panel's ⋯ menu does. While the palette has a
  * query, it also lists the best matching items, by their name or their library's, and picking one
  * places it in the middle of the viewport, as clicking its tile does. Renders nothing when
  * libraries aren't enabled. Pass it to `DefaultCommandPalette` with the groups you keep.
@@ -70,10 +76,12 @@ export function CommandPaletteLibrariesGroup({
 	source,
 	placeItem,
 	prepareItemContent,
+	getBrowseGroups,
 	children,
 }: CommandPaletteLibrariesGroupProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
+	const { addDialog } = useDialogs()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 
@@ -91,6 +99,21 @@ export function CommandPaletteLibrariesGroup({
 				}}
 			/>
 			<AddSelectionToLibrary source={source} prepareItemContent={prepareItemContent} />
+			{(!!(source.getAvailableLibraries && source.addLibraryToDocument) || !!getBrowseGroups) && (
+				<TldrawUiMenuItem
+					id="browse-libraries"
+					label={messages.browseMore.id}
+					readonlyOk
+					onSelect={(eventSource) => {
+						trackEvent('open-browse-libraries', { source: eventSource })
+						addDialog({
+							component: () => (
+								<BrowseLibrariesDialog source={source} getBrowseGroups={getBrowseGroups} />
+							),
+						})
+					}}
+				/>
+			)}
 			{children}
 			<InsertFromLibraries source={source} placeItem={placeItem} />
 		</TldrawUiMenuGroup>

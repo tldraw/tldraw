@@ -147,8 +147,9 @@ interface ItemFields {
 }
 
 // A request adding the items, each listed by its id and name unless `list` replaces the listing.
-function addRequest(items: ItemFields[], list?: unknown) {
+function addRequest(items: ItemFields[], list?: unknown, fields: Record<string, string> = {}) {
 	const form = new FormData()
+	for (const [name, value] of Object.entries(fields)) form.set(name, value)
 	const listed = items.map(({ id = ITEM_ID, name }) => ({
 		id,
 		...(name === undefined ? {} : { name }),
@@ -178,15 +179,16 @@ function getRequest() {
 	) as any
 }
 
-const libraryAccess = (owningGroupId: string, role: string | null) => ({
+const libraryAccess = (owningGroupId: string, role: string | null, createdBy = ME) => ({
 	id: LIBRARY_ID,
 	name: 'Shapes',
 	owningGroupId,
 	meta: {},
+	createdBy,
 	role,
 })
 
-const itemAccess = (role: string | null) => ({
+const itemAccess = (role: string | null, isOnAccessibleFile = false) => ({
 	id: ITEM_ID,
 	libraryId: LIBRARY_ID,
 	name: null,
@@ -197,6 +199,7 @@ const itemAccess = (role: string | null) => ({
 	updatedAt: 1,
 	owningGroupId: W,
 	role,
+	isOnAccessibleFile,
 })
 
 beforeEach(() => {
@@ -260,6 +263,45 @@ describe('addLibraryItems', () => {
 		expect(response.status).toBe(200)
 		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
 		expect(insert.parameters).toEqual(expect.arrayContaining([meta, {}]))
+	})
+
+	describe("a starter pack's copy", () => {
+		const clearsPackId = (fake: FakeKysely) =>
+			fake.queries.some((q) =>
+				q.sql.startsWith('update "library" set "meta" = "meta" - \'packId\'')
+			)
+
+		it('stops being one once items are added, in the same transaction', async () => {
+			const fake = mockPool(adding(libraryAccess(W, 'member')))
+			const response = await addLibraryItems(addRequest([valid()]), makeEnv())
+			expect(response.status).toBe(200)
+			const sqls = fake.queries.map((q) => q.sql)
+			const update = sqls.findIndex((q) => q.startsWith('update "library"'))
+			expect(sqls[update]).toBe(
+				`update "library" set "meta" = "meta" - 'packId' where "id" = $1 and "meta" ? 'packId'`
+			)
+			expect(sqls.indexOf('commit')).toBeGreaterThan(update)
+		})
+
+		it('stays one while its creator fills it with the pack’s items', async () => {
+			const fake = mockPool(adding(libraryAccess(W, 'member')))
+			const response = await addLibraryItems(
+				addRequest([valid()], undefined, { fillsPackCopy: 'true' }),
+				makeEnv()
+			)
+			expect(response.status).toBe(200)
+			expect(clearsPackId(fake)).toBe(false)
+		})
+
+		it('stops being one when someone else says they are filling it', async () => {
+			const fake = mockPool(adding(libraryAccess(W, 'member', 'user_cccc11112222dddd')))
+			const response = await addLibraryItems(
+				addRequest([valid()], undefined, { fillsPackCopy: 'true' }),
+				makeEnv()
+			)
+			expect(response.status).toBe(200)
+			expect(clearsPackId(fake)).toBe(true)
+		})
 	})
 
 	it('stores a light and a dark thumbnail', async () => {
@@ -832,6 +874,29 @@ describe('getLibraryItemContent', () => {
 	it('answers 404 to someone who is not a member of the workspace', async () => {
 		const env = await storedEnv()
 		mockPool([[itemAccess(null)]])
+		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
+	})
+
+	it("serves someone who isn't a member when the library is added to a file they can access", async () => {
+		const env = await storedEnv()
+		const fake = mockPool([[itemAccess(null, true)]])
+		const content = await getLibraryItemContent(getRequest(), env)
+		expect(content.status).toBe(200)
+		expect(await content.json()).toEqual(CONTENT)
+		const [{ sql, parameters }] = fake.queries
+		expect(sql).toContain('"file_library"')
+		expect(parameters).toEqual([ME, ME, ME, ITEM_ID])
+	})
+
+	it('answers 404 to someone who is not a member, and whose files the library is not added to', async () => {
+		const env = await storedEnv()
+		mockPool([[itemAccess(null, false)]])
+		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
+	})
+
+	it('answers 404 for an item that does not exist', async () => {
+		const env = await storedEnv()
+		mockPool([[]])
 		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
 	})
 })

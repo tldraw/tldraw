@@ -38,6 +38,8 @@ export type TLAppLibraryAction =
 	| 'rename-library-item'
 	| 'delete-library-item'
 	| 'move-library-item'
+	| 'add-library-to-file'
+	| 'remove-library-from-file'
 	| 'add-starter-pack'
 
 /** @public */
@@ -133,12 +135,14 @@ export interface TLAppUiEventMap {
 	'create-library':
 		| { owner: 'home' | 'workspace' | 'file'; method: 'new' }
 		| { owner: 'home' | 'workspace' | 'file'; method: 'copy'; item_count: number }
-	'add-to-library': { item_count: number }
+	'add-to-library': { owner: 'home' | 'workspace' | 'file'; item_count: number }
 	'rename-library': null
 	'delete-library': null
 	'rename-library-item': null
 	'delete-library-item': null
 	'move-library-item': null
+	'add-library-to-file': null
+	'remove-library-from-file': null
 	'add-starter-pack': { pack_id: string }
 	'library-error': {
 		action: TLAppLibraryAction

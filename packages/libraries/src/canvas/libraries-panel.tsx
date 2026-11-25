@@ -2,12 +2,15 @@ import { type ReactNode, useEffect, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	useDialogs,
 	useEditor,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	type TLLibrary,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
@@ -60,6 +63,13 @@ export interface LibrariesPanelProps {
 	 * {@link defaultPlaceLibraryItem}.
 	 */
 	placeItem?: LibraryItemPlacer
+	/**
+	 * Groups of the host's own for the "Browse libraries" dialog, after the libraries the source
+	 * has available to add, such as libraries the app ships as data. Called reactively, so it can
+	 * read signals. With it, "Browse libraries" is offered even by a source that doesn't add
+	 * libraries to documents.
+	 */
+	getBrowseGroups?(): LibraryBrowseGroup[]
 }
 
 /**
@@ -104,11 +114,14 @@ function LibrariesPanelContent({
 	menuItems,
 	prepareItemContent,
 	placeItem,
+	getBrowseGroups,
 }: Omit<LibrariesPanelProps, 'components'>) {
 	const editor = useEditor()
 	const { LibrariesPanelHeader = DefaultLibrariesPanelHeader, NoLibraries = DefaultNoLibraries } =
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useLibraries(source)
@@ -150,6 +163,15 @@ function LibrariesPanelContent({
 		[source, grouping]
 	)
 
+	const canBrowse =
+		!!(source.getAvailableLibraries && source.addLibraryToDocument) || !!getBrowseGroups
+	const browse = () => {
+		trackEvent('open-browse-libraries', { source: 'libraries' })
+		addDialog({
+			component: () => <BrowseLibrariesDialog source={source} getBrowseGroups={getBrowseGroups} />,
+		})
+	}
+
 	if (!librariesEnabled || !open) return null
 
 	const newLibraryAction = (ownerName: string | undefined, ownerId: string | undefined) => ({
@@ -186,7 +208,11 @@ function LibrariesPanelContent({
 				onContextMenu={(e) => e.stopPropagation()}
 			>
 				{LibrariesPanelHeader && (
-					<LibrariesPanelHeader newLibrary={getNewLibrary(activeGroup)} menuItems={menuItems} />
+					<LibrariesPanelHeader
+						newLibrary={getNewLibrary(activeGroup)}
+						menuItems={menuItems}
+						onBrowse={canBrowse ? browse : undefined}
+					/>
 				)}
 				{grouping ? (
 					<LibraryTabs groups={groups} value={tab} onValueChange={setChosenTab}>

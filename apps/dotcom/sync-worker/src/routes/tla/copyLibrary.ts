@@ -88,9 +88,9 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
 
-		// Dropped so the copy isn't taken for the starter pack's own copy.
+		// Dropped so the copy isn't taken for an untouched starter pack copy, which is deleted once it
+		// leaves its last file.
 		const { packId: _packId, ...meta } = access.library.meta
-
 		const now = Date.now()
 		let refused: typeof ZErrorCode.max_libraries_reached | undefined
 		try {
@@ -121,6 +121,8 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 						createdAt: now,
 						updatedAt: now,
 						meta,
+						isDefault: false,
+						fileCount: 0,
 					})
 					.onConflict((oc) => oc.column('id').doNothing())
 					.returning('id')

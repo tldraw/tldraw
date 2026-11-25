@@ -97,6 +97,26 @@ describe('copyLibrary', () => {
 		expect(source.getItems(original.id)).toHaveLength(2)
 	})
 
+	it('names the copy with getName, its items keeping their names', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		await added(source.addItem(original.id, { name: 'Card', content: content() }))
+		const copy = await copyLibrary(source, original.id, 'acme', {
+			getName: (name) => `${name} (Copy)`,
+		})
+		expect(copy.name).toBe('Wireframes (Copy)')
+		expect(source.getItems(copy.id).map((item) => item.name)).toEqual(['Card'])
+	})
+
+	it("passes the options to a source's own copyLibrary", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		const own = vi.fn(async () => original)
+		const getName = (name: string) => `${name} (Copy)`
+		await copyLibrary(Object.assign(source, { copyLibrary: own }), original.id, 'acme', { getName })
+		expect(own).toHaveBeenCalledWith(original.id, 'acme', { getName })
+	})
+
 	it("keeps each item's meta on its copy", async () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
@@ -238,8 +258,8 @@ describe('copyItem', () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const from = await source.createLibrary('Wireframes')
 		const to = await source.createLibrary('Sketches')
-		const card = await source.addItem(from.id, { name: 'Card', content: content() })
-		const unnamed = await source.addItem(from.id, { content: content() })
+		const card = await added(source.addItem(from.id, { name: 'Card', content: content() }))
+		const unnamed = await added(source.addItem(from.id, { content: content() }))
 		const getName = (name: string) => `${name} (Copy)`
 
 		const { copied: cardCopy } = await copyItem(source, card, source, to.id, { getName })
@@ -248,5 +268,14 @@ describe('copyItem', () => {
 		expect(cardCopy.name).toBe('Card (Copy)')
 		expect(unnamedCopy.name).toBeUndefined()
 		expect(source.getItems(from.id).map((item) => item.name)).toEqual(['Card', undefined])
+	})
+
+	it('keeps the name without getName, as a move between sources does', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const from = await source.createLibrary('Wireframes')
+		const to = await source.createLibrary('Sketches')
+		const card = await added(source.addItem(from.id, { name: 'Card', content: content() }))
+		const { copied } = await copyItem(source, card, source, to.id)
+		expect(copied.name).toBe('Card')
 	})
 })

@@ -1,4 +1,4 @@
-import type { Computed } from '@tldraw/state'
+import { atom, computed, type Atom, type Computed } from '@tldraw/state'
 import { Store, StoreSchema } from '@tldraw/store'
 import {
 	LibraryRecordType,
@@ -13,6 +13,7 @@ import {
 	type LibrarySource,
 	type TLLibraryAction,
 	type TLLibraryOwner,
+	type TLLibraryPlacement,
 	type TLLibraryTarget,
 	type TLLibraryItemPartial,
 	type TLNewLibraryItem,
@@ -44,6 +45,14 @@ export interface InMemoryLibrarySourceOptions {
 	owners?: TLLibraryOwner[]
 	/** Who new libraries belong to unless they name an owner. Defaults to the first owner. */
 	defaultOwnerId?: string
+	/**
+	 * The libraries the document shows, and why. Give it for a source where libraries are added to
+	 * a document: the starting libraries left out of it are available to add, and new libraries
+	 * are added. Leave it out and every library is shown, and the source has no
+	 * `getAvailableLibraries`, `getLibraryPlacement`, `addLibraryToDocument` or
+	 * `removeLibraryFromDocument`.
+	 */
+	shownInDocument?: { libraryId: TLLibraryId; placement: TLLibraryPlacement }[]
 	/**
 	 * Decides what the user may do, answering `can` for the source. Leave it out to allow
 	 * everything. A library or owner that doesn't exist is refused before this is asked. New
@@ -84,11 +93,21 @@ const schema = StoreSchema.create<ListedRecord>({
  */
 export class InMemoryLibrarySource implements LibrarySource {
 	readonly id: string
+	readonly getLibraryPlacement?: (libraryId: TLLibraryId) => TLLibraryPlacement | undefined
+	readonly getAvailableLibraries?: () => TLLibrary[]
+	readonly addLibraryToDocument?: (libraryId: TLLibraryId) => Promise<void>
+	readonly removeLibraryFromDocument?: (libraryId: TLLibraryId) => Promise<void>
 	private readonly owners: TLLibraryOwner[]
 	private readonly defaultOwnerId: string | undefined
 	private readonly allows: (action: TLLibraryAction, target?: TLLibraryTarget) => boolean
 	private readonly store = new Store<ListedRecord>({ schema, props: {} })
 	private readonly libraries = this.store.query.records('library')
+	private readonly placements: Atom<ReadonlyMap<TLLibraryId, TLLibraryPlacement>> | undefined
+	private readonly shownLibraries = computed('in-memory shown libraries', () => {
+		const placements = this.placements?.get()
+		const all = this.libraries.get()
+		return placements ? all.filter((library) => placements.has(library.id)) : all
+	})
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly contents = new Map<TLLibraryItemId, TLLibraryItemContent>()
 	private readonly thumbnailUrls = new Map<TLLibraryItemId, string[]>()
@@ -130,10 +149,38 @@ export class InMemoryLibrarySource implements LibrarySource {
 				this.contents.set(itemId as TLLibraryItemId, parseLibraryItemContent(content))
 			}
 		}
+		if (options.shownInDocument) {
+			for (const { libraryId } of options.shownInDocument) {
+				if (!this.store.has(libraryId)) throw new Error(`Shown library ${libraryId} is missing`)
+			}
+			const placements = atom(
+				'in-memory library placements',
+				new Map(options.shownInDocument.map((shown) => [shown.libraryId, shown.placement]))
+			)
+			this.placements = placements
+			this.getLibraryPlacement = (libraryId) => placements.get().get(libraryId)
+			this.getAvailableLibraries = () =>
+				this.libraries.get().filter((library) => !placements.get().has(library.id))
+			this.addLibraryToDocument = async (libraryId) => {
+				this.getLibrary(libraryId)
+				if (placements.get().has(libraryId)) return
+				this.assertCan('addLibraryToDocument', libraryId)
+				placements.update((all) => new Map(all).set(libraryId, 'added'))
+			}
+			this.removeLibraryFromDocument = async (libraryId) => {
+				this.getLibrary(libraryId)
+				this.assertCan('removeLibraryFromDocument', libraryId)
+				placements.update((all) => {
+					const rest = new Map(all)
+					rest.delete(libraryId)
+					return rest
+				})
+			}
+		}
 	}
 
 	getLibraries() {
-		return this.libraries.get()
+		return this.shownLibraries.get()
 	}
 
 	// One query per library, kept so its result stays the same array until that library's
@@ -159,6 +206,15 @@ export class InMemoryLibrarySource implements LibrarySource {
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
 		if (typeof target === 'string' && !this.store.has(target)) return false
+		if (action === 'renameLibrary' && typeof target === 'string' && this.placements) {
+			if (this.placements.get().get(target) === 'default') return false
+		}
+		if (action === 'addLibraryToDocument' || action === 'removeLibraryFromDocument') {
+			if (typeof target !== 'string' || !this.placements) return false
+			const placement = this.placements.get().get(target)
+			const fits = action === 'addLibraryToDocument' ? !placement : placement === 'added'
+			if (!fits) return false
+		}
 		if (typeof target === 'object' && this.getLibraryOwners().length > 0) {
 			if (!this.hasOwner(target.ownerId)) return false
 		}
@@ -183,6 +239,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.store.put([library])
+		this.placements?.update((all) => new Map(all).set(library.id, 'added'))
 		return library
 	}
 
@@ -199,6 +256,11 @@ export class InMemoryLibrarySource implements LibrarySource {
 		for (const item of items) this.forgetItem(item.id)
 		this.store.remove([libraryId, ...items.map((item) => item.id)])
 		this.itemsByLibrary.delete(libraryId)
+		this.placements?.update((all) => {
+			const rest = new Map(all)
+			rest.delete(libraryId)
+			return rest
+		})
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {

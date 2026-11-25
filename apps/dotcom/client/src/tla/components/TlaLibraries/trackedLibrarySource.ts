@@ -35,6 +35,11 @@ export class TrackedLibrarySource implements LibrarySource {
 	readonly getLibraryOwners?: LibrarySource['getLibraryOwners']
 	readonly getDefaultOwnerId?: LibrarySource['getDefaultOwnerId']
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly getNewLibraryOwnerIds?: LibrarySource['getNewLibraryOwnerIds']
+	readonly getLibraryPlacement?: LibrarySource['getLibraryPlacement']
+	readonly getAvailableLibraries?: LibrarySource['getAvailableLibraries']
+	readonly addLibraryToDocument?: LibrarySource['addLibraryToDocument']
+	readonly removeLibraryFromDocument?: LibrarySource['removeLibraryFromDocument']
 	private readonly fileId: string | undefined
 	private readonly eventSource: TLAppUiEventSource
 
@@ -45,9 +50,12 @@ export class TrackedLibrarySource implements LibrarySource {
 		{
 			fileId,
 			eventSource = 'libraries',
+			deletesOnRemove,
 		}: {
 			/** The board whose libraries the source holds, if any. */
 			fileId?: string
+			/** Whether removing a library from the document deletes it, so it's reported as deleted. */
+			deletesOnRemove?(libraryId: TLLibraryId): boolean
 			/** Where in the app the changes are made, reported with each event. */
 			eventSource?: TLAppUiEventSource
 		} = {}
@@ -60,6 +68,7 @@ export class TrackedLibrarySource implements LibrarySource {
 			const addItems = source.addItems.bind(source)
 			this.addItems = async (libraryId, newItems) =>
 				this.reportAdded(
+					libraryId,
 					await this.watch({ action: 'add-to-library' }, addItems(libraryId, newItems))
 				)
 		}
@@ -90,6 +99,30 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.getLibraryOwners) this.getLibraryOwners = source.getLibraryOwners.bind(source)
 		if (source.getDefaultOwnerId) this.getDefaultOwnerId = source.getDefaultOwnerId.bind(source)
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.getNewLibraryOwnerIds) {
+			this.getNewLibraryOwnerIds = source.getNewLibraryOwnerIds.bind(source)
+		}
+		if (source.getLibraryPlacement) {
+			this.getLibraryPlacement = source.getLibraryPlacement.bind(source)
+		}
+		if (source.getAvailableLibraries) {
+			this.getAvailableLibraries = source.getAvailableLibraries.bind(source)
+		}
+		if (source.addLibraryToDocument) {
+			const addLibraryToDocument = source.addLibraryToDocument.bind(source)
+			this.addLibraryToDocument = async (libraryId) => {
+				await this.watch({ action: 'add-library-to-file' }, addLibraryToDocument(libraryId))
+				this.track('add-library-to-file')
+			}
+		}
+		if (source.removeLibraryFromDocument) {
+			const removeLibraryFromDocument = source.removeLibraryFromDocument.bind(source)
+			this.removeLibraryFromDocument = async (libraryId) => {
+				const action = deletesOnRemove?.(libraryId) ? 'delete-library' : 'remove-library-from-file'
+				await this.watch({ action }, removeLibraryFromDocument(libraryId))
+				this.track(action)
+			}
+		}
 	}
 
 	getLibraries() {
@@ -143,7 +176,7 @@ export class TrackedLibrarySource implements LibrarySource {
 			{ action: 'add-to-library' },
 			this.untracked.addItem(libraryId, newItem)
 		)
-		this.reportAdded([item])
+		this.reportAdded(libraryId, [item])
 		return item
 	}
 
@@ -165,6 +198,8 @@ export class TrackedLibrarySource implements LibrarySource {
 			| 'rename-library-item'
 			| 'delete-library-item'
 			| 'move-library-item'
+			| 'add-library-to-file'
+			| 'remove-library-from-file'
 	) {
 		this.app.trackEvent(name, { source: this.eventSource })
 	}
@@ -182,11 +217,14 @@ export class TrackedLibrarySource implements LibrarySource {
 	}
 
 	// Items are listed before they're stored, and storing them can still fail.
-	private reportAdded<T extends TLLibraryItem[]>(items: T) {
+	private reportAdded<T extends TLLibraryItem[]>(libraryId: TLLibraryId, items: T) {
+		const library = this.untracked.getLibraries().find((l) => l.id === libraryId)
+		const owner = this.getOwnerKind(library)
 		this.watch({ action: 'add-to-library' }, whenItemsStored(items.map((item) => item.id))).then(
 			() =>
 				this.app.trackEvent('add-to-library', {
 					source: this.eventSource,
+					owner,
 					item_count: items.length,
 				}),
 			() => {}
@@ -194,9 +232,10 @@ export class TrackedLibrarySource implements LibrarySource {
 		return items
 	}
 
-	private getOwnerKind(library: TLLibrary): OwnerKind {
-		if (this.fileId !== undefined && library.ownerId === this.fileId) return 'file'
-		return library.ownerId === this.app.getHomeWorkspaceId() ? 'home' : 'workspace'
+	private getOwnerKind(library: TLLibrary | undefined): OwnerKind {
+		const ownerId = library ? library.ownerId : undefined
+		if (this.fileId !== undefined && ownerId === this.fileId) return 'file'
+		return ownerId === this.app.getHomeWorkspaceId() ? 'home' : 'workspace'
 	}
 }
 

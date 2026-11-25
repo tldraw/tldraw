@@ -9,6 +9,7 @@ import {
 	type TLCopyLibraryOptions,
 	type TLLibraryAction,
 	type TLLibraryOwner,
+	type TLLibraryPlacement,
 	type TLLibraryTarget,
 	type TLLibraryItemPartial,
 	type TLLibraryThumbnailContext,
@@ -46,6 +47,7 @@ export interface CompositeLibrarySourceOptions {
 
 interface Part extends CompositeLibrarySourcePart {
 	libraries: Computed<TLLibrary[]>
+	availableLibraries: Computed<TLLibrary[]>
 }
 
 /**
@@ -64,6 +66,21 @@ export class CompositeLibrarySource implements LibrarySource {
 	 * the item is copied and the original deleted, so it gets a new id.
 	 */
 	readonly moveItem?: (itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => Promise<void>
+	/**
+	 * Present when any part has it, listing each part's in order. A part with a fixed owner lists
+	 * that owner when its source lists any; a part without it lists none.
+	 */
+	readonly getNewLibraryOwnerIds?: () => string[]
+	/** Present when any part has it. A part without it gives its libraries no placement. */
+	readonly getLibraryPlacement?: (libraryId: TLLibraryId) => TLLibraryPlacement | undefined
+	/**
+	 * Present, with {@link CompositeLibrarySource.addLibraryToDocument}, when any part has them.
+	 * Each available library is added by its own part.
+	 */
+	readonly getAvailableLibraries?: () => TLLibrary[]
+	readonly addLibraryToDocument?: (libraryId: TLLibraryId) => Promise<void>
+	/** Present when any part has it. */
+	readonly removeLibraryFromDocument?: (libraryId: TLLibraryId) => Promise<void>
 	private readonly parts: Part[]
 	private readonly defaultOwnerId: string | undefined
 
@@ -71,9 +88,15 @@ export class CompositeLibrarySource implements LibrarySource {
 		this.parts.flatMap((part) => part.libraries.get())
 	)
 
+	private readonly availableLibraries$ = computed('composite available libraries', () =>
+		this.parts.flatMap((part) => part.availableLibraries.get())
+	)
+
+	// Available libraries too, so they can be browsed and added through the part that has them.
 	private readonly partByLibrary$ = computed('composite library parts', () => {
 		const parts = new Map<TLLibraryId, Part>()
 		for (const part of this.parts) {
+			for (const library of part.availableLibraries.get()) parts.set(library.id, part)
 			for (const library of part.libraries.get()) parts.set(library.id, part)
 		}
 		return parts
@@ -95,18 +118,56 @@ export class CompositeLibrarySource implements LibrarySource {
 			if (!part.owner && !part.source.getLibraryOwners) {
 				throw new Error(`Part ${part.source.id} needs an owner or its own getLibraryOwners`)
 			}
-			const { owner } = part
+			const { owner, source } = part
+			const withOwner = (libraries: TLLibrary[]) =>
+				owner
+					? libraries.map((c) => (c.ownerId === owner.id ? c : { ...c, ownerId: owner.id }))
+					: libraries
 			return {
 				...part,
-				libraries: computed(`composite part ${i} libraries`, () => {
-					const libraries = part.source.getLibraries()
-					if (!owner) return libraries
-					return libraries.map((c) => (c.ownerId === owner.id ? c : { ...c, ownerId: owner.id }))
-				}),
+				libraries: computed(`composite part ${i} libraries`, () =>
+					withOwner(source.getLibraries())
+				),
+				availableLibraries: computed(`composite part ${i} available libraries`, () =>
+					withOwner(source.getAvailableLibraries ? source.getAvailableLibraries() : [])
+				),
 			}
 		})
 		if (this.parts.some((part) => part.source.moveItem)) {
 			this.moveItem = (itemId, toLibraryId) => this.moveItemBetweenParts(itemId, toLibraryId)
+		}
+		if (this.parts.some((part) => part.source.getNewLibraryOwnerIds)) {
+			this.getNewLibraryOwnerIds = () =>
+				this.parts.flatMap(({ owner, source }) => {
+					const ids = source.getNewLibraryOwnerIds ? source.getNewLibraryOwnerIds() : []
+					if (!owner) return ids
+					return ids.length > 0 ? [owner.id] : []
+				})
+		}
+		if (this.parts.some((part) => part.source.getLibraryPlacement)) {
+			this.getLibraryPlacement = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				return source?.getLibraryPlacement ? source.getLibraryPlacement(libraryId) : undefined
+			}
+		}
+		if (this.parts.some((part) => part.source.getAvailableLibraries)) {
+			this.getAvailableLibraries = () => this.availableLibraries$.get()
+			this.addLibraryToDocument = async (libraryId) => {
+				const { source } = this.getLibraryPart(libraryId)
+				if (!source.addLibraryToDocument) {
+					throw new LibraryPermissionError('addLibraryToDocument', libraryId)
+				}
+				return source.addLibraryToDocument(libraryId)
+			}
+		}
+		if (this.parts.some((part) => part.source.removeLibraryFromDocument)) {
+			this.removeLibraryFromDocument = async (libraryId) => {
+				const { source } = this.getLibraryPart(libraryId)
+				if (!source.removeLibraryFromDocument) {
+					throw new LibraryPermissionError('removeLibraryFromDocument', libraryId)
+				}
+				return source.removeLibraryFromDocument(libraryId)
+			}
 		}
 	}
 
@@ -245,7 +306,7 @@ export class CompositeLibrarySource implements LibrarySource {
 	// Items are found through their libraries: sources list items per library only.
 	private getItemPart(itemId: TLLibraryItemId) {
 		for (const part of this.parts) {
-			for (const library of part.libraries.get()) {
+			for (const library of [...part.libraries.get(), ...part.availableLibraries.get()]) {
 				const item = part.source.getItems(library.id).find((i) => i.id === itemId)
 				if (item) return { part, item }
 			}

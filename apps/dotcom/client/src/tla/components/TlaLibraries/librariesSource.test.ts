@@ -82,6 +82,52 @@ describe('TldrawAppLibrariesSource', () => {
 		])
 	})
 
+	it('gives the user one default library, "My stash", in their home workspace', async () => {
+		const { backend, source } = setUp()
+		const ensureDefault = vi.spyOn(backend.app.z.mutate.library, 'ensureDefault')
+		source.ensureDefaultLibrary()
+		source.ensureDefaultLibrary()
+		expect(backend.rows.get()).toMatchObject([
+			{ name: 'My stash', owningGroupId: 'user_me', isDefault: true },
+		])
+		await vi.waitFor(() => {
+			source.ensureDefaultLibrary()
+			expect(ensureDefault).toHaveBeenCalledTimes(1)
+		})
+	})
+
+	it('never renames or deletes the default library', async () => {
+		const { source } = setUp()
+		source.ensureDefaultLibrary()
+		const [mine] = source.getLibraries()
+		const kit = await source.createLibrary('Kit')
+		expect(source.can('deleteLibrary', mine.id)).toBe(false)
+		expect(source.can('renameLibrary', mine.id)).toBe(false)
+		expect(source.can('deleteLibrary', kit.id)).toBe(true)
+		expect(source.can('renameLibrary', kit.id)).toBe(true)
+		await expect(source.deleteLibrary(mine.id)).rejects.toThrow(LibraryPermissionError)
+		await expect(source.renameLibrary(mine.id, 'Everything')).rejects.toThrow(
+			LibraryPermissionError
+		)
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['My stash', 'Kit'])
+	})
+
+	it('lists the default library as "My stash", whatever its row is named', async () => {
+		const { backend, source } = setUp()
+		await backend.app.z.mutate.library.ensureDefault({ id: 'old-default', name: 'My stuff' }).client
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['My stash'])
+	})
+
+	it('gives a default library even when the home workspace has others', async () => {
+		const { backend, source } = setUp()
+		await source.createLibrary('Kit')
+		source.ensureDefaultLibrary()
+		expect(backend.rows.get().map((row) => [row.name, row.isDefault])).toEqual([
+			['Kit', false],
+			['My stash', true],
+		])
+	})
+
 	it("refuses to create in a workspace the user isn't in", async () => {
 		const { source } = setUp()
 		expect(source.can('createLibrary')).toBe(true)
@@ -600,6 +646,31 @@ describe('TldrawAppLibrariesSource', () => {
 				{ name: 'Moon', libraryId: copy.id },
 			])
 			expect(source.can('renameLibrary', copy.id)).toBe(true)
+		})
+
+		it('names the copy with getName, listed at once and sent to the server', async () => {
+			const { backend, source, kit } = await withKit()
+			const requests = backend.holdRequests()
+			const copying = source.copyLibrary(kit.id, 'acme', { getName: (name) => `${name} (Copy)` })
+			const pending = source.getLibraries().find((c) => c.id !== kit.id)!
+			expect(pending.name).toBe('Kit (Copy)')
+			expect(source.getItems(pending.id).map((i) => i.name)).toEqual(['Star', 'Moon'])
+			requests.release()
+			const copy = await copying
+			const [, init] = backend.fetch.mock.calls.at(-1)!
+			expect(JSON.parse(init!.body as string)).toMatchObject({ name: 'Kit (Copy)' })
+			await vi.waitFor(() =>
+				expect(backend.rows.get().find((row) => row.id === rowId(copy.id))?.name).toBe('Kit (Copy)')
+			)
+		})
+
+		it('shortens a long name so that the copy keeps the whole of what getName adds', () => {
+			const getName = (name: string) => `${name} (Copy)`
+			const long = 'x'.repeat(MAX_LIBRARY_NAME_LENGTH)
+			const name = getCopyName(long, { getName })
+			expect(name).toHaveLength(MAX_LIBRARY_NAME_LENGTH)
+			expect(name.endsWith(' (Copy)')).toBe(true)
+			expect(getCopyName('Kit', {})).toBe('Kit')
 		})
 
 		it("keeps each item's meta on its copy, while it's copied and from its row", async () => {

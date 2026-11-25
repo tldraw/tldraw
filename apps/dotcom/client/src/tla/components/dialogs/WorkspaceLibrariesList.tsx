@@ -23,12 +23,14 @@ import {
 import { useApp } from '../../hooks/useAppState'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { rowId } from '../TlaLibraries/librariesSource'
 import { TrackedLibrarySource } from '../TlaLibraries/trackedLibrarySource'
 import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
 	itemCount: { defaultMessage: '{count, plural, one {# item} other {# items}}' },
+	notInAnyFile: { defaultMessage: '· Not in any file' },
 	libraryMenu: { defaultMessage: 'Library menu' },
 	rename: { defaultMessage: 'Rename' },
 	delete: { defaultMessage: 'Delete' },
@@ -54,17 +56,23 @@ export function WorkspaceLibrariesList({
 
 	const rows = useValue(
 		'workspace libraries',
-		() =>
-			source
+		() => {
+			const libraryRows = new Map(app.getLibraryRows().map((row) => [row.id, row]))
+			return source
 				.getLibraries()
-				.filter((library) => library.ownerId === workspaceId)
+				.filter(
+					(library) =>
+						library.ownerId === workspaceId && !libraryRows.get(rowId(library.id))?.isDefault
+				)
 				.map((library) => ({
 					library,
 					itemCount: source.getItems(library.id).length,
+					notInAnyFile: libraryRows.get(rowId(library.id))?.fileCount === 0,
 					canRename: source.can('renameLibrary', library.id),
 					canDelete: source.can('deleteLibrary', library.id),
-				})),
-		[source, workspaceId]
+				}))
+		},
+		[source, app, workspaceId]
 	)
 
 	const showError = () => {
@@ -116,7 +124,7 @@ export function WorkspaceLibrariesList({
 
 	return (
 		<div className={styles.librariesList}>
-			{rows.map(({ library, itemCount, canRename, canDelete }) => (
+			{rows.map(({ library, itemCount, notInAnyFile, canRename, canDelete }) => (
 				<div key={library.id} className={styles.libraryItem}>
 					{renamingId === library.id ? (
 						<RenameInput
@@ -130,6 +138,9 @@ export function WorkspaceLibrariesList({
 					)}
 					<span className={styles.libraryCount}>
 						{msg(messages.itemCount, { count: itemCount })}
+						{notInAnyFile && (
+							<span className={styles.libraryNotInAnyFile}>{msg(messages.notInAnyFile)}</span>
+						)}
 					</span>
 					<LibraryRowMenu
 						library={library}

@@ -292,6 +292,10 @@
 	font-size: 12px;
 }
 
+.libraryNotInAnyFile {
+	margin-inline-start: 4px;
+}
+
 /* A bare icon, like the sidebar's file menu trigger, flush with the content's right edge. */
 .libraryMenuTrigger {
 	flex: 0 0 auto;

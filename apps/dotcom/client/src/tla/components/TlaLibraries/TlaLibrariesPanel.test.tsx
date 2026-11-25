@@ -1,4 +1,4 @@
-import { InMemoryLibrarySource, LibraryItemRecordType, type LibrarySource } from '@tldraw/libraries'
+import type { LibrarySource } from '@tldraw/libraries'
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
@@ -11,11 +11,12 @@ import {
 	deleteFromLocalStorage,
 	Editor,
 	EditorContext,
-	LibraryRecordType,
 	TldrawUiContextProvider,
 } from 'tldraw'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
+import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
+import { TldrawAppLibrariesSource } from './librariesSource'
 import { TlaLibrariesCommandPaletteGroup } from './TlaLibrariesPanel'
 
 const app = vi.hoisted(() => ({ current: null as null | { libraries: LibrarySource | null } }))
@@ -36,29 +37,27 @@ function makeApp(libraries: LibrarySource | null) {
 	}
 }
 
-function makeUserLibraries() {
-	const library = LibraryRecordType.create({ name: 'Wireframes', ownerId: 'home' })
-	const item = LibraryItemRecordType.create({ libraryId: library.id, name: 'Button' })
-	return new InMemoryLibrarySource({
-		id: 'user',
-		owners: [{ id: 'home', name: 'My workspace' }],
-		initial: {
-			libraries: [library],
-			items: [item],
-			contents: {
-				[item.id]: {
-					formatVersion: 1,
-					content: {
-						shapes: [],
-						bindings: [],
-						rootShapeIds: [],
-						assets: [],
-						schema: createTLSchema().serialize(),
-					},
-				},
+// The user's default library, which every file shows, holding a "Button".
+async function makeAppWithLibraries() {
+	const backend = createFakeLibrariesBackend({ userId: 'home' })
+	vi.stubGlobal('fetch', backend.fetch)
+	const libraries = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+	libraries.ensureDefaultLibrary()
+	const [stash] = libraries.getLibraries()
+	await libraries.addItem(stash.id, {
+		name: 'Button',
+		content: {
+			formatVersion: 1,
+			content: {
+				shapes: [],
+				bindings: [],
+				rootShapeIds: [],
+				assets: [],
+				schema: createTLSchema().serialize(),
 			},
 		},
 	})
+	return Object.assign(backend.app, { libraries })
 }
 
 let container: HTMLDivElement
@@ -96,6 +95,7 @@ afterEach(() => {
 	editor.dispose()
 	container.remove()
 	app.current = null
+	vi.unstubAllGlobals()
 })
 
 async function renderPalette() {
@@ -132,11 +132,11 @@ function rowIds() {
 
 describe('TlaLibrariesCommandPaletteGroup', () => {
 	it("lists the libraries commands and the user's items when libraries are on", async () => {
-		app.current = makeApp(makeUserLibraries())
+		app.current = (await makeAppWithLibraries()) as any
 		await renderPalette()
 		expect(rowIds()).toEqual([
 			'toggle-libraries-panel',
-			'tla-browse-starter-packs',
+			'browse-libraries',
 			expect.stringMatching(/^library-item:/),
 		])
 

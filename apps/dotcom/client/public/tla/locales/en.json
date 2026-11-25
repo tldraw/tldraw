@@ -95,11 +95,11 @@
   "1ffd709937": {
     "translation": "A workspace must keep at least one owner. Make someone else an owner first."
   },
+  "20746febc9": {
+    "translation": "My stash"
+  },
   "21f66c9c00": {
     "translation": "Workspace name"
-  },
-  "2361431171": {
-    "translation": "Private to you"
   },
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
@@ -293,9 +293,6 @@
   "56cabd57d5": {
     "translation": "Archived files will appear here."
   },
-  "57af9a64fa": {
-    "translation": "You may not be allowed to create libraries, or copying failed."
-  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -332,17 +329,11 @@
   "625fd29749": {
     "translation": "Older"
   },
-  "6378731a5e": {
-    "translation": "Couldn't add"
-  },
   "639bae9ac6": {
     "translation": "you"
   },
   "63a6a88c06": {
     "translation": "Refresh"
-  },
-  "6481836091": {
-    "translation": "Browse starter packs…"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -726,9 +717,6 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
-  "c3bf447eab": {
-    "translation": "Open"
-  },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
@@ -746,9 +734,6 @@
   },
   "cb5feb1b73": {
     "translation": "Color"
-  },
-  "cb63743752": {
-    "translation": "Couldn't load starter packs"
   },
   "cce99c598c": {
     "translation": "Profile"
@@ -810,9 +795,6 @@
   "e0aa021e21": {
     "translation": "OK"
   },
-  "e19d2ede14": {
-    "translation": "Added {pack} to your libraries."
-  },
   "e1cbe6f097": {
     "translation": "Couldn't change library"
   },
@@ -840,17 +822,11 @@
   "ebfe9ce86e": {
     "translation": "Yesterday"
   },
-  "ec211f7c20": {
-    "translation": "Add"
-  },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
   },
   "ec611e9a08": {
     "translation": "Account menu"
-  },
-  "ec9ac32d83": {
-    "translation": "Starter packs"
   },
   "ed6241a422": {
     "translation": "No files match your search."
@@ -879,14 +855,14 @@
   "f0e8bff6f9": {
     "translation": "User settings"
   },
+  "f129f24bec": {
+    "translation": "· Not in any file"
+  },
   "f13001876b": {
     "translation": "List view"
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
-  },
-  "f29ddbfb90": {
-    "translation": "Added"
   },
   "f2a6c498fb": {
     "translation": "Delete"
@@ -911,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Copied link"
+  },
+  "feebd72b89": {
+    "translation": "Public libraries"
   },
   "ff2fefd3c6": {
     "translation": "Are you sure you want to remove {name} from this workspace?"

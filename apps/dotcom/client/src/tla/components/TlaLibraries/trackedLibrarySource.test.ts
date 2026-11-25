@@ -55,7 +55,7 @@ function setUp() {
 		return { name, content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! } }
 	}
 	const events = () => backend.trackEvent.mock.calls.map(([name, data]) => [name, data])
-	return { backend, source, newItem, events }
+	return { backend, editor, source, newItem, events }
 }
 
 async function stored(items: TLLibraryItem[]) {
@@ -80,7 +80,19 @@ describe('TrackedLibrarySource', () => {
 		const items = await source.addItems!(library.id, [newItem(), newItem()])
 		expect(events()).toHaveLength(1)
 		await stored(items)
-		expect(events().at(-1)).toEqual(['add-to-library', { source: 'libraries', item_count: 2 }])
+		expect(events().at(-1)).toEqual([
+			'add-to-library',
+			{ source: 'libraries', owner: 'home', item_count: 2 },
+		])
+	})
+
+	it("reports adding items to the board's own library as adding to the file", async () => {
+		const { source, newItem, events } = setUp()
+		const own = source.getLibraries().find((l) => source.getLibraryPlacement!(l.id) === 'document')!
+		await stored(await source.addItems!(own.id, [newItem()]))
+		expect(events()).toEqual([
+			['add-to-library', { source: 'libraries', owner: 'file', item_count: 1 }],
+		])
 	})
 
 	it('reports adding items that fail to store as an error, not an add', async () => {
@@ -125,6 +137,33 @@ describe('TrackedLibrarySource', () => {
 			['delete-library-item', { source: 'libraries' }],
 			['delete-library', { source: 'libraries' }],
 		])
+	})
+
+	it('reports adding a library to the file and removing it', async () => {
+		const { source, newItem, events } = setUp()
+		const library = await source.createLibrary('Secret', { ownerId: 'acme' })
+		await source.addItem(library.id, newItem())
+		await source.removeLibraryFromDocument!(library.id)
+		await vi.waitFor(() =>
+			expect(source.getAvailableLibraries!().map((l) => l.id)).toContain(library.id)
+		)
+		await source.addLibraryToDocument!(library.id)
+		expect(
+			events()
+				.filter(([name]) => name !== 'add-to-library')
+				.slice(1)
+		).toEqual([
+			['remove-library-from-file', { source: 'libraries' }],
+			['add-library-to-file', { source: 'libraries' }],
+		])
+	})
+
+	it('reports removing an empty library from the file, which deletes it, once as a delete', async () => {
+		const { backend, source, events } = setUp()
+		const library = await source.createLibrary('Secret', { ownerId: 'acme' })
+		await source.removeLibraryFromDocument!(library.id)
+		expect(backend.rows.get().map((row) => row.name)).not.toContain('Secret')
+		expect(events().slice(1)).toEqual([['delete-library', { source: 'libraries' }]])
 	})
 
 	it('reports changes with the part of the app they were made from', async () => {
@@ -214,7 +253,8 @@ describe('TrackedLibrarySource', () => {
 
 	it('leaves adding a starter pack to be reported as that', async () => {
 		const { source, events } = setUp()
-		await addStarterPack(source, { id: 'doodles', name: 'Doodles', version: 1, items: [] })
+		const pack = { id: 'doodles', name: 'Doodles', version: 1, items: [] }
+		await addStarterPack(source, 'doodles', async () => pack, undefined)
 		expect(events()).toEqual([])
 	})
 

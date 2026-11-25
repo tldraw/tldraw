@@ -10,10 +10,12 @@ import {
 } from 'tldraw'
 import { NewLibraryIcon } from '../ui/library-icon'
 import { LibraryMenu } from '../ui/library-menu'
+import { MenuItem } from '../ui/menu-items'
 import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
+	browseLibraries: { id: 'libraries.panel.browse-libraries', defaultMessage: 'Browse libraries' },
 })
 
 /**
@@ -34,14 +36,21 @@ export interface LibrariesPanelHeaderProps {
 	newLibrary?: NewLibraryAction
 	/** The host's items for the panel's ⋯ menu, from {@link LibrariesPanelProps.menuItems}. */
 	menuItems?: ReactNode
+	/** For "Browse libraries" in the ⋯ menu. Left out when there are no libraries to browse. */
+	onBrowse?(): void
 }
 
 /**
- * The {@link LibrariesPanel}'s header: its title, a "New library" button and a ⋯ menu. The default
+ * The {@link LibrariesPanel}'s header: its title, a "New library" button and a ⋯ menu to browse
+ * libraries and pick the host's own items. The default
  * for {@link LibrariesComponents.LibrariesPanelHeader}.
  * @public @react
  */
-export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHeaderProps) {
+export function LibrariesPanelHeader({
+	newLibrary,
+	menuItems,
+	onBrowse,
+}: LibrariesPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
@@ -65,7 +74,16 @@ export function LibrariesPanelHeader({ newLibrary, menuItems }: LibrariesPanelHe
 				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the new library's name input straight away. */}
-				{!renaming && <LibraryMenu id="libraries-panel-menu">{menuItems}</LibraryMenu>}
+				{!renaming && (
+					<LibraryMenu id="libraries-panel-menu">
+						{onBrowse || menuItems ? (
+							<>
+								{onBrowse && <MenuItem label={msg(messages.browseLibraries)} onClick={onBrowse} />}
+								{menuItems}
+							</>
+						) : undefined}
+					</LibraryMenu>
+				)}
 			</div>
 		</header>
 	)

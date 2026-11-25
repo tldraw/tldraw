@@ -576,3 +576,122 @@ describe('InMemoryLibrarySource', () => {
 		revoke.mockRestore()
 	})
 })
+
+describe('InMemoryLibrarySource shown in a document', () => {
+	const kit = LibraryRecordType.createId('kit')
+	const mine = LibraryRecordType.createId('mine')
+	const board = LibraryRecordType.createId('board')
+
+	function setUp(can?: (action: TLLibraryAction, target?: TLLibraryTarget) => boolean) {
+		return new InMemoryLibrarySource({
+			initial: {
+				libraries: [
+					prefabs(),
+					LibraryRecordType.create({ id: kit, name: 'Kit' }),
+					LibraryRecordType.create({ id: mine, name: 'My stash' }),
+					LibraryRecordType.create({ id: board, name: 'Board' }),
+				],
+				items: [cardItem()],
+				contents: { [card]: content() },
+			},
+			shownInDocument: [
+				{ libraryId: board, placement: 'housed' },
+				{ libraryId: mine, placement: 'default' },
+			],
+			...(can ? { can } : {}),
+		})
+	}
+
+	const names = (libraries: { name: string }[]) => libraries.map((library) => library.name)
+
+	it('shows only the libraries in the document, and offers the rest', () => {
+		const source = setUp()
+		expect(names(source.getLibraries())).toEqual(['My stash', 'Board'])
+		expect(names(source.getAvailableLibraries!())).toEqual(['Prefabs', 'Kit'])
+		expect(source.getLibraryPlacement!(board)).toBe('housed')
+		expect(source.getLibraryPlacement!(mine)).toBe('default')
+		expect(source.getLibraryPlacement!(pack)).toBeUndefined()
+		expect(source.getItems(pack).map((item) => item.name)).toEqual(['Card'])
+	})
+
+	it('adds an available library, and removes it again', async () => {
+		const source = setUp()
+		expect(source.can('addLibraryToDocument', pack)).toBe(true)
+		expect(source.can('removeLibraryFromDocument', pack)).toBe(false)
+		await source.addLibraryToDocument!(pack)
+		expect(names(source.getLibraries())).toEqual(['Prefabs', 'My stash', 'Board'])
+		expect(names(source.getAvailableLibraries!())).toEqual(['Kit'])
+		expect(source.getLibraryPlacement!(pack)).toBe('added')
+		expect(source.can('addLibraryToDocument', pack)).toBe(false)
+
+		await source.addLibraryToDocument!(pack)
+		expect(source.getLibraryPlacement!(pack)).toBe('added')
+
+		await source.removeLibraryFromDocument!(pack)
+		expect(names(source.getLibraries())).toEqual(['My stash', 'Board'])
+		expect(source.getItems(pack).map((item) => item.name)).toEqual(['Card'])
+	})
+
+	it('removes only added libraries', async () => {
+		const source = setUp()
+		expect(source.can('removeLibraryFromDocument', board)).toBe(false)
+		expect(source.can('removeLibraryFromDocument', mine)).toBe(false)
+		await expect(source.removeLibraryFromDocument!(board)).rejects.toThrow(LibraryPermissionError)
+		await expect(source.removeLibraryFromDocument!(mine)).rejects.toThrow(LibraryPermissionError)
+		await expect(source.addLibraryToDocument!(missingLibrary)).rejects.toThrow(LibraryNotFoundError)
+	})
+
+	it("never renames the user's default library", async () => {
+		const source = setUp()
+		expect(source.can('renameLibrary', mine)).toBe(false)
+		expect(source.can('renameLibrary', board)).toBe(true)
+		await expect(source.renameLibrary(mine, 'Everything')).rejects.toThrow(LibraryPermissionError)
+		expect(names(source.getLibraries())).toContain('My stash')
+	})
+
+	it('asks can before adding or removing', async () => {
+		const source = setUp((action) => action !== 'addLibraryToDocument')
+		expect(source.can('addLibraryToDocument', pack)).toBe(false)
+		await expect(source.addLibraryToDocument!(pack)).rejects.toThrow(LibraryPermissionError)
+	})
+
+	it('adds new libraries to the document, and forgets deleted ones', async () => {
+		const source = setUp()
+		const created = await source.createLibrary('New')
+		expect(source.getLibraryPlacement!(created.id)).toBe('added')
+		expect(names(source.getLibraries())).toContain('New')
+		await source.deleteLibrary(created.id)
+		expect(source.getLibraryPlacement!(created.id)).toBeUndefined()
+		expect(names(source.getAvailableLibraries!())).not.toContain('New')
+	})
+
+	it('updates reactive readers when a library is added', async () => {
+		const source = setUp()
+		const seen: string[][] = []
+		const stop = react('shown', () => seen.push(names(source.getLibraries())))
+		await source.addLibraryToDocument!(kit)
+		stop()
+		expect(seen).toEqual([
+			['My stash', 'Board'],
+			['Kit', 'My stash', 'Board'],
+		])
+	})
+
+	it('rejects a shown library missing from the starting data', () => {
+		expect(
+			() =>
+				new InMemoryLibrarySource({
+					shownInDocument: [{ libraryId: missingLibrary, placement: 'added' }],
+				})
+		).toThrow()
+	})
+
+	it('has none of the document members without shownInDocument', () => {
+		const source = new InMemoryLibrarySource()
+		expect(source.getAvailableLibraries).toBeUndefined()
+		expect(source.getLibraryPlacement).toBeUndefined()
+		expect(source.addLibraryToDocument).toBeUndefined()
+		expect(source.removeLibraryFromDocument).toBeUndefined()
+		expect(source.can('addLibraryToDocument', pack)).toBe(false)
+	})
+})

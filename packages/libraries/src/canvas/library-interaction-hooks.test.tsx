@@ -24,6 +24,7 @@ import {
 	type TLLibraryItemPlacement,
 } from './place-item'
 import { useLibraryItemDrag, type LibraryItemDragOptions } from './use-item-drag'
+import { useLibraryActions } from './use-library-actions'
 import { useLibraryItemActions } from './use-library-item-actions'
 import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
@@ -300,5 +301,41 @@ describe('useLibraryItemActions', () => {
 		await act(async () => confirm.click())
 		await flush()
 		expect(source.getItems(shapes.id)).toEqual([])
+	})
+})
+
+describe('useLibraryActions', () => {
+	it("offers no Rename for the user's default library", async () => {
+		const stash = LibraryRecordType.create({ name: 'My stash' })
+		const other = LibraryRecordType.create({ name: 'Shapes' })
+		const source = new InMemoryLibrarySource({
+			initial: { libraries: [stash, other], items: [], contents: {} },
+			shownInDocument: [
+				{ libraryId: stash.id, placement: 'default' },
+				{ libraryId: other.id, placement: 'added' },
+			],
+		})
+		const forStash = renderHook(() => useLibraryActions(source, stash))
+		const forOther = renderHook(() => useLibraryActions(source, other))
+		expect(forStash().menuActions.onRename).toBeUndefined()
+		expect(forOther().menuActions.onRename).toBeDefined()
+	})
+
+	it('copies a library to an owner as "(Copy)", its items keeping their names', async () => {
+		const source = new InMemoryLibrarySource({
+			owners: [
+				{ id: 'home', name: 'Personal' },
+				{ id: 'acme', name: 'Acme workspace' },
+			],
+		})
+		const library = await source.createLibrary('Shapes')
+		await source.addItem(library.id, { name: 'Box', content: makeContent() })
+		const actions = renderHook(() => useLibraryActions(source, library))
+		const copy = actions().menuActions.copy!
+		act(() => copy.onSelect('acme'))
+		await flush()
+		const copied = source.getLibraries().find((l) => l.id !== library.id)!
+		expect(copied).toMatchObject({ name: 'Shapes (Copy)', ownerId: 'acme' })
+		expect(source.getItems(copied.id).map((i) => i.name)).toEqual(['Box'])
 	})
 })
