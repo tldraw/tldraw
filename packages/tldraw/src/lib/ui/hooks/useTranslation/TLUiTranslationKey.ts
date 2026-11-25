@@ -350,7 +350,7 @@ export type TLUiTranslationKey =
 	| 'libraries.add-selection'
 	| 'libraries.add-to-library'
 	| 'libraries.add-to-new-library'
-	| 'libraries.command-palette.insert-item'
+	| 'libraries.command-palette.insert-from'
 	| 'libraries.command-palette.toggle-panel'
 	| 'libraries.copied.description'
 	| 'libraries.copied.title'

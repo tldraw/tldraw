@@ -1,11 +1,9 @@
 import type { ReactNode } from 'react'
 import {
 	defineMessages,
-	getCommandPaletteMatchScore,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
-	useCommandPaletteQuery,
 	useEditor,
 	useTranslation,
 	useUiEvents,
@@ -23,8 +21,6 @@ import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 import { usePlaceItem } from './use-place-item'
 import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
-const MAX_ITEM_RESULTS = 8
-
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 	togglePanel: {
@@ -33,11 +29,10 @@ const messages = defineMessages({
 	},
 	addToLibrary: { id: 'libraries.add-to-library', defaultMessage: 'Add to library' },
 	newLibrary: { id: 'libraries.add-to-new-library', defaultMessage: 'New library' },
-	insertItem: {
-		id: 'libraries.command-palette.insert-item',
-		defaultMessage: 'Insert from library: {name}',
+	insertFrom: {
+		id: 'libraries.command-palette.insert-from',
+		defaultMessage: 'Insert from {name}',
 	},
-	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
 })
 
 /** @public */
@@ -97,7 +92,7 @@ export function CommandPaletteLibrariesGroup({
 			/>
 			<AddSelectionToLibrary source={source} prepareItemContent={prepareItemContent} />
 			{children}
-			<MatchingItems source={source} placeItem={placeItem} />
+			<InsertFromLibraries source={source} placeItem={placeItem} />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -147,43 +142,40 @@ function AddSelectionToLibrary({
 	)
 }
 
-function MatchingItems({
+function InsertFromLibraries({
 	source,
 	placeItem,
 }: Pick<CommandPaletteLibrariesGroupProps, 'source' | 'placeItem'>) {
 	const msg = useTranslation()
-	const query = useCommandPaletteQuery()
 	const place = usePlaceItem(source, placeItem)
-	const librariesLbl = msg(messages.title)
-	const unnamedLbl = msg(messages.unnamedItem)
-
-	const results = useValue(
-		'command palette library items',
-		() => {
-			if (!query.trim()) return []
-			return source
+	const libraries = useValue(
+		'command palette libraries',
+		() =>
+			source
 				.getLibraries()
-				.flatMap((library) =>
-					source.getItems(library.id).map((item) => {
-						const label = msg(messages.insertItem, { name: item.name ?? unnamedLbl })
-						const score = getCommandPaletteMatchScore(query, label, [librariesLbl, library.name])
-						return { item, label, libraryName: library.name, score }
-					})
-				)
-				.filter((result) => result.score > 0)
-				.sort((a, b) => b.score - a.score)
-				.slice(0, MAX_ITEM_RESULTS)
-		},
-		[source, query, msg, librariesLbl, unnamedLbl]
+				.map((library) => ({
+					library,
+					items: source.getItems(library.id).filter((item) => !!item.name),
+				}))
+				.filter(({ items }) => items.length > 0),
+		[source]
 	)
 
-	return results.map(({ item, label, libraryName }) => (
-		<TldrawUiMenuItem
-			key={item.id}
-			id={`library-item:${item.id}`}
-			label={label}
-			detail={libraryName}
-			onSelect={(eventSource) => place(item.id, eventSource)}
-		/>
+	return libraries.map(({ library, items }) => (
+		<TldrawUiMenuSubmenu
+			key={library.id}
+			id={`insert-from-library:${library.id}`}
+			label={msg(messages.insertFrom, { name: library.name })}
+		>
+			{items.map((item) => (
+				<TldrawUiMenuItem
+					key={item.id}
+					id={`library-item:${item.id}`}
+					label={item.name!}
+					detail={library.name}
+					onSelect={(eventSource) => place(item.id, eventSource)}
+				/>
+			))}
+		</TldrawUiMenuSubmenu>
 	))
 }

@@ -134,7 +134,11 @@ describe('TlaLibrariesCommandPaletteGroup', () => {
 	it("lists the libraries commands and the user's items when libraries are on", async () => {
 		app.current = makeApp(makeUserLibraries())
 		await renderPalette()
-		expect(rowIds()).toEqual(['toggle-libraries-panel', 'tla-browse-starter-packs'])
+		expect(rowIds()).toEqual([
+			'toggle-libraries-panel',
+			'tla-browse-starter-packs',
+			expect.stringMatching(/^library-item:/),
+		])
 
 		await type('button')
 		expect(rowIds()).toEqual([expect.stringMatching(/^library-item:/)])

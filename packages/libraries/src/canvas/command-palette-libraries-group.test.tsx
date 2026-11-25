@@ -43,6 +43,7 @@ async function makeSource({ readOnly = false } = {}) {
 	await add(shapes.id, 'Big box')
 	await add(shapes.id, 'Circle')
 	await add(icons.id, 'Star')
+	await add(icons.id, 'Heart')
 	seeding = false
 	return source
 }
@@ -113,6 +114,12 @@ async function type(query: string) {
 
 function rowLabels() {
 	return [...container.querySelectorAll('[role="option"]')].map((row) => row.textContent)
+}
+
+function submenuLabels() {
+	return [...container.querySelectorAll('[data-testid^="command-palette.submenu."]')].map((row) =>
+		row.getAttribute('data-testid')!.replace('command-palette.submenu.', '')
+	)
 }
 
 function rowIds() {
@@ -193,23 +200,46 @@ describe('CommandPaletteLibrariesGroup', () => {
 		expect(rowIds()).toEqual(['toggle-libraries-panel'])
 	})
 
-	it('lists no items without a query', async () => {
+	it('lists a submenu for each library with named items, and no items without a query', async () => {
 		await renderPalette(<CommandPaletteLibrariesGroup source={await makeSource()} />)
+		expect(submenuLabels()).toEqual(
+			expect.arrayContaining(['Insert from Shapes', 'Insert from Icons'])
+		)
 		expect(rowIds().some((id) => id.startsWith('library-item:'))).toBe(false)
 	})
 
-	it('lists items matching the query, best first, with their library', async () => {
+	it('lists the items matching the query, and a library matching it as its submenu', async () => {
 		const source = await makeSource()
+		const [box, bigBox, circle] = source.getItems(shapes.id)
 		await renderPalette(<CommandPaletteLibrariesGroup source={source} />)
 
 		await type('box')
-		expect(rowLabels()).toEqual([
-			'Insert from library: BoxShapes',
-			'Insert from library: Big boxShapes',
-		])
+		expect(rowIds()).toEqual(
+			expect.arrayContaining([`library-item:${box.id}`, `library-item:${bigBox.id}`])
+		)
+		expect(rowIds()).not.toContain(`library-item:${circle.id}`)
 
 		await type('icons')
-		expect(rowLabels()).toEqual(['Insert from library: StarIcons'])
+		expect(submenuLabels()).toContain('Insert from Icons')
+	})
+
+	it('leaves out unnamed items, and a library holding only those', async () => {
+		const source = await makeSource()
+		const unnamed = LibraryRecordType.create({ name: 'Scraps' })
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'geo' })
+		const content = editor.getContentFromCurrentPage([shapeId])!
+		editor.deleteShape(shapeId)
+		await source.createLibrary(unnamed.name)
+		const scraps = source.getLibraries().find((library) => library.name === 'Scraps')!
+		const item = await source.addItem(scraps.id, { content: { formatVersion: 1, content } })
+		await source.addItem(shapes.id, { content: { formatVersion: 1, content } })
+		await renderPalette(<CommandPaletteLibrariesGroup source={source} />)
+
+		expect(submenuLabels()).not.toContain('Insert from Scraps')
+		await type('scraps')
+		expect(rowIds()).not.toContain(`library-item:${item.id}`)
+		expect(rowLabels().some((label) => label?.includes('Unnamed'))).toBe(false)
 	})
 
 	it('places a picked item like clicking its tile, and reports it from the palette', async () => {
