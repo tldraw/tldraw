@@ -61,8 +61,7 @@ export function Component({ error }: { error?: unknown }) {
 	}
 
 	if (errorElem) {
-		// The workspace layout needs the app, which a remembered v3 flag can get ahead of.
-		if (isUiV3 && app && !isEmbed) return <TlaWorkspaceLayout>{errorElem}</TlaWorkspaceLayout>
+		if (isUiV3 && !isEmbed) return <TlaWorkspaceLayout>{errorElem}</TlaWorkspaceLayout>
 		return (
 			<TlaSidebarLayout collapsible isEmbed={isEmbed}>
 				{errorElem}

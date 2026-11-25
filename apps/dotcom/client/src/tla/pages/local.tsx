@@ -20,13 +20,7 @@ import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { getCurrentFlags } from '../utils/featureFlags'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
-import {
-	clearRedirectOnSignIn,
-	clearStayOnBoardAfterSignIn,
-	getStayOnBoardAfterSignIn,
-	isClerkFrontendApiUrl,
-	OPEN_SIGN_IN,
-} from '../utils/redirect'
+import { clearRedirectOnSignIn, isClerkFrontendApiUrl, OPEN_SIGN_IN } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -107,14 +101,12 @@ export function Component() {
 				// unslurped means it's still there when they log out.
 				if (res.ok) {
 					clearShouldSlurpFile()
-					clearStayOnBoardAfterSignIn()
 					navigate(routes.tlaFile(res.value.fileId), { replace: true, state: location.state })
 					return
 				}
 			}
 
-			// Someone who just signed in on the board here stays on a board, as below.
-			if (app.isUiV3Enabled && !getStayOnBoardAfterSignIn()) {
+			if (app.isUiV3Enabled) {
 				navigate(routes.tlaWorkspace(app.getHomeWorkspaceId()), {
 					replace: true,
 					state: location.state,
@@ -130,12 +122,10 @@ export function Component() {
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
-				clearStayOnBoardAfterSignIn()
 				navigate(routes.tlaFile(result.value.fileId), { replace: true, state: location.state })
 				return
 			}
 
-			clearStayOnBoardAfterSignIn()
 			navigate(routes.tlaFile(mostRecentFileId), { replace: true, state: location.state })
 		}
 
@@ -197,8 +187,7 @@ function useOpenSignInFromLocationState() {
 		if (!location.state?.[OPEN_SIGN_IN]) return
 		navigate('.', { replace: true, state: omit(location.state, [OPEN_SIGN_IN]) })
 		dialogs.addDialog({
-			// Sent here to sign in, by the Home button or by Clerk, not signing in from the board.
-			component: (props) => <TlaSignInDialog {...props} goesHome />,
+			component: TlaSignInDialog,
 			// Dismissed without signing in: a redirect left behind would hijack a later sign-in.
 			onClose: () => {
 				if (!clerk.isSignedIn) clearRedirectOnSignIn()

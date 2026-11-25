@@ -82,7 +82,6 @@ import {
 	getLastVisitedFileId,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
-import { uiV3Preview } from '../utils/uiV3Preview'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -301,7 +300,6 @@ export class TldrawApp {
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
-		uiV3Preview.set(this.isUiV3Enabled)
 		if (flags.libraries?.enabled) {
 			const libraries = createLibrariesSource(userId)
 			this.libraries = libraries

@@ -1,12 +1,10 @@
 import classNames from 'classnames'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	defaultUserPreferences,
 	defineMessages,
 	F,
-	getUserPreferences,
 	LANGUAGES,
-	setUserPreferences,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
@@ -24,13 +22,13 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { getDotDevUrl } from '../../../utils/appOriginLinks'
 import { isDevelopmentEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { TldrawApp } from '../../app/TldrawApp'
+import { useApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
 import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
-import { setReopenSettingsAfterSignIn } from '../../utils/redirect'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	TlaMenuControl,
@@ -48,12 +46,10 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import { SubmitFeedbackDialog } from './SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
-import { TlaSignInButton } from './TlaSignInButton'
 import styles from './TlaSettingsDialog.module.css'
 
 const messages = defineMessages({
 	profile: { defaultMessage: 'Profile' },
-	signInToEditProfile: { defaultMessage: 'Sign in to edit profile settings' },
 	preferences: { defaultMessage: 'Preferences' },
 	about: { defaultMessage: 'About' },
 	name: { defaultMessage: 'Name' },
@@ -72,38 +68,16 @@ const USER_MANUAL_URL = 'https://tldraw.notion.site/support'
 const LEGAL_SUMMARY_URL = '/legal.html'
 const DOT_DEV_URL = getDotDevUrl('sidebar-link')
 
-/**
- * The preferences the dialog edits: the account's when signed in, otherwise tldraw's per-browser
- * ones, which are what a signed-out editor runs on.
- */
-function useSettingsPreferences() {
-	const app = useMaybeApp()
-	return useMemo(
-		() =>
-			app
-				? {
-						get: () => app.getUser(),
-						set: (prefs: Partial<TLUserPreferences>) =>
-							app.tlUser.setUserPreferences({ id: app.userId, ...prefs }),
-					}
-				: {
-						get: () => getUserPreferences(),
-						set: (prefs: Partial<TLUserPreferences>) =>
-							setUserPreferences({ ...getUserPreferences(), ...prefs }),
-					},
-		[app]
-	)
+function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
+	app.tlUser.setUserPreferences({ id: app.userId, ...prefs })
 }
 
 type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'labs' | 'about'
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
-	// Signed out, Profile only offers sign-in, so the dialog opens on Preferences, the first tab with
-	// something to change.
-	const isSignedIn = !!useMaybeApp()
-	const [activeTab, setActiveTab] = useState<SettingsTab>(isSignedIn ? 'profile' : 'preferences')
-	const hasVerticalTabs = !useDesignSwitch('settingsHorizontalTabs')
+	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
+	const hasVerticalTabs = useDesignSwitch('settingsVerticalTabs')
 	const hasLabsTab = useDesignSwitch('settingsLabsTab')
 
 	const tabs: { id: SettingsTab; label: string }[] = [
@@ -116,17 +90,14 @@ export function TlaSettingsDialog() {
 		{ id: 'about', label: msg(messages.about) },
 	]
 	// Turning the Labs tab off from inside it removes the tab that's open.
-	const visibleTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : tabs[0].id
+	const visibleTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'profile'
 
 	const pages = tabs.map(({ id }) => (
 		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
-			{id === 'profile' &&
-				(isSignedIn ? (
-					// With vertical tabs, Sign out sits at the bottom of the tab column instead.
-					<ProfilePanel hasSignOut={!hasVerticalTabs} />
-				) : (
-					<SignedOutProfilePanel />
-				))}
+			{id === 'profile' && (
+				// With vertical tabs, Sign out sits at the bottom of the tab column instead.
+				<ProfilePanel hasSignOut={!hasVerticalTabs} />
+			)}
 			{id === 'preferences' && <PreferencesPanel />}
 			{id === 'canvas' && <CanvasPanel />}
 			{id === 'accessibility' && <AccessibilityPanel />}
@@ -170,7 +141,7 @@ export function TlaSettingsDialog() {
 									</button>
 								))}
 							</div>
-							{isSignedIn && <SignOutButton layout="nav" />}
+							<SignOutButton layout="nav" />
 						</div>
 						{pages}
 					</div>
@@ -211,7 +182,7 @@ function NameInput() {
 		const newName = draft.trim() || currentName
 		if (rInput.current) rInput.current.value = newName
 		if (newName === currentName) return
-		app.tlUser.setUserPreferences({ id: app.userId, name: newName })
+		setPreferences(app, { name: newName })
 		trackAppEvent('change-user-name', { source: 'user-preferences' })
 	}, [app, trackAppEvent])
 
@@ -261,20 +232,6 @@ function SignOutButton({ layout }: { layout: 'nav' | 'row' }) {
 	)
 }
 
-function SignedOutProfilePanel() {
-	const msg = useTranslation()
-	return (
-		<TlaMenuSection>
-			<TlaSignInButton
-				label={msg(messages.signInToEditProfile)}
-				source="user-preferences"
-				onBeforeSignIn={setReopenSettingsAfterSignIn}
-				data-testid="tla-settings-sign-in"
-			/>
-		</TlaMenuSection>
-	)
-}
-
 function ProfilePanel({ hasSignOut }: { hasSignOut: boolean }) {
 	const msg = useTranslation()
 	const app = useApp()
@@ -312,7 +269,7 @@ function ProfilePanel({ hasSignOut }: { hasSignOut: boolean }) {
 								style={{ backgroundColor: color }}
 								onClick={() => {
 									if (user.color === color) return
-									app.tlUser.setUserPreferences({ id: app.userId, color })
+									setPreferences(app, { color })
 									trackUiEvent('set-color', { source: 'dialog' })
 								}}
 							/>
@@ -342,7 +299,7 @@ const COLOR_SCHEMES: {
 
 function PreferencesPanel() {
 	const msg = useTranslation()
-	const preferences = useSettingsPreferences()
+	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackUiEvent = useUiEvents()
 	const colorThemeOptions = useColorThemeOptions()
@@ -352,18 +309,16 @@ function PreferencesPanel() {
 	const colorScheme = useValue(
 		'colorScheme',
 		() => {
-			const value = preferences.get().colorScheme
+			const value = app.getUser().colorScheme
 			return (
 				COLOR_SCHEMES.find((o) => o.value === value)?.value ?? defaultUserPreferences.colorScheme
 			)
 		},
-		[preferences]
+		[app]
 	)
-	const locale = useValue(
-		'locale',
-		() => preferences.get().locale ?? defaultUserPreferences.locale,
-		[preferences]
-	)
+	const locale = useValue('locale', () => app.getUser().locale ?? defaultUserPreferences.locale, [
+		app,
+	])
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 
 	useEffect(() => () => setColorThemePreview(null), [])
@@ -386,7 +341,7 @@ function PreferencesPanel() {
 						value={colorScheme}
 						options={colorSchemeOptions}
 						onChange={(value) => {
-							preferences.set({ colorScheme: value })
+							setPreferences(app, { colorScheme: value })
 							trackUiEvent('color-scheme', { source: 'dialog', value })
 						}}
 					/>
@@ -416,7 +371,7 @@ function PreferencesPanel() {
 						value={locale}
 						options={languageOptions}
 						onChange={(locale) => {
-							preferences.set({ locale })
+							setPreferences(app, { locale })
 							trackUiEvent('change-language', { source: 'dialog', locale })
 						}}
 					/>
@@ -441,11 +396,11 @@ function PreferencesPanel() {
 
 /** The editor preferences the switches read, with tldraw's defaults for any the user hasn't set. */
 function usePreferences() {
-	const preferences = useSettingsPreferences()
+	const app = useApp()
 	return useValue(
 		'preferences',
 		() => {
-			const user = preferences.get()
+			const user = app.getUser()
 			return {
 				isSnapMode: user.isSnapMode ?? defaultUserPreferences.isSnapMode,
 				isWrapMode: user.isWrapMode ?? defaultUserPreferences.isWrapMode,
@@ -461,7 +416,7 @@ function usePreferences() {
 					user.isZoomDirectionInverted ?? defaultUserPreferences.isZoomDirectionInverted,
 			}
 		},
-		[preferences]
+		[app]
 	)
 }
 
@@ -551,7 +506,7 @@ const INPUT_DEVICE_TOGGLES: PreferenceToggle[] = [
 
 function PreferenceSwitches({ toggles }: { toggles: PreferenceToggle[] }) {
 	const msg = useTranslation()
-	const settingsPreferences = useSettingsPreferences()
+	const app = useApp()
 	const trackUiEvent = useUiEvents()
 	const preferences = usePreferences()
 
@@ -568,7 +523,7 @@ function PreferenceSwitches({ toggles }: { toggles: PreferenceToggle[] }) {
 							checked={toggle.isChecked(preferences)}
 							disabled={toggle.isDisabled?.(preferences) ?? false}
 							onChange={(checked) => {
-								settingsPreferences.set(toggle.getUpdate(checked))
+								setPreferences(app, toggle.getUpdate(checked))
 								trackUiEvent(toggle.id, { source: 'dialog' })
 							}}
 						/>
@@ -613,7 +568,7 @@ const AUTO_INPUT_MODE_LABELS: Record<'none' | 'pan' | 'zoom', TLUiTranslationKey
 
 function InputDeviceControl() {
 	const msg = useTranslation()
-	const settingsPreferences = useSettingsPreferences()
+	const app = useApp()
 	const trackUiEvent = useUiEvents()
 	const { inputMode } = usePreferences()
 	// What "auto" resolves to comes from the open file's camera, so without an editor it has no suffix.
@@ -642,7 +597,7 @@ function InputDeviceControl() {
 				value={value}
 				options={options}
 				onChange={(mode) => {
-					settingsPreferences.set({ inputMode: mode === 'auto' ? null : mode })
+					setPreferences(app, { inputMode: mode === 'auto' ? null : mode })
 					trackUiEvent('input-mode', { source: 'dialog', value: mode })
 				}}
 			/>

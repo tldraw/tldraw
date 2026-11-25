@@ -2,7 +2,6 @@ import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import * as github from '@actions/github'
 import { exec } from './exec'
-import { nicelog } from './nicelog'
 
 export function getDeployInfo() {
 	const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
@@ -71,17 +70,6 @@ export async function createGithubDeployment(
 	})
 }
 
-// The first deploy of a worker uploads it and then asks Cloudflare about it, which can answer
-// that there is no such worker (code 10007) for a short while. Every worker of a new PR preview
-// is a first deploy, so without a retry a preview needed one job run per worker to come up.
-const NEW_WORKER_RETRIES = 4
-const NEW_WORKER_RETRY_DELAY_MS = 15_000
-
-function isNewWorkerNotFoundError(err: unknown) {
-	// execFile puts the command's stderr in the message.
-	return err instanceof Error && err.message.includes('[code: 10007]')
-}
-
 /** Deploy a worker to wrangler, returning the deploy ID */
 export async function wranglerDeploy({
 	location,
@@ -100,45 +88,32 @@ export async function wranglerDeploy({
 		environment?: string
 	}
 }) {
-	const varsArray: string[] = []
+	const varsArray = []
 	for (const [key, value] of Object.entries(vars)) {
 		varsArray.push('--var', `${key}:${value}`)
 	}
 
-	const deploy = () =>
-		exec(
-			'pnpm',
-			[
-				'wrangler',
-				'deploy',
-				dryRun ? '--dry-run' : null,
-				'--env',
-				env,
-				'--outdir',
-				'.wrangler/dist',
-				...varsArray,
-			],
-			{
-				pwd: location,
-				env: {
-					NODE_ENV: 'production',
-					// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
-					CI: '1',
-				},
-			}
-		)
-
-	let out = ''
-	for (let attempt = 1; ; attempt++) {
-		try {
-			out = await deploy()
-			break
-		} catch (err) {
-			if (attempt > NEW_WORKER_RETRIES || !isNewWorkerNotFoundError(err)) throw err
-			nicelog(`wrangler could not find the worker it just created, retrying (${attempt})`)
-			await new Promise((resolve) => setTimeout(resolve, NEW_WORKER_RETRY_DELAY_MS))
+	const out = await exec(
+		'pnpm',
+		[
+			'wrangler',
+			'deploy',
+			dryRun ? '--dry-run' : null,
+			'--env',
+			env,
+			'--outdir',
+			'.wrangler/dist',
+			...varsArray,
+		],
+		{
+			pwd: location,
+			env: {
+				NODE_ENV: 'production',
+				// wrangler needs CI=1 set to prevent it from trying to do interactive prompts
+				CI: '1',
+			},
 		}
-	}
+	)
 
 	if (dryRun) return
 

@@ -22,12 +22,7 @@ import {
 	useTranslation,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import {
-	clearReopenSettingsAfterSignIn,
-	clearStayOnBoardAfterSignIn,
-	setRedirectOnSignIn,
-	setStayOnBoardAfterSignIn,
-} from '../../utils/redirect'
+import { setRedirectOnSignIn } from '../../utils/redirect'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
@@ -42,26 +37,13 @@ export function TlaSignInDialog({
 	inviteInfo,
 	onInviteAccepted,
 	skipRedirect,
-	goesHome,
-	onBeforeSignIn,
 }: {
 	onClose?(): void
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
 	onInviteAccepted?(): void
 	skipRedirect?: boolean
-	/** Opened by a link to Home, not from the board, so v3 lands on the workspace page afterwards. */
-	goesHome?: boolean
-	/** Called as the sign-in goes through: the dialogs do not survive it (see `SignedInProvider`). */
-	onBeforeSignIn?(): void
 }) {
 	const [stage, setStage] = useState<'enterEmail' | 'enterCode'>('enterEmail')
-	const handleBeforeSignIn = useCallback(() => {
-		if (goesHome) clearStayOnBoardAfterSignIn()
-		else setStayOnBoardAfterSignIn()
-		// A sign-in abandoned half way, at Google say, must not send this one back to settings.
-		clearReopenSettingsAfterSignIn()
-		onBeforeSignIn?.()
-	}, [goesHome, onBeforeSignIn])
 	const [identifier, setIdentifier] = useState('')
 	const [isSignUpFlow, setIsSignUpFlow] = useState(false)
 	const [emailAddressId, setEmailAddressId] = useState<string | undefined>(undefined)
@@ -75,7 +57,6 @@ export function TlaSignInDialog({
 					onClose={onClose}
 					inviteInfo={inviteInfo}
 					skipRedirect={skipRedirect}
-					onBeforeSignIn={handleBeforeSignIn}
 					onComplete={(identifier, isSignUp, emailId) => {
 						setIdentifier(identifier)
 						setIsSignUpFlow(isSignUp)
@@ -91,7 +72,6 @@ export function TlaSignInDialog({
 					identifier={identifier}
 					isSignUpFlow={isSignUpFlow}
 					emailAddressId={emailAddressId}
-					onBeforeSignIn={handleBeforeSignIn}
 					onComplete={() => {
 						onInviteAccepted?.()
 						onClose?.()
@@ -125,13 +105,11 @@ export function TlaSignInDialog({
 function TlaEnterEmailStep({
 	onClose,
 	onComplete,
-	onBeforeSignIn,
 	inviteInfo,
 	skipRedirect,
 }: {
 	onClose?(): void
 	onComplete(identifier: string, isSignUpFlow: boolean, emailAddressId?: string): void
-	onBeforeSignIn(): void
 	inviteInfo?: Extract<GetInviteInfoResponseBody, { error: false }>
 	skipRedirect?: boolean
 }) {
@@ -159,7 +137,6 @@ function TlaEnterEmailStep({
 			try {
 				const res = await signIn.create({ identifier: state.identifier })
 				if (res.status === 'complete') {
-					onBeforeSignIn()
 					await setActive({ session: res.createdSessionId })
 					onClose?.()
 					return
@@ -213,14 +190,13 @@ function TlaEnterEmailStep({
 				}
 			}
 		},
-		[state, client.signUp, signIn, onClose, setActive, isSignInLoaded, onComplete, onBeforeSignIn]
+		[state, client.signUp, signIn, onClose, setActive, isSignInLoaded, onComplete]
 	)
 
 	const [isGoogleRedirecting, setIsGoogleRedirecting] = useState(false)
 	const handleGoogleSignIn = useCallback(async () => {
 		if (!isSignInLoaded || !signIn) return
 		if (!skipRedirect) setRedirectOnSignIn()
-		onBeforeSignIn()
 		setIsGoogleRedirecting(true)
 		try {
 			await signIn.authenticateWithRedirect({
@@ -235,7 +211,7 @@ function TlaEnterEmailStep({
 				error: err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Something went wrong',
 			}))
 		}
-	}, [isSignInLoaded, signIn, skipRedirect, onBeforeSignIn])
+	}, [isSignInLoaded, signIn, skipRedirect])
 
 	return (
 		<>
@@ -326,14 +302,12 @@ function TlaVerificationCodeStep({
 	emailAddressId,
 	onClose,
 	onComplete,
-	onBeforeSignIn,
 }: {
 	isSignUpFlow: boolean
 	onClose?(): void
 	identifier: string
 	emailAddressId: string | undefined
 	onComplete(): void
-	onBeforeSignIn(): void
 }) {
 	const [state, setState] = useState<{
 		code: string
@@ -382,7 +356,6 @@ function TlaVerificationCodeStep({
 			attempt
 				.then(async (r) => {
 					if (r.status === 'complete') {
-						onBeforeSignIn()
 						await setActive({ session: r.createdSessionId })
 						onComplete()
 						return
@@ -400,7 +373,7 @@ function TlaVerificationCodeStep({
 					}))
 				})
 		},
-		[state, client, isSignUpFlow, setActive, onComplete, onClose, onBeforeSignIn]
+		[state, client, isSignUpFlow, setActive, onComplete, onClose]
 	)
 
 	const handleResend = useCallback(async () => {
