@@ -35,6 +35,11 @@ export class TrackedLibrarySource implements LibrarySource {
 	readonly getLibraryOwners?: LibrarySource['getLibraryOwners']
 	readonly getDefaultOwnerId?: LibrarySource['getDefaultOwnerId']
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly loadItems?: LibrarySource['loadItems']
+	readonly isLoadingItems?: LibrarySource['isLoadingItems']
+	readonly mayHaveItemsMatching?: LibrarySource['mayHaveItemsMatching']
+	readonly getItemCount?: LibrarySource['getItemCount']
+	readonly getPreviewItems?: LibrarySource['getPreviewItems']
 	readonly getNewLibraryOwnerIds?: LibrarySource['getNewLibraryOwnerIds']
 	readonly getLibraryPlacement?: LibrarySource['getLibraryPlacement']
 	readonly getAvailableLibraries?: LibrarySource['getAvailableLibraries']
@@ -82,7 +87,9 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.copyLibrary) {
 			const copyLibrary = source.copyLibrary.bind(source)
 			this.copyLibrary = async (libraryId, ownerId, options) => {
-				const itemCount = source.getItems(libraryId).length
+				const itemCount = source.getItemCount
+					? source.getItemCount(libraryId)
+					: source.getItems(libraryId).length
 				const library = await this.watch(
 					{ action: 'create-library', method: 'copy' },
 					copyLibrary(libraryId, ownerId, options)
@@ -99,6 +106,13 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.getLibraryOwners) this.getLibraryOwners = source.getLibraryOwners.bind(source)
 		if (source.getDefaultOwnerId) this.getDefaultOwnerId = source.getDefaultOwnerId.bind(source)
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.loadItems) this.loadItems = source.loadItems.bind(source)
+		if (source.isLoadingItems) this.isLoadingItems = source.isLoadingItems.bind(source)
+		if (source.getItemCount) this.getItemCount = source.getItemCount.bind(source)
+		if (source.getPreviewItems) this.getPreviewItems = source.getPreviewItems.bind(source)
+		if (source.mayHaveItemsMatching) {
+			this.mayHaveItemsMatching = source.mayHaveItemsMatching.bind(source)
+		}
 		if (source.getNewLibraryOwnerIds) {
 			this.getNewLibraryOwnerIds = source.getNewLibraryOwnerIds.bind(source)
 		}

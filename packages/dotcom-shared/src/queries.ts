@@ -5,6 +5,7 @@ import {
 	ExpressionBuilder,
 	Query,
 } from '@rocicorp/zero'
+import { LIBRARY_PREVIEW_ITEM_COUNT } from './constants'
 import { schema, TlaSchema } from './tlaSchema'
 
 const zql = createBuilder(schema)
@@ -52,6 +53,10 @@ const canAccessLibraryFile =
 				gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', userId))
 			)
 		)
+
+/** A library's first items, to preview it without syncing the rest. */
+const previewItems = (items: Query<'library_item', TlaSchema>) =>
+	items.orderBy('createdAt', 'asc').limit(LIBRARY_PREVIEW_ITEM_COUNT)
 
 /** The access gate as the deprecated `comments` query reaches it, through `file`. */
 const legacyCanAccessFile = (userId: string) => (file: Query<'file', TlaSchema>) =>
@@ -148,22 +153,44 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Libraries of every workspace the user is a member of, with their items. Libraries private
-	 * to the user come through the same path: their home workspace has a group_user row for them.
+	 * Libraries of every workspace the user is a member of, with their first
+	 * {@link LIBRARY_PREVIEW_ITEM_COUNT} items to preview them; the rest sync library by library
+	 * through {@link libraryItems}. Libraries private to the user come through the same path: their
+	 * home workspace has a group_user row for them.
 	 */
 	libraries: defineQuery(({ ctx }) =>
 		zql.library
 			.whereExists('group', (g) =>
 				g.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
 			)
-			.related('items', (items) => items.orderBy('createdAt', 'asc'))
+			.related('items', previewItems)
 			.orderBy('createdAt', 'asc')
+	),
+
+	/**
+	 * One library with all its items, to anyone who may see it: a member of its workspace, or
+	 * someone who can access a file it's added to. Empty for anyone else.
+	 */
+	libraryItems: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { libraryId: string } }) =>
+		zql.library
+			.where('id', '=', args.libraryId)
+			.where(({ or, exists }) =>
+				or(
+					exists('group', (g) =>
+						g.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+					),
+					exists('fileLibraries', (fl) => fl.where(canAccessLibraryFile(ctx.userId)))
+				)
+			)
+			.related('items', (items) => items.orderBy('createdAt', 'asc'))
+			.one()
 	),
 
 	/**
 	 * The libraries a file's panel shows: those added to the file, to anyone who can access it
 	 * (opened it, or a member of its workspace), members of the library's workspace or not; and
-	 * the caller's default library, on every file. With their items, and the file's
+	 * the caller's default library, on every file. With their first
+	 * {@link LIBRARY_PREVIEW_ITEM_COUNT} items, as {@link libraries} has them, and the file's
 	 * `fileLibraries` row for a library added to it.
 	 */
 	fileLibraries: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
@@ -176,7 +203,7 @@ export const queries = defineQueries({
 					)
 				)
 			)
-			.related('items', (items) => items.orderBy('createdAt', 'asc'))
+			.related('items', previewItems)
 			.related('fileLibraries', (fl) =>
 				fl.where('fileId', '=', args.fileId).where(canAccessLibraryFile(ctx.userId))
 			)

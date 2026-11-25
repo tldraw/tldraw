@@ -102,6 +102,29 @@ describe('CompositeLibrarySource', () => {
 		expect(kit).not.toHaveProperty('ownerId')
 	})
 
+	it("counts and previews each library from its part's summary, or else its listed items", async () => {
+		const counted = new InMemoryLibrarySource({ id: 'counted' })
+		const listed = new InMemoryLibrarySource({ id: 'listed' })
+		const big = await counted.createLibrary('Big')
+		const small = await listed.createLibrary('Small')
+		await added(listed.addItem(small.id, { name: 'One', content: content('one') }))
+		const preview = LibraryItemRecordType.create({ libraryId: big.id, name: 'First' })
+		Object.assign(counted, {
+			getItemCount: () => 40,
+			getPreviewItems: () => [preview],
+		})
+		const composite = new CompositeLibrarySource({
+			parts: [
+				{ owner: { id: 'a', name: 'A' }, source: counted },
+				{ owner: { id: 'b', name: 'B' }, source: listed },
+			],
+		})
+		expect(composite.getItemCount!(big.id)).toBe(40)
+		expect(composite.getPreviewItems!(big.id, 4)).toEqual([preview])
+		expect(composite.getItemCount!(small.id)).toBe(1)
+		expect(composite.getPreviewItems!(small.id, 4).map((i) => i.name)).toEqual(['One'])
+	})
+
 	it('updates its listing when a part changes', async () => {
 		const { source, team } = setUp()
 		const seen: string[][] = []

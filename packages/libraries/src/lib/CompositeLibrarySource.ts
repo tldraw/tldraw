@@ -16,6 +16,7 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getLibraryItemCount, getLibraryPreviewItems } from './librarySummary'
 import { getThumbnailForColorMode, type TLLibraryItem } from './schema'
 
 /** @public */
@@ -79,6 +80,16 @@ export class CompositeLibrarySource implements LibrarySource {
 	 */
 	readonly getAvailableLibraries?: () => TLLibrary[]
 	readonly addLibraryToDocument?: (libraryId: TLLibraryId) => Promise<void>
+	/** Present when any part has it, asking the part that holds the library. */
+	readonly loadItems?: (libraryId: TLLibraryId) => void
+	/** Present when any part has it. A part without it is never loading. */
+	readonly isLoadingItems?: (libraryId: TLLibraryId) => boolean
+	/** Present when any part has it. A part without it counts its listed items. */
+	readonly getItemCount?: (libraryId: TLLibraryId) => number
+	/** Present when any part has it. A part without it previews its listed items. */
+	readonly getPreviewItems?: (libraryId: TLLibraryId, count: number) => TLLibraryItem[]
+	/** Present when any part has it. A part without it may match any search. */
+	readonly mayHaveItemsMatching?: (libraryId: TLLibraryId, query: string) => boolean
 	/** Present when any part has it. */
 	readonly removeLibraryFromDocument?: (libraryId: TLLibraryId) => Promise<void>
 	private readonly parts: Part[]
@@ -158,6 +169,38 @@ export class CompositeLibrarySource implements LibrarySource {
 					throw new LibraryPermissionError('addLibraryToDocument', libraryId)
 				}
 				return source.addLibraryToDocument(libraryId)
+			}
+		}
+		if (this.parts.some((part) => part.source.loadItems)) {
+			this.loadItems = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				if (source?.loadItems) source.loadItems(libraryId)
+			}
+		}
+		if (this.parts.some((part) => part.source.isLoadingItems)) {
+			this.isLoadingItems = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				return source?.isLoadingItems ? source.isLoadingItems(libraryId) : false
+			}
+		}
+		if (this.parts.some((part) => part.source.getItemCount)) {
+			this.getItemCount = (libraryId) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				if (!source) return 0
+				return getLibraryItemCount(source, libraryId)
+			}
+		}
+		if (this.parts.some((part) => part.source.getPreviewItems)) {
+			this.getPreviewItems = (libraryId, count) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				if (!source) return []
+				return getLibraryPreviewItems(source, libraryId, count)
+			}
+		}
+		if (this.parts.some((part) => part.source.mayHaveItemsMatching)) {
+			this.mayHaveItemsMatching = (libraryId, query) => {
+				const source = this.partByLibrary$.get().get(libraryId)?.source
+				return source?.mayHaveItemsMatching ? source.mayHaveItemsMatching(libraryId, query) : true
 			}
 		}
 		if (this.parts.some((part) => part.source.removeLibraryFromDocument)) {

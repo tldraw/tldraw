@@ -1,4 +1,5 @@
 import {
+	getLibraryItemCount,
 	RenameInput,
 	type LibrarySource,
 	type TLLibrary,
@@ -66,13 +67,13 @@ export function WorkspaceLibrariesList({
 				)
 				.map((library) => ({
 					library,
-					itemCount: source.getItems(library.id).length,
+					itemCount: getLibraryItemCount(userLibraries, library.id),
 					notInAnyFile: libraryRows.get(rowId(library.id))?.fileCount === 0,
 					canRename: source.can('renameLibrary', library.id),
 					canDelete: source.can('deleteLibrary', library.id),
 				}))
 		},
-		[source, app, workspaceId]
+		[source, userLibraries, app, workspaceId]
 	)
 
 	const showError = () => {

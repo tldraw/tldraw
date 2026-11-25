@@ -52,6 +52,10 @@ export function LibrarySection({
 		activeLibraryId.set(editor, null)
 	}, [editor, isActive, libraryId])
 
+	useEffect(() => {
+		if (!collapsed && source.loadItems) source.loadItems(libraryId)
+	}, [source, libraryId, collapsed])
+
 	const order = useLibraryItemOrder(source, libraryId)
 	const sort = {
 		options: itemOrderings.map(({ id, label }) => ({ id, label })),

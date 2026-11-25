@@ -123,6 +123,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 						meta,
 						isDefault: false,
 						fileCount: 0,
+						itemCount: 0,
 					})
 					.onConflict((oc) => oc.column('id').doNothing())
 					.returning('id')

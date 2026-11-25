@@ -84,6 +84,9 @@ interface NewItem {
 	settleArrival(arrived: boolean): void
 }
 
+/** One library's item rows, synced since its items were first asked for. */
+type ItemsWatch = ReturnType<TldrawApp['watchLibraryItems']>
+
 /** A library being copied, under the id its row will have: listed until the row arrives. */
 interface PendingLibrary {
 	library: TLLibrary
@@ -170,7 +173,10 @@ function splitIntoRequests(items: NewItem[]): NewItem[][] {
  * libraries are kept in its document instead (see editorLibraries), and which libraries a file
  * shows is up to TldrawAppFileLibrariesSource, over this one.
  *
- * Libraries and item rows come from the app's libraries query and change through mutators.
+ * Library rows come from the app's libraries query, with each library's first few items and
+ * its count of them, and change through mutators. A library's item rows sync only once they're
+ * asked for, with {@link TldrawAppLibrariesSource.loadItems}, and stay synced until the source is
+ * thrown away; adding to a library or copying it asks for them too.
  * An item's content is stored by the sync worker, which also adds items and copies libraries,
  * and is fetched with the user's token. Its thumbnails are public uploads whose URLs are on its
  * row, so they load as ordinary images.
@@ -213,6 +219,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	private defaultLibrarySeed: Promise<unknown> | undefined
 
+	// The libraries whose items have been asked for, by row id.
+	private readonly itemWatches = atom<ReadonlyMap<string, ItemsWatch>>(
+		'library item watches',
+		new Map()
+	)
+
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const owners = this.app
@@ -234,14 +246,20 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return [...rows.map((row) => toLibrary(row, defaultLibraryName)), ...pending]
 	})
 
+	private readonly libraryRowsById$ = computed(
+		'library rows by id',
+		() => new Map(this.app.getLibraryRows().map((row) => [row.id, row]))
+	)
+
+	// The items of the libraries whose items have been asked for, and items being added anywhere.
 	private readonly items$ = computed('workspace library items', () => {
 		const localThumbnails = this.localThumbnails.get()
 		const byLibrary = new Map<string, TLLibraryItem[]>()
 		const itemRowIds = new Set<string>()
-		for (const row of this.app.getLibraryRows()) {
+		for (const [libraryRowId, watch] of this.itemWatches.get()) {
 			byLibrary.set(
-				row.id,
-				row.items.map((item) => {
+				libraryRowId,
+				watch.items.get().map((item) => {
 					itemRowIds.add(item.id)
 					return toLibraryItem(item, localThumbnails.get(item.id))
 				})
@@ -266,8 +284,57 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return this.libraries$.get()
 	}
 
+	/** Only the items being added, until the library's items are asked for with `loadItems`. */
 	getItems(libraryId: TLLibraryId) {
 		return this.items$.get().get(rowId(libraryId)) ?? []
+	}
+
+	/**
+	 * Starts syncing a library's items, of a library of the user's workspaces or one added to a file
+	 * they can open, and keeps them synced until the source is thrown away.
+	 */
+	loadItems(libraryId: TLLibraryId) {
+		const id = rowId(libraryId)
+		if (this.itemWatches.get().has(id)) return
+		const watch = this.app.watchLibraryItems(id)
+		this.itemWatches.update((all) => new Map(all).set(id, watch))
+	}
+
+	/** Whether a library's item rows have synced, so its listing is complete. */
+	areItemsLoaded(libraryId: TLLibraryId) {
+		const watch = this.itemWatches.get().get(rowId(libraryId))
+		return !!watch && watch.loaded.get()
+	}
+
+	isLoadingItems(libraryId: TLLibraryId) {
+		if (this.areItemsLoaded(libraryId)) return false
+		return (this.libraryRowsById$.get().get(rowId(libraryId))?.itemCount ?? 0) > 0
+	}
+
+	/** From the library's row until its items are loaded, with the items being added to it. */
+	getItemCount(libraryId: TLLibraryId) {
+		if (this.areItemsLoaded(libraryId)) return this.getItems(libraryId).length
+		const stored = this.libraryRowsById$.get().get(rowId(libraryId))?.itemCount ?? 0
+		return stored + this.getPendingItems(libraryId).length
+	}
+
+	/** The first items the libraries query has of it until its items are loaded. */
+	getPreviewItems(libraryId: TLLibraryId, count: number) {
+		if (this.areItemsLoaded(libraryId)) return this.getItems(libraryId).slice(0, count)
+		const localThumbnails = this.localThumbnails.get()
+		const previews = (this.libraryRowsById$.get().get(rowId(libraryId))?.items ?? []).map((item) =>
+			toLibraryItem(item, localThumbnails.get(item.id))
+		)
+		return [...previews, ...this.getPendingItems(libraryId)].slice(0, count)
+	}
+
+	// Items being added to the library, or copied into it, whose rows haven't arrived.
+	private getPendingItems(libraryId: TLLibraryId) {
+		const rowIds = new Set(this.getItemRows(rowId(libraryId)).map((item) => item.id))
+		return this.pendingItems
+			.get()
+			.filter((p) => p.item.libraryId === libraryId && !rowIds.has(rowId(p.item.id)))
+			.map((p) => p.item)
 	}
 
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
@@ -405,6 +472,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		const source = this.getLibraries().find((c) => c.id === libraryId)
 		if (!source) throw new LibraryNotFoundError(libraryId)
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
+		// Listed at once when the source's items are loaded, as they are once it's been added to.
+		this.loadItems(libraryId)
+		if (!this.areItemsLoaded(libraryId)) await this.whenItemsLoaded(libraryId)
 		const sourceItems = this.getItems(libraryId)
 
 		const id = uniqueId()
@@ -457,10 +527,13 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			throw error
 		}
 
-		this.whenLibraryRowArrives(id).then(() => {
-			unlist()
-			arrival.settle(true)
-		})
+		// The copies stay listed until the copy's own items have synced in their place.
+		this.whenLibraryRowArrives(id)
+			.then(() => this.whenItemsLoaded(library.id))
+			.then(() => {
+				unlist()
+				arrival.settle(true)
+			})
 		return library
 	}
 
@@ -473,6 +546,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (!this.can('addItem', libraryId)) {
 			throw new LibraryPermissionError('addItem', libraryId)
 		}
+		this.loadItems(libraryId)
 		const now = Date.now()
 		const adding = newItems.map((newItem, index) =>
 			this.listNewItem(libraryId, newItem, now + index)
@@ -524,8 +598,10 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		)
 	}
 
-	/** Releases the thumbnail URLs this source made for items added here. */
+	/** Stops syncing the libraries' items, and releases the thumbnail URLs made for items added here. */
 	dispose() {
+		for (const watch of this.itemWatches.get().values()) watch.stop()
+		this.itemWatches.set(new Map())
 		for (const thumbnail of this.localThumbnails.get().values()) revokeThumbnail(thumbnail)
 		for (const { item } of this.pendingItems.get()) {
 			if (item.thumbnail) revokeThumbnail(item.thumbnail)
@@ -628,11 +704,10 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			for (const a of settled) a.settleArrival(itemRowIds.has(a.id))
 		}
 		const stop = react('library item rows arrive', () => {
-			const rows = this.app.getLibraryRows()
 			const libraryGone =
-				!rows.some((row) => row.id === libraryRowId) &&
+				!this.libraryRowsById$.get().has(libraryRowId) &&
 				!this.unconfirmedDeletes.get().has(libraryRowId)
-			const itemRowIds = new Set(rows.flatMap((row) => row.items.map((item) => item.id)))
+			const itemRowIds = new Set(this.getItemRows(libraryRowId).map((item) => item.id))
 			const settled = [...awaiting].filter((a) => libraryGone || itemRowIds.has(a.id))
 			if (settled.length === 0) return
 			for (const a of settled) awaiting.delete(a)
@@ -724,7 +799,10 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	): PendingItem {
 		const id = uniqueId()
 		const itemId = LibraryItemRecordType.createId(id)
-		const arrived = libraryArrived.then((copied) => copied && this.hasItemRow(id))
+		const arrived = libraryArrived.then(
+			async (copied) =>
+				copied && (await this.whenItemsLoaded(libraryId)) && this.hasItemRow(libraryId, id)
+		)
 		return {
 			item: LibraryItemRecordType.create({
 				id: itemId,
@@ -779,15 +857,28 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	private hasLibraryRow(id: string) {
-		return this.app.getLibraryRows().some((row) => row.id === id)
+		return this.libraryRowsById$.get().has(id)
 	}
 
 	private whenLibraryRowArrives(id: string) {
 		return this.whenTrue('library row arrives', () => this.hasLibraryRow(id))
 	}
 
-	private hasItemRow(id: string) {
-		return this.app.getLibraryRows().some((row) => row.items.some((item) => item.id === id))
+	// The library's synced item rows, empty until its items are asked for.
+	private getItemRows(libraryRowId: string) {
+		const watch = this.itemWatches.get().get(libraryRowId)
+		return watch ? watch.items.get() : []
+	}
+
+	private hasItemRow(libraryId: TLLibraryId, id: string) {
+		return this.getItemRows(rowId(libraryId)).some((item) => item.id === id)
+	}
+
+	/** Asks for a library's items, and resolves once they have synced, with true. */
+	private async whenItemsLoaded(libraryId: TLLibraryId) {
+		this.loadItems(libraryId)
+		await this.whenTrue('library items load', () => this.areItemsLoaded(libraryId))
+		return true
 	}
 
 	private whenTrue(name: string, isTrue: () => boolean) {

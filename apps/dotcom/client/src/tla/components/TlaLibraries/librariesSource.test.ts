@@ -1,4 +1,5 @@
 import {
+	LIBRARY_PREVIEW_ITEM_COUNT,
 	MAX_LIBRARY_ITEMS_PER_REQUEST,
 	MAX_LIBRARY_NAME_LENGTH,
 	ZErrorCode,
@@ -218,6 +219,7 @@ describe('TldrawAppLibrariesSource', () => {
 		expect((init!.body as FormData).get(`meta:${rowId(item.id)}`)).toBe(JSON.stringify(meta))
 		expect(backend.rows.get()[0].items.map((i) => i.meta)).toEqual([meta, {}])
 		const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		second.loadItems(kit.id)
 		expect(second.getItems(kit.id).map((i) => i.meta)).toEqual([meta, {}])
 		expect(plain.meta).toEqual({})
 	})
@@ -231,6 +233,7 @@ describe('TldrawAppLibrariesSource', () => {
 		const requests = backend.fetch.mock.calls.length
 		// another client of the same account, which sees the row arrive through Zero
 		const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		second.loadItems(kit.id)
 		expect(second.getItems(kit.id)[0]?.thumbnail).toBe('https://content.test/thumbnail-1-png')
 		expect(backend.fetch.mock.calls.length).toBe(requests)
 	})
@@ -253,6 +256,7 @@ describe('TldrawAppLibrariesSource', () => {
 		}
 		expect(item.thumbnail).toEqual({ light: 'blob:local-1', dark: 'blob:local-2' })
 		const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		second.loadItems(kit.id)
 		expect(second.getItems(kit.id)[0]?.thumbnail).toEqual(pair)
 	})
 
@@ -299,9 +303,93 @@ describe('TldrawAppLibrariesSource', () => {
 			{ name: 'Star', meta: { category: 'Shapes', starred: true } },
 		])
 		await source.moveItem(item.id, other.id)
+		source.loadItems(other.id)
 		expect(source.getItems(other.id).map((i) => i.name)).toEqual(['Star'])
 		await source.deleteItem(item.id)
 		expect(source.getItems(other.id)).toEqual([])
+	})
+
+	describe("a library's items", () => {
+		async function withStoredItems(count: number) {
+			const setup = setUp()
+			const kit = await setup.source.createLibrary('Kit')
+			await added(
+				setup.source.addItems(
+					kit.id,
+					Array.from({ length: count }, (_, i) => ({ name: `Item ${i}`, content }))
+				)
+			)
+			// another client of the same account, which hasn't asked for the items
+			const second = new TldrawAppLibrariesSource(setup.backend.app, setup.backend.getToken)
+			return { ...setup, kit, second }
+		}
+
+		it("syncs no library's items until they're asked for, and then all of them", async () => {
+			const { backend, kit, second } = await withStoredItems(8)
+			const watches = backend.watchLibraryItems.mock.calls.length
+			expect(second.getItems(kit.id)).toEqual([])
+			expect(second.isLoadingItems(kit.id)).toBe(true)
+			expect(backend.watchLibraryItems.mock.calls.length).toBe(watches)
+
+			second.loadItems(kit.id)
+			second.loadItems(kit.id)
+			expect(backend.watchLibraryItems.mock.calls.length).toBe(watches + 1)
+			expect(second.isLoadingItems(kit.id)).toBe(false)
+			expect(second.getItems(kit.id)).toHaveLength(8)
+		})
+
+		it('counts and previews a library from its row, without its items', async () => {
+			const { kit, second } = await withStoredItems(8)
+			expect(second.getItemCount(kit.id)).toBe(8)
+			expect(second.getPreviewItems(kit.id, 4).map((i) => i.name)).toEqual([
+				'Item 0',
+				'Item 1',
+				'Item 2',
+				'Item 3',
+			])
+			expect(second.getPreviewItems(kit.id, 10)).toHaveLength(LIBRARY_PREVIEW_ITEM_COUNT)
+			expect(second.getItems(kit.id)).toEqual([])
+		})
+
+		it("isn't loading a library with no items", async () => {
+			const { source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			const second = new TldrawAppLibrariesSource(setUp().backend.app, async () => 'token')
+			expect(second.isLoadingItems(kit.id)).toBe(false)
+			expect(source.getItemCount(kit.id)).toBe(0)
+		})
+
+		it('says the items are loading until they have synced', async () => {
+			const { backend, kit, second } = await withStoredItems(2)
+			const hold = backend.holdLibraryItems()
+			second.loadItems(kit.id)
+			expect(second.isLoadingItems(kit.id)).toBe(true)
+			expect(second.getItemCount(kit.id)).toBe(2)
+			hold.release()
+			await vi.waitFor(() => expect(second.getItems(kit.id)).toHaveLength(2))
+			expect(second.isLoadingItems(kit.id)).toBe(false)
+		})
+
+		it('adds to a library whose items it had not asked for, and counts the new item', async () => {
+			const { kit, second } = await withStoredItems(2)
+			const item = await added(second.addItem(kit.id, { name: 'New', content }))
+			expect(second.getItems(kit.id).map((i) => i.id)).toContain(item.id)
+			expect(second.getItemCount(kit.id)).toBe(3)
+		})
+
+		it('copies a library whose items it had not asked for, with all of them', async () => {
+			const { kit, second } = await withStoredItems(8)
+			const copy = await second.copyLibrary(kit.id, 'acme')
+			expect(second.getItems(copy.id)).toHaveLength(8)
+		})
+
+		it('stops syncing the items it asked for when thrown away', async () => {
+			const { backend, kit, second } = await withStoredItems(1)
+			second.loadItems(kit.id)
+			const watch = backend.watchLibraryItems.mock.results.at(-1)!.value
+			second.dispose()
+			expect(watch.stop).toHaveBeenCalled()
+		})
 	})
 
 	describe('before the server answers', () => {
@@ -687,6 +775,7 @@ describe('TldrawAppLibrariesSource', () => {
 				expect(backend.rows.get().find((row) => row.id === rowId(copy.id))?.items).toHaveLength(1)
 			)
 			const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+			second.loadItems(copy.id)
 			expect(second.getItems(copy.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
 		})
 

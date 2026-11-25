@@ -27,6 +27,7 @@ import {
 	type TLLibraryThumbnail,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getLibraryItemCount, getLibraryPreviewItems } from '../lib/librarySummary'
 import { getThumbnailForColorMode } from '../lib/schema'
 import { getBrowseSections } from './browse-groups'
 import { activeLibraryId } from './state'
@@ -340,8 +341,15 @@ function SourceLibraryCard({
 	onView(): void
 }) {
 	const libraryId = library.id
-	const items = useValue('library items', () => source.getItems(libraryId), [source, libraryId])
-	const previews = items.slice(0, PREVIEW_COUNT)
+	const itemCount = useValue('library item count', () => getLibraryItemCount(source, libraryId), [
+		source,
+		libraryId,
+	])
+	const previews = useValue(
+		'library preview items',
+		() => getLibraryPreviewItems(source, libraryId, PREVIEW_COUNT),
+		[source, libraryId]
+	)
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const urls = useLibraryThumbnailUrls(source, previews, { container: element })
 	const { disabled, run } = useSourceAdd(source, library, added)
@@ -350,7 +358,7 @@ function SourceLibraryCard({
 		<LibraryCard
 			cardRef={setElement}
 			name={library.name}
-			itemCount={items.length}
+			itemCount={itemCount}
 			thumbnailUrls={previews.map((item) => urls[item.id] ?? undefined)}
 			added={added}
 			disabled={disabled}
@@ -580,6 +588,13 @@ function SourceLibraryView({
 }) {
 	const libraryId = library.id
 	const items = useValue('library items', () => source.getItems(libraryId), [source, libraryId])
+	const itemCount = useValue('library item count', () => getLibraryItemCount(source, libraryId), [
+		source,
+		libraryId,
+	])
+	useEffect(() => {
+		if (source.loadItems) source.loadItems(libraryId)
+	}, [source, libraryId])
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const urls = useLibraryThumbnailUrls(source, items, { container: element })
 	const { disabled, run } = useSourceAdd(source, library, added)
@@ -587,7 +602,7 @@ function SourceLibraryView({
 	return (
 		<LibraryView
 			name={library.name}
-			itemCount={items.length}
+			itemCount={itemCount}
 			items={items.map((item) => ({
 				id: item.id,
 				name: item.name,

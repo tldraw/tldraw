@@ -242,6 +242,9 @@ export const library = table('library')
 		// how many files the library is added to, including files the user can't see; kept by
 		// triggers on file_library (060)
 		fileCount: number(),
+		// how many items the library has, so it can be listed with its count without syncing them;
+		// kept by triggers on library_item (061)
+		itemCount: number(),
 	})
 	.primaryKey('id')
 
