@@ -1,5 +1,5 @@
 import { react } from '@tldraw/state'
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import {
@@ -8,7 +8,7 @@ import {
 	type TLLibraryAction,
 	type TLLibraryTarget,
 } from './LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType, type TLLibraryItemContent } from './schema'
+import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 const shapeId = createShapeId('box')
 const pack = LibraryRecordType.createId('pack')
@@ -235,30 +235,6 @@ describe('InMemoryLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBeUndefined()
 			const library = await source.createLibrary('Wireframes')
 			expect(library.ownerId).toBeUndefined()
-		})
-
-		it('moves a library to another owner, keeping its items', async () => {
-			const source = new InMemoryLibrarySource({ owners })
-			const library = await source.createLibrary('Wireframes')
-			const item = await source.addItem(library.id, { name: 'Card', content: content() })
-			const seen: (string | undefined)[] = []
-			const stop = react('owner', () => {
-				seen.push(source.getLibraries()[0].ownerId)
-			})
-			await source.moveLibrary(library.id, 'acme')
-			stop()
-			expect(seen).toEqual(['home', 'acme'])
-			expect(source.getLibraries()).toEqual([{ ...library, ownerId: 'acme' }])
-			expect(source.getItems(library.id).map((i) => i.id)).toEqual([item.id])
-			expect(await source.getItemContent(item.id)).toEqual(content())
-		})
-
-		it('refuses a missing library or owner', async () => {
-			const source = new InMemoryLibrarySource({ owners })
-			const library = await source.createLibrary('Wireframes')
-			await expect(source.moveLibrary(missingLibrary, 'acme')).rejects.toThrow(LibraryNotFoundError)
-			await expect(source.moveLibrary(library.id, 'nobody')).rejects.toThrow(LibraryNotFoundError)
-			expect(source.getLibraries()[0].ownerId).toBe('home')
 		})
 
 		it('refuses starting data owned by a missing owner', () => {

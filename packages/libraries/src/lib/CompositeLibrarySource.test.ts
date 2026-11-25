@@ -1,11 +1,15 @@
 import { react } from '@tldraw/state'
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType, type TLLibraryItemContent } from './schema'
+import {
+	LibraryNotFoundError,
+	LibraryPermissionError,
+	type TLLibraryThumbnailContext,
+} from './LibrarySource'
+import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 function content(name: string): TLLibraryItemContent {
 	const id = createShapeId(name)
@@ -167,13 +171,6 @@ describe('CompositeLibrarySource', () => {
 		expect(team.getLibraries()).toHaveLength(1)
 	})
 
-	it("won't move a library out of a read-only part, and copies nothing", async () => {
-		const { source, mine, kits } = setUp()
-		await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
-		expect(mine.getLibraries()).toEqual([])
-		expect(kits.getLibraries()).toHaveLength(1)
-	})
-
 	it("copies a read-only part's library into a writable part, leaving the original", async () => {
 		const { source, mine, kits } = setUp()
 		await copyLibrary(source, wireframing, 'home')
@@ -188,17 +185,6 @@ describe('CompositeLibrarySource', () => {
 			['Wireframing', 'home'],
 			['Wireframing', 'tldraw'],
 		])
-	})
-
-	it('moves a library between writable parts', async () => {
-		const { source, mine, team } = setUp()
-		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
-		await source.addItem(kit.id, { name: 'Star', content: content('star') })
-		await source.moveLibrary(kit.id, 'acme')
-		expect(mine.getLibraries()).toEqual([])
-		const [moved] = team.getLibraries()
-		expect(moved.name).toBe('Kit')
-		expect(team.getItems(moved.id).map((item) => item.name)).toEqual(['Star'])
 	})
 
 	it('moves an item between parts by copying it and deleting the original', async () => {
@@ -235,20 +221,60 @@ describe('CompositeLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBe('acme')
 			const kit = await source.createLibrary('Kit')
 			expect(kit.ownerId).toBe('acme')
-			await source.moveLibrary(kit.id, 'home')
-			expect(mine.getLibraries()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
-		})
-
-		it("won't move a read-only part's library to one of its owners", async () => {
-			const { source, mine } = setUpOwned()
-			await expect(source.moveLibrary(wireframing, 'home')).rejects.toThrow(LibraryPermissionError)
-			expect(mine.getLibraries()).toEqual([])
+			const home = await source.createLibrary('Home kit', { ownerId: 'home' })
+			expect(mine.getLibraries()).toMatchObject([
+				{ id: kit.id, ownerId: 'acme' },
+				{ id: home.id, ownerId: 'home' },
+			])
 		})
 
 		it("copies a read-only part's library to one of its owners", async () => {
 			const { source, mine } = setUpOwned()
 			await copyLibrary(source, wireframing, 'home')
 			expect(mine.getLibraries()).toMatchObject([{ name: 'Wireframing', ownerId: 'home' }])
+		})
+	})
+
+	describe('parts naming the same owner', () => {
+		// A writable part, then a read-only part listed beside it under the same owner.
+		function setUpShared() {
+			const team = new InMemoryLibrarySource({ id: 'team' })
+			const generated = new InMemoryLibrarySource({
+				owners: [personal, { ...acme, name: 'Generated' }],
+				can: () => false,
+				initial: {
+					libraries: [
+						LibraryRecordType.create({ id: wireframing, name: 'Wireframing', ownerId: 'acme' }),
+					],
+					items: [],
+					contents: {},
+				},
+			})
+			const source = new CompositeLibrarySource({
+				parts: [{ owner: acme, source: team }, { source: generated }],
+			})
+			return { source, team, generated }
+		}
+
+		it('lists the owner once, as the first part gives it, with the libraries of both parts', async () => {
+			const { source } = setUpShared()
+			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+			expect(source.getLibraryOwners()).toEqual([acme, personal])
+			expect(source.getLibraries().map((c) => [c.id, c.ownerId])).toEqual([
+				[kit.id, 'acme'],
+				[wireframing, 'acme'],
+			])
+		})
+
+		it('sends writes for the owner to the first part, and keeps the later part read-only', async () => {
+			const { source, team, generated } = setUpShared()
+			expect(source.can('createLibrary', { ownerId: 'acme' })).toBe(true)
+			expect(source.can('deleteLibrary', wireframing)).toBe(false)
+			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id])
+			const copy = await copyLibrary(source, wireframing, 'acme')
+			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id, copy.id])
+			expect(generated.getLibraries()).toHaveLength(1)
 		})
 	})
 
@@ -260,5 +286,61 @@ describe('CompositeLibrarySource', () => {
 			parts: [{ owner: tldraw, source: unmovable }],
 		})
 		expect(withoutMoving.moveItem).toBeUndefined()
+	})
+
+	describe('resolveThumbnail', () => {
+		const icons = LibraryRecordType.createId('icons')
+		const star = LibraryItemRecordType.create({
+			libraryId: icons,
+			name: 'Star',
+			thumbnail: { light: 'https://x/star-light.png', dark: 'https://x/star-dark.png' },
+		})
+		const context = (colorMode: 'light' | 'dark'): TLLibraryThumbnailContext => ({
+			colorMode,
+			width: 128,
+			dpr: 2,
+			networkEffectiveType: '4g',
+		})
+
+		function setUpThumbnails() {
+			const plain = new InMemoryLibrarySource({
+				id: 'plain',
+				initial: {
+					libraries: [LibraryRecordType.create({ id: icons, name: 'Icons' })],
+					items: [star],
+					contents: { [star.id]: content('star') },
+				},
+			})
+			const sized = Object.assign(shared(), {
+				resolveThumbnail: vi.fn(() => 'https://x/sized.png'),
+			})
+			const source = new CompositeLibrarySource({
+				parts: [
+					{ owner: personal, source: plain },
+					{ owner: tldraw, source: sized },
+				],
+			})
+			return { source, sized }
+		}
+
+		it("asks the item's part when it resolves thumbnails", () => {
+			const { source, sized } = setUpThumbnails()
+			const button = sized.getItems(wireframing)[0]
+			expect(source.resolveThumbnail(button, context('light'))).toBe('https://x/sized.png')
+			expect(sized.resolveThumbnail).toHaveBeenCalledWith(button, context('light'))
+		})
+
+		it("gives the item's own thumbnail for a part that doesn't, in the colour mode", () => {
+			const { source, sized } = setUpThumbnails()
+			expect(source.resolveThumbnail(star, context('light'))).toBe('https://x/star-light.png')
+			expect(source.resolveThumbnail(star, context('dark'))).toBe('https://x/star-dark.png')
+			expect(sized.resolveThumbnail).not.toHaveBeenCalled()
+		})
+
+		it('gives null for an item without a thumbnail in a part that does not resolve them', () => {
+			const { source } = setUpThumbnails()
+			const { thumbnail: _thumbnail, ...bare } = star
+			expect(source.resolveThumbnail(bare, context('light'))).toBeNull()
+		})
 	})
 })

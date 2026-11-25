@@ -1,13 +1,22 @@
-import { useDialogs, useEditor, useToasts, useTranslation, useValue, defineMessages } from 'tldraw'
+import {
+	useDialogs,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+	defineMessages,
+	type TLLibrary,
+} from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
 import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { getOwnerChoices } from './owner-choices'
+import { getContentTooNewToast } from './content-too-new-toast'
+import { getCopyOwners } from './copy-owners'
 import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
+	copyName: { id: 'libraries.copy-name', defaultMessage: '{name} (Copy)' },
 	deleteTitle: {
 		id: 'libraries.delete-library-dialog.title',
 		defaultMessage: 'Delete library',
@@ -16,8 +25,6 @@ const messages = defineMessages({
 		id: 'libraries.delete-library-dialog.body',
 		defaultMessage: 'Delete “{name}” and its {count, plural, one {# item} other {# items}}?',
 	},
-	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
-	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
 	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
 	copiedDescription: { id: 'libraries.copied.description', defaultMessage: 'Copied to {name}.' },
 	changeErrorTitle: {
@@ -27,7 +34,7 @@ const messages = defineMessages({
 })
 
 /**
- * A library's rename, delete, move and copy, as the source allows them, for its header and its
+ * A library's rename, delete and copy, as the source allows them, for its header and its
  * menu. Renaming starts from the menu, or when the library is new, and ends with the header's
  * input.
  */
@@ -52,11 +59,10 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
 		}),
 		[source, libraryId]
 	)
-	const ownerChoices = useValue(
-		'library owner choices',
-		() => getOwnerChoices(source, library.ownerId),
-		[source, library.ownerId]
-	)
+	const copyOwners = useValue('library copy owners', () => getCopyOwners(source, library.ownerId), [
+		source,
+		library.ownerId,
+	])
 
 	const showError = () =>
 		addToast({
@@ -86,42 +92,28 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary) {
 		})
 	}
 
-	const moveLibrary = (ownerId: string) => {
-		if (!source.moveLibrary) return
-		const owner = ownerChoices.move.find((o) => o.id === ownerId)
-		source.moveLibrary(libraryId, ownerId).then(
-			() =>
-				addToast({
-					title: msg(messages.movedTitle),
-					description: owner && msg(messages.movedDescription, { name: owner.name }),
-				}),
-			showError
-		)
-	}
-
 	const copyToOwner = (ownerId: string) => {
-		const owner = ownerChoices.copy.find((o) => o.id === ownerId)
-		copyLibrary(source, libraryId, ownerId).then(
+		const owner = copyOwners.find((o) => o.id === ownerId)
+		copyLibrary(source, libraryId, ownerId, {
+			getName: (name) => msg(messages.copyName, { name }),
+		}).then(
 			() =>
 				addToast({
 					title: msg(messages.copiedTitle),
 					description: owner && msg(messages.copiedDescription, { name: owner.name }),
 				}),
-			showError
+			(error) => {
+				const tooNew = getContentTooNewToast(error, msg)
+				if (tooNew) addToast(tooNew)
+				else showError()
+			}
 		)
 	}
 
-	const menuActions: Pick<LibraryMenuProps, 'onRename' | 'onDelete' | 'move' | 'copy'> = {
+	const menuActions: Pick<LibraryMenuProps, 'onRename' | 'onDelete' | 'copy'> = {
 		onRename: can.rename ? () => renamingLibraryId.set(editor, libraryId) : undefined,
 		onDelete: can.delete ? deleteLibrary : undefined,
-		move:
-			source.moveLibrary && can.delete && ownerChoices.move.length > 0
-				? { owners: ownerChoices.move, value: library.ownerId, onValueChange: moveLibrary }
-				: undefined,
-		copy:
-			ownerChoices.copy.length > 0
-				? { owners: ownerChoices.copy, onSelect: copyToOwner }
-				: undefined,
+		copy: copyOwners.length > 0 ? { owners: copyOwners, onSelect: copyToOwner } : undefined,
 	}
 
 	return { isRenaming, onRenameComplete: renameLibrary, onRenameCancel: stopRenaming, menuActions }

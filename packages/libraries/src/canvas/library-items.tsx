@@ -1,13 +1,23 @@
 import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
-import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	useDialogs,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemId,
+} from 'tldraw'
 import { copyItem } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '../lib/schema'
 import { ItemGrid, ItemGridTile } from '../ui/item-grid'
 import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
 import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { getContentTooNewToast } from './content-too-new-toast'
 import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
 import { type ItemOrdering, sortItems } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
@@ -18,6 +28,7 @@ import { useSaveSelection } from './use-save-selection'
 import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
+	copyName: { id: 'libraries.copy-name', defaultMessage: '{name} (Copy)' },
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
 	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
@@ -174,7 +185,9 @@ export function LibraryItems({
 			const item = items.find((i) => i.id === itemId)
 			if (!item) return
 			const target = copyTargets.find((c) => c.id === toLibraryId)
-			copyItem(source, item, source, toLibraryId).then(
+			copyItem(source, item, source, toLibraryId, {
+				getName: (name) => msg(messages.copyName, { name }),
+			}).then(
 				() => {
 					addToast({
 						title: msg(messages.copiedTitle),
@@ -193,7 +206,11 @@ export function LibraryItems({
 						],
 					})
 				},
-				() => showChangeError(msg(messages.copyErrorTitle))
+				(error) => {
+					const tooNew = getContentTooNewToast(error, msg)
+					if (tooNew) addToast(tooNew)
+					else showChangeError(msg(messages.copyErrorTitle))
+				}
 			)
 		},
 		[editor, source, items, copyTargets, addToast, msg, showChangeError]

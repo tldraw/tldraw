@@ -1,5 +1,11 @@
 import type { Computed } from '@tldraw/state'
 import { Store, StoreSchema } from '@tldraw/store'
+import {
+	LibraryRecordType,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemId,
+} from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import {
 	LibraryNotFoundError,
@@ -13,18 +19,11 @@ import {
 } from './LibrarySource'
 import {
 	LibraryItemRecordType,
-	libraryItemMigrations,
 	libraryItemValidator,
-	libraryMigrations,
-	LibraryRecordType,
 	mapThumbnail,
 	parseLibraryItemContent,
-	type TLLibrary,
-	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
-	type TLLibraryItemId,
-	type TLLibraryRecord,
 } from './schema'
 
 export interface InMemoryLibrarySourceOptions {
@@ -37,7 +36,7 @@ export interface InMemoryLibrarySourceOptions {
 	}
 	/**
 	 * Who libraries can belong to. Leave out for a source without owners, whose libraries can't
-	 * be moved, or for a subclass that lists its own by overriding `getLibraryOwners`. When
+	 * be copied to another owner, or for a subclass that lists its own by overriding `getLibraryOwners`. When
 	 * given, the starting data and default owner are checked against them.
 	 */
 	owners?: TLLibraryOwner[]
@@ -66,10 +65,12 @@ export interface InMemoryLibrarySourceOptions {
 	can?(action: TLLibraryAction, target?: TLLibraryTarget): boolean
 }
 
-const schema = StoreSchema.create<TLLibraryRecord>(
-	{ library: LibraryRecordType, 'library-item': LibraryItemRecordType },
-	{ migrations: [libraryMigrations, libraryItemMigrations] }
-)
+type ListedRecord = TLLibrary | TLLibraryItem
+
+const schema = StoreSchema.create<ListedRecord>({
+	library: LibraryRecordType,
+	'library-item': LibraryItemRecordType,
+})
 
 /**
  * A source that keeps everything in memory. Used for tests, for building UI before a backend
@@ -84,7 +85,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 	private readonly owners: TLLibraryOwner[]
 	private readonly defaultOwnerId: string | undefined
 	private readonly allows: (action: TLLibraryAction, target?: TLLibraryTarget) => boolean
-	private readonly store = new Store<TLLibraryRecord>({ schema, props: {} })
+	private readonly store = new Store<ListedRecord>({ schema, props: {} })
 	private readonly libraries = this.store.query.records('library')
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly contents = new Map<TLLibraryItemId, TLLibraryItemContent>()
@@ -245,14 +246,6 @@ export class InMemoryLibrarySource implements LibrarySource {
 		this.assertCan('addItem', toLibraryId)
 		if (item.libraryId === toLibraryId) return
 		this.store.put([{ ...item, libraryId: toLibraryId }])
-	}
-
-	// Items point at their library, not its owner, so they move with it.
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
-		const library = this.getLibrary(libraryId)
-		if (!this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
-		if (library.ownerId === ownerId) return
-		this.store.put([{ ...library, ownerId }])
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */

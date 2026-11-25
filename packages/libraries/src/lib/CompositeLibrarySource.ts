@@ -1,5 +1,6 @@
 import { computed, type Computed } from '@tldraw/state'
-import { copyLibrary, copyItem } from './copyLibrary'
+import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
+import { copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -7,10 +8,11 @@ import {
 	type TLLibraryAction,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
+	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItemId } from './schema'
+import { getThumbnailForColorMode, type TLLibraryItem } from './schema'
 
 /** @public */
 export interface CompositeLibrarySourcePart {
@@ -18,6 +20,10 @@ export interface CompositeLibrarySourcePart {
 	 * Who everything in this part belongs to, e.g. `{ id: 'tldraw', name: 'tldraw' }` for
 	 * libraries shipped with an app. Leave out for a source that lists its own owners with
 	 * `getLibraryOwners`; its libraries keep the owners it gives them.
+	 *
+	 * Parts can name the same owner, to list their libraries together, such as an app's generated
+	 * libraries beside a workspace's own. The owner is listed once, as the first part naming it
+	 * gives it, and libraries created for it, or copied to it, go to that first part.
 	 */
 	owner?: TLLibraryOwner
 	source: LibrarySource
@@ -68,7 +74,14 @@ export class CompositeLibrarySource implements LibrarySource {
 		return parts
 	})
 
-	private readonly owners$ = computed('composite owners', () => this.parts.flatMap(ownersOf))
+	private readonly owners$ = computed('composite owners', () => {
+		const seen = new Set<string>()
+		return this.parts.flatMap(ownersOf).filter((owner) => {
+			if (seen.has(owner.id)) return false
+			seen.add(owner.id)
+			return true
+		})
+	})
 
 	constructor(options: CompositeLibrarySourceOptions) {
 		this.id = options.id ?? 'composite'
@@ -102,6 +115,17 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	getItemContent(itemId: TLLibraryItemId) {
 		return this.getItemPart(itemId).part.source.getItemContent(itemId)
+	}
+
+	/**
+	 * Asks the item's part, so each part sizes its own thumbnails. A part without
+	 * `resolveThumbnail` gets the item's `thumbnail` for the colour mode, as the panel shows it
+	 * from a source without one.
+	 */
+	resolveThumbnail(item: TLLibraryItem, context: TLLibraryThumbnailContext) {
+		const source = this.getLibraryPart(item.libraryId).source
+		if (source.resolveThumbnail) return source.resolveThumbnail(item, context)
+		return item.thumbnail ? getThumbnailForColorMode(item.thumbnail, context.colorMode) : null
 	}
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
@@ -157,23 +181,6 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	deleteItem(itemId: TLLibraryItemId) {
 		return this.getItemPart(itemId).part.source.deleteItem(itemId)
-	}
-
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
-		const from = this.getLibraryPart(libraryId)
-		const to = this.getOwnerPart(ownerId)
-		if (from === to) {
-			if (from.owner) return
-			if (!from.source.moveLibrary) {
-				throw new Error(`Source ${from.source.id} can't move libraries`)
-			}
-			return from.source.moveLibrary(libraryId, ownerId)
-		}
-		if (!from.source.can('deleteLibrary', libraryId)) {
-			throw new LibraryPermissionError('deleteLibrary', libraryId)
-		}
-		await copyLibrary(this, libraryId, ownerId)
-		await from.source.deleteLibrary(libraryId)
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {

@@ -1,13 +1,7 @@
+import type { TLLibrary, TLLibraryId, TLLibraryItemId, TLLibraryThumbnail } from '@tldraw/tlschema'
 import type { JsonObject } from '@tldraw/utils'
 import type { TLUiIconJsx, TLUiIconType } from 'tldraw'
-import type {
-	TLLibrary,
-	TLLibraryId,
-	TLLibraryItem,
-	TLLibraryItemContent,
-	TLLibraryItemId,
-	TLLibraryThumbnail,
-} from './schema'
+import type { TLLibraryItem, TLLibraryItemContent } from './schema'
 
 /**
  * A change a user can try to make. Sources answer {@link LibrarySource.can}.
@@ -43,6 +37,16 @@ export interface TLNewLibraryOptions {
 	ownerId?: string
 	/** Stored on the library as its `meta`, e.g. the pack it was copied from. */
 	meta?: JsonObject
+}
+
+/** How {@link copyLibrary} names the copy. */
+export interface TLCopyLibraryOptions {
+	/**
+	 * The copy's name, from the library's, e.g. "Shapes (Copy)" from "Shapes". Left out, the copy
+	 * has the library's name. A source that limits names' length may shorten the name it passes, so
+	 * that the result fits.
+	 */
+	getName?(name: string): string
 }
 
 /** What a source needs to store a new item. */
@@ -135,11 +139,6 @@ export interface LibrarySource {
 	 * out, or returning undefined, the source decides.
 	 */
 	getDefaultOwnerId?(): string | undefined
-	/**
-	 * Gives a library to another owner. Its items stay in it. Optional: sources that don't track
-	 * owners, or can't move libraries between them, leave it out.
-	 */
-	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */
