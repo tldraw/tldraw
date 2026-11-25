@@ -1013,7 +1013,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 					)
 					if (rejection) {
 						rollback()
-						this.emit('rejected', { reason: rejection.reason, source: 'local' })
+						// Emitted after the rollback: a listener runs inside this operation, so what it
+						// changed, for example a toast, would be rolled back too.
+						queueMicrotask(() => {
+							if (this.isDisposed) {
+								return
+							}
+							this.emit('rejected', { reason: rejection.reason, source: 'local' })
+						})
 					}
 				})
 			)

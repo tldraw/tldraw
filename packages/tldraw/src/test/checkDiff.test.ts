@@ -1,4 +1,4 @@
-import { createShapeId, react, TLCheckDiff, TLShape } from '@tldraw/editor'
+import { atom, createShapeId, react, TLCheckDiff, TLShape } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 const ids = {
@@ -14,7 +14,7 @@ function setup(checkDiff: TLCheckDiff) {
 }
 
 describe('checkDiff in the editor', () => {
-	it('reverts a rejected operation as a whole and emits rejected', () => {
+	it('reverts a rejected operation as a whole and emits rejected', async () => {
 		const { editor, rejected } = setup((diff) => {
 			if (ids.b in diff.added) {
 				return { reason: 'no b' }
@@ -28,7 +28,20 @@ describe('checkDiff in the editor', () => {
 
 		expect(editor.getShape(ids.a)).toBeUndefined()
 		expect(editor.getShape(ids.b)).toBeUndefined()
+		expect(rejected).toEqual([])
+		await Promise.resolve()
 		expect(rejected).toEqual([{ reason: 'no b', source: 'local' }])
+	})
+
+	it('keeps what a rejected listener changes', async () => {
+		const { editor } = setup(() => false)
+		const lastReason = atom<string | null>('last reason', null)
+		editor.on('rejected', ({ reason }) => lastReason.set(reason))
+
+		editor.createShapes([{ id: ids.a, type: 'geo' }])
+		await Promise.resolve()
+
+		expect(lastReason.get()).toBe('rejected')
 	})
 
 	it('keeps an allowed operation', () => {
@@ -53,7 +66,7 @@ describe('checkDiff in the editor', () => {
 		expect(editor.getShape(ids.a)).toBeUndefined()
 	})
 
-	it('treats false as a rejection and a throw as reason error', () => {
+	it('treats false as a rejection and a throw as reason error', async () => {
 		let result: () => boolean = () => false
 		const { editor, rejected } = setup(() => result())
 		editor.createShapes([{ id: ids.a, type: 'geo' }])
@@ -66,6 +79,7 @@ describe('checkDiff in the editor', () => {
 		consoleError.mockRestore()
 
 		expect(editor.getShape(ids.a)).toBeUndefined()
+		await Promise.resolve()
 		expect(rejected.map((r) => r.reason)).toEqual(['rejected', 'error'])
 	})
 
