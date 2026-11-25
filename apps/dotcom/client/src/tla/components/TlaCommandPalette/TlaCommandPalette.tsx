@@ -60,6 +60,7 @@ import {
 } from '../menu-items/menu-items'
 import { FileItems } from '../TlaFileMenu/TlaFileMenu'
 import { openShareMenu } from '../TlaFileShareMenu/openShareMenu'
+import { TlaLibrariesCommandPaletteGroup } from '../TlaLibraries/TlaLibrariesPanel'
 import { commentLink, formatReactionByline } from '../TlaSidebar/components/commentNotifications'
 import { openNotificationsPanel } from '../TlaSidebar/components/openNotificationsPanel'
 import { useHandleSidebarCreateFile } from '../TlaSidebar/components/sidebar-shared'
@@ -112,6 +113,7 @@ export function TlaCommandPalette(props: TLUiCommandPaletteProps) {
 			<CommandPaletteImageGroup />
 			<CommandPaletteStylesGroup />
 			{app && <TlaFilesGroup />}
+			{app && <TlaLibrariesCommandPaletteGroup />}
 			{app && <TlaCurrentFileGroup />}
 			<CommandPalettePagesGroup />
 			{app && <TlaShareGroup />}

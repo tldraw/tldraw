@@ -54,6 +54,11 @@ import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import {
+	TlaAnonAddToLibraryMenuItem,
+	TlaAnonLibrariesPanel,
+	TlaAnonLibrariesProvider,
+} from '../TlaLibraries/TlaAnonLibraries'
 import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
 import { registerAgentBylineEditHandler } from './agentCommentEdits'
 import { CommentsOnCanvas, SignInToComment } from './CommentsOnCanvas'
@@ -354,14 +359,16 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
-					<TlaAddToLibraryMenuItem />
+					<TlaAddToLibraryMenuItem fileId={fileId} />
+					<TlaAnonAddToLibraryMenuItem />
 					<DefaultContextMenuContent />
 				</DefaultContextMenu>
 			),
 			InFrontOfTheCanvas: () => (
 				<>
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
-					<TlaLibrariesPanel />
+					<TlaLibrariesPanel fileId={fileId} />
+					<TlaAnonLibrariesPanel />
 				</>
 			),
 		}
@@ -377,34 +384,36 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	return (
 		<TlaEditorWrapper>
-			<Tldraw
-				className="tla-editor"
-				store={store}
-				assetUrls={assetUrls}
-				shapeUtils={embedShapeUtils}
-				tools={commentingEnabled ? tlaCommentTools : undefined}
-				user={app?.tlUser}
-				onMount={handleMount}
-				onUiEvent={handleUiEvent}
-				components={instanceComponents}
-				options={{
-					actionShortcutsLocation: 'toolbar',
-					deepLinks: deepLinks ? true : undefined,
-				}}
-				overrides={editorOverrides}
-				getShapeVisibility={getShapeVisibility}
-			>
-				<ThemeUpdater />
-				<SneakyDarkModeSync />
-				<SneakyToolSwitcher />
-				<SneakyMermaidHandler />
-				{app && <SneakyTldrawFileDropHandler />}
-				<SneakyLargeFileHander />
-				<SneakyDebugModeToast />
-				<SneakyFileEditorRegistration />
-				{commentingEnabled && <SneakyCommentDeepLink />}
-				<TlaAnonDotDevLink />
-			</Tldraw>
+			<TlaAnonLibrariesProvider>
+				<Tldraw
+					className="tla-editor"
+					store={store}
+					assetUrls={assetUrls}
+					shapeUtils={embedShapeUtils}
+					tools={commentingEnabled ? tlaCommentTools : undefined}
+					user={app?.tlUser}
+					onMount={handleMount}
+					onUiEvent={handleUiEvent}
+					components={instanceComponents}
+					options={{
+						actionShortcutsLocation: 'toolbar',
+						deepLinks: deepLinks ? true : undefined,
+					}}
+					overrides={editorOverrides}
+					getShapeVisibility={getShapeVisibility}
+				>
+					<ThemeUpdater />
+					<SneakyDarkModeSync />
+					<SneakyToolSwitcher />
+					<SneakyMermaidHandler />
+					{app && <SneakyTldrawFileDropHandler />}
+					<SneakyLargeFileHander />
+					<SneakyDebugModeToast />
+					<SneakyFileEditorRegistration />
+					{commentingEnabled && <SneakyCommentDeepLink />}
+					<TlaAnonDotDevLink />
+				</Tldraw>
+			</TlaAnonLibrariesProvider>
 		</TlaEditorWrapper>
 	)
 }

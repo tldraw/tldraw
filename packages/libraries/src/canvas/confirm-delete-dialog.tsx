@@ -18,12 +18,23 @@ const messages = defineMessages({
 export interface ConfirmDeleteDialogProps {
 	title: string
 	body: string
+	/** Defaults to "Delete". */
+	confirmLabel?: string
 	onClose(): void
 	onConfirm(): void
 }
 
-/** Asks before deleting from a library: unlike shapes, a deletion there can't be undone. */
-export function ConfirmDeleteDialog({ title, body, onClose, onConfirm }: ConfirmDeleteDialogProps) {
+/**
+ * Asks before deleting from a library, which unlike deleting shapes can't be undone, or before
+ * removing a library from a file, which removes it for everyone who opens the file.
+ */
+export function ConfirmDeleteDialog({
+	title,
+	body,
+	confirmLabel,
+	onClose,
+	onConfirm,
+}: ConfirmDeleteDialogProps) {
 	const msg = useTranslation()
 
 	return (
@@ -44,7 +55,7 @@ export function ConfirmDeleteDialog({ title, body, onClose, onConfirm }: Confirm
 						onClose()
 					}}
 				>
-					<TldrawUiButtonLabel>{msg(messages.confirm)}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>{confirmLabel ?? msg(messages.confirm)}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
 		</>

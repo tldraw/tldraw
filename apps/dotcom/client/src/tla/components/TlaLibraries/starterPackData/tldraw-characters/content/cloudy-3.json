@@ -1,0 +1,192 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:yHgOIUpXOB5gz0YmXcFpf",
+				"type": "group",
+				"parentId": "page:page",
+				"index": "af2mx71V",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": -2.2124460045648675,
+				"y": -2.409174463167915,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:v9UPVrYMezj8TZq-0HPe_",
+				"type": "geo",
+				"props": {
+					"w": 101.09649694246673,
+					"h": 101.09649694246673,
+					"geo": "cloud",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					},
+					"flipX": false,
+					"flipY": false
+				},
+				"parentId": "shape:yHgOIUpXOB5gz0YmXcFpf",
+				"index": "a3yfVZgO",
+				"typeName": "shape"
+			},
+			{
+				"x": 33.46042767316371,
+				"y": 40.8940641697576,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:dqX_VE-CB-Dkynkcd_xTK",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/Zq4AAAAAIKUAAAAA"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:yHgOIUpXOB5gz0YmXcFpf",
+				"index": "a4xip7UU",
+				"typeName": "shape"
+			},
+			{
+				"x": 64.16205352262674,
+				"y": 35.6258760349715,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:-1MrRIPVHWPEZzBmE8KWm",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/AAAKrwAA"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:yHgOIUpXOB5gz0YmXcFpf",
+				"index": "a6zPZnkt",
+				"typeName": "shape"
+			},
+			{
+				"x": 48.67778428035788,
+				"y": 45.845293550392626,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:HyuJQ7tCG2cyP6DRLHTAV",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/w60AAAAAAAAAAAAAwzEAAAAAuDIAAAAAezQAAAAAUjQAAAAARjUAAAAA2DcAAAAAfDgAAAAAPDoAAAAAzDoAAAAAuDoAAAAAsDkAAAAAIDkKrwAAsDkAtAAAuDiPtgAAEDg+tgAAEDgotAAAoDQYsgAAgCwYsQAAgDJ4sQAAQDMosAAAgC5wsQAAADCgrwAAADBwsQAA"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:yHgOIUpXOB5gz0YmXcFpf",
+				"index": "a9gMeN4V",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:yHgOIUpXOB5gz0YmXcFpf"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

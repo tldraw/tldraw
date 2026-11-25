@@ -7,6 +7,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	load_rum: { enabled: false },
 	libraries: { enabled: false },
+	libraries_anonymous: { enabled: false },
 	// Server-side only: the sync worker reads this to sample MCP reads and OG and thumbnail renders for
 	// the headless shadow compare.
 	headless_shadow: { enabled: false },

@@ -1,5 +1,4 @@
 import type { SVGProps } from 'react'
-import { useUniqueSafeId } from 'tldraw'
 
 function LibraryShapes() {
 	return (
@@ -32,22 +31,6 @@ export function LibraryIcon(props: SVGProps<SVGSVGElement>) {
 	return (
 		<IconSvg {...props}>
 			<LibraryShapes />
-		</IconSvg>
-	)
-}
-
-export function NewLibraryIcon(props: SVGProps<SVGSVGElement>) {
-	const maskId = useUniqueSafeId()
-	return (
-		<IconSvg {...props}>
-			<mask id={maskId}>
-				<rect width="24" height="24" fill="white" stroke="none" />
-				<circle cx="18" cy="18" r="6.5" fill="black" stroke="none" />
-			</mask>
-			<g mask={`url(#${maskId})`}>
-				<LibraryShapes />
-			</g>
-			<path d="M18 14v8M14 18h8" />
 		</IconSvg>
 	)
 }

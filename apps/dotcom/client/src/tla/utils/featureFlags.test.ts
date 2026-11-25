@@ -13,6 +13,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		rum_enabled: { enabled: false },
 		load_rum: { enabled: false },
 		libraries: { enabled: false },
+		libraries_anonymous: { enabled: false },
 		headless_shadow: { enabled: false },
 		ui_v3: { enabled: false },
 		mcp_hidden_tab: { enabled: false },

@@ -38,6 +38,7 @@ import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
+import { copyLibrary } from './routes/tla/copyLibrary'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getBoardPresence } from './routes/tla/getBoardPresence'
@@ -47,6 +48,7 @@ import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleInitUser } from './routes/tla/initUser'
+import { addLibraryItems, getLibraryItemContent } from './routes/tla/libraryItems'
 import {
 	ROOT_MCP_SERVER_PATH,
 	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
@@ -71,7 +73,7 @@ import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
-import { getFeatureFlags } from './utils/featureFlags'
+import { getFeatureFlags, isFeatureFlagEnabledForUser } from './utils/featureFlags'
 import { getAuth, getZeroAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 import { createMcpMutators } from './utils/tla/mcpMutators'
@@ -201,6 +203,9 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.post('/app/libraries/:libraryId/items', addLibraryItems)
+	.post('/app/libraries/:libraryId/copy', copyLibrary)
+	.get('/app/library-items/:itemId/content', getLibraryItemContent)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
@@ -245,7 +250,13 @@ const router = createRouter<Environment>()
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
 		// Mutators close over userId. `userID` is what zero-cache checks the client's claim against.
-		const mutators = auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId)
+		const mutators = auth.mcp
+			? createMcpMutators(auth.userId)
+			: createMutators(auth.userId, {
+					// Read without the stale value: the mutators consult a flag only to admit a change.
+					isFeatureEnabled: (flag) =>
+						isFeatureFlagEnabledForUser(env, flag, auth.userId, { staleOnError: false }),
+				})
 		const result = await handleMutateRequest({
 			dbProvider: zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
 			handler: (transact) =>

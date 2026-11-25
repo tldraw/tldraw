@@ -1,0 +1,337 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 634,
+				"y": 1459.5,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "key-value-store",
+						"pack": "architecture",
+						"name": "Key–value store",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Data and storage",
+						"tags": ["Key–value store", "key-value-store", "Data and storage"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-key-value-store",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b2AsIv",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 21,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-left",
+				"type": "line",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 81
+						}
+					},
+					"scale": 1
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 112,
+				"y": 21,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-right",
+				"type": "line",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 81
+						}
+					},
+					"scale": 1
+				},
+				"index": "a2wmX",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 102,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-bottom",
+				"type": "line",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "cubic",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 16,
+							"y": 14
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": 56,
+							"y": 19
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 96,
+							"y": 14
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": 112,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a3P9M",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-body",
+				"type": "geo",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"w": 112,
+					"h": 40,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a4GEn",
+				"typeName": "shape"
+			},
+			{
+				"x": 21,
+				"y": 54,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-key",
+				"type": "text",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"color": "black",
+					"size": "m",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "k"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a5luQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 54,
+				"y": 56,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-separator",
+				"type": "line",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 35
+						}
+					},
+					"scale": 1
+				},
+				"index": "a6QBj",
+				"typeName": "shape"
+			},
+			{
+				"x": 71,
+				"y": 54,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-key-value-store-value",
+				"type": "text",
+				"parentId": "shape:full-catalog-key-value-store",
+				"props": {
+					"color": "black",
+					"size": "m",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "v"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a7qxU",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-key-value-store"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

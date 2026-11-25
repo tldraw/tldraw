@@ -579,6 +579,20 @@ describe('getFeatureFlags (route handler)', () => {
 		expect(body.rum_enabled.enabled).toBe(false)
 	})
 
+	it('serves libraries_anonymous to unauthenticated users, off until it is turned on', async () => {
+		const { getAuth } = await import('./tla/getAuth')
+		vi.mocked(getAuth).mockResolvedValue(null)
+
+		const off: any = await (await getFeatureFlags({} as any, makeEnv() as any)).json()
+		expect(off.libraries_anonymous.enabled).toBe(false)
+
+		resetFeatureFlagCacheForTests()
+		const env = makeEnv({ libraries_anonymous: JSON.stringify({ enabled: true }) })
+		const on: any = await (await getFeatureFlags({} as any, env as any)).json()
+		expect(on.libraries_anonymous.enabled).toBe(true)
+		expect(on.libraries.enabled).toBe(false)
+	})
+
 	it('forces legacy zero_enabled/zero_kill_switch/commenting_enabled flags for old client bundles, even unauthenticated', async () => {
 		const { getAuth } = await import('./tla/getAuth')
 		vi.mocked(getAuth).mockResolvedValue(null)
@@ -626,6 +640,7 @@ describe('getAllFeatureFlagValues', () => {
 		// the worker is bound in the environment (see the test below).
 		expect(Object.keys(flags).sort()).toEqual([
 			'libraries',
+			'libraries_anonymous',
 			'load_rum',
 			'mcp_hidden_tab',
 			'rum_enabled',

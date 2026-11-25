@@ -35,6 +35,12 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
+		libraries_anonymous: {
+			type: 'boolean',
+			enabled: false,
+			description:
+				'Lets signed-out visitors browse and place libraries read-only: the starter packs, and the libraries kept in a shared file. Saving to a library asks them to sign in. Signed-in users follow the libraries flag instead. A change reaches a tab when it next reloads',
+		},
 		headless_shadow: {
 			type: 'percentage',
 			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. One percentage, two
@@ -124,10 +130,14 @@ async function readFeatureFlag(env: Environment, flag: FeatureFlagKey): Promise<
 /**
  * A flag's stored value, cached per isolate. Never throws: when KV fails it serves the last value
  * this isolate read, however old, or the defaults if there is none.
+ *
+ * `staleOnError: false` skips the stale value, for access checks: a cached grant would otherwise
+ * outlive its revocation for as long as KV stays down.
  */
 export async function getFeatureFlagValue(
 	env: Environment,
-	flag: FeatureFlagKey
+	flag: FeatureFlagKey,
+	{ staleOnError = true }: { staleOnError?: boolean } = {}
 ): Promise<FeatureFlagValue> {
 	const cached = flagCache.get(flag)
 	if (cached && Date.now() - cached.readAt < FLAG_CACHE_TTL_MS) return cached.value
@@ -137,7 +147,7 @@ export async function getFeatureFlagValue(
 		return value
 	} catch (e) {
 		console.error(`Failed to read feature flag ${flag}:`, e)
-		return cached ? cached.value : getFlagDefaults()[flag]
+		return cached && staleOnError ? cached.value : getFlagDefaults()[flag]
 	}
 }
 
@@ -200,6 +210,28 @@ export function evaluateFlagForUser(
 		default:
 			exhaustiveSwitchError(flag)
 	}
+}
+
+/**
+ * Whether a caller may reach the libraries routes and mutators: the `libraries` flag, which also
+ * decides whether the client shows them. Read without the stale value, so a removal from the list lands
+ * even while KV is failing.
+ */
+export async function canUseLibraries(env: Environment, userId: string): Promise<boolean> {
+	return await isFeatureFlagEnabledForUser(env, 'libraries', userId, { staleOnError: false })
+}
+
+/**
+ * Whether a flag is on for one user, server-side. The counterpart to `getFeatureFlags` (which
+ * evaluates every flag for a browser) for a route that gates itself on a single one.
+ */
+export async function isFeatureFlagEnabledForUser(
+	env: Environment,
+	flag: FeatureFlagKey,
+	userId: string,
+	opts?: { staleOnError?: boolean }
+): Promise<boolean> {
+	return evaluateFlagForUser(await getFeatureFlagValue(env, flag, opts), flag, userId)
 }
 
 /**

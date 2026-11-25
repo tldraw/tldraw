@@ -378,7 +378,9 @@ export const ZErrorCode = stringEnum(
 	'bad_request',
 	'rate_limit_exceeded',
 	'max_workspaces_reached',
-	'max_files_reached'
+	'max_files_reached',
+	'max_libraries_reached',
+	'max_library_items_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
@@ -456,6 +458,7 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'libraries',
+	'libraries_anonymous',
 	'headless_shadow',
 	'ui_v3',
 	'mcp_hidden_tab',

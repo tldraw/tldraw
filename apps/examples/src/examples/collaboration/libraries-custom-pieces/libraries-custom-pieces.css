@@ -1,0 +1,45 @@
+.libraries-custom-pieces-count {
+	margin-left: 4px;
+	padding: 0 5px;
+	border-radius: 8px;
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-3);
+	font-size: 10px;
+	line-height: 16px;
+}
+
+.libraries-custom-pieces-section-header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 2px;
+	background: var(--tl-color-panel);
+}
+
+.libraries-custom-pieces-section-header > button {
+	all: unset;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0 8px;
+	line-height: 40px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.libraries-custom-pieces-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 24px 16px;
+	text-align: center;
+}
+
+.libraries-custom-pieces-empty p {
+	margin: 0;
+	color: var(--tl-color-text-3);
+}
