@@ -40,7 +40,6 @@ import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
-import { getBoardPresence } from './routes/tla/getBoardPresence'
 import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
@@ -190,7 +189,6 @@ const router = createRouter<Environment>()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
-	.post('/app/board-presence', getBoardPresence)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({

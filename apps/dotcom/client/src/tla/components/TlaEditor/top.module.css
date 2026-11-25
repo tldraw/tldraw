@@ -224,11 +224,6 @@ button.topLeftInputNameWidthSetter {
 	margin-inline-start: 4px;
 }
 
-/* The beaker is a temporary dev affordance; keep it snug against the comments button. */
-.topRightDesignSwitchesButton {
-	margin-inline-end: -8px;
-}
-
 .topRightIconButton[aria-pressed='true']::after {
 	background: var(--tl-color-muted-2);
 	opacity: 1;

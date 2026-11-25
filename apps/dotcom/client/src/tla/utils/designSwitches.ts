@@ -25,10 +25,6 @@ export const designSwitches = {
 	settingsVerticalTabs: designSwitch('settings-vertical-tabs', 'Vertical settings tabs'),
 	// Lists these switches on a Labs tab in the settings dialog instead of in the beaker menu.
 	settingsLabsTab: designSwitch('settings-labs-tab', 'Labs tab in settings'),
-	// Gallery and list: avatars of who has opened each board, full opacity for whoever is on it now.
-	boardVisitors: designSwitch('board-visitors', 'Board visitor avatars', true),
-	// List view: a small thumbnail to the left of each board's name.
-	listThumbnails: designSwitch('list-thumbnails', 'Thumbnails in list view'),
 } satisfies Record<string, DesignSwitch>
 
 export type DesignSwitchId = keyof typeof designSwitches

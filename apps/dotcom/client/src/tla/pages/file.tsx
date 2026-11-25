@@ -7,10 +7,8 @@ import { TlaFileSyncHost } from '../components/TlaEditor/TlaFileSyncHost'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { ReadyWrapper } from '../hooks/ReadyWrapper'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
-import { useIsUiV3 } from '../hooks/useIsUiV3'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
-import { TlaWorkspaceLayout } from '../layouts/TlaWorkspaceLayout/TlaWorkspaceLayout'
 import { toggleSidebar } from '../utils/local-session-state'
 
 markFirstLoad('file-chunk-loaded')
@@ -29,7 +27,6 @@ export function Component({ error }: { error?: unknown }) {
 	const app = useMaybeApp()
 	const isAppLoading = useIsAppLoading()
 	const userId = app?.userId
-	const isUiV3 = useIsUiV3()
 
 	const errorElem = error ? <TlaFileError error={error} /> : null
 
@@ -61,7 +58,6 @@ export function Component({ error }: { error?: unknown }) {
 	}
 
 	if (errorElem) {
-		if (isUiV3 && !isEmbed) return <TlaWorkspaceLayout>{errorElem}</TlaWorkspaceLayout>
 		return (
 			<TlaSidebarLayout collapsible isEmbed={isEmbed}>
 				{errorElem}
@@ -73,7 +69,7 @@ export function Component({ error }: { error?: unknown }) {
 	// the sidebar is not rebuilt per file. The host is keyed by slug because useSync keeps
 	// reporting the old room's store as synced while a changed uri is still connecting.
 	return (
-		<TlaSidebarLayout collapsible isEmbed={isEmbed} hideSidebar={isUiV3}>
+		<TlaSidebarLayout collapsible isEmbed={isEmbed}>
 			<TlaFileSyncHost key={fileSlug} fileSlug={fileSlug}>
 				{app && <TlaEditor fileSlug={fileSlug} deepLinks isEmbed={isEmbed} />}
 			</TlaFileSyncHost>

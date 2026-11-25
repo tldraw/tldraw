@@ -125,9 +125,6 @@
   "2e9856a31e": {
     "translation": "Regenerate invite link"
   },
-  "2f42560ef5": {
-    "translation": "{name} (you)"
-  },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
   },
@@ -163,9 +160,6 @@
   },
   "3bd1b98dbd": {
     "translation": "Unable to publish the changes."
-  },
-  "3bf4ed96b1": {
-    "translation": "Recently viewed"
   },
   "3c5e891bff": {
     "translation": "Pinned"
@@ -203,9 +197,6 @@
   "47f493a590": {
     "translation": "Pin file"
   },
-  "49800157c1": {
-    "translation": "Edited {time}"
-  },
   "49ee308734": {
     "translation": "Name"
   },
@@ -232,9 +223,6 @@
   },
   "517bb809d9": {
     "translation": "Page menu"
-  },
-  "517f5f3544": {
-    "translation": "No files here yet."
   },
   "53770fd374": {
     "translation": "Unread"
@@ -265,9 +253,6 @@
   },
   "56c34c6410": {
     "translation": "Privacy policy"
-  },
-  "56cabd57d5": {
-    "translation": "Archived files will appear here."
   },
   "5a95a425f7": {
     "translation": "Share"
@@ -398,9 +383,6 @@
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
-  "797c5be9a7": {
-    "translation": "· On this board now"
-  },
   "7a1920d611": {
     "translation": "Default"
   },
@@ -446,9 +428,6 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
-  "8718bcf921": {
-    "translation": "Untitled workspace"
-  },
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
   },
@@ -460,9 +439,6 @@
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
-  },
-  "8cf04a9734": {
-    "translation": "Home"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -618,9 +594,6 @@
   "b357b524e7": {
     "translation": "Email address"
   },
-  "b3d7c37eb8": {
-    "translation": "Grid view"
-  },
   "b48becc771": {
     "translation": "Enable invites"
   },
@@ -650,9 +623,6 @@
   },
   "bd8aac2696": {
     "translation": "Current file"
-  },
-  "bf9c7b5670": {
-    "translation": "Search…"
   },
   "c17466812d": {
     "translation": "Manage workspace"
@@ -753,9 +723,6 @@
   "e404559826": {
     "translation": "Terms of service"
   },
-  "e727b00944": {
-    "translation": "Archive"
-  },
   "e81c4e4f2b": {
     "translation": "or"
   },
@@ -777,9 +744,6 @@
   "ec611e9a08": {
     "translation": "Account menu"
   },
-  "ed6241a422": {
-    "translation": "No files match your search."
-  },
   "ed75712b0e": {
     "translation": "Duplicate"
   },
@@ -795,17 +759,11 @@
   "ef7de3f485": {
     "translation": "selected"
   },
-  "f07e75296c": {
-    "translation": "Shared with me"
-  },
   "f09b16bc5f": {
     "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
   },
   "f0e8bff6f9": {
     "translation": "User settings"
-  },
-  "f13001876b": {
-    "translation": "List view"
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."

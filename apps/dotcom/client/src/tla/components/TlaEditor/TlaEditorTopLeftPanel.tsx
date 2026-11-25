@@ -3,7 +3,7 @@ import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
@@ -45,9 +45,7 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from 'tldraw'
-import { routes } from '../../../routeDefs'
 import { getDotDevUrl } from '../../../utils/appOriginLinks'
-import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
@@ -107,7 +105,6 @@ function TlaViewSubmenu() {
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
-	home: { defaultMessage: 'Home' },
 	libraries: { defaultMessage: 'Libraries' },
 })
 
@@ -282,12 +279,8 @@ function TlaEditorTopLeftPanelSignedIn() {
 
 	return (
 		<>
-			{isEmbed ? null : isUiV3 ? (
-				<TlaEditorHomeButton />
-			) : (
-				// spacer for the sidebar toggle button
-				<div style={{ width: 40, flexShrink: 0 }} />
-			)}
+			{/* spacer for the sidebar toggle button */}
+			{isEmbed ? null : <div style={{ width: 40, flexShrink: 0 }} />}
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
@@ -342,24 +335,6 @@ function TlaEditorTopLeftPanelSignedIn() {
 				)}
 			</TlaFileMenu>
 		</>
-	)
-}
-
-function TlaEditorHomeButton() {
-	const msg = useTranslation()
-	const navigate = useNavigate()
-	const workspaceId = useActiveWorkspaceId()
-	const lbl = msg(messages.home)
-	return (
-		<TldrawUiButton
-			type="icon"
-			tooltip={lbl}
-			title={lbl}
-			onClick={() => navigate(routes.tlaWorkspace(workspaceId))}
-			data-testid="tla-editor-home-button"
-		>
-			<TlaIcon icon="tldraw" />
-		</TldrawUiButton>
 	)
 }
 

@@ -3788,20 +3788,6 @@ export class TLFileDurableObject extends DurableObject {
 		return { status: 'ok', ...getBoardUsers(sessions) }
 	}
 
-	/**
-	 * The signed-in users with a socket open on this board, for the gallery's presence dots. Read off
-	 * the socket attachments rather than the room, so asking a board nobody is on never loads it.
-	 */
-	async getConnectedUserIds(): Promise<string[]> {
-		if (!this._documentInfo || this._documentInfo.deleted) return []
-		const userIds = new Set<string>()
-		for (const ws of this.ctx.getWebSockets()) {
-			const userId = this.getSocketAttachment(ws)?.meta.userId
-			if (userId) userIds.add(userId)
-		}
-		return [...userIds]
-	}
-
 	async hasTabRenderJob(jobId: string): Promise<boolean> {
 		return this.tabRenders.has(jobId)
 	}

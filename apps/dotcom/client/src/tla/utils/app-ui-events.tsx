@@ -24,7 +24,6 @@ export type TLAppUiEventSource =
 	| 'cookie-settings'
 	| 'dialog'
 	| 'workspace-settings'
-	| 'workspace-home'
 	| 'command-palette'
 
 /** @public */
