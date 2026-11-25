@@ -14,13 +14,10 @@ import {
 } from '@tldraw/libraries'
 import { useEffect, useState } from 'react'
 import { Editor, TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
-import { saveSamples, shapeSample, WIREFRAMES } from '../libraries-samples'
+import { saveSamples, shapeSample, WIREFRAMES } from '../../../libraries-fixtures/samples'
 import '@tldraw/libraries/libraries.css'
 import 'tldraw/tldraw.css'
 import './libraries-custom-layout.css'
-
-// Unlisted, like /libraries: @tldraw/libraries is unreleased. The libraries are laid out as a tray
-// along the bottom of the canvas, built from the package's hooks instead of LibrariesPanel.
 
 const source = new InMemoryLibrarySource({ id: 'libraries-custom-layout' })
 
@@ -40,6 +37,7 @@ function seed(editor: Editor) {
 	})().catch((error) => console.error('[libraries] seeding the tray failed', error))
 }
 
+// [1]
 const placePiece: LibraryItemPlacer = (editor, placement) => {
 	const ids = defaultPlaceLibraryItem(editor, { ...placement, select: false })
 	const library = source.getLibraries().find((l) => l.id === placement.item.libraryId)
@@ -50,6 +48,7 @@ const placePiece: LibraryItemPlacer = (editor, placement) => {
 function Tray() {
 	const editor = useEditor()
 	const [tray, setTray] = useState<HTMLElement | null>(null)
+	// [2]
 	const libraries = useLibraries(source)
 	useEffect(() => seed(editor), [editor])
 
@@ -77,6 +76,7 @@ function Shelf({
 	const thumbnails = useLibraryThumbnailUrls(source, items, { width: 56 })
 	const canAdd = useLibraryCan(source, 'addItem', library.id)
 	const { saveSelection } = useSaveSelectionToLibrary(source)
+	// [3]
 	const getItemProps = useLibraryItemDrag(source, {
 		placeItem: placePiece,
 		getDragRegion: () => tray,
@@ -128,10 +128,27 @@ const components: TLComponents = {
 	InFrontOfTheCanvas: Tray,
 }
 
-export default function LibrariesCustomLayout() {
+export default function LibrariesCustomLayoutExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw persistenceKey="libraries-custom-layout" components={components} />
 		</div>
 	)
 }
+
+/*
+[1]
+A `LibraryItemPlacer` decides where and how an item lands. This one places it with
+`defaultPlaceLibraryItem` without selecting it, and sends pieces from the Boards library behind
+everything else.
+
+[2]
+The panel is built from hooks that are exported on their own: `useLibraries` lists the source's
+libraries, and `useLibraryItems`, `useLibraryThumbnailUrls`, `useLibraryCan`,
+`useLibraryCollapsed` and `useSaveSelectionToLibrary` cover each library's items and actions. Any
+layout can be built from them.
+
+[3]
+`useLibraryItemDrag` returns the props that make an element place its item when clicked or dragged
+out. `getDragRegion` is the element a drag must leave before it starts.
+*/
