@@ -16,7 +16,10 @@ function isThumbnailPair<Src>(
 	return typeof thumbnail === 'object' && thumbnail !== null && 'light' in thumbnail
 }
 
-/** The image to show in a colour mode. */
+/**
+ * The image to show in a colour mode.
+ * @public
+ */
 export function getThumbnailForColorMode<Src>(
 	thumbnail: TLLibraryThumbnail<Src>,
 	colorMode: 'light' | 'dark'
@@ -24,7 +27,10 @@ export function getThumbnailForColorMode<Src>(
 	return isThumbnailPair(thumbnail) ? thumbnail[colorMode] : thumbnail
 }
 
-/** Converts each image of a thumbnail, keeping it a single image or a pair. */
+/**
+ * Converts each image of a thumbnail, keeping it a single image or a pair.
+ * @public
+ */
 export function mapThumbnail<A, B>(
 	thumbnail: TLLibraryThumbnail<A>,
 	convert: (src: A) => B
@@ -38,6 +44,7 @@ export function mapThumbnail<A, B>(
  * The listing entry for an item. Its content is loaded separately, with
  * `LibrarySource.getItemContent`, so showing a library never loads every item's shapes and
  * assets.
+ * @public
  */
 export interface TLLibraryItem extends BaseRecord<'library-item', TLLibraryItemId> {
 	libraryId: TLLibraryId
@@ -62,12 +69,16 @@ export const nonEmptyString = T.string.check((value) => {
 	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
 })
 
-/** A thumbnail: one image's URL, or a light and a dark one. */
+/**
+ * A thumbnail: one image's URL, or a light and a dark one.
+ * @public
+ */
 export const libraryThumbnailValidator: T.Validator<TLLibraryThumbnail> = T.or(
 	nonEmptyString,
 	T.object({ light: nonEmptyString, dark: nonEmptyString })
 )
 
+/** @public */
 export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
 	id: idValidator<TLLibraryItemId>('library-item'),
 	typeName: T.literal('library-item'),
@@ -91,17 +102,22 @@ export function applyLibraryItemPartial<T extends TLLibraryItem>(
 	}
 }
 
+/** @public */
 export const LibraryItemRecordType = createRecordType<TLLibraryItem>('library-item', {
 	validator: libraryItemValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({ version: 1, meta: {} }))
 
-/** The newest item content format this version of the package can read. */
+/**
+ * The newest item content format this version of the package can read.
+ * @public
+ */
 export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
 
 /**
  * The shapes an item places, in a versioned envelope. Anything an item needs beyond shapes
  * arrives as a new `formatVersion`, so the way libraries are listed and stored doesn't change.
+ * @public
  */
 export interface TLLibraryItemContent {
 	formatVersion: 1
@@ -134,6 +150,7 @@ const formatVersionValidator = T.object({
  * newer than this package reads, its shapes were saved at schema versions the editor can't migrate
  * down from, or it has a shape or binding type the editor has no util for. Reading it anyway would
  * drop or break whatever the newer version added, so callers should ask for an update.
+ * @public
  */
 export class LibraryItemContentTooNewError extends Error {
 	override name = 'LibraryItemContentTooNewError'
@@ -149,7 +166,10 @@ export class LibraryItemContentTooNewError extends Error {
 	}
 }
 
-/** Validates item content loaded from a source. Migrating older formats belongs here. */
+/**
+ * Validates item content loaded from a source. Migrating older formats belongs here.
+ * @public
+ */
 export function parseLibraryItemContent(value: unknown): TLLibraryItemContent {
 	const { formatVersion } = formatVersionValidator.validate(value)
 	if (formatVersion > CURRENT_ITEM_CONTENT_FORMAT_VERSION) {

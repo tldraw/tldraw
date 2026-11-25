@@ -1,7 +1,10 @@
 import type { TLLibrary, TLLibraryId } from '@tldraw/tlschema'
 import { LibraryNestingError, LibraryNotFoundError } from './LibrarySource'
 
-/** A library and the libraries inside it, as {@link getLibraryTree} arranges them. */
+/**
+ * A library and the libraries inside it, as {@link getLibraryTree} arranges them.
+ * @public
+ */
 export interface TLLibraryTreeNode {
 	library: TLLibrary
 	/** 0 at the top level. */

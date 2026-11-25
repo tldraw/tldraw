@@ -7,13 +7,14 @@ Every published package in `packages/` declares which commercial component it be
 The taxonomy has exactly two levels, matching the order form's "Product in Scope" section:
 
 - **Products** are the top-level line items — the checkboxes a customer ticks. Today: SDK and the Collaboration module.
-- **Features** are parts of a product that can be licensed on their own, listed indented beneath their parent. Commenting is a feature of the Collaboration module.
+- **Features** are parts of a product that can be licensed on their own, listed indented beneath their parent. Commenting and Libraries are features of the Collaboration module.
 
 ```
 [ ] SDK
       [ ] Sync, Driver, Mermaid, Create tldraw CLI   (included, not separately licensed)
 [ ] Collaboration module
       [ ] Commenting
+      [ ] Libraries
 ```
 
 A feature that isn't premium is _included_ in its parent rather than separately licensable — it appears in the manifest so legal can see what a product contains, but it isn't its own checkbox.
@@ -74,10 +75,12 @@ Run `pnpm product-manifest` for the authoritative list. As of the introduction o
 | `tldraw:create-tldraw` | Create tldraw CLI    | `tldraw:sdk-core`      | no                         | `create-tldraw`                                                                                                                                                                  |
 | `tldraw:collaboration` | Collaboration module | —                      | yes (`FEAT_COLLABORATION`) | `@tldraw/collaboration`                                                                                                                                                          |
 | `tldraw:commenting`    | Commenting           | `tldraw:collaboration` | yes (`FEAT_COMMENTING`)    | `@tldraw/commenting`, `@tldraw/mentions`, `@tldraw/sync-collaboration`                                                                                                           |
+| `tldraw:libraries`     | Libraries            | `tldraw:collaboration` | yes (`FEAT_LIBRARIES`)     | `@tldraw/libraries`                                                                                                                                                              |
 
 Entitlement flows down the tree:
 
 - `FEAT_COLLABORATION` — the umbrella flag; grants the whole Collaboration module.
 - `FEAT_COMMENTING` — grants commenting.
+- `FEAT_LIBRARIES` — grants libraries.
 
 `@tldraw/mentions` implements commenting today because `@tldraw/commenting` depends on it, so every customer entitled to commenting is entitled to mentions. If mentions later becomes usable on its own — in shape rich text, say — it will need its own component and license flag at that point.
