@@ -348,7 +348,9 @@ const zeroVmSizes = {
 	},
 	production: {
 		// Fly floors performance VMs at 2gb per CPU, so vs can't drop below 8gb without losing cores it uses at peak
-		rm: { cpus: 1, memory: '2gb', cpuKind: 'performance' },
+		// rm: litestream v5's compaction snapshot holds about 1.4gb on top of the 0.5gb baseline and grows with
+		// the replica. 8gb is Fly's cap per performance CPU.
+		rm: { cpus: 1, memory: '8gb', cpuKind: 'performance' },
 		vs: { cpus: 4, memory: '8gb', cpuKind: 'performance' },
 		volumeSize: '8gb',
 		vsMinMachines: 13,
