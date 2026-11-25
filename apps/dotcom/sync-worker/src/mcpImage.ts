@@ -16,6 +16,7 @@ import {
 	AddImageRefusal,
 	IMAGE_DEFAULT_MAX_WIDTH,
 	ImageUploadMimeType,
+	getPageTransformResolver,
 } from './routes/tla/boardTools'
 
 // --- Reading an image's header ------------------------------------------------------------------
@@ -234,6 +235,7 @@ export function planMcpImage({
 }): PlannedMcpImage {
 	const shapeId = createShapeId(`mcp-${image.objectName}`)
 	const pages: TLPage[] = []
+	const shapes: TLShape[] = []
 	const contentByPage = new Map<string, PageContent>()
 	let existing: TLShape | null = null
 
@@ -241,6 +243,7 @@ export function planMcpImage({
 		if (isPage(record)) {
 			pages.push(record)
 		} else if (isShape(record)) {
+			shapes.push(record)
 			if (record.id === shapeId) existing = record
 			const content = contentByPage.get(record.parentId) ?? {
 				topIndex: null,
@@ -262,15 +265,17 @@ export function planMcpImage({
 
 	if (existing && existing.type === 'image') {
 		const placed = existing as TLImageShape
-		const page = pages.find((candidate) => candidate.id === placed.parentId)
+		// Not the shape's own parentId, x and y: grouped or framed since, those are relative to a shape.
+		const onPage = getPageTransformResolver(shapes)(placed)
+		const page = pages.find((candidate) => candidate.id === onPage.pageId)
 		return {
 			ok: true,
 			records: [],
 			shapeId,
-			pageId: placed.parentId,
+			pageId: onPage.pageId,
 			pageName: page?.name ?? '',
-			x: placed.x,
-			y: placed.y,
+			x: onPage.x,
+			y: onPage.y,
 			w: placed.props.w,
 			h: placed.props.h,
 		}

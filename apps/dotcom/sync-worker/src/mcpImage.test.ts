@@ -234,4 +234,30 @@ describe('planMcpImage', () => {
 		const again = plan([PAGE_ONE, ...first.records], { position: { x: 900, y: 900 }, w: 50 })
 		expect(again).toEqual({ ...first, records: [] })
 	})
+
+	// Grouping or framing an image makes its parentId a shape and its x and y relative to that shape.
+	it('reports a placed image that was framed or grouped by its page and page position', () => {
+		const first = plan([PAGE_ONE, PAGE_TWO], { pageId: 'page:two' })
+		if (!first.ok) throw new Error('Expected a plan')
+		const [asset, shape] = first.records
+		const frame = { ...box('frame', 'page:two', 'a1', 100, 200, 500), rotation: 0 }
+		const group = { ...box('group', 'shape:frame', 'a1', 50, 0, 0), rotation: Math.PI / 2 }
+
+		const framed = { ...shape, parentId: 'shape:frame', x: 10, y: 20 }
+		expect(plan([PAGE_ONE, PAGE_TWO, frame, asset, framed])).toMatchObject({
+			records: [],
+			pageId: 'page:two',
+			pageName: 'Second',
+			x: 110,
+			y: 220,
+		})
+
+		// A quarter turn: the group's x axis points down the page.
+		const grouped = { ...shape, parentId: 'shape:group', x: 10, y: 20 }
+		const again = plan([PAGE_ONE, PAGE_TWO, frame, group, asset, grouped])
+		expect(again).toMatchObject({ records: [], pageId: 'page:two', pageName: 'Second' })
+		if (!again.ok) throw new Error('Expected a plan')
+		expect(again.x).toBeCloseTo(130)
+		expect(again.y).toBeCloseTo(210)
+	})
 })

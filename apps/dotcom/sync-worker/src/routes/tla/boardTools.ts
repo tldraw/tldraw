@@ -1576,6 +1576,8 @@ interface PageTransform {
 	x: number
 	y: number
 	rotation: number
+	/** The parent of the outermost shape reached, which is the page when the given shapes are whole. */
+	pageId: string
 }
 
 function applyPageTransform(transform: PageTransform, point: VecModel): VecModel {
@@ -1592,7 +1594,7 @@ function applyPageTransform(transform: PageTransform, point: VecModel): VecModel
  * them: a shape's local transform is its x, y and rotation, applied inside its parent's. That needs
  * no editor, so it works for every shape whether or not it was measured.
  */
-function getPageTransformResolver(shapes: TLShape[]) {
+export function getPageTransformResolver(shapes: TLShape[]) {
 	const byId = new Map<string, TLShape>(shapes.map((shape) => [shape.id, shape]))
 	const resolved = new Map<string, PageTransform>()
 	const resolve = (shape: TLShape, depth: number): PageTransform => {
@@ -1605,8 +1607,9 @@ function getPageTransformResolver(shapes: TLShape[]) {
 			? {
 					...applyPageTransform(parentTransform, shape),
 					rotation: parentTransform.rotation + shape.rotation,
+					pageId: parentTransform.pageId,
 				}
-			: { x: shape.x, y: shape.y, rotation: shape.rotation }
+			: { x: shape.x, y: shape.y, rotation: shape.rotation, pageId: shape.parentId }
 		resolved.set(shape.id, transform)
 		return transform
 	}
