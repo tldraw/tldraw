@@ -1,16 +1,21 @@
 import { AddToLibraryMenuItem, LibrariesPanel } from '@tldraw/libraries'
 import { useMemo } from 'react'
-import { useEditor } from 'tldraw'
+import { useEditor, useToasts, useTranslation } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getEditorLibraries } from './editorLibraries'
 
 function useEditorLibraries(fileId: string) {
 	const app = useMaybeApp()
 	const editor = useEditor()
+	const toasts = useToasts()
+	const msg = useTranslation()
 	const userLibraries = app?.libraries
 	return useMemo(
-		() => (app && userLibraries ? getEditorLibraries(app, userLibraries, editor, fileId) : null),
-		[app, userLibraries, editor, fileId]
+		() =>
+			app && userLibraries
+				? getEditorLibraries(app, userLibraries, editor, fileId, { toasts, msg })
+				: null,
+		[app, userLibraries, editor, fileId, toasts, msg]
 	)
 }
 
