@@ -95,6 +95,8 @@ export class TLPluginHost {
 	 * `select(capability)`. Until then, any use of it throws the same error as
 	 * {@link TLPluginHost.get}. So the field works in the setup of any plugin that
 	 * runs after the provider, and in an editor without the provider it fails only when used.
+	 * A plugin should read capabilities with `ctx.get` in setup. A facade that it keeps from
+	 * setup stays a proxy.
 	 *
 	 * @internal
 	 */
@@ -113,6 +115,8 @@ export class TLPluginHost {
 			},
 			set: (_target, key, value) => Reflect.set(resolve(), key, value),
 			has: (_target, key) => key in resolve(),
+			// So that `editor.textMeasure instanceof TextManager` holds once the plugin has set up.
+			getPrototypeOf: () => (isProvided() ? Object.getPrototypeOf(resolve()) : Object.prototype),
 		})
 	}
 

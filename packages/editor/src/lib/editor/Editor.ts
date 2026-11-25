@@ -264,8 +264,6 @@ export interface TLEditorOptions {
 	/**
 	 * Plugins that are installed unless a plugin in `plugins` replaces them. The package entry sets
 	 * the default to {@link legacyEditorPlugins}. `createEditor` sets this to an empty list.
-	 *
-	 * @internal
 	 */
 	defaultPlugins?: readonly TLPlugin[]
 	/**
@@ -435,6 +433,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.plugins = new TLPluginHost(this, plugins, defaultPlugins)
 		const installedPlugins = this.plugins.getPlugins()
+		// Members that predate plugins are facades over plugin capabilities. Until setup, they
+		// forward to the capability once its plugin has set up. After setup (below), they are the
+		// capability itself, or a stub that throws when no plugin provides it.
+		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
+		this.textMeasure = this.plugins.facade(textMeasurementCapability, (c) => c)
+		this.externalContentHandlers = this.plugins.facade(
+			externalContentCapability,
+			(c) => c.contentHandlers
+		)
+		this.externalAssetContentHandlers = this.plugins.facade(
+			externalContentCapability,
+			(c) => c.assetHandlers
+		)
 
 		this._spatialIndex = new SpatialIndexManager(this)
 		this.disposables.add(() => this._spatialIndex.dispose())
@@ -976,19 +987,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Plugins set up when the rest of the core exists (utils, tools and store side effects),
 		// and before the first tool is entered.
-		// Members that predate plugins are facades over plugin capabilities. During setup they
-		// forward to the capability once its plugin has set up. After setup, they are the
-		// capability itself, or a stub that throws when no plugin provides it.
-		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
-		this.textMeasure = this.plugins.facade(textMeasurementCapability, (c) => c)
-		this.externalContentHandlers = this.plugins.facade(
-			externalContentCapability,
-			(c) => c.contentHandlers
-		)
-		this.externalAssetContentHandlers = this.plugins.facade(
-			externalContentCapability,
-			(c) => c.assetHandlers
-		)
 		this.plugins.setup()
 		this.disposables.add(() => this.plugins.dispose())
 		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
@@ -1169,11 +1167,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getIsMounted(): boolean {
 		return this._isMounted.get()
 	}
-
-	/**
-	 * A manager for the editor's tick events.
-	 *
-	 * @internal */
 
 	/**
 	 * A manager for the editor's input state.
@@ -9595,7 +9588,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	hasExternalAssetHandler(type: TLExternalAsset['type']): boolean {
-		return !!this.externalAssetContentHandlers[type]
+		return !!this.plugins.getOptional(externalContentCapability)?.assetHandlers[type]
 	}
 
 	/** @internal */

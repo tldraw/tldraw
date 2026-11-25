@@ -4146,7 +4146,6 @@ export interface TLEditorOptions {
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
     colorScheme?: 'dark' | 'light' | 'system';
-    // @internal
     defaultPlugins?: readonly TLPlugin[];
     // (undocumented)
     fontAssetUrls?: {

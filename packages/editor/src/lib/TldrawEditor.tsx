@@ -151,7 +151,8 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Plugins that add behavior to the editor. Their shape utils, binding utils and tools are
 	 * added to the ones above. Keep the array stable between renders, because a new array
-	 * creates a new editor.
+	 * creates a new editor. If you pass your own `store`, create it with the plugins' shape and
+	 * binding utils too, or the store rejects records of those types.
 	 */
 	plugins?: readonly TLPlugin[]
 

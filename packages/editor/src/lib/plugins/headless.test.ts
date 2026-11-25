@@ -133,6 +133,26 @@ describe('a headless editor', () => {
 			'No installed plugin provides "svgExport"'
 		)
 	})
+
+	it('reports no external asset handler without the external content plugin', () => {
+		expect(headlessEditor().hasExternalAssetHandler('file')).toBe(false)
+	})
+
+	it('has the legacy facades while a plugin sets up', () => {
+		let snaps: unknown
+		const editor = headlessEditor(
+			definePlugin({
+				id: 'readsFacadesEarly',
+				setup(ctx) {
+					snaps = ctx.editor.snaps
+				},
+			})
+		)
+		expect(snaps).toBeDefined()
+		expect(() => editor.snaps.getSnappableShapes()).toThrow(
+			'No installed plugin provides "snapping"'
+		)
+	})
 })
 
 describe('the snapping plugin', () => {
