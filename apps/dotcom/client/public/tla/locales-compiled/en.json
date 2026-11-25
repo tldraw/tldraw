@@ -838,12 +838,6 @@
       "value": "Follow these steps to import the content manually:"
     }
   ],
-  "6ea5359e01": [
-    {
-      "type": 0,
-      "value": "Canvas"
-    }
-  ],
   "70a6facb9d": [
     {
       "type": 0,
@@ -1150,12 +1144,6 @@
     {
       "type": 0,
       "value": "Shared with you"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "About"
     }
   ],
   "8ff3d0a705": [
@@ -1734,18 +1722,6 @@
       "value": "Dismiss"
     }
   ],
-  "cb5feb1b73": [
-    {
-      "type": 0,
-      "value": "Color"
-    }
-  ],
-  "cce99c598c": [
-    {
-      "type": 0,
-      "value": "Profile"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1768,12 +1744,6 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
-    }
-  ],
-  "d0834fcec6": [
-    {
-      "type": 0,
-      "value": "Preferences"
     }
   ],
   "d28d6bbc42": [
@@ -1874,6 +1844,12 @@
     {
       "type": 0,
       "value": "Leave workspace"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App debug flags"
     }
   ],
   "e0aa021e21": [

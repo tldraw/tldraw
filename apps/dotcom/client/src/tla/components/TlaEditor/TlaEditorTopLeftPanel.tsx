@@ -16,6 +16,7 @@ import {
 	InputModeMenu,
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
+	PreferencesGroup,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
@@ -33,6 +34,7 @@ import {
 	ToggleGridItem,
 	TogglePasteAtCursorItem,
 	ToggleSnapModeItem,
+	ToggleToolLockItem,
 	ToggleWrapModeItem,
 	useDialogs,
 	useEditor,
@@ -68,9 +70,9 @@ import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-sh
 import { editorMessages } from './editor-messages'
 import styles from './top.module.css'
 
-/** tldraw's default View submenu plus the per-file display toggles and a "Comments" show/hide
- *  toggle (its own group, signed-in only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed
- *  component with no slot to inject into. */
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
+ *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
+ *  into. */
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabledForUser()
 	return (
@@ -81,11 +83,6 @@ function TlaViewSubmenu() {
 				<ZoomTo100MenuItem />
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="view-toggles">
-				<ToggleGridItem />
-				<ToggleFocusModeItem />
-				<ToggleDebugModeItem />
 			</TldrawUiMenuGroup>
 			{commentingEnabled && (
 				<TldrawUiMenuGroup id="view-comments">
@@ -320,7 +317,9 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				{/* Preferences, language and keyboard shortcuts live in the settings dialog for signed-in users. */}
+				<TldrawUiMenuGroup id="preferences">
+					<PreferencesGroup />
+				</TldrawUiMenuGroup>
 			</TlaFileMenu>
 		</>
 	)
@@ -501,18 +500,20 @@ function SignInMenuItem() {
 	)
 }
 
-/** The anonymous menu keeps the account-wide preferences: without an account there is no settings
- *  dialog to hold them. */
 function TlaPreferencesGroup() {
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
+					<ToggleToolLockItem />
+					<ToggleGridItem />
 					<ToggleWrapModeItem />
+					<ToggleFocusModeItem />
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />

@@ -329,9 +329,6 @@
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
   },
-  "6ea5359e01": {
-    "translation": "Canvas"
-  },
   "70a6facb9d": {
     "translation": "This week"
   },
@@ -442,9 +439,6 @@
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
-  },
-  "8f7f4c1ce7": {
-    "translation": "About"
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
@@ -651,12 +645,6 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
-  "cb5feb1b73": {
-    "translation": "Color"
-  },
-  "cce99c598c": {
-    "translation": "Profile"
-  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -668,9 +656,6 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
-  },
-  "d0834fcec6": {
-    "translation": "Preferences"
   },
   "d28d6bbc42": {
     "translation": "Unpublish file"
@@ -707,6 +692,9 @@
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
+  },
+  "dfdb78a4e4": {
+    "translation": "App debug flags"
   },
   "e0aa021e21": {
     "translation": "OK"

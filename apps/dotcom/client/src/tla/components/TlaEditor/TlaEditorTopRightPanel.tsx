@@ -31,7 +31,7 @@ import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnable
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
+import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -162,9 +162,7 @@ function CommentsSidebarButton() {
 /** The beaker: v3 design switches, for `ui_v3` users only. See `designSwitches`. */
 function DesignSwitchesMenu() {
 	const isUiV3 = useIsUiV3()
-	// With this switch on, the settings dialog's Labs tab lists the switches instead.
-	const isInSettings = useDesignSwitch('settingsLabsTab')
-	if (!isUiV3 || isInSettings) return null
+	if (!isUiV3) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id="design-switches">
