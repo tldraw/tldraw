@@ -140,14 +140,14 @@ const flyioReplAppName =
 	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
-// needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
-const zeroRmv2 = env.TLDRAW_ENV === 'staging'
+// needs (see flyRmHandoff.ts). Rolling back to RMv1 resyncs the replica from Postgres.
+const zeroRmv2 = env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production'
 // RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
-// RMv1 with v5 backups before zeroRmv2 turns on for it.
-const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
-// Production's RM takes that step alone. View-syncers restore from the URL the RM hands them, with
-// the v5 binary whatever this flag says, so theirs stays off and the step doesn't restart them.
-const zeroRmBackupV5 = zeroBackupV5 || env.TLDRAW_ENV === 'production'
+// RMv1 with v5 backups before zeroRmv2 turns on for it (production did in #11619).
+const zeroRmBackupV5 = zeroRmv2
+// View-syncers restore from the URL the RM hands them, with the v5 binary whatever this flag says.
+// So production's stays off: turning it on would restart all 13 in the deploy that changes it.
+const zeroVsBackupV5 = env.TLDRAW_ENV === 'staging'
 // Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
 // would redeploy production's zero apps in place.
 const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
@@ -920,8 +920,7 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
-		.replace('__RMV2_ENV\n', rmv2Env)
-		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
+		.replaceAll('__BACKUP_V5', String(zeroVsBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
@@ -978,7 +977,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	}
 	const replManagerUri = `http://${flyioReplAppName}.internal:4849`
 	const vsInputs: FlyDeployInputs = {
-		config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath(zeroBackupV5)),
+		config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath(zeroVsBackupV5)),
 		dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
 		secrets,
 	}
