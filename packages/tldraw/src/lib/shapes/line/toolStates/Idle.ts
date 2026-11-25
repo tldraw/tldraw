@@ -11,7 +11,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown() {
-		if (this.editor.checkCapability('create-shape') || this.editor.checkCapability('edit-shape')) {
+		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
 			return
 		}
 		this.parent.transition('pointing', { shapeId: this.shapeId })

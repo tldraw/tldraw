@@ -1068,22 +1068,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Ask the checks registered for a capability. A readonly editor rejects every capability. A
-	 * capability with no registered check is allowed. Reactive.
+	 * Ask the checks registered for a capability, or for each of several. A readonly editor rejects
+	 * every capability. A capability with no registered check is allowed. Reactive.
 	 *
-	 * @param capability - The capability to check.
-	 * @returns `null` if allowed, or the rejection.
+	 * @example
+	 * ```ts
+	 * // Creating a shape by dragging also edits it
+	 * if (editor.checkCapability(['create-shape', 'edit-shape'])) return
+	 * ```
+	 *
+	 * @param capability - The capability to check, or several that must all be allowed.
+	 * @returns `null` if allowed, or the first rejection.
 	 *
 	 * @public
 	 */
-	checkCapability(capability: TLCapability): TLCheckRejection | null {
+	checkCapability(capability: TLCapability | TLCapability[]): TLCheckRejection | null {
 		if (this.getIsReadonly()) {
 			return { reason: 'readonly' }
 		}
-		for (const handler of this._capabilityChecks.get().get(capability) ?? EMPTY_ARRAY) {
-			const rejection = runCheck(handler)
-			if (rejection) {
-				return rejection
+		const checks = this._capabilityChecks.get()
+		for (const c of Array.isArray(capability) ? capability : [capability]) {
+			for (const handler of checks.get(c) ?? EMPTY_ARRAY) {
+				const rejection = runCheck(handler)
+				if (rejection) {
+					return rejection
+				}
 			}
 		}
 		return null

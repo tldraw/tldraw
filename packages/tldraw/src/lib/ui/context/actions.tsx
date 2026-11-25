@@ -445,7 +445,7 @@ function withCapabilities(action: TLUiActionItem): TLUiActionItem {
 	return {
 		...action,
 		isEnabled(editor) {
-			if (capabilities.some((capability) => editor.checkCapability(capability))) {
+			if (editor.checkCapability(capabilities)) {
 				return false
 			}
 			return !isEnabled || isEnabled(editor)
