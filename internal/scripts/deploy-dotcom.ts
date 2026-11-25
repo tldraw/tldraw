@@ -707,9 +707,7 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 
 async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
 	// Deployed to dev, staging and production. Not to previews: they stay on the local render path (no
-	// RENDER_WORKER binding injected), so the worker is validated on staging rather than per-PR. The
-	// call site stays gated on THUMBNAIL_RENDER_VIA_WORKER, which production leaves unset (off), so a
-	// prod deploy ships the worker but routes nothing to it yet.
+	// RENDER_WORKER binding injected), so the worker is validated on staging rather than per-PR.
 	if (previewId) {
 		nicelog('skipping render-worker deploy for previews')
 		return
@@ -720,8 +718,16 @@ async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
 		dryRun,
 		env: env.TLDRAW_ENV,
 		vars: {
+			// The sync worker's Sentry project: this worker only renders on its behalf, and its events are
+			// told apart by environment (the worker name).
+			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
+		},
+		sentry: {
+			project: 'tldraw-sync',
+			authToken: env.SENTRY_AUTH_TOKEN,
+			environment: workerId,
 		},
 	})
 }

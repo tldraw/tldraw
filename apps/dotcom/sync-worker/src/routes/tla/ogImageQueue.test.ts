@@ -646,6 +646,49 @@ describe('handleOgImageRenderMessage', () => {
 			})
 		})
 
+		describe('the thumbnail_render_worker rollout', () => {
+			const bucket = hashToPercentage('published/board', 'thumbnail_render_worker')
+
+			function arrangeRollout(flag: object | null) {
+				const screenshot = vi.fn(async () => ({ ok: true, png: new Uint8Array([1, 2, 3]) }))
+				const env = arrange({
+					RENDER_WORKER: { screenshot },
+					FEATURE_FLAGS: {
+						get: async (key: string) =>
+							key === 'thumbnail_render_worker' && flag ? JSON.stringify(flag) : null,
+					},
+				})
+				return { env, screenshot }
+			}
+
+			it('hands a board whose bucket is inside the percentage to the render worker', async () => {
+				const { env, screenshot } = arrangeRollout({ enabled: true, percentage: bucket + 1 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(screenshot).toHaveBeenCalledTimes(1)
+				expect(screenshotOf(env)).not.toHaveBeenCalled()
+			})
+
+			it('renders a board whose bucket is outside the percentage locally', async () => {
+				const { env, screenshot } = arrangeRollout({ enabled: true, percentage: bucket })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(screenshot).not.toHaveBeenCalled()
+				expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+			})
+
+			it('renders locally when the flag has never been set', async () => {
+				const { env, screenshot } = arrangeRollout(null)
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(screenshot).not.toHaveBeenCalled()
+				expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+			})
+		})
+
 		it('keeps pushing after a pushed capture times out', async () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 			let calls = 0

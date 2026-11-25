@@ -68,6 +68,14 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
 		},
+		thumbnail_render_worker: {
+			type: 'percentage',
+			// 0% by default: a deployment whose KV read fails keeps rendering in the sync worker.
+			percentage: 0,
+			enabled: true,
+			description:
+				'Board thumbnail and OG renders are drawn by the private render worker instead of the sync worker. Bucketed per BOARD, not per user: the sync worker passes the board kind and slug as the id, and the per-user value browsers see is meaningless. Does nothing unless the RENDER_WORKER binding is present. A change lands within about a minute',
+		},
 		headless_shadow: {
 			type: 'percentage',
 			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. One percentage, two
@@ -460,6 +468,8 @@ export async function getAllFeatureFlagValues(
 			// binding exists in this environment, and reappears the moment the worker is bound there.
 			// See headlessShadow.ts.
 			if (key === 'headless_shadow' && !env.HEADLESS_WORKER) return
+			// The same for the render worker rollout, which previews do not bind.
+			if (key === 'thumbnail_render_worker' && !env.RENDER_WORKER) return
 			flags[key] = await readFeatureFlag(env, key)
 		})
 	)
