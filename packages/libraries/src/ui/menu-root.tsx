@@ -1,8 +1,8 @@
 import {
+	forwardRef,
 	type KeyboardEvent,
 	type PointerEvent,
 	type ReactNode,
-	type Ref,
 	useEffect,
 	useLayoutEffect,
 	useRef,
@@ -93,16 +93,16 @@ export function MenuRoot({
 	)
 }
 
-function MenuButton({
-	ref,
-	label,
-	...handlers
-}: {
-	ref: Ref<HTMLButtonElement>
+interface MenuButtonProps {
 	label: string
 	onPointerDown?(e: PointerEvent<HTMLButtonElement>): void
 	onKeyDown?(e: KeyboardEvent<HTMLButtonElement>): void
-}) {
+}
+
+const MenuButton = forwardRef<HTMLButtonElement, MenuButtonProps>(function MenuButton(
+	{ label, ...handlers },
+	ref
+) {
 	return (
 		<TldrawUiButton
 			ref={ref}
@@ -116,4 +116,4 @@ function MenuButton({
 			<TldrawUiButtonIcon icon="dots-vertical" small />
 		</TldrawUiButton>
 	)
-}
+})
