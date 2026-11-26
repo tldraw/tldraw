@@ -365,6 +365,23 @@ const toggles = (container: Element) =>
 		(el) => `${el.textContent}:${el.getAttribute('aria-expanded')}`
 	)
 
+it('finds an empty library by its name, with its + tile to save into it', async () => {
+	const shapes = makeLibrary('Shapes', ['Box'])
+	const stash = makeLibrary('My stash', [])
+	const container = await renderPanel(makeSource(InMemoryLibrarySource, [shapes, stash]))
+
+	act(() => librariesSearchQuery.set(panelEditor!, 'stash'))
+	await vi.waitFor(() =>
+		expect(
+			[...container.querySelectorAll('.tlui-libraries-section')].map((s) =>
+				s.getAttribute('aria-label')
+			)
+		).toEqual(['My stash'])
+	)
+	expect(container.textContent).not.toContain('No items found')
+	expect(container.querySelector('[aria-label="Add selection"]')).not.toBeNull()
+})
+
 it('searches a folded library, and leaves it folded once the search is cleared', async () => {
 	const shapes = makeLibrary('Shapes', ['Box', 'Circle'])
 	const container = await renderPanel(makeSource(InMemoryLibrarySource, [shapes]), undefined, [

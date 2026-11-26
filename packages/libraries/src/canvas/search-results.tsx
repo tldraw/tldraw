@@ -71,7 +71,7 @@ export function SearchResults({ source, libraries, query, ...itemProps }: Search
 			key={library.id}
 			source={source}
 			library={library}
-			itemIds={items.map((item) => item.id)}
+			itemIds={items && items.map((item) => item.id)}
 			{...itemProps}
 		/>
 	))
@@ -86,12 +86,14 @@ function SearchResultGroup({
 	prepareItemContent,
 }: Omit<SearchResultsProps, 'libraries' | 'query'> & {
 	library: TLLibrary
-	itemIds: TLLibraryItemId[]
+	/** Left out when the library matched by name, so all its items show. */
+	itemIds?: TLLibraryItemId[]
 }) {
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const { ordering, reversed } = useItemOrdering(source)
-	const key = itemIds.join()
+	const key = itemIds && itemIds.join()
 	const itemFilter = useMemo(() => {
+		if (key === undefined) return undefined
 		const ids = new Set(key.split(','))
 		return (item: { id: string }) => ids.has(item.id)
 	}, [key])
