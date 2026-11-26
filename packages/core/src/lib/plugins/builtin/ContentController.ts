@@ -619,4 +619,59 @@ export class ContentController {
 
 		return this.editor
 	}
+
+	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): void {
+		const ids = toShapeIds(shapes)
+
+		if (ids.length === 0) return
+		if (this.editor.getIsReadonly()) return
+
+		const currentPageId = this.editor.getCurrentPageId()
+
+		if (pageId === currentPageId) return
+		if (!this.editor.store.has(pageId)) return
+
+		// Basically copy the shapes
+		const content = this.editor.getContentFromCurrentPage(ids)
+
+		// Just to be sure
+		if (!content) return
+
+		// If there is no space on pageId, or if the selected shapes
+		// would take the new page above the limit, don't move the shapes
+		if (
+			this.editor.getPageShapeIds(pageId).size + content.shapes.length >
+			this.editor.options.maxShapesPerPage
+		) {
+			alertMaxShapes(this.editor, pageId)
+			return
+		}
+
+		const fromPageZ = this.editor.getCamera().z
+
+		this.editor.run(() => {
+			// Delete the shapes on the current page
+			this.editor.deleteShapes(ids)
+
+			// Move to the next page
+			this.editor.setCurrentPage(pageId)
+
+			// Put the shape content onto the new page; parents and indices will
+			// be taken care of by the putContent method; make sure to pop any focus
+			// layers so that the content will be put onto the page.
+			this.editor.setFocusedGroup(null)
+			this.editor.selectNone()
+			this.editor.putContentOntoCurrentPage(content, {
+				select: true,
+				preserveIds: true,
+				preservePosition: true,
+			})
+
+			// Force the new page's camera to be at the same zoom level as the
+			// "from" page's camera, then center the "to" page's camera on the
+			// pasted shapes
+			this.editor.setCamera({ ...this.editor.getCamera(), z: fromPageZ })
+			this.editor.centerOnPoint(this.editor.getSelectionRotatedPageBounds()!.center)
+		})
+	}
 }

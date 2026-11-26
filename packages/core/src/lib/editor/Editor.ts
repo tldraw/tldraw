@@ -55,11 +55,8 @@ import {
 	assertExists,
 	bind,
 	compact,
-	debounce,
 	dedupe,
-	exhaustiveSwitchError,
 	getIndexAbove,
-	getIndexBetween,
 	getIndices,
 	getIndicesAbove,
 	getIndicesBetween,
@@ -94,7 +91,10 @@ import { clickDetectionCapability } from '../plugins/builtin/clickDetection'
 import { collaboratorsCapability } from '../plugins/builtin/collaborators'
 import type { ContentController } from '../plugins/builtin/ContentController'
 import { contentTransferCapability } from '../plugins/builtin/contentTransfer'
+import type { DeepLinkController } from '../plugins/builtin/DeepLinkController'
+import { deepLinksCapability } from '../plugins/builtin/deepLinks'
 import { containerFocusCapability } from '../plugins/builtin/domFocus'
+import { duplicationCapability } from '../plugins/builtin/duplication'
 import { edgeScrollCapability } from '../plugins/builtin/edgeScroll'
 import { editingCapability } from '../plugins/builtin/editing'
 import type { EditingController } from '../plugins/builtin/EditingController'
@@ -106,6 +106,7 @@ import {
 	externalContentCapability,
 } from '../plugins/builtin/externalContent'
 import { fontsCapability } from '../plugins/builtin/fonts'
+import { groupingCapability } from '../plugins/builtin/grouping'
 import { imageExportCapability } from '../plugins/builtin/imageExport'
 import { inputsCapability } from '../plugins/builtin/inputs'
 import { overlaysCapability } from '../plugins/builtin/overlays'
@@ -117,6 +118,8 @@ import { shapeAnimationCapability } from '../plugins/builtin/shapeAnimation'
 import type { ShapeAnimator } from '../plugins/builtin/ShapeAnimator'
 import { shapeArrangementCapability } from '../plugins/builtin/shapeArrangement'
 import type { ShapeArranger } from '../plugins/builtin/ShapeArranger'
+import type { ShapeDuplicator } from '../plugins/builtin/ShapeDuplicator'
+import type { ShapeGrouper } from '../plugins/builtin/ShapeGrouper'
 import { snappingCapability } from '../plugins/builtin/snapping'
 import { spatialIndexCapability } from '../plugins/builtin/spatialIndex'
 import type { StyleController } from '../plugins/builtin/StyleController'
@@ -142,12 +145,7 @@ import {
 } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
-import {
-	TLDeepLink,
-	TLDeepLinkOptions,
-	createDeepLinkString,
-	parseDeepLinkString,
-} from '../utils/deepLinks'
+import { TLDeepLink, TLDeepLinkOptions } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
@@ -173,12 +171,7 @@ import type { ThemeManager } from './managers/ThemeManager/ThemeManager'
 import type { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import type { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
-import {
-	alertMaxShapes,
-	applyPartialToRecordWithProps,
-	toShapeIds,
-	withIsolatedShapes,
-} from './recordUtils'
+import { alertMaxShapes, applyPartialToRecordWithProps, toShapeIds } from './recordUtils'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
@@ -1106,6 +1099,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_camera: p.facade(cameraCapability, (c) => c),
 			_eventDispatcher: p.facade(eventDispatchCapability, (c) => c),
 			_arranger: p.facade(shapeArrangementCapability, (c) => c),
+			_grouper: p.facade(groupingCapability, (c) => c),
+			_duplicator: p.facade(duplicationCapability, (c) => c),
+			_deepLinks: p.facade(deepLinksCapability, (c) => c),
 			_shapeAnimator: p.facade(shapeAnimationCapability, (c) => c),
 			_editing: p.facade(editingCapability, (c) => c),
 			_selection: p.facade(selectionCapability, (c) => c),
@@ -1144,6 +1140,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	readonly _arranger!: ShapeArranger
+
+	/** @internal */
+	readonly _grouper!: ShapeGrouper
+
+	/** @internal */
+	readonly _duplicator!: ShapeDuplicator
+
+	/** @internal */
+	readonly _deepLinks!: DeepLinkController
 
 	/** @internal */
 	readonly _shapeAnimator!: ShapeAnimator
@@ -3808,36 +3813,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.getPages().length >= this.options.maxPages) return this
-		const id = typeof page === 'string' ? page : page.id
-		const freshPage = this.getPage(id) // get the most recent version of the page anyway
-		if (!freshPage) return this
-
-		// Read the source page's own camera rather than getCamera(), which is the
-		// current page's and is wrong when duplicating a page that isn't being viewed
-		const prevCamera = {
-			...(this.store.get(CameraRecordType.createId(freshPage.id)) ?? this.getCamera()),
-		}
-		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(freshPage.id))
-
-		this.run(() => {
-			const pages = this.getPages()
-			const index = getIndexBetween(freshPage.index, pages[pages.indexOf(freshPage) + 1]?.index)
-
-			// create the page (also creates the pagestate and camera for the new page)
-			this.createPage({ name: freshPage.name + ' Copy', id: createId, index })
-			// set the new page as the current page
-			this.setCurrentPage(createId)
-			// update the new page's camera to the previous page's camera
-			this.setCamera(prevCamera)
-
-			if (content) {
-				// Without preservePosition the paste rule recenters off-screen content
-				// in the viewport, so the copy's layout would not match the original
-				return this.putContentOntoCurrentPage(content, { preservePosition: true })
-			}
-		})
-
+		this._duplicator.duplicatePage(page, createId)
 		return this
 	}
 
@@ -5765,132 +5741,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicateShapes(shapes: TLShapeId[] | TLShape[], offset?: VecLike): this {
-		this.run(() => {
-			const _ids = toShapeIds(shapes)
-
-			const ids = this._shouldIgnoreShapeLock ? _ids : this._getUnlockedShapeIds(_ids)
-			if (ids.length <= 0) return this
-
-			const initialIds = new Set(ids)
-			const shapeIdSet = this.getShapeAndDescendantIds(ids)
-
-			const orderedShapeIds = [...shapeIdSet].reverse()
-			const shapeIds = new Map<TLShapeId, TLShapeId>()
-			for (const shapeId of shapeIdSet) {
-				shapeIds.set(shapeId, createShapeId())
-			}
-
-			const { shapesToCreateWithOriginals, bindingsToCreate } = withIsolatedShapes(
-				this,
-				shapeIdSet,
-				(bindingIdsToMaintain) => {
-					const bindingsToCreate: TLBinding[] = []
-					for (const originalId of bindingIdsToMaintain) {
-						const originalBinding = this.getBinding(originalId)
-						if (!originalBinding) continue
-
-						const duplicatedId = createBindingId()
-						bindingsToCreate.push({
-							...originalBinding,
-							id: duplicatedId,
-							fromId: assertExists(shapeIds.get(originalBinding.fromId)),
-							toId: assertExists(shapeIds.get(originalBinding.toId)),
-						})
-					}
-
-					const shapesToCreateWithOriginals: { shape: TLShape; originalShape: TLShape }[] = []
-					for (const originalId of orderedShapeIds) {
-						const duplicatedId = assertExists(shapeIds.get(originalId))
-						const originalShape = this.getShape(originalId)
-						if (!originalShape) continue
-
-						let ox = 0
-						let oy = 0
-
-						// Only offset the roots of the duplicated tree: a descendant that was also passed in
-						// follows its duplicated parent, so offsetting it too would move it twice
-						if (
-							offset &&
-							initialIds.has(originalId) &&
-							!shapeIdSet.has(originalShape.parentId as TLShapeId)
-						) {
-							const parentTransform = this.getShapeParentTransform(originalShape)
-							const vec = new Vec(offset.x, offset.y).rot(-parentTransform!.rotation())
-							ox = vec.x
-							oy = vec.y
-						}
-
-						shapesToCreateWithOriginals.push({
-							shape: {
-								...originalShape,
-								id: duplicatedId,
-								x: originalShape.x + ox,
-								y: originalShape.y + oy,
-								// Use a dummy index for now, it will get updated outside of the `withIsolatedShapes`
-								index: 'a1' as IndexKey,
-								parentId:
-									shapeIds.get(originalShape.parentId as TLShapeId) ?? originalShape.parentId,
-							},
-							originalShape,
-						})
-					}
-
-					return { shapesToCreateWithOriginals, bindingsToCreate }
-				}
-			)
-
-			// We will update the indexes after the `withIsolatedShapes`, since we cannot rely on the indexes
-			// to be correct inside of it.
-			shapesToCreateWithOriginals.forEach(({ shape, originalShape }) => {
-				const parentId = originalShape.parentId
-				const siblings = this.getSortedChildIdsForParent(parentId)
-				const currentIndex = siblings.indexOf(originalShape.id)
-				const siblingAboveId = siblings[currentIndex + 1]
-				const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : undefined
-
-				const index = getIndexBetween(originalShape.index, siblingAbove?.index)
-
-				shape.index = index
-			})
-			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape, originalShape }) => {
-				// Give the shape util a chance to modify the duplicate, e.g. to re-stamp note
-				// attribution to the current user so we don't forge the original author's identity.
-				return this.getShapeUtil(shape).onBeforeDuplicate?.(originalShape, shape) ?? shape
-			})
-
-			if (!this.canCreateShapes(shapesToCreate)) {
-				alertMaxShapes(this)
-				return
-			}
-
-			this.createShapes(shapesToCreate)
-			this.createBindings(bindingsToCreate)
-
-			this.setSelectedShapes(
-				compact(
-					ids.map((oldId) => {
-						const newId = shapeIds.get(oldId)
-						if (!newId) return null
-						if (!this.getShape(newId)) return null
-						return newId
-					})
-				)
-			)
-
-			if (offset !== undefined) {
-				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
-				// contained in the current viewport. If not, then animate the camera to be centered on the
-				// new shapes.
-				const selectionPageBounds = this.getSelectionPageBounds()
-				const viewportPageBounds = this.getViewportPageBounds()
-				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-					this.centerOnPoint(selectionPageBounds.center, {
-						animation: { duration: this.options.animationMediumMs },
-					})
-				}
-			}
-		})
-
+		this._duplicator.duplicateShapes(shapes, offset)
 		return this
 	}
 
@@ -5908,56 +5759,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): this {
-		const ids = toShapeIds(shapes)
-
-		if (ids.length === 0) return this
-		if (this.getIsReadonly()) return this
-
-		const currentPageId = this.getCurrentPageId()
-
-		if (pageId === currentPageId) return this
-		if (!this.store.has(pageId)) return this
-
-		// Basically copy the shapes
-		const content = this.getContentFromCurrentPage(ids)
-
-		// Just to be sure
-		if (!content) return this
-
-		// If there is no space on pageId, or if the selected shapes
-		// would take the new page above the limit, don't move the shapes
-		if (this.getPageShapeIds(pageId).size + content.shapes.length > this.options.maxShapesPerPage) {
-			alertMaxShapes(this, pageId)
-			return this
-		}
-
-		const fromPageZ = this.getCamera().z
-
-		this.run(() => {
-			// Delete the shapes on the current page
-			this.deleteShapes(ids)
-
-			// Move to the next page
-			this.setCurrentPage(pageId)
-
-			// Put the shape content onto the new page; parents and indices will
-			// be taken care of by the putContent method; make sure to pop any focus
-			// layers so that the content will be put onto the page.
-			this.setFocusedGroup(null)
-			this.selectNone()
-			this.putContentOntoCurrentPage(content, {
-				select: true,
-				preserveIds: true,
-				preservePosition: true,
-			})
-
-			// Force the new page's camera to be at the same zoom level as the
-			// "from" page's camera, then center the "to" page's camera on the
-			// pasted shapes
-			this.setCamera({ ...this.getCamera(), z: fromPageZ })
-			this.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
-		})
-
+		this._contentTransfer.moveShapesToPage(shapes, pageId)
 		return this
 	}
 
@@ -6909,74 +6711,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes: TLShapeId[] | TLShape[],
 		opts = {} as Partial<{ groupId: TLShapeId; select: boolean }>
 	): this {
-		const { groupId = createShapeId(), select = true } = opts
-
-		if (!Array.isArray(shapes)) {
-			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
-		}
-		if (this.getIsReadonly()) return this
-
-		const ids = toShapeIds(shapes)
-
-		const shapesToGroup = compact(
-			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
-				this.getShape(id)
-			)
-		)
-		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
-		if (shapesToGroup.length <= 1) return this
-
-		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
-		const childBounds = compact(shapesToGroup.map((shape) => this.getShapePageBounds(shape)))
-		const pageBounds = Box.Common(childBounds)
-
-		if (!pageBounds.isValid()) {
-			throw Error(`Editor.groupShapes: group bounds are invalid (NaN).`)
-		}
-
-		const { x, y } = pageBounds.point
-
-		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.getCurrentPageId()
-
-		// createShapes bails out when the page is full, so check first; otherwise the shapes get
-		// reparented into a group that was never created and vanish from the page
-		if (!this.canCreateShapes([groupId])) {
-			alertMaxShapes(this)
-			return this
-		}
-
-		// If the select tool is mid-interaction, cancel it (get back to idle) before grouping
-		if (this.isIn('select') && !this.isIn('select.idle')) {
-			this.cancel()
-		}
-
-		// Find all the shapes that have the same parentId, and use the highest index.
-		const shapesWithRootParent = shapesToGroup
-			.filter((shape) => shape.parentId === parentId)
-			.sort(sortByIndex)
-
-		const highestIndex = shapesWithRootParent[shapesWithRootParent.length - 1]?.index
-
-		this.run(() => {
-			this.createShapes([
-				{
-					id: groupId,
-					type: 'group',
-					parentId,
-					index: highestIndex,
-					x,
-					y,
-					opacity: 1,
-					props: {},
-				},
-			])
-			this.reparentShapes(sortedShapeIds, groupId)
-			if (select) {
-				// the select option determines whether the grouped shapes' children are selected
-				this.select(groupId)
-			}
-		})
-
+		this._grouper.groupShapes(shapes, opts)
 		return this
 	}
 
@@ -6997,66 +6732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	ungroupShapes(ids: TLShapeId[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShape[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<{ select: boolean }>) {
-		if (this.getIsReadonly()) return this
-
-		const { select = true } = opts
-		const ids = toShapeIds(shapes)
-
-		const shapesToUngroup = compact(
-			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
-				this.getShape(id)
-			)
-		)
-
-		if (shapesToUngroup.length === 0) return this
-
-		// If the select tool is mid-interaction, cancel it (get back to idle) before ungrouping
-		if (this.isIn('select') && !this.isIn('select.idle')) {
-			this.cancel()
-		}
-
-		// The ids of the selected shapes after ungrouping;
-		// these include all of the grouped shapes children,
-		// plus any shapes that were selected apart from the groups.
-		const idsToSelect = new Set<TLShapeId>()
-
-		// Get all groups in the selection
-		const groups: TLGroupShape[] = []
-
-		shapesToUngroup.forEach((shape) => {
-			if (this.isShapeOfType(shape, 'group')) {
-				groups.push(shape)
-			} else {
-				idsToSelect.add(shape.id)
-			}
-		})
-
-		if (groups.length === 0) return this
-
-		this.run(() => {
-			for (let i = 0, n = groups.length; i < n; i++) {
-				// Re-read the group: ungrouping an outer group earlier in this loop reparents the
-				// inner ones, and the stale parentId would send their children into a group that's
-				// about to be deleted
-				const group = this.getShape<TLGroupShape>(groups[i].id)
-				if (!group) continue
-				const childIds = this.getSortedChildIdsForParent(group.id)
-
-				for (let j = 0, n = childIds.length; j < n; j++) {
-					idsToSelect.add(childIds[j])
-				}
-
-				this.reparentShapes(childIds, group.parentId, group.index)
-			}
-
-			this.deleteShapes(groups.map((group) => group.id))
-
-			if (select) {
-				// the select option determines whether the ungrouped shapes' children are selected
-				this.select(...idsToSelect)
-			}
-		})
-
+		this._grouper.ungroupShapes(shapes, opts)
 		return this
 	}
 
@@ -7166,7 +6842,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
+	_getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
 		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
 		// of a locked frame can't be moved but can still be deleted or duplicated
 		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
@@ -7836,62 +7512,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _zoomToFitPageContentAt100Percent() {
-		const bounds = this.getCurrentPageBounds()
-		if (bounds) {
-			this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
-		}
-	}
-	private _navigateToDeepLink(deepLink: TLDeepLink) {
-		this.run(() => {
-			switch (deepLink.type) {
-				case 'page': {
-					const page = this.getPage(deepLink.pageId)
-					if (page) {
-						this.setCurrentPage(page)
-					}
-					this._zoomToFitPageContentAt100Percent()
-					return
-				}
-				case 'shapes': {
-					const allShapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
-					const byPage: { [pageId: string]: TLShape[] } = {}
-					for (const shape of allShapes) {
-						const pageId = this.getAncestorPageId(shape)
-						if (!pageId) continue
-						byPage[pageId] ??= []
-						byPage[pageId].push(shape)
-					}
-					const [pageId, shapes] = Object.entries(byPage).sort(
-						([_, a], [__, b]) => b.length - a.length
-					)[0] ?? ['', []]
-
-					if (!pageId || !shapes.length) {
-						this._zoomToFitPageContentAt100Percent()
-					} else {
-						this.setCurrentPage(pageId as TLPageId)
-						const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
-						this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
-					}
-					return
-				}
-				case 'viewport': {
-					if (deepLink.pageId) {
-						if (!this.getPage(deepLink.pageId)) {
-							this._zoomToFitPageContentAt100Percent()
-							return
-						}
-						this.setCurrentPage(deepLink.pageId)
-					}
-					this.zoomToBounds(deepLink.bounds, { immediate: true, inset: 0 })
-					return
-				}
-				default:
-					exhaustiveSwitchError(deepLink)
-			}
-		})
-	}
-
 	/**
 	 * Handles navigating to the content specified by the query param in the given URL.
 	 *
@@ -7918,25 +7538,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - Options for loading the state from the URL.
 	 */
 	navigateToDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): Editor {
-		if (opts && 'type' in opts) {
-			this._navigateToDeepLink(opts)
-			return this
-		}
-
-		const url = new URL(opts?.url ?? window.location.href)
-		const deepLinkString = url.searchParams.get(opts?.param ?? 'd')
-
-		if (!deepLinkString) {
-			this._zoomToFitPageContentAt100Percent()
-			return this
-		}
-
-		try {
-			this._navigateToDeepLink(parseDeepLinkString(deepLinkString))
-		} catch (e) {
-			console.warn(e)
-			this._zoomToFitPageContentAt100Percent()
-		}
+		this._deepLinks.navigateToDeepLink(opts)
 		return this
 	}
 
@@ -7975,20 +7577,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns the updated URL
 	 */
 	createDeepLink(opts?: { url?: string | URL; param?: string; to?: TLDeepLink }): URL {
-		const url = new URL(opts?.url ?? window.location.href)
-
-		url.searchParams.set(
-			opts?.param ?? 'd',
-			createDeepLinkString(
-				opts?.to ?? {
-					type: 'viewport',
-					pageId: this.options.maxPages === 1 ? undefined : this.getCurrentPageId(),
-					bounds: this.getViewportPageBounds(),
-				}
-			)
-		)
-
-		return url
+		return this._deepLinks.createDeepLink(opts)
 	}
 
 	/**
@@ -8036,45 +7625,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns a function that will stop the listener.
 	 */
 	registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void {
-		if (opts?.getUrl && !opts?.onChange) {
-			throw Error(
-				'[tldraw:urlStateSync] If you specify getUrl, you must also specify the onChange callback.'
-			)
-		}
-
-		const url$ = computed('url with state', () => {
-			const url = opts?.getUrl?.(this) ?? window.location.href
-			const urlWithState = this.createDeepLink({
-				param: opts?.param,
-				url,
-				to: opts?.getTarget?.(this),
-			})
-			return urlWithState.toString()
-		})
-
-		const announceChange =
-			opts?.onChange ??
-			(() => {
-				const url = this.createDeepLink({
-					param: opts?.param,
-					to: opts?.getTarget?.(this),
-				})
-
-				window.history.replaceState({}, this.getContainerDocument().title, url.toString())
-			})
-
-		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
-
-		const unlisten = react(
-			'update url on state change',
-			() => announceChange(new URL(url$.get()), this),
-			{ scheduleEffect }
-		)
-
-		return () => {
-			unlisten()
-			scheduleEffect.cancel()
-		}
+		return this._deepLinks.registerDeepLinkListener(opts)
 	}
 
 	/**

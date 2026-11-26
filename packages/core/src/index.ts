@@ -56,6 +56,12 @@ export {
 	shapeArrangementCapability,
 	shapeArrangementPlugin,
 } from './lib/plugins/builtin/shapeArrangement'
+export { ShapeGrouper } from './lib/plugins/builtin/ShapeGrouper'
+export { groupingCapability, groupingPlugin } from './lib/plugins/builtin/grouping'
+export { ShapeDuplicator } from './lib/plugins/builtin/ShapeDuplicator'
+export { duplicationCapability, duplicationPlugin } from './lib/plugins/builtin/duplication'
+export { DeepLinkController } from './lib/plugins/builtin/DeepLinkController'
+export { deepLinksCapability, deepLinksPlugin } from './lib/plugins/builtin/deepLinks'
 export { ShapeArranger } from './lib/plugins/builtin/ShapeArranger'
 export { editingCapability, editingPlugin } from './lib/plugins/builtin/editing'
 export { EditingController } from './lib/plugins/builtin/EditingController'

@@ -3,10 +3,13 @@ import { cameraPlugin } from './builtin/camera'
 import { clickDetectionPlugin } from './builtin/clickDetection'
 import { collaboratorsPlugin } from './builtin/collaborators'
 import { contentTransferPlugin } from './builtin/contentTransfer'
+import { deepLinksPlugin } from './builtin/deepLinks'
+import { duplicationPlugin } from './builtin/duplication'
 import { edgeScrollPlugin } from './builtin/edgeScroll'
 import { editingPlugin } from './builtin/editing'
 import { eventDispatchPlugin } from './builtin/eventDispatch'
 import { externalContentPlugin } from './builtin/externalContent'
+import { groupingPlugin } from './builtin/grouping'
 import { inputsPlugin } from './builtin/inputs'
 import { overlaysPlugin } from './builtin/overlays'
 import { performancePlugin } from './builtin/performance'
@@ -50,6 +53,9 @@ export function createCorePlugins(): TLPlugin[] {
 		spatialIndexPlugin,
 		snappingPlugin,
 		shapeArrangementPlugin,
+		groupingPlugin,
+		duplicationPlugin,
+		deepLinksPlugin,
 		shapeAnimationPlugin,
 		stylesPlugin,
 		contentTransferPlugin,

@@ -39,9 +39,12 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 | the camera and viewport (`getCamera`, `setCamera`, `zoomIn`, `screenToPage`, `startFollowingUser` and the others)   | `cameraCapability`, from `cameraPlugin`                                                                                |
 | `dispatch` and the event pipeline (panning, pinch, wheel, modifier keys, long press)                                | `eventDispatchCapability`, from `eventDispatchPlugin`                                                                  |
 | `flipShapes`, `stackShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `stretchShapes`, `resizeToBounds`     | `shapeArrangementCapability`, from `shapeArrangementPlugin`                                                            |
+| `groupShapes`, `ungroupShapes`                                                                                      | `groupingCapability`, from `groupingPlugin`                                                                            |
+| `duplicateShapes`, `duplicatePage`                                                                                  | `duplicationCapability`, from `duplicationPlugin`                                                                      |
+| `createDeepLink`, `navigateToDeepLink`, `registerDeepLinkListener`                                                  | `deepLinksCapability`, from `deepLinksPlugin`                                                                          |
 | `animateShape`, `animateShapes`                                                                                     | `shapeAnimationCapability`, from `shapeAnimationPlugin`                                                                |
 | `getSharedStyles`, `getSharedOpacity`, `setStyleForSelectedShapes` and the other style setters                      | `stylesCapability`, from `stylesPlugin`                                                                                |
-| `getContentFromCurrentPage`, `putContentOntoCurrentPage`, `resolveAssetsInContent`                                  | `contentTransferCapability`, from `contentTransferPlugin`                                                              |
+| `getContentFromCurrentPage`, `putContentOntoCurrentPage`, `resolveAssetsInContent`, `moveShapesToPage`              | `contentTransferCapability`, from `contentTransferPlugin`                                                              |
 | `select`, `selectAll`, `selectNone`, `getSelectionPageBounds`, `setFocusedGroup` and the other selection operations | `selectionCapability`, from `selectionPlugin`                                                                          |
 | `setEditingShape`, `canEditShape`, `setCroppingShape`, `getRichTextEditor`                                          | `editingCapability`, from `editingPlugin`                                                                              |
 | `editor.user`                                                                                                       | `userPreferencesCapability`, from `userPreferencesPlugin`                                                              |
@@ -78,7 +81,7 @@ In `tldraw`, each default shape is split this way. For example, `HighlightShapeU
 
 1. Replace `setDefaultEditorPlugins`, for example with an `Editor` subclass in `@tldraw/editor` that defaults to `createDefaultPlugins()`.
 2. Let the `tldraw` shape utils import `@tldraw/core` instead of `@tldraw/editor`, so that a headless app can use them without React.
-3. Lift more of the editor the same way, for example deep links, grouping and duplication, and the page operations.
+3. Lift more of the editor the same way, for example the page operations.
 
 ## Shapes and tools in `tldraw`
 
@@ -118,6 +121,9 @@ The shape utils still import React for their components, so the shape plugins ar
 | External content (paste, drop, embeds)                          | core plugin                                                | `externalContentPlugin`             |
 | Shared styles and style setters                                 | core plugin                                                | `stylesPlugin`                      |
 | Copy and paste content (duplicate page and move to page use it) | core plugin                                                | `contentTransferPlugin`             |
+| Grouping and ungrouping                                         | core plugin                                                | `groupingPlugin`                    |
+| Duplicating shapes and pages                                    | core plugin                                                | `duplicationPlugin`                 |
+| Deep links                                                      | core plugin                                                | `deepLinksPlugin`                   |
 | Selection operations, selection bounds, focused group           | core plugin                                                | `selectionPlugin`                   |
 | Editing and cropping a shape, the rich text editor              | core plugin                                                | `editingPlugin`                     |
 | Text measurement                                                | DOM plugin, or `approximateTextMeasurementPlugin` headless | `domTextMeasurementPlugin`          |

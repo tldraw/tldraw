@@ -652,6 +652,8 @@ export const containerFocusCapability: TLCapability<TLContainerFocus>;
 export class ContentController {
     constructor(editor: Editor);
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    // (undocumented)
+    moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): void;
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
         preserveIds?: boolean;
@@ -798,6 +800,34 @@ export const debugFlags: {
     readonly measurePerformance: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
+};
+
+// @public
+export class DeepLinkController {
+    constructor(editor: Editor);
+    // (undocumented)
+    createDeepLink(opts?: {
+        param?: string;
+        to?: TLDeepLink;
+        url?: string | URL;
+    }): URL;
+    // (undocumented)
+    navigateToDeepLink(opts?: {
+        param?: string;
+        url?: string | URL;
+    } | TLDeepLink): void;
+    // (undocumented)
+    registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
+}
+
+// @public (undocumented)
+export const deepLinksCapability: TLCapability<DeepLinkController>;
+
+// @public
+export const deepLinksPlugin: {
+    readonly id: "deepLinks";
+    readonly provides: readonly [TLCapability<DeepLinkController>];
+    readonly setup: (ctx: TLPluginContext) => void;
 };
 
 // @internal (undocumented)
@@ -962,6 +992,16 @@ export const domImageExportPlugin: {
 export const domTextMeasurementPlugin: {
     readonly id: "domTextMeasurement";
     readonly provides: readonly [TLCapability<TLTextMeasurer>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public (undocumented)
+export const duplicationCapability: TLCapability<ShapeDuplicator>;
+
+// @public
+export const duplicationPlugin: {
+    readonly id: "duplication";
+    readonly provides: readonly [TLCapability<ShapeDuplicator>];
     readonly setup: (ctx: TLPluginContext) => void;
 };
 
@@ -1361,6 +1401,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     createShape<TShape extends TLShape>(shape: TLCreateShapePartial<TShape>): this;
     createShapes<TShape extends TLShape = TLShape>(shapes: TLCreateShapePartial<TShape>[]): this;
     createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
+    // @internal (undocumented)
+    readonly _deepLinks: DeepLinkController;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
@@ -1384,6 +1426,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
+    // @internal (undocumented)
+    readonly _duplicator: ShapeDuplicator;
     edgeScrollManager: EdgeScrollManager;
     // @internal (undocumented)
     readonly _editing: EditingController;
@@ -1597,6 +1641,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getTheme(id: TLThemeId): TLTheme | undefined;
     getThemes(): TLThemes;
     // @internal (undocumented)
+    _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[];
+    // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
     getViewportScreenBounds(): Box;
@@ -1604,6 +1650,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getVisibleCollaborators(): TLInstancePresence[];
     getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getZoomLevel(): number;
+    // @internal (undocumented)
+    readonly _grouper: ShapeGrouper;
     groupShapes(shapes: TLShape[], opts?: Partial<{
         groupId: TLShapeId;
         select: boolean;
@@ -2249,6 +2297,16 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }
+
+// @public (undocumented)
+export const groupingCapability: TLCapability<ShapeGrouper>;
+
+// @public
+export const groupingPlugin: {
+    readonly id: "grouping";
+    readonly provides: readonly [TLCapability<ShapeGrouper>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
@@ -3212,6 +3270,29 @@ export class ShapeArranger {
     resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): Editor;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): Editor;
     stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+}
+
+// @public
+export class ShapeDuplicator {
+    constructor(editor: Editor);
+    // (undocumented)
+    duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): void;
+    // (undocumented)
+    duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): void;
+}
+
+// @public
+export class ShapeGrouper {
+    constructor(editor: Editor);
+    // (undocumented)
+    groupShapes(shapes: TLShape[] | TLShapeId[], opts?: Partial<{
+        groupId: TLShapeId;
+        select: boolean;
+    }>): void;
+    // (undocumented)
+    ungroupShapes(shapes: TLShape[] | TLShapeId[], opts?: Partial<{
+        select: boolean;
+    }>): void;
 }
 
 // @public (undocumented)
