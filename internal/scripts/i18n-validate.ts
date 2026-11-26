@@ -30,7 +30,7 @@ function main() {
 	const verbose = process.argv.includes('--verbose')
 	const knownFailures: string[] = JSON.parse(readFileSync(KNOWN_FAILURES_PATH, 'utf8'))
 	const known = new Set(knownFailures)
-	const { errors, warnings, missingCount } = validateCatalogs(REPO_ROOT)
+	const { errors, warnings, missingCount, obsoleteCount } = validateCatalogs(REPO_ROOT)
 
 	const failing = new Set(errors.map((e) => `${problemId(e)}: ${e.message}`))
 	const newErrors = [...failing].filter((id) => !known.has(id))
@@ -39,6 +39,7 @@ function main() {
 	if (verbose) for (const warning of warnings) console.warn(`warning: ${warning}`)
 	else if (warnings.length) console.warn(`${warnings.length} warnings (--verbose to list)`)
 	console.log(`${missingCount} untranslated messages (these fall back to English)`)
+	console.log(`${obsoleteCount} translations of removed messages (ignored)`)
 
 	if (fixed.length) {
 		if (prune) {

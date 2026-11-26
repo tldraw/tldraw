@@ -71,7 +71,7 @@ export function SearchResults({ source, libraries, query, ...itemProps }: Search
 			key={library.id}
 			source={source}
 			library={library}
-			itemIds={items.map((item) => item.id)}
+			itemIds={items && items.map((item) => item.id)}
 			{...itemProps}
 		/>
 	))
@@ -86,19 +86,25 @@ function SearchResultGroup({
 	prepareItemContent,
 }: Omit<SearchResultsProps, 'libraries' | 'query'> & {
 	library: TLLibrary
-	itemIds: TLLibraryItemId[]
+	/** Left out when the library matched by name, so all its items show. */
+	itemIds?: TLLibraryItemId[]
 }) {
 	const [element, setElement] = useState<HTMLElement | null>(null)
 	const { ordering, reversed } = useItemOrdering(source)
-	const key = itemIds.join()
+	const key = itemIds && itemIds.join()
 	const itemFilter = useMemo(() => {
+		if (key === undefined) return undefined
 		const ids = new Set(key.split(','))
 		return (item: { id: string }) => ids.has(item.id)
 	}, [key])
 
 	return (
 		<section ref={setElement} className="tlui-libraries-section" aria-label={library.name}>
-			<h3 className="tlui-libraries-panel__group-label">{library.name}</h3>
+			<header className="tlui-libraries-panel__header">
+				<h3 className="tlui-libraries-panel__title">
+					<span className="tlui-libraries-panel__name">{library.name}</span>
+				</h3>
+			</header>
 			<LibraryItems
 				source={source}
 				library={library}

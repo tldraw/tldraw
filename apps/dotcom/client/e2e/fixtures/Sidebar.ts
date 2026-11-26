@@ -88,13 +88,6 @@ export class Sidebar {
 		await expect(this.page.getByRole('menu')).toBeVisible()
 	}
 
-	/** The settings dialog, which replaces the user settings menu in `ui_v3`. */
-	@step
-	async openSettings(tab: 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'about') {
-		await this.userSettingsMenu.click()
-		await this.page.getByTestId(`tla-settings-tab-${tab}`).click()
-	}
-
 	@step
 	async setDarkMode() {
 		await this.openUserSettingsMenu()
