@@ -1,5 +1,6 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
+import { TldrawUiTooltipProvider } from 'tldraw'
 import { afterEach, beforeEach, expect, it } from 'vitest'
 import { ItemTile } from './item-tile'
 
@@ -59,4 +60,27 @@ it('shows no image once the item has no thumbnail', () => {
 	load('blob:preview')
 	renderTile(undefined)
 	expect(images()).toEqual([])
+})
+
+const placeholder = () => container.querySelector('.tlui-libraries-tile__placeholder')
+
+it('shows the item’s name in place of a thumbnail', () => {
+	act(() =>
+		root.render(
+			<TldrawUiTooltipProvider>
+				<ItemTile name="Star" accessibleLabel="Star" />
+			</TldrawUiTooltipProvider>
+		)
+	)
+	expect(placeholder()?.textContent).toBe('Star')
+})
+
+it('shows an icon in place of an unnamed item’s thumbnail', () => {
+	act(() => root.render(<ItemTile accessibleLabel="Unnamed item" />))
+	expect(placeholder()?.querySelector('.tlui-icon')).not.toBeNull()
+})
+
+it('shows no placeholder once the item has a thumbnail', () => {
+	renderTile('blob:preview')
+	expect(placeholder()).toBeNull()
 })
