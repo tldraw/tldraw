@@ -9057,7 +9057,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	protected readonly _clickManager!: ClickManager
+	protected _clickManager!: ClickManager
 
 	/**
 	 * Prevent a double click event from firing the next time the user clicks
@@ -9152,12 +9152,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	dispatch(info: TLEventInfo) {
-		return this._eventDispatcher.dispatch(info)
+	dispatch(info: TLEventInfo): this {
+		this._eventDispatcher.dispatch(info)
+		return this
 	}
 
-	_flushEventForTick(info: TLEventInfo) {
-		return this._eventDispatcher._flushEventForTick(info)
+	_flushEventForTick(info: TLEventInfo): this | undefined {
+		return this._eventDispatcher._flushEventForTick(info) ? this : undefined
 	}
 }
 

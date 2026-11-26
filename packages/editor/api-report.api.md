@@ -1103,7 +1103,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     clearHistory(): this;
     // @internal
-    protected readonly _clickManager: ClickManager;
+    protected _clickManager: ClickManager;
     readonly collaborators: CollaboratorsManager;
     complete(): this;
     // (undocumented)
@@ -1413,7 +1413,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
-    dispatch(info: TLEventInfo): Editor;
+    dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
@@ -1432,7 +1432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
-    _flushEventForTick(info: TLEventInfo): Editor | undefined;
+    _flushEventForTick(info: TLEventInfo): this | undefined;
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
