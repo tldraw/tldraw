@@ -84,7 +84,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const msg = useTranslation()
 	const source = 'image-toolbar'
 	const sliderRef = useRef<HTMLDivElement>(null)
-	const isReadonly = editor.getIsReadonly()
+	const cannotEdit = !!editor.checkCapability('edit-shape')
 
 	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
 		editor,
@@ -256,7 +256,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 
 	return (
 		<>
-			{!isReadonly && (
+			{!cannotEdit && (
 				<>
 					<TldrawUiToolbarButton
 						type="icon"
@@ -284,7 +284,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 			>
 				<TldrawUiButtonIcon small icon="download" />
 			</TldrawUiToolbarButton>
-			{(altText || !isReadonly) && (
+			{(altText || !cannotEdit) && (
 				<TldrawUiToolbarButton
 					type="icon"
 					title={msg(messages.toolMediaAltText)}

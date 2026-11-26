@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
 import { getActionState } from '../../lib/ui/context/action-state'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
+import { onDragFromToolbarToCreateShape } from '../../lib/ui/hooks/useTools'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
 const id = createShapeId('a')
@@ -52,5 +53,53 @@ describe('the default actions ask capabilities', () => {
 			false,
 			false,
 		])
+	})
+})
+
+describe('the default tools ask capabilities', () => {
+	it('disables a toolbar tool, and its shortcut does nothing, while a capability is rejected', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw onMount={onMount} />,
+			{
+				waitForPatterns: false,
+			}
+		)
+		const drawButton = () =>
+			document.querySelector('[data-testid="tools.draw"]') as HTMLButtonElement
+		expect(drawButton().disabled).toBe(false)
+		const pressD = () =>
+			act(() => {
+				document.body.dispatchEvent(
+					new KeyboardEvent('keydown', { key: 'd', code: 'KeyD', bubbles: true })
+				)
+			})
+		pressD()
+		expect(editor.getCurrentToolId()).toBe('draw')
+		editor.setCurrentTool('select')
+
+		act(() => {
+			editor.registerCapabilityCheck('create-shape', () => false)
+		})
+		expect(drawButton().disabled).toBe(true)
+		expect(
+			(document.querySelector('[data-testid="tools.select"]') as HTMLButtonElement).disabled
+		).toBe(false)
+
+		pressD()
+		expect(editor.getCurrentToolId()).toBe('select')
+	})
+
+	it('does not drag a shape out of the toolbar without create-shape', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw onMount={onMount} />,
+			{
+				waitForPatterns: false,
+			}
+		)
+		editor.registerCapabilityCheck('create-shape', () => false)
+		onDragFromToolbarToCreateShape(editor, editor.inputs as any, {
+			createShape: (shapeId) => editor.createShape({ id: shapeId, type: 'geo' }),
+		})
+		expect(editor.getCurrentPageShapeIds().size).toBe(0)
 	})
 })

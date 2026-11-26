@@ -21,7 +21,7 @@ import { useActions } from '../context/actions'
 import { splitKbd } from '../kbd-utils'
 import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
-import { useTools } from './useTools'
+import { isToolEnabled, useTools } from './useTools'
 
 /** @internal */
 export const SKIP_KBDS = [
@@ -94,6 +94,7 @@ export function useKeyboardShortcuts() {
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
+				if (!isToolEnabled(editor, tool)) return
 				tool.onSelect('kbd')
 			})
 		}
