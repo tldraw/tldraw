@@ -267,6 +267,39 @@ describe('pele sequence renderer', () => {
 		])
 	})
 
+	it("ids messages, their labels and notes as i<n>, the event's index in the model", async () => {
+		// parseSequenceLayout matches rows to model events by this id alone.
+		const parsed = (await parsePeleDiagram(`sequenceDiagram
+  A->>B: Hello
+  Note over A: aside
+  B-->>A: Back`))!
+		const model = parsed.model as SequenceModel
+		const container = document.createElement('div')
+		container.innerHTML = parsed.pele.render(model, { fontSize: 16 }).svg
+		const idsOf = (selector: string) =>
+			[...container.querySelectorAll(selector)].map((el) => el.getAttribute('data-id'))
+		const indexOf = (text: string) => `i${model.messages.findIndex((m) => m.message === text)}`
+
+		expect(idsOf('.pele-message')).toEqual([indexOf('Hello'), indexOf('Back')])
+		expect(idsOf('.pele-edge-label')).toEqual([indexOf('Hello'), indexOf('Back')])
+		expect(idsOf('.pele-note')).toEqual([indexOf('aside')])
+	})
+
+	it("positions label text by its baseline, which the label's top is worked out from", async () => {
+		const parsed = (await parsePeleDiagram('sequenceDiagram\n  A->>B: Hello'))!
+		const container = document.createElement('div')
+		container.innerHTML = parsed.pele.render(parsed.model, { fontSize: 16 }).svg
+		const text = container.querySelector('.pele-edge-label text')!
+		const line = container.querySelector('.pele-message path')!
+
+		expect(text.getAttribute('dominant-baseline')).toBeNull()
+		expect(text.getAttribute('alignment-baseline')).toBeNull()
+		expect(text.getAttribute('dy')).toBeNull()
+		// The label sits above its arrow, with the baseline between the two.
+		const arrowY = Number(line.getAttribute('d')!.match(/^M[-\d.]+,([-\d.]+)/)![1])
+		expect(Number(text.getAttribute('y'))).toBeLessThan(arrowY)
+	})
+
 	it('rejects text pele cannot parse', async () => {
 		await expect(toBlueprint('sequenceDiagram\n  A->>')).rejects.toThrow()
 	})

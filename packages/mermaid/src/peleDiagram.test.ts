@@ -2,7 +2,7 @@ import type { FlowchartModel, MindmapModel, StateModel } from 'pele'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import { parseMindmapLayout } from './mindmapDiagram'
 import { parsePathPoints, parsePeleDiagram, parsePeleLayout } from './peleDiagram'
-import { parseStateDiagramLayout } from './stateDiagram'
+import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
 import { LAYOUT_SCALE } from './utils'
 
 async function render(text: string) {
@@ -130,6 +130,134 @@ describe('parsePeleLayout', () => {
 
 		expect((model as StateModel).states.get('Busy')?.doc?.length).toBeGreaterThan(0)
 		expect([...parseStateDiagramLayout(root).clusters.keys()]).toEqual(['Busy'])
+	})
+})
+
+// The conversion reads positions back out of pele's SVG, which relies on details pele doesn't
+// document. Each test pins one of them, so a pele upgrade that changes it fails here rather than
+// drawing diagrams subtly wrong.
+describe("what the conversion relies on in pele's output", () => {
+	async function renderWithMeasurer(text: string) {
+		const { pele } = (await parsePeleDiagram(text))!
+		const sizes = new Map<string, number>()
+		pele.render(text, {
+			fontSize: 16,
+			measurer: {
+				width(label: string, size: number) {
+					sizes.set(label, size)
+					return label.length * size * 0.5
+				},
+			},
+		})
+		return sizes
+	}
+
+	it('draws mindmap nodes in model order with the root last', async () => {
+		const { root, model } = await render(`mindmap
+  Meals
+    Monday
+      Breakfast
+    Tuesday
+      Breakfast`)
+		const mindmap = model as MindmapModel
+
+		expect(
+			[...root.querySelectorAll('.pele-node')].map((el) => el.getAttribute('data-id'))
+		).toEqual([
+			...mindmap.nodes.filter((n) => !n.isRoot).map((n) => n.nodeId),
+			...mindmap.nodes.filter((n) => n.isRoot).map((n) => n.nodeId),
+		])
+
+		// So each repeated name lands under its own parent.
+		const layout = parseMindmapLayout(root, mindmap)
+		const center = (descr: string, nth = 0) =>
+			layout.nodes.get(String(mindmap.nodes.filter((n) => n.descr === descr)[nth].id))!.center
+		const distance = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+			Math.hypot(a.x - b.x, a.y - b.y)
+		expect(distance(center('Breakfast', 0), center('Monday'))).toBeLessThan(
+			distance(center('Breakfast', 0), center('Tuesday'))
+		)
+		expect(distance(center('Breakfast', 1), center('Tuesday'))).toBeLessThan(
+			distance(center('Breakfast', 1), center('Monday'))
+		)
+	})
+
+	it("ids a state's notes as <state>----note-<n>", async () => {
+		const { root } = await render(`stateDiagram-v2
+  [*] --> Idle
+  note right of Idle: waiting`)
+
+		const ids = [...root.querySelectorAll('.pele-note')].map((el) => el.getAttribute('data-id'))
+		expect(ids).toHaveLength(1)
+		expect(ids[0]).toMatch(/^Idle----note-\d+$/)
+	})
+
+	it('keeps one note per state, drawn where pele drew that note', async () => {
+		// pele draws both notes but its model keeps one, so the conversion shows one. Both SVG notes
+		// map to the same id; the kept one must win, or its text sits at the other note's position.
+		const { root, model } = await render(`stateDiagram-v2
+  [*] --> Idle
+  note right of Idle: first
+  note left of Idle: second`)
+
+		const kept = (model as StateModel).states.get('Idle')!.note!.text.trim()
+		const rawNotes = parsePeleLayout(root).nodes
+		const keptRawId = [...root.querySelectorAll('.pele-note')]
+			.find((el) => el.textContent?.trim() === kept)!
+			.getAttribute('data-id')!
+
+		expect(parseStateDiagramLayout(root).nodes.get('Idle----note')!.center).toEqual(
+			rawNotes.get(keptRawId)!.center
+		)
+	})
+
+	it('labels each state transition with its own text, matched by position', async () => {
+		// Transition paths carry no state ids, so they are matched to relations by proximity.
+		const { root, model } = await render(`stateDiagram-v2
+  [*] --> Idle
+  Idle --> Busy: start
+  Busy --> Idle: finish
+  Busy --> Done: ship
+  Idle --> Done: skip`)
+		const state = model as StateModel
+
+		const bp = stateToBlueprint(parseStateDiagramLayout(root), state.states, state.relations)
+
+		const labels = Object.fromEntries(
+			bp.edges.filter((e) => e.label).map((e) => [`${e.startNodeId}->${e.endNodeId}`, e.label])
+		)
+		expect(labels).toEqual({
+			'Idle->Busy': 'start',
+			'Busy->Idle': 'finish',
+			'Busy->Done': 'ship',
+			'Idle->Done': 'skip',
+		})
+	})
+
+	it('measures edge labels, and only edge labels and state notes, below the node font size', async () => {
+		// createLayoutTextMeasurer adds the arrow label margin to any text measured below the node
+		// size. State notes are caught too, so they get the margin in left-right layouts.
+		const flowchart = await renderWithMeasurer(`flowchart TD
+  subgraph G [Cluster title]
+    A[Node] -->|edge label| B{Choice}
+  end`)
+		expect([...flowchart].filter(([, size]) => size < 16).map(([label]) => label)).toEqual([
+			'edge label',
+		])
+
+		const state = await renderWithMeasurer(`stateDiagram-v2
+  [*] --> Idle
+  Idle --> Busy: go
+  note right of Idle: waiting
+  state Comp {
+    [*] --> x
+  }`)
+		expect(
+			[...state]
+				.filter(([, size]) => size < 16)
+				.map(([label]) => label)
+				.sort()
+		).toEqual(['go', 'waiting'])
 	})
 })
 
