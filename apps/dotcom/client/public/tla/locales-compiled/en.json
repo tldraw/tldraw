@@ -203,12 +203,6 @@
       "value": "Create file"
     }
   ],
-  "1914dedd04": [
-    {
-      "type": 0,
-      "value": "Created by me"
-    }
-  ],
   "1a7222b4e5": [
     {
       "type": 0,
@@ -335,16 +329,6 @@
       "value": "Regenerate invite link"
     }
   ],
-  "2f42560ef5": [
-    {
-      "type": 1,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " (you)"
-    }
-  ],
   "31246941ad": [
     {
       "type": 0,
@@ -453,12 +437,6 @@
       "value": "Contact the owner to request access."
     }
   ],
-  "42ff290cc4": [
-    {
-      "type": 0,
-      "value": "Actions…"
-    }
-  ],
   "44db318ee5": [
     {
       "type": 0,
@@ -513,22 +491,6 @@
     {
       "type": 0,
       "value": "Pin file"
-    }
-  ],
-  "4970317944": [
-    {
-      "type": 0,
-      "value": "Object"
-    }
-  ],
-  "49800157c1": [
-    {
-      "type": 0,
-      "value": "Edited "
-    },
-    {
-      "type": 1,
-      "value": "time"
     }
   ],
   "49ee308734": [
@@ -601,18 +563,6 @@
       "value": "Page menu"
     }
   ],
-  "517f5f3544": [
-    {
-      "type": 0,
-      "value": "No files here yet."
-    }
-  ],
-  "536b51486d": [
-    {
-      "type": 0,
-      "value": "Export…"
-    }
-  ],
   "53770fd374": [
     {
       "type": 0,
@@ -683,12 +633,6 @@
       "value": "Privacy policy"
     }
   ],
-  "56cabd57d5": [
-    {
-      "type": 0,
-      "value": "Archived files will appear here."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -747,12 +691,6 @@
     {
       "type": 0,
       "value": "Later"
-    }
-  ],
-  "623cddd380": [
-    {
-      "type": 0,
-      "value": "Recents"
     }
   ],
   "625fd29749": [
@@ -873,12 +811,6 @@
       "value": "Delete workspace"
     }
   ],
-  "697c59072d": [
-    {
-      "type": 0,
-      "value": "Sign in to save"
-    }
-  ],
   "69ce6a28fb": [
     {
       "offset": 0,
@@ -934,12 +866,6 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
-    }
-  ],
-  "6ea5359e01": [
-    {
-      "type": 0,
-      "value": "Canvas"
     }
   ],
   "70a6facb9d": [
@@ -1050,12 +976,6 @@
       "value": "Submit an issue on GitHub"
     }
   ],
-  "797c5be9a7": [
-    {
-      "type": 0,
-      "value": "· On this board now"
-    }
-  ],
   "7a1920d611": [
     {
       "type": 0,
@@ -1080,22 +1000,10 @@
       "value": "Open tldraw"
     }
   ],
-  "7c10d4771a": [
-    {
-      "type": 0,
-      "value": "Sign in to edit profile settings"
-    }
-  ],
   "7cb5f8b4a5": [
     {
       "type": 0,
       "value": "Forget"
-    }
-  ],
-  "7d69b3cb4c": [
-    {
-      "type": 0,
-      "value": "Archived"
     }
   ],
   "7daeced9ff": [
@@ -1200,12 +1108,6 @@
       "value": "Rename file"
     }
   ],
-  "8718bcf921": [
-    {
-      "type": 0,
-      "value": "Untitled workspace"
-    }
-  ],
   "87fdb09de6": [
     {
       "type": 0,
@@ -1274,22 +1176,10 @@
       "value": "Check your email for a verification code."
     }
   ],
-  "8cf04a9734": [
-    {
-      "type": 0,
-      "value": "Home"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
       "value": "Shared with you"
-    }
-  ],
-  "8f7f4c1ce7": [
-    {
-      "type": 0,
-      "value": "About"
     }
   ],
   "8ff3d0a705": [
@@ -1398,12 +1288,6 @@
     {
       "type": 0,
       "value": "Clear search"
-    }
-  ],
-  "9ac3b80777": [
-    {
-      "type": 0,
-      "value": "Unsaved file"
     }
   ],
   "9b33f5c63c": [
@@ -1778,12 +1662,6 @@
       "value": "Email address"
     }
   ],
-  "b3d7c37eb8": [
-    {
-      "type": 0,
-      "value": "Grid view"
-    }
-  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1884,12 +1762,6 @@
       "value": "Current file"
     }
   ],
-  "bf9c7b5670": [
-    {
-      "type": 0,
-      "value": "Search…"
-    }
-  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1978,18 +1850,6 @@
       "value": "Dismiss"
     }
   ],
-  "cb5feb1b73": [
-    {
-      "type": 0,
-      "value": "Color"
-    }
-  ],
-  "cce99c598c": [
-    {
-      "type": 0,
-      "value": "Profile"
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -2012,12 +1872,6 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
-    }
-  ],
-  "d0834fcec6": [
-    {
-      "type": 0,
-      "value": "Preferences"
     }
   ],
   "d28d6bbc42": [
@@ -2198,12 +2052,6 @@
       "value": "Account menu"
     }
   ],
-  "ed6241a422": [
-    {
-      "type": 0,
-      "value": "No files match your search."
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -2248,12 +2096,6 @@
       "value": "selected"
     }
   ],
-  "f07e75296c": [
-    {
-      "type": 0,
-      "value": "Shared with me"
-    }
-  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -2270,12 +2112,6 @@
     {
       "type": 0,
       "value": "· Not in any file"
-    }
-  ],
-  "f13001876b": [
-    {
-      "type": 0,
-      "value": "List view"
     }
   ],
   "f2569594b2": [

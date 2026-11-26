@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Record one take of a before/after clip, frame by frame on a frozen clock.
 //
-//   node shoot.mjs --shot <shot.mjs> --url <url> --label <Before|After> --out <dir>
+//   node shoot.mjs --shot <shot.mjs> --url <url> [--label <Before|After>] --out <dir>
+//
+// Leave out --label for an after-only clip: with nothing to compare against, "After" is noise.
 //
 // The same shot against two builds gives two takes with identical timing and framing. See
 // ../references/shot-format.md for the shot format. Frames are written to <out>/frames as
@@ -24,7 +26,7 @@ const { values: args } = parseArgs({
 		out: { type: 'string' },
 	},
 })
-for (const k of ['shot', 'url', 'label', 'out']) {
+for (const k of ['shot', 'url', 'out']) {
 	if (!args[k]) fail(`missing --${k}`)
 }
 
@@ -145,6 +147,7 @@ const points = await page.evaluate(
 				return { x: s.x, y: s.y }
 			},
 			label: (cx, y) => {
+				if (!label) return
 				e.createShape({ id: 'shape:ba-label', type: 'text', x: 0, y, props: { richText: h.rt(label), size: 'l' } })
 				const b = e.getShapePageBounds('shape:ba-label')
 				e.updateShape({ id: 'shape:ba-label', type: 'text', x: cx - b.w / 2 })

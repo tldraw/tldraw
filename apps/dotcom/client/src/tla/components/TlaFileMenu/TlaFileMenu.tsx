@@ -34,7 +34,6 @@ import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
-import { startSidebarRename } from '../TlaSidebar/components/sidebar-shared'
 
 const messages = defineMessages({
 	copied: { defaultMessage: 'Copied link' },
@@ -75,7 +74,6 @@ export function TlaFileMenu({
 	workspaceId,
 	onRenameAction,
 	trigger,
-	align = 'end',
 }: {
 	children?: ReactNode
 	source: TLAppUiEventSource
@@ -83,7 +81,6 @@ export function TlaFileMenu({
 	workspaceId: string | null
 	onRenameAction(): void
 	trigger: ReactNode
-	align?: 'start' | 'end'
 }) {
 	const id = useId()
 	const fileItemsWhenNoChildren = (
@@ -98,14 +95,14 @@ export function TlaFileMenu({
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
-				{/* Sidebar menus hang ~8px over the sidebar's right edge, so end-aligned ones keep the
-				    shared side/collision offsets but override alignOffset (the default is tuned for the
+				{/* Sidebar menus hang ~8px over the sidebar's right edge, so they keep the shared
+				    side/collision offsets but override alignOffset (the default is tuned for the
 				    share/select menus, which would leave these looking inset). */}
 				<TldrawUiDropdownMenuContent
 					side="bottom"
-					align={align}
+					align="end"
 					{...TLA_MENU_POSITION}
-					alignOffset={align === 'end' ? -16 : 0}
+					alignOffset={-16}
 				>
 					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
@@ -233,7 +230,10 @@ export function FileItems({
 			lastSessionState: prevState?.lastSessionState,
 		})
 		if (res.ok) {
-			startSidebarRename(app, newFileId, targetWorkspaceId)
+			app.sidebarState.update((prev) => ({
+				...prev,
+				renameState: { fileId: newFileId, workspaceId: targetWorkspaceId },
+			}))
 			navigate(routes.tlaFile(newFileId))
 		}
 	}, [app, fileId, workspaceId, activeWorkspaceId, navigate, trackEvent, source])

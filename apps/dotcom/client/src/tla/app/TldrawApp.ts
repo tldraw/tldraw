@@ -82,7 +82,6 @@ import {
 	getLastVisitedFileId,
 	updateLocalSessionState,
 } from '../utils/local-session-state'
-import { uiV3Preview } from '../utils/uiV3Preview'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -209,7 +208,6 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
-	readonly isUiV3Enabled: boolean
 	/** Null when the `libraries` flag is off for this user. */
 	readonly libraries: TldrawAppLibrariesSource | null
 	/** Empty until {@link startLibraries}. */
@@ -308,8 +306,6 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
-		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
-		uiV3Preview.set(this.isUiV3Enabled)
 		this.libraryRows$ = atom('library rows signal', [], { isEqual })
 		if (flags.libraries?.enabled) {
 			// Annotated: inferred, its type would depend on TldrawApp's own and make them circular.

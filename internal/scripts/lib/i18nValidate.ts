@@ -17,6 +17,11 @@ interface I18nValidationResult {
 	warnings: string[]
 	/** Source keys with no translation yet. These fall back to English at runtime, so aren't errors. */
 	missingCount: number
+	/**
+	 * Translations of keys no longer in English. Every English copy change leaves these behind
+	 * until the next strings download, and they never render, so they aren't errors either.
+	 */
+	obsoleteCount: number
 }
 
 const PROJECTS: Record<I18nProject, { source: string; directory: string }> = {
@@ -239,6 +244,7 @@ export function validateCatalogs(root: string): I18nValidationResult {
 	const errors: I18nProblem[] = []
 	const warnings: string[] = []
 	let missingCount = 0
+	let obsoleteCount = 0
 
 	const supported: string[] = readJson(path.join(root, 'assets/translations/languages.json'))
 		.map((l: { locale: string }) => l.locale)
@@ -273,9 +279,7 @@ export function validateCatalogs(root: string): I18nValidationResult {
 			}
 			const target: Record<string, unknown> = readJson(file)
 			for (const key of Object.keys(target)) {
-				if (!Object.hasOwn(source, key)) {
-					errors.push({ project, locale, key, message: 'key is not in the English catalog' })
-				}
+				if (!Object.hasOwn(source, key)) obsoleteCount++
 			}
 			for (const [key, value] of Object.entries(source)) {
 				const english = messageText(project, value)
@@ -297,7 +301,7 @@ export function validateCatalogs(root: string): I18nValidationResult {
 		}
 	}
 
-	return { errors, warnings, missingCount }
+	return { errors, warnings, missingCount, obsoleteCount }
 }
 
 /**

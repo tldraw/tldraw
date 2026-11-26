@@ -37,7 +37,6 @@ import { markFirstLoad } from '../../utils/firstLoad'
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
-import { TlaSettingsAfterSignIn } from '../components/dialogs/TlaSettingsAfterSignIn'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
@@ -235,7 +234,6 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
 					<WorkspaceInviteHandler />
-					<TlaSettingsAfterSignIn />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>

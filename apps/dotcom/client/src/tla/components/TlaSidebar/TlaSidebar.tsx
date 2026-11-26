@@ -1,7 +1,6 @@
 import { memo, useCallback, useEffect } from 'react'
 import { tlmenus, useMaybeEditor } from 'tldraw'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
-import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
@@ -17,7 +16,6 @@ import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
 import { TlaSidebarMcpLink } from './components/TlaSidebarMcpLink'
 import { TlaSidebarNotificationsButton } from './components/TlaSidebarNotificationsButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
-import { TlaSidebarUserSettingsButton } from './components/TlaSidebarUserSettingsButton'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
@@ -62,7 +60,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const activeWorkspaceId = useActiveWorkspaceId()
-	const isUiV3 = useIsUiV3()
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -99,11 +96,10 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarBottomArea}>
 					<div className={styles.sidebarDivider} />
 					<TlaSidebarMcpLink />
-					{/* In `ui_v3` the settings dialog holds the SDK link and feedback, and replaces the user menu. */}
-					{!isUiV3 && <TlaSidebarDotDevLink />}
+					<TlaSidebarDotDevLink />
 					<div className={styles.sidebarBottomRow}>
-						{isUiV3 ? <TlaSidebarUserSettingsButton /> : <TlaUserSettingsMenu />}
-						{!isUiV3 && <TlaSidebarFeedbackButton />}
+						<TlaUserSettingsMenu />
+						<TlaSidebarFeedbackButton />
 						<TlaSidebarNotificationsButton />
 					</div>
 				</div>

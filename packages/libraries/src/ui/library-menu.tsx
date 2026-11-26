@@ -1,18 +1,14 @@
 import type { ReactNode } from 'react'
 import {
 	defineMessages,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
 	useTranslation,
 } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
-import { ContextMenuAnchor } from './context-menu'
 import { keepClaimedFocus } from './keep-claimed-focus'
 import { MenuCheckboxItem, MenuItem, MenuSubmenu } from './menu-items'
+import { MenuRoot } from './menu-root'
 
 const messages = defineMessages({
 	moreOptions: { id: 'libraries.library-menu.title', defaultMessage: 'Library options' },
@@ -109,20 +105,7 @@ export function LibraryMenu({
 	}
 
 	return (
-		<TldrawUiDropdownMenuRoot id={id}>
-			{trigger === 'none' ? (
-				<ContextMenuAnchor menuId={id} />
-			) : (
-				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton
-						type="icon"
-						tooltip={msg(messages.moreOptions)}
-						title={msg(messages.moreOptions)}
-					>
-						<TldrawUiButtonIcon icon="dots-vertical" small />
-					</TldrawUiButton>
-				</TldrawUiDropdownMenuTrigger>
-			)}
+		<MenuRoot id={id} trigger={trigger} label={msg(messages.moreOptions)}>
 			<TldrawUiDropdownMenuContent
 				className="tlui-libraries-menu"
 				side="bottom"
@@ -176,6 +159,6 @@ export function LibraryMenu({
 					</TldrawUiDropdownMenuGroup>
 				)}
 			</TldrawUiDropdownMenuContent>
-		</TldrawUiDropdownMenuRoot>
+		</MenuRoot>
 	)
 }

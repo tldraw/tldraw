@@ -1,7 +1,8 @@
 name: Post release marketing summary to Discord
 
 # Every Wednesday at 07:07 UTC, post a plain-language summary of what's shipping in
-# this week's dotcom release to the marketing team's Discord channel. Same schedule as
+# this week's dotcom release to the marketing team's Discord channel, followed by
+# before/after clips of the changes that can be filmed. Same schedule as
 # post-release-crew.yml.
 # GitHub cron is UTC-only. We use a single fixed UTC time (no BST/GMT adjustment) so
 # the job never fires twice: 07:07 UTC is 07:07 in London during winter (GMT) and
@@ -13,7 +14,16 @@ name: Post release marketing summary to Discord
 on:
   schedule:
     - cron: '7 7 * * 3' # Wednesday 07:07 UTC
-  workflow_dispatch: # allow manual runs
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Print the summary and clip posts instead of sending them (clips are still uploaded as an artifact)'
+        type: boolean
+        default: false
+      clips:
+        description: 'Record and post before/after clips after the summary'
+        type: boolean
+        default: true
 
 concurrency:
   group: post-release-marketing
@@ -28,16 +38,27 @@ defaults:
 jobs:
   post-release-marketing:
     name: Post release marketing summary to Discord
-    timeout-minutes: 20
+    timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      # Scheduled runs have no inputs: they post and film. Don't write `inputs.clips != false`:
+      # expressions coerce both null and false to 0, so that would be false on every schedule.
+      DRY_RUN: ${{ inputs.dry_run == true }}
+      CLIPS: ${{ github.event_name == 'schedule' || inputs.clips == true }}
+      # The summary hands its bullets, with their PR numbers, to the clips skill so the captions
+      # match what was posted instead of being re-derived.
+      BULLETS_FILE: skills/dotcom-release-clips/tmp/bullets.md
 
     steps:
       - name: Check out code
         uses: actions/checkout@v6
         with:
+          # sources.sh compares production with main, and build-examples.sh checks out old commits
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Fail fast if the Discord webhook is not configured
+        if: env.DRY_RUN != 'true'
         run: |
           if [ -z "$DISCORD_MARKETING_WEBHOOK_URL" ]; then
             echo "::error::DISCORD_MARKETING_WEBHOOK_URL secret is not set — the release marketing summary cannot be posted."
@@ -64,8 +85,58 @@ jobs:
           GH_LOGIN_TOKEN: ${{ github.token }}
 
       - name: Run dotcom-release-marketing skill
-        run: gemini --yolo --prompt "Read skills/dotcom-release-marketing/SKILL.md and follow its instructions."
+        run: |
+          mkdir -p "$(dirname "$BULLETS_FILE")"
+          ARGS=" --bullets-out $BULLETS_FILE"
+          if [ "$DRY_RUN" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          gemini --yolo --prompt "Read skills/dotcom-release-marketing/SKILL.md and follow its instructions. Arguments:$ARGS"
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
           DISCORD_MARKETING_WEBHOOK_URL: ${{ secrets.DISCORD_MARKETING_WEBHOOK_URL }}
+
+      # The clips run after the summary has posted, so a failed recording never holds up the summary.
+      - uses: ./.github/actions/setup
+        if: env.CLIPS == 'true'
+
+      - name: Set up Playwright
+        if: env.CLIPS == 'true'
+        uses: ./.github/actions/setup-playwright
+
+      - name: Install ffmpeg
+        if: env.CLIPS == 'true'
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Run dotcom-release-clips skill
+        if: env.CLIPS == 'true'
+        run: |
+          if [ ! -e "$BULLETS_FILE" ]; then
+            echo "::warning::The summary step didn't save its bullets, so no clips were made."
+            exit 0
+          fi
+          if [ ! -s "$BULLETS_FILE" ]; then
+            echo "The summary selected no user-facing changes, so there is nothing to film."
+            exit 0
+          fi
+          ARGS=" --bullets $BULLETS_FILE"
+          if [ "$DRY_RUN" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          gemini --yolo --prompt "Read skills/dotcom-release-clips/SKILL.md and follow its instructions. Arguments:$ARGS"
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+          DISCORD_MARKETING_WEBHOOK_URL: ${{ secrets.DISCORD_MARKETING_WEBHOOK_URL }}
+
+      - name: Upload clips
+        if: always() && env.CLIPS == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-clips
+          path: |
+            skills/dotcom-release-clips/tmp/bullets.md
+            skills/dotcom-release-clips/tmp/decisions.md
+            skills/dotcom-release-clips/tmp/*.mp4
+            skills/dotcom-release-clips/tmp/*.gif
+            skills/dotcom-release-clips/tmp/*-sheet.png
+            skills/dotcom-release-clips/tmp/*/shot.mjs
+            skills/dotcom-release-clips/tmp/*/caption.txt
+          if-no-files-found: warn

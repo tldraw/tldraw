@@ -42,6 +42,8 @@ ZERO_MUTATE_URL = "__ZERO_MUTATE_URL"
 ZERO_QUERY_URL = "__ZERO_QUERY_URL"
 ZERO_ENABLE_CRUD_MUTATIONS = "false"
 ZERO_LAZY_STARTUP = 'true'
+# Keep the shared slot; 1.12 defaults to one slot per replication-manager.
+ZERO_UPSTREAM_PG_REPLICATION_SLOT_PER_REPLICA = 'false'
 DO_NOT_TRACK = '1'
 # Read back by flyDeployGate.ts to skip a deploy whose inputs are unchanged. Bump the marker to
 # force one: marker 1
