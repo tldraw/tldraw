@@ -56,13 +56,28 @@ function themeVersionOf(theme: TLTheme) {
 	return version
 }
 
-const keyOf = (item: TLLibraryItem, theme: TLTheme, darkMode: boolean) =>
-	`${item.id}:${theme.id}:${themeVersionOf(theme)}:${darkMode ? 'dark' : 'light'}`
+const fontKeys = new WeakMap<object, string>()
+/** The font URLs as a string, so equal mappings share previews whatever object they arrive in. */
+export function fontAssetUrlsKey(fontAssetUrls: ItemPreviewOptions['fontAssetUrls']) {
+	if (!fontAssetUrls) return ''
+	let key = fontKeys.get(fontAssetUrls)
+	if (key === undefined) {
+		key = Object.entries(fontAssetUrls)
+			.sort(([a], [b]) => (a < b ? -1 : 1))
+			.map(([name, url]) => `${name}=${url ?? ''}`)
+			.join('\n')
+		fontKeys.set(fontAssetUrls, key)
+	}
+	return key
+}
+
+const keyOf = (item: TLLibraryItem, theme: TLTheme, darkMode: boolean, fonts: string) =>
+	`${item.id}:${theme.id}:${themeVersionOf(theme)}:${darkMode ? 'dark' : 'light'}:${fonts}`
 
 /**
  * A `blob:` URL of an item's content rendered as its thumbnail would be, or null when it can't be
  * rendered or nobody wants it any more. Items never change, so each is rendered once per source,
- * theme definition and colour mode for as long as `editor` lives, one at a time.
+ * theme definition, colour mode and set of font URLs for as long as `editor` lives, one at a time.
  */
 export function getItemPreviewUrl(
 	editor: Editor,
@@ -73,7 +88,7 @@ export function getItemPreviewUrl(
 ): Promise<string | null> {
 	const previews = getPreviews(editor)
 	const jobs = getSourceJobs(previews, source)
-	const key = keyOf(item, theme, darkMode)
+	const key = keyOf(item, theme, darkMode, fontAssetUrlsKey(fontAssetUrls))
 	const options = { darkMode, themeId: theme.id, fontAssetUrls }
 	const job = jobs.get(key) ?? createJob()
 	if (signal && signal.aborted) return job.url
