@@ -25,6 +25,7 @@ import { LibrariesSearch } from './libraries-search'
 import { LibrariesSheet } from './libraries-sheet'
 import { LibrarySection } from './library-section'
 import { useLibrariesEnabled } from './license'
+import { NearViewProvider } from './near-view'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
 import { normalizeQuery } from './panel-search'
 import { getEmptyThisFileOffers, getPanelSections } from './panel-sections'
@@ -154,6 +155,7 @@ function LibrariesPanelContent({
 	const [browsing, setBrowsing] = useState(false)
 	if (browsing && (!open || !isPhone)) setBrowsing(false)
 	const browseMoreRef = useRef<HTMLButtonElement>(null)
+	const [sectionsElement, setSectionsElement] = useState<HTMLDivElement | null>(null)
 	const backFromBrowse = useRef(false)
 	useLayoutEffect(() => {
 		if (browsing || !backFromBrowse.current) return
@@ -272,9 +274,15 @@ function LibrariesPanelContent({
 					placeholder={msg(messages.searchPlaceholder)}
 				/>
 			)}
-			<div className="tlui-libraries-sections" onScroll={() => editor.menus.clearOpenMenus()}>
-				{libraries.length === 0 && NoLibraries && <NoLibraries />}
-				{renderLists()}
+			<div
+				ref={setSectionsElement}
+				className="tlui-libraries-sections"
+				onScroll={() => editor.menus.clearOpenMenus()}
+			>
+				<NearViewProvider root={sectionsElement}>
+					{libraries.length === 0 && NoLibraries && <NoLibraries />}
+					{renderLists()}
+				</NearViewProvider>
 			</div>
 			{!searching && canBrowse && <BrowseMoreButton ref={browseMoreRef} onBrowse={browse} />}
 		</>
