@@ -85,7 +85,7 @@ export interface TLNewLibraryItem {
 	content: TLLibraryItemContent
 	/**
 	 * A rendered preview, or a light and a dark one for an app with both modes. Leave it out and the
-	 * UI shows a placeholder.
+	 * UI renders one from the item's content when the item is shown, with its name in the meantime.
 	 */
 	thumbnail?: TLLibraryThumbnail<Blob>
 	/** Stored on the item as its `meta`, e.g. the category it had in the pack it was copied from. */
