@@ -1,5 +1,7 @@
 // Checks every translation in both catalogs (SDK and dotcom) against its English: ICU syntax,
-// arguments, tags, select options and the plural forms each locale needs. Runs in CI on every PR.
+// arguments, tags, select options and the plural forms each locale needs. Runs in the workflows
+// that change translations (the weekly strings download and i18n-translate), not on every PR: a
+// feature PR that renames an English placeholder shouldn't fail on 48 locales it doesn't own.
 //
 //   pnpm i18n-validate [--prune] [--verbose] | --entries <file>
 //
