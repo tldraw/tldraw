@@ -7,42 +7,37 @@ import {
 	GeoShapeGeoStyle,
 	HALF_PI,
 	PageRecordType,
-	Result,
 	StyleProp,
-	TLEmbedShape,
 	TLImageShape,
 	TLShapeId,
 	TLShapePartial,
-	TLTextShape,
 	TLVideoShape,
 	Vec,
 	approximately,
 	compact,
-	createShapeId,
 	fetch,
 	kickoutOccludedShapes,
 	openWindow,
 	useAtom,
 	useMaybeEditor,
+	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { defaultHandleExternalTextContent } from '../../defaultExternalContentHandlers'
-import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
-import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
-import { openLink } from '../../utils/openLink'
+import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
+import { legacyActionItems } from '../actionItems'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { commandPaletteOpen } from '../components/CommandPalette/commandPaletteOpen'
 import { EditLinkDialog } from '../components/EditLinkDialog'
-import { EmbedDialog } from '../components/EmbedDialog'
 import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
 import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
-import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TLUiOverrideHelpers, useDefaultHelpers } from '../overrides'
+import { TLUiActionItemsContext, uiActionItemsSlot } from '../uiSlots'
 import { useA11y } from './a11y'
 import {
 	areAllSelectedFrameLike,
@@ -50,11 +45,8 @@ import {
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
 	canFitFrameToContent,
-	canFlatten,
 	canFlipSelection,
-	canFrameSelection,
 	canReadClipboard,
-	canToggleAutoSize,
 	canWriteClipboard,
 	hasDownloadableMediaSelected,
 	hasLinkShapeSelected,
@@ -64,8 +56,6 @@ import {
 	hasUnlockedSelection,
 	isContentOffscreen,
 	isGroupAllowed,
-	isOnlyEmbeddableBookmarkSelected,
-	isOnlyEmbedWithUrlSelected,
 	isUngroupAllowed,
 	supportsDownloadingOriginal,
 } from './action-predicates'
@@ -84,7 +74,6 @@ const messages = defineMessages({
 		defaultMessage: 'Command palette',
 	},
 	actionToggleMinimap: { id: 'action.toggle-minimap', defaultMessage: 'Toggle minimap' },
-	toolImageCrop: { id: 'tool.image-crop', defaultMessage: 'Crop image' },
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -112,11 +101,6 @@ const messages = defineMessages({
 	actionBackToContent: { id: 'action.back-to-content', defaultMessage: 'Back to content' },
 	actionBringForward: { id: 'action.bring-forward', defaultMessage: 'Bring forward' },
 	actionBringToFront: { id: 'action.bring-to-front', defaultMessage: 'Bring to front' },
-	actionConvertToBookmark: {
-		id: 'action.convert-to-bookmark',
-		defaultMessage: 'Convert to bookmark',
-	},
-	actionConvertToEmbed: { id: 'action.convert-to-embed', defaultMessage: 'Convert to embed' },
 	actionCopy: { id: 'action.copy', defaultMessage: 'Copy' },
 	actionCopyAsJson: { id: 'action.copy-as-json', defaultMessage: 'Copy as JSON' },
 	actionCopyAsJsonShort: { id: 'action.copy-as-json.short', defaultMessage: 'JSON' },
@@ -167,17 +151,13 @@ const messages = defineMessages({
 	actionExportAsSvg: { id: 'action.export-as-svg', defaultMessage: 'Export as SVG' },
 	actionExportAsSvgShort: { id: 'action.export-as-svg.short', defaultMessage: 'SVG' },
 	actionFitFrameToContent: { id: 'action.fit-frame-to-content', defaultMessage: 'Fit to content' },
-	actionFlattenToImage: { id: 'action.flatten-to-image', defaultMessage: 'Flatten' },
 	actionFlipHorizontal: { id: 'action.flip-horizontal', defaultMessage: 'Flip horizontally' },
 	actionFlipHorizontalShort: { id: 'action.flip-horizontal.short', defaultMessage: 'Flip H' },
 	actionFlipVertical: { id: 'action.flip-vertical', defaultMessage: 'Flip vertically' },
 	actionFlipVerticalShort: { id: 'action.flip-vertical.short', defaultMessage: 'Flip V' },
 	actionFrameSelection: { id: 'action.frame-selection', defaultMessage: 'Frame selection' },
 	actionGroup: { id: 'action.group', defaultMessage: 'Group' },
-	actionInsertEmbed: { id: 'action.insert-embed', defaultMessage: 'Insert embed…' },
-	actionInsertMedia: { id: 'action.insert-media', defaultMessage: 'Upload media…' },
 	actionOpenCursorChat: { id: 'action.open-cursor-chat', defaultMessage: 'Cursor chat' },
-	actionOpenEmbedLink: { id: 'action.open-embed-link', defaultMessage: 'Open link' },
 	actionOpenKbdShortcuts: { id: 'action.open-kbd-shortcuts', defaultMessage: 'Keyboard shortcuts' },
 	actionPack: { id: 'action.pack', defaultMessage: 'Pack' },
 	actionPaste: { id: 'action.paste', defaultMessage: 'Paste' },
@@ -194,7 +174,6 @@ const messages = defineMessages({
 	actionRotateCw: { id: 'action.rotate-cw', defaultMessage: 'Rotate clockwise' },
 	actionSelectAll: { id: 'action.select-all', defaultMessage: 'Select all' },
 	actionSelectNone: { id: 'action.select-none', defaultMessage: 'Select none' },
-	actionSelectZoomTool: { id: 'action.select-zoom-tool', defaultMessage: 'Zoom' },
 	actionSendBackward: { id: 'action.send-backward', defaultMessage: 'Send backward' },
 	actionSendToBack: { id: 'action.send-to-back', defaultMessage: 'Send to back' },
 	actionStackHorizontal: { id: 'action.stack-horizontal', defaultMessage: 'Stack horizontally' },
@@ -212,7 +191,6 @@ const messages = defineMessages({
 	},
 	actionStretchVertical: { id: 'action.stretch-vertical', defaultMessage: 'Stretch vertically' },
 	actionStretchVerticalShort: { id: 'action.stretch-vertical.short', defaultMessage: 'Stretch V' },
-	actionToggleAutoSize: { id: 'action.toggle-auto-size', defaultMessage: 'Toggle auto size' },
 	actionToggleDarkMode: { id: 'action.toggle-dark-mode', defaultMessage: 'Toggle dark mode' },
 	actionToggleDarkModeMenu: { id: 'action.toggle-dark-mode.menu', defaultMessage: 'Dark mode' },
 	actionToggleDebugMode: { id: 'action.toggle-debug-mode', defaultMessage: 'Toggle debug mode' },
@@ -305,7 +283,6 @@ const messages = defineMessages({
 	fillStyleFill: { id: 'fill-style.fill', defaultMessage: 'Fill' },
 	fillStyleLinedFill: { id: 'fill-style.lined-fill', defaultMessage: 'Lined fill' },
 	pageMenuNewPageInitialName: { id: 'page-menu.new-page-initial-name', defaultMessage: 'Page 1' },
-	toolReplaceMedia: { id: 'tool.replace-media', defaultMessage: 'Replace media…' },
 })
 
 /** @public */
@@ -369,6 +346,10 @@ export interface ActionsProviderProps {
 	): TLUiActionsContextType
 	children: React.ReactNode
 }
+
+type DefaultActionItem = TLUiActionItem<TLUiTranslationKey, TLUiIconType>
+
+const EMPTY_CONTRIBUTIONS: readonly never[] = []
 
 function makeActions(actions: TLUiActionItem[]) {
 	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
@@ -434,6 +415,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const defaultDocumentName = helpers.msg(messages.documentDefaultName)
 
 	const rContextMenuPagePoint = React.useRef<Vec | null>(null)
+
+	const contributions = useValue(
+		'ui action items',
+		() => _editor?.plugins.list(uiActionItemsSlot) ?? EMPTY_CONTRIBUTIONS,
+		[_editor]
+	)
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
@@ -516,43 +503,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			editor.groupShapes(editor.getSelectedShapeIds())
 		}
 
-		function frameSelectedShapes(source: TLUiEventSource) {
-			// Unlike group, a single shape can be framed, so there is no two-shape minimum.
-			const ids = getFrameableShapeIds(editor, editor.getSelectedShapeIds())
-			if (ids.length === 0) return
-
-			const shapes = compact(ids.map((id) => editor.getShape(id)))
-			const pageBounds = editor.getShapesPageBounds(ids)
-			if (!pageBounds) return
-			// Frame props reject zero dimensions, which a lone horizontal arrow or a dot has. The
-			// frame is fitted to its content with padding below, so a placeholder size is fine here.
-			const { w, h } = Box.ZeroFix(pageBounds)
-
-			trackEvent('frame-selection', { source })
-			editor.markHistoryStoppingPoint('frame-selection')
-
-			const parentId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
-
-			const frameId = createShapeId()
-			const padding = 25 / editor.getZoomLevel()
-
-			editor.run(() => {
-				editor.createShapes([
-					{
-						id: frameId,
-						type: 'frame',
-						parentId,
-						x: pageBounds.x,
-						y: pageBounds.y,
-						props: { w, h },
-					},
-				])
-				editor.reparentShapes(ids, frameId)
-				fitFrameToContent(editor, frameId, { padding })
-				editor.select(frameId)
-			})
-		}
-
 		function removeSelectedFrames(source: TLUiEventSource) {
 			trackEvent('remove-frame', { source })
 			editor.markHistoryStoppingPoint('remove-frame')
@@ -562,7 +512,29 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			)
 		}
 
-		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
+		const ctx: TLUiActionItemsContext = { editor, helpers, trackEvent }
+		const contributed = new Map<string, TLUiActionItem>()
+		for (const item of contributions.flatMap((items) => items(ctx))) {
+			if (contributed.has(item.id)) {
+				throw Error(`Two plugins contribute an action with id "${item.id}"`)
+			}
+			contributed.set(item.id, item)
+		}
+		const legacy = new Map<string, TLUiActionItem>()
+		for (const { items, isAvailable } of legacyActionItems) {
+			if (!isAvailable(ctx)) continue
+			for (const item of items(ctx)) legacy.set(item.id, item)
+		}
+		// A plugin's action takes the place of the built-in action with its id, so the built-in
+		// actions keep their usual order, which the command palette follows.
+		function pluginAction(id: string): DefaultActionItem[] {
+			const item = contributed.get(id) ?? legacy.get(id)
+			contributed.delete(id)
+			// Plugins may use their own labels and icons, which the built-in types don't list.
+			return item ? [item as DefaultActionItem] : []
+		}
+
+		const actionItems: DefaultActionItem[] = [
 			{
 				id: 'edit-link',
 				isEnabled: (editor) => editor.isIn('select') && hasLinkShapeSelected(editor),
@@ -576,17 +548,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					helpers.addDialog({ component: EditLinkDialog })
 				},
 			},
-			{
-				id: 'insert-embed',
-				label: messages.actionInsertEmbed.id,
-				kbd: 'cmd+i,ctrl+i',
-				readonlyOk: false,
-				commandPalette: { group: 'edit' },
-				onSelect(source) {
-					trackEvent('insert-embed', { source })
-					helpers.addDialog({ component: EmbedDialog })
-				},
-			},
+			...pluginAction('insert-embed'),
 			{
 				id: 'open-kbd-shortcuts',
 				label: messages.actionOpenKbdShortcuts.id,
@@ -600,17 +562,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					helpers.addDialog({ component: KeyboardShortcutsDialog })
 				},
 			},
-			{
-				id: 'insert-media',
-				label: messages.actionInsertMedia.id,
-				kbd: 'cmd+u,ctrl+u',
-				readonlyOk: false,
-				commandPalette: { group: 'edit' },
-				onSelect(source) {
-					trackEvent('insert-media', { source })
-					helpers.insertMedia()
-				},
-			},
+			...pluginAction('insert-media'),
 			{
 				id: 'undo',
 				isEnabled: (editor) => editor.getCanUndo(),
@@ -759,173 +711,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					helpers.copyAs(ids, 'json')
 				},
 			},
-			{
-				id: 'toggle-auto-size',
-				isEnabled: (editor) => editor.isIn('select') && canToggleAutoSize(editor),
-				label: messages.actionToggleAutoSize.id,
-				readonlyOk: false,
-				commandPalette: { group: 'selection' },
-				onSelect(source) {
-					trackEvent('toggle-auto-size', { source })
-					editor.markHistoryStoppingPoint('toggling auto size')
-					editor.run(() => {
-						const shapes = editor
-							.getSelectedShapes()
-							.filter(
-								(shape): shape is TLTextShape =>
-									editor.isShapeOfType(shape, 'text') && shape.props.autoSize === false
-							)
-						editor.updateShapes(
-							shapes.map((shape) => {
-								return { id: shape.id, type: shape.type, props: { w: 8, autoSize: true } }
-							})
-						)
-						kickoutOccludedShapes(
-							editor,
-							shapes.map((shape) => shape.id)
-						)
-					})
-				},
-			},
-			{
-				id: 'open-embed-link',
-				isEnabled: (editor) => {
-					const s = editor.getOnlySelectedShape()
-					return !!s && editor.isShapeOfType(s, 'embed')
-				},
-				label: messages.actionOpenEmbedLink.id,
-				readonlyOk: true,
-				commandPalette: false,
-				onSelect(source) {
-					trackEvent('open-embed-link', { source })
-					const ids = editor.getSelectedShapeIds()
-					const warnMsg = 'No embed shapes selected'
-					if (ids.length !== 1) {
-						console.error(warnMsg)
-						return
-					}
-					const shape = editor.getShape(ids[0])
-					if (!shape || !editor.isShapeOfType(shape, 'embed')) {
-						console.error(warnMsg)
-						return
-					}
-
-					openLink(editor, shape.props.url)
-				},
-			},
-			{
-				id: 'select-zoom-tool',
-				label: messages.actionSelectZoomTool.id,
-				readonlyOk: true,
-				kbd: 'z, !z',
-				commandPalette: false,
-				onSelect(source) {
-					// Noop if user is actually cmd/ctrl+z'ing
-					if (editor.inputs.getAccelKey()) return
-
-					// Noop unless in the current tool's idle state
-					const path = editor.getPath()
-					if (!path.endsWith('.idle')) return
-
-					// Noop if already in zoom tool
-					if (editor.root.getCurrent()?.id === 'zoom') return
-
-					trackEvent('zoom-tool', { source })
-					// The editor ignores keys while a button holds focus, so zoom would never see the
-					// Z key up that exits it. editor.focus() won't help: the button is already inside
-					// the container, so the editor reads as focused.
-					editor.getContainer().focus()
-					editor.setCurrentTool('zoom', { onInteractionEnd: path })
-				},
-			},
-			{
-				id: 'convert-to-bookmark',
-				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbedWithUrlSelected(editor),
-				label: messages.actionConvertToBookmark.id,
-				readonlyOk: false,
-				commandPalette: { group: 'selection' },
-				async onSelect(source) {
-					trackEvent('convert-to-bookmark', { source })
-					const shapes = editor.getSelectedShapes()
-
-					const markId = editor.markHistoryStoppingPoint('convert shapes to bookmark')
-
-					const creationPromises: Promise<Result<any, any>>[] = []
-
-					for (const shape of shapes) {
-						if (!shape || !editor.isShapeOfType(shape, 'embed') || !shape.props.url) continue
-
-						const center = editor.getShapePageBounds(shape)?.center
-
-						if (!center) continue
-						editor.deleteShapes([shape.id])
-
-						creationPromises.push(
-							createBookmarkFromUrl(editor, { url: shape.props.url, center }).then((res) => {
-								if (!res.ok) {
-									throw new Error(res.error)
-								}
-								return res
-							})
-						)
-					}
-
-					await Promise.all(creationPromises).catch((error) => {
-						editor.bailToMark(markId)
-						console.error(error)
-					})
-				},
-			},
-			{
-				id: 'convert-to-embed',
-				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbeddableBookmarkSelected(editor),
-				label: messages.actionConvertToEmbed.id,
-				readonlyOk: false,
-				commandPalette: { group: 'selection' },
-				onSelect(source) {
-					trackEvent('convert-to-embed', { source })
-
-					editor.run(() => {
-						const createList: TLShapePartial[] = []
-						const deleteList: TLShapeId[] = []
-						for (const shape of editor.getSelectedShapes()) {
-							if (!editor.isShapeOfType(shape, 'bookmark')) continue
-
-							const { url } = shape.props
-
-							const embedInfo = helpers.getEmbedDefinition(url)
-							if (!embedInfo?.definition) continue
-
-							const { width, height } = embedInfo.definition
-
-							const newPos = new Vec(shape.x, shape.y)
-							newPos.rot(-shape.rotation)
-							newPos.add(new Vec(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
-							newPos.rot(shape.rotation)
-
-							const shapeToCreate: TLShapePartial<TLEmbedShape> = {
-								id: createShapeId(),
-								type: 'embed',
-								x: newPos.x,
-								y: newPos.y,
-								rotation: shape.rotation,
-								props: {
-									url: url,
-									w: width,
-									h: height,
-								},
-							}
-
-							createList.push(shapeToCreate)
-							deleteList.push(shape.id)
-						}
-
-						editor.markHistoryStoppingPoint('convert shapes to embed')
-						editor.deleteShapes(deleteList)
-						editor.createShapes(createList)
-					})
-				},
-			},
+			...pluginAction('toggle-auto-size'),
+			...pluginAction('open-embed-link'),
+			...pluginAction('select-zoom-tool'),
+			...pluginAction('convert-to-bookmark'),
+			...pluginAction('convert-to-embed'),
 			{
 				id: 'duplicate',
 				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
@@ -1005,14 +795,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (action) return finalActions.current?.[action].onSelect(source)
 				},
 			},
-			{
-				id: 'frame-selection',
-				isEnabled: (editor) => editor.isIn('select') && canFrameSelection(editor),
-				label: messages.actionFrameSelection.id,
-				readonlyOk: false,
-				commandPalette: { group: 'selection' },
-				onSelect: frameSelectedShapes,
-			},
+			...pluginAction('frame-selection'),
 			{
 				id: 'remove-frame',
 				isEnabled: (editor) => editor.isIn('select') && areAllSelectedFrameLike(editor),
@@ -2015,42 +1798,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					setStyleShortcut(DefaultFillStyle, 'lined-fill', 'change-fill', source)
 				},
 			},
-			{
-				id: 'flatten-to-image',
-				isEnabled: canFlatten,
-				label: messages.actionFlattenToImage.id,
-				kbd: 'shift+f',
-				readonlyOk: false,
-				commandPalette: { group: 'selection' },
-				onSelect: async (source) => {
-					const ids = editor.getSelectedShapeIds()
-					if (ids.length === 0) return
-
-					editor.markHistoryStoppingPoint('flattening to image')
-					trackEvent('flatten-to-image', { source })
-
-					const newShapeIds = await flattenShapesToImages(
-						editor,
-						ids,
-						editor.options.flattenImageBoundsExpand
-					)
-
-					if (newShapeIds?.length) {
-						editor.setSelectedShapes(newShapeIds)
-					}
-				},
-			},
-			{
-				id: 'select-geo-tool',
-				kbd: 'g',
-				readonlyOk: false,
-				commandPalette: false,
-				onSelect: async (source) => {
-					// will select whatever the most recent geo tool was
-					trackEvent('select-tool', { source, id: `geo-previous` })
-					editor.setCurrentTool('geo')
-				},
-			},
+			...pluginAction('flatten-to-image'),
+			...pluginAction('select-geo-tool'),
 			{
 				id: 'change-page-prev',
 				kbd: 'alt+left,alt+up',
@@ -2209,43 +1958,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					}
 				},
 			},
-			{
-				id: 'crop-image',
-				label: messages.toolImageCrop.id,
-				isAvailable: (editor) => {
-					if (!editor.isIn('select')) return false
-					const shape = editor.getOnlySelectedShape()
-					return !!shape && shape.type === 'image' && !shape.isLocked
-				},
-				readonlyOk: false,
-				commandPalette: false,
-				onSelect(source) {
-					trackEvent('crop-image', { source })
-					editor.setCurrentTool('select.crop.idle')
-				},
-			},
-			{
-				id: 'image-replace',
-				label: messages.toolReplaceMedia.id,
-				icon: 'arrow-cycle',
-				readonlyOk: false,
-				commandPalette: false,
-				onSelect: async (source) => {
-					trackEvent('image-replace', { source })
-					helpers.replaceImage()
-				},
-			},
-			{
-				id: 'video-replace',
-				label: messages.toolReplaceMedia.id,
-				icon: 'arrow-cycle',
-				readonlyOk: false,
-				commandPalette: false,
-				onSelect: async (source) => {
-					trackEvent('video-replace', { source })
-					helpers.replaceVideo()
-				},
-			},
+			...pluginAction('crop-image'),
+			...pluginAction('image-replace'),
+			...pluginAction('video-replace'),
 			{
 				id: 'download-original',
 				isEnabled: hasDownloadableMediaSelected,
@@ -2364,6 +2079,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
+		actionItems.push(...(contributed.values() as Iterable<DefaultActionItem>))
+
 		const actions = makeActions(actionItems)
 		const overriddenActions = overrides ? overrides(editor, actions, helpers) : actions
 		finalActions.current = gateActions(editor, overriddenActions)
@@ -2379,6 +2096,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		a11y,
 		components,
 		breakpointAtom,
+		contributions,
 	])
 
 	return (

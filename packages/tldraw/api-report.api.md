@@ -4758,6 +4758,16 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     readonlyOk?: boolean;
 }
 
+// @public
+export interface TLUiActionItemsContext {
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    helpers: TLUiOverrideHelpers;
+    // (undocumented)
+    trackEvent: TLUiEventHandler;
+}
+
 // @public (undocumented)
 export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 
@@ -6580,6 +6590,9 @@ export function TriangleToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export function truncateStringWithEllipsis(str: string, maxLength: number): string;
+
+// @public
+export const uiActionItemsSlot: TLSlot<(ctx: TLUiActionItemsContext) => TLUiActionItem[]>;
 
 // @public
 export const uiToolbarSlot: TLSlot<TLUiToolbarPlacement>;

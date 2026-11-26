@@ -1,4 +1,5 @@
 import { Editor, defineSlot } from '@tldraw/editor'
+import type { TLUiActionItem } from './context/actions'
 import type { TLUiEventHandler, TLUiEventSource } from './context/events'
 import type { TLUiToolItem } from './hooks/useTools'
 import type { TLUiOverrideHelpers } from './overrides'
@@ -71,3 +72,46 @@ export interface TLUiToolbarPlacement {
  * @public
  */
 export const uiToolbarSlot = defineSlot<TLUiToolbarPlacement>('ui.toolbar')
+
+/**
+ * What a {@link uiActionItemsSlot} contribution gets when the UI builds its actions.
+ *
+ * @public
+ */
+export interface TLUiActionItemsContext {
+	editor: Editor
+	helpers: TLUiOverrideHelpers
+	trackEvent: TLUiEventHandler
+}
+
+/**
+ * The actions that a plugin adds to the UI. An action is defined once and used everywhere it
+ * appears: menus, keyboard shortcuts, the shortcuts dialog and the command palette. Menus place
+ * actions by id, so a menu item for an action that no plugin defines shows nothing. An action
+ * with the id of a built-in action replaces it. Two plugins that contribute the same id throw.
+ *
+ * @example
+ * ```ts
+ * definePlugin({
+ *   id: 'cardShape',
+ *   shapeUtils: [CardShapeUtil],
+ *   setup(ctx) {
+ *     ctx.contribute(uiActionItemsSlot, ({ editor }) => [
+ *       {
+ *         id: 'shuffle-cards',
+ *         label: 'action.shuffle-cards',
+ *         kbd: 'shift+s',
+ *         isEnabled: (editor) => editor.getSelectedShapes().some((s) => s.type === 'card'),
+ *         onSelect() {
+ *           shuffleCards(editor)
+ *         },
+ *       },
+ *     ])
+ *   },
+ * })
+ * ```
+ *
+ * @public
+ */
+export const uiActionItemsSlot =
+	defineSlot<(ctx: TLUiActionItemsContext) => TLUiActionItem[]>('ui.actionItems')

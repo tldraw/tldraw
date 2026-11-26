@@ -864,8 +864,10 @@ export {
 } from './lib/ui/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export {
+	uiActionItemsSlot,
 	uiToolItemsSlot,
 	uiToolbarSlot,
+	type TLUiActionItemsContext,
 	type TLUiToolItemsContext,
 	type TLUiToolbarPlacement,
 } from './lib/ui/uiSlots'

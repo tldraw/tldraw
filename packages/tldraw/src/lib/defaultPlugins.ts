@@ -26,6 +26,16 @@ import { LaserTool } from './tools/LaserTool/LaserTool'
 import { SelectTool } from './tools/SelectTool/SelectTool'
 import { ZoomTool } from './tools/ZoomTool/ZoomTool'
 import {
+	bookmarkActionItems,
+	embedActionItems,
+	frameActionItems,
+	geoActionItems,
+	imageActionItems,
+	textActionItems,
+	videoActionItems,
+	zoomActionItems,
+} from './ui/actionItems'
+import {
 	arrowToolItems,
 	drawToolItems,
 	embedToolItems,
@@ -41,19 +51,19 @@ import {
 	selectToolItems,
 	textToolItems,
 } from './ui/toolItems'
-import { uiToolItemsSlot } from './ui/uiSlots'
+import { uiActionItemsSlot, uiToolItemsSlot } from './ui/uiSlots'
 
 /**
  * One plugin for each default shape. Each plugin declares the shape util, the tool that creates
- * the shape, the bindings that the shape owns, and the shape's tool items in the UI. The arrow
- * plugin declares the arrow binding. The image plugin has the media item, which inserts images
- * and videos.
+ * the shape, the bindings that the shape owns, and the shape's tool items and actions in the UI.
+ * The arrow plugin declares the arrow binding. The image plugin has the media item and the upload
+ * action, which insert images and videos.
  *
  * The plugin ids are the shape type followed by `Shape`, for example `geoShape`. To change a
  * shape, pass your shape util in `shapeUtils`: it replaces the plugin's util of the same type and
- * keeps the plugin's tool. Without a plugin, `<Tldraw>` has no toolbar item or shortcut for its
- * shape, but some of its actions and menus still expect every default shape, so keep these
- * plugins when you use `<Tldraw>`. An editor without the UI can leave them out.
+ * keeps the plugin's tool. Without a plugin, `<Tldraw>` has no tool item, action or shortcut for
+ * its shape. The default paste and drop handlers still create text, bookmark and embed shapes, so
+ * keep those three plugins when you use `<Tldraw>`. An editor without the UI can leave them out.
  *
  * @public
  */
@@ -62,9 +72,16 @@ export const defaultShapePlugins: readonly TLPlugin[] = [
 		id: 'textShape',
 		shapeUtils: [TextShapeUtil],
 		tools: [TextShapeTool],
-		setup: (ctx) => void ctx.contribute(uiToolItemsSlot, textToolItems),
+		setup(ctx) {
+			ctx.contribute(uiToolItemsSlot, textToolItems)
+			ctx.contribute(uiActionItemsSlot, textActionItems)
+		},
 	}),
-	definePlugin({ id: 'bookmarkShape', shapeUtils: [BookmarkShapeUtil] }),
+	definePlugin({
+		id: 'bookmarkShape',
+		shapeUtils: [BookmarkShapeUtil],
+		setup: (ctx) => void ctx.contribute(uiActionItemsSlot, bookmarkActionItems),
+	}),
 	definePlugin({
 		id: 'drawShape',
 		shapeUtils: [DrawShapeUtil],
@@ -75,7 +92,10 @@ export const defaultShapePlugins: readonly TLPlugin[] = [
 		id: 'geoShape',
 		shapeUtils: [GeoShapeUtil],
 		tools: [GeoShapeTool],
-		setup: (ctx) => void ctx.contribute(uiToolItemsSlot, geoToolItems),
+		setup(ctx) {
+			ctx.contribute(uiToolItemsSlot, geoToolItems)
+			ctx.contribute(uiActionItemsSlot, geoActionItems)
+		},
 	}),
 	definePlugin({
 		id: 'noteShape',
@@ -93,7 +113,10 @@ export const defaultShapePlugins: readonly TLPlugin[] = [
 		id: 'frameShape',
 		shapeUtils: [FrameShapeUtil],
 		tools: [FrameShapeTool],
-		setup: (ctx) => void ctx.contribute(uiToolItemsSlot, frameToolItems),
+		setup(ctx) {
+			ctx.contribute(uiToolItemsSlot, frameToolItems)
+			ctx.contribute(uiActionItemsSlot, frameActionItems)
+		},
 	}),
 	definePlugin({
 		id: 'arrowShape',
@@ -111,19 +134,29 @@ export const defaultShapePlugins: readonly TLPlugin[] = [
 	definePlugin({
 		id: 'embedShape',
 		shapeUtils: [EmbedShapeUtil],
-		setup: (ctx) => void ctx.contribute(uiToolItemsSlot, embedToolItems),
+		setup(ctx) {
+			ctx.contribute(uiToolItemsSlot, embedToolItems)
+			ctx.contribute(uiActionItemsSlot, embedActionItems)
+		},
 	}),
 	definePlugin({
 		id: 'imageShape',
 		shapeUtils: [ImageShapeUtil],
-		setup: (ctx) => void ctx.contribute(uiToolItemsSlot, mediaToolItems),
+		setup(ctx) {
+			ctx.contribute(uiToolItemsSlot, mediaToolItems)
+			ctx.contribute(uiActionItemsSlot, imageActionItems)
+		},
 	}),
-	definePlugin({ id: 'videoShape', shapeUtils: [VideoShapeUtil] }),
+	definePlugin({
+		id: 'videoShape',
+		shapeUtils: [VideoShapeUtil],
+		setup: (ctx) => void ctx.contribute(uiActionItemsSlot, videoActionItems),
+	}),
 ]
 
 /**
  * One plugin for each default tool that does not create a shape, with its tool item in the UI.
- * The zoom tool has no tool item. The plugin ids are the tool id followed by `Tool`, for example
+ * The zoom tool has an action instead of a tool item. The plugin ids are the tool id followed by `Tool`, for example
  * `eraserTool`.
  *
  * @public
@@ -144,7 +177,11 @@ export const defaultToolPlugins: readonly TLPlugin[] = [
 		tools: [LaserTool],
 		setup: (ctx) => void ctx.contribute(uiToolItemsSlot, laserToolItems),
 	}),
-	definePlugin({ id: 'zoomTool', tools: [ZoomTool] }),
+	definePlugin({
+		id: 'zoomTool',
+		tools: [ZoomTool],
+		setup: (ctx) => void ctx.contribute(uiActionItemsSlot, zoomActionItems),
+	}),
 	definePlugin({
 		id: 'selectTool',
 		tools: [SelectTool],
