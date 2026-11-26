@@ -58,6 +58,8 @@ export {
 	type TLSlot,
 } from './lib/plugins/plugin'
 export { TLPluginHost } from './lib/plugins/PluginHost'
+export { cameraCapability, cameraPlugin } from './lib/plugins/builtin/camera'
+export { CameraController } from './lib/plugins/builtin/CameraController'
 export {
 	clickDetectionCapability,
 	clickDetectionPlugin,

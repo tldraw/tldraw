@@ -476,6 +476,73 @@ export class Box {
 export type BoxLike = Box | BoxModel;
 
 // @public (undocumented)
+export const cameraCapability: TLCapability<CameraController>;
+
+// @public
+export class CameraController {
+    constructor(editor: Editor, options: TLCameraOptions);
+    // @internal (undocumented)
+    _animateToViewport(targetViewportPage: Box, opts?: TLCameraMoveOptions): Editor | undefined;
+    // (undocumented)
+    _cameraOptions: Atom<TLCameraOptions, unknown>;
+    centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): Editor;
+    // @internal (undocumented)
+    dispose(): void;
+    getBaseZoom(): number;
+    getCamera(): TLCamera;
+    getCameraOptions(): TLCameraOptions;
+    getCameraState(): "idle" | "moving";
+    getDebouncedZoomLevel(): number;
+    getEfficientZoomLevel(): number;
+    getInitialZoom(): number;
+    getResizeScaleFactor(): number;
+    getViewportPageBounds(): Box;
+    getViewportScreenBounds(): Box;
+    getViewportScreenCenter(): Vec;
+    getZoomLevel(): number;
+    pageToScreen(point: VecLike): Vec;
+    pageToViewport(point: VecLike): Vec;
+    resetZoom(point?: Vec, opts?: TLCameraMoveOptions): Editor;
+    screenToPage(point: VecLike): Vec;
+    setCamera(point: VecLike, opts?: TLCameraMoveOptions): Editor;
+    // @internal (undocumented)
+    _setCamera(point: VecLike, opts?: TLCameraMoveOptions): Editor;
+    setCameraOptions(opts: Partial<TLCameraOptions>): Editor;
+    // (undocumented)
+    _setCameraState(cameraState: 'idle' | 'moving'): void;
+    slideCamera(opts?: {
+        direction: VecLike;
+        force?: boolean;
+        friction?: number;
+        speed: number;
+        speedThreshold?: number;
+    }): Editor;
+    startFollowingUser(userId: TLUserId): Editor;
+    stopFollowingUser(): Editor;
+    updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): Editor;
+    zoomIn(point?: Vec, opts?: TLCameraMoveOptions): Editor;
+    zoomOut(point?: Vec, opts?: TLCameraMoveOptions): Editor;
+    zoomToBounds(bounds: BoxLike, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): Editor;
+    zoomToFit(opts?: TLCameraMoveOptions): Editor;
+    zoomToSelection(opts?: TLCameraMoveOptions): Editor;
+    zoomToSelectionIfOffscreen(padding?: number, opts?: {
+        inset?: number;
+        targetZoom?: number;
+    } & TLCameraMoveOptions): void;
+    zoomToUser(userId: TLUserId, opts?: TLCameraMoveOptions): Editor;
+}
+
+// @public
+export const cameraPlugin: {
+    readonly id: "camera";
+    readonly provides: readonly [TLCapability<CameraController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
 // @public
@@ -1005,6 +1072,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    readonly _camera: CameraController;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
         binding: {

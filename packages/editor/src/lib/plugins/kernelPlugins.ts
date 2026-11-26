@@ -1,4 +1,5 @@
 // This module is part of the headless editor kernel. It must not import React or touch the DOM.
+import { cameraPlugin } from './builtin/camera'
 import { clickDetectionPlugin } from './builtin/clickDetection'
 import { collaboratorsPlugin } from './builtin/collaborators'
 import { edgeScrollPlugin } from './builtin/edgeScroll'
@@ -15,7 +16,7 @@ import type { TLPlugin } from './plugin'
 
 /**
  * Create the plugins that give the editor its standard behavior without a DOM or React: user
- * preferences and themes, input state and click detection, hit testing, snapping, scribbles,
+ * preferences and themes, the camera, input state and click detection, hit testing, snapping, scribbles,
  * edge scrolling, overlays, collaborators, performance events and external content.
  *
  * A headless editor usually starts from these and adds a text measurement plugin:
@@ -33,6 +34,7 @@ export function createKernelPlugins(): TLPlugin[] {
 	return [
 		userPreferencesPlugin,
 		themesPlugin,
+		cameraPlugin,
 		inputsPlugin,
 		clickDetectionPlugin,
 		spatialIndexPlugin,
