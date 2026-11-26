@@ -13,6 +13,7 @@ import {
 	TLDefaultSizeStyle,
 	TLDefaultTextAlignStyle,
 	TLOpacityType,
+	TLShape,
 	TLShapeId,
 	Vec,
 	VecLike,
@@ -77,6 +78,12 @@ export async function putExcalidrawContent(
 
 	for (const element of elements) {
 		if (skipIds.has(element.id)) {
+			continue
+		}
+
+		// An editor without the plugin for a shape type keeps the elements it can hold.
+		const shapeType = excalidrawShapeTypes[element.type]
+		if (shapeType && !editor.hasShapeUtil(shapeType)) {
 			continue
 		}
 
@@ -378,6 +385,17 @@ export async function putExcalidrawContent(
 }
 
 /* --------------- Translating Helpers --------_------ */
+
+const excalidrawShapeTypes: Record<string, TLShape['type']> = {
+	rectangle: 'geo',
+	ellipse: 'geo',
+	diamond: 'geo',
+	freedraw: 'draw',
+	line: 'line',
+	arrow: 'arrow',
+	text: 'text',
+	image: 'image',
+}
 
 const getOpacity = (opacity: number): TLOpacityType => {
 	const t = opacity / 100

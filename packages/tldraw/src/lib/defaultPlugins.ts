@@ -63,8 +63,7 @@ import { uiActionItemsSlot, uiToolItemsSlot } from './ui/uiSlots'
  * The plugin ids are the shape type followed by `Shape`, for example `geoShape`. To change a
  * shape, pass your shape util in `shapeUtils`: it replaces the plugin's util of the same type and
  * keeps the plugin's tool. Without a plugin, `<Tldraw>` has no tool item, action or shortcut for
- * its shape. The default paste and drop handlers still create text, bookmark and embed shapes, so
- * keep those three plugins when you use `<Tldraw>`. An editor without the UI can leave them out.
+ * its shape, and pasted or dropped content of that shape is skipped.
  *
  * @public
  */

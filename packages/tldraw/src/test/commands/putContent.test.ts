@@ -23,11 +23,17 @@ describe('Migrations', () => {
 		expect(() => editor.putContentOntoCurrentPage(clipboardContent)).not.toThrow()
 	})
 
-	it('Throws error if any shape is invalid due to wrong type', () => {
-		const withInvalidShapeType = structuredClone(clipboardContent)
+	it('Skips shapes of a type that the editor has no shape util for', () => {
+		const withUnknownShapeType = structuredClone(clipboardContent)
 		// @ts-expect-error
-		withInvalidShapeType.shapes[0].type = 'invalid'
-		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeType)).toThrow()
+		withUnknownShapeType.shapes[0].type = 'unknown'
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		editor.putContentOntoCurrentPage(withUnknownShapeType)
+		const types = editor.getCurrentPageShapes().map((s) => s.type)
+		expect(types).not.toContain('unknown')
+		expect(types).toContain('note')
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('unknown'))
+		warn.mockRestore()
 	})
 
 	// we temporarily disabled validations

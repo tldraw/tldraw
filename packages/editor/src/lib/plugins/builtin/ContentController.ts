@@ -214,8 +214,8 @@ export class ContentController {
 
 		// We need to collect the migrated records
 		const assets: TLAsset[] = []
-		const shapes: TLShape[] = []
-		const bindings: TLBinding[] = []
+		let shapes: TLShape[] = []
+		let bindings: TLBinding[] = []
 		const users: TLUser[] = []
 
 		// Let's treat the content as a store, and then migrate that store.
@@ -267,6 +267,37 @@ export class ContentController {
 				this.editor.store.put(usersToCreate)
 			}
 		}
+
+		// Content from an editor with more shape or binding types than this one, for example one
+		// with a plugin that this editor leaves out, keeps the records that this editor can hold.
+		// Creating the others would throw.
+		const unknownShapes = shapes.filter((shape) => !this.editor.hasShapeUtil(shape.type))
+		if (unknownShapes.length > 0) {
+			const droppedShapeIds = new Set(unknownShapes.map((shape) => shape.id))
+			// A child of a dropped shape has lost its parent, so it goes too.
+			let grew = true
+			while (grew) {
+				grew = false
+				for (const shape of shapes) {
+					if (!droppedShapeIds.has(shape.id) && droppedShapeIds.has(shape.parentId as TLShapeId)) {
+						droppedShapeIds.add(shape.id)
+						grew = true
+					}
+				}
+			}
+			console.warn(
+				`Skipped pasted shapes of types with no shape util: ${[...new Set(unknownShapes.map((s) => s.type))].join(', ')}`
+			)
+			shapes = shapes.filter((shape) => !droppedShapeIds.has(shape.id))
+		}
+		const keptShapeIds = new Set(shapes.map((shape) => shape.id))
+		bindings = bindings.filter(
+			(binding) =>
+				!!this.editor.bindingUtils[binding.type] &&
+				keptShapeIds.has(binding.fromId) &&
+				keptShapeIds.has(binding.toId)
+		)
+		if (shapes.length === 0) return this.editor
 
 		// Ok, we've got our migrated records, now we can continue!
 		const shapeIdMap = new Map<string, TLShapeId>(
