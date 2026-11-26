@@ -1,9 +1,7 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	approximately,
 	areAnglesCompatible,
 	BaseBoxShapeUtil,
-	Box,
 	Editor,
 	EMPTY_ARRAY,
 	GeoShapeGeoStyle,
@@ -13,12 +11,10 @@ import {
 	getFontsFromRichText,
 	Group2d,
 	HandleSnapGeometry,
-	HTMLContainer,
 	isEqual,
 	lerp,
 	Rectangle2d,
 	resolveLineHeightPx,
-	SVGContainer,
 	SvgExportContext,
 	TLGeoShape,
 	TLGeoShapeProps,
@@ -30,8 +26,6 @@ import {
 	TLShapeUtilConstructor,
 	toRichText,
 	translateMessage,
-	useColorMode,
-	useValue,
 	Vec,
 	VecLike,
 	WeakCache,
@@ -53,14 +47,8 @@ import {
 } from '../shared/default-shape-constants'
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
-import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getFlipForResize } from '../shared/flip'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-import { useIsReadyForEditing } from '../shared/useEditablePlainText'
-import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
-import { GeoShapeBody } from './GeoShapeBody'
 import {
 	defaultGeoTypeDefinitions,
 	type GeoTypeDefinition,
@@ -379,77 +367,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		})
 	}
 
+	// The React view draws the shape, see `geoShapeView`. These methods call it so that a
+	// subclass can override them or call `super`.
 	component(shape: TLGeoShape) {
-		const { id, type, props } = shape
-		const { editor } = this
-		const isOnlySelected = useValue(
-			'isGeoOnlySelected',
-			() => shape.id === editor.getOnlySelectedShapeId(),
-			[editor]
-		)
-		const isReadyForEditing = useIsReadyForEditing(editor, shape.id)
-		const isForceSolid = useEfficientZoomThreshold(0.25 / shape.props.scale)
-		const colorMode = useColorMode()
-		const dv = getDisplayValues(this, shape, colorMode)
-
-		const { w, h, richText, url } = props
-
-		const isEmpty = isEmptyRichText(richText)
-		const showHtmlContainer = isReadyForEditing || !isEmpty
-
-		return (
-			<>
-				<SVGContainer>
-					<GeoShapeBody
-						shape={shape}
-						shouldScale={true}
-						forceSolid={isForceSolid}
-						strokeColor={dv.strokeColor}
-						strokeWidth={dv.strokeWidth}
-						fillColor={dv.fillColor}
-						patternFillFallbackColor={dv.patternFillFallbackColor}
-						customGeoTypes={this.options.customGeoTypes}
-					/>
-				</SVGContainer>
-				{showHtmlContainer && (
-					<HTMLContainer
-						style={{
-							overflow: 'hidden',
-							width: w,
-							height: h + props.growY,
-						}}
-					>
-						<RichTextLabel
-							shapeId={id}
-							type={type}
-							fontFamily={dv.labelFontFamily}
-							checkboxStyle={dv.labelCheckboxStyle}
-							fontSize={dv.labelFontSize}
-							lineHeight={dv.labelLineHeight}
-							padding={dv.labelPadding}
-							textAlign={dv.labelHorizontalAlign}
-							verticalAlign={dv.labelVerticalAlign}
-							richText={richText}
-							isSelected={isOnlySelected}
-							labelColor={dv.labelColor}
-							wrap
-							showTextOutline={this.options.showTextOutline}
-							style={
-								shape.props.scale !== 1
-									? {
-											transform: `scale(${shape.props.scale})`,
-											transformOrigin: 'top left',
-											width: shape.props.w / shape.props.scale,
-											height: (shape.props.h + props.growY) / shape.props.scale,
-										}
-									: undefined
-							}
-						/>
-					</HTMLContainer>
-				)}
-				{url && <HyperlinkButton url={url} />}
-			</>
-		)
+		return this.getView()?.component(shape, this) ?? null
 	}
 
 	override getIndicatorPath(shape: TLGeoShape): Path2D | undefined {
@@ -472,59 +393,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
-		const { richText, fill, scale, growY, w, h } = shape.props
-		// We need to scale the shape to 1x for export
-		const newShape = {
-			...shape,
-			props: {
-				...shape.props,
-				w: w / scale,
-				h: (h + growY) / scale,
-				growY: 0, // growY throws off the path calculations, so we set it to 0
-			},
-		}
-		ctx.addExportDef(getFillDefForExport(fill))
-
-		let textEl
-		if (!isEmptyRichText(richText)) {
-			const bounds = new Box(0, 0, newShape.props.w, (h + growY) / scale)
-			textEl = (
-				<RichTextSVG
-					fontSize={dv.labelFontSize}
-					fontFamily={dv.labelFontFamily}
-					checkboxStyle={dv.labelCheckboxStyle}
-					lineHeight={dv.labelLineHeight}
-					textAlign={dv.labelHorizontalAlign}
-					verticalAlign={dv.labelVerticalAlign}
-					labelColor={dv.labelColor}
-					padding={dv.labelPadding}
-					showTextOutline={this.options.showTextOutline}
-					bounds={bounds}
-					richText={richText}
-				/>
-			)
-		}
-
-		return (
-			<>
-				<GeoShapeBody
-					shouldScale={false}
-					shape={newShape}
-					forceSolid={false}
-					strokeColor={dv.strokeColor}
-					strokeWidth={dv.strokeWidth}
-					fillColor={dv.fillColor}
-					patternFillFallbackColor={dv.patternFillFallbackColor}
-					customGeoTypes={this.options.customGeoTypes}
-				/>
-				{textEl}
-			</>
-		)
+		return this.getView()?.toSvg?.(shape, ctx, this) ?? null
 	}
 
 	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
-		return [getFillDefForCanvas()]
+		return this.getView()?.getCanvasSvgDefs?.(this) ?? []
 	}
 
 	override canFlip() {

@@ -1,136 +1,45 @@
 import {
-	BaseBoxShapeUtil,
-	createShapeId,
-	defineMessages,
 	HTMLContainer,
 	MediaHelpers,
-	SvgExportContext,
 	TLAsset,
-	TLShapePartial,
-	TLVideoAsset,
+	TLShapeView,
 	TLVideoShape,
-	translateMessage,
+	WeakCache,
+	definePlugin,
+	shapeViewSlot,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
-	VecModel,
-	videoShapeMigrations,
-	videoShapeProps,
-	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
-import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useEfficientZoomThreshold } from '../shared/useEfficientZoomThreshold'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
+import type { VideoShapeUtil } from './VideoShapeUtil'
 
 const videoSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface VideoShapeUtilDisplayValues {}
-
-/** @public */
-export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<
-	TLVideoShape,
-	VideoShapeUtilDisplayValues
-> {
-	/**
-	 * Should videos play automatically?
-	 */
-	autoplay: boolean
-}
-
-const messages = defineMessages({
-	name: { id: 'a11y.shape-video', defaultMessage: 'Video' },
-})
-
-/** @public */
-export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
-	static override type = 'video' as const
-	static override props = videoShapeProps
-	static override migrations = videoShapeMigrations
-	static override handledAssetTypes = ['video'] as const
-
-	override options: VideoShapeOptions = {
-		autoplay: true,
-		getDefaultDisplayValues(): VideoShapeUtilDisplayValues {
-			return {}
-		},
-		getCustomDisplayValues(): Partial<VideoShapeUtilDisplayValues> {
-			return {}
-		},
-	}
-
-	override getShapeName() {
-		return translateMessage(this.editor.i18n(), messages.name)
-	}
-
-	override canEdit(shape: TLVideoShape) {
-		return true
-	}
-	override isAspectRatioLocked(shape: TLVideoShape) {
-		return true
-	}
-
-	override getDefaultProps(): TLVideoShape['props'] {
-		return {
-			w: 100,
-			h: 100,
-			assetId: null,
-			autoplay: this.options.autoplay,
-			url: '',
-			altText: '',
-			// Not used, but once upon a time were used to sync video state between users
-			time: 0,
-			playing: true,
-		}
-	}
-
-	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial | null {
-		const videoAsset = asset as TLVideoAsset
-		return {
-			id: createShapeId(),
-			type: 'video',
-			x: position.x,
-			y: position.y,
-			opacity: 1,
-			props: {
-				assetId: videoAsset.id,
-				w: videoAsset.props.w,
-				h: videoAsset.props.h,
-			},
-		}
-	}
-
-	override getAriaDescriptor(shape: TLVideoShape) {
-		return shape.props.altText
-	}
-
-	component(shape: TLVideoShape) {
+export const videoShapeView: TLShapeView<TLVideoShape, VideoShapeUtil> = {
+	type: 'video',
+	component(shape) {
 		return <VideoShape shape={shape} />
-	}
+	},
 
-	override getIndicatorPath(shape: TLVideoShape): Path2D {
-		const path = new Path2D()
-		path.rect(0, 0, shape.props.w, shape.props.h)
-		return path
-	}
-
-	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
+	async toSvg(shape, ctx, util) {
 		const props = shape.props
 		if (!props.assetId) return null
 
-		const asset = this.editor.getAsset<TLAsset>(props.assetId)
+		const asset = util.editor.getAsset<TLAsset>(props.assetId)
 		if (!asset) return null
 
 		const promise = videoSvgExportCache.get(asset, async () => {
 			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
 			if (!assetUrl) return null
-			const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
+			const video = await MediaHelpers.loadVideo(assetUrl, util.editor.getContainerDocument())
 			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
 		})
 		const src = await promise.catch((error) => {
@@ -146,8 +55,19 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		if (!src) return null
 
 		return <image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
-	}
+	},
 }
+
+/**
+ * Draws video shapes with {@link videoShapeView}. Importing `tldraw` adds it to
+ * `createDefaultPlugins()`, see {@link defaultShapeViewPlugins}.
+ *
+ * @public
+ */
+export const videoShapeViewPlugin = definePlugin({
+	id: 'videoShapeView',
+	setup: (ctx) => void ctx.contribute(shapeViewSlot, videoShapeView),
+})
 
 const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
 	const editor = useEditor()

@@ -1,13 +1,10 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Box,
 	Editor,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLGeometryOpts,
 	TLResizeInfo,
-	TLShapeId,
 	TLTextShape,
 	Vec,
 	createComputedCache,
@@ -18,11 +15,7 @@ import {
 	textShapeMigrations,
 	textShapeProps,
 	toRichText,
-	useColorMode,
-	useEditor,
-	useValue,
 } from '@tldraw/editor'
-import { useCallback } from 'react'
 import {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
@@ -36,15 +29,6 @@ import {
 } from '../shared/default-shape-constants'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
-import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
-
-// Export-only slack (as a fraction of font size) added around a text shape's advance box in `toSvg`,
-// so italic/cursive glyph ink that spills past the box — side bearings, slanted ascenders — isn't
-// clipped at the <foreignObject> edge on export (#8802). The text still renders in the same place;
-// the export's auto-trim crops the extra room back to the real pixels, so the PNG stays tight. This
-// is deliberately export-only: the shape's geometry (selection, hit-testing, the text-edit cursor)
-// stays the advance box, which is the right box for those.
-const TEXT_EXPORT_INK_MARGIN = 0.3
 
 const sizeCache = createComputedCache(
 	'text size',
@@ -166,46 +150,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return true
 	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 
+	// The React view draws the shape, see `textShapeView`. These methods call it so that a
+	// subclass can override them or call `super`.
 	component(shape: TLTextShape) {
-		const {
-			id,
-			props: { richText, scale, textAlign },
-		} = shape
-
-		const { width, height } = this.getMinDimensions(shape)
-		const isSelected = useValue('isSelected', () => id === this.editor.getOnlySelectedShapeId(), [
-			this.editor,
-			id,
-		])
-		const colorMode = useColorMode()
-		const dv = getDisplayValues(this, shape, colorMode)
-		const handleKeyDown = useTextShapeKeydownHandler(id)
-
-		return (
-			<RichTextLabel
-				shapeId={id}
-				classNamePrefix="tl-text-shape"
-				type="text"
-				fontFamily={dv.fontFamily}
-				checkboxStyle={dv.checkboxStyle}
-				fontSize={dv.fontSize}
-				lineHeight={dv.lineHeight}
-				textAlign={textAlign === 'middle' ? 'center' : textAlign}
-				verticalAlign="middle"
-				richText={richText}
-				labelColor={dv.color}
-				isSelected={isSelected}
-				textWidth={width}
-				textHeight={height}
-				showTextOutline={this.options.showTextOutline}
-				style={{
-					transform: `scale(${scale})`,
-					transformOrigin: 'top left',
-				}}
-				wrap
-				onKeyDown={handleKeyDown}
-			/>
-		)
+		return this.getView()?.component(shape, this) ?? null
 	}
 
 	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {
@@ -217,37 +165,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const width = bounds.width / (shape.props.scale ?? 1)
-		const height = bounds.height / (shape.props.scale ?? 1)
-
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
-
-		// Pad the exported foreignObject by a margin so glyph ink can spill past the advance box
-		// without being clipped at its edge; the text is inset by the same margin so it renders in the
-		// same place, and the export's trim crops the slack back to content. See TEXT_EXPORT_INK_MARGIN.
-		const inkMargin = Math.ceil(dv.fontSize * TEXT_EXPORT_INK_MARGIN)
-		const exportBounds = new Box(
-			-inkMargin,
-			-inkMargin,
-			width + inkMargin * 2,
-			height + inkMargin * 2
-		)
-		return (
-			<RichTextSVG
-				fontSize={dv.fontSize}
-				fontFamily={dv.fontFamily}
-				checkboxStyle={dv.checkboxStyle}
-				lineHeight={dv.lineHeight}
-				textAlign={shape.props.textAlign === 'middle' ? 'center' : shape.props.textAlign}
-				verticalAlign="middle"
-				richText={shape.props.richText}
-				labelColor={dv.color}
-				bounds={exportBounds}
-				padding={inkMargin}
-				showTextOutline={this.options.showTextOutline}
-			/>
-		)
+		return this.getView()?.toSvg?.(shape, ctx, this) ?? null
 	}
 
 	override onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>) {
@@ -400,24 +318,4 @@ function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeU
 		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
 		height: Math.max(dv.fontSize, result.h),
 	}
-}
-
-function useTextShapeKeydownHandler(id: TLShapeId) {
-	const editor = useEditor()
-
-	return useCallback(
-		(e: KeyboardEvent) => {
-			if (editor.getEditingShapeId() !== id) return
-
-			switch (e.key) {
-				case 'Enter': {
-					if (e.ctrlKey || e.metaKey) {
-						editor.complete()
-					}
-					break
-				}
-			}
-		},
-		[editor, id]
-	)
 }

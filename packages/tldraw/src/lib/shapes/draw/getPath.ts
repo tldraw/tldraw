@@ -6,6 +6,7 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	Vec,
+	VecLike,
 	b64Vecs,
 	modulate,
 } from '@tldraw/editor'
@@ -164,4 +165,12 @@ export function getDrawShapeStrokeDashArray(
 		dashed: `${strokeWidth * 2} ${strokeWidth * 2}`,
 		none: `none`,
 	}[shape.props.dash]
+}
+
+/** The SVG path of a dot at `point`, for a draw stroke of width `sw`. */
+export function getDot(point: VecLike, sw: number) {
+	const r = (sw + 1) * 0.5
+	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
+		r * 2
+	},0`
 }

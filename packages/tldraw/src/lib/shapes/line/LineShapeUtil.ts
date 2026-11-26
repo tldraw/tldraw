@@ -2,7 +2,6 @@
 import {
 	Group2d,
 	HandleSnapGeometry,
-	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
 	TLHandle,
@@ -24,7 +23,6 @@ import {
 	mapObjectMapValues,
 	maybeSnapToGrid,
 	sortByIndex,
-	useColorMode,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
@@ -226,15 +224,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return
 	}
 
+	// The React view draws the shape, see `lineShapeView`. These methods call it so that a
+	// subclass can override them or call `super`.
 	component(shape: TLLineShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const colorMode = useColorMode()
-		const dv = getDisplayValues(this, shape, colorMode)
-		return (
-			<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
-				<LineShapeSvg shape={shape} strokeColor={dv.strokeColor} strokeWidth={dv.strokeWidth} />
-			</SVGContainer>
-		)
+		return this.getView()?.component(shape, this) ?? null
 	}
 
 	override getIndicatorPath(shape: TLLineShape): Path2D {
@@ -253,15 +246,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
-		return (
-			<LineShapeSvg
-				shouldScale
-				shape={shape}
-				strokeColor={dv.strokeColor}
-				strokeWidth={dv.strokeWidth}
-			/>
-		)
+		return this.getView()?.toSvg?.(shape, ctx, this) ?? null
 	}
 
 	override getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry {
@@ -371,7 +356,7 @@ function linePointsToArray(shape: TLLineShape) {
 }
 
 const pathCache = new WeakCache<TLLineShape, PathBuilder>()
-function getPathForLineShape(shape: TLLineShape): PathBuilder {
+export function getPathForLineShape(shape: TLLineShape): PathBuilder {
 	return pathCache.get(shape, () => {
 		const points = linePointsToArray(shape).map(Vec.From)
 
@@ -389,40 +374,5 @@ function getPathForLineShape(shape: TLLineShape): PathBuilder {
 				return PathBuilder.lineThroughPoints(points, { endOffsets: 0 })
 			}
 		}
-	})
-}
-
-function LineShapeSvg({
-	shape,
-	shouldScale = false,
-	forceSolid = false,
-	strokeColor,
-	strokeWidth: baseStrokeWidth,
-}: {
-	shape: TLLineShape
-	shouldScale?: boolean
-	forceSolid?: boolean
-	strokeColor: string
-	strokeWidth: number
-}) {
-	const path = getPathForLineShape(shape)
-	const { dash } = shape.props
-
-	const scaleFactor = 1 / shape.props.scale
-
-	const scale = shouldScale ? scaleFactor : 1
-
-	const strokeWidth = baseStrokeWidth * shape.props.scale
-
-	return path.toSvg({
-		style: dash,
-		strokeWidth,
-		forceSolid,
-		randomSeed: shape.id,
-		props: {
-			transform: `scale(${scale})`,
-			stroke: strokeColor,
-			fill: 'none',
-		},
 	})
 }

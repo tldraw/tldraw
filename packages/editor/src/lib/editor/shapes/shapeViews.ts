@@ -2,7 +2,7 @@ import type { TLShape } from '@tldraw/tlschema'
 import type { ReactElement, ReactNode } from 'react'
 import { defineSlot } from '../../plugins/plugin'
 import type { SvgExportContext } from '../types/SvgExportContext'
-import type { ShapeUtil } from './ShapeUtil'
+import type { ShapeUtil, TLShapeUtilCanvasSvgDef } from './ShapeUtil'
 
 /**
  * How the React layer draws one shape type. A view keeps a shape util free of React: the util has
@@ -36,6 +36,7 @@ export interface TLShapeView<S extends TLShape = TLShape, U extends ShapeUtil<S>
 		ctx: SvgExportContext,
 		util: U
 	): ReactElement | null | Promise<ReactElement | null>
+	getCanvasSvgDefs?(util: U): TLShapeUtilCanvasSvgDef[]
 }
 
 /**

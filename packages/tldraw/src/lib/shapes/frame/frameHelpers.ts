@@ -2,11 +2,11 @@ import {
 	Box,
 	Editor,
 	TLFrameShape,
+	TLMeasureTextSpanOpts,
 	canonicalizeRotation,
 	last,
 	toDomPrecision,
 } from '@tldraw/editor'
-import { TLCreateTextJsxFromSpansOpts } from '../shared/createTextJsxFromSpans'
 
 export const FRAME_HEADING_MAX_SCALE = 3.5
 
@@ -44,7 +44,7 @@ const measurementWeakmap = new WeakMap()
 export function getFrameHeadingSize(
 	editor: Editor,
 	shape: TLFrameShape,
-	opts: TLCreateTextJsxFromSpansOpts
+	opts: TLMeasureTextSpanOpts
 ) {
 	if (process.env.NODE_ENV === 'test') {
 		// can't really measure text in tests
@@ -74,7 +74,7 @@ export function getFrameHeadingSize(
 	return new Box(0, -opts.height, width, opts.height)
 }
 
-export function getFrameHeadingOpts(width: number, isSvg: boolean): TLCreateTextJsxFromSpansOpts {
+export function getFrameHeadingOpts(width: number, isSvg: boolean) {
 	return {
 		fontSize: 12,
 		fontFamily: isSvg ? 'Arial' : 'Inter, sans-serif',

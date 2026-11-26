@@ -242,6 +242,17 @@ export {
 	highlightShapeViewPlugin,
 } from './lib/shapes/highlight/HighlightShapeView'
 export { defaultShapeViewPlugins } from './lib/defaultShapeViews'
+export { arrowShapeView, arrowShapeViewPlugin } from './lib/shapes/arrow/ArrowShapeView'
+export { bookmarkShapeView, bookmarkShapeViewPlugin } from './lib/shapes/bookmark/BookmarkShapeView'
+export { drawShapeView, drawShapeViewPlugin } from './lib/shapes/draw/DrawShapeView'
+export { embedShapeView, embedShapeViewPlugin } from './lib/shapes/embed/EmbedShapeView'
+export { frameShapeView, frameShapeViewPlugin } from './lib/shapes/frame/FrameShapeView'
+export { geoShapeView, geoShapeViewPlugin } from './lib/shapes/geo/GeoShapeView'
+export { imageShapeView, imageShapeViewPlugin } from './lib/shapes/image/ImageShapeView'
+export { lineShapeView, lineShapeViewPlugin } from './lib/shapes/line/LineShapeView'
+export { noteShapeView, noteShapeViewPlugin } from './lib/shapes/note/NoteShapeView'
+export { textShapeView, textShapeViewPlugin } from './lib/shapes/text/TextShapeView'
+export { videoShapeView, videoShapeViewPlugin } from './lib/shapes/video/VideoShapeView'
 export {
 	ImageShapeUtil,
 	type ImageShapeOptions,

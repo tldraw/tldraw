@@ -5417,6 +5417,8 @@ export interface TLShapeView<S extends TLShape = TLShape, U extends ShapeUtil<S>
     // (undocumented)
     component(shape: S, util: U): ReactNode;
     // (undocumented)
+    getCanvasSvgDefs?(util: U): TLShapeUtilCanvasSvgDef[];
+    // (undocumented)
     toBackgroundSvg?(shape: S, ctx: SvgExportContext, util: U): null | Promise<null | ReactElement> | ReactElement;
     // (undocumented)
     toSvg?(shape: S, ctx: SvgExportContext, util: U): null | Promise<null | ReactElement> | ReactElement;

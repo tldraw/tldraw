@@ -4,7 +4,6 @@ import {
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
-	SVGContainer,
 	SvgExportContext,
 	TLClickEventInfo,
 	TLEditStartInfo,
@@ -19,24 +18,14 @@ import {
 	frameShapeProps,
 	getColorValue,
 	lerp,
-	useColorMode,
-	useValue,
 } from '@tldraw/editor'
-import classNames from 'classnames'
 import { fitFrameToContent, getFrameChildrenBounds } from '../../utils/frames/frames'
-import {
-	TLCreateTextJsxFromSpansOpts,
-	createTextJsxFromSpans,
-} from '../shared/createTextJsxFromSpans'
-import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
-import { FrameHeading } from './components/FrameHeading'
+import { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import {
 	FRAME_HEADING_MAX_SCALE,
-	defaultEmptyAs,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
 	getFrameHeadingSize,
-	getFrameHeadingTranslation,
 } from './frameHelpers'
 
 // Some of these values are repeated in CSS and need to match
@@ -241,110 +230,14 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		return shape.props.name
 	}
 
+	// The React view draws the shape, see `frameShapeView`. These methods call it so that a
+	// subclass can override them or call `super`.
 	override component(shape: TLFrameShape) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const colorMode = useColorMode()
-		const dv = getDisplayValues(this, shape, colorMode)
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isCreating = useValue(
-			'is creating this shape',
-			() => {
-				const resizingState = this.editor.getStateDescendant('select.resizing')
-				if (!resizingState) return false
-				if (!resizingState.getIsActive()) return false
-				const info = (resizingState as typeof resizingState & { info: { isCreating: boolean } })
-					?.info
-				if (!info) return false
-				return info.isCreating && this.editor.getOnlySelectedShapeId() === shape.id
-			},
-			[shape.id]
-		)
-
-		const showFrameColors = this.options.showColors
-
-		return (
-			<>
-				<SVGContainer>
-					<rect
-						className={classNames('tl-frame__body', { 'tl-frame__creating': isCreating })}
-						fill={showFrameColors ? dv.showColorsFillColor : dv.fillColor}
-						stroke={showFrameColors ? dv.showColorsStrokeColor : dv.strokeColor}
-						style={{
-							width: `calc(${shape.props.w}px + 1px / var(--tl-zoom))`,
-							height: `calc(${shape.props.h}px + 1px / var(--tl-zoom))`,
-							transform: `translate(calc(-0.5px / var(--tl-zoom)), calc(-0.5px / var(--tl-zoom)))`,
-						}}
-					/>
-				</SVGContainer>
-				{isCreating ? null : (
-					<FrameHeading
-						id={shape.id}
-						name={shape.props.name}
-						fill={showFrameColors ? dv.showColorsHeadingFillColor : dv.headingFillColor}
-						stroke={showFrameColors ? dv.showColorsHeadingStrokeColor : dv.headingStrokeColor}
-						color={showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor}
-						width={shape.props.w}
-						height={shape.props.h}
-						offsetX={showFrameColors ? -1 : -7}
-						showColors={this.options.showColors}
-					/>
-				)}
-			</>
-		)
+		return this.getView()?.component(shape, this) ?? null
 	}
 
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
-		const dv = getDisplayValues(this, shape, ctx.colorMode)
-
-		// rotate right 45 deg
-		const labelSide = getFrameHeadingSide(this.editor, shape)
-		const isVertical = labelSide % 2 === 1
-		const rotatedTopEdgeWidth = isVertical ? shape.props.h : shape.props.w
-		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
-
-		// Truncate with ellipsis
-		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(rotatedTopEdgeWidth - 12, true)
-
-		const frameTitle = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
-		const labelBounds = getFrameHeadingSize(this.editor, shape, opts)
-		const spans = this.editor.textMeasure.measureTextSpans(frameTitle, opts)
-		const text = createTextJsxFromSpans(this.editor, spans, opts)
-
-		const showFrameColors = this.options.showColors
-		const frameHeadingStroke = showFrameColors
-			? dv.showColorsHeadingStrokeColor
-			: dv.headingStrokeColor
-		const frameHeadingFill = showFrameColors ? dv.showColorsHeadingFillColor : dv.headingFillColor
-		const frameHeadingText = showFrameColors ? dv.showColorsHeadingTextColor : dv.headingTextColor
-
-		return (
-			<>
-				<rect
-					width={shape.props.w}
-					height={shape.props.h}
-					fill={showFrameColors ? dv.showColorsFillColor : dv.fillColor}
-					stroke={showFrameColors ? dv.showColorsStrokeColor : dv.strokeColor}
-					strokeWidth={1}
-					x={0}
-					rx={0}
-					ry={0}
-				/>
-				<g fill={frameHeadingText} transform={labelTranslate}>
-					<rect
-						x={labelBounds.x - (showFrameColors ? 0 : 6)}
-						y={labelBounds.y - 6}
-						width={Math.min(rotatedTopEdgeWidth, labelBounds.width + 12)}
-						height={labelBounds.height}
-						fill={frameHeadingFill}
-						stroke={frameHeadingStroke}
-						rx={4}
-						ry={4}
-					/>
-					<g transform={`translate(${showFrameColors ? 8 : 0}, 4)`}>{text}</g>
-				</g>
-			</>
-		)
+		return this.getView()?.toSvg?.(shape, ctx, this) ?? null
 	}
 
 	override getIndicatorPath(shape: TLFrameShape): Path2D {

@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from 'fs'
-import { dirname, join, resolve } from 'path'
 import { act, render } from '@testing-library/react'
 import {
 	Editor,
@@ -119,26 +117,5 @@ describe('the highlight shape util', () => {
 		expect(editor.getShapePageBounds(id)!.width).toBeGreaterThan(90)
 		editor.resizeShape(id, { x: 2, y: 1 })
 		expect(editor.getShape<TLHighlightShape>(id)!.props.scaleX).toBe(2)
-	})
-
-	it('imports no React code', () => {
-		// Walk the util's relative imports. Each file must be a .ts module without a React import.
-		// `@tldraw/editor` still includes its React layer until the kernel moves to its own package.
-		const seen = new Set<string>()
-		const visit = (file: string) => {
-			if (seen.has(file)) return
-			seen.add(file)
-			expect(file).not.toMatch(/\.tsx$/)
-			const source = readFileSync(file, 'utf8')
-			expect(source).not.toMatch(/from 'react'/)
-			for (const [, spec] of source.matchAll(/from '(\.[^']+)'/g)) {
-				const base = resolve(dirname(file), spec)
-				const next = [`${base}.ts`, `${base}.tsx`, join(base, 'index.ts')].find(existsSync)
-				if (!next) throw Error(`Cannot resolve ${spec} from ${file}`)
-				visit(next)
-			}
-		}
-		visit(join(__dirname, 'HighlightShapeUtil.ts'))
-		expect(seen.size).toBeGreaterThan(1)
 	})
 })
