@@ -154,6 +154,7 @@ import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPlugin } from '@tldraw/editor';
+import { TLPluginContext } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
@@ -171,6 +172,7 @@ import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilConstructor } from '@tldraw/editor';
+import { TLShapeView } from '@tldraw/editor';
 import { TLSlot } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
@@ -1514,6 +1516,9 @@ export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShape
 // @public (undocumented)
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
+// @public
+export const defaultShapeViewPlugins: readonly TLPlugin[];
+
 // @public (undocumented)
 export function DefaultSharePanel(): JSX.Element | null;
 
@@ -2575,11 +2580,11 @@ export class HighlightShapeTool extends StateNode {
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
-    backgroundComponent(shape: TLHighlightShape): JSX.Element;
+    backgroundComponent(shape: TLHighlightShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     canFlip(): boolean;
     // (undocumented)
-    component(shape: TLHighlightShape): JSX.Element;
+    component(shape: TLHighlightShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
@@ -2608,9 +2613,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
+    toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
-    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'highlight';
 }
@@ -2626,6 +2631,15 @@ export interface HighlightShapeUtilDisplayValues {
     // (undocumented)
     underlayOpacity: number;
 }
+
+// @public (undocumented)
+export const highlightShapeView: TLShapeView<TLHighlightShape, HighlightShapeUtil>;
+
+// @public
+export const highlightShapeViewPlugin: {
+    readonly id: "highlightShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function HighlightToolbarItem(): JSX.Element;

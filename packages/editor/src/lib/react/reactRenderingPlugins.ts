@@ -1,7 +1,7 @@
 import { exportToSvg } from '../exports/exportToSvg'
 import { svgExportCapability } from '../plugins/builtin/svgExport'
 import { TLPlugin, definePlugin } from '../plugins/plugin'
-import { groupShapeComponentPlugin } from './shapeComponents'
+import { groupShapeViewPlugin } from './groupShapeView'
 
 /**
  * Exports shapes to SVG by rendering them with React into a hidden DOM element.
@@ -19,11 +19,11 @@ export const reactSvgExportPlugin = definePlugin({
 })
 
 /**
- * The plugins that make up the React output layer: shape components and SVG export.
+ * The plugins that make up the React output layer: the group shape view and SVG export.
  *
  * @public
  */
 export const reactRenderingPlugins: readonly TLPlugin[] = [
-	groupShapeComponentPlugin,
+	groupShapeViewPlugin,
 	reactSvgExportPlugin,
 ]

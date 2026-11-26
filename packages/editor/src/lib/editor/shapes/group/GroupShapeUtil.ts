@@ -76,10 +76,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return new Group2d({ children: geometries })
 	}
 
-	// The React layer renders groups, see `groupShapeComponentPlugin`. The util stays free of
-	// React so that a headless editor can use it.
-	component() {
-		return null
+	// The React layer draws groups, see `groupShapeViewPlugin`.
+	component(shape: TLGroupShape) {
+		return this.getView()?.component(shape, this) ?? null
 	}
 
 	override getIndicatorPath(shape: TLGroupShape): Path2D {

@@ -3,7 +3,7 @@
 import { vi } from 'vitest'
 import { Editor, createDefaultPlugins, createShapeId, createTLStore } from '../..'
 import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
-import { renderShapeComponent, shapeComponentSlot } from '../react/shapeComponents'
+import { shapeViewSlot } from '../editor/shapes/shapeViews'
 import { approximateTextMeasurementPlugin } from './builtin/textMeasurement'
 import { TLPlugin, definePlugin } from './plugin'
 
@@ -83,30 +83,46 @@ describe('new Editor()', () => {
 	})
 })
 
-describe('the React shape component slot', () => {
-	it('renders a shape with a plugin contribution, and with ShapeUtil.component without one', () => {
+describe('shape views', () => {
+	it('renders a shape with its view through ShapeUtil.component', () => {
 		const editor = legacyEditor()
 		const group = editor.getShapeUtil<GroupShapeUtil>('group')
-		const shape = { id: 'shape:g', type: 'group' } as any
-		// The group util has no React. The React layer's group plugin renders it.
-		expect(group.component()).toBeNull()
-		expect(editor.plugins.list(shapeComponentSlot).map((c) => c.type)).toContain('group')
-		// An erasing group shows its outline, so the default contribution renders an element.
+		// The group util has no React. The React layer's group view renders it.
+		expect(editor.plugins.list(shapeViewSlot).map((v) => v.type)).toContain('group')
+		// An erasing group shows its outline, so the view renders an element.
 		const id = createShapeId('g')
 		editor.createShape({ id, type: 'group' })
 		editor.setErasingShapes([id])
-		expect(renderShapeComponent(group, editor.getShape(id)!)).not.toBeNull()
+		expect(group.component(editor.getShape(id)!)).not.toBeNull()
 
 		const custom = legacyEditor({
 			plugins: [
 				definePlugin({
-					id: 'react.groupShapeComponent',
+					id: 'react.groupShapeView',
 					setup(ctx) {
-						ctx.contribute(shapeComponentSlot, { type: 'group', component: () => 'custom group' })
+						ctx.contribute(shapeViewSlot, { type: 'group', component: () => 'custom group' })
 					},
 				}),
 			],
 		})
-		expect(renderShapeComponent(custom.getShapeUtil('group'), shape)).toBe('custom group')
+		const shape = { id: 'shape:g', type: 'group' } as any
+		expect(custom.getShapeUtil('group').component(shape)).toBe('custom group')
+	})
+
+	it('throws when two plugins contribute a view for the same shape type', () => {
+		const editor = legacyEditor({
+			plugins: [
+				...createDefaultPlugins(),
+				definePlugin({
+					id: 'secondGroupView',
+					setup(ctx) {
+						ctx.contribute(shapeViewSlot, { type: 'group', component: () => null })
+					},
+				}),
+			],
+		})
+		expect(() => editor.getShapeUtil('group').getView()).toThrow(
+			'Two plugins contribute a view for the "group" shape'
+		)
 	})
 })

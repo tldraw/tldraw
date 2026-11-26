@@ -238,6 +238,11 @@ export {
 	type HighlightShapeUtilDisplayValues,
 } from './lib/shapes/highlight/HighlightShapeUtil'
 export {
+	highlightShapeView,
+	highlightShapeViewPlugin,
+} from './lib/shapes/highlight/HighlightShapeView'
+export { defaultShapeViewPlugins } from './lib/defaultShapeViews'
+export {
 	ImageShapeUtil,
 	type ImageShapeOptions,
 	type ImageShapeUtilDisplayValues,

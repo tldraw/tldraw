@@ -26,6 +26,7 @@ import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { TLClickEventInfo } from '../types/event-types'
 import { TLResizeHandle } from '../types/selection-types'
 import type { SvgExportContext } from '../types/SvgExportContext'
+import { shapeViewSlot, type TLShapeView } from './shapeViews'
 
 /** @public */
 export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
@@ -228,12 +229,25 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d
 
 	/**
-	 * Get a JSX element for the shape (as an HTML element).
+	 * Get a JSX element for the shape (as an HTML element). A util without React returns its view's
+	 * component, see {@link TLShapeView}.
 	 *
 	 * @param shape - The shape.
 	 * @public
 	 */
 	abstract component(shape: Shape): any
+
+	/**
+	 * The view for this util's shape type, from {@link shapeViewSlot}. Reactive.
+	 *
+	 * @public
+	 */
+	getView(): TLShapeView<Shape> | undefined {
+		const type = (this.constructor as typeof ShapeUtil).type
+		const views = this.editor.plugins.list(shapeViewSlot).filter((view) => view.type === type)
+		if (views.length > 1) throw Error(`Two plugins contribute a view for the "${type}" shape`)
+		return views[0]
+	}
 
 	/**
 	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the

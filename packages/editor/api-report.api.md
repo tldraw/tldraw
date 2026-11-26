@@ -21,6 +21,7 @@ import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
+import { JSXElementConstructor } from 'react';
 import { LegacyMigrations } from '@tldraw/store';
 import { MemoExoticComponent } from 'react';
 import { MigrationSequence } from '@tldraw/store';
@@ -2415,12 +2416,6 @@ export class Group2d extends Geometry2d {
     uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }
 
-// @public
-export const groupShapeComponentPlugin: {
-    readonly id: "react.groupShapeComponent";
-    readonly setup: (ctx: TLPluginContext) => void;
-};
-
 // @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
@@ -2432,7 +2427,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canResizeChildren(): boolean;
     // (undocumented)
-    component(): null;
+    component(shape: TLGroupShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
     // (undocumented)
@@ -2452,6 +2447,12 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     static type: 'group';
 }
+
+// @public
+export const groupShapeViewPlugin: {
+    readonly id: "react.groupShapeView";
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export const HALF_PI: number;
@@ -3254,6 +3255,9 @@ export class Rectangle2d extends Polygon2d {
 // @public (undocumented)
 export function refreshPage(): void;
 
+// @internal (undocumented)
+export function registerDefaultPlugins(plugins: readonly TLPlugin[]): void;
+
 // @public (undocumented)
 export function releasePointerCapture(element: Element, event: PointerEvent | React.PointerEvent<Element>): void;
 
@@ -3504,9 +3508,6 @@ export class ShapeArranger {
 }
 
 // @public (undocumented)
-export const shapeComponentSlot: TLSlot<TLShapeComponent<any>>;
-
-// @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     constructor(editor: Editor);
     // @internal
@@ -3552,6 +3553,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     getShapeName(_shape: Shape): string | undefined;
     // (undocumented)
     getText(shape: Shape): string | undefined;
+    getView(): TLShapeView<Shape> | undefined;
     static handledAssetTypes?: readonly string[];
     hideInMinimap?(shape: Shape): boolean;
     hideResizeHandles(shape: Shape): boolean;
@@ -3608,6 +3610,9 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
 }
+
+// @public
+export const shapeViewSlot: TLSlot<TLShapeView<any, any>>;
 
 // @public
 export type SharedStyle<T> = {
@@ -5349,14 +5354,6 @@ export interface TLSessionStateSnapshot {
     version: number;
 }
 
-// @public
-export interface TLShapeComponent<S extends TLShape = TLShape> {
-    // (undocumented)
-    component(shape: S, editor: Editor): ReactNode;
-    // (undocumented)
-    readonly type: S['type'];
-}
-
 // @public (undocumented)
 export type TLShapeErrorFallbackComponent = ComponentType<{
     error: any;
@@ -5411,6 +5408,20 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
     props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];
+}
+
+// @public
+export interface TLShapeView<S extends TLShape = TLShape, U extends ShapeUtil<S> = ShapeUtil<S>> {
+    // (undocumented)
+    backgroundComponent?(shape: S, util: U): ReactNode;
+    // (undocumented)
+    component(shape: S, util: U): ReactNode;
+    // (undocumented)
+    toBackgroundSvg?(shape: S, ctx: SvgExportContext, util: U): null | Promise<null | ReactElement> | ReactElement;
+    // (undocumented)
+    toSvg?(shape: S, ctx: SvgExportContext, util: U): null | Promise<null | ReactElement> | ReactElement;
+    // (undocumented)
+    readonly type: S['type'];
 }
 
 // @public (undocumented)

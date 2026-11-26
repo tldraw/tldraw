@@ -102,15 +102,12 @@ export {
 	userPreferencesPlugin,
 } from './lib/plugins/builtin/userPreferences'
 export { createKernelPlugins } from './lib/plugins/kernelPlugins'
-export { createDefaultPlugins } from './lib/react/defaultPlugins'
+export { createDefaultPlugins, registerDefaultPlugins } from './lib/react/defaultPlugins'
 export { imageExportCapability, type TLImageExporter } from './lib/plugins/builtin/imageExport'
 export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'
 export { reactRenderingPlugins, reactSvgExportPlugin } from './lib/react/reactRenderingPlugins'
-export {
-	groupShapeComponentPlugin,
-	shapeComponentSlot,
-	type TLShapeComponent,
-} from './lib/react/shapeComponents'
+export { groupShapeViewPlugin } from './lib/react/groupShapeView'
+export { shapeViewSlot, type TLShapeView } from './lib/editor/shapes/shapeViews'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,

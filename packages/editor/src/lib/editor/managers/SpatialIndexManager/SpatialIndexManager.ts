@@ -9,6 +9,7 @@ import type { RecordsDiff } from '@tldraw/store'
 import { TLPageId, TLShape, TLShapeId, isBinding, isPageId, isShape } from '@tldraw/tlschema'
 import type { TLRecord } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
+import { fontsCapability } from '../../../plugins/builtin/fonts'
 import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
@@ -38,6 +39,11 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  * @internal
  */
 export class SpatialIndexManager {
+	// Fonts are optional: without a fonts plugin, no font loads and the epoch stays the same.
+	private getFontLoadEpoch() {
+		return this.editor.plugins.getOptional(fontsCapability)?.getFontLoadEpoch() ?? 0
+	}
+
 	private rbush: RBushIndex
 	private spatialIndexComputed: Computed<number>
 	private lastPageId: TLPageId | null = null
@@ -78,7 +84,7 @@ export class SpatialIndexManager {
 			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
 			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
 			const currentPageId = this.editor.getCurrentPageId()
-			const fontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
+			const fontLoadEpoch = this.getFontLoadEpoch()
 
 			if (
 				isUninitialized(_prevValue) ||
@@ -105,7 +111,7 @@ export class SpatialIndexManager {
 	private buildFromScratch(): void {
 		this.rbush.clear()
 		this.lastPageId = this.editor.getCurrentPageId()
-		this.lastFontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
+		this.lastFontLoadEpoch = this.getFontLoadEpoch()
 
 		const elements: SpatialElement[] = []
 		for (const shape of this.editor.getCurrentPageShapes()) {

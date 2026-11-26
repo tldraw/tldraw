@@ -57,17 +57,21 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 | `getSvgElement`                                                                                                     | `svgExportCapability`, from `reactSvgExportPlugin`                                                                     |
 | `getSvgString`, `toImage`, `toImageDataUrl`                                                                         | `imageExportCapability`, from `domImageExportPlugin`, which builds on `getSvgElement`                                  |
 | `ShapeUtil.canSnap`                                                                                                 | the initial value of `canSnapToShapeSlot`                                                                              |
-| `ShapeUtil.component`                                                                                               | the fallback when `shapeComponentSlot` has no contribution for the shape type                                          |
+| `ShapeUtil.component`                                                                                               | a util without React calls its view from `shapeViewSlot` here, with `this.getView()`                                   |
 
 `createDefaultPlugins` lives in the React layer (`react/defaultPlugins.ts`), because it includes the React plugins. `TldrawEditor` calls it directly. For a direct `new Editor()`, the package entry registers it with `setDefaultEditorPlugins`. This is a provisional seam until the kernel moves to its own package.
 
 ## React is an output layer
 
-The `react/` folder is the only place in this design that imports React. `reactRenderingPlugins` contributes the group shape component (`GroupShapeUtil` now has no JSX) and provides SVG export. `components/Shape.tsx` renders through `shapeComponentSlot`.
+The `react/` folder is the only place in this design that imports React. `reactRenderingPlugins` contributes the group shape view (`GroupShapeUtil` has no JSX) and provides SVG export.
+
+A shape view (`TLShapeView`, contributed to `shapeViewSlot`) draws one shape type: `component`, and optionally `backgroundComponent`, `toSvg` and `toBackgroundSvg`. Each gets the shape and its util. A util calls the view from its render methods with `this.getView()`. The renderers still call the util's methods, so a subclass that overrides a render method, or calls `super`, keeps working. Two views for the same type throw.
+
+In `tldraw`, the highlight shape is split this way: `HighlightShapeUtil.ts` imports no React, and `HighlightShapeView.tsx` has `highlightShapeViewPlugin`. The default views are in `defaultShapeViewPlugins`. Importing `tldraw` adds them to `createDefaultPlugins` with `registerDefaultPlugins`, so an editor built from `shapeUtils={defaultShapeUtils}` without the tldraw plugins still draws them. This is a provisional seam, like `setDefaultEditorPlugins`.
 
 ## Next steps
 
-1. Move each default shape's `component`, `toSvg` and `backgroundComponent` into `shapeComponentSlot` contributions. Then `ShapeUtil` has no render methods and shape utils are headless.
+1. Split the other default shapes like highlight: a util module with no React and a view in `defaultShapeViewPlugins`. Utils with `getCanvasSvgDefs` (arrow, draw, geo) also need those defs in the view.
 2. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
 3. Lift more of the editor the same way, for example deep links, grouping and duplication, and the page operations.
 
