@@ -23,6 +23,8 @@ const KEEP = {
 	'assets/translations': ['main.json', 'en.json', 'languages.json'],
 	'apps/dotcom/client/public/tla/locales': ['en.json'],
 }
+// Glossaries are named after their locale too (es.json), so they need an exemption when kept.
+const GLOSSARIES = 'internal/i18n/glossary'
 const REMOVE = [
 	'apps/dotcom/client/public/tla/locales-compiled',
 	'packages/assets/translations',
@@ -77,16 +79,16 @@ function build(repoRoot, outDir, withGlossaries) {
 		}
 	}
 	for (const path of REMOVE) rmSync(join(outDir, path), { recursive: true, force: true })
-	if (!withGlossaries) rmSync(join(outDir, 'internal/i18n/glossary'), { recursive: true, force: true })
+	if (!withGlossaries) rmSync(join(outDir, GLOSSARIES), { recursive: true, force: true })
 
-	checkClean(outDir)
+	checkClean(outDir, withGlossaries ? [GLOSSARIES] : [])
 }
 
 /**
- * Fails if anything that looks like a translation catalog is left. Symlinks that point out of the
- * snapshot are removed, since following one would leave it.
+ * Fails if anything that looks like a translation catalog is left outside `allowed` directories.
+ * Symlinks that point out of the snapshot are removed, since following one would leave it.
  */
-function checkClean(outDir) {
+function checkClean(outDir, allowed) {
 	const root = realpathSync(outDir)
 	const locales = JSON.parse(readFileSync(join(root, 'assets/translations/languages.json'), 'utf8'))
 		.map(({ locale }) => locale)
@@ -103,7 +105,8 @@ function checkClean(outDir) {
 			}
 			return
 		}
-		if (path.endsWith('.json') && locales.includes(basename(path, '.json'))) {
+		const inAllowed = allowed.some((dir) => !relative(join(root, dir), path).startsWith('..'))
+		if (path.endsWith('.json') && locales.includes(basename(path, '.json')) && !inAllowed) {
 			problems.push(relative(root, path))
 		}
 	})

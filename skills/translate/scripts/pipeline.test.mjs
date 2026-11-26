@@ -242,6 +242,29 @@ test('snapshot keeps English, code and context notes but no translations or glos
 	)
 })
 
+test('snapshot keeps committed glossaries when asked, and still rejects stray catalogs', (t) => {
+	const { root, write } = fixture(t)
+	write('internal/i18n/glossary/es.json', { register: '', terms: [] })
+	const git = (...args) => execFileSync('git', args, { cwd: root, stdio: 'ignore' })
+	const commit = () => {
+		git('add', '-A')
+		git('-c', 'user.name=test', '-c', 'user.email=test@example.com', 'commit', '-qm', 'fixture')
+	}
+	git('init', '-q')
+	commit()
+
+	const out = join(root, '..', `${root.split('/').pop()}-snapshot`)
+	t.after(() => rmSync(out, { recursive: true, force: true }))
+	snapshot(root, out, { withGlossaries: true })
+	assert.equal(existsSync(join(out, 'internal/i18n/glossary/es.json')), true)
+	rmSync(out, { recursive: true, force: true })
+
+	write('docs/es.json', { copy: 'Copiar' })
+	commit()
+	assert.throws(() => snapshot(root, out, { withGlossaries: true }), /docs\/es\.json/)
+	assert.equal(existsSync(out), false)
+})
+
 test('apply holds back entries the validator rejects and retained text that is already broken', (t) => {
 	const { root, readJson } = fixture(t)
 	const seen = []
