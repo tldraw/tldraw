@@ -56,6 +56,7 @@ import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import type { TLPlugin } from './plugins/plugin'
+import { resolvePluginRecords } from './plugins/pluginRecords'
 import { createDefaultPlugins } from './react/defaultPlugins'
 import { TLDeepLinkOptions } from './utils/deepLinks'
 import { getGlobalDocument, getGlobalWindow } from './utils/dom'
@@ -151,7 +152,8 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * Every plugin that the editor installs. Defaults to {@link createDefaultPlugins}; to add your
 	 * own, pass `[...createDefaultPlugins(), ...yours]`. Their shape utils, binding utils and tools
-	 * are added to the ones above. Keep the array stable between renders, because a new array
+	 * are added to the ones above. A shape util, binding util or tool above replaces a plugin's
+	 * record of the same type or id. Keep the array stable between renders, because a new array
 	 * creates a new editor. If you pass your own `store`, create it with the plugins' shape and
 	 * binding utils too, or the store rejects records of those types.
 	 */
@@ -430,20 +432,13 @@ function TldrawEditorWithOwnStore(
 		themes,
 	} = props
 
-	const pluginShapeUtils = useMemo(
-		() => plugins?.flatMap((p) => p.shapeUtils ?? []) ?? [],
-		[plugins]
-	)
-	const pluginBindingUtils = useMemo(
-		() => plugins?.flatMap((p) => p.bindingUtils ?? []) ?? [],
-		[plugins]
+	const records = useMemo(
+		() => resolvePluginRecords(plugins ?? [], { shapeUtils, bindingUtils }),
+		[plugins, shapeUtils, bindingUtils]
 	)
 	const syncedStore = useLocalStore({
-		shapeUtils: useMemo(() => [...shapeUtils, ...pluginShapeUtils], [shapeUtils, pluginShapeUtils]),
-		bindingUtils: useMemo(
-			() => [...bindingUtils, ...pluginBindingUtils],
-			[bindingUtils, pluginBindingUtils]
-		),
+		shapeUtils: records.shapeUtils,
+		bindingUtils: records.bindingUtils,
 		assetUtils,
 		initialData,
 		persistenceKey,

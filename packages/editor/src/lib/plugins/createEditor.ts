@@ -3,6 +3,7 @@ import type { TLStore } from '@tldraw/tlschema'
 import { createTLStore } from '../config/createTLStore'
 import { Editor, TLEditorOptions } from '../editor/Editor'
 import type { TLPlugin } from './plugin'
+import { resolvePluginRecords } from './pluginRecords'
 
 /**
  * Options for {@link createEditor}.
@@ -48,13 +49,14 @@ export function createEditor({
 	getContainer,
 	...rest
 }: TLCreateEditorOptions): Editor {
+	const records = resolvePluginRecords(plugins, {})
 	return new Editor({
 		...rest,
 		store:
 			store ??
 			createTLStore({
-				shapeUtils: plugins.flatMap((p) => p.shapeUtils ?? []),
-				bindingUtils: plugins.flatMap((p) => p.bindingUtils ?? []),
+				shapeUtils: records.shapeUtils,
+				bindingUtils: records.bindingUtils,
 			}),
 		shapeUtils: [],
 		bindingUtils: [],

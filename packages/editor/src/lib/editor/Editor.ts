@@ -128,6 +128,7 @@ import { userPreferencesCapability } from '../plugins/builtin/userPreferences'
 import { createKernelPlugins } from '../plugins/kernelPlugins'
 import type { TLPlugin } from '../plugins/plugin'
 import { TLPluginHost } from '../plugins/PluginHost'
+import { resolvePluginRecords } from '../plugins/pluginRecords'
 import { Box, BoxLike } from '../primitives/Box'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
@@ -232,10 +233,12 @@ export interface TLEditorOptions {
 	store: TLStore
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
+	 * A shape util here replaces a plugin's shape util of the same type.
 	 */
 	shapeUtils: readonly TLAnyShapeUtilConstructor[]
 	/**
 	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
+	 * A binding util here replaces a plugin's binding util of the same type.
 	 */
 	bindingUtils: readonly TLAnyBindingUtilConstructor[]
 	/**
@@ -249,6 +252,7 @@ export interface TLEditorOptions {
 	overlayUtils?: readonly TLAnyOverlayUtilConstructor[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
+	 * A tool here replaces a plugin's tool of the same id.
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
@@ -430,10 +434,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.markEventAsHandled = this.markEventAsHandled.bind(this)
 
-		const allShapeUtils = checkShapesAndAddCore([
-			...shapeUtils,
-			...installedPlugins.flatMap((p) => p.shapeUtils ?? []),
-		])
+		const records = resolvePluginRecords(installedPlugins, { shapeUtils, bindingUtils, tools })
+		const allShapeUtils = checkShapesAndAddCore(records.shapeUtils)
 
 		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
 		const _styleProps = {} as Record<string, Map<StyleProp<unknown>, string>>
@@ -471,10 +473,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 		this._shapeUtilsByAssetType = _shapeUtilsByAssetType
 
-		const allBindingUtils = checkBindings([
-			...bindingUtils,
-			...installedPlugins.flatMap((p) => p.bindingUtils ?? []),
-		])
+		const allBindingUtils = checkBindings(records.bindingUtils)
 		const _bindingUtils = {} as Record<string, BindingUtil<any>>
 		for (const Util of allBindingUtils) {
 			const util = new Util(this)
@@ -496,7 +495,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const Tool of [...tools, ...installedPlugins.flatMap((p) => p.tools ?? [])]) {
+		for (const Tool of records.tools) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}

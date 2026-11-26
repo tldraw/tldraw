@@ -3297,6 +3297,9 @@ export function resizeScaled(shape: TLBaseShape<any, {
 // @public
 export function resolveLineHeightPx(fontSize: number, lineHeight: number): number;
 
+// @internal
+export function resolvePluginRecords(plugins: readonly TLPlugin[], options: Partial<TLEditorRecords>): TLEditorRecords;
+
 // @public
 export function resolveThemes(themes?: Partial<TLThemes>): TLThemes;
 
@@ -4509,6 +4512,16 @@ export interface TLEditorOptions {
     themes?: Partial<TLThemes>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
+}
+
+// @internal
+export interface TLEditorRecords {
+    // (undocumented)
+    bindingUtils: readonly TLAnyBindingUtilConstructor[];
+    // (undocumented)
+    shapeUtils: readonly TLAnyShapeUtilConstructor[];
+    // (undocumented)
+    tools: readonly TLStateNodeConstructor[];
 }
 
 // @public

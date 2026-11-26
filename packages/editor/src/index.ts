@@ -45,6 +45,7 @@ export {
 	type TLTextMeasurer,
 } from './lib/plugins/builtin/textMeasurement'
 export { createEditor, type TLCreateEditorOptions } from './lib/plugins/createEditor'
+export { resolvePluginRecords, type TLEditorRecords } from './lib/plugins/pluginRecords'
 export {
 	defineCapability,
 	definePlugin,
