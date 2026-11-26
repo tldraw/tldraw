@@ -323,7 +323,7 @@ export interface TLStoreProps {
 	/** User store implementation for user resolution and attribution */
 	users: Required<TLUserStore>
 	/**
-	 * Called when an {@link @tldraw/editor#Editor} connected to this store is mounted.
+	 * Called when an {@link @tldraw/core#Editor} connected to this store is mounted.
 	 * Can optionally return a cleanup function that will be called when unmounted.
 	 *
 	 * @param editor - The editor instance that was mounted

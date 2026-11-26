@@ -51,7 +51,7 @@ export interface TLStoreBaseOptions {
 	/** How should this store resolve users for attribution? */
 	users?: TLUserStore
 
-	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
+	/** Called when the store is connected to an {@link @tldraw/core#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
 }
 

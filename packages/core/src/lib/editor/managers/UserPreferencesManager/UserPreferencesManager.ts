@@ -109,7 +109,7 @@ export class UserPreferencesManager {
 
 	/**
 	 * The current user's raw, app-provided id — the value set in the user's
-	 * {@link @tldraw/editor#TLUserPreferences}. Use this when you need the id your application
+	 * {@link @tldraw/core#TLUserPreferences}. Use this when you need the id your application
 	 * assigned to the user. To compare against or look up store records, use
 	 * {@link UserPreferencesManager.getRecordId} instead.
 	 */
