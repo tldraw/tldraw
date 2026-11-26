@@ -1,5 +1,6 @@
 import {
 	createShapeId,
+	TLCapability,
 	defineMessages,
 	Editor,
 	GeoShapeGeoStyle,
@@ -85,10 +86,22 @@ export interface TLUiToolItem<
 	 */
 	kbd?: string
 	readonlyOk?: boolean
+	/**
+	 * The capabilities the tool needs. While {@link @tldraw/editor#Editor.checkCapability}
+	 * rejects any of them, the toolbar disables the tool, and its shortcut and toolbar drag do nothing.
+	 */
+	capabilities?: TLCapability[]
 	meta?: {
 		[key: string]: any
 	}
 }
+
+/** @internal */
+export function isToolEnabled(editor: Editor, tool: TLUiToolItem) {
+	return !tool.capabilities?.length || !editor.checkCapability(tool.capabilities)
+}
+
+const DRAW: TLCapability[] = ['create-shape', 'edit-shape']
 
 /** @public */
 export type TLUiToolsContextType = Record<string, TLUiToolItem>
@@ -168,6 +181,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolEraser.id,
 				icon: 'tool-eraser',
 				kbd: 'e',
+				capabilities: ['delete-shape'],
 				onSelect(source) {
 					editor.setCurrentTool('eraser')
 					onToolSelect(source, this)
@@ -178,6 +192,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolDraw.id,
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('draw')
 					onToolSelect(source, this)
@@ -194,6 +209,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 				kbd: geo === 'rectangle' ? 'r' : geo === 'ellipse' ? 'o' : undefined,
 				icon: ('geo-' + geo) as TLUiIconType,
+				capabilities: DRAW,
 				onSelect(source: TLUiEventSource) {
 					editor.run(() => {
 						editor.setStyleForNextShapes(GeoShapeGeoStyle, geo)
@@ -219,6 +235,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolArrow.id,
 				icon: 'tool-arrow',
 				kbd: 'a',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('arrow')
 					onToolSelect(source, this)
@@ -241,6 +258,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolLine.id,
 				icon: 'tool-line',
 				kbd: 'l',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('line')
 					onToolSelect(source, this)
@@ -271,6 +289,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolFrame.id,
 				icon: 'tool-frame',
 				kbd: 'f',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('frame')
 					onToolSelect(source, this)
@@ -293,6 +312,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolText.id,
 				icon: 'tool-text',
 				kbd: 't',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('text')
 					onToolSelect(source, this)
@@ -318,6 +338,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolMedia.id,
 				icon: 'tool-media',
 				kbd: 'cmd+u,ctrl+u',
+				capabilities: ['create-shape'],
 				onSelect(source) {
 					helpers.insertMedia()
 					onToolSelect(source, this, 'media')
@@ -328,6 +349,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: messages.toolNote.id,
 				icon: 'tool-note',
 				kbd: 'n',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('note')
 					onToolSelect(source, this)
@@ -358,6 +380,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				id: 'embed',
 				label: messages.toolEmbed.id,
 				icon: 'dot',
+				capabilities: ['create-shape'],
 				onSelect(source) {
 					helpers.addDialog({ component: EmbedDialog })
 					onToolSelect(source, this)
@@ -369,6 +392,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-highlight',
 				// TODO: pick a better shortcut
 				kbd: 'shift+d',
+				capabilities: DRAW,
 				onSelect(source) {
 					editor.setCurrentTool('highlight')
 					onToolSelect(source, this)
@@ -433,8 +457,8 @@ export function onDragFromToolbarToCreateShape(
 	info: TLPointerEventInfo,
 	opts: OnDragFromToolbarToCreateShapesOpts
 ) {
-	// Creating shapes is a no-op in read-only mode, so there's nothing to drag.
-	if (editor.getIsReadonly()) return
+	// The drag creates the shape and then moves it, so there's nothing to drag without both.
+	if (editor.checkCapability(['create-shape', 'edit-shape'])) return
 
 	const { x, y } = editor.inputs.getCurrentPagePoint()
 
@@ -444,7 +468,7 @@ export function onDragFromToolbarToCreateShape(
 	opts.createShape(id)
 	const shape = editor.getShape(id)
 	if (!shape) {
-		// We've already bailed on read-only above, so reaching here means an
+		// We've already bailed on a rejected capability above, so reaching here means an
 		// editable context where createShape didn't take effect (for example it was
 		// blocked by a side effect). Nothing has changed yet, so there's nothing to
 		// roll back—warn for visibility and return to idle instead of entering a

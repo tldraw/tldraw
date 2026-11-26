@@ -5972,6 +5972,7 @@ export interface TLUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLB
 
 // @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
+    capabilities?: TLCapability[];
     // (undocumented)
     icon: IconType | TLUiIconJsx;
     // (undocumented)
