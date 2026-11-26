@@ -840,7 +840,9 @@ async function deployFlyAppIfChanged({
 		: deployed.reason === 'stamped'
 			? deployed.hash.slice(0, 12)
 			: `no stamp: ${deployed.reason}`
-	nicelog(`${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`)
+	const deployingMessage = `${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`
+	nicelog(deployingMessage)
+	await discord.message(deployingMessage)
 	const stampedConfig = stampDeployInputHash(inputs.config, hash)
 	fs.writeFileSync(path.join(zeroCacheFolder, configFile), stampedConfig, 'utf-8')
 	if (inputs.dockerfile) {
@@ -852,6 +854,7 @@ async function deployFlyAppIfChanged({
 	}
 	if (inputs.secrets) await stageZeroFlySecrets(appName, inputs.secrets)
 	await deploy(stampedConfig)
+	await discord.message(`${appName}: fly deploy complete`)
 }
 
 async function deployZeroViaFlyIo() {
