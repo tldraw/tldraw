@@ -40,7 +40,7 @@
   "043973ec1f": [
     {
       "type": 0,
-      "value": "¿Sigue teniendo problemas? "
+      "value": "¿Sigues teniendo problemas? "
     },
     {
       "type": 1,
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Se ha superado el límite, inténtelo de nuevo más tarde."
+      "value": "Has superado el límite de solicitudes. Vuelve a intentarlo más tarde."
     }
   ],
   "08bd40c754": [
@@ -102,21 +102,17 @@
   "093ac7483a": [
     {
       "type": 0,
-      "value": "Todavía no se pueden abrir los archivos "
+      "value": "Todavía no se pueden abrir archivos "
     },
     {
       "type": 1,
       "value": "extension"
-    },
-    {
-      "type": 0,
-      "value": "."
     }
   ],
   "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Este archivo ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimine algún contenido o cree un nuevo archivo."
+      "value": "Este archivo ha alcanzado su límite de tamaño y es posible que los cambios ya no se guarden. Elimina parte del contenido o crea un archivo nuevo."
     }
   ],
   "0b27918290": [
@@ -146,13 +142,13 @@
   "0e4a10d921": [
     {
       "type": 0,
-      "value": "Marca todas las notificaciones como leídas."
+      "value": "Marcar todas las notificaciones como leídas"
     }
   ],
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Eliminar"
+      "value": "Quitar"
     }
   ],
   "10fb1df194": [
@@ -171,6 +167,12 @@
     {
       "type": 0,
       "value": "Desanclar archivo"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Este espacio de trabajo ha alcanzado el número máximo de bibliotecas. Elimina bibliotecas antiguas antes de crear otras nuevas."
     }
   ],
   "13ddd375ad": [
@@ -206,7 +208,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Convidar a"
+      "value": "Mover a"
     }
   ],
   "1da2e8106b": [
@@ -225,6 +227,12 @@
     {
       "type": 0,
       "value": "Un espacio de trabajo debe tener al menos un propietario. Primero, asigna a otra persona como propietario."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Mi colección"
     }
   ],
   "21f66c9c00": [
@@ -259,10 +267,16 @@
       "value": "Acerca de tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Esta biblioteca ha alcanzado el número máximo de elementos. Elimina elementos antiguos antes de añadir otros nuevos."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
-      "value": "No se pudo enviar la retroalimentación."
+      "value": "No se pudieron enviar los comentarios"
     }
   ],
   "2944edaa8d": [
@@ -330,31 +344,31 @@
   "31246941ad": [
     {
       "type": 0,
-      "value": "Tiene que iniciar sesión para ver este archivo."
+      "value": "Debes iniciar sesión para ver este archivo."
     }
   ],
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: falta resaltado"
+      "value": "i18n: Resaltar textos sin traducir"
     }
   ],
   "324a0f3182": [
     {
       "type": 0,
-      "value": "Volver al resumen"
+      "value": "Volver a tldraw"
     }
   ],
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Archivo duplicado"
+      "value": "Duplicar archivo"
     }
   ],
   "335defdafe": [
     {
       "type": 0,
-      "value": "Pruebe a actualizar la página."
+      "value": "Intenta actualizar la página."
     }
   ],
   "34082694d2": [
@@ -390,7 +404,7 @@
   "3bc7d6ea2f": [
     {
       "type": 0,
-      "value": "Continúa con el correo electrónico"
+      "value": "Continuar con correo electrónico"
     }
   ],
   "3bd1b98dbd": [
@@ -402,7 +416,7 @@
   "3c5e891bff": [
     {
       "type": 0,
-      "value": "Anclado"
+      "value": "Anclados"
     }
   ],
   "3d0238bf16": [
@@ -414,7 +428,7 @@
   "3e2ae04ff0": [
     {
       "type": 0,
-      "value": "Diagrama de Mermaid sin soporte"
+      "value": "Diagrama de Mermaid no compatible"
     }
   ],
   "402bf0c47e": [
@@ -423,22 +437,28 @@
       "value": "Tema de color"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menú de la biblioteca"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
-      "value": "Póngase en contacto con el propietario para solicitar el acceso."
+      "value": "Ponte en contacto con el propietario para solicitar acceso."
     }
   ],
   "42ff290cc4": [
     {
       "type": 0,
-      "value": "Comportamiento…"
+      "value": "Acciones…"
     }
   ],
   "44db318ee5": [
     {
       "type": 0,
-      "value": "Obtenga ayuda en Discord"
+      "value": "Pide ayuda en Discord"
     }
   ],
   "454aad3b3c": [
@@ -476,19 +496,19 @@
   "46de2de6bb": [
     {
       "type": 0,
-      "value": "Acepte los términos de uso."
+      "value": "Aceptar las condiciones de uso"
     }
   ],
   "477df802ca": [
     {
       "type": 0,
-      "value": "Para continuar editando copie el archivo a sus archivos."
+      "value": "Para seguir editando, copia el archivo a tus archivos."
     }
   ],
   "47f493a590": [
     {
       "type": 0,
-      "value": "Archivo de pines"
+      "value": "Anclar archivo"
     }
   ],
   "4970317944": [
@@ -533,6 +553,12 @@
     {
       "type": 0,
       "value": " comentó"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Este archivo"
     }
   ],
   "4d0d3ddec9": [
@@ -586,13 +612,13 @@
   "53770fd374": [
     {
       "type": 0,
-      "value": "No leído"
+      "value": "No leídas"
     }
   ],
   "542248f0ba": [
     {
       "type": 0,
-      "value": "Este archivo ahora es de sólo lectura"
+      "value": "Este archivo ahora es de solo lectura"
     }
   ],
   "54286b1d01": [
@@ -604,7 +630,7 @@
   "550b25cc0c": [
     {
       "type": 0,
-      "value": "No se pudo restaurar el dibujo local. Intente recargar esta página."
+      "value": "No se pudo restaurar tu dibujo local. Intenta recargar esta página."
     }
   ],
   "554a05155c": [
@@ -668,7 +694,7 @@
   "5bec508475": [
     {
       "type": 0,
-      "value": "Se detectó un navegador antiguo. Actualice su navegador para usar esta aplicación."
+      "value": "Se ha detectado un navegador antiguo. Actualiza tu navegador para usar esta aplicación."
     }
   ],
   "5bff3c9c88": [
@@ -686,7 +712,7 @@
   "5d26ae7550": [
     {
       "type": 0,
-      "value": "No hemos podido subir parte del contenido que creó antes de iniciar sesión."
+      "value": "No pudimos subir parte del contenido que creaste antes de iniciar sesión."
     }
   ],
   "5f3c333678": [
@@ -728,7 +754,7 @@
   "625fd29749": [
     {
       "type": 0,
-      "value": "Más antiguo"
+      "value": "Más antiguos"
     }
   ],
   "639bae9ac6": [
@@ -752,7 +778,7 @@
   "6637a98151": [
     {
       "type": 0,
-      "value": "Hay una nueva versión de tldraw disponible. Vuelva a cargar la página para continuar."
+      "value": "Hay una nueva versión de tldraw disponible. Recarga la página para continuar."
     }
   ],
   "67ed6ddb7d": [
@@ -806,7 +832,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " persona más"
             }
           ]
         },
@@ -817,7 +843,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " personas más"
             }
           ]
         }
@@ -868,7 +894,7 @@
             },
             {
               "type": 0,
-              "value": " la gente reaccionó"
+              "value": " personas reaccionaron"
             }
           ]
         }
@@ -897,13 +923,13 @@
   "6dc0836c1b": [
     {
       "type": 0,
-      "value": "No tiene los permisos necesarios para realizar esta acción."
+      "value": "No tienes los permisos necesarios para realizar esta acción."
     }
   ],
   "6dfc62f621": [
     {
       "type": 0,
-      "value": "Siga estos pasos para importar el contenido de forma manual:"
+      "value": "Sigue estos pasos para importar el contenido manualmente:"
     }
   ],
   "6ea5359e01": [
@@ -933,7 +959,7 @@
   "7408cf0d7b": [
     {
       "type": 0,
-      "value": "Vuelva a cargar la página"
+      "value": "Recarga la página"
     }
   ],
   "747ee44424": [
@@ -981,7 +1007,7 @@
   "7697920637": [
     {
       "type": 0,
-      "value": "Por favor recarga"
+      "value": "Recarga la página"
     }
   ],
   "76ec4e4ed9": [
@@ -1002,6 +1028,12 @@
       "value": "Este archivo tldraw multijugador anónimo ahora es de solo lectura. Para continuar editándolo, inicia sesión y cópialo a tus archivos."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Aún no hay bibliotecas."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1011,7 +1043,7 @@
   "797799f35e": [
     {
       "type": 0,
-      "value": "Enviar un problema en GitHub"
+      "value": "Crear una incidencia en GitHub"
     }
   ],
   "797c5be9a7": [
@@ -1047,7 +1079,7 @@
   "7c10d4771a": [
     {
       "type": 0,
-      "value": "Inicia sesión para editar la configuración del perfil."
+      "value": "Inicia sesión para editar la configuración del perfil"
     }
   ],
   "7cb5f8b4a5": [
@@ -1059,7 +1091,7 @@
   "7d69b3cb4c": [
     {
       "type": 0,
-      "value": "Archivado"
+      "value": "Archivados"
     }
   ],
   "7daeced9ff": [
@@ -1155,7 +1187,7 @@
   "85a082de1b": [
     {
       "type": 0,
-      "value": "Actualice la página para obtener la última versión de tldraw."
+      "value": "Actualiza la página para obtener la última versión de tldraw."
     }
   ],
   "86c66437fd": [
@@ -1201,7 +1233,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " persona más"
             }
           ]
         },
@@ -1212,7 +1244,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " personas más"
             }
           ]
         }
@@ -1229,7 +1261,7 @@
   "88bf6ab42c": [
     {
       "type": 0,
-      "value": "Este enlace de invitación ha caducado."
+      "value": "Este enlace de invitación ha caducado"
     }
   ],
   "8c2d3d730c": [
@@ -1241,13 +1273,13 @@
   "8cf04a9734": [
     {
       "type": 0,
-      "value": "Hogar"
+      "value": "Inicio"
     }
   ],
   "8eb2c00e96": [
     {
       "type": 0,
-      "value": "Compartido con usted"
+      "value": "Compartido contigo"
     }
   ],
   "8f7f4c1ce7": [
@@ -1259,7 +1291,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Tarifa limitada"
+      "value": "Límite de solicitudes alcanzado"
     }
   ],
   "902b0d55fd": [
@@ -1277,7 +1309,7 @@
   "90646db02d": [
     {
       "type": 0,
-      "value": "¿Está seguro de que desea eliminar "
+      "value": "¿Estás seguro de que quieres eliminar "
     },
     {
       "children": [
@@ -1346,6 +1378,12 @@
       "value": "Condiciones de uso"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Prueba el servidor MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1396,6 +1434,38 @@
       "value": "Parece que no estás conectado. Comprueba tu conexión e inténtalo de nuevo."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemento"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementos"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1408,6 +1478,68 @@
       "value": "Publicar este archivo"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "¿Eliminar "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " y "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "su "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemento"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "sus "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementos"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1417,7 +1549,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Darse de baja"
+      "value": "Rechazar"
     }
   ],
   "a078644c42": [
@@ -1475,7 +1607,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Relleno"
+      "value": "Margen"
     }
   ],
   "a18366b217": [
@@ -1487,7 +1619,7 @@
   "a1c915578c": [
     {
       "type": 0,
-      "value": "El archivo que busca no existe."
+      "value": "El archivo que buscas no existe."
     }
   ],
   "a239905023": [
@@ -1517,7 +1649,7 @@
   "a4d3b161ce": [
     {
       "type": 0,
-      "value": "Entregar"
+      "value": "Enviar"
     }
   ],
   "a52945dbe2": [
@@ -1542,6 +1674,12 @@
     {
       "type": 0,
       "value": "El archivo está creciendo mucho"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Eliminar biblioteca"
     }
   ],
   "a9ded1e5ce": [
@@ -1617,7 +1755,7 @@
   "b1c94ca2fb": [
     {
       "type": 0,
-      "value": "Todo"
+      "value": "Todas"
     }
   ],
   "b2326c3a34": [
@@ -1665,7 +1803,7 @@
   "b6f4a2ec63": [
     {
       "type": 0,
-      "value": "Dueño"
+      "value": "Propietario"
     }
   ],
   "b74dbb40c5": [
@@ -1708,7 +1846,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Cargando "
+              "value": "Subiendo "
             },
             {
               "type": 1,
@@ -1871,13 +2009,13 @@
   "ce0547606c": [
     {
       "type": 0,
-      "value": "Este archivo está llegando a su límite de tamaño. Considere eliminar contenido o crear un nuevo archivo."
+      "value": "Este archivo se está acercando a su límite de tamaño. Considera eliminar parte del contenido o crear un archivo nuevo."
     }
   ],
   "cea291e45e": [
     {
       "type": 0,
-      "value": "Más información sobre publicaciones."
+      "value": "Más información sobre la publicación."
     }
   ],
   "d0834fcec6": [
@@ -1889,7 +2027,7 @@
   "d28d6bbc42": [
     {
       "type": 0,
-      "value": "Archivo anulador"
+      "value": "Anular la publicación del archivo"
     }
   ],
   "d3d2e61733": [
@@ -1901,7 +2039,7 @@
   "d46632fe1f": [
     {
       "type": 0,
-      "value": "Demasiadas solicitudes. Por favor, reduzca la velocidad."
+      "value": "Demasiadas solicitudes. Ve más despacio."
     }
   ],
   "d4bbf74f3e": [
@@ -1919,13 +2057,13 @@
   "d638a3344b": [
     {
       "type": 0,
-      "value": "Antes de comenzar, acepte nuestros "
+      "value": "Antes de empezar, acepta nuestras "
     },
     {
       "children": [
         {
           "type": 0,
-          "value": "términos de uso"
+          "value": "condiciones de uso"
         }
       ],
       "type": 8,
@@ -1959,7 +2097,7 @@
   "d876a9fe1a": [
     {
       "type": 0,
-      "value": "Inténtelo de nuevo"
+      "value": "Volver a intentarlo"
     }
   ],
   "d88ad2dc74": [
@@ -1971,13 +2109,13 @@
   "d9100f3e10": [
     {
       "type": 0,
-      "value": "Vaya aquí para ver el contenido"
+      "value": "Haz clic aquí para ver el contenido"
     }
   ],
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Solo invitar"
+      "value": "Solo por invitación"
     }
   ],
   "dbf9b24193": [
@@ -1996,6 +2134,12 @@
     {
       "type": 0,
       "value": "De acuerdo"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "No se pudo modificar la biblioteca"
     }
   ],
   "e2198d6228": [
@@ -2025,7 +2169,7 @@
   "ea13ecec38": [
     {
       "type": 0,
-      "value": "Historial de archivos"
+      "value": "Historial del archivo"
     }
   ],
   "ea4788705e": [
@@ -2061,7 +2205,7 @@
   "ed6241a422": [
     {
       "type": 0,
-      "value": "No se encontraron archivos que coincidan con su búsqueda."
+      "value": "Ningún archivo coincide con tu búsqueda."
     }
   ],
   "ed75712b0e": [
@@ -2073,7 +2217,7 @@
   "ede55d955f": [
     {
       "type": 0,
-      "value": "Lea nuestra "
+      "value": "Lee nuestra "
     },
     {
       "children": [
@@ -2117,13 +2261,19 @@
   "f09b16bc5f": [
     {
       "type": 0,
-      "value": "Usamos cookies para mantener su sesión iniciada, sincronizar sus archivos y recopilar análisis que nos ayuden a mejorar tldraw."
+      "value": "Usamos cookies para mantener tu sesión iniciada, sincronizar tus archivos y recopilar datos analíticos que nos ayudan a mejorar tldraw."
     }
   ],
   "f0e8bff6f9": [
     {
       "type": 0,
       "value": "Configuración de usuario"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· No se usa en ningún archivo"
     }
   ],
   "f13001876b": [
@@ -2135,7 +2285,7 @@
   "f2569594b2": [
     {
       "type": 0,
-      "value": "Utilizamos estas cookies para guardar sus archivos y configuraciones."
+      "value": "Usamos estas cookies para guardar tus archivos y tu configuración."
     }
   ],
   "f2a6c498fb": [
@@ -2183,13 +2333,13 @@
   "fa2ead697d": [
     {
       "type": 0,
-      "value": "política de privacidad"
+      "value": "Política de privacidad"
     }
   ],
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Espectador"
+      "value": "Lector"
     }
   ],
   "fc9d47046b": [
@@ -2204,10 +2354,16 @@
       "value": "Enlace copiado"
     }
   ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Bibliotecas públicas"
+    }
+  ],
   "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "¿Estás seguro de que quieres eliminar "
+      "value": "¿Estás seguro de que quieres quitar a "
     },
     {
       "type": 1,

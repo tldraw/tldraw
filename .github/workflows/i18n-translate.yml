@@ -37,6 +37,10 @@ jobs:
     runs-on: ubuntu-latest
     # A full review of one tier takes hours; GitHub stops jobs at 6.
     timeout-minutes: 350
+    env:
+      # Developer git hooks don't belong in CI, and husky runs them with sh, where one wrote a
+      # stray file into the first translation PR.
+      HUSKY: '0'
 
     steps:
       - name: Check out code
@@ -120,7 +124,8 @@ jobs:
           git config user.name 'huppy-bot[bot]'
           git config user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git checkout -b "$branch"
-          git add -A
+          # Only the paths the check above allows, so nothing else can reach the PR.
+          git add -- assets/translations apps/dotcom/client/public/tla internal/i18n
           git commit --no-verify -m "chore(i18n): ${MODE} translation run${LOCALES:+ for $LOCALES}"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
           {

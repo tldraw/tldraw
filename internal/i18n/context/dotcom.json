@@ -1,0 +1,3276 @@
+{
+	"0095a9fa74": {
+		"sourceHash": "af6bf132010338675bcff8cdef662277c41133c70e998d280e8471d966bff84c",
+		"role": "label",
+		"meaning": "Name of the Export tab in the file share menu, and title of the Export dialog, where the user exports the canvas as an image (SVG/PNG). Verb-noun 'export', not trade exports.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/TlaFileShareMenu.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaExportDialog.tsx"
+		],
+		"constraints": [
+			"Tab label alongside 'Invite', 'Share', 'Publish'; keep short"
+		]
+	},
+	"00b177e080": {
+		"sourceHash": "ed9c27cdf50980ee2282003f58b13d1c92e254598931f0eb08e9ae8b652239f6",
+		"role": "action",
+		"meaning": "Button in the workspace invite dialog that accepts an invitation and joins the workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaInviteDialog.tsx"
+		]
+	},
+	"029f235f01": {
+		"sourceHash": "51a61f756fb4b7a227e7dbd8845790ee67ed9f02f955cc2900f0d69d896f2bed",
+		"role": "body",
+		"meaning": "Dialog text shown when the user tries to open a file saved by the tldraw offline app: support for those files is coming. The app name is a link to the tldraw offline site.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaTldrawOfflineFileDialog.tsx"
+		],
+		"placeholders": {
+			"appName": "The product name 'tldraw offline', not translated",
+			"a": "Link to the tldraw offline website wrapping the app name",
+			"strong": "Bold wrapper around the app name"
+		},
+		"constraints": [
+			"Keep <a><strong>{appName}</strong></a> together and nested as in English"
+		]
+	},
+	"043973ec1f": {
+		"sourceHash": "1aa671a0b0dee2b13a9ec5a30cce01e126bdd681102bc550bb5988f4fcde08c7",
+		"role": "body",
+		"meaning": "Last line of the dialog shown when content created before signing in failed to upload, after manual import steps. Offers a link for further help.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		],
+		"placeholders": {
+			"GetHelpLink": "A link whose text is the separate message 'Get help on Discord'"
+		}
+	},
+	"04a2dd56d6": {
+		"sourceHash": "ea5732b97cfc4dbb9948d435d18ae911b91ca08a9581c89f756b70ad309502e1",
+		"role": "heading",
+		"meaning": "Section heading in the Manage workspace dialog above the 'Copy invite link' button, for inviting other people to the workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		]
+	},
+	"05b2656486": {
+		"sourceHash": "bb53e3151eebba5c6d36a24600271499bfeacc665edf0dca1bc485aebad00d80",
+		"role": "body",
+		"meaning": "Notification in the sidebar notifications panel: someone mentioned (@-tagged) the user in a comment.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"placeholders": {
+			"author": "Display name of the person who mentioned the user",
+			"name": "Tag that styles the author's name"
+		},
+		"constraints": [
+			"Keep <name>{author}</name> intact; 'mentioned' means tagged in a comment, not 'said in passing'"
+		]
+	},
+	"05f43078e9": {
+		"sourceHash": "7a6cc59c53a4e2088613454130d8660e8864f6a1e9d2820d7bbacbf339c735cf",
+		"role": "error",
+		"meaning": "Error toast when the user tries to create a workspace but already has the maximum allowed.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"06b9281e39": {
+		"sourceHash": "af822fb319d54002e8b0420e894089637702c84e97f8fb9818361a1f725f3b06",
+		"role": "label",
+		"meaning": "Theme option in the Export tab: export images in light or dark depending on the user's current theme. Short for automatic, not a car.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Sits beside 'Light' and 'Dark' in a dropdown; keep short"
+		]
+	},
+	"07dbd11b21": {
+		"sourceHash": "380433b673664273e6a433156d49c6f285d9a23436ff75e94113a2045c9c784a",
+		"role": "label",
+		"meaning": "Placeholder name shown for a file that has no name, in the top-left file name, document title and file menus.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/editor-messages.ts",
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakySetDocumentTitle.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/useFileEditorOverrides.ts"
+		]
+	},
+	"08331c1710": {
+		"sourceHash": "5a8331d9cd30e3ab36ddaff9e58b76d548e93b565413f51285a54cf3a6916bfd",
+		"role": "error",
+		"meaning": "Error toast when the server rejects an action because the user made too many requests in a short time.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"08bd40c754": {
+		"sourceHash": "cdf31a5d7137c43badcaae7ce78d9b6f5af1fff434c704d8bec1b918c8439cbc",
+		"role": "label",
+		"meaning": "Name of the user's account: fallback text on the sidebar user-settings button and menu when the user has no name, and the heading of the account group in the command palette.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsButton.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx"
+		],
+		"constraints": [
+			"User account, not a bank account or an invoice"
+		]
+	},
+	"093ac7483a": {
+		"sourceHash": "a292b4907f1ebbd9152cd4f49800e58127f152f21067f176c5f7a58c5bbe265e",
+		"role": "heading",
+		"meaning": "Title of the dialog shown when the user drops or opens a file from tldraw offline, which can't be opened yet.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaTldrawOfflineFileDialog.tsx"
+		],
+		"placeholders": {
+			"extension": "The tldraw offline file extension, including the dot; not translated"
+		}
+	},
+	"0a91f7fa87": {
+		"sourceHash": "f47b31cd7e2bf0b5e07cc0e1c5d13e255eddca0ef0929f95b3e9c19492bf0b90",
+		"role": "body",
+		"meaning": "Body of the 'File is full' dialog: the file is at its storage size limit, so new changes may not be saved; the user should delete content or start a new file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLargeFileHandler.tsx"
+		]
+	},
+	"0b27918290": {
+		"sourceHash": "9f0c64da2c6981f758b1e7a054c69d1fcc0c4b8e145016c6ab4fe6816f59e26d",
+		"role": "label",
+		"meaning": "Label of the File submenu in the editor's top-left main menu (new file, import, etc.). Computer file, not a queue or a tool.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/editor-messages.ts"
+		],
+		"constraints": [
+			"Menu name; keep to the locale's conventional 'File' menu label"
+		]
+	},
+	"0b9a4cde72": {
+		"sourceHash": "201b4f997d9e5aee32428d67abab8f264f985330ccd4a135f978afb9afbe087a",
+		"role": "tooltip",
+		"meaning": "Tooltip and accessible name of the '…' button on a file in the sidebar list, which opens that file's menu of actions.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFileLinkMenu.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
+		]
+	},
+	"0c4383617a": {
+		"sourceHash": "937ef589e7c8c9c72c2f0684a276b2c76c2e272927840918dcb31195e8da9c79",
+		"role": "error",
+		"meaning": "Error toast shown when a workspace invite link can't be loaded or accepted (server or network error).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/WorkspaceInviteHandler.tsx"
+		]
+	},
+	"0d1f2bb523": {
+		"sourceHash": "695fe9a6e76c0e3b3e7190d53c3d97f625d1744d0ce7d36d1f7b7d7aa8c0d2ca",
+		"role": "action",
+		"meaning": "Opens the feedback dialog (sidebar button, menus, settings), and is also that dialog's title and submit button that sends the feedback to tldraw.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFeedbackButton.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Used both as a title and a button; choose a form that works for both"
+		]
+	},
+	"0e4a10d921": {
+		"sourceHash": "22f3f8d0bbf36a20662335036b7b61e452080caf5672df921073578918c57a08",
+		"role": "action",
+		"meaning": "Menu item in the notifications panel and command palette that marks every unread comment notification as read.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		]
+	},
+	"1063e38cb5": {
+		"sourceHash": "70b4ac38575491f99a32becf2b881088264ea58391c5f59eb4b633c17a3b4edb",
+		"role": "action",
+		"meaning": "Removes a member from a workspace: an action in a member's role dropdown and the confirm button of the 'Remove member' dialog. The person loses access; nothing is deleted.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Remove from the workspace, not delete; keep distinct from 'Delete'",
+			"Destructive button; keep short"
+		]
+	},
+	"10fb1df194": {
+		"sourceHash": "56133f5a1d80a754eac68f3f6b43a2cae420877fac8eac4201b0d791e8431162",
+		"role": "action",
+		"meaning": "Button in the dialog for a legacy, now read-only multiplayer file. It creates an editable copy of the file in the signed-in user's own (private) workspace and opens it.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLegacyModal.tsx"
+		]
+	},
+	"110a4b01be": {
+		"sourceHash": "a06b11973723a228c351d720a98da8c9548ac1e6dec0bebe211805da4ce4750f",
+		"role": "label",
+		"meaning": "Name of the Publish tab in the file share menu, where the owner makes a public read-only snapshot of the file available at a link.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/TlaFileShareMenu.tsx"
+		],
+		"constraints": [
+			"Tab label alongside 'Invite', 'Share', 'Export'; keep short"
+		]
+	},
+	"12a6766ba1": {
+		"sourceHash": "b930b9f8293413a98af1af41ded22f1b292a93393c7b20072afa27d35db52f1f",
+		"role": "action",
+		"meaning": "Item in a file's menu (sidebar) that removes the file from the pinned files at the top of the sidebar. The opposite of 'Pin file'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Pin means keep at the top of a list, not a sewing pin or PIN code"
+		]
+	},
+	"13cad4c2e8": {
+		"sourceHash": "ceee9c2dd37d1e1e281a6401aa44e9d152eef31a3f3706a6a1bb2da4599bf379",
+		"role": "error",
+		"meaning": "Error toast when the user tries to create a library in a workspace that already has the maximum number of libraries. A library is a reusable collection of shapes/items, not a book library.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"13ddd375ad": {
+		"sourceHash": "31c7b4af236d70533dd12e326d52bac73e0afec1add2e69f98b754a3f8242742",
+		"role": "label",
+		"meaning": "Label for the format dropdown in the share menu's Export tab. The user picks SVG or PNG next to it. It labels a choice of file format; it is not a button that starts the export.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Short field label followed by a dropdown (SVG/PNG)"
+		]
+	},
+	"14b03eeeb5": {
+		"sourceHash": "28df49ff29fa3784a62322ae781adebed58f8fd9f8967cfa95702e638e3223df",
+		"role": "tooltip",
+		"meaning": "Tooltip and accessible label for the three-dots (more options) button in the sidebar notifications panel. The button opens a menu of actions for notifications.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"constraints": [
+			"Also used as an icon's screen-reader label"
+		]
+	},
+	"15bf4fead9": {
+		"sourceHash": "ec8e0e16b5467150e2285b4e03f09dc7a9ecac3f5f28b08be500bf30ca8bfef3",
+		"role": "action",
+		"meaning": "Command palette entry that lists the user's workspaces so they can switch to another one. 'Switch' means change to a different workspace, not toggle a setting on or off.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		]
+	},
+	"181b90f889": {
+		"sourceHash": "e6b67d4a64f26c0c6015597cc3facb67a86bafb0a06d6569ab6f1f0b2513503b",
+		"role": "action",
+		"meaning": "Title and tooltip of the sidebar button that creates a new blank tldraw file (board).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarCreateFileButton.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
+		]
+	},
+	"1914dedd04": {
+		"sourceHash": "0e125ba27f12a56a91f51e933fc568e01f18b01305bfcf205e19f0142921ab3d",
+		"role": "label",
+		"meaning": "Tab on the workspace home page that filters the file list to files the current user created. It sits next to the 'Recents' and 'Shared with me' tabs.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Tab label; keep short and parallel with 'Shared with me'"
+		]
+	},
+	"1a7222b4e5": {
+		"sourceHash": "b4626106c67171a02611d4c2665cc146bb5d8b28455dd78fa13202744dc4c506",
+		"role": "action",
+		"meaning": "File menu item (sidebar and file header) that opens a submenu of workspaces, so the user can move the file into another workspace. 'Move' means relocate the file, not physically move something.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Opens a submenu listing destination workspaces; the destination is not part of the string"
+		]
+	},
+	"1da2e8106b": {
+		"sourceHash": "089e9e75a089f89f7868fdbed5dcde171c2385b97471d1062681e86f1ee007d4",
+		"role": "error",
+		"meaning": "Generic toast description shown when a server action (such as publishing or editing a file) fails for an unknown reason.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"1dd1c5fb7f": {
+		"sourceHash": "d9226ccf6c6c286707f72227ff1dbf0a94b18df7354796c821b526fd899e8459",
+		"role": "heading",
+		"meaning": "Section heading in the sidebar's recent files list that groups files opened or edited today.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		]
+	},
+	"1ffd709937": {
+		"sourceHash": "ca97cf713290dff76d009b7909d56da5d2e92109c1ab5e3cefec200db152c944",
+		"role": "tooltip",
+		"meaning": "Explanation in workspace settings, shown as a tooltip and in the member role menu, of why the last owner can't be demoted, removed or leave: the workspace must always have an owner. 'Owner' is the workspace role name, as opposed to 'Member'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Use the same word for 'owner' as the Owner role label"
+		]
+	},
+	"20746febc9": {
+		"sourceHash": "d565a4f29808426bf1d8ea0f8c6816b33d65e9af69036b7b6bf2ec036490b520",
+		"role": "label",
+		"meaning": "Default name given to a user's first personal library of saved shapes and items. 'Stash' means a personal collection of saved things, a casual word for a private store; it has nothing to do with hiding something illicitly.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaLibraries/librariesSource.ts"
+		],
+		"constraints": [
+			"Becomes a library name the user can rename; keep short and friendly"
+		]
+	},
+	"21f66c9c00": {
+		"sourceHash": "74c04ea38e68895f6eb003001a052ea2c68f902ca3461bd600127f1df7411442",
+		"role": "label",
+		"meaning": "Placeholder text in the name input when creating a new workspace or renaming one in workspace settings.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Input placeholder"
+		]
+	},
+	"23dcace54a": {
+		"sourceHash": "af46f7c9e555d70dc1642b8bf0443dd8aa87e9ddba187d695ced4643fd6c13e5",
+		"role": "body",
+		"meaning": "Text in the sign-in dialog shown to a signed-out person who opened a workspace invite link. It tells them they have been invited and must create a free account to accept.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"placeholders": {
+			"workspaceName": "Name of the workspace they were invited to"
+		},
+		"constraints": [
+			"Keep the <strong>…</strong> tags around {workspaceName}"
+		]
+	},
+	"250ddea65c": {
+		"sourceHash": "2335b560c6bf7a7075c151d26cefb015ded96596eaac172cc1fd41a22a64bb94",
+		"role": "action",
+		"meaning": "App menu item that opens information about tldraw (version, links, credits).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"'tldraw' is a brand; keep lowercase and untranslated"
+		]
+	},
+	"26111f65cc": {
+		"sourceHash": "efef360f09adbf1de55cc3a525c6103158aeb4f08d0e85ffd26d80f78bd0d764",
+		"role": "error",
+		"meaning": "Error toast shown when the user tries to add an item to a library that has reached its item limit. They must delete existing items before adding more.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts",
+			"apps/dotcom/client/src/tla/components/TlaLibraries/librariesSource.ts"
+		]
+	},
+	"28b2464e1f": {
+		"sourceHash": "b69c4335486b8d05fe60474ced89509584ca11fcd2a25a9c06783f63bcae1a37",
+		"role": "error",
+		"meaning": "Title of the error toast shown when sending feedback from the feedback dialog fails.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"Toast title; keep short"
+		]
+	},
+	"2944edaa8d": {
+		"sourceHash": "9c138660ceab527a77dc5ef4437154ca641cdb8279fc93ff159d7ecca19470b5",
+		"role": "tooltip",
+		"meaning": "Tooltip on a comment's author byline when someone else (for example an agent or integration) posted the comment for that person. It reads as 'posted for {name}'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaCommentByline.tsx"
+		],
+		"placeholders": {
+			"name": "Display name of the person the comment was posted for"
+		}
+	},
+	"299cb00a7a": {
+		"sourceHash": "3653bcb56450a43fe9fc16a03e4adf31ea3da5c5d355b9216e0d4658e7494939",
+		"role": "error",
+		"meaning": "Heading shown when uploading assets (images or files) from a pasted or imported board into the file fails.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		]
+	},
+	"2a1167f869": {
+		"sourceHash": "3ae54e97c425687922cac9aa843135cb4aed918607b15e947df830e803e46550",
+		"role": "label",
+		"meaning": "Default name of the welcome file created automatically in a brand-new workspace. It is a file name, not a greeting shown in a dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Used as a file name the user can rename"
+		]
+	},
+	"2a37324bb4": {
+		"sourceHash": "5664717de7fb2890056e15171aed53c4f31845009b736382609e6c649be4bcb1",
+		"role": "label",
+		"meaning": "Placeholder and label of the file search input in the sidebar and on the workspace home page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarSearch.tsx",
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Input placeholder; keep the ellipsis"
+		]
+	},
+	"2d3cdcfdd4": {
+		"sourceHash": "9530f38ef39ab2be69d8820cc7099ac67f62d343f0427c3520a95387c68356cc",
+		"role": "error",
+		"meaning": "Toast description asking the user to retry after an action failed: sending feedback, or accepting a workspace invite.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts",
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		]
+	},
+	"2de510be71": {
+		"sourceHash": "85a2246d9337974273eee51cbf71b0c38b68e82d4544264e22a28f829201b0f1",
+		"role": "body",
+		"meaning": "Warning in the confirmation dialog for regenerating a workspace's invite link. The old link stops working, so anyone who had it needs the new one to join.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		]
+	},
+	"2e2b3c700b": {
+		"sourceHash": "3aeee7fad5e21b6345ab6a4510ff4b5a93d26d02556930196211a2d8f4bde854",
+		"role": "label",
+		"meaning": "Checkbox label in the feedback dialog. When checked, a link to the file the user has open is attached to the feedback.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"Checkbox label"
+		]
+	},
+	"2e9856a31e": {
+		"sourceHash": "e51983f3c62b2168813ebf34b068259b18cb16c789269545567b41c3c354785a",
+		"role": "action",
+		"meaning": "Button in workspace settings, and title of its confirmation dialog, that replaces the workspace's invite link with a new one and invalidates the old link.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		]
+	},
+	"2f42560ef5": {
+		"sourceHash": "0c8e50d26365e28a229634304aa8294e43be53bfe71101e322f80974c1beae71",
+		"role": "label",
+		"meaning": "Shows the current user's own name in the list of people who visited a board, marked as being them.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaBoardVisitors.tsx"
+		],
+		"placeholders": {
+			"name": "The current user's display name"
+		}
+	},
+	"31246941ad": {
+		"sourceHash": "c8e7ee7c75815b7fefe02cc4ffdd401032286a064101b03d648c4235670d9579",
+		"role": "error",
+		"meaning": "Message on the file error page when a signed-out visitor opens a file that requires signing in.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"31418ce4ad": {
+		"sourceHash": "4ebadb6de2fb32ce1aeee83a26b427dcf98e7e85289957cefe96dd1ba4943f9f",
+		"role": "action",
+		"meaning": "Developer/debug toggle, in the debug flags menu and the settings dialog, that visually highlights UI text that hasn't been translated. Internal tool for checking translations.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Checkbox toggle; keep the 'i18n:' prefix as is"
+		]
+	},
+	"324a0f3182": {
+		"sourceHash": "168bca61fd1326c8fde794ea52f7232938e27d7f918fb1abcaab9471bc6ba41d",
+		"role": "action",
+		"meaning": "Link on the generic error page that takes the user back to the tldraw app home.",
+		"callSites": [
+			"apps/dotcom/client/src/components/ErrorPage/ErrorPage.tsx"
+		],
+		"constraints": [
+			"'tldraw' is a brand; keep lowercase and untranslated"
+		]
+	},
+	"32811caa8c": {
+		"sourceHash": "66743c53ba606a49364c93c0a643492ee4b382c2c768233455f50c724e72f017",
+		"role": "action",
+		"meaning": "Command palette item that makes a copy of the current file as a new file. The palette mixes file and shape commands, so the label names the file. 'Duplicate' is a verb here.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Keep distinct from 'Copy file link'"
+		]
+	},
+	"335defdafe": {
+		"sourceHash": "125589867c78f6ecc9ea4bc076ef9850004ea4ecee651077ecc5d3a12e27838e",
+		"role": "error",
+		"meaning": "Message on the generic file error page suggesting the user reload the browser page to recover.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"34082694d2": {
+		"sourceHash": "1dc3b89e6beab91496962db4d9d1ce496da0f2657ec98cb2b1ebf164796d9ffd",
+		"role": "label",
+		"meaning": "Placeholder of the text prompt shown when renaming a file from the command palette.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Input placeholder"
+		]
+	},
+	"344a7f427f": {
+		"sourceHash": "d6a7ec6a3bf8ff6db08591a8bb13faaeb36d91b6fdbaeebacca154dd634cbd3d",
+		"role": "label",
+		"meaning": "Option in the share menu's link-access dropdown: people with the shared link can edit the file (the alternative is 'Viewer'). A person's role/permission level, not a software program or a text editor.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx"
+		],
+		"constraints": [
+			"Pairs with 'Viewer'; keep the two parallel",
+			"Role noun for a person who can edit"
+		]
+	},
+	"34e34c43ec": {
+		"sourceHash": "e35fe8751c3c15341be0ce9ea8319769d25fbe70e8f33a7af8b74ceef05b6320",
+		"role": "action",
+		"meaning": "Sidebar button (settings icon) that opens the current workspace's settings dialog, where name, members and libraries are managed.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions.tsx"
+		],
+		"constraints": [
+			"Short sidebar button label next to 'New file'"
+		]
+	},
+	"375396d6e5": {
+		"sourceHash": "b1ae8a528e1b0d61866ce49c03ee4729c78a0d107c73c7d1f109aacb3810b2f6",
+		"role": "heading",
+		"meaning": "Title of the confirmation dialog shown before removing a person from a workspace. The member loses access to the workspace; their account is not deleted.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		]
+	},
+	"398f51738e": {
+		"sourceHash": "16e103ecbbbbc84f4c74971e4c362023907bba5f8c18be7a11bd707678b4b7e0",
+		"role": "error",
+		"meaning": "Toast description shown when someone opens a workspace invite link without being signed in; they must sign in before the invite can be accepted.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"3bc7d6ea2f": {
+		"sourceHash": "1167a5b790c35f694f62a3577ac44bdcfafa47620fba17551a6557d76b0acee6",
+		"role": "action",
+		"meaning": "Button in the sign-in dialog that proceeds with email-based sign-in (instead of Google/other providers).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		]
+	},
+	"3bd1b98dbd": {
+		"sourceHash": "f0e85567e47cc94f799feb1a93b47121cdf9fbbe36473ee536272fc2cd50bb28",
+		"role": "error",
+		"meaning": "Error toast when updating an already-published file (republishing the latest changes to the public read-only copy) fails.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"'Publish' means making a public read-only link of the file, not printing/media publishing"
+		]
+	},
+	"3c5e891bff": {
+		"sourceHash": "32fcf240235c4cbacb52b871be2178d8565f9da3f0c2a505fbff3a28a6d6940b",
+		"role": "heading",
+		"meaning": "Heading of the sidebar section listing files the user has pinned; also the accessible label of the pin icon on a pinned file card on the workspace home page. Describes files, so it's an adjective/state (plural in the section heading).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx",
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		]
+	},
+	"3d0238bf16": {
+		"sourceHash": "d8a66962ff7b4ab9e17ae2dd8ec60a511ee8b18d991d611c8163527294cc537d",
+		"role": "action",
+		"meaning": "Button on the cookie consent banner that accepts all cookies, including analytics.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaCookieConsent.tsx"
+		],
+		"constraints": [
+			"Refers to cookies; short button label"
+		]
+	},
+	"3e2ae04ff0": {
+		"sourceHash": "7edce8acb53618b7bcea6324ddc5115679ce239dfecae9225ac47d0d8e73e10f",
+		"role": "error",
+		"meaning": "Toast title shown when pasted Mermaid diagram text uses a diagram type that can't be converted into native tldraw shapes.",
+		"callSites": [
+			"apps/dotcom/client/src/components/SneakyMermaidHandler/SneakyMermaidHandler.tsx"
+		],
+		"constraints": [
+			"Mermaid is a product name; keep it untranslated"
+		]
+	},
+	"402bf0c47e": {
+		"sourceHash": "0b1ddd98d837e50c9d7d71cb3f1f70175ade56d01dcc80cb626c8a3378060c52",
+		"role": "label",
+		"meaning": "Setting/submenu for choosing the app's colour theme (e.g. light, dark, system or other UI themes). Appears in the settings dialog, the main menu and the command palette.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		]
+	},
+	"4236087d6b": {
+		"sourceHash": "c6179aeced62a20d08dee582e4530728fda92d431492319946b4b54d3b3d2a82",
+		"role": "tooltip",
+		"meaning": "Accessible label/tooltip of the overflow (…) button on a library row in the workspace libraries list; opens a menu with Rename and Delete. 'Library' is a collection of reusable shapes/components, not a book library.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		]
+	},
+	"42e53c47c1": {
+		"sourceHash": "c2cb5b151310e5765ae0b3d063996a5ad1680b2b488948cfafcefbac8dce500d",
+		"role": "body",
+		"meaning": "Message on the 'Invite only' error page shown when a user opens a file they don't have access to; tells them to ask the file's owner for access.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"42ff290cc4": {
+		"sourceHash": "b0ba0a1bb2ca8c619b5ddba0e1ff721c010f77c9f669c1aaa2022681bbc94bcf",
+		"role": "action",
+		"meaning": "Item in the editor's top-left main menu that opens the command palette (a searchable list of all commands). The ellipsis signals it opens something further.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		],
+		"constraints": [
+			"Keep the trailing ellipsis character"
+		]
+	},
+	"44db318ee5": {
+		"sourceHash": "1cf2c5b7206f9264e1e570a21f1152a6d3b0ea47677fcf08b42bfdc6896d6fcc",
+		"role": "action",
+		"meaning": "Link to tldraw's Discord community, shown on the page explaining that content created before sign-in failed to upload. Inserted into the sentence 'Still having trouble? {GetHelpLink}'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		],
+		"constraints": [
+			"Discord is a brand name; keep it untranslated"
+		]
+	},
+	"454aad3b3c": {
+		"sourceHash": "f7d826bb10a5fae21f9913027b34acdb7b77242601fdb0aa632ff2db9f3f3635",
+		"role": "body",
+		"meaning": "Confirmation text in the delete-file dialog. The file is permanently deleted, not just removed from a list.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaDeleteFileDialog.tsx"
+		],
+		"placeholders": {
+			"fileName": "Name of the file being deleted, shown in bold"
+		},
+		"constraints": [
+			"Keep the <strong>…</strong> tags around {fileName}"
+		]
+	},
+	"46137245cd": {
+		"sourceHash": "7781d49aa021571310358e3ebccabb648bfe79ae5cb8adcef7b73b51459fea78",
+		"role": "body",
+		"meaning": "Description of the success toast after the user submits feedback through the feedback dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"tldraw is a brand name, lowercase, untranslated"
+		]
+	},
+	"4630b65bb2": {
+		"sourceHash": "eb711e622d5739bce6b48832a8dc0dde0ac64381dd59dd417c5ea162c0c51e58",
+		"role": "action",
+		"meaning": "File menu submenu that lists destinations (workspaces/folders) to move the file into. Followed by the list of targets.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Submenu label; the destination list follows it"
+		]
+	},
+	"46de2de6bb": {
+		"sourceHash": "566c7f3e2a22a947eb0659dbe566bb991e22e800e74a44e65ca095b092c2ce2e",
+		"role": "heading",
+		"meaning": "Title of the dialog asking the user to accept tldraw's terms of use (and privacy policy) before continuing.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaLegalAcceptance.tsx"
+		]
+	},
+	"477df802ca": {
+		"sourceHash": "848a9723bf03c428c94ab4708b3b45a0846a090dbda7f367f6e49f1eea887449",
+		"role": "body",
+		"meaning": "Body of the dialog shown to a signed-in user opening an old multiplayer file that is now read-only; they need to copy it into their own files (via the 'Copy to personal workspace' button) to keep editing.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLegacyModal.tsx"
+		]
+	},
+	"47f493a590": {
+		"sourceHash": "00386fc4335650166a57b2d59232c613991dccade1a6ef5b1c95cff3fff13883",
+		"role": "action",
+		"meaning": "File menu item that pins the file to the top of the sidebar/home list (toggles with 'Unpin file'). 'Pin' means fix in place for quick access, not a PIN code or a sewing pin.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		]
+	},
+	"4970317944": {
+		"sourceHash": "8f4f3ae79142629031e672080d284c4fae737f7b6290ac946a439749aa7a7e3e",
+		"role": "label",
+		"meaning": "Submenu in the editor's top-left main menu grouping commands that insert or act on canvas objects (shapes, embeds, media). Means a thing on the canvas, not grammatical object or 'to object'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		]
+	},
+	"49800157c1": {
+		"sourceHash": "23938c882c7de42a735cac072d14001b3cb31f07c4810d9d60f309ddd7bb543a",
+		"role": "state",
+		"meaning": "Caption on a file card on the workspace home page showing when the file was last modified.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"placeholders": {
+			"time": "Already-localized relative time such as '5 minutes ago' or 'yesterday'"
+		},
+		"constraints": [
+			"The file was edited (past participle), not a command"
+		]
+	},
+	"49ee308734": {
+		"sourceHash": "f922fb4b826598e6821d8d914edbc3e4c90b0a8be92aae5644753cabefc7d482",
+		"role": "label",
+		"meaning": "Label for a name field: the user's display name in settings, a workspace's name in workspace settings and the create-workspace dialog, and the file-name placeholder when creating a new file from the command palette.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Noun, not the verb 'to name'"
+		]
+	},
+	"4a8165368a": {
+		"sourceHash": "4c7428822d4f841237357df091e2ae99799c70ffcd3525aac5362320c8c079df",
+		"role": "action",
+		"meaning": "Command palette item that copies the public read-only link of a published file to the clipboard.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"'Copy' is the verb (copy to clipboard); 'published' qualifies the link"
+		]
+	},
+	"4a95fa0c08": {
+		"sourceHash": "4fe831a2d90fca60e9c36bb362a2faf500c6947f123b284e22f581f9c9c46516",
+		"role": "body",
+		"meaning": "Byline of a notification in the sidebar notifications panel: someone commented on a file the user owns.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"placeholders": {
+			"author": "Display name of the person who commented"
+		},
+		"constraints": [
+			"Keep the <name>…</name> tags around {author}; they style the name"
+		]
+	},
+	"4c4a28e97a": {
+		"sourceHash": "ea7b8ed8ac39e1c7571bc82fbb38af4c865df6af112428dc56294612f00deb54",
+		"role": "label",
+		"meaning": "Name shown in the libraries panel for the library of reusable components stored in the currently open file, as opposed to workspace or public libraries.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaLibraries/anonEditorLibraries.ts",
+			"apps/dotcom/client/src/tla/components/TlaLibraries/editorLibraries.ts"
+		]
+	},
+	"4d0d3ddec9": {
+		"sourceHash": "cdd7893bfbd18582dab8935a9784b90956ea2c5e19db1daaf8cd4ac55376b3a9",
+		"role": "body",
+		"meaning": "Main text of the cookie consent banner.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaCookieConsent.tsx"
+		]
+	},
+	"4d1c8263ba": {
+		"sourceHash": "bfd00d640198664214962efff37673142a24fb9b2924bb0a102b9edb87247aac",
+		"role": "action",
+		"meaning": "Button in the 'Please reload the page' modal shown when the app version is outdated; reloads the browser page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/MaybeForceUserRefresh/MaybeForceUserRefresh.tsx"
+		]
+	},
+	"5097d89907": {
+		"sourceHash": "596f578758936ae6a103e5b4c930286226d1e57f6469f38b5fa7ff710ebfc3cc",
+		"role": "body",
+		"meaning": "Description of the toast shown when pasted Mermaid text can't be converted to native shapes; the diagram will be inserted as an SVG image instead.",
+		"callSites": [
+			"apps/dotcom/client/src/components/SneakyMermaidHandler/SneakyMermaidHandler.tsx"
+		],
+		"constraints": [
+			"SVG is a file format; keep it"
+		]
+	},
+	"50db1b7e1e": {
+		"sourceHash": "710ac06da8ae2fe399700e13314e6780dcf343bbfd821781d2f1354743ed7d26",
+		"role": "error",
+		"meaning": "Error toast when unpublishing a file (removing its public read-only link) fails.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"51317dcad5": {
+		"sourceHash": "cf70b3a3a32cb7395b851fe1d97e18bab000935cab0df942909c11225fde158a",
+		"role": "body",
+		"meaning": "Help text in workspace settings for the user's personal home workspace, shown under a disabled 'Copy invite link' button. Explains that nobody can be invited to this private workspace; to collaborate, the user must create a separate workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		]
+	},
+	"517bb809d9": {
+		"sourceHash": "1d3820ca04c1596b888942636734221b8994966cd575fa6cec6394ecea79d111",
+		"role": "label",
+		"meaning": "Accessible name / tooltip for the button that opens the list of pages in the current file (pages within one canvas document, not web pages).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		],
+		"constraints": [
+			"'Page' means a page of the drawing document, not a website page"
+		]
+	},
+	"517f5f3544": {
+		"sourceHash": "d6ec1fc6c49c21785838659ce1acc3c4f49784a4d03f102f9a7debeda9eee278",
+		"role": "body",
+		"meaning": "Empty-state message in the workspace home file list when the current tab has no files and there is no search query.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		]
+	},
+	"536b51486d": {
+		"sourceHash": "87d9141da4b06faf3ed7d7632735d4d128fb388fac8dc4eeef1d51bcc5a876f3",
+		"role": "action",
+		"meaning": "Menu item in the file menu (top-left) that opens the export dialog to save the drawing as an image (SVG/PNG). The ellipsis signals a dialog follows.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		],
+		"constraints": [
+			"Keep the trailing ellipsis character"
+		]
+	},
+	"53770fd374": {
+		"sourceHash": "0d42f6cb12c8368eb8b20d4a3aaa4f353102aa61e58a25fd6bf86626dba405e1",
+		"role": "label",
+		"meaning": "Filter option in the notifications panel's options menu: show only unread notifications (alternative to 'All').",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"constraints": [
+			"Adjective describing notifications; agree with the word for 'notifications' if the language needs it"
+		]
+	},
+	"542248f0ba": {
+		"sourceHash": "9622314e77608451f6e175d0ee90c0cb96b7e78746ca492cdd9df3b61cfdbdea",
+		"role": "heading",
+		"meaning": "Title of a modal shown when opening an old anonymous multiplayer file, which can no longer be edited; the body asks the user to sign in and copy it to their files.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLegacyModal.tsx"
+		]
+	},
+	"54286b1d01": {
+		"sourceHash": "e0187bebb9afbc85f191bff82cc34304ee956f87290e78a07d2ab64ae6a33882",
+		"role": "heading",
+		"meaning": "Error page heading when a user cannot join a file because it already has the maximum number of active collaborators connected.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"550b25cc0c": {
+		"sourceHash": "5db94e95b4f91ceeea42e254dfb8d4986e634cfd153b43468c6dc820367d676c",
+		"role": "error",
+		"meaning": "Warning toast shown when drawings the user made before signing in (stored locally in the browser) could not be imported into their account.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditor.tsx"
+		]
+	},
+	"554a05155c": {
+		"sourceHash": "d8094c8765a504745c118794c72c41a71f07b2994c1bfde77bcde33b20d06584",
+		"role": "body",
+		"meaning": "Second paragraph on the generic file error page. The <a> tag wraps a button that opens the feedback/report-a-problem dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		],
+		"placeholders": {
+			"a": "Tag wrapping the clickable text that opens the report dialog; keep the tags around the translated link text"
+		}
+	},
+	"55505ba281": {
+		"sourceHash": "cdc265cecd8a3708f1e1a9364111999e7db996aa445b6b494295839879e91a99",
+		"role": "label",
+		"meaning": "File format option in the export panel's format selector: PNG image format.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Format name; normally left as PNG"
+		]
+	},
+	"5638176be5": {
+		"sourceHash": "c2a7d0224637460473c0c87f17bb91b4aecc398c84bdcb7c35486cacb07c8dfa",
+		"role": "heading",
+		"meaning": "Title of the dialog for creating a new shared workspace (a team space to which members can be invited).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx"
+		]
+	},
+	"5653ebed2e": {
+		"sourceHash": "e62d943887e0c702a5b9d12c9e284235b97e7d567b31297f169f4288358b775d",
+		"role": "action",
+		"meaning": "Command palette submenu/prefix for jumping to (opening) another file by name; results show as 'Go to file: <name>'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Used as a prefix followed by a colon and the file name"
+		]
+	},
+	"5677e381d2": {
+		"sourceHash": "e64e89bead76a8b8fdac8f8fa70dda2ca8f48c411d245de072f1765586d339b0",
+		"role": "body",
+		"meaning": "Explanation in the Manage cookies dialog of what the analytics cookies toggle is for.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx"
+		],
+		"constraints": [
+			"tldraw is a brand name; leave untranslated"
+		]
+	},
+	"56c34c6410": {
+		"sourceHash": "f2507a1edcbd691f141db6b0bdc46545d28efcbf1fea8da0a3fb923e974027f8",
+		"role": "action",
+		"meaning": "Menu item in the help/legal menu that opens tldraw's privacy policy page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Use the conventional name for a privacy policy document"
+		]
+	},
+	"56cabd57d5": {
+		"sourceHash": "33d660770ca0f950d22c63a733001217ca876bcddba9bf287baa3d6272ccd1db",
+		"role": "body",
+		"meaning": "Empty-state message on the Archive tab of the workspace home when no files are archived.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		]
+	},
+	"5a95a425f7": {
+		"sourceHash": "e5b0f22ebac5b49b183831bb8ee1326d2a7af0b2037498ea0f2c12919f59e0a7",
+		"role": "action",
+		"meaning": "Button in the editor's top bar (and command palette item, and a share-menu tab for signed-out users) that opens the share menu to invite people or get a link to the file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/TlaFileShareMenu.tsx"
+		],
+		"constraints": [
+			"Verb (to share), not the noun 'a share'; keep short, it is a top-bar button"
+		]
+	},
+	"5bec508475": {
+		"sourceHash": "200337375cfeeb00058fb307e748a9189a68afa2a0e993da924f1f5733ee3687",
+		"role": "error",
+		"meaning": "Full-page error shown when the user's browser is too old to run the app.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/providers/TlaRootProviders.tsx"
+		]
+	},
+	"5bff3c9c88": {
+		"sourceHash": "d908263c5002c270481297f44effad81da6ad043715074b43e59ae7ec5416637",
+		"role": "label",
+		"meaning": "Name shown for the user's personal home workspace (in the workspace switcher, file move menu and command palette).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher.tsx",
+			"apps/dotcom/client/src/tla/hooks/useWorkspaceName.ts"
+		],
+		"constraints": [
+			"Acts as a name/label, not a sentence"
+		]
+	},
+	"5d04a002ea": {
+		"sourceHash": "97aa2e98e4398171e1acb1c1c89dbedfec9a4e21c81b8e8409a5a1035e2093c3",
+		"role": "heading",
+		"meaning": "Heading of a full-page error shown when the authentication service cannot be reached; the page offers a Refresh button.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/providers/TlaRootProviders.tsx"
+		]
+	},
+	"5d26ae7550": {
+		"sourceHash": "cac22aa824dab4f6efcfbba84d760a635e2549d0dab05c084ee73fbfdcf31c14",
+		"role": "body",
+		"meaning": "First paragraph of a dialog explaining that drawings made while signed out could not be moved into the user's account after signing in; steps to import them manually follow.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		]
+	},
+	"5f3c333678": {
+		"sourceHash": "b5be27476587e139c5e533de921cf8e9f221494b47e936615aa4ce75d6ef0771",
+		"role": "state",
+		"meaning": "Toast title confirming the user's feedback was sent from the feedback dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		]
+	},
+	"5fb63579fc": {
+		"sourceHash": "7d4d9b75c28787e58a036d31e826802292d3a9c423aafe3e63a624d11ab47c64",
+		"role": "action",
+		"meaning": "File menu item label meaning 'copy' as a verb (make a copy / copy to). Defined in the file menu's messages alongside Duplicate, Rename and Copy link.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Verb (the action), not the noun 'a copy'"
+		]
+	},
+	"608e9d366e": {
+		"sourceHash": "0763df139ad95b54ee12fa730c97884ed7c0b17dc40cf0f79c2b21bc948481ae",
+		"role": "body",
+		"meaning": "Empty-state message in the notifications panel when there are no notifications to show.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"constraints": [
+			"Friendly idiom meaning 'nothing new to see'; don't translate literally"
+		]
+	},
+	"60a68c29d6": {
+		"sourceHash": "b53ad2e934e77f0b626d7a598f816319e4bbcc0035a78c2d0cfe0bac405beee7",
+		"role": "action",
+		"meaning": "Call-to-action shown to signed-out users in place of the comment composer and on the comment tool: opens sign-in so they can leave comments.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/CommentsOnCanvas.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/editor-messages.ts",
+			"apps/dotcom/client/src/tla/components/TlaEditor/useAnonCommentToolOverrides.ts"
+		]
+	},
+	"61057a0c84": {
+		"sourceHash": "9e34dc852605bd743ede84d104eed71253d626cb4e65725df554aedf6af7be47",
+		"role": "action",
+		"meaning": "Secondary button in the 'Please reload the page' modal (outdated app version) that dismisses it so the user can reload later; the other button reloads now.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/MaybeForceUserRefresh/MaybeForceUserRefresh.tsx"
+		],
+		"constraints": [
+			"Means 'not now / remind me later', not the adjective 'later' as in more recent"
+		]
+	},
+	"623cddd380": {
+		"sourceHash": "2ac4d3c1e9ee25ec65d5a2a6f09f2077e703d6c4445ba80bebf168fffa0d7127",
+		"role": "label",
+		"meaning": "Tab on the workspace home listing recently opened files.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Short tab label; plural noun for recent files"
+		]
+	},
+	"625fd29749": {
+		"sourceHash": "b58984c808a4f3b10c3302d17ea9f63f3f96c9a6d4c5b1b4d18a2136b5f82938",
+		"role": "heading",
+		"meaning": "Group heading in the sidebar's recent files list for files last opened before this month (after 'This week', 'This month').",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		],
+		"constraints": [
+			"Refers to older files (time grouping), not people"
+		]
+	},
+	"639bae9ac6": {
+		"sourceHash": "197963dd593266584ad894c265e055bd863db492ba52f5e6c9af2a31a3d5590f",
+		"role": "label",
+		"meaning": "Marker appended in parentheses after the current user's own name in the workspace members list, e.g. 'Alex (you)'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Lowercase pronoun shown inside parentheses after a name"
+		]
+	},
+	"63a6a88c06": {
+		"sourceHash": "5d1bbdf03ed331d76543f74c283e4861649dd599553c045aef1ba7c1305ea024",
+		"role": "action",
+		"meaning": "Button on the 'Unable to connect' error page that reloads the browser page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/providers/TlaRootProviders.tsx"
+		],
+		"constraints": [
+			"Reload the page, not refresh data"
+		]
+	},
+	"6609dd239e": {
+		"sourceHash": "6e26cb3c398171c8cd87301843ad05673499c4df8854840a3ecc7631bba93099",
+		"role": "heading",
+		"meaning": "Heading of the generic error page shown when a file fails to load for an unknown reason.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"6637a98151": {
+		"sourceHash": "f6ded075ca52c59ef682e424bc5384eb2d2117658d6abfd61e31844a210de225",
+		"role": "body",
+		"meaning": "Body text of a file error screen shown when the server reports the client is out of date: a newer tldraw has been deployed and the user must reload the browser page to keep working.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		],
+		"constraints": [
+			"Shown under the heading 'Please reload'",
+			"'reload' means refresh the browser page"
+		]
+	},
+	"67ed6ddb7d": {
+		"sourceHash": "3201920fb9a6c7005d55deb29fd53ff3d985c581442eabbf2b8bd4ceb4a88b98",
+		"role": "state",
+		"meaning": "Accessible label of a small pencil icon shown after a comment's timestamp, indicating the comment was edited after being posted. Past participle describing the comment, not an action.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaCommentByline.tsx"
+		],
+		"constraints": [
+			"Icon label, not visible text; refers to a comment (adjective/participle agreement with 'comment' if the language needs it)"
+		]
+	},
+	"681e10aecb": {
+		"sourceHash": "ecb9de6778f7281df1ac8ec78f387ee659e4b10b942fd58adb708fbf7ae45708",
+		"role": "action",
+		"meaning": "Button / command that creates a new tldraw file (board): sidebar action button, workspace home button, file switcher create row, and a command palette entry that prompts for the file name.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorFileSwitcher.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions.tsx",
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Short button/menu label; it is an action (create a file), not a description of a file that is new"
+		]
+	},
+	"68240daa8f": {
+		"sourceHash": "c6b4479d31a362f6bc2e2c677665a9922d8a12a41eaab7c80b9e932f52ed8b70",
+		"role": "body",
+		"meaning": "Notification byline summarising who reacted with an emoji to the user's own comment, when two named people plus some further people reacted. Shown in the notifications panel (names styled via <name>) and as plain text in command palette entries.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/commentNotifications.ts"
+		],
+		"placeholders": {
+			"a": "Display name of the most recent reactor",
+			"b": "Display name of the second most recent reactor",
+			"count": "Number of additional people who reacted beyond a and b; 1 or more"
+		},
+		"constraints": [
+			"Keep both <name></name> tag pairs around the names",
+			"'reacted' means reacted to your comment with an emoji, not responded emotionally"
+		]
+	},
+	"6832ac5936": {
+		"sourceHash": "a9e40a1c28559dd9b3df5f461479aed9e274e45f7934952629cd6cb5c342dac3",
+		"role": "label",
+		"meaning": "Placeholder text inside the email input of the sign-in dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Input placeholder; keep short"
+		]
+	},
+	"694f82ed9d": {
+		"sourceHash": "04c381dbbf9dc5949d28ab6b1933c293918952eee332f3a5e2442b1751780e47",
+		"role": "action",
+		"meaning": "Destructive button in workspace settings that deletes the whole workspace; also used as the title of the confirmation dialog that follows.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Destructive, permanent action",
+			"Used both as button and dialog title"
+		]
+	},
+	"697c59072d": {
+		"sourceHash": "2c53b4306ac45ca0c17dce7ac26d437981f90fc92bc7abd99bcfc7c2f9a3bf73",
+		"role": "action",
+		"meaning": "Menu item in the editor's top-left file menu, shown to signed-out users (e.g. on the scratch board), that opens sign-in so their work can be saved to an account.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		],
+		"constraints": [
+			"Menu item; keep short",
+			"'save' means keep the file in an account, not a file download"
+		]
+	},
+	"69ce6a28fb": {
+		"sourceHash": "2bd0a504475204e90d3c19f97bfd8c2536b824cbcc48d56f6e87fb3615796dc7",
+		"role": "body",
+		"meaning": "Notification byline for a reaction to the user's own comment when no reactor names are available: says that one or several people reacted with an emoji.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/commentNotifications.ts"
+		],
+		"placeholders": {
+			"count": "Total number of distinct people who reacted; 1 or more"
+		},
+		"constraints": [
+			"'reacted' means added an emoji reaction to your comment"
+		]
+	},
+	"6a26f54883": {
+		"sourceHash": "80bea256bf8d47bd6a9ddbe0aaa223912a621d9d4ccc1e10fe7abd0da966503f",
+		"role": "tooltip",
+		"meaning": "Accessible label/tooltip of a help (question mark) icon button next to a menu section; opens or links to help information.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx",
+			"apps/dotcom/client/src/tla/components/tla-menu/tla-menu.tsx"
+		],
+		"constraints": [
+			"Single word; noun 'help', not the verb 'to help'"
+		]
+	},
+	"6b71e0ebcb": {
+		"sourceHash": "b88a0107a916bb7b5d60fbc302f11a1995ab8f658485252b364957f299d54132",
+		"role": "label",
+		"meaning": "Grey suffix after an AI agent's name in a comment byline or thread row (e.g. 'Claude / max'), naming the human owner on whose behalf the agent posted. The slash is a visual separator.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaAgentCommentSurfaces.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaCommentByline.tsx"
+		],
+		"placeholders": {
+			"name": "Display name of the agent's owner (a user)"
+		},
+		"constraints": [
+			"Keep the leading slash and space; usually identical to English"
+		]
+	},
+	"6dc0836c1b": {
+		"sourceHash": "ac424d1952a8a1adba5728106a6ff9f2458d5588ff2a1a8667d0e5d01a65e270",
+		"role": "error",
+		"meaning": "Error toast shown when the server rejects an action because the user lacks permission (forbidden).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"6dfc62f621": {
+		"sourceHash": "7ba33411b4cf71314d1bc187d7de55962987df0af41b492572b1bfa8d64828ec",
+		"role": "body",
+		"meaning": "Intro line on the screen shown when importing (migrating) a legacy file's content automatically failed; precedes a numbered list of manual steps.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		],
+		"constraints": [
+			"Ends with a colon introducing a list"
+		]
+	},
+	"6ea5359e01": {
+		"sourceHash": "c5cdcba903dc0503429e5084cee10baedf0a8ca58c1197d046440b013a772e18",
+		"role": "label",
+		"meaning": "Name of a tab/section in the user settings dialog holding canvas (drawing surface/editor) preferences.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Tab label; the drawing canvas of the editor, not painting canvas fabric"
+		]
+	},
+	"70a6facb9d": {
+		"sourceHash": "1bf3feb972173224029e4bd5fa65ee0c3885cd1d908c67c98cd6925dab67585a",
+		"role": "heading",
+		"meaning": "Group heading in the sidebar's recent files list for files edited during the current week.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		],
+		"constraints": [
+			"Short section heading among date groups"
+		]
+	},
+	"71a29b007b": {
+		"sourceHash": "f4b5184134072eb1d22566d6c6a35a84faf1f27ac001cf6595d45fdd674fb6b6",
+		"role": "body",
+		"meaning": "Intro text of the feedback dialog inviting users to report bugs, issues or ideas.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"'tldraw' is a brand, keep lowercase and untranslated"
+		]
+	},
+	"73ab799383": {
+		"sourceHash": "c2a523b99cc013722f7897f066a3c0dd314fec67fe3b557a80e29c408d6837b7",
+		"role": "body",
+		"meaning": "Message on a blocking screen shown when the running client is too old and must be refreshed.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/MaybeForceUserRefresh/MaybeForceUserRefresh.tsx"
+		],
+		"constraints": [
+			"'version' refers to the app build loaded in the browser"
+		]
+	},
+	"7408cf0d7b": {
+		"sourceHash": "e4940698c4fb65fe818347559dd0ff95ddf93a716532f644701a53a9169f4f7d",
+		"role": "heading",
+		"meaning": "Heading of a blocking screen telling the user their tldraw client is outdated and they must reload the browser page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/MaybeForceUserRefresh/MaybeForceUserRefresh.tsx"
+		]
+	},
+	"747ee44424": {
+		"sourceHash": "7692ca6e43178f945454e5c12b206b967d8bb44a9191b5265b93180f316ed7f4",
+		"role": "body",
+		"meaning": "One step in the manual import instructions after an automatic legacy-file import failed: save the content as a .tldr file using the 'Save a copy' item of the top-left menu.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		],
+		"constraints": [
+			"'Save a copy' names a menu item; use that locale's actual label for it",
+			"Keep '.tldr' unchanged"
+		]
+	},
+	"74ff4bad28": {
+		"sourceHash": "83a77965b41e70bfeb507d6dc0c513740aa53f312ca3126ec90dc284bc4a164a",
+		"role": "state",
+		"meaning": "Empty state in the sidebar file list when there are no files (e.g. a search/filter matched nothing).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		]
+	},
+	"752b79f137": {
+		"sourceHash": "6392dbbcbb9fc9c4c83647d9bf0b58dc73098dedc39a34869943e93d19f113dd",
+		"role": "error",
+		"meaning": "Error shown when the user tries to create a file but has hit their file count limit; they must delete old files first.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Paired with the title 'File limit reached'"
+		]
+	},
+	"7542d62aac": {
+		"sourceHash": "b6ddfff247a1c3e9dbc48f59a4918c485b69de38e6dd3cdca1aec90b3cff3b78",
+		"role": "action",
+		"meaning": "Menu item in the notifications panel that marks every comment notification as read.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"constraints": [
+			"Menu item; 'read' is past participle (already seen), not the verb to read"
+		]
+	},
+	"7573b8110a": {
+		"sourceHash": "67af273e633e6dd01f6e194844251a75a9391d7bc909cd99dfdec8ddce949c6d",
+		"role": "label",
+		"meaning": "Name of a sharing permission level in the file share menu, alongside 'Editor' and 'Viewer': the person/link has no access to the file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx"
+		],
+		"constraints": [
+			"Option label in a permission list; keep short"
+		]
+	},
+	"761e93ede9": {
+		"sourceHash": "197c2061f732ccf00d4e745c3dcfc68deeddeec34077dcb0bf811b45a6893c4a",
+		"role": "action",
+		"meaning": "Menu item / settings link that opens the cookie preferences dialog; also its dialog title.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"'cookies' are browser cookies"
+		]
+	},
+	"764671e008": {
+		"sourceHash": "32bc24049c973505f7609e651f496260395f8c73be49d94fe8403e02a9dabbe6",
+		"role": "action",
+		"meaning": "Link in the feedback dialog to the tldraw Discord community server.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"'Discord' is a brand; keep untranslated"
+		]
+	},
+	"7697920637": {
+		"sourceHash": "009e350365005b85121bcc1066ccb87923b98311adca89f61542f5b5042973d4",
+		"role": "heading",
+		"meaning": "Header of the file error screen shown when a newer tldraw version is available and the page must be reloaded.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		],
+		"constraints": [
+			"Short heading; means refresh the browser page"
+		]
+	},
+	"76ec4e4ed9": {
+		"sourceHash": "553b4fbaee7b6034b115d2b5d1f043af02c641bd11a9e5be56793f110bc532f9",
+		"role": "action",
+		"meaning": "Command palette entry that copies the current file's share link to the clipboard. The palette mixes file and shape commands, so it names the file explicitly.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"'Copy' is the verb (copy to clipboard), not 'a copy'"
+		]
+	},
+	"777f9e90cf": {
+		"sourceHash": "56886b254c2230738273aeafd31113da3d8dccb5b31c755c390062a0e2888390",
+		"role": "error",
+		"meaning": "Generic error toast shown when the server rejects a request as malformed (bad request).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"7827371d1a": {
+		"sourceHash": "3e67b916e90416b96f153897ba74d4d6d291f5cc519133bd4f6c0f054c7e08dd",
+		"role": "body",
+		"meaning": "Dialog body for a legacy anonymous multiplayer room that is now read-only; the user must sign in and copy it into their own files to keep editing.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLegacyModal.tsx"
+		],
+		"constraints": [
+			"'tldraw' is a brand",
+			"'multiplayer' means shared real-time collaborative file"
+		]
+	},
+	"7897a855d3": {
+		"sourceHash": "c7a2ea773a37da5eb091adcc9ef4f485996ec5f2632e5e20ed741d67a1730f9d",
+		"role": "state",
+		"meaning": "Empty state in the workspace settings' libraries list when the workspace has no shape/asset libraries.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"constraints": [
+			"'libraries' are collections of reusable content, not book libraries or code libraries"
+		]
+	},
+	"78e9815992": {
+		"sourceHash": "59cfda1e92110b732aff7f35dc8aff3c4869192bedf360440b148fd1980d33e3",
+		"role": "action",
+		"meaning": "Primary button that acknowledges and dismisses an informational dialog (file size warning/limit dialogs, offline file dialog).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLargeFileHandler.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaTldrawOfflineFileDialog.tsx"
+		],
+		"constraints": [
+			"Acknowledgement ('understood'), not 'received an item'; short button label"
+		]
+	},
+	"797799f35e": {
+		"sourceHash": "e6ae0c8d5636d24e9aef2e83dbe510e89d431f0313b3120b1f3b48831af10275",
+		"role": "action",
+		"meaning": "Link in the feedback dialog that opens tldraw's GitHub issues page in a new tab so the user can report a bug there. 'Issue' means a bug report/ticket, not a problem or a publication.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"Keep 'GitHub' as is"
+		]
+	},
+	"797c5be9a7": {
+		"sourceHash": "3177dd41a92154f85d5386028f30b0ba180842b36c712bbf1913b6253ef5c2e5",
+		"role": "state",
+		"meaning": "Suffix shown after a person's name in the tooltip listing recent visitors of a board on the workspace home page, marking that this person currently has the board open. The leading '·' is a separator after the name.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaBoardVisitors.tsx"
+		],
+		"constraints": [
+			"Keep the leading '· ' separator",
+			"Short; appears inline after a name"
+		]
+	},
+	"7a1920d611": {
+		"sourceHash": "694936459ca37b785a5260770716d7a1ed65bf9f3035569903c742977e855771",
+		"role": "label",
+		"meaning": "Option in the color theme picker for the standard (built-in default) UI color theme, listed alongside named themes. It is the name of a theme choice, not 'default' as in a failure to pay.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/hooks/useColorThemes.ts"
+		],
+		"constraints": [
+			"Single word option label"
+		]
+	},
+	"7b1329f5ca": {
+		"sourceHash": "c39633784fdb6bc7b123570d899327fccbb16a8662fd7af17ff4552063184796",
+		"role": "action",
+		"meaning": "Menu item and button in the About settings that open tldraw's online user manual (help documentation) in a new tab.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Short menu label"
+		]
+	},
+	"7be10fc592": {
+		"sourceHash": "5571b58c7ed7ea7600d4f08238df73831f72d3cf30a8e58e7d209e85de582698",
+		"role": "action",
+		"meaning": "Button shown while viewing an older saved version of a file from its history; clicking it replaces the current file content with this past version.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaHistorySnapshotEditor.tsx"
+		]
+	},
+	"7c0747a5df": {
+		"sourceHash": "f03a9d22510b8cb2ae659591088a0bb7c4a234e2e1d7cebc62bf9c88c59cb2de",
+		"role": "action",
+		"meaning": "Button on the full-page error screen (e.g. page not found) that takes the user back to the tldraw app.",
+		"callSites": [
+			"apps/dotcom/client/src/components/ErrorPage/ErrorPage.tsx"
+		],
+		"constraints": [
+			"Keep 'tldraw' lowercase and untranslated"
+		]
+	},
+	"7c10d4771a": {
+		"sourceHash": "5e825cb273a318de85c8fe02f5636118b01d028180b19a3740ec496519805f0a",
+		"role": "action",
+		"meaning": "Sign-in button shown in the settings dialog to signed-out users; profile settings (name, etc.) can only be edited after signing in.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		]
+	},
+	"7cb5f8b4a5": {
+		"sourceHash": "6959e396642a9c11dd06a0f1a80c05af0563c48ef5cadb0a8c93759625410cf4",
+		"role": "action",
+		"meaning": "Menu item and confirm button shown instead of Delete when the user doesn't own a file: it removes the file from the user's own file list without deleting it for anyone else. Trap: not 'delete' and not 'fail to remember'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaDeleteFileDialog.tsx"
+		],
+		"constraints": [
+			"Must stay distinct from Delete",
+			"Short button/menu label"
+		]
+	},
+	"7d69b3cb4c": {
+		"sourceHash": "65f31a14978058afd801e7a8c73f2c23be13db1bb33875875bf0bb3749321a6c",
+		"role": "label",
+		"meaning": "Tab on the workspace home page that lists archived files (files moved out of the main list).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Tab label; plural sense (archived files)"
+		]
+	},
+	"7daeced9ff": {
+		"sourceHash": "11ceb252c09aadfb5a2065ca82292c46c0b04b5a911d66fe7b718a581ef2d4e9",
+		"role": "action",
+		"meaning": "Button in the Publish tab of the share menu, shown to the file owner, that pushes the latest edits to the already published read-only copy of the file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaPublishTab.tsx"
+		]
+	},
+	"7fcdcc6455": {
+		"sourceHash": "eb2e227f93780d43ed09eaa8444d789f2a879f68bb247fd1880a479db94111ce",
+		"role": "action",
+		"meaning": "File menu item (and dialog title) for a file the user doesn't own: removes it from the user's own file list without deleting it for others. Trap: 'Forget' means remove from list, not delete or fail to remember.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaDeleteFileDialog.tsx"
+		],
+		"constraints": [
+			"Must stay distinct from 'Delete file'"
+		]
+	},
+	"801ab24683": {
+		"sourceHash": "2abd70475957f5b72ca8f367ef49bb81502898468f44c645cea9d5ef03bbe313",
+		"role": "action",
+		"meaning": "Main menu action that downloads the current file to the user's computer as a .tldr file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/editor-messages.ts",
+			"apps/dotcom/client/src/tla/components/TlaEditor/useFileEditorOverrides.ts"
+		],
+		"constraints": [
+			"Verb, menu item"
+		]
+	},
+	"8030793ce3": {
+		"sourceHash": "90d41d73f00320ef8882524c326643819613b920623ae025e90c4b5571d02499",
+		"role": "action",
+		"meaning": "Menu item / command in workspace switchers, the command palette and the file 'Move to' menu that creates a new workspace (a shared space of files and members). Also used as the prefilled default name in the create-workspace dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorWorkspaceSwitcher.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx",
+			"apps/dotcom/client/src/tla/layouts/TlaWorkspaceLayout/TlaWorkspaceSwitcher.tsx"
+		],
+		"constraints": [
+			"Must read both as a command and as a default workspace name"
+		]
+	},
+	"815e116a2e": {
+		"sourceHash": "13f1267b10348ba2b9e68c9d1d9a0dd9586c9d459725d6d9c73beb681f6a5fcb",
+		"role": "body",
+		"meaning": "Intro text of the feedback dialog: invites the user to report bugs or ideas via the form, says the team may reply by email, and offers links to the Discord community and to GitHub issues.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"placeholders": {
+			"<discord>…</discord>": "Link to tldraw's Discord server",
+			"<github>…</github>": "Link to tldraw's GitHub issues page"
+		},
+		"constraints": [
+			"Keep both tags and wrap the matching phrase",
+			"Keep 'Discord', 'GitHub', 'tldraw' untranslated"
+		]
+	},
+	"81666c6e4a": {
+		"sourceHash": "5129d2f2121fbd652e4334fc8f97efee47df83d4b7e5c4f3e41fa8a4bddb028f",
+		"role": "body",
+		"meaning": "Confirmation text in the Forget file dialog, asking whether to remove a file the user doesn't own from their file list (it is not deleted for others).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaDeleteFileDialog.tsx"
+		],
+		"placeholders": {
+			"fileName": "Name of the file",
+			"<strong>…</strong>": "Bold formatting around the file name"
+		},
+		"constraints": [
+			"'Forget' = remove from list, not delete"
+		]
+	},
+	"8413c683b4": {
+		"sourceHash": "371ff23abe5403d3f8c498defaae68c333dbdcf21900f321e7fbf21ec70a477b",
+		"role": "label",
+		"meaning": "Label of the top-right editor button that opens/closes the comments sidebar on a file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx"
+		],
+		"constraints": [
+			"Plural noun; short button label"
+		]
+	},
+	"858ba4765e": {
+		"sourceHash": "e89ba013eb61b500c25b2b32c305bb0cee056c76f4d313d13593f84aab9d2a35",
+		"role": "label",
+		"meaning": "Role name shown next to a person in the workspace settings member list: a regular member, as opposed to the Owner.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Singular role label paired with 'Owner'"
+		]
+	},
+	"85a082de1b": {
+		"sourceHash": "3f6d80fa12990e2af47ee75907ad00684883d8ce99a640c906d4cfb0cfc638f4",
+		"role": "error",
+		"meaning": "Toast/error description telling the user the app version is outdated (a newer one is deployed) and they must reload the browser page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Keep 'tldraw' untranslated"
+		]
+	},
+	"86c66437fd": {
+		"sourceHash": "e34b7b92ddb7971723576ccb61486621acade3a353c1af17f00ece8f565923c8",
+		"role": "action",
+		"meaning": "Command-palette prompt label (and sidebar action) for renaming the current file; opens a text input for the new name.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
+		]
+	},
+	"8718bcf921": {
+		"sourceHash": "8a343d578f6eb880aba42af6c7f273ece62a0ea57b024b79c2d329e97758109f",
+		"role": "label",
+		"meaning": "Fallback display name for a workspace that has no name set (other than the user's home workspace).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/hooks/useWorkspaceName.ts"
+		],
+		"constraints": [
+			"Used as a name, not a sentence"
+		]
+	},
+	"87fdb09de6": {
+		"sourceHash": "d8499ac6c85f73dd36a5e2bea7f28538a865880314148b56e4b191e549b78713",
+		"role": "error",
+		"meaning": "Toast shown when the user opens a workspace invite link but already belongs to that workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/WorkspaceInviteHandler.tsx"
+		]
+	},
+	"887479cb61": {
+		"sourceHash": "e5adbbd15fe65bc97b29c95494f2a72d895b379eb921c0f8f73b700b6aba79a4",
+		"role": "body",
+		"meaning": "Notification summary in the sidebar saying who reacted with an emoji to the user's comment: one named person plus a count of other people.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/commentNotifications.ts"
+		],
+		"placeholders": {
+			"author": "Display name of one person who reacted",
+			"count": "Number of other people who also reacted, 1 or more",
+			"<name>…</name>": "Bold formatting around the person's name"
+		},
+		"constraints": [
+			"Keep the plural branches with '#'; add plural forms the language needs"
+		]
+	},
+	"88bf6ab42c": {
+		"sourceHash": "055e560cb2055b1631ad7347cef61be604683d9997b7f1128441c37bfa13e5ae",
+		"role": "heading",
+		"meaning": "Title of the dialog shown when the user opens an invite link that is no longer valid because it expired.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaInviteExpiredDialog.tsx"
+		]
+	},
+	"8c2d3d730c": {
+		"sourceHash": "9866890493883a3a48ece1c6809cbc1430a0386f149b820c2f676b612d033fe1",
+		"role": "body",
+		"meaning": "Instruction in the sign-in dialog after the user enters their email: a one-time verification code has been sent and must be entered.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		]
+	},
+	"8cf04a9734": {
+		"sourceHash": "40e7589f51a347b2ead3d4d23270beb179f93b94de1d0c2df333883cca29a0ae",
+		"role": "action",
+		"meaning": "Button and menu item in the editor's top-left panel that navigates from the open file back to the workspace home page (file list). 'Home' is the app's start page, not a house.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		],
+		"constraints": [
+			"Single word; also used as button aria-label/tooltip"
+		]
+	},
+	"8eb2c00e96": {
+		"sourceHash": "db94fcb4b3292ee571415932141eb36d5d88b3aa0759b72c5c2e3211a0e622aa",
+		"role": "tooltip",
+		"meaning": "Tooltip on a sidebar file icon indicating the file was shared with the user by someone else (used when the owner's name is unknown).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFileLink.tsx"
+		]
+	},
+	"8f7f4c1ce7": {
+		"sourceHash": "8a30c86cc9777011e74b6c7361027c64b3e9b13dc0d8f4d4a7699a504136423a",
+		"role": "label",
+		"meaning": "Tab name in the settings dialog for the section with app information and links (user manual, legal, etc.).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Tab label, one word if possible"
+		]
+	},
+	"8ff3d0a705": {
+		"sourceHash": "74b28721466b0be7f5d1b48089c7c3f375eaa0436246d3f073a1e40cb24d991f",
+		"role": "heading",
+		"meaning": "Header of the error screen shown when the server rejects requests because the user sent too many in a short time.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"902b0d55fd": {
+		"sourceHash": "47c4a0212d7644c3a0c82f64c70df12d0e0ccfb2bdea815d329ee3c67db8f427",
+		"role": "heading",
+		"meaning": "Title of the toast shown when a change the user made fails to save on the server; the description below explains the cause.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Single-word toast title"
+		]
+	},
+	"904a830405": {
+		"sourceHash": "e2c6926f75ec955add0ac5f110f626018b50793f04869371c3bf7e6a240a35ee",
+		"role": "action",
+		"meaning": "Menu item that lets the user rename a file (file menu) or a library (workspace libraries list) by editing its name.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"constraints": [
+			"Verb; short menu item"
+		]
+	},
+	"90646db02d": {
+		"sourceHash": "2c1107b0e87a9336736ab02211774ea152e18d9a1b3ddec3c71768bf52d564a6",
+		"role": "body",
+		"meaning": "Description in the confirmation dialog shown before a workspace is deleted from workspace settings. Warns that deletion is permanent.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"placeholders": {
+			"workspaceName": "Name of the workspace being deleted"
+		},
+		"constraints": [
+			"Keep the <strong> tags around the placeholder"
+		]
+	},
+	"91f3a2c0e4": {
+		"sourceHash": "f9980fa927aed2a26ba2d7f135f0036a2bf6bf4ee3b56082ecf558937d80e1e1",
+		"role": "heading",
+		"meaning": "Group heading in the command palette above the list of the user's files (recent files, go to file).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Plural noun, a section title; short"
+		]
+	},
+	"930390d222": {
+		"sourceHash": "a6c923fa4d06ce0c3f259d63ae5cab6d42ed453308fe94281b23881622c19063",
+		"role": "state",
+		"meaning": "Toast title confirming that a workspace invite link has been copied to the clipboard.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Past-tense confirmation (the link was copied), not a command to copy"
+		]
+	},
+	"95aacd4d4a": {
+		"sourceHash": "690a236f627b3fa0133ad4664ca83eed6ac6d4adbe9ef65f222b9ec9e9a13325",
+		"role": "action",
+		"meaning": "Button in the sign-in dialog that starts signing in with a Google account.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"'Google' is a brand; leave untranslated"
+		]
+	},
+	"95d2109dc8": {
+		"sourceHash": "3a5bb7fd86b296e655e1a04d3c62853d6d75d9109de655cdec63126c133b2682",
+		"role": "action",
+		"meaning": "Link in the sidebar and settings dialog to tldraw.dev, inviting developers to build their own apps with the tldraw SDK.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarDotDevLink.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		],
+		"constraints": [
+			"'tldraw' and 'SDK' stay as is"
+		]
+	},
+	"96165d6df5": {
+		"sourceHash": "c49f3b7974f3084f52ceb3b78481f4a228c5066ae9bcc5de17d4e4b40a872b98",
+		"role": "heading",
+		"meaning": "Section heading in the sidebar's recent files list grouping files last edited earlier this calendar month (after Today, Yesterday, This week; before Older).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		]
+	},
+	"9643c97d49": {
+		"sourceHash": "b7ee459881c7c2d8787ed857b216445c1c83b061dfdf56859178855085233a71",
+		"role": "body",
+		"meaning": "Notification summary saying one person reacted with an emoji to a comment.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/commentNotifications.ts"
+		],
+		"placeholders": {
+			"author": "Display name of the person who reacted"
+		},
+		"constraints": [
+			"Keep <name></name> tags around the placeholder; they style the name"
+		]
+	},
+	"985a4b720f": {
+		"sourceHash": "27c0ab5fd4fc6f8475cf38953e82632ff91fd14959b5645baac7cdbafd0db124",
+		"role": "action",
+		"meaning": "Link at the bottom of the sign-in dialog to tldraw's Terms of Use legal page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Use the locale's standard name for a legal terms document"
+		]
+	},
+	"987453f3dd": {
+		"sourceHash": "0a9257472c1f6cf9cce12828446e581ec7370b05880d5c0190c6899c74eddb95",
+		"role": "action",
+		"meaning": "Sidebar link inviting the user to try tldraw's MCP (Model Context Protocol) server, which lets AI assistants work with tldraw.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarMcpLink.tsx"
+		],
+		"constraints": [
+			"'MCP' is a technical acronym; leave as is"
+		]
+	},
+	"9914a0ce04": {
+		"sourceHash": "fe25a953d3e3545d15ac42cb5e7c5a303746cf66b95aa243fae12408f682c51e",
+		"role": "label",
+		"meaning": "Option in the export panel's Theme select: export the image in the light color theme.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Light as in color theme (opposite of dark), not weight"
+		]
+	},
+	"9983381c21": {
+		"sourceHash": "6c91622e28bc35d289fa6a0e93348a4e4d0e24b79435063c5c8923237735aaf9",
+		"role": "action",
+		"meaning": "Button (usually an × icon label) that empties the search field in the sidebar and workspace home file search.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarSearch.tsx",
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"'Clear' means empty the field, not make transparent"
+		]
+	},
+	"9ac3b80777": {
+		"sourceHash": "e0d5994eaac9e2be36374150cdfb60cffa05e31a7bd7ff687994a28fc3e48112",
+		"role": "state",
+		"meaning": "Shown in the editor's top-left panel in place of a file name when a signed-out user is drawing in a file that isn't saved to an account; opens a menu prompting sign-in.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
+		],
+		"constraints": [
+			"Spaces are replaced with non-breaking spaces, so keep it short"
+		]
+	},
+	"9b33f5c63c": {
+		"sourceHash": "2e5e8d6f19504b265f024e28eaa039b00273cd80c9c38fcb1d1f6d414395f1fe",
+		"role": "body",
+		"meaning": "Line under the email verification code input in the sign-in dialog; the Resend part is a link that sends a new code.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Keep the <resend></resend> tags around the clickable word"
+		]
+	},
+	"9bef626805": {
+		"sourceHash": "ec137eeaa34ab6f4ddabef19bb72279470de3874139357e6e86a136139395683",
+		"role": "action",
+		"meaning": "File menu item that deletes the file (after confirmation).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Distinct from 'Forget file', which only removes it from the user's list"
+		]
+	},
+	"9c228b6834": {
+		"sourceHash": "876446eaa29e96ec252b64c51fd0bd500eb86fef73e4da607630f01018686425",
+		"role": "error",
+		"meaning": "Toast shown when a change couldn't be saved because the app has lost its connection to the server.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"9c48785253": {
+		"sourceHash": "50f217991627c772e132ac58ff6ad9ee0243066ce21bc840e47ed4885e6fa6a0",
+		"role": "label",
+		"meaning": "Count of items (shapes/assets) in a workspace library, shown under the library name in the libraries list.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"placeholders": {
+			"count": "Number of items in the library, 0 or more"
+		}
+	},
+	"9ccb565b86": {
+		"sourceHash": "94bb1cafcde7cba207017c4ce7ab1cee504937e993f5d8f8a14f8dc7a6d90dd3",
+		"role": "error",
+		"meaning": "Body text on a full-page error shown when the authentication (sign-in) service can't be reached; a Refresh button follows.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/providers/TlaRootProviders.tsx"
+		]
+	},
+	"9ceb927baa": {
+		"sourceHash": "086934f6688840d308bd20e8494145d925137b1b1517da04e677b0cb3ac5f2c7",
+		"role": "action",
+		"meaning": "Command palette command that publishes the current file as a public read-only snapshot.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Publish = make publicly viewable online, not print"
+		]
+	},
+	"9d102330ee": {
+		"sourceHash": "fabe127871957d4e8f4ed77c3afd6e81b25eed16fd97dad7df272f09286734b7",
+		"role": "body",
+		"meaning": "Confirmation dialog description before deleting a workspace library and all items in it.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"placeholders": {
+			"name": "Name of the library",
+			"count": "Number of items in the library"
+		},
+		"constraints": [
+			"Keep the <strong> tags around {name}"
+		]
+	},
+	"9e076f5885": {
+		"sourceHash": "622ed248de33d628356485dcdcc5493365dc4b2418c5eb5c8a695332ab44e361",
+		"role": "heading",
+		"meaning": "Heading of the error page shown when the requested file doesn't exist.",
+		"callSites": [
+			"apps/dotcom/client/src/routes.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"9e93c98d88": {
+		"sourceHash": "b4db3cd76bc4c9235773f3246f109a51251e3fda78fb2e0fc4aa9e642c7ba334",
+		"role": "action",
+		"meaning": "Button in the cookie consent banner declining optional (analytics) cookies.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaCookieConsent.tsx"
+		],
+		"constraints": [
+			"Short button label; means refuse consent"
+		]
+	},
+	"a078644c42": {
+		"sourceHash": "10be3e439475aad5449c25d38db75058d0f94a80ab638684374733cbe9db65b2",
+		"role": "body",
+		"meaning": "Message in the invite dialog shown to a signed-in user who opened a workspace invite link.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaInviteDialog.tsx"
+		],
+		"placeholders": {
+			"workspaceName": "Name of the workspace the user is invited to"
+		},
+		"constraints": [
+			"Keep the <strong> tags around the placeholder"
+		]
+	},
+	"a0a19d5145": {
+		"sourceHash": "fa917410bfc5f72a4d1a894d0586d13507b030f0138bbeb17733bea7c709e5a7",
+		"role": "announcement",
+		"meaning": "Accessible label on the badge of the sidebar notifications button giving the number of unread notifications.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsButton.tsx"
+		],
+		"placeholders": {
+			"count": "Number of unread notifications, 1 or more"
+		},
+		"constraints": [
+			"Both English forms are identical; inflect 'unread' per count where the language needs it"
+		]
+	},
+	"a104439641": {
+		"sourceHash": "ba2ba53f9a206c4edc3a2756867138f8300a4295f4fee49086de32ca80b3ea18",
+		"role": "label",
+		"meaning": "Label of a switch in the export panel that adds empty margin around the exported image.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Padding = whitespace margin around content, not stuffing"
+		]
+	},
+	"a18366b217": {
+		"sourceHash": "65a20b284abd22afd25077e92b4291d824e64fc048042c85aa58f3c73ea81443",
+		"role": "label",
+		"meaning": "Option in the export panel's Theme select: export the image in the dark color theme.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		]
+	},
+	"a1c915578c": {
+		"sourceHash": "20eb28c1e782012ddcb55a8fbe170c3d436d5d4105bfa7bc10409e705dd38aec",
+		"role": "error",
+		"meaning": "Body text of the error page shown when the requested file doesn't exist (or was deleted).",
+		"callSites": [
+			"apps/dotcom/client/src/routes.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"a239905023": {
+		"sourceHash": "6f9475b99c6c56611f14c436ee9ee20623af024c11f9d4b3ad50de923b00d4ad",
+		"role": "action",
+		"meaning": "Button at the bottom of the share menu's Export tab that downloads the page as an image (SVG or PNG).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Export is a verb here"
+		]
+	},
+	"a274f4d467": {
+		"sourceHash": "966fc3909be5d246372a9e58081b65ed4c8ed23a98d90e964a55ec7cb5425952",
+		"role": "heading",
+		"meaning": "Title of the notifications panel, tooltip of the sidebar notifications button and command palette group name for notifications.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsButton.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		]
+	},
+	"a3debabee7": {
+		"sourceHash": "f50609b7411f398ae5e2d5f2111809a27321d9565fb54ba45dd5d28e0ad2fce2",
+		"role": "action",
+		"meaning": "Menu item in the help/legal menu linking to tldraw's cookie policy page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Cookie = browser cookie; use the locale's standard legal term"
+		]
+	},
+	"a4bef6414b": {
+		"sourceHash": "cc433750a7c812691b7003fc8a26d01bebe5138eead3d70c76be14e32b73a209",
+		"role": "action",
+		"meaning": "Command palette command that shows or hides the comments sidebar for the current file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Toggle = show/hide"
+		]
+	},
+	"a4d3b161ce": {
+		"sourceHash": "c3b5382b86ff5e072842eb85b743091a61bdec08469784094fa8dffb7fe3df5a",
+		"role": "action",
+		"meaning": "Primary button in the feedback dialog that sends the user's written feedback to tldraw.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx"
+		],
+		"constraints": [
+			"Button label; imperative/verb form, keep short"
+		]
+	},
+	"a52945dbe2": {
+		"sourceHash": "b14ca6162c9041046a220c41b596bb70d0f8e94ca7d5544294c1de8f57d966b5",
+		"role": "action",
+		"meaning": "Leave a workspace (stop being a member). Shown as the confirm button of the 'Leave workspace' dialog and as the menu option on your own row in the members list. Trap: means leaving/quitting a group, not 'leave behind' or 'exit the page'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Button and menu item; keep short"
+		]
+	},
+	"a6cc403d56": {
+		"sourceHash": "01ba2290066dc09c9c8752aaa940a45a92567b3b745a3abfe743eb244a92ebce",
+		"role": "label",
+		"meaning": "Label in the file share menu next to a dropdown (Editor / Viewer) that sets what access anyone who has the file's share link gets. Reads as 'Anyone with the link [can be] Editor/Viewer'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx"
+		],
+		"constraints": [
+			"Control label, keep short"
+		]
+	},
+	"a768caa988": {
+		"sourceHash": "25cf67737fb3c6bffa6d5f3a98e4071ad13ab24b0611d49a37c627ff48f2dbd9",
+		"role": "label",
+		"meaning": "Label of the switch in the Manage cookies dialog that turns analytics cookies/tracking on or off.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx"
+		],
+		"constraints": [
+			"Settings switch label; noun"
+		]
+	},
+	"a8873770ab": {
+		"sourceHash": "0409b706b60a3eb9f09d4908fd2c1981c7598465df080af3431519282910d273",
+		"role": "heading",
+		"meaning": "Title of a warning dialog shown when the current board is approaching its storage size limit.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLargeFileHandler.tsx"
+		],
+		"constraints": [
+			"Dialog title; 'File' means the tldraw board/document"
+		]
+	},
+	"a8c92ffd87": {
+		"sourceHash": "10a33480ddf2311c1b99897afdb72c485c8bdbe90dbca9947048c05ff9655b42",
+		"role": "heading",
+		"meaning": "Title of the confirmation dialog for permanently deleting a shape library from a workspace. 'Library' is a collection of reusable shapes/items, not a book library or code library.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"constraints": [
+			"Dialog title"
+		]
+	},
+	"a9ded1e5ce": {
+		"sourceHash": "f4bf274419072d0937f8aadd1ce00bc320486c4377440aed2b28daa97f4fad80",
+		"role": "label",
+		"meaning": "Label of the switch in the Export tab of the share menu that chooses whether the exported image includes the canvas background colour (off gives a transparent background).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Switch label; noun, keep short"
+		]
+	},
+	"aac449eef6": {
+		"sourceHash": "e114b8dabe8bf74b9441984ae067374c334d3ac51a7e08f376b26acec29dd186",
+		"role": "action",
+		"meaning": "Primary button in the create-workspace dialog that creates a new workspace with the name entered.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx"
+		],
+		"constraints": [
+			"Button label; imperative/verb form"
+		]
+	},
+	"aaec8f7cde": {
+		"sourceHash": "b3ef09633a4e6d0242dec45f9d5275a74067be9a1f5306b8ce490fce550ba2cc",
+		"role": "label",
+		"meaning": "Fallback display name for a comment author or notification author whose identity can't be resolved; used in place of a person's name, e.g. as the author of a comment thread.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/CommentsOnCanvas.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaAgentCommentSurfaces.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/useCommentNotifications.ts"
+		],
+		"constraints": [
+			"Substituted as a name into sentences like '{author} replied'; must work as a grammatical subject"
+		]
+	},
+	"ab0df9ba36": {
+		"sourceHash": "b675b5cfe964dd5fadc0091f3e0cbe7bf4c1624360b867bc0401d89989569374",
+		"role": "heading",
+		"meaning": "Title of a toast shown when the user tries to create a file but has reached the maximum number of files allowed.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Toast title; keep short"
+		]
+	},
+	"ac863f346e": {
+		"sourceHash": "0dfd63467f6706cbadd78b00c3017356572287fd42dba68ce0146e0d352c2ec6",
+		"role": "heading",
+		"meaning": "Group heading in the command palette for app-level commands (toggle sidebar, open notifications, etc.). Means the tldraw application itself, not a mobile app.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Section heading; one word ideally"
+		]
+	},
+	"aeb428554a": {
+		"sourceHash": "e0d48a731d7a25474952c6214dde032e21eb08d1fff80565ad6bdd43e6af191b",
+		"role": "label",
+		"meaning": "Name of the Libraries feature: collections of reusable shapes. Used as the label of the button that opens the libraries panel in the editor, and as a section/tab title in workspace settings.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Plural noun; not book or code libraries; keep short (tab label)"
+		]
+	},
+	"af3dc88931": {
+		"sourceHash": "1d24df5c865a5e2d6a1dfe66634f2bdb398c2966c8fabd5cecf3270a339485c2",
+		"role": "body",
+		"meaning": "Detail line in the Publish tab showing when the file was last published, e.g. 'Last published 5 minutes ago'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaPublishTab.tsx"
+		],
+		"placeholders": {
+			"date": "Self-closing tag replaced by a localized relative time such as '5 minutes ago' or 'yesterday'"
+		},
+		"constraints": [
+			"Keep <date></date> exactly; the relative time already includes 'ago' wording, so arrange the sentence around it"
+		]
+	},
+	"b028909917": {
+		"sourceHash": "60574652495da4e74368d9f56b015bc1697bb82898733d8af639386825e39e3c",
+		"role": "label",
+		"meaning": "Display name shown in the people menu for a collaborator on the board who isn't signed in.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/editor-messages.ts",
+			"apps/dotcom/client/src/tla/components/TlaEditor/useFileEditorOverrides.ts"
+		],
+		"constraints": [
+			"Used as a name; keep short"
+		]
+	},
+	"b03400e2db": {
+		"sourceHash": "5e88e60d35e8199e3c45693cdad35f3431b90e6c042327aef7f1e73d73b467a7",
+		"role": "body",
+		"meaning": "Byline of a notification row in the notifications panel saying that someone replied to a comment thread you're in.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"placeholders": {
+			"author": "Display name of the person who replied (may be the fallback 'Someone')",
+			"name": "Tag wrapping the author's name for styling; keep <name>…</name> around {author}"
+		}
+	},
+	"b1c94ca2fb": {
+		"sourceHash": "f97a6a9f4eb2972bed2660f42c046abf22543c3fa00c0dc88b2072aa75c246ad",
+		"role": "label",
+		"meaning": "Filter option in the notifications panel options menu that shows all notifications (as opposed to 'Unread' only).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarNotificationsPanel.tsx"
+		],
+		"constraints": [
+			"Checkbox menu item; refers to notifications, so agree with that noun if the language needs gender/number"
+		]
+	},
+	"b2326c3a34": {
+		"sourceHash": "500f5ebcbd8e6c47c1470e3c14a1f007a757cbf1b9ba758680de8b208b66bda8",
+		"role": "action",
+		"meaning": "Confirm button of the 'Regenerate invite link' dialog: replaces the workspace's current invite link with a new one, invalidating the old link.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Button label; verb form, keep short"
+		]
+	},
+	"b2c3c2e30c": {
+		"sourceHash": "ea5bb646d860e326b6b2d0e6a281fd6f8c05207d25ae7f22a68ed03398df3fdc",
+		"role": "heading",
+		"meaning": "Title of a dialog shown when the board has reached its size limit and further changes might not be saved.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLargeFileHandler.tsx"
+		],
+		"constraints": [
+			"Dialog title; 'full' means at storage capacity"
+		]
+	},
+	"b3205c1e45": {
+		"sourceHash": "e7fd340f94f73f1177b8b47b4721e9c32dd23df54cf32bfe572eb214315dbc44",
+		"role": "action",
+		"meaning": "Command palette item that opens the notifications panel in the sidebar.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Command name; imperative/verb form"
+		]
+	},
+	"b357b524e7": {
+		"sourceHash": "327d2b78f9134abf48db67ece3062b109a9422c64b90ff025058673668cf45fd",
+		"role": "label",
+		"meaning": "Label of the email input field in the sign-in dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Form field label"
+		]
+	},
+	"b3d7c37eb8": {
+		"sourceHash": "a7c02b4d0e44a87f0bbbb036590c134e26653f0d21976ec368795cc6a6a1a42f",
+		"role": "tooltip",
+		"meaning": "Tooltip of the toggle button on the workspace home page that shows files as a grid of thumbnails (vs 'List view').",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Keep short; 'view' is a noun (display mode)"
+		]
+	},
+	"b48becc771": {
+		"sourceHash": "d9e5937ce5529b3f82136fe84ac8863be4d491435293a34b748a6cd3267c7ca5",
+		"role": "label",
+		"meaning": "Label of the switch in workspace settings that turns the workspace's invite link on or off. 'Invites' means invitations to join the workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Switch label"
+		]
+	},
+	"b6d4223e60": {
+		"sourceHash": "524a5472f7ce85e159e9b1e8ba05d1f1766a9a557c4ace685f7650134864070d",
+		"role": "action",
+		"meaning": "Sign in to a tldraw account. Used as a command palette item, the default label of the sign-in button in the editor top bar, and as the heading and link of the 'you need to sign in to view this file' error page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		],
+		"constraints": [
+			"Button/command; use the locale's standard term for signing in, keep short"
+		]
+	},
+	"b6f4a2ec63": {
+		"sourceHash": "213e548f2f1a2f43310d5efefc2496d28b9fddec469a4cca59b919b4178518b0",
+		"role": "label",
+		"meaning": "Role name for a workspace member who owns/administers the workspace (vs 'Member'), shown in the members list.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Role label; noun"
+		]
+	},
+	"b74dbb40c5": {
+		"sourceHash": "b9031c18d9ed14e40047250c38b6b1bc48df319b06e958c18d1d65d57307ddb5",
+		"role": "body",
+		"meaning": "Instructions on the failure screen shown when a local file couldn't be imported automatically, telling the user how to import the .tldr file manually.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		],
+		"constraints": [
+			"'Import file' and 'File' name UI elements; use the locale's actual labels for the Import file menu item and File menu"
+		]
+	},
+	"b758336699": {
+		"sourceHash": "d015a301bc389f9977e11ef686127f6f6615e03e24fd248c4af1b1416dd12bc5",
+		"role": "action",
+		"meaning": "Copies a link to the clipboard: the file's link in the file menu and share tab, the published link in the publish tab. Trap: 'Copy' is the verb, not the noun 'a copy'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaAnonCopyLinkTab.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaPublishTab.tsx"
+		],
+		"constraints": [
+			"Button and menu item; keep short"
+		]
+	},
+	"ba0318cb81": {
+		"sourceHash": "9e5438c76390241db049d38d0f7600b6a494a0447542bc0f64682bb7d2514a26",
+		"role": "action",
+		"meaning": "Sign-in button shown to signed-out users in the share menu and top-right of the editor; sharing requires an account.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaSignInTab.tsx"
+		],
+		"constraints": [
+			"Button label; keep short; consistent with 'Sign in'"
+		]
+	},
+	"bbaaf8b6bf": {
+		"sourceHash": "772738d2f52e7e785e6b1a6e9771595fe2a9a6b4b0e3148f83cb008c42727959",
+		"role": "state",
+		"meaning": "Text of a disabled button shown in workspace settings in place of 'Copy invite link' when the workspace's invite link has been turned off.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Fits in a button; describes a state, not an action"
+		]
+	},
+	"bbbcefd7ce": {
+		"sourceHash": "e968b87b4b174350079e2282a0d68fa0e542cf678a770ca3bc833c354b629a69",
+		"role": "state",
+		"meaning": "Title of a progress toast while .tldr files are being uploaded/imported.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"placeholders": {
+			"total": "Total number of .tldr files being uploaded (plural selector)",
+			"uploaded": "Ordinal position of the file currently uploading, 1 to total"
+		},
+		"constraints": [
+			"Keep '.tldr' untranslated (file extension)",
+			"Keep the ellipsis character"
+		]
+	},
+	"bc88b0e89e": {
+		"sourceHash": "4485e01eeb840b2d31205dcff17c5e5f8d464b50ba8a8fea12d9678a6e412304",
+		"role": "tooltip",
+		"meaning": "Tooltip on the guest badge of a sidebar file entry, saying who shared the file with you.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFileLink.tsx"
+		],
+		"placeholders": {
+			"ownerName": "Display name of the file's owner"
+		}
+	},
+	"bd8aac2696": {
+		"sourceHash": "3e6ff0ae23a45e82ba44a7df7eb18e1654429e63a16fa21a2e644e5a7713b7f6",
+		"role": "heading",
+		"meaning": "Group heading in the command palette over the commands that act on the file that is open now (rename, share, publish, etc.). 'Current' means 'the one open at the moment', not 'up to date'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Short group label"
+		]
+	},
+	"bf9c7b5670": {
+		"sourceHash": "350c6482dcf7844c20b0a30843f83fc89c71a6f16fe33f81ec974be508a09db1",
+		"role": "label",
+		"meaning": "Placeholder text in the search field on the workspace home page, used to filter the workspace's files. Invites the user to type a search query.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Input placeholder; keep the trailing ellipsis character"
+		]
+	},
+	"c17466812d": {
+		"sourceHash": "f45995cf026b08a20e62339a4a94077fa9f048da6ed66a91f7cb928152979842",
+		"role": "action",
+		"meaning": "Menu item, sidebar button and command that opens the workspace settings dialog (name, members, invites); also the title of that dialog. 'Manage' means administer/configure the workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorWorkspaceSwitcher.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/layouts/TlaWorkspaceLayout/TlaWorkspaceSwitcher.tsx"
+		],
+		"constraints": [
+			"Also used as a dialog title, so the form must work as both a command and a heading"
+		]
+	},
+	"c2276c9127": {
+		"sourceHash": "252fc5843b8062167760d8e634d9ee0a577f55f7812f3af31d569149d2e8c0b7",
+		"role": "tooltip",
+		"meaning": "Info tooltip next to the 'Share this file' switch in the share menu; clicking it opens a help page explaining how file sharing works.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx"
+		],
+		"constraints": [
+			"Link text to external help page; keep the full stop"
+		]
+	},
+	"c26f17786f": {
+		"sourceHash": "99bba022e8e3ff7ba58898a1b887b3109c9a7227eb5b30cdd63a4d45406d8d88",
+		"role": "body",
+		"meaning": "Toast shown after the user drops or imports .tldr files and they have been added to the workspace as new files. In practice only shown for 2 or more files (a single file navigates instead), but every plural form must be correct.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"placeholders": {
+			"total": "Number of .tldr files that were added; # prints it"
+		},
+		"constraints": [
+			"'.tldr' is a file extension; keep it untranslated",
+			"Provide all plural forms the target language needs"
+		]
+	},
+	"c303bd1095": {
+		"sourceHash": "c3cac8bb1937b27b1452e3fcba00985403f74de95765bc3b7509de69e215974a",
+		"role": "error",
+		"meaning": "Error toast description shown when publishing a file (making a read-only public copy available via link) fails on the server.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"c4b39a1cc3": {
+		"sourceHash": "e33ad146c4ce69138c611f7803ead4256dd5b3cdebdc8de910e5ca07b9e8c748",
+		"role": "label",
+		"meaning": "Label of an always-on, disabled switch in the Manage cookies dialog for cookies strictly required to keep the user logged in and save files and settings. Cookies are browser cookies, not food.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx"
+		],
+		"constraints": [
+			"Use the locale's standard term for strictly necessary/essential cookies"
+		]
+	},
+	"c6a00f137b": {
+		"sourceHash": "55f492cbf0fe9423ca7c2381680ae5c3200bccd5b22af6a1379401237d2eeb7f",
+		"role": "label",
+		"meaning": "Tab name in the file share menu for the tab where the owner turns on sharing and copies a link to invite other people to collaborate on the file. Sibling tabs are 'Export' and 'Publish'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/TlaFileShareMenu.tsx"
+		],
+		"constraints": [
+			"Short tab label; may be a verb or noun as the locale prefers for tab names"
+		]
+	},
+	"c6f16003f2": {
+		"sourceHash": "9225a6e9b7d665e79878bf15b4bdebe2617ea63d01d19a922affdeac0163fdb7",
+		"role": "action",
+		"meaning": "Button and menu action shown on a legacy or published file the user doesn't own; creates a new copy of that file in the user's own workspace and opens it. 'Copy' is a verb.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/editor-messages.ts",
+			"apps/dotcom/client/src/tla/components/TlaEditor/useFileEditorOverrides.ts"
+		],
+		"constraints": [
+			"Copy is the verb, not the noun 'a copy'"
+		]
+	},
+	"c87aacf567": {
+		"sourceHash": "53b67a6376eac6174f8726e03876acc4056c04c9f10b99d2be4ff794977f2dc7",
+		"role": "action",
+		"meaning": "Menu item and button in settings that signs the user out of their tldraw account (log out).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Use the locale's standard 'log out' wording"
+		]
+	},
+	"c8a59e7135": {
+		"sourceHash": "05d4e5d0da017406aa7441656921c199dcf1ae0d3f5e370c734b103bea26c828",
+		"role": "tooltip",
+		"meaning": "Tooltip and accessible label of the small X button that hides the 'Build with the tldraw SDK' promo link for signed-out users; the dismissal is remembered.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaAnonDotDevLink/TlaAnonDotDevLink.tsx"
+		],
+		"constraints": [
+			"Icon-only button; label is the tooltip and aria-label"
+		]
+	},
+	"cb5feb1b73": {
+		"sourceHash": "1651cc2653152728db74905a10f3729f331aaaeb0a46675fe45389d146892f0b",
+		"role": "label",
+		"meaning": "Label of the swatch picker on the Profile settings page where the user chooses their personal colour, used for their cursor and presence indicator seen by collaborators. Not a drawing style colour.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Also used as the radiogroup aria-label"
+		]
+	},
+	"cce99c598c": {
+		"sourceHash": "bb74a271afb0e1ce5108834fdee63c274dc1bca40971849fb704ae1c2cbf73f8",
+		"role": "label",
+		"meaning": "Tab name in the settings dialog for the user's account profile page (name, colour, email, sign out).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Short tab label"
+		]
+	},
+	"cceaefbc20": {
+		"sourceHash": "5457cda8d60ddc8497e1497c4457f94cda3331a3b883c28e51838f8dbf2ea728",
+		"role": "label",
+		"meaning": "Label of the on/off switch in the share menu's Invite tab; when on, anyone with the link can access and collaborate on the file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx"
+		],
+		"constraints": [
+			"Switch label, not a button; describes the setting"
+		]
+	},
+	"cd15a75c26": {
+		"sourceHash": "b4fd3daebb338f75bebc366ff7ffdafb270e66ab3e3913246871b11f3dfe6678",
+		"role": "label",
+		"meaning": "Option in the 'Export as' format dropdown of the share menu's Export tab: export as an SVG vector image.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"File format name; normally left as 'SVG'"
+		]
+	},
+	"ce0547606c": {
+		"sourceHash": "466e4f245ac528ac10b6233e50bd5bac1d0330e3dc1930a6480eda0df278e3ae",
+		"role": "body",
+		"meaning": "Warning shown when the open file's data is getting close to the maximum size the server allows; suggests deleting content or creating a new file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLargeFileHandler.tsx"
+		]
+	},
+	"cea291e45e": {
+		"sourceHash": "3ff8a9a288019c01bf948f056054ed5ce0b8569eb830f9748ec02aae19f67e84",
+		"role": "tooltip",
+		"meaning": "Info link in the share menu's Publish tab that opens a help page explaining publishing (making a read-only public snapshot of the file available via link).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaPublishTab.tsx"
+		],
+		"constraints": [
+			"Link text; keep the full stop"
+		]
+	},
+	"d0834fcec6": {
+		"sourceHash": "84700794ec816f6a9f23e3bab25308a154f418dc6f4a83007b85f7a5f3351fb9",
+		"role": "label",
+		"meaning": "Tab name in the settings dialog for general app preferences (language, theme, etc.). Sibling tabs: Profile, Canvas, Accessibility.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Short tab label; other strings may refer to this tab by name"
+		]
+	},
+	"d28d6bbc42": {
+		"sourceHash": "65bde34f0bd088b925193ffd0d9cafdad7cf40575629d2fde459092ac2596dd5",
+		"role": "action",
+		"meaning": "Command-palette item shown when the current file is published; stops publishing it so the public read-only link no longer works. Does not delete the file.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		]
+	},
+	"d3d2e61733": {
+		"sourceHash": "e43cc4248a3cc52252f3faa75fb261b40d142eb680fad03fe7d58f7d2972381c",
+		"role": "action",
+		"meaning": "Primary button that closes a dialog: the dialog about content that failed to upload after signing in, and the legacy-file notice modal.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyLegacyModal.tsx"
+		],
+		"constraints": [
+			"Close the dialog, not 'near'"
+		]
+	},
+	"d46632fe1f": {
+		"sourceHash": "bb965c4c3e7bdc9a7141494b8f8dcc36c59fa123bab5bf0c5e3d0834546c4fa6",
+		"role": "error",
+		"meaning": "Body text of the file error screen shown when the sync server disconnects the user for sending too many requests (rate limited). Header is 'Rate limited'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"d4bbf74f3e": {
+		"sourceHash": "b61aa0eb1bb9a4677a1b7d51849f27d12f402e7e1e1d9ccc6400e0ab1754bdb5",
+		"role": "action",
+		"meaning": "Sidebar toggle button label/tooltip and command-palette item that shows or hides the app's left sidebar (file list).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarToggle.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarToggleMobile.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
+		],
+		"constraints": [
+			"'Toggle' means show/hide"
+		]
+	},
+	"d5e92609cf": {
+		"sourceHash": "c203587c85b28b86187015bdfa1f32afc381360c203340ad391c95b6c540d28f",
+		"role": "heading",
+		"meaning": "Group heading in the command palette over workspace commands (switch workspace, new workspace, manage, copy invite link). A workspace is a shared space holding a team's files.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx"
+		],
+		"constraints": [
+			"Use the locale's consistent term for 'workspace'"
+		]
+	},
+	"d638a3344b": {
+		"sourceHash": "34c3f3f36a366b644ad427393437106cce2e3cb2fb910a1a4a913954adc28770",
+		"role": "body",
+		"meaning": "Text in the 'Accept terms of use' dialog shown to new users before they can use the app. The tagged parts become links to the terms of use and privacy policy pages.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaLegalAcceptance.tsx"
+		],
+		"placeholders": {
+			"tos": "Rich-text tag wrapping the link text to the terms of use page",
+			"privacy": "Rich-text tag wrapping the link text to the privacy policy page"
+		},
+		"constraints": [
+			"Keep <tos>…</tos> and <privacy>…</privacy> tags around the corresponding words; tag order may change"
+		]
+	},
+	"d721757161": {
+		"sourceHash": "e610d5bee426da3013ab1e08d9ff9a97068008b8715861a9fe5a9ad8d13a3bf3",
+		"role": "label",
+		"meaning": "Label of the dropdown in the share menu's Export tab choosing whether the exported image uses light, dark or automatic colour theme.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaExportTab.tsx"
+		],
+		"constraints": [
+			"Colour theme (light/dark), not a topic or subject"
+		]
+	},
+	"d876a9fe1a": {
+		"sourceHash": "a6eb29a3996503790ae00ed8addcd26421ce474d981f96fd864d61d14232d793",
+		"role": "action",
+		"meaning": "Button in the dialog shown when content created before signing in failed to upload; retries the upload.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		]
+	},
+	"d88ad2dc74": {
+		"sourceHash": "5b2b20855eb989aa88c8d242c57d7630b5a908d3de8daa7500a6804047aa0185",
+		"role": "action",
+		"meaning": "Primary button in the 'Accept terms of use' dialog; records that the user accepts the terms and privacy policy and lets them continue into the app.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaLegalAcceptance.tsx"
+		]
+	},
+	"d9100f3e10": {
+		"sourceHash": "96aacdd0cc1113e2661ccdd1c029082755d989233efbb2972462563afd6a6267",
+		"role": "action",
+		"meaning": "Link text, first step in the failed-upload dialog's manual recovery instructions; opens the locally saved copy of the content the user created before signing in.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/SlurpFailure.tsx"
+		],
+		"constraints": [
+			"Item in a numbered list of steps"
+		]
+	},
+	"dbbebf3c03": {
+		"sourceHash": "93ea0960ab8c4069e791c42968575c4d2e95d5ee161ad5e9db84e95126f222fc",
+		"role": "heading",
+		"meaning": "Header of the file error screen shown when the user isn't allowed to open the file because it isn't shared with them; followed by 'Contact the owner to request access.'",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		],
+		"constraints": [
+			"Describes the file's access state (restricted to invited people), not an action"
+		]
+	},
+	"dbf9b24193": {
+		"sourceHash": "12f578b896b75fc3f0e8060ba3d14207d6f7656bc1152e90a5087190ae281a4e",
+		"role": "action",
+		"meaning": "Button in workspace settings that removes the current user from the workspace (they lose access to its files); also the title of the confirmation dialog. Disabled for the last owner. Destructive.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"'Leave' means quit/exit membership, not 'leave something behind'",
+			"Also used as dialog title"
+		]
+	},
+	"dfdb78a4e4": {
+		"sourceHash": "d0f302997485e4726f9bea52311c91b306b7e96c48a35ed0edf09d5553ccdd4b",
+		"role": "label",
+		"meaning": "Name of a developer-only submenu holding debug toggles for the tldraw app (e.g. highlighting untranslated strings). 'Flags' means feature switches/toggles, not national flags.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Submenu label; keep short",
+			"Only visible in debug/dev builds"
+		]
+	},
+	"e0aa021e21": {
+		"sourceHash": "cdbe2d20d5878945c49f20c7f4f18571b5a701cff0ad409439bac6aae48cc3bb",
+		"role": "action",
+		"meaning": "Button that dismisses the dialog telling the user their workspace invite link has expired. It only closes the dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaInviteExpiredDialog.tsx"
+		],
+		"constraints": [
+			"Single dialog button; keep very short"
+		]
+	},
+	"e1cbe6f097": {
+		"sourceHash": "a2a5a1a48c788e23bfe78b8f652457771e5b3a4d8702eae586dcbf7b6c476167",
+		"role": "error",
+		"meaning": "Error toast title shown when renaming, deleting or otherwise changing a shared library in workspace settings fails. 'Library' is a collection of reusable shapes/assets, not a building with books.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"constraints": [
+			"Toast title; keep short"
+		]
+	},
+	"e2198d6228": {
+		"sourceHash": "685dcbed6c0a8cb97616e38a945025515641f614cdafa5e2fc2e6f9df9b20e43",
+		"role": "action",
+		"meaning": "Button / command-palette item that copies the workspace's invite link to the clipboard so it can be shared with teammates. 'Copy' is the verb (copy to clipboard), not the noun 'a copy'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		]
+	},
+	"e2ae80a510": {
+		"sourceHash": "5b0404cb1a90071fd07ea77048b5b25832dc37c3d17ba78a8978b43d3cca0dc7",
+		"role": "action",
+		"meaning": "Menu item / settings link that opens tldraw's legal summary page (an overview of terms, privacy and licensing) in a new tab.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Menu item label; keep short"
+		]
+	},
+	"e404559826": {
+		"sourceHash": "8b54b867ccf4793cdc6f93d8ce627c151969efa2e9f5d7e34061cdf938010c4c",
+		"role": "label",
+		"meaning": "Name of tldraw's Terms of Service legal document, defined for the account/help menu as a link label.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Use the locale's standard name for a website's terms of service"
+		]
+	},
+	"e81c4e4f2b": {
+		"sourceHash": "021d20a32a475d8ceb253ff783fdbeacbf78d802c48c63c23c7785896f2a2323",
+		"role": "body",
+		"meaning": "Divider text in the sign-in dialog between the social sign-in buttons (Google, etc.) and the email sign-in form, i.e. 'sign in this way OR that way'. A conjunction, lowercase, standing alone between two lines.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Single word; keep lowercase where the locale allows"
+		]
+	},
+	"ea13ecec38": {
+		"sourceHash": "2634c11b3381bab0c88a5c6343a6d3f68210e51db853a2b7154ec4b6fd60a746",
+		"role": "action",
+		"meaning": "Menu item in the editor's main menu that opens the version history of the current file, where earlier versions can be viewed and restored.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditor.tsx"
+		],
+		"constraints": [
+			"Menu item; keep short"
+		]
+	},
+	"ea4788705e": {
+		"sourceHash": "8a5204d4cf680bd6b626e203d8d444e3ff0b2c462028dc35ad9aa3343686ae87",
+		"role": "action",
+		"meaning": "Button that closes a confirmation dialog without performing the action (deleting a file, workspace or library, leaving a workspace, regenerating an invite link, creating a workspace, sending feedback).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaDeleteFileDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Dialog button; keep short"
+		]
+	},
+	"eb1e2b0542": {
+		"sourceHash": "f20013690c333af3ce526acf2c7961151a60b9b53365b51cd2a3a8712281adc5",
+		"role": "body",
+		"meaning": "Body text of the dialog shown when a workspace invite link has expired: the user should ask the workspace's owner to send a new invite link. 'One' refers to the invite link.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaInviteExpiredDialog.tsx"
+		]
+	},
+	"ebfe9ce86e": {
+		"sourceHash": "773d23ee5476a0dac7042f5fef3ac237ab05de66a94383de080bc30c54d1467c",
+		"role": "heading",
+		"meaning": "Section heading in the sidebar's recent-files list grouping files last opened/edited yesterday (alongside Today, This week, etc.).",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		],
+		"constraints": [
+			"Group heading; capitalize as the locale does for a standalone heading"
+		]
+	},
+	"ec59b960ea": {
+		"sourceHash": "98f27a782d758283d8a3e78ae5a306f5a194362a60a83cfc454eafeea501dfa0",
+		"role": "error",
+		"meaning": "Error screen text shown when the user can't open a file because too many people are already connected to it at the same time.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
+		]
+	},
+	"ec611e9a08": {
+		"sourceHash": "6f3696286c56c73de7c96c943d8cab26e4c3867a5ef99a8123c2528e275da8e0",
+		"role": "label",
+		"meaning": "Accessible name for the sidebar button that opens the user's account menu (profile, settings, sign out). 'Menu' is a UI menu.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
+		],
+		"constraints": [
+			"Accessible label; keep short"
+		]
+	},
+	"ed6241a422": {
+		"sourceHash": "4e3306c6daecdb3d74dd1a958fb4dfb8c850ea567d200d910bd4312d053d4ca9",
+		"role": "state",
+		"meaning": "Empty-state text on the workspace home page when the search box has text but no files' names match it.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		]
+	},
+	"ed75712b0e": {
+		"sourceHash": "1e3b9e4ecfa67d70c4d84c1c81643a5868890e30169c3ad251c9f317e5b6bbf0",
+		"role": "action",
+		"meaning": "File menu item that creates a copy of the file as a new file. Imperative verb (make a duplicate), not the noun 'a duplicate'; keep distinct from 'Copy link'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Menu item; keep short"
+		]
+	},
+	"ede55d955f": {
+		"sourceHash": "b5a919b045ec32519ec6d91a7599862958b8cfeecc2797c06272b3ffc0108048",
+		"role": "body",
+		"meaning": "Closing sentence of the Manage cookies dialog pointing the user to the cookie policy page.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx"
+		],
+		"placeholders": {
+			"a": "Link tag wrapping the words that open the cookie policy page; keep it around the phrase meaning 'cookie policy'"
+		}
+	},
+	"edec9387f9": {
+		"sourceHash": "83226c1b162877621c44eccfdeaaa6c9e5872c0a77ce4e88e004a4f2334e545c",
+		"role": "error",
+		"meaning": "Message shown when the user follows a link to a specific comment on a file but that comment has since been deleted.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/sneaky/SneakyCommentDeepLink.tsx"
+		]
+	},
+	"ef53538ae4": {
+		"sourceHash": "5a9712607b5b21caf46b5e13bc1f1331aa0da18e713d00515dd3014c1ace593f",
+		"role": "label",
+		"meaning": "Tab in the workspace settings dialog listing the people who belong to the workspace (members of a team), where they can be invited or removed.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Tab label; keep short"
+		]
+	},
+	"ef7de3f485": {
+		"sourceHash": "7cfec69e605b8bfbc600450f2d1cb9df7edc2015a8948a8f72df259e7d7b0bca",
+		"role": "announcement",
+		"meaning": "Screen-reader suffix appended in parentheses to a sidebar file link's name when that file is the one currently open, e.g. 'My drawing (selected)'. Describes the file (state), not an action.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFileLink.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
+		],
+		"constraints": [
+			"Lowercase single word/adjective; agrees with 'file' where the language has gender"
+		]
+	},
+	"f07e75296c": {
+		"sourceHash": "de6376ec470b729a0eba8745786f2f6847628897cbf0cead46589f05e3426641",
+		"role": "heading",
+		"meaning": "Section heading on the workspace home page for files other people have shared with the current user.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		]
+	},
+	"f09b16bc5f": {
+		"sourceHash": "ab4224a6982c1bb677ad7dc7bd4e7a640d291c5c873304080b175db545ba7b63",
+		"role": "body",
+		"meaning": "Introductory paragraph of the Manage cookies dialog explaining why tldraw uses cookies. 'Logged in' means signed in to the account; 'sync' means keeping files saved and up to date across devices.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx"
+		],
+		"constraints": [
+			"Keep the brand 'tldraw' as is, lowercase"
+		]
+	},
+	"f0e8bff6f9": {
+		"sourceHash": "7b7e4ac8968851ab361812459576b0ef6d7a8d768d443ad037d7c97dafb9e8ce",
+		"role": "label",
+		"meaning": "Label for the sidebar button/menu that opens the signed-in user's personal settings (account, theme, language, etc.), as opposed to workspace settings.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsButton.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx",
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx",
+			"apps/dotcom/client/src/tla/layouts/TlaWorkspaceLayout/TlaWorkspaceLayout.tsx"
+		],
+		"constraints": [
+			"Button/menu label; keep short"
+		]
+	},
+	"f129f24bec": {
+		"sourceHash": "f20e8cd87c78e2ec21f8cb41d4dd220949cf404daabd8c37923dbe2a87b52e4a",
+		"role": "state",
+		"meaning": "Suffix after a library's item count in the workspace libraries list, saying the library isn't used in any file yet, e.g. '12 items · Not in any file'. The leading middle dot is a separator.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx"
+		],
+		"constraints": [
+			"Keep the leading '· ' separator exactly"
+		]
+	},
+	"f13001876b": {
+		"sourceHash": "47d49a4eac074ce68137e4808668762ce976e99e283793c441554fff166115f1",
+		"role": "tooltip",
+		"meaning": "Tooltip and accessible label for the toggle button on the workspace home page that shows files as a list instead of a grid. 'View' is a display mode, not the verb 'to view'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+		],
+		"constraints": [
+			"Keep short"
+		]
+	},
+	"f2569594b2": {
+		"sourceHash": "57e3ff25352d2fcfca10b4befb72342d70e1182fe3ea015d8cf7718206f95e7d",
+		"role": "tooltip",
+		"meaning": "Info tooltip next to the always-on 'Essential cookies' switch in the Manage cookies dialog, explaining what essential cookies are for.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx"
+		]
+	},
+	"f2a6c498fb": {
+		"sourceHash": "21596086a1a9499c6d38421dd5da86fb0ff99fdff50389cea300821e84b3cc09",
+		"role": "action",
+		"meaning": "Menu item or confirm button that permanently deletes a file (file menu, delete-file dialog), a workspace or a shared library. Keep distinct from 'Forget' (remove from your list) and 'Remove'.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaDeleteFileDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceLibrariesList.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Button/menu label; keep short"
+		]
+	},
+	"f408fa5fbd": {
+		"sourceHash": "389cf6951d3808a21681bab51359190c510bad1a54658df7643f16d1430489e4",
+		"role": "error",
+		"meaning": "Toast description shown when the user opens a workspace invite link that doesn't exist or is no longer valid.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		]
+	},
+	"f4f70727dc": {
+		"sourceHash": "1012a4703ce0f5bd953921e7240ff8725e1ed3864b40b30613653085f2c11177",
+		"role": "label",
+		"meaning": "Generic 'Settings' label used in several places: the title of the user settings dialog, a menu item and settings icon button in the editor that open it, a tab in workspace settings for general workspace options, and the cookie banner button that opens the cookie preferences dialog.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaCookieConsent.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"Must work as a dialog title, tab, menu item and button; use the plural noun form, keep short"
+		]
+	},
+	"f5ddc8d9c1": {
+		"sourceHash": "a65063d1009dd683333ddf9a05830e04ab08c5c92db840ce3cc0bd8e4d67441f",
+		"role": "body",
+		"meaning": "In the dialog shown when someone tries to open a file from the tldraw offline desktop app, which isn't supported yet: tells them they can export it from that app as a file in the format tldraw.com can open.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaTldrawOfflineFileDialog.tsx"
+		],
+		"placeholders": {
+			"a": "Link tag wrapping the phrase that opens the help page on exporting; keep it around 'export as a … file'",
+			"extension": "File extension string, e.g. '.tldr'; not translatable"
+		}
+	},
+	"fa2ead697d": {
+		"sourceHash": "3f4f7b5e5a2712a992cfc55728759e77ce9d4943e106622d269f17f174517121",
+		"role": "action",
+		"meaning": "Link at the bottom of the sign-in dialog that opens tldraw's privacy policy page. Name of the legal document.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Use the locale's standard name for a privacy policy"
+		]
+	},
+	"fb15c53f22": {
+		"sourceHash": "432ad2541412c3b6180a6b5adae6eea90faec44283a25922a5e7300130a40be3",
+		"role": "label",
+		"meaning": "Access level for a file's shared link, shown in the Invite tab of the Share menu as the select's current value and as one of its options next to 'Editor'. Anyone with the link can view the file but not edit it. Means a person with read-only access, not a picture or document viewer program.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaInviteTab.tsx"
+		],
+		"constraints": [
+			"Pairs with 'Editor'; use parallel forms for the two roles",
+			"Dropdown option; keep short"
+		]
+	},
+	"fc9d47046b": {
+		"sourceHash": "17b82d9cf519dc5af7346303cdf14a7ff5ea021af1a11cef8f4794ee876bd4bb",
+		"role": "body",
+		"meaning": "Description in the confirmation dialog that opens when the user chooses to leave a workspace from workspace settings. Confirming removes the user's own membership in the workspace.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"constraints": [
+			"'Leave' means giving up membership, not navigating away from a page"
+		]
+	},
+	"fed5ec05eb": {
+		"sourceHash": "e55ee4add6cad02b3af3f22acd4cd26964f1d88801aeba1759573122abcf1527",
+		"role": "state",
+		"meaning": "Short confirmation shown as a toast after the file's link has been copied to the clipboard, from the file menu or the command palette. Past action: the link has been copied.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
+			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
+		],
+		"constraints": [
+			"Toast title; keep short",
+			"Not the 'Copy link' button itself; it reports that copying has happened"
+		]
+	},
+	"feebd72b89": {
+		"sourceHash": "a6254c6543e9597e175c7871285fb0eb7d478ac82c67fe2b0729c760909f3e86",
+		"role": "heading",
+		"meaning": "Group heading and owner name in the libraries panel for tldraw's built-in starter packs: shape/asset libraries that anyone can browse and insert. 'Libraries' means collections of reusable shapes, not book libraries or code libraries.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaLibraries/TlaLibrariesPanel.tsx",
+			"apps/dotcom/client/src/tla/components/TlaLibraries/anonEditorLibraries.ts"
+		],
+		"constraints": [
+			"Panel group heading; keep short"
+		]
+	},
+	"ff2fefd3c6": {
+		"sourceHash": "1615932ad753bde51b0edf1f27bcb807b1be9cafeb6650174a4f6c60e6de4078",
+		"role": "body",
+		"meaning": "Description in the confirmation dialog shown when a workspace admin chooses to remove a member from workspace settings. Confirming revokes that person's membership; their account is not deleted.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
+		],
+		"placeholders": {
+			"name": "Display name of the workspace member being removed"
+		},
+		"constraints": [
+			"'Remove' means take out of the workspace, not delete"
+		]
+	},
+	"ff52811b98": {
+		"sourceHash": "5113dd1de65e43d8dc9a4589a1f0c6eccbb7e24ef63c0df088019a7a5d0b8836",
+		"role": "body",
+		"meaning": "Intro text under the logo in the sign-in/sign-up dialog when the user is not arriving from a workspace invite. Encourages creating a free account so files are saved and can be shared with colleagues. 'tldraw' is used here as a verb (to draw together in tldraw), a playful brand use.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
+		],
+		"constraints": [
+			"Keep the brand 'tldraw' untranslated; rephrase naturally if the verb use doesn't work, e.g. 'draw in tldraw'"
+		]
+	},
+	"ffad261a48": {
+		"sourceHash": "0f6041d432441810f5e9757a6eb1f35a0c523406f7f39d4161bba87e6c4e8dee",
+		"role": "error",
+		"meaning": "Title of an error toast shown when joining a workspace through an invite link fails (invalid or expired link, not signed in, or a timeout). A separate description explains the cause.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/app/TldrawApp.ts"
+		],
+		"constraints": [
+			"Toast title; keep short",
+			"'Invite' is the invitation the user received, a noun"
+		]
+	},
+	"ffba7e098c": {
+		"sourceHash": "cbffd38dcd28e42a9c5ae6c0b0b82fa0eea56f75dc57385563bf1aa411e55238",
+		"role": "body",
+		"meaning": "Byline in the comment notifications list saying that exactly two named people reacted with an emoji to the user's comment.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/commentNotifications.ts"
+		],
+		"placeholders": {
+			"a": "Display name of the most recent person who reacted",
+			"b": "Display name of the second person who reacted"
+		},
+		"constraints": [
+			"Keep both <name></name> tags wrapping only the names; they render the names in bold",
+			"'Reacted' means added an emoji reaction"
+		]
+	},
+	"ffcd73e997": {
+		"sourceHash": "c7baa6505798cf601de9059632da4c56383c3f087cb27c271fbfe881f5e70b92",
+		"role": "action",
+		"meaning": "Menu item that opens a file picker to choose one or more .tldr files from the user's computer; they are uploaded as new tldraw files and the first one opens. The ellipsis signals that a picker follows.",
+		"callSites": [
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Menu item; use the locale's form for commands",
+			"Keep the trailing ellipsis character (…)"
+		]
+	}
+}
