@@ -1,4 +1,4 @@
-import { act } from 'react'
+import { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
 	atom,
@@ -206,6 +206,63 @@ describe('useLibraryThumbnailUrls', () => {
 		expect(renderItemPreview.mock.calls.length).toBeLessThanOrEqual(1)
 		renderItemPreview.mockImplementation(async () => null)
 		root = createRoot(container)
+	})
+
+	it("drops one source's previews when the hook switches to another source", async () => {
+		let next = 0
+		URL.createObjectURL = vi.fn(() => `blob:${++next}`)
+		renderItemPreview.mockClear()
+		renderItemPreview.mockResolvedValueOnce(new Blob(['a'])).mockResolvedValue(null)
+		const item = makeItem('Bare', 1)
+		const sourceA = makeSource([item])
+		const sourceB = makeSource([item])
+		let result: Record<string, string | undefined> = {}
+		let setSource!: (source: LibrarySource) => void
+		function Probe() {
+			const [source, set] = useState<LibrarySource>(sourceA)
+			setSource = set
+			result = useLibraryThumbnailUrls(source, [item])
+			return null
+		}
+		act(() => {
+			root.render(
+				<EditorContext.Provider value={editor}>
+					<Probe />
+				</EditorContext.Provider>
+			)
+		})
+		await vi.waitFor(async () => {
+			await act(async () => {})
+			expect(result[item.id]).toBe('blob:1')
+		})
+		act(() => setSource(sourceB))
+		await vi.waitFor(() => expect(renderItemPreview).toHaveBeenCalledTimes(2))
+		await act(async () => {})
+		expect(result[item.id]).toBeUndefined()
+		renderItemPreview.mockReset()
+		renderItemPreview.mockResolvedValue(null)
+	})
+
+	it("renders previews again when the active theme's definition changes under the same id", async () => {
+		renderItemPreview.mockClear()
+		renderItemPreview.mockResolvedValue(new Blob(['png']))
+		URL.createObjectURL = vi.fn(() => 'blob:preview')
+		const item = makeItem('Bare', 1)
+		const source = makeSource([item])
+		renderHook(() => useLibraryThumbnailUrls(source, [item]))
+		await vi.waitFor(() => expect(renderItemPreview).toHaveBeenCalledTimes(1))
+		const id = editor.getCurrentThemeId()
+		act(() =>
+			editor.updateThemes((themes) => ({
+				...themes,
+				[id]: { ...themes[id]!, fontSize: 99 } as any,
+			}))
+		)
+		await vi.waitFor(async () => {
+			await act(async () => {})
+			expect(renderItemPreview).toHaveBeenCalledTimes(2)
+		})
+		renderItemPreview.mockResolvedValue(null)
 	})
 
 	function makeResolvingSource() {

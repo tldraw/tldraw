@@ -1,11 +1,13 @@
-import type { Editor, TLThemeId } from 'tldraw'
+import type { Editor, TLTheme } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibraryItem } from '../lib/schema'
 import { renderItemPreview, type ItemPreviewOptions } from './render-item-preview'
 
 export type RenderItemPreview = typeof renderItemPreview
 
-export interface ItemPreviewRequest extends ItemPreviewOptions {
+export interface ItemPreviewRequest extends Omit<ItemPreviewOptions, 'themeId'> {
+	/** The theme to draw in. A new definition under the same id is rendered again. */
+	theme: TLTheme
 	/** Once aborted, the caller no longer wants the preview; it's skipped if nobody else does. */
 	signal?: AbortSignal
 }
@@ -43,24 +45,36 @@ function getSourceJobs(previews: Previews, source: LibrarySource) {
 	return created
 }
 
-const keyOf = (item: TLLibraryItem, themeId: TLThemeId, darkMode: boolean) =>
-	`${item.id}:${themeId}:${darkMode ? 'dark' : 'light'}`
+const themeVersions = new WeakMap<TLTheme, number>()
+let lastThemeVersion = 0
+function themeVersionOf(theme: TLTheme) {
+	let version = themeVersions.get(theme)
+	if (version === undefined) {
+		version = ++lastThemeVersion
+		themeVersions.set(theme, version)
+	}
+	return version
+}
+
+const keyOf = (item: TLLibraryItem, theme: TLTheme, darkMode: boolean) =>
+	`${item.id}:${theme.id}:${themeVersionOf(theme)}:${darkMode ? 'dark' : 'light'}`
 
 /**
  * A `blob:` URL of an item's content rendered as its thumbnail would be, or null when it can't be
  * rendered or nobody wants it any more. Items never change, so each is rendered once per source,
- * theme and colour mode for as long as `editor` lives, one at a time.
+ * theme definition and colour mode for as long as `editor` lives, one at a time.
  */
 export function getItemPreviewUrl(
 	editor: Editor,
 	source: LibrarySource,
 	item: TLLibraryItem,
-	{ signal, ...options }: ItemPreviewRequest,
+	{ signal, theme, darkMode }: ItemPreviewRequest,
 	render: RenderItemPreview = renderItemPreview
 ): Promise<string | null> {
 	const previews = getPreviews(editor)
 	const jobs = getSourceJobs(previews, source)
-	const key = keyOf(item, options.themeId, options.darkMode)
+	const key = keyOf(item, theme, darkMode)
+	const options = { darkMode, themeId: theme.id }
 	const job = jobs.get(key) ?? createJob()
 	if (signal && signal.aborted) return job.url
 	job.waiting++
