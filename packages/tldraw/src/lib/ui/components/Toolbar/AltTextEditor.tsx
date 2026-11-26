@@ -37,7 +37,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
-	const isReadonly = editor.getIsReadonly()
+	const cannotEdit = !!editor.checkCapability('edit-shape')
 
 	const handleComplete = useCallback(() => {
 		trackEvent('set-alt-text', { source })
@@ -98,9 +98,9 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				onValueChange={setAltText}
 				onComplete={handleComplete}
 				onCancel={onClose}
-				disabled={isReadonly}
+				disabled={cannotEdit}
 			/>
-			{!isReadonly && (
+			{!cannotEdit && (
 				<TldrawUiButton
 					title={msg(messages.toolMediaAltTextConfirm)}
 					data-testid="tool.media-alt-text-confirm"
