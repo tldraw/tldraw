@@ -7,27 +7,18 @@ import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 import { QrCode } from '../QrCode'
 
 export function TlaAnonCopyLinkTab() {
-	return (
-		<TlaMenuSection>
-			<TlaAnonCopyLink />
-		</TlaMenuSection>
-	)
-}
-
-/** The link button and QR code on their own, for a section that holds more than them. */
-export function TlaAnonCopyLink({ type }: { type?: 'primary' | 'secondary' }) {
 	const url = useEditorDeepLink() ?? ''
 	return (
-		<>
-			<TlaAnonCopyLinkButton url={url} type={type} />
+		<TlaMenuSection>
+			<TlaAnonCopyLinkButton url={url} />
 			<QrCode url={url} />
-		</>
+		</TlaMenuSection>
 	)
 }
 
 /* ---------------------- Share --------------------- */
 
-function TlaAnonCopyLinkButton({ url, type }: { url: string; type?: 'primary' | 'secondary' }) {
+function TlaAnonCopyLinkButton({ url }: { url: string }) {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -38,7 +29,7 @@ function TlaAnonCopyLinkButton({ url, type }: { url: string; type?: 'primary' | 
 	}
 
 	return (
-		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type={type}>
+		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>
 			<F defaultMessage="Copy link" />
 		</TlaShareMenuCopyButton>
 	)

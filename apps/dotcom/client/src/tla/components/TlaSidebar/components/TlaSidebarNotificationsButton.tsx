@@ -26,39 +26,27 @@ const messages = defineMessages({
 	},
 })
 
-/**
- * Opens the notifications popover (comments across the user's files), with an unread badge. In the
- * sidebar footer it opens upward; in the v3 workspace header, downward from the header's end.
- */
-export function TlaSidebarNotificationsButton({
-	placement = 'sidebar',
-}: {
-	placement?: 'sidebar' | 'header'
-}) {
+/** Opens the notifications popover (comments across the user's files), with an unread badge. */
+export function TlaSidebarNotificationsButton() {
 	const msg = useTranslation()
 	const { unreadCount } = useCommentNotifications()
 	// Same id as the popover, so we can dismiss it when a notification is opened.
 	const [, onOpenChange] = useMenuIsOpen(NOTIFICATIONS_MENU_ID)
 	const triggerRef = useRef<HTMLButtonElement>(null)
 	const [alignOffset, setAlignOffset] = useState<number>(TLA_MENU_POSITION.alignOffset)
-	const isHeader = placement === 'header'
 
 	return (
 		<TldrawUiPopover
 			id={NOTIFICATIONS_MENU_ID}
 			onOpenChange={(open) => {
-				if (open && !isHeader) setAlignOffset(getAlignOffset(triggerRef.current))
+				if (open) setAlignOffset(getAlignOffset(triggerRef.current))
 			}}
 		>
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					ref={triggerRef}
 					type="icon"
-					className={
-						isHeader
-							? classNames(notifications.button, notifications.headerButton)
-							: classNames(styles.sidebarCreateFileButton, notifications.button)
-					}
+					className={classNames(styles.sidebarCreateFileButton, notifications.button)}
 					data-testid="tla-notifications-button"
 					title={msg(messages.notifications)}
 				>
@@ -72,8 +60,8 @@ export function TlaSidebarNotificationsButton({
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent
-				side={isHeader ? 'bottom' : 'top'}
-				align={isHeader ? 'end' : 'start'}
+				side="top"
+				align="start"
 				{...TLA_MENU_POSITION}
 				alignOffset={alignOffset}
 				sideOffset={4}

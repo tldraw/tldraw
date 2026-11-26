@@ -93,7 +93,7 @@ export function TlaUserSettingsMenu() {
 					</TldrawUiMenuGroup>
 					{user && (
 						<TldrawUiMenuGroup id="signout">
-							<SignOutMenuItem source="sidebar" />
+							<SignOutMenuItem />
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiDropdownMenuContent>

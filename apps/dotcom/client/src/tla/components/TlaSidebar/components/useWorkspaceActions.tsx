@@ -6,7 +6,6 @@ import { useApp } from '../../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
-import { startSidebarRename } from './sidebar-shared'
 
 export function useSwitchToWorkspace() {
 	const app = useApp()
@@ -38,7 +37,12 @@ export function useSwitchToWorkspace() {
 			// home workspace — just gets a fresh blank file to rename, not another welcome doc.
 			const res = await app.createFile({ workspaceId })
 			if (res.ok) {
-				if (!getIsCoarsePointer()) startSidebarRename(app, res.value.fileId, workspaceId)
+				if (!getIsCoarsePointer()) {
+					app.sidebarState.update((prev) => ({
+						...prev,
+						renameState: { fileId: res.value.fileId, workspaceId },
+					}))
+				}
 				navigate(routes.tlaFile(res.value.fileId))
 			}
 		},
@@ -46,11 +50,7 @@ export function useSwitchToWorkspace() {
 	)
 }
 
-export function useCreateWorkspaceDialog(
-	source: TLAppUiEventSource = 'sidebar',
-	// The v3 gallery opens the new workspace's page; everywhere else opens its welcome board.
-	destination: 'board' | 'workspace' = 'board'
-) {
+export function useCreateWorkspaceDialog(source: TLAppUiEventSource = 'sidebar') {
 	const app = useApp()
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
@@ -74,9 +74,7 @@ export function useCreateWorkspaceDialog(
 						// directly (not via switchToWorkspace, whose empty-workspace path would
 						// otherwise create a blank file before the welcome file lands).
 						const res = await app.createWorkspaceWelcomeFile(id)
-						if (destination === 'workspace') {
-							navigate(routes.tlaWorkspace(id))
-						} else if (res.ok) {
+						if (res.ok) {
 							navigate(routes.tlaFile(res.value.fileId))
 						} else {
 							// Seeding failed; still land the user in the new workspace rather than
@@ -88,5 +86,5 @@ export function useCreateWorkspaceDialog(
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source, destination])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source])
 }

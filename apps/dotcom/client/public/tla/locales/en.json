@@ -80,9 +80,6 @@
   "181b90f889": {
     "translation": "Create file"
   },
-  "1914dedd04": {
-    "translation": "Created by me"
-  },
   "1a7222b4e5": {
     "translation": "Move to"
   },
@@ -136,9 +133,6 @@
   },
   "2e9856a31e": {
     "translation": "Regenerate invite link"
-  },
-  "2f42560ef5": {
-    "translation": "{name} (you)"
   },
   "31246941ad": {
     "translation": "You need to sign in to view this file."
@@ -194,9 +188,6 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
-  "42ff290cc4": {
-    "translation": "Actions…"
-  },
   "44db318ee5": {
     "translation": "Get help on Discord"
   },
@@ -217,12 +208,6 @@
   },
   "47f493a590": {
     "translation": "Pin file"
-  },
-  "4970317944": {
-    "translation": "Object"
-  },
-  "49800157c1": {
-    "translation": "Edited {time}"
   },
   "49ee308734": {
     "translation": "Name"
@@ -254,12 +239,6 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
-  "517f5f3544": {
-    "translation": "No files here yet."
-  },
-  "536b51486d": {
-    "translation": "Export…"
-  },
   "53770fd374": {
     "translation": "Unread"
   },
@@ -289,9 +268,6 @@
   },
   "56c34c6410": {
     "translation": "Privacy policy"
-  },
-  "56cabd57d5": {
-    "translation": "Archived files will appear here."
   },
   "5a95a425f7": {
     "translation": "Share"
@@ -323,9 +299,6 @@
   "61057a0c84": {
     "translation": "Later"
   },
-  "623cddd380": {
-    "translation": "Recents"
-  },
   "625fd29749": {
     "translation": "Older"
   },
@@ -356,9 +329,6 @@
   "694f82ed9d": {
     "translation": "Delete workspace"
   },
-  "697c59072d": {
-    "translation": "Sign in to save"
-  },
   "69ce6a28fb": {
     "translation": "{count, plural, one {Someone reacted} other {# people reacted}}"
   },
@@ -373,9 +343,6 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
-  },
-  "6ea5359e01": {
-    "translation": "Canvas"
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -431,9 +398,6 @@
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
-  "797c5be9a7": {
-    "translation": "· On this board now"
-  },
   "7a1920d611": {
     "translation": "Default"
   },
@@ -446,14 +410,8 @@
   "7c0747a5df": {
     "translation": "Open tldraw"
   },
-  "7c10d4771a": {
-    "translation": "Sign in to edit profile settings"
-  },
   "7cb5f8b4a5": {
     "translation": "Forget"
-  },
-  "7d69b3cb4c": {
-    "translation": "Archived"
   },
   "7daeced9ff": {
     "translation": "Publish changes"
@@ -485,9 +443,6 @@
   "86c66437fd": {
     "translation": "Rename file"
   },
-  "8718bcf921": {
-    "translation": "Untitled workspace"
-  },
   "87fdb09de6": {
     "translation": "You are already a member of this workspace"
   },
@@ -500,14 +455,8 @@
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
-  "8cf04a9734": {
-    "translation": "Home"
-  },
   "8eb2c00e96": {
     "translation": "Shared with you"
-  },
-  "8f7f4c1ce7": {
-    "translation": "About"
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
@@ -550,9 +499,6 @@
   },
   "9983381c21": {
     "translation": "Clear search"
-  },
-  "9ac3b80777": {
-    "translation": "Unsaved file"
   },
   "9b33f5c63c": {
     "translation": "Didn’t receive a code? <resend>Resend</resend>."
@@ -669,9 +615,6 @@
   "b357b524e7": {
     "translation": "Email address"
   },
-  "b3d7c37eb8": {
-    "translation": "Grid view"
-  },
   "b48becc771": {
     "translation": "Enable invites"
   },
@@ -702,9 +645,6 @@
   "bd8aac2696": {
     "translation": "Current file"
   },
-  "bf9c7b5670": {
-    "translation": "Search…"
-  },
   "c17466812d": {
     "translation": "Manage workspace"
   },
@@ -732,12 +672,6 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
-  "cb5feb1b73": {
-    "translation": "Color"
-  },
-  "cce99c598c": {
-    "translation": "Profile"
-  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -749,9 +683,6 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
-  },
-  "d0834fcec6": {
-    "translation": "Preferences"
   },
   "d28d6bbc42": {
     "translation": "Unpublish file"
@@ -828,9 +759,6 @@
   "ec611e9a08": {
     "translation": "Account menu"
   },
-  "ed6241a422": {
-    "translation": "No files match your search."
-  },
   "ed75712b0e": {
     "translation": "Duplicate"
   },
@@ -846,9 +774,6 @@
   "ef7de3f485": {
     "translation": "selected"
   },
-  "f07e75296c": {
-    "translation": "Shared with me"
-  },
   "f09b16bc5f": {
     "translation": "We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw."
   },
@@ -857,9 +782,6 @@
   },
   "f129f24bec": {
     "translation": "· Not in any file"
-  },
-  "f13001876b": {
-    "translation": "List view"
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
