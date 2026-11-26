@@ -77,6 +77,9 @@ jobs:
       - name: Check localizations
         run: pnpm i18n-extract --check
 
+      - name: Validate translations
+        run: pnpm i18n-validate
+
       # Cached modules keep absolute paths into vitest's pnpm store dir, which changes whenever
       # vitest's peer set does. Restoring across that fails every import with
       # ERR_MODULE_NOT_FOUND, so fallbacks only match the same store dir. They also keep the
