@@ -22,6 +22,11 @@ function arrowLabelRoom(direction: string | undefined) {
 	return { edgeLabelMargin: direction === 'LR' || direction === 'RL' ? ARROW_LABEL_MARGIN : 0 }
 }
 
+// pele spaces sequence rows for its own label height (`messageMargin` 35 by default), and tldraw's
+// labels are taller, so a message just below a frame or section title reached into it. 50 is the
+// smallest that clears every such row in the "Hundreds of Mermaid diagrams" example.
+const SEQUENCE_MESSAGE_MARGIN = 50
+
 /** @public */
 export class MermaidDiagramError extends Error {
 	constructor(
@@ -126,7 +131,14 @@ export async function createMermaidDiagram(
 			}
 			case 'sequence': {
 				const sequence = model as SequenceModel
-				blueprint = await withMountedPeleSvg(text, layoutOptions(), (root) =>
+				const sequenceOptions = {
+					...layoutOptions(),
+					config: {
+						...config,
+						sequence: { messageMargin: SEQUENCE_MESSAGE_MARGIN, ...config?.sequence },
+					},
+				}
+				blueprint = await withMountedPeleSvg(text, sequenceOptions, (root) =>
 					sequenceToBlueprint(
 						parseSequenceLayout(root, sequence),
 						sequence.actors,

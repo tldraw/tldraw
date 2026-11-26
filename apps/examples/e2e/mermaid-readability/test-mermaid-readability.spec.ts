@@ -45,13 +45,10 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		findings: [
 			overlap('sequence', 6, 'Recompute backoff', 'line'),
 			overlap('sequence', 9, 'Recalculate cache', 'line'),
-			overlap('sequence', 11, 'Apply discount', 'opt [Promo code provided]'),
 			overlap('sequence', 24, '9  Apply discount rules', 'line'),
 			overlap('sequence', 24, '9  Apply discount rules', 'rectangle with no text'),
-			overlap('sequence', 24, '9  Apply discount rules', 'opt [Customer included coupon]'),
 			overlap('sequence', 25, 'Recompute eviction policy', 'line'),
 			overlap('sequence', 28, 'Retry parsing malformed input', 'line'),
-			overlap('sequence', 28, 'Retry parsing malformed input', 'rectangle with no text'),
 			overlap(
 				'sequence',
 				29,
@@ -80,29 +77,8 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 			midWordBreak('state', 15, 'reply received', 'receiv/ed'),
 			midWordBreak('state', 24, 'request\nmore\nchanges', 'reque/st'),
 			midWordBreak('state', 24, 'request\nmore\nchanges', 'chang/es'),
-		],
-	},
-	{
-		// Rows are as tall as the layout's own text needs, and tldraw's labels are taller.
-		reason: 'A message or note label reaches into the frame or section title above or below it',
-		findings: [
-			overlap('sequence', 12, 'Get subscription', '[Load billing]'),
-			overlap('sequence', 21, 'Empty', '[No job yet]'),
-			overlap('sequence', 22, '7  Write failed login event', '[Login failed]'),
-			overlap('sequence', 23, 'Checkout failed', '[Failure occurred]'),
-			overlap('sequence', 23, 'Void authorization', '[Shipment creation failed]'),
-			overlap('sequence', 24, 'opt [Customer included coupon]', '9  Apply discount rules'),
-			overlap('sequence', 24, '22  409 Out of stock', '[Out of stock]'),
-			overlap('sequence', 24, '20  409 Purchase failed', '[Commit failed]'),
-			overlap('sequence', 24, '7  Check availability', '[Check stock]'),
-			overlap('sequence', 24, '16  Record purchase event', '[Track analytics]'),
-		],
-	},
-	{
-		reason: 'Frames nested back to back put one title on top of the next',
-		findings: [
-			overlap('sequence', 24, 'opt [Customer included coupon]', 'critical [Commit purchase]'),
-			overlap('sequence', 24, 'critical [Commit purchase]', 'opt [Customer included coupon]'),
+			// The same squeezed self-loop label reaches up into its state.
+			overlap('state', 24, 'request\nmore\nchanges', 'Review'),
 		],
 	},
 	{
