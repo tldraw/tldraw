@@ -72,6 +72,8 @@ export {
 	shapeArrangementPlugin,
 } from './lib/plugins/builtin/shapeArrangement'
 export { ShapeArranger } from './lib/plugins/builtin/ShapeArranger'
+export { selectionCapability, selectionPlugin } from './lib/plugins/builtin/selection'
+export { SelectionController } from './lib/plugins/builtin/SelectionController'
 export {
 	contentTransferCapability,
 	contentTransferPlugin,

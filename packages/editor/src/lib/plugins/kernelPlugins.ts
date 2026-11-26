@@ -10,6 +10,7 @@ import { inputsPlugin } from './builtin/inputs'
 import { overlaysPlugin } from './builtin/overlays'
 import { performancePlugin } from './builtin/performance'
 import { scribblesPlugin } from './builtin/scribbles'
+import { selectionPlugin } from './builtin/selection'
 import { shapeAnimationPlugin } from './builtin/shapeAnimation'
 import { shapeArrangementPlugin } from './builtin/shapeArrangement'
 import { snappingPlugin } from './builtin/snappingPlugin'
@@ -50,6 +51,7 @@ export function createKernelPlugins(): TLPlugin[] {
 		shapeAnimationPlugin,
 		stylesPlugin,
 		contentTransferPlugin,
+		selectionPlugin,
 		scribblesPlugin,
 		edgeScrollPlugin,
 		overlaysPlugin,

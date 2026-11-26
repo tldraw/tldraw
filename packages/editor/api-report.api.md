@@ -1797,6 +1797,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectAll(): this;
     // (undocumented)
     selectFirstChildShape(): void;
+    // @internal (undocumented)
+    readonly _selection: SelectionController;
     selectNone(): this;
     // (undocumented)
     selectParentShape(): void;
@@ -3373,6 +3375,43 @@ export const scribblesPlugin: {
 };
 
 // @public (undocumented)
+export const selectionCapability: TLCapability<SelectionController>;
+
+// @public
+export class SelectionController {
+    constructor(editor: Editor);
+    deselect(...shapes: TLShape[] | TLShapeId[]): Editor;
+    getCurrentPageShapesInReadingOrder(): TLShape[];
+    getFocusedGroup(): TLShape | undefined;
+    getNearestAdjacentShape(shapes: TLShape[], currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
+    getOnlySelectedShape(): null | TLShape;
+    getOnlySelectedShapeId(): null | TLShapeId;
+    getSelectionPageBounds(): Box | null;
+    getSelectionRotatedPageBounds(): Box | undefined;
+    getSelectionRotatedScreenBounds(): Box | undefined;
+    getSelectionRotation(): number;
+    getSelectionScreenBounds(): Box | undefined;
+    // @internal
+    getShapesInReadingOrder(shapes: TLShape[]): TLShape[];
+    getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
+    // @internal (undocumented)
+    getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined;
+    // @internal (undocumented)
+    getShapesSharedRotation(shapeIds: TLShapeId[]): number;
+    isAncestorSelected(shape: TLShape | TLShapeId): boolean;
+    popFocusedGroupId(): Editor;
+    select(...shapes: TLShape[] | TLShapeId[]): Editor;
+    selectAdjacentShape(direction: TLAdjacentDirection): void;
+    selectAll(): Editor;
+    // (undocumented)
+    selectFirstChildShape(): void;
+    selectNone(): Editor;
+    // (undocumented)
+    selectParentShape(): void;
+    setFocusedGroup(shape: null | TLGroupShape | TLShapeId): Editor;
+}
+
+// @public (undocumented)
 export type SelectionCorner = 'bottom_left' | 'bottom_right' | 'top_left' | 'top_right';
 
 // @public (undocumented)
@@ -3380,6 +3419,13 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 
 // @public (undocumented)
 export type SelectionHandle = SelectionCorner | SelectionEdge;
+
+// @public
+export const selectionPlugin: {
+    readonly id: "selection";
+    readonly provides: readonly [TLCapability<SelectionController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React.PointerEvent<Element>): void;
