@@ -1,6 +1,7 @@
 import {
 	DEFAULT_THEME,
 	Editor,
+	FileHelpers,
 	createShapeId,
 	createTLStore,
 	defaultBindingUtils,
@@ -80,4 +81,27 @@ it('draws in the theme it is given', async () => {
 		themeId: 'ocean' as any,
 	})
 	expect(exported[0].themeId).toBe('ocean')
+})
+
+it('embeds fonts from the URLs it is given, not their bare names', async () => {
+	const fetched: string[] = []
+	vi.spyOn(FileHelpers, 'urlToDataUrl').mockImplementation(async (url: string) => {
+		fetched.push(url)
+		return 'data:font/woff2;base64,AA=='
+	})
+	vi.spyOn(Editor.prototype, 'toImage').mockImplementation(async function (this: Editor) {
+		await this.fonts.toEmbeddedCssDeclaration({
+			family: 'tldraw_draw',
+			src: { url: 'tldraw_draw' },
+		})
+		return { blob: new Blob(['png']), width: 1, height: 1 }
+	})
+	const id = createShapeId('box')
+	host.createShapes([{ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+	await renderItemPreview(host, host.getContentFromCurrentPage([id])!, {
+		darkMode: false,
+		themeId: 'default',
+		fontAssetUrls: { tldraw_draw: 'https://fonts.example/draw.woff2' },
+	})
+	expect(fetched).toEqual(['https://fonts.example/draw.woff2'])
 })

@@ -68,13 +68,13 @@ export function getItemPreviewUrl(
 	editor: Editor,
 	source: LibrarySource,
 	item: TLLibraryItem,
-	{ signal, theme, darkMode }: ItemPreviewRequest,
+	{ signal, theme, darkMode, fontAssetUrls }: ItemPreviewRequest,
 	render: RenderItemPreview = renderItemPreview
 ): Promise<string | null> {
 	const previews = getPreviews(editor)
 	const jobs = getSourceJobs(previews, source)
 	const key = keyOf(item, theme, darkMode)
-	const options = { darkMode, themeId: theme.id }
+	const options = { darkMode, themeId: theme.id, fontAssetUrls }
 	const job = jobs.get(key) ?? createJob()
 	if (signal && signal.aborted) return job.url
 	job.waiting++

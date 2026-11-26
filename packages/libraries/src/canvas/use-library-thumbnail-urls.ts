@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useEditor, useValue, type TLLibraryItemId } from 'tldraw'
+import { useAssetUrls, useEditor, useValue, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource, TLLibraryThumbnailContext } from '../lib/LibrarySource'
 import { getThumbnailForColorMode, type TLLibraryItem } from '../lib/schema'
 import {
@@ -31,6 +31,8 @@ export type LibraryThumbnailUrlsOptions =
  * {@link LibrarySource.resolveThumbnail}, the item's own `thumbnail` for the editor's colour mode.
  * An item without a thumbnail gets its content rendered as one, a `blob:` URL kept for as long as
  * the editor, and undefined if its content can't be loaded or has nothing to draw.
+ *
+ * Use it inside `<Tldraw>`: the rendered previews embed fonts from its asset URLs.
  *
  * With one, the source is asked for a URL sized for the tiles, whose width comes from `options`
  * and is rounded up to a power of two. Without a width, or before the container has a tile to
@@ -148,21 +150,24 @@ function useItemPreviewUrls(
 	latestItems.current = items
 	const itemIds = items.map((item) => item.id).join(' ')
 	const theme = useValue('preview theme', () => editor.getCurrentTheme(), [editor])
+	const fontAssetUrls = useAssetUrls().fonts
 	useEffect(() => {
 		const controller = new AbortController()
 		const { signal } = controller
 		const darkMode = colorMode === 'dark'
 		for (const item of latestItems.current) {
-			getItemPreviewUrl(editor, source, item, { darkMode, theme, signal }).then((url) => {
-				if (signal.aborted || !url) return
-				setPreviews((previous) => {
-					const urls = previous.source === source ? previous.urls : {}
-					return urls[item.id] === url ? previous : { source, urls: { ...urls, [item.id]: url } }
-				})
-			})
+			getItemPreviewUrl(editor, source, item, { darkMode, theme, fontAssetUrls, signal }).then(
+				(url) => {
+					if (signal.aborted || !url) return
+					setPreviews((previous) => {
+						const urls = previous.source === source ? previous.urls : {}
+						return urls[item.id] === url ? previous : { source, urls: { ...urls, [item.id]: url } }
+					})
+				}
+			)
 		}
 		return () => controller.abort()
-	}, [editor, source, itemIds, colorMode, theme])
+	}, [editor, source, itemIds, colorMode, theme, fontAssetUrls])
 	return previews.source === source ? previews.urls : {}
 }
 

@@ -6,6 +6,7 @@ import {
 	defaultBindingUtils,
 	defaultShapeUtils,
 	Editor,
+	AssetUrlsProvider,
 	EditorContext,
 	LibraryRecordType,
 	setInLocalStorage,
@@ -21,6 +22,13 @@ import { useLibraryCollapsed } from './use-library-collapsed'
 import { useLibraryItemOrder } from './use-library-item-order'
 import { useLibraryItems } from './use-library-items'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
+
+const assetUrls = {
+	fonts: { tldraw_draw: 'https://fonts.example/draw.woff2' },
+	icons: {},
+	embedIcons: {},
+	translations: {},
+} as any
 
 const renderItemPreview = vi.hoisted(() =>
 	vi.fn(async (..._args: unknown[]): Promise<Blob | null> => null)
@@ -90,9 +98,13 @@ function renderHook<T>(useHook: () => T) {
 	}
 	act(() => {
 		root.render(
-			<EditorContext.Provider value={editor}>
-				<Probe />
-			</EditorContext.Provider>
+			<AssetUrlsProvider assetUrls={assetUrls}>
+				<AssetUrlsProvider assetUrls={assetUrls}>
+					<EditorContext.Provider value={editor}>
+						<Probe />
+					</EditorContext.Provider>
+				</AssetUrlsProvider>
+			</AssetUrlsProvider>
 		)
 	})
 	return () => result.current as T
@@ -189,6 +201,7 @@ describe('useLibraryThumbnailUrls', () => {
 		expect(renderItemPreview).toHaveBeenCalledWith(editor, content.content, {
 			darkMode: editor.getColorMode() === 'dark',
 			themeId: editor.getCurrentThemeId(),
+			fontAssetUrls: assetUrls.fonts,
 		})
 		renderItemPreview.mockResolvedValue(null)
 	})
@@ -226,9 +239,11 @@ describe('useLibraryThumbnailUrls', () => {
 		}
 		act(() => {
 			root.render(
-				<EditorContext.Provider value={editor}>
-					<Probe />
-				</EditorContext.Provider>
+				<AssetUrlsProvider assetUrls={assetUrls}>
+					<EditorContext.Provider value={editor}>
+						<Probe />
+					</EditorContext.Provider>
+				</AssetUrlsProvider>
 			)
 		})
 		await vi.waitFor(async () => {
