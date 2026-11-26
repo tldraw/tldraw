@@ -22,6 +22,9 @@ app.register(async (app) => {
 		// The sessionId is passed from the client as a query param,
 		// you need to extract it and pass it to the room.
 		const sessionId = (req.query as any)?.['sessionId'] as string
+		// For this example the client says who the user is. In a real app, get the user from your
+		// auth, for example from a session cookie, and never trust the client.
+		const userId = ((req.query as any)?.['user'] as string | undefined) ?? null
 
 		// At least one message handler needs to
 		// be attached before doing any kind of async work
@@ -39,7 +42,7 @@ app.register(async (app) => {
 		// Here we make or get an existing instance of TLSocketRoom for the given roomId
 		const room = makeOrLoadRoom(roomId)
 		// and finally connect the socket to the room
-		room.handleSocketConnect({ sessionId, socket })
+		room.handleSocketConnect({ sessionId, socket, userId })
 
 		socket.off('message', collectMessagesListener)
 

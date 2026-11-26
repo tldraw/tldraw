@@ -78,6 +78,8 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	socket: TLRoomSocket<R>
 	/** Custom metadata associated with this session */
 	meta: Meta
+	/** The user that the app connected this session for, if any */
+	userId: string | null
 	/** Whether this session has read-only permissions for document-lane records */
 	isReadonly: boolean
 	/**

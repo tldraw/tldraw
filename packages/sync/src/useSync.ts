@@ -17,6 +17,7 @@ import {
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
+	TLCheckDiff,
 	TLRecord,
 	TLStore,
 	TLStoreSchemaOptions,
@@ -212,6 +213,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
+		checkDiff: _checkDiff,
 		...schemaOpts
 	} = opts
 
@@ -229,6 +231,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	// stable, so that a new function on each render does not reconnect
+	const stableCheckDiff: TLCheckDiff = useEvent((...args: Parameters<TLCheckDiff>) =>
+		_checkDiff!(...args)
+	)
+	const checkDiff = _checkDiff ? stableCheckDiff : undefined
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -308,12 +315,21 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
 
+		let mountedEditor: Editor | null = null
+
 		const store = createTLStore({
 			id: storeId,
 			schema,
 			assets,
 			users,
-			onMount,
+			checkDiff,
+			onMount(editor) {
+				mountedEditor = editor
+				onMount?.(editor)
+				return () => {
+					mountedEditor = null
+				}
+			},
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
@@ -376,6 +392,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onPushRejected({ reason }) {
+				mountedEditor?.emit('rejected', { reason, source: 'server' })
+			},
 			presence,
 			presenceMode,
 		})
@@ -398,6 +417,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		checkDiff,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -506,6 +526,12 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	onCustomMessageReceived?(data: any): void
+
+	/**
+	 * Your diff check. The editor runs it on each operation, and the room runs its own on each
+	 * push. When the room rejects a push, the editor emits `'rejected'` with `source: 'server'`.
+	 */
+	checkDiff?: TLCheckDiff
 
 	/** @internal */
 	onMount?(editor: Editor): void

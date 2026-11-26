@@ -1,0 +1,36 @@
+.permissions-server {
+	display: flex;
+	gap: 8px;
+	position: absolute;
+	inset: 0;
+}
+
+.permissions-server-column {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+}
+
+/* One line, so that the editor below does not move when the status changes */
+.permissions-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	height: 36px;
+	padding: 0 8px;
+	white-space: nowrap;
+	font-size: 13px;
+}
+
+.permissions-user {
+	padding: 2px 8px;
+	border-radius: 4px;
+	background: hsl(0, 0%, 0%, 6%);
+	font-weight: 600;
+}
+
+.permissions-server-editor {
+	position: relative;
+	flex: 1;
+}

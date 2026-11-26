@@ -14,6 +14,7 @@ import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -1107,6 +1108,22 @@ export type TLCameraId = RecordId<TLCamera>;
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public
+export type TLCheckDiff<R extends UnknownRecord = TLRecord> = (diff: RecordsDiff<R>, context: {
+    get(id: string): R | undefined;
+    sessionId: string;
+    userId: null | string;
+}) => TLCheckResult;
+
+// @public
+export interface TLCheckRejection {
+    // (undocumented)
+    reason: string;
+}
+
+// @public
+export type TLCheckResult = boolean | null | TLCheckRejection | void;
+
+// @public
 export interface TLComment extends BaseRecord<'comment', TLCommentId> {
     authorId: string;
     body: TLRichText;
@@ -1789,6 +1806,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 // @public
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
+    checkDiff?: TLCheckDiff;
     collaboration?: {
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;

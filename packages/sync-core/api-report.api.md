@@ -17,6 +17,8 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
 import { ThrottledFunction } from '@tldraw/utils';
+import { TLCheckDiff } from '@tldraw/tlschema';
+import { TLCheckRejection } from '@tldraw/tlschema';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
@@ -280,6 +282,7 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     sessionId: string;
     socket: TLRoomSocket<R>;
     supportsStringAppend: boolean;
+    userId: null | string;
 }
 
 // @internal
@@ -328,6 +331,7 @@ export interface SessionStateSnapshot {
     serializedSchema: SerializedSchema;
     // (undocumented)
     supportsStringAppend: boolean;
+    userId?: null | string;
 }
 
 // @public
@@ -520,6 +524,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         objectAccess?: TLObjectStoreAccess;
         sessionId: string;
         socket: WebSocketMinimal;
+        userId?: null | string;
     } & (SessionMeta extends void ? object : {
         meta: SessionMeta;
     })): void;
@@ -547,7 +552,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    // @deprecated
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+    checkDiff?: TLCheckDiff<R>;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -592,6 +599,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 
 // @internal
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
+    rejection?: TLCheckRejection;
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
     };
@@ -658,6 +666,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         }): void;
         onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
+        onPushRejected?(rejection: TLCheckRejection): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         presenceMode?: Signal<TLPresenceMode>;
@@ -722,6 +731,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
+        checkDiff?: TLCheckDiff<R>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
@@ -750,6 +760,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         objectAccess?: TLObjectStoreAccess;
         sessionId: string;
         socket: TLRoomSocket<R>;
+        userId?: null | string;
     }): this;
     handleResumedSession(opts: {
         isReadonly: boolean;
@@ -762,6 +773,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
         socket: TLRoomSocket<R>;
         supportsStringAppend: boolean;
+        userId?: null | string;
     }): void;
     // (undocumented)
     readonly internalTxnId = "TLSyncRoom.txn";

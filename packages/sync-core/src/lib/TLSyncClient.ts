@@ -7,6 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
+import { TLCheckRejection } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -461,6 +462,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	private readonly onPushRejected?: (rejection: TLCheckRejection) => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -484,6 +487,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 *   - onLoad - Callback fired when initial sync completes successfully
 	 *   - onSyncError - Callback fired when sync fails with error reason
 	 *   - onCustomMessageReceived - Optional handler for custom messages
+	 *   - onPushRejected - Optional callback fired when the room's diff check rejected a push,
+	 *     after the client reverted it
 	 *   - onAfterConnect - Optional callback fired after successful connection
 	 *   - self - The TLSyncClient instance
 	 *   - details - Connection details including readonly status
@@ -497,6 +502,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
+		onPushRejected?(rejection: TLCheckRejection): void
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
@@ -562,6 +568,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
+		this.onPushRejected = config.onPushRejected
 
 		let didLoad = false
 
@@ -977,6 +984,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+		const rejections: TLCheckRejection[] = []
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -1000,6 +1008,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
+						if (diff.rejection) {
+							rejections.push(diff.rejection)
+						}
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1030,6 +1041,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
+			for (const rejection of rejections) {
+				this.onPushRejected?.(rejection)
+			}
 		} catch (e) {
 			console.error(e)
 			this.store.ensureStoreIsUsable()

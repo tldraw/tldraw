@@ -109,7 +109,7 @@ export class PointingHandle extends StateNode {
 
 	private startDraggingHandle() {
 		const { editor } = this
-		if (editor.getIsReadonly()) return
+		if (editor.checkCapability('edit-shape')) return
 		const { shape, handle } = this.info
 
 		if (!editor.getShape(shape.id)) {
