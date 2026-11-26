@@ -2,7 +2,7 @@
 //
 // A headless editor: no DOM, no React rendering. It runs in Node with only the plugins it is
 // given. These tests also show how a plugin extends behavior that the core or another plugin owns.
-import { RecordProps, TLShape, createShapeId } from '@tldraw/tlschema'
+import { PageRecordType, RecordProps, TLShape, createShapeId } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { DEFAULT_CAMERA_OPTIONS } from '../constants'
 import type { Editor } from '../editor/Editor'
@@ -124,6 +124,44 @@ describe('a headless editor', () => {
 		expect(editor.inputs.getCurrentPagePoint()).toMatchObject({ x: 40, y: 30 })
 	})
 
+	it('groups, duplicates, moves to a page and deep links without React or the DOM', () => {
+		const editor = headlessEditor()
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes<CardShape>([
+			{ id: a, type: CARD, x: 0, y: 0, props: { text: 'a' } },
+			{ id: b, type: CARD, x: 200, y: 0, props: { text: 'b' } },
+		])
+		const group = createShapeId('group')
+		editor.groupShapes([a, b], { groupId: group })
+		expect(editor.getShape(a)?.parentId).toBe(group)
+		editor.ungroupShapes([group])
+		expect(editor.getShape(group)).toBeUndefined()
+		expect(editor.getShape(a)?.parentId).toBe(editor.getCurrentPageId())
+
+		editor.duplicateShapes([a])
+		expect(editor.getCurrentPageShapes()).toHaveLength(3)
+
+		const firstPage = editor.getCurrentPageId()
+		const copy = PageRecordType.createId('copy')
+		editor.duplicatePage(firstPage, copy)
+		expect(editor.getCurrentPageId()).toBe(copy)
+		expect(editor.getCurrentPageShapes()).toHaveLength(3)
+
+		editor.setCurrentPage(firstPage)
+		editor.moveShapesToPage([b], copy)
+		expect(editor.getCurrentPageId()).toBe(copy)
+		expect(editor.getShape(b)).toBeDefined()
+		expect(editor.getPageShapeIds(firstPage).has(b)).toBe(false)
+
+		const link = editor.createDeepLink({
+			url: 'https://tldraw.com',
+			to: { type: 'page', pageId: firstPage },
+		})
+		editor.navigateToDeepLink({ url: link })
+		expect(editor.getCurrentPageId()).toBe(firstPage)
+	})
+
 	it('uses a replacement core plugin', () => {
 		const lockedCameraPlugin = definePlugin({
 			id: 'lockedCamera',
@@ -174,6 +212,9 @@ describe('a headless editor', () => {
 		['editing', (editor: Editor) => editor.setEditingShape(null)],
 		['shapeArrangement', (editor: Editor) => editor.flipShapes([], 'horizontal')],
 		['shapeAnimation', (editor: Editor) => editor.animateShapes([])],
+		['grouping', (editor: Editor) => editor.groupShapes([])],
+		['duplication', (editor: Editor) => editor.duplicateShapes([])],
+		['deepLinks', (editor: Editor) => editor.createDeepLink({ url: 'https://tldraw.com' })],
 	] as const)(
 		'creates, edits, deletes and undoes without %s, and names it when used',
 		(id, use) => {
