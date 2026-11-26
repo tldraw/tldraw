@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "entries": {
+    "[\"sdk\",\"es\",\"a11y.adjust-shape-styles\"]": {
+      "sourceHash": "b5736c4a7630bbb97ccbad9b46ffef760e4cbfa699eca4d1fc98b4773d12f467",
+      "translationHash": "476546fdc269e9963670cdd31deaa770bd6f6c7b6fd6669a6cfb87b9f092ff2a"
+    },
+    "[\"sdk\",\"es\",\"a11y.enlarge-shape\"]": {
+      "sourceHash": "a7dc64bf665439c4f22cf4264471404227f5737e65df069411e7c8a96afb2cf6",
+      "translationHash": "22b635ac687926779244a9017a48ed843b0baa2871e4053c370acb1b3b886540"
+    },
+    "[\"sdk\",\"es\",\"a11y.enter-leave-container\"]": {
+      "sourceHash": "925d044848fedcc35f98ce2840625ce722533d766f4ebec1f50052fd2e0564c6",
+      "translationHash": "0b5aa9fd44b98c9a8f35d3d560e6eaf0d67cdaad05fb70869fb50131db010ebd"
+    },
+    "[\"sdk\",\"es\",\"a11y.move-shape-faster\"]": {
+      "sourceHash": "57cfb43441f08f6a91ca87d5d49fa461537b2be0219476566dc1df1de36b5da9",
+      "translationHash": "b4995f1a7a183cd3dc068311f9e45351dd3fe35e29752dd0bb4807254e619d59"
+    },
+    "[\"sdk\",\"es\",\"a11y.move-shape\"]": {
+      "sourceHash": "5cc819db2e7a5c52d741427c9228ee4efb9260a76986e7095e8ae63a4f592c0a",
+      "translationHash": "b305f46f6c2ad400ca6c45eba5c877ff38f211187ae11a8e9e79c95635efb564"
+    }
+  }
+}

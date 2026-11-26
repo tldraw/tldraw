@@ -1,0 +1,20 @@
+{
+	"register": "Infinitive verb phrases for actions and shortcut labels",
+	"terms": [
+		{
+			"term": "container",
+			"translation": "contenedor",
+			"note": "Frame or group that holds other shapes"
+		},
+		{
+			"term": "Enlarge / Shrink (shape)",
+			"translation": "Agrandar / Reducir",
+			"note": "Scale the selected shapes; not camera zoom"
+		},
+		{
+			"term": "shape",
+			"translation": "forma",
+			"note": "Canvas object"
+		}
+	]
+}

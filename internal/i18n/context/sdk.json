@@ -1,0 +1,63 @@
+{
+	"a11y.adjust-shape-styles": {
+		"sourceHash": "b5736c4a7630bbb97ccbad9b46ffef760e4cbfa699eca4d1fc98b4773d12f467",
+		"role": "label",
+		"meaning": "Name of a row in the Keyboard shortcuts dialog's Accessibility group, shown beside the key combination Cmd/Ctrl+Enter. It describes what that key does: it moves keyboard focus to the style panel so the user can change the selected shape's styles (color, fill, size and so on). 'Adjust' is a verb; 'styles' means the shape's appearance properties. The row is display-only and has a no-op handler.",
+		"callSites": [
+			"packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx",
+			"packages/tldraw/src/lib/ui/context/actions.tsx"
+		],
+		"constraints": [
+			"Shortcut dialog row label; keep short",
+			"Describes a keyboard shortcut for keyboard and screen-reader users"
+		]
+	},
+	"a11y.enlarge-shape": {
+		"sourceHash": "a7dc64bf665439c4f22cf4264471404227f5737e65df069411e7c8a96afb2cf6",
+		"role": "action",
+		"meaning": "Label of the 'enlarge-shapes' action, which scales the selected shapes up. Its handler resizes each selected shape about the selection center. It appears as a row in the Keyboard shortcuts dialog's Accessibility group. It is a verb phrase meaning to make bigger, not to zoom the camera. The English is singular, but the action applies to every selected shape.",
+		"callSites": [
+			"packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx",
+			"packages/tldraw/src/lib/ui/context/actions.tsx"
+		],
+		"constraints": [
+			"Shortcut dialog row and action label; keep short",
+			"Pairs with 'Shrink shape' (a11y.shrink-shape); keep the two clearly opposite"
+		]
+	},
+	"a11y.enter-leave-container": {
+		"sourceHash": "925d044848fedcc35f98ce2840625ce722533d766f4ebec1f50052fd2e0564c6",
+		"role": "label",
+		"meaning": "Name of a row in the Keyboard shortcuts dialog's Accessibility group, shown beside Cmd/Ctrl+Shift+Up/Down. It describes keyboard navigation: with a frame or group selected, the keys move selection into it (enter) or back out to its parent (leave). 'Container' means a frame or group shape that holds other shapes, not a UI panel or a software container. The row is display-only.",
+		"callSites": [
+			"packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx"
+		],
+		"constraints": [
+			"Shortcut dialog row label; keep short",
+			"'Enter' is the verb 'go into', not the Enter key"
+		]
+	},
+	"a11y.move-shape": {
+		"sourceHash": "5cc819db2e7a5c52d741427c9228ee4efb9260a76986e7095e8ae63a4f592c0a",
+		"role": "label",
+		"meaning": "Name of a row in the Keyboard shortcuts dialog's Accessibility group, shown beside the arrow keys. It describes what the arrow keys do: they nudge the selected shape in that direction on the canvas. 'Move' is a verb and 'shape' is a canvas object. The row is display-only.",
+		"callSites": [
+			"packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx"
+		],
+		"constraints": [
+			"Shortcut dialog row label; keep short"
+		]
+	},
+	"a11y.move-shape-faster": {
+		"sourceHash": "57cfb43441f08f6a91ca87d5d49fa461537b2be0219476566dc1df1de36b5da9",
+		"role": "label",
+		"meaning": "Name of a row in the Keyboard shortcuts dialog's Accessibility group, shown beside Shift plus the arrow keys. It describes what that combination does: it nudges the selected shape by a larger step than the plain arrow keys. 'Faster' means bigger steps per key press. The row is display-only. It pairs with 'Move shape'.",
+		"callSites": [
+			"packages/tldraw/src/lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent.tsx"
+		],
+		"constraints": [
+			"Shortcut dialog row label; keep short",
+			"Keep consistent with 'Move shape' (a11y.move-shape)"
+		]
+	}
+}
