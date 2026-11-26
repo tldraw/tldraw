@@ -365,6 +365,23 @@ const toggles = (container: Element) =>
 		(el) => `${el.textContent}:${el.getAttribute('aria-expanded')}`
 	)
 
+it('finds an empty library by its name, with its + tile to save into it', async () => {
+	const shapes = makeLibrary('Shapes', ['Box'])
+	const stash = makeLibrary('My stash', [])
+	const container = await renderPanel(makeSource(InMemoryLibrarySource, [shapes, stash]))
+
+	act(() => librariesSearchQuery.set(panelEditor!, 'stash'))
+	await vi.waitFor(() =>
+		expect(
+			[...container.querySelectorAll('.tlui-libraries-section')].map((s) =>
+				s.getAttribute('aria-label')
+			)
+		).toEqual(['My stash'])
+	)
+	expect(container.textContent).not.toContain('No items found')
+	expect(container.querySelector('[aria-label="Add selection"]')).not.toBeNull()
+})
+
 it('searches a folded library, and leaves it folded once the search is cleared', async () => {
 	const shapes = makeLibrary('Shapes', ['Box', 'Circle'])
 	const container = await renderPanel(makeSource(InMemoryLibrarySource, [shapes]), undefined, [
@@ -1001,4 +1018,102 @@ describe('libraries inside others', () => {
 		)
 		expect(tileLabels(container)).toEqual(['Star', 'Box', 'Arrow', 'Left'])
 	})
+})
+
+describe('a burst of changes', () => {
+	// Each change lands a microtask after the last, the way a batch of writes or a sync catch-up
+	// reaches the panel. React only counts nested updates outside act().
+	async function oneMicrotaskApart(count: number, change: (i: number) => void) {
+		const actEnvironment = (globalThis as any).IS_REACT_ACT_ENVIRONMENT
+		;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = false
+		try {
+			for (let i = 0; i < count; i++) {
+				change(i)
+				await Promise.resolve()
+			}
+			await new Promise((resolve) => setTimeout(resolve, 200))
+		} finally {
+			;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = actEnvironment
+		}
+	}
+
+	it(
+		'keeps the panel up while many libraries are created and then deleted',
+		{ timeout: 20_000 },
+		async () => {
+			const source = new InMemoryLibrarySource()
+			const container = await renderPanel(source)
+			const sections = () => container.querySelectorAll('.tlui-libraries-section').length
+
+			await oneMicrotaskApart(60, (i) => void source.createLibrary(`Library ${i}`))
+			expect(sections()).toBe(60)
+
+			const libraries = source.getLibraries()
+			await oneMicrotaskApart(libraries.length, (i) => void source.deleteLibrary(libraries[i].id))
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+			expect(sections()).toBe(0)
+		}
+	)
+
+	it(
+		'keeps the panel up through a burst after a library menu has been opened and closed',
+		{ timeout: 20_000 },
+		async () => {
+			const source = new InMemoryLibrarySource()
+			const icons = await source.createLibrary('Icons')
+			const container = await renderPanel(source)
+			act(() => panelEditor!.menus.addOpenMenu(`libraries-library-menu-${icons.id}`))
+			await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
+			act(() => panelEditor!.menus.clearOpenMenus())
+			await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).toBeNull())
+			await vi.waitFor(() =>
+				expect(container.querySelector('.tlui-libraries-section button[data-state]')).toBeNull()
+			)
+
+			await oneMicrotaskApart(60, (i) => void source.createLibrary(`Library ${i}`))
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+			const libraries = source.getLibraries()
+			await oneMicrotaskApart(
+				libraries.length,
+				(i) => void source.renameLibrary(libraries[i].id, `Renamed ${i}`)
+			)
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+		}
+	)
+
+	it(
+		'keeps the panel up while many items are added to one library',
+		{ timeout: 20_000 },
+		async () => {
+			const source = new InMemoryLibrarySource()
+			const library = await source.createLibrary('Icons')
+			const container = await renderPanel(source)
+			await oneMicrotaskApart(
+				60,
+				(i) => void source.addItem(library.id, { name: `Item ${i}`, content: emptyContent })
+			)
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+			expect(
+				container.querySelectorAll('.tlui-libraries-tile__button:not([aria-label="Add selection"])')
+					.length
+			).toBe(60)
+		}
+	)
+})
+
+it("opens a library's menu from the keyboard before it has ever been opened", async () => {
+	const source = new InMemoryLibrarySource()
+	await source.createLibrary('Icons')
+	const container = await renderPanel(source)
+	const trigger = container.querySelector<HTMLButtonElement>(
+		'.tlui-libraries-section [aria-label="Library options"]'
+	)!
+	expect(document.querySelector('.tlui-libraries-menu')).toBeNull()
+	trigger.focus()
+	act(() => {
+		trigger.dispatchEvent(
+			new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })
+		)
+	})
+	await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
 })

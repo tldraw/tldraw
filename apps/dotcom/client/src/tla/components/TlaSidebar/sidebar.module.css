@@ -361,7 +361,7 @@
 	outline-offset: -2px;
 }
 
-/* User settings trigger: a menu, or in `ui_v3` the button that opens the settings dialog */
+/* User settings menu */
 
 .sidebarUserSettingsTrigger {
 	background: none;
@@ -394,14 +394,6 @@
 	flex: 0 0 auto;
 	color: var(--tl-color-text-0);
 	margin-inline-end: 6px;
-}
-
-/* 20px circle on the 15px icon column: the start margin keeps its centre in line with the icons above. */
-.sidebarUserSettingsAvatar {
-	width: 20px;
-	height: 20px;
-	font-size: 11px;
-	margin-inline: -2.5px 8px;
 }
 
 .sidebarUserSettingsName {
