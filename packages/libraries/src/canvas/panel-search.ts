@@ -31,13 +31,13 @@ export function getLibrariesToSearch(source: LibrarySource, libraries: TLLibrary
 /** One library's matches, in the source's item order. */
 export interface LibrarySearchResult {
 	library: TLLibrary
-	items: TLLibraryItem[]
+	/** The items that matched by name. Left out when the library's own name matched, so all its items show, even none. */
+	items?: TLLibraryItem[]
 }
 
 /**
- * The items of `libraries` that match `query`, grouped by library in the order given, leaving out
- * libraries with none. An item matches by its own name, or by its library's, so searching for a
- * library's name finds all its items. Empty for an empty query.
+ * The libraries that match `query`, in the order given: by their own name, or through items that
+ * match by theirs. Libraries with neither are left out. Empty for an empty query.
  */
 export function searchLibraries(
 	libraries: TLLibrary[],
@@ -46,11 +46,9 @@ export function searchLibraries(
 ): LibrarySearchResult[] {
 	const normalized = normalizeQuery(query)
 	if (normalized === '') return []
-	return libraries.flatMap((library) => {
-		const items = getItems(library)
-		const matches = nameMatches(library.name, normalized)
-			? items
-			: items.filter((item) => nameMatches(item.name, normalized))
-		return matches.length > 0 ? [{ library, items: matches }] : []
+	return libraries.flatMap((library): LibrarySearchResult[] => {
+		if (nameMatches(library.name, normalized)) return [{ library }]
+		const items = getItems(library).filter((item) => nameMatches(item.name, normalized))
+		return items.length > 0 ? [{ library, items }] : []
 	})
 }
