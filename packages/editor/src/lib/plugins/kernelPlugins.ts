@@ -24,8 +24,9 @@ import type { TLPlugin } from './plugin'
 /**
  * Create the plugins that give the editor its standard behavior without a DOM or React: user
  * preferences and themes, the camera, event dispatch, input state and click detection, hit
- * testing, snapping, shape arrangement and animation, scribbles, edge scrolling, overlays,
- * collaborators, performance events and external content.
+ * testing, snapping, shape arrangement and animation, styles, content transfer, selection,
+ * editing, scribbles, edge scrolling, overlays, collaborators, performance events and external
+ * content.
  *
  * A headless editor usually starts from these and adds a text measurement plugin:
  *
