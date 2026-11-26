@@ -49,15 +49,20 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()
-	const canCreatePage = useValue('can create page', () => !editor.checkCapability('create-page'), [
-		editor,
-	])
+	// A page's shapes are created and deleted with it
+	const canDuplicatePage = useValue(
+		'can duplicate page',
+		() => !editor.checkCapability(['create-page', 'create-shape']),
+		[editor]
+	)
 	const canEditPage = useValue('can edit page', () => !editor.checkCapability('edit-page'), [
 		editor,
 	])
-	const canDeletePage = useValue('can delete page', () => !editor.checkCapability('delete-page'), [
-		editor,
-	])
+	const canDeletePage = useValue(
+		'can delete page',
+		() => !editor.checkCapability(['delete-page', 'delete-shape']),
+		[editor]
+	)
 
 	const onDuplicate = useCallback(() => {
 		editor.markHistoryStoppingPoint('creating page')
@@ -107,7 +112,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							id="duplicate"
 							label={messages.pageMenuSubmenuDuplicatePage.id}
 							onSelect={onDuplicate}
-							disabled={!canCreatePage || listSize >= editor.options.maxPages}
+							disabled={!canDuplicatePage || listSize >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem

@@ -4,7 +4,7 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability('create-shape') || this.editor.checkCapability('edit-shape')) {
+		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
 			return
 		}
 		this.parent.transition('pointing', info)
