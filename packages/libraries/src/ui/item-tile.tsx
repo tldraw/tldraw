@@ -1,5 +1,5 @@
 import { ButtonHTMLAttributes, ReactNode, useState } from 'react'
-import { TldrawUiTooltip } from 'tldraw'
+import { TldrawUiIcon, TldrawUiTooltip } from 'tldraw'
 
 /** @public */
 export interface ItemTileProps {
@@ -38,6 +38,11 @@ export function ItemTile({
 					{...buttonProps}
 				>
 					<span className="tlui-libraries-tile__thumbnail">
+						{!thumbnailUrl && (
+							<span className="tlui-libraries-tile__placeholder">
+								{name ?? <TldrawUiIcon icon="pack" label="" small />}
+							</span>
+						)}
 						{shownUrl && (
 							<img key={shownUrl} src={shownUrl} alt="" draggable={false} decoding="async" />
 						)}
