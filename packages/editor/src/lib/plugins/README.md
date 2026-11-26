@@ -74,35 +74,35 @@ The `react/` folder is the only place in this design that imports React. `reactR
 
 ## What is a plugin
 
-| Feature                                                        | Where                                                      | Plugin                              |
-| -------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------- |
-| Store, history, undo and redo                                  | core                                                       |                                     |
-| Shape, binding and asset records and their operations          | core                                                       |                                     |
-| Pages and page state: selected, hovered, editing ids           | core                                                       |                                     |
-| Styles for the next shape, document settings, instance state   | core                                                       |                                     |
-| The state chart                                                | core                                                       | tools come from plugins and options |
-| Rendering shapes and culling                                   | core                                                       |                                     |
-| User preferences                                               | kernel plugin                                              | `userPreferencesPlugin`             |
-| Themes                                                         | kernel plugin                                              | `themesPlugin`                      |
-| Camera, viewport, zooming, animation, following                | kernel plugin                                              | `cameraPlugin`                      |
-| Event dispatch: batching, panning, pinch, wheel, modifier keys | kernel plugin                                              | `eventDispatchPlugin`               |
-| Input state                                                    | kernel plugin                                              | `inputsPlugin`                      |
-| Double, triple and quadruple clicks                            | kernel plugin                                              | `clickDetectionPlugin`              |
-| Hit testing and brushing (spatial index)                       | kernel plugin                                              | `spatialIndexPlugin`                |
-| Snapping                                                       | kernel plugin                                              | `snappingPlugin`                    |
-| Scribbles                                                      | kernel plugin                                              | `scribblesPlugin`                   |
-| Edge scrolling                                                 | kernel plugin                                              | `edgeScrollPlugin`                  |
-| Overlays                                                       | kernel plugin                                              | `overlaysPlugin`                    |
-| Collaborators                                                  | kernel plugin                                              | `collaboratorsPlugin`               |
-| Performance events                                             | kernel plugin                                              | `performancePlugin`                 |
-| External content (paste, drop, embeds)                         | kernel plugin                                              | `externalContentPlugin`             |
-| Shared styles and style setters                                | kernel plugin                                              | `stylesPlugin`                      |
-| Copy and paste content, duplicate page, move to page           | kernel plugin                                              | `contentTransferPlugin`             |
-| Selection operations, selection bounds, focused group          | kernel plugin                                              | `selectionPlugin`                   |
-| Editing and cropping a shape, the rich text editor             | kernel plugin                                              | `editingPlugin`                     |
-| Text measurement                                               | DOM plugin, or `approximateTextMeasurementPlugin` headless | `domTextMeasurementPlugin`          |
-| Fonts                                                          | DOM plugin                                                 | `domFontsPlugin`                    |
-| Container focus                                                | DOM plugin                                                 | `domFocusPlugin`                    |
-| Frame loop                                                     | DOM plugin                                                 | `animationFrameTickPlugin`          |
-| Image export                                                   | DOM plugin                                                 | `domImageExportPlugin`              |
-| SVG export and group rendering                                 | React plugins                                              | `reactRenderingPlugins`             |
+| Feature                                                         | Where                                                      | Plugin                              |
+| --------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------- |
+| Store, history, undo and redo                                   | core                                                       |                                     |
+| Shape, binding and asset records and their operations           | core                                                       |                                     |
+| Pages and page state: selected, hovered, editing ids            | core                                                       |                                     |
+| Styles for the next shape, document settings, instance state    | core                                                       |                                     |
+| The state chart                                                 | core                                                       | tools come from plugins and options |
+| Rendering shapes and culling                                    | core                                                       |                                     |
+| User preferences                                                | kernel plugin                                              | `userPreferencesPlugin`             |
+| Themes                                                          | kernel plugin                                              | `themesPlugin`                      |
+| Camera, viewport, zooming, animation, following                 | kernel plugin                                              | `cameraPlugin`                      |
+| Event dispatch: batching, panning, pinch, wheel, modifier keys  | kernel plugin                                              | `eventDispatchPlugin`               |
+| Input state                                                     | kernel plugin                                              | `inputsPlugin`                      |
+| Double, triple and quadruple clicks                             | kernel plugin                                              | `clickDetectionPlugin`              |
+| Hit testing and brushing (spatial index)                        | kernel plugin                                              | `spatialIndexPlugin`                |
+| Snapping                                                        | kernel plugin                                              | `snappingPlugin`                    |
+| Scribbles                                                       | kernel plugin                                              | `scribblesPlugin`                   |
+| Edge scrolling                                                  | kernel plugin                                              | `edgeScrollPlugin`                  |
+| Overlays                                                        | kernel plugin                                              | `overlaysPlugin`                    |
+| Collaborators                                                   | kernel plugin                                              | `collaboratorsPlugin`               |
+| Performance events                                              | kernel plugin                                              | `performancePlugin`                 |
+| External content (paste, drop, embeds)                          | kernel plugin                                              | `externalContentPlugin`             |
+| Shared styles and style setters                                 | kernel plugin                                              | `stylesPlugin`                      |
+| Copy and paste content (duplicate page and move to page use it) | kernel plugin                                              | `contentTransferPlugin`             |
+| Selection operations, selection bounds, focused group           | kernel plugin                                              | `selectionPlugin`                   |
+| Editing and cropping a shape, the rich text editor              | kernel plugin                                              | `editingPlugin`                     |
+| Text measurement                                                | DOM plugin, or `approximateTextMeasurementPlugin` headless | `domTextMeasurementPlugin`          |
+| Fonts                                                           | DOM plugin                                                 | `domFontsPlugin`                    |
+| Container focus                                                 | DOM plugin                                                 | `domFocusPlugin`                    |
+| Frame loop                                                      | DOM plugin                                                 | `animationFrameTickPlugin`          |
+| Image export                                                    | DOM plugin                                                 | `domImageExportPlugin`              |
+| SVG export and group rendering                                  | React plugins                                              | `reactRenderingPlugins`             |

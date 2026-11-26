@@ -27,7 +27,7 @@ export class EditingController {
 	canEditShape<T extends TLShape | TLShapeId>(shape: T | null, info?: TLEditStartInfo): shape is T {
 		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
 		if (!id) return false // no shape
-		if (id === this.editor.getEditingShapeId()) return false // already editing this.editor shape
+		if (id === this.editor.getEditingShapeId()) return false // already editing this shape
 		const _shape = this.editor.getShape(id)
 		if (!_shape) return false // no shape
 		const util = this.editor.getShapeUtil(_shape)

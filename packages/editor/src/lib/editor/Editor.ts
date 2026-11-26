@@ -2571,8 +2571,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setRichTextEditor(textEditor: TiptapEditor | null) {
-		return this._editing.setRichTextEditor(textEditor)
+	setRichTextEditor(textEditor: TiptapEditor | null): this {
+		this._editing.setRichTextEditor(textEditor)
+		return this
 	}
 
 	// Hovered
