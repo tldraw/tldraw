@@ -27,14 +27,15 @@ const REMOVE = [
 	'apps/dotcom/client/public/tla/locales-compiled',
 	'packages/assets/translations',
 	'internal/i18n/translation-state.json',
-	// These quote real translations: the Lokalise fix list, examples in skill docs and test
-	// fixtures, and an e2e test that matches French UI text.
+	// These quote translations: the Lokalise fix list, examples in skill docs and test fixtures,
+	// an e2e test that matches French UI text, and an SDK example with Spanish overrides.
 	'internal/scripts/i18n-fix-strings.ts',
 	'skills/review-translations',
 	'skills/translate/references/dispositions.md',
 	'skills/translate/scripts/pipeline.test.mjs',
 	'skills/translate/scripts/translation-state.test.mjs',
 	'apps/dotcom/client/e2e',
+	'apps/examples/src/examples/ui/custom-language-translations',
 ]
 
 function walk(directory, visit) {
