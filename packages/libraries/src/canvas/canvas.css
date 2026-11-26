@@ -157,7 +157,9 @@
 	display: flex;
 	flex: 1;
 	min-width: 0;
+	margin: 0;
 	padding: 0 12px;
+	font-size: inherit;
 	line-height: 40px;
 	font-weight: 500;
 	white-space: nowrap;

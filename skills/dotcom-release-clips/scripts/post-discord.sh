@@ -4,7 +4,7 @@
 # Usage:
 #   ./post-discord.sh [--dry-run] <caption-file> <clip.mp4>
 #
-# Posts through the webhook in DISCORD_CLIPS_WEBHOOK_URL. With --dry-run, prints what would be
+# Posts through the webhook in DISCORD_MARKETING_WEBHOOK_URL. With --dry-run, prints what would be
 # sent instead. Never echo the webhook URL: this repo is public and so are its CI logs.
 #
 set -euo pipefail
@@ -39,8 +39,8 @@ if $DRY_RUN; then
 	exit 0
 fi
 
-if [[ -z "${DISCORD_CLIPS_WEBHOOK_URL:-}" ]]; then
-	echo "post-discord.sh: set DISCORD_CLIPS_WEBHOOK_URL, or pass --dry-run" >&2
+if [[ -z "${DISCORD_MARKETING_WEBHOOK_URL:-}" ]]; then
+	echo "post-discord.sh: set DISCORD_MARKETING_WEBHOOK_URL, or pass --dry-run" >&2
 	exit 1
 fi
 
@@ -48,7 +48,7 @@ fi
 STATUS=$(curl -sS -o /tmp/post-discord-response.$$ -w '%{http_code}' -X POST \
 	--form-string "payload_json=$PAYLOAD" \
 	-F "files[0]=@$CLIP;type=video/mp4" \
-	"$DISCORD_CLIPS_WEBHOOK_URL")
+	"$DISCORD_MARKETING_WEBHOOK_URL")
 if [[ "$STATUS" != 2* ]]; then
 	echo "post-discord.sh: Discord returned HTTP $STATUS: $(cat /tmp/post-discord-response.$$)" >&2
 	rm -f /tmp/post-discord-response.$$

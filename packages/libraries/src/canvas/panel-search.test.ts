@@ -19,7 +19,10 @@ const items = new Map([
 ])
 const search = (query: string) =>
 	searchLibraries([shapes, wireframes], (library) => items.get(library.id) ?? [], query).map(
-		(result) => ({ library: result.library.name, items: result.items.map((i) => i.name) })
+		(result) => ({
+			library: result.library.name,
+			items: result.items && result.items.map((i) => i.name),
+		})
 	)
 
 it('finds items by name, ignoring case and surrounding space, grouped by library in order', () => {
@@ -29,12 +32,22 @@ it('finds items by name, ignoring case and surrounding space, grouped by library
 	])
 })
 
-it("finds all of a library's items, unnamed ones too, by the library's name", () => {
-	expect(search('shapes')).toEqual([{ library: 'Shapes', items: ['Star', 'Arrow', undefined] }])
+it('finds a library by its name, leaving out its items so all of them show', () => {
+	expect(search('shapes')).toEqual([{ library: 'Shapes', items: undefined }])
 })
 
 it('leaves out libraries without matches, and finds nothing for an empty query', () => {
 	expect(search('button')).toEqual([{ library: 'Wireframes', items: ['Button', 'Start button'] }])
 	expect(search('   ')).toEqual([])
 	expect(search('nothing like it')).toEqual([])
+})
+
+it('finds an empty library by its name', () => {
+	const empty = LibraryRecordType.create({ name: 'My stash' })
+	const results = searchLibraries(
+		[shapes, empty],
+		(library) => items.get(library.id) ?? [],
+		'stash'
+	)
+	expect(results).toEqual([{ library: empty }])
 })
