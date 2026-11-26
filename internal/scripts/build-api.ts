@@ -1,8 +1,9 @@
-import { rmSync } from 'fs'
+import { readFileSync, rmSync, writeFileSync } from 'fs'
 import { rm } from 'fs/promises'
 import path from 'path'
 import { glob } from 'glob'
 import isCI from 'is-ci'
+import { dropUnusedImports } from './lib/drop-unused-imports'
 import { exec } from './lib/exec'
 import { sortUnions } from './lib/sort-unions'
 
@@ -59,6 +60,9 @@ async function buildApi(sourcePackageDir: string) {
 
 		process.exit(1)
 	}
+
+	const publicDts = path.join(sourcePackageDir, 'api', 'public.d.ts')
+	writeFileSync(publicDts, dropUnusedImports(readFileSync(publicDts, 'utf8')))
 }
 
 buildApi(process.cwd())
