@@ -74,8 +74,8 @@ export async function createMermaidDiagram(
 		config,
 	})
 
-	let blueprint: DiagramMermaidBlueprint | undefined
 	try {
+		let blueprint: DiagramMermaidBlueprint
 		switch (type) {
 			case 'flowchart': {
 				const flowchart = model as FlowchartModel
@@ -144,11 +144,10 @@ export async function createMermaidDiagram(
 				await options.onUnsupportedDiagram(pele.render(text, { config }).svg)
 				return
 		}
+		renderBlueprint(editor, blueprint, options.blueprintRender)
 	} catch (e) {
 		if (e instanceof MermaidDiagramError) throw e
 		console.error(e)
 		throw new MermaidDiagramError(type, 'parse')
 	}
-
-	if (blueprint) renderBlueprint(editor, blueprint, options.blueprintRender)
 }
