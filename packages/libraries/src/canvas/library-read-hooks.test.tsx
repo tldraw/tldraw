@@ -22,6 +22,9 @@ import { useLibraryItemOrder } from './use-library-item-order'
 import { useLibraryItems } from './use-library-items'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 
+const renderItemPreview = vi.hoisted(() => vi.fn(async (): Promise<Blob | null> => null))
+vi.mock('./render-item-preview', () => ({ renderItemPreview }))
+
 const library = LibraryRecordType.create({ name: 'Shapes' })
 const content: TLLibraryItemContent = {
 	formatVersion: 1,
@@ -166,6 +169,27 @@ describe('useLibraryThumbnailUrls', () => {
 		expect(urls()).toEqual({ [withThumb.id]: 'https://x/light.png', [without.id]: undefined })
 		act(() => editor.user.updateUserPreferences({ colorScheme: 'dark' }))
 		expect(urls()[withThumb.id]).toBe('https://x/dark.png')
+	})
+
+	it('renders a preview for an item without a thumbnail, and only for that item', async () => {
+		renderItemPreview.mockResolvedValue(new Blob(['png']))
+		URL.createObjectURL = vi.fn(() => 'blob:preview')
+		const withThumb = makeItem('Box', 1, { thumbnail: 'https://x/box.png' })
+		const without = makeItem('Bare', 2)
+		const source = makeSource([withThumb, without])
+		const urls = renderHook(() => useLibraryThumbnailUrls(source, [withThumb, without]))
+		await vi.waitFor(async () => {
+			await act(async () => {})
+			expect(urls()[without.id]).toBe('blob:preview')
+		})
+		expect(urls()[withThumb.id]).toBe('https://x/box.png')
+		expect(renderItemPreview).toHaveBeenCalledTimes(1)
+		expect(renderItemPreview).toHaveBeenCalledWith(
+			editor,
+			content.content,
+			editor.getColorMode() === 'dark'
+		)
+		renderItemPreview.mockResolvedValue(null)
 	})
 
 	function makeResolvingSource() {
