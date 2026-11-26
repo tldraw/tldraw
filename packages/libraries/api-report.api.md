@@ -66,7 +66,11 @@ export interface AddToLibraryMenuItemProps {
 }
 
 // @public
-export function BoardIcon(props: SVGProps<SVGSVGElement>): JSX.Element;
+export function BoardIcon(props: BoardIconProps): JSX.Element;
+
+// @public (undocumented)
+export interface BoardIconProps extends SVGProps<SVGSVGElement> {
+}
 
 // @public
 export class BoardLibrarySource implements LibrarySource {
