@@ -1,5 +1,5 @@
+import { preventDefault } from '@tldraw/core'
 import { RefObject, useEffect, useRef } from 'react'
-import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 import { useMaybeEditor } from './useEditor'
 import { useEvent } from './useEvent'

@@ -13,14 +13,33 @@
 		"rootDir": "src",
 		"noImplicitOverride": false,
 		"noImplicitReturns": false,
-		"types": ["node", "vitest/globals", "vitest"]
+		"types": [
+			"node",
+			"vitest/globals",
+			"vitest"
+		]
 	},
 	"references": [
-		{ "path": "../state" },
-		{ "path": "../state-react" },
-		{ "path": "../store" },
-		{ "path": "../tlschema" },
-		{ "path": "../utils" },
-		{ "path": "../validate" }
+		{
+			"path": "../core"
+		},
+		{
+			"path": "../state"
+		},
+		{
+			"path": "../state-react"
+		},
+		{
+			"path": "../store"
+		},
+		{
+			"path": "../tlschema"
+		},
+		{
+			"path": "../utils"
+		},
+		{
+			"path": "../validate"
+		}
 	]
 }

@@ -1,9 +1,9 @@
+import { Editor } from '@tldraw/core'
+import { TLKeyboardEventInfo } from '@tldraw/core'
+import { activeElementShouldCaptureKeys, preventDefault } from '@tldraw/core'
+import { isAccelKey } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
 import { useEffect, useRef } from 'react'
-import { Editor } from '../editor/Editor'
-import { TLKeyboardEventInfo } from '../editor/types/event-types'
-import { activeElementShouldCaptureKeys, preventDefault } from '../utils/dom'
-import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 

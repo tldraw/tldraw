@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { createTLStore } from '../config/createTLStore'
-import { StateNode } from '../editor/tools/StateNode'
+import { createTLStore } from '@tldraw/core'
+import { StateNode } from '@tldraw/core'
 import { TldrawEditor } from '../TldrawEditor'
 
 // Mock component that will be placed in front of the canvas

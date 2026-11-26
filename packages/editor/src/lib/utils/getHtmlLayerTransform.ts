@@ -1,6 +1,6 @@
+import type { Editor } from '@tldraw/core'
+import { toDomPrecision } from '@tldraw/core'
 import { modulate } from '@tldraw/utils'
-import type { Editor } from '../editor/Editor'
-import { toDomPrecision } from '../primitives/utils'
 
 /**
  * The CSS `transform` that puts a 1px-sized html layer into page space under the current camera.

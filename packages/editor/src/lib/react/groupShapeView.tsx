@@ -1,8 +1,8 @@
+import type { GroupShapeUtil } from '@tldraw/core'
+import { shapeViewSlot, type TLShapeView } from '@tldraw/core'
+import { definePlugin } from '@tldraw/core'
 import type { TLGroupShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../components/SVGContainer'
-import type { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
-import { shapeViewSlot, type TLShapeView } from '../editor/shapes/shapeViews'
-import { definePlugin } from '../plugins/plugin'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
 function GroupShapeComponent(shape: TLGroupShape, { editor }: GroupShapeUtil) {

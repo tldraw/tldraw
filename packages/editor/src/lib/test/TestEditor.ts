@@ -1,6 +1,6 @@
-import { createTLStore } from '../config/createTLStore'
-import { Editor, TLEditorOptions } from '../editor/Editor'
-import { StateNode } from '../editor/tools/StateNode'
+import { createTLStore } from '@tldraw/core'
+import { Editor, TLEditorOptions } from '@tldraw/core'
+import { StateNode } from '@tldraw/core'
 
 class CustomTool extends StateNode {
 	static override id = 'custom'

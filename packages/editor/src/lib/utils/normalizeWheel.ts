@@ -1,4 +1,4 @@
-import { tlenv } from '../globals/environment'
+import { tlenv } from '@tldraw/core'
 
 const MAX_ZOOM_STEP = 10
 

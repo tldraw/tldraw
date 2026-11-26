@@ -1,5 +1,5 @@
+import { LicenseFeatureName, LicenseManager, LicenseState } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
-import { LicenseFeatureName, LicenseManager, LicenseState } from './LicenseManager'
 
 /** @internal */
 export function useLicenseManagerState(licenseManager: LicenseManager): LicenseState {

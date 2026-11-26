@@ -1,5 +1,5 @@
 import { act, render } from '@testing-library/react'
-import { Editor } from '../editor/Editor'
+import { Editor } from '@tldraw/core'
 import { TldrawEditor } from '../TldrawEditor'
 
 function dropEvent(dataTransfer: { files: File[]; getData(type: string): string }) {

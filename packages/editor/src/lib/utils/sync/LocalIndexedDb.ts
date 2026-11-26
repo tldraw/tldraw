@@ -1,8 +1,8 @@
+import { TLSessionStateSnapshot } from '@tldraw/core'
 import { RecordsDiff, SerializedSchema, SerializedStore } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
 import { assert, getFromLocalStorage, noop, setInLocalStorage } from '@tldraw/utils'
 import { IDBPDatabase, IDBPTransaction, deleteDB, openDB } from 'idb'
-import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
 
 // DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING DATA.
 const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'

@@ -1,12 +1,12 @@
-import { useValue } from '@tldraw/state-react'
-import React, { useEffect, useMemo } from 'react'
-import { tlenv } from '../globals/environment'
+import { tlenv } from '@tldraw/core'
 import {
 	elementShouldCaptureKeys,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
-} from '../utils/dom'
+} from '@tldraw/core'
+import { useValue } from '@tldraw/state-react'
+import React, { useEffect, useMemo } from 'react'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { getPointerEventButton, isDirectDisplayPen, isSecondaryClickEvent } from '../utils/pointer'
 import { useEditor } from './useEditor'

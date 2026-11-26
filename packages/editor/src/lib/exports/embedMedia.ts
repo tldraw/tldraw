@@ -1,5 +1,6 @@
+import { getOwnerWindow } from '@tldraw/core'
 import { MediaHelpers } from '@tldraw/utils'
-import { getOwnerWindow, getRenderedChildren } from './domUtils'
+import { getRenderedChildren } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
 
 function copyAttrs(source: Element, target: Element) {

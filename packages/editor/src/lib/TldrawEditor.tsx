@@ -1,3 +1,21 @@
+import { createTLCurrentUser, TLCurrentUser } from '@tldraw/core'
+import { TLStoreBaseOptions } from '@tldraw/core'
+import { TLAnyAssetUtilConstructor } from '@tldraw/core'
+import { TLAnyBindingUtilConstructor } from '@tldraw/core'
+import { TLAnyShapeUtilConstructor } from '@tldraw/core'
+import { TLEditorSnapshot } from '@tldraw/core'
+import { defaultI18n, TLI18nAdapter } from '@tldraw/core'
+import { Editor } from '@tldraw/core'
+import { resolveThemes } from '@tldraw/core'
+import { TLAnyOverlayUtilConstructor } from '@tldraw/core'
+import { TLStateNodeConstructor } from '@tldraw/core'
+import { TLCameraOptions } from '@tldraw/core'
+import { TldrawOptions } from '@tldraw/core'
+import type { TLPlugin } from '@tldraw/core'
+import { resolvePluginRecords } from '@tldraw/core'
+import { TLDeepLinkOptions } from '@tldraw/core'
+import { getGlobalDocument, getGlobalWindow } from '@tldraw/core'
+import { TLTextOptions } from '@tldraw/core'
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
 	TLShape,
@@ -26,18 +44,6 @@ import { version } from '../version'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { EditorPortalProvider } from './components/EditorPortal'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
-import { createTLCurrentUser, TLCurrentUser } from './config/createTLCurrentUser'
-import { TLStoreBaseOptions } from './config/createTLStore'
-import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
-import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
-import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { TLEditorSnapshot } from './config/TLEditorSnapshot'
-import { defaultI18n, TLI18nAdapter } from './config/TLI18n'
-import { Editor } from './editor/Editor'
-import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
-import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
-import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLCameraOptions } from './editor/types/misc-types'
 import { useEditorComponents } from './hooks/EditorComponentsContext'
 import type { TLEditorComponents } from './hooks/EditorComponentsContext'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -54,13 +60,7 @@ import { useStateAttribute } from './hooks/useStateAttribute'
 import { useZoomCss } from './hooks/useZoomCss'
 import { LicenseProvider, useLicenseContext } from './license/LicenseProvider'
 import { Watermark } from './license/Watermark'
-import { TldrawOptions } from './options'
-import type { TLPlugin } from './plugins/plugin'
-import { resolvePluginRecords } from './plugins/pluginRecords'
 import { createDefaultPlugins } from './react/defaultPlugins'
-import { TLDeepLinkOptions } from './utils/deepLinks'
-import { getGlobalDocument, getGlobalWindow } from './utils/dom'
-import { TLTextOptions } from './utils/richText'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -243,7 +243,7 @@ export interface TldrawEditorBaseProps {
 	 * Provides a way to hide shapes.
 	 *
 	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
-	 * {@link @tldraw/editor#Editor.getShapeAtPoint} and {@link @tldraw/editor#Editor.getShapesAtPoint}. But otherwise they will
+	 * {@link @tldraw/core#Editor.getShapeAtPoint} and {@link @tldraw/core#Editor.getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
 	 *
 	 * @example

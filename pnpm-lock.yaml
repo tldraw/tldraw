@@ -1489,6 +1489,61 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
 
+  packages/core:
+    dependencies:
+      '@tiptap/core':
+        specifier: ^3.12.1
+        version: 3.13.0(@tiptap/pm@3.13.0)
+      '@tiptap/pm':
+        specifier: ^3.12.1
+        version: 3.13.0
+      '@tldraw/state':
+        specifier: workspace:*
+        version: link:../state
+      '@tldraw/store':
+        specifier: workspace:*
+        version: link:../store
+      '@tldraw/tlschema':
+        specifier: workspace:*
+        version: link:../tlschema
+      '@tldraw/utils':
+        specifier: workspace:*
+        version: link:../utils
+      '@tldraw/validate':
+        specifier: workspace:*
+        version: link:../validate
+      eventemitter3:
+        specifier: ^4.0.7
+        version: 4.0.7
+      rbush:
+        specifier: ^3.0.1
+        version: 3.0.1
+    devDependencies:
+      '@peculiar/webcrypto':
+        specifier: ^1.5.0
+        version: 1.5.0
+      '@tiptap/react':
+        specifier: ^3.12.1
+        version: 3.13.0(@floating-ui/dom@1.6.1)(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(@types/react@19.2.7)(react@19.2.1))(react@19.2.1)
+      '@types/rbush':
+        specifier: ^3.0.0
+        version: 3.0.4
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.7
+      fake-indexeddb:
+        specifier: ^4.0.2
+        version: 4.0.2
+      react:
+        specifier: ^19.2.1
+        version: 19.2.1
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
+      vitest:
+        specifier: ^5.0.0
+        version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+
   packages/create-tldraw:
     devDependencies:
       '@bomb.sh/args':
@@ -1574,15 +1629,9 @@ importers:
 
   packages/editor:
     dependencies:
-      '@tiptap/core':
-        specifier: ^3.12.1
-        version: 3.13.0(@tiptap/pm@3.13.0)
-      '@tiptap/pm':
-        specifier: ^3.12.1
-        version: 3.13.0
-      '@tiptap/react':
-        specifier: ^3.12.1
-        version: 3.13.0(@floating-ui/dom@1.6.1)(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(@types/react@19.2.7)(react@19.2.1))(react@19.2.1)
+      '@tldraw/core':
+        specifier: workspace:*
+        version: link:../core
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state
@@ -1604,18 +1653,12 @@ importers:
       classnames:
         specifier: ^2.5.1
         version: 2.5.1
-      eventemitter3:
-        specifier: ^4.0.7
-        version: 4.0.7
       idb:
         specifier: ^7.1.1
         version: 7.1.1
       is-plain-object:
         specifier: ^5.0.0
         version: 5.0.0
-      rbush:
-        specifier: ^3.0.1
-        version: 3.0.1
     devDependencies:
       '@peculiar/webcrypto':
         specifier: ^1.5.0
@@ -1626,9 +1669,6 @@ importers:
       '@testing-library/react':
         specifier: ^16.0.0
         version: 16.3.0(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(@types/react@19.2.7)(react@19.2.1))(react@19.2.1)
-      '@types/rbush':
-        specifier: ^3.0.0
-        version: 3.0.4
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.7

@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react'
-import { createTLStore } from '../config/createTLStore'
-import { Editor } from '../editor/Editor'
+import { createTLStore } from '@tldraw/core'
+import { Editor } from '@tldraw/core'
 import { TldrawEditor } from '../TldrawEditor'
 
 // The `tldraw_preserve_focus` search param switches the editor into preserve-focus mode, where

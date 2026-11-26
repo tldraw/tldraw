@@ -1,15 +1,15 @@
-import { animationFrameTickPlugin } from '../plugins/builtin/animationFrameTick'
-import { domFocusPlugin } from '../plugins/builtin/domFocus'
-import { domImageExportPlugin } from '../plugins/builtin/domImageExport'
-import { domTextMeasurementPlugin } from '../plugins/builtin/domTextMeasurement'
-import { domFontsPlugin } from '../plugins/builtin/fonts'
-import { createKernelPlugins } from '../plugins/kernelPlugins'
-import type { TLPlugin } from '../plugins/plugin'
+import { animationFrameTickPlugin } from '@tldraw/core'
+import { domFocusPlugin } from '@tldraw/core'
+import { domImageExportPlugin } from '@tldraw/core'
+import { domTextMeasurementPlugin } from '@tldraw/core'
+import { domFontsPlugin } from '@tldraw/core'
+import { createCorePlugins } from '@tldraw/core'
+import type { TLPlugin } from '@tldraw/core'
 import { reactRenderingPlugins } from './reactRenderingPlugins'
 
 /**
  * Create the plugins that `new Editor()` and `<TldrawEditor>` install when you pass no `plugins`.
- * They are the kernel plugins from {@link createKernelPlugins}, plus the browser and React layer: a
+ * They are the core plugins from {@link @tldraw/core#createCorePlugins}, plus the browser and React layer: a
  * frame loop, DOM text measurement, focus and fonts, image export, and React rendering and SVG
  * export. A package can add to them with `registerDefaultPlugins`: the `tldraw` entry adds its shape
  * views.
@@ -32,7 +32,7 @@ import { reactRenderingPlugins } from './reactRenderingPlugins'
  */
 export function createDefaultPlugins(): TLPlugin[] {
 	return [
-		...createKernelPlugins(),
+		...createCorePlugins(),
 		animationFrameTickPlugin,
 		domTextMeasurementPlugin,
 		domFocusPlugin,

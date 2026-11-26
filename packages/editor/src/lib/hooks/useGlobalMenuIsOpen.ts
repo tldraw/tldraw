@@ -1,6 +1,6 @@
+import { tlmenus } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
 import { useCallback, useEffect, useRef } from 'react'
-import { tlmenus } from '../globals/menus'
 
 /** @public */
 export function useGlobalMenuIsOpen(

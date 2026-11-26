@@ -1,18 +1,18 @@
-import { useValue } from '@tldraw/state-react'
-import { noop } from '@tldraw/utils'
-import classNames from 'classnames'
-import { ComponentType, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import {
 	defineMessages,
 	translateMessage,
 	type TLI18nMessage,
 	type TLI18nValues,
-} from '../../config/TLI18n'
-import { Editor } from '../../editor/Editor'
-import { getOwnerDocument } from '../../exports/domUtils'
+} from '@tldraw/core'
+import { Editor } from '@tldraw/core'
+import { getOwnerDocument } from '@tldraw/core'
+import { getGlobalWindow } from '@tldraw/core'
+import { useValue } from '@tldraw/state-react'
+import { noop } from '@tldraw/utils'
+import classNames from 'classnames'
+import { ComponentType, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useEditorComponents } from '../../hooks/EditorComponentsContext'
 import { EditorProvider } from '../../hooks/useEditor'
-import { getGlobalWindow } from '../../utils/dom'
 import { hardResetEditor, refreshPage } from '../../utils/runtime'
 import { ErrorBoundary } from '../ErrorBoundary'
 

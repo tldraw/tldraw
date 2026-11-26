@@ -1,0 +1,88 @@
+{
+	"name": "@tldraw/core",
+	"description": "The tldraw editor without React: the editor, its plugin host and the core plugins.",
+	"version": "5.6.2",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"sdk",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
+	},
+	"dependencies": {
+		"@tiptap/core": "^3.12.1",
+		"@tiptap/pm": "^3.12.1",
+		"@tldraw/state": "workspace:*",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
+		"eventemitter3": "^4.0.7",
+		"rbush": "^3.0.1"
+	},
+	"peerDependencies": {
+		"@tiptap/react": "^3.12.1",
+		"react": "^18.2.0 || ^19.2.1"
+	},
+	"peerDependenciesMeta": {
+		"@tiptap/react": {
+			"optional": true
+		},
+		"react": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"@peculiar/webcrypto": "^1.5.0",
+		"@tiptap/react": "^3.12.1",
+		"@types/rbush": "^3.0.0",
+		"@types/react": "^19.2.7",
+		"fake-indexeddb": "^4.0.2",
+		"react": "^19.2.1",
+		"resize-observer-polyfill": "^1.5.1",
+		"vitest": "^5.0.0"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	}
+}

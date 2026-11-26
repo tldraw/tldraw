@@ -1,5 +1,5 @@
-import { average, precise } from '../primitives/utils'
-import { VecLike } from '../primitives/Vec'
+import { average, precise } from '@tldraw/core'
+import { VecLike } from '@tldraw/core'
 
 /**
  * Turn an array of points into a path of quadratic curves.

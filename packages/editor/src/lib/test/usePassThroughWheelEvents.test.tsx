@@ -1,6 +1,6 @@
 import { act, cleanup, render } from '@testing-library/react'
+import { createTLStore } from '@tldraw/core'
 import { useRef, useState } from 'react'
-import { createTLStore } from '../config/createTLStore'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
 import { TL_CONTAINER_CLASS, TldrawEditor } from '../TldrawEditor'
 

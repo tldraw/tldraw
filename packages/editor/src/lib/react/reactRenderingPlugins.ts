@@ -1,6 +1,6 @@
+import { svgExportCapability } from '@tldraw/core'
+import { TLPlugin, definePlugin } from '@tldraw/core'
 import { exportToSvg } from '../exports/exportToSvg'
-import { svgExportCapability } from '../plugins/builtin/svgExport'
-import { TLPlugin, definePlugin } from '../plugins/plugin'
 import { groupShapeViewPlugin } from './groupShapeView'
 
 /**

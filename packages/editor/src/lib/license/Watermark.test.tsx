@@ -1,7 +1,7 @@
 import { act, render, waitFor } from '@testing-library/react'
+import { LicenseManager } from '@tldraw/core'
 import { vi } from 'vitest'
 import { TldrawEditor } from '../TldrawEditor'
-import { LicenseManager } from './LicenseManager'
 
 let mockLicenseState = 'unlicensed'
 

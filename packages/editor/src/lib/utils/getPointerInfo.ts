@@ -1,6 +1,6 @@
+import { Editor } from '@tldraw/core'
+import { isAccelKey } from '@tldraw/core'
 import type React from 'react'
-import { Editor } from '../editor/Editor'
-import { isAccelKey } from './keyboard'
 import { getPointerEventButton } from './pointer'
 
 /** @public */

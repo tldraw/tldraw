@@ -1,4 +1,4 @@
-import { VecLike } from '../primitives/Vec'
+import { VecLike } from '@tldraw/core'
 
 /**
  * Whether a collaborator's cursor (page coords) is inside the viewport, with a small margin for the

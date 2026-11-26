@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react'
-import { createTLStore } from '../config/createTLStore'
-import { Editor } from '../editor/Editor'
+import { createTLStore } from '@tldraw/core'
+import { Editor } from '@tldraw/core'
 import { getCursor } from '../hooks/useCursor'
 import { TL_CONTAINER_CLASS, TldrawEditor } from '../TldrawEditor'
 

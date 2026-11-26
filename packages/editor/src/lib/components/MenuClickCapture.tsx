@@ -1,10 +1,10 @@
+import { Vec } from '@tldraw/core'
+import { releasePointerCapture, setPointerCapture } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { Vec } from '../primitives/Vec'
-import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { getPointerEventButton } from '../utils/pointer'
 

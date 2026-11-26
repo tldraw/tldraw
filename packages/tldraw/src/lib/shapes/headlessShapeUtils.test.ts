@@ -23,7 +23,7 @@ const allowedReactModules = new Set(['shared/PathBuilder.tsx'])
 describe.each(shapeUtilFiles)('%s', (file) => {
 	it('imports no React code', () => {
 		// Walk the util's relative imports. Each module must be a .ts module without a React import.
-		// `@tldraw/editor` still includes its React layer until the kernel moves to its own package.
+		// Utils import `@tldraw/editor`, which re-exports `@tldraw/core` with the React layer.
 		const seen = new Set<string>()
 		const visit = (path: string) => {
 			if (seen.has(path)) return

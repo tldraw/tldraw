@@ -1,7 +1,7 @@
+import { getPerfectDashProps } from '@tldraw/core'
+import { Box } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
-import { getPerfectDashProps } from '../editor/shapes/shared/getPerfectDashProps'
 import { useEditor } from '../hooks/useEditor'
-import { Box } from '../primitives/Box'
 
 export function DashedOutlineBox({ bounds, className }: { bounds: Box; className: string }) {
 	const editor = useEditor()

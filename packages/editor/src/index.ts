@@ -1,7 +1,9 @@
+import { setDefaultEditorPlugins } from '@tldraw/core'
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
-import { setDefaultEditorPlugins } from './lib/editor/Editor'
 import { createDefaultPlugins as _createDefaultPlugins } from './lib/react/defaultPlugins'
 
+// eslint-disable-next-line tldraw/no-export-star
+export * from '@tldraw/core'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/state'
 // eslint-disable-next-line tldraw/no-export-star
@@ -16,98 +18,9 @@ export * from '@tldraw/utils'
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
-export { animationFrameTickPlugin } from './lib/plugins/builtin/animationFrameTick'
-export {
-	containerFocusCapability,
-	domFocusPlugin,
-	type TLContainerFocus,
-} from './lib/plugins/builtin/domFocus'
-export { domImageExportPlugin } from './lib/plugins/builtin/domImageExport'
-export { domTextMeasurementPlugin } from './lib/plugins/builtin/domTextMeasurement'
-export {
-	externalContentCapability,
-	externalContentPlugin,
-	externalContentSlot,
-	type TLExternalAssetHandlers,
-	type TLExternalContentHandlers,
-	type TLExternalContentService,
-} from './lib/plugins/builtin/externalContent'
-export { canSnapToShapeSlot, snappingCapability } from './lib/plugins/builtin/snapping'
-export { snappingPlugin } from './lib/plugins/builtin/snappingPlugin'
-export {
-	approximateTextMeasurementPlugin,
-	resolveLineHeightPx,
-	textMeasurementCapability,
-	type BatchMeasurementRequest,
-	type TLMeasuredTextSize,
-	type TLMeasureTextOpts,
-	type TLMeasureTextSpanOpts,
-	type TLTextMeasurer,
-} from './lib/plugins/builtin/textMeasurement'
-export { createEditor, type TLCreateEditorOptions } from './lib/plugins/createEditor'
-export { resolvePluginRecords, type TLEditorRecords } from './lib/plugins/pluginRecords'
-export {
-	defineCapability,
-	definePlugin,
-	defineSlot,
-	type TLCapability,
-	type TLChainHandler,
-	type TLContributionOrder,
-	type TLPipe,
-	type TLPlugin,
-	type TLPluginContext,
-	type TLSlot,
-} from './lib/plugins/plugin'
-export { TLPluginHost } from './lib/plugins/PluginHost'
-export { cameraCapability, cameraPlugin } from './lib/plugins/builtin/camera'
-export { CameraController } from './lib/plugins/builtin/CameraController'
-export { eventDispatchCapability, eventDispatchPlugin } from './lib/plugins/builtin/eventDispatch'
-export { EventDispatcher } from './lib/plugins/builtin/EventDispatcher'
-export {
-	shapeAnimationCapability,
-	shapeAnimationPlugin,
-} from './lib/plugins/builtin/shapeAnimation'
-export { ShapeAnimator } from './lib/plugins/builtin/ShapeAnimator'
-export {
-	shapeArrangementCapability,
-	shapeArrangementPlugin,
-} from './lib/plugins/builtin/shapeArrangement'
-export { ShapeArranger } from './lib/plugins/builtin/ShapeArranger'
-export { editingCapability, editingPlugin } from './lib/plugins/builtin/editing'
-export { EditingController } from './lib/plugins/builtin/EditingController'
-export { selectionCapability, selectionPlugin } from './lib/plugins/builtin/selection'
-export { SelectionController } from './lib/plugins/builtin/SelectionController'
-export {
-	contentTransferCapability,
-	contentTransferPlugin,
-} from './lib/plugins/builtin/contentTransfer'
-export { ContentController } from './lib/plugins/builtin/ContentController'
-export { stylesCapability, stylesPlugin } from './lib/plugins/builtin/styles'
-export { StyleController } from './lib/plugins/builtin/StyleController'
-export {
-	clickDetectionCapability,
-	clickDetectionPlugin,
-} from './lib/plugins/builtin/clickDetection'
-export { collaboratorsCapability, collaboratorsPlugin } from './lib/plugins/builtin/collaborators'
-export { edgeScrollCapability, edgeScrollPlugin } from './lib/plugins/builtin/edgeScroll'
-export { domFontsPlugin, fontsCapability } from './lib/plugins/builtin/fonts'
-export { inputsCapability, inputsPlugin } from './lib/plugins/builtin/inputs'
-export { overlaysCapability, overlaysPlugin } from './lib/plugins/builtin/overlays'
-export { performanceCapability, performancePlugin } from './lib/plugins/builtin/performance'
-export { scribblesCapability, scribblesPlugin } from './lib/plugins/builtin/scribbles'
-export { spatialIndexCapability, spatialIndexPlugin } from './lib/plugins/builtin/spatialIndex'
-export { themesCapability, themesPlugin } from './lib/plugins/builtin/themes'
-export {
-	userPreferencesCapability,
-	userPreferencesPlugin,
-} from './lib/plugins/builtin/userPreferences'
-export { createKernelPlugins } from './lib/plugins/kernelPlugins'
 export { createDefaultPlugins, registerDefaultPlugins } from './lib/react/defaultPlugins'
-export { imageExportCapability, type TLImageExporter } from './lib/plugins/builtin/imageExport'
-export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'
 export { reactRenderingPlugins, reactSvgExportPlugin } from './lib/react/reactRenderingPlugins'
 export { groupShapeViewPlugin } from './lib/react/groupShapeView'
-export { shapeViewSlot, type TLShapeView } from './lib/editor/shapes/shapeViews'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
@@ -145,251 +58,8 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export { createTLCurrentUser, type TLCurrentUser } from './lib/config/createTLCurrentUser'
 export { useTldrawCurrentUser } from './lib/hooks/useTldrawCurrentUser'
-export {
-	createTLSchemaFromUtils,
-	createTLStore,
-	defaultUserStore,
-	inlineBase64AssetStore,
-	type TLStoreBaseOptions,
-	type TLStoreEventInfo,
-	type TLStoreOptions,
-	type TLStoreSchemaOptions,
-} from './lib/config/createTLStore'
-export { type TLAnyAssetUtilConstructor } from './lib/config/defaultAssets'
-export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
-export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
-export {
-	getSnapshot,
-	loadSnapshot,
-	type TLEditorSnapshot,
-	type TLLoadSnapshotOptions,
-} from './lib/config/TLEditorSnapshot'
-export {
-	defaultI18n,
-	defineMessages,
-	getDeclaredMessages,
-	translateMessage,
-	type TLI18n,
-	type TLI18nAdapter,
-	type TLI18nMessage,
-	type TLI18nMessageInput,
-	type TLI18nValues,
-} from './lib/config/TLI18n'
-export {
-	createSessionStateSnapshotSignal,
-	extractSessionStateFromLegacySnapshot,
-	loadSessionStateSnapshotIntoStore,
-	TAB_ID,
-	type TLLoadSessionStateSnapshotOptions,
-	type TLSessionStateSnapshot,
-} from './lib/config/TLSessionStateSnapshot'
-export {
-	defaultUserPreferences,
-	getFreshUserPreferences,
-	getUserPreferences,
-	setUserPreferences,
-	USER_COLORS,
-	userTypeValidator,
-	type TLUserPreferences,
-} from './lib/config/TLUserPreferences'
-export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
-export { AssetUtil, type TLAssetUtilConstructor } from './lib/editor/assets/AssetUtil'
-export {
-	BindingUtil,
-	type BindingOnChangeOptions,
-	type BindingOnCreateOptions,
-	type BindingOnDeleteOptions,
-	type BindingOnShapeChangeOptions,
-	type BindingOnShapeDeleteOptions,
-	type BindingOnShapeIsolateOptions,
-	type TLBindingUtilConstructor,
-} from './lib/editor/bindings/BindingUtil'
-export {
-	Editor,
-	type TLEditorOptions,
-	type TLEditorRunOptions,
-	type TLRenderingShape,
-	type TLResizeShapeOptions,
-} from './lib/editor/Editor'
-export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
-export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
-export { FontManager } from './lib/editor/managers/FontManager/FontManager'
-export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
-export { EditorManager } from './lib/editor/managers/EditorManager'
-export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
-export {
-	ScribbleManager,
-	type ScribbleItem,
-	type ScribbleSessionOptions,
-} from './lib/editor/managers/ScribbleManager/ScribbleManager'
-export {
-	BoundsSnaps,
-	type BoundsSnapGeometry,
-	type BoundsSnapPoint,
-} from './lib/editor/managers/SnapManager/BoundsSnaps'
-export { HandleSnaps, type HandleSnapGeometry } from './lib/editor/managers/SnapManager/HandleSnaps'
-export {
-	SnapManager,
-	type GapsSnapIndicator,
-	type PointsSnapIndicator,
-	type SnapData,
-	type SnapIndicator,
-} from './lib/editor/managers/SnapManager/SnapManager'
-export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
-export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
-export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
-export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
-export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
-export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'
-export {
-	type TLCameraEndPerfEvent,
-	type TLCameraStartPerfEvent,
-	type TLFramePerfEvent,
-	type TLInteractionEndPerfEvent,
-	type TLInteractionStartPerfEvent,
-	type TLPerfEventMap,
-	type TLPerfFrameTimeStats,
-	type TLPerfLongAnimationFrame,
-	type TLPerfLongAnimationFrameScript,
-	type TLShapeOperationPerfEvent,
-	type TLUndoRedoPerfEvent,
-} from './lib/editor/managers/PerformanceManager/perf-types'
-export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
-export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
-export { BaseFrameLikeShapeUtil } from './lib/editor/shapes/BaseFrameLikeShapeUtil'
-export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export {
-	ShapeUtil,
-	type TLCropInfo,
-	type TLDragShapesInInfo,
-	type TLDragShapesOutInfo,
-	type TLDragShapesOverInfo,
-	type TLDropShapesOverInfo,
-	type TLEditStartInfo,
-	type TLGeometryOpts,
-	type TLHandleDragInfo,
-	type TLIndicatorPath,
-	type TLResizeInfo,
-	type TLResizeMode,
-	type TLShapeUtilCanBeLaidOutOpts,
-	type TLShapeUtilCanBindOpts,
-	type TLShapeUtilCanvasSvgDef,
-	type TLShapeUtilConstructor,
-} from './lib/editor/shapes/ShapeUtil'
-export {
-	getOverlayDisplayValues,
-	type OverlayOptionsWithDisplayValues,
-} from './lib/editor/overlays/getOverlayDisplayValues'
-export { OverlayManager, type TLOverlayEntry } from './lib/editor/overlays/OverlayManager'
-export {
-	OverlayUtil,
-	type TLAnyOverlayUtilConstructor,
-	type TLOverlay,
-	type TLOverlayUtilConstructor,
-} from './lib/editor/overlays/OverlayUtil'
-export { strokeShapeIndicators } from './lib/editor/overlays/strokeShapeIndicators'
-export {
-	getPerfectDashProps,
-	type PerfectDashTerminal,
-} from './lib/editor/shapes/shared/getPerfectDashProps'
-export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
-export { resizeScaled } from './lib/editor/shapes/shared/resizeScaled'
-export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
-export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
-export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
-export { type TLContent } from './lib/editor/types/clipboard-types'
-export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
-export {
-	EVENT_NAME_MAP,
-	type TLBaseEventInfo,
-	type TLCancelEvent,
-	type TLCancelEventInfo,
-	type TLClickEvent,
-	type TLClickEventInfo,
-	type TLCLickEventName,
-	type TLCompleteEvent,
-	type TLCompleteEventInfo,
-	type TLEnterEventHandler,
-	type TLEventHandlers,
-	type TLEventInfo,
-	type TLEventName,
-	type TLExitEventHandler,
-	type TLInterruptEvent,
-	type TLInterruptEventInfo,
-	type TLKeyboardEvent,
-	type TLKeyboardEventInfo,
-	type TLKeyboardEventName,
-	type TLPinchEvent,
-	type TLPinchEventInfo,
-	type TLPinchEventName,
-	type TLPointerEvent,
-	type TLPointerEventInfo,
-	type TLPointerEventName,
-	type TLPointerEventTarget,
-	type TLTickEvent,
-	type TLTickEventInfo,
-	type TLWheelEvent,
-	type TLWheelEventInfo,
-	type UiEvent,
-	type UiEventType,
-} from './lib/editor/types/event-types'
-export {
-	type TLBaseExternalContent,
-	type TLEmbedExternalContent,
-	type TLErrorExternalContentSource,
-	type TLExcalidrawExternalContent,
-	type TLExcalidrawExternalContentSource,
-	type TLExternalAsset,
-	type TLExternalContent,
-	type TLExternalContentSource,
-	type TLFileExternalAsset,
-	type TLFileReplaceExternalContent,
-	type TLFilesExternalContent,
-	type TLSvgTextExternalContent,
-	type TLTextExternalContent,
-	type TLTextExternalContentSource,
-	type TLTldrawExternalContent,
-	type TLTldrawExternalContentSource,
-	type TLUrlExternalAsset,
-	type TLUrlExternalContent,
-} from './lib/editor/types/external-content'
-export {
-	type TLHistoryBatchOptions,
-	type TLHistoryDiff,
-	type TLHistoryEntry,
-	type TLHistoryMark,
-} from './lib/editor/types/history-types'
-export {
-	type OptionalKeys,
-	type RequiredKeys,
-	type TLCameraConstraints,
-	type TLCameraMoveOptions,
-	type TLCameraOptions,
-	type TLExportType,
-	type TLGetShapeAtPointOptions,
-	type TLImageExportOptions,
-	type TLSvgExportOptions,
-	type TLUpdatePointerOptions,
-} from './lib/editor/types/misc-types'
-export {
-	type TLAdjacentDirection,
-	type TLResizeHandle,
-	type TLSelectionHandle,
-} from './lib/editor/types/selection-types'
-export {
-	useDelaySvgExport,
-	useSvgExportContext,
-	type SvgExportContext,
-	type SvgExportDef,
-} from './lib/editor/types/SvgExportContext'
-export { getOwnerDocument, getOwnerWindow } from './lib/exports/domUtils'
-export { getSvgAsImage } from './lib/exports/getSvgAsImage'
-export { tlenv, tlenvReactive } from './lib/globals/environment'
-export { tleditors } from './lib/globals/editors'
-export { tlmenus } from './lib/globals/menus'
-export { tltime } from './lib/globals/time'
+export { useDelaySvgExport, useSvgExportContext } from './lib/exports/SvgExportContextProvider'
 export {
 	ContainerProvider,
 	useContainer,
@@ -430,107 +100,11 @@ export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 // oxlint-disable-next-line typescript/no-deprecated
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
-	LicenseManager,
-	type InvalidLicenseKeyResult,
-	type InvalidLicenseReason,
-	type LicenseFeatureName,
-	type LicenseFromKeyResult,
-	type LicenseInfo,
-	type LicenseState,
-	type ValidLicenseKeyResult,
-} from './lib/license/LicenseManager'
-export {
 	LICENSE_TIMEOUT,
 	useLicenseContext,
 	useMaybeLicenseManager,
 } from './lib/license/LicenseProvider'
 export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
-export {
-	defaultTldrawOptions,
-	type TLClipboardPasteRawInfo,
-	type TLClipboardWriteInfo,
-	type TldrawOptions,
-} from './lib/options'
-export {
-	Box,
-	ROTATE_CORNER_TO_SELECTION_CORNER,
-	rotateSelectionHandle,
-	type BoxLike,
-	type RotateCorner,
-	type SelectionCorner,
-	type SelectionEdge,
-	type SelectionHandle,
-} from './lib/primitives/Box'
-export { EASINGS } from './lib/primitives/easings'
-export { Arc2d } from './lib/primitives/geometry/Arc2d'
-export { Circle2d } from './lib/primitives/geometry/Circle2d'
-export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
-export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
-export { Edge2d } from './lib/primitives/geometry/Edge2d'
-export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
-export { getVerticesCountForArcLength } from './lib/primitives/geometry/geometry-constants'
-export {
-	Geometry2d,
-	Geometry2dFilters,
-	TransformedGeometry2d,
-	type Geometry2dOptions,
-	type TransformedGeometry2dOptions,
-} from './lib/primitives/geometry/Geometry2d'
-export { Group2d } from './lib/primitives/geometry/Group2d'
-export { Point2d } from './lib/primitives/geometry/Point2d'
-export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
-export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
-export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
-export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
-export {
-	intersectCircleCircle,
-	intersectCirclePolygon,
-	intersectCirclePolyline,
-	intersectLineSegmentCircle,
-	intersectLineSegmentLineSegment,
-	intersectLineSegmentPolygon,
-	intersectLineSegmentPolyline,
-	intersectPolygonBounds,
-	intersectPolygonPolygon,
-	linesIntersect,
-	polygonIntersectsPolyline,
-	polygonsIntersect,
-} from './lib/primitives/intersect'
-export { Mat, type MatLike, type MatModel } from './lib/primitives/Mat'
-export {
-	angleDistance,
-	approximately,
-	areAnglesCompatible,
-	average,
-	canonicalizeRotation,
-	centerOfCircleFromThreePoints,
-	clamp,
-	clampRadians,
-	clockwiseAngleDist,
-	counterClockwiseAngleDist,
-	degreesToRadians,
-	getArcMeasure,
-	getPointInArcT,
-	getPointOnCircle,
-	getPointsOnArc,
-	getPolygonVertices,
-	HALF_PI,
-	isSafeFloat,
-	perimeterOfEllipse,
-	PI,
-	PI2,
-	pointInPolygon,
-	precise,
-	radiansToDegrees,
-	rangeIntersection,
-	shortAngleDist,
-	SIN,
-	snapAngle,
-	toDomPrecision,
-	toFixed,
-	toPrecision,
-} from './lib/primitives/utils'
-export { Vec, type VecLike } from './lib/primitives/Vec'
 export {
 	EditorI18nFallbackContext,
 	ErrorScreen,
@@ -545,55 +119,10 @@ export {
 	type TLOnMountHandler,
 	useOnMount,
 } from './lib/TldrawEditor'
-export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
-export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'
-export {
-	createDebugValue,
-	debugFlags,
-	featureFlags,
-	type DebugFlag,
-	type DebugFlagDef,
-	type DebugFlagDefaults,
-} from './lib/utils/debug-flags'
-export {
-	createDeepLinkString,
-	parseDeepLinkString,
-	type TLDeepLink,
-	type TLDeepLinkOptions,
-} from './lib/utils/deepLinks'
-export {
-	activeElementShouldCaptureKeys,
-	elementShouldCaptureKeys,
-	getGlobalDocument,
-	getGlobalWindow,
-	loopToHtmlElement,
-	moveElementInto,
-	preventDefault,
-	releasePointerCapture,
-	setPointerCapture,
-	// eslint-disable-next-line @typescript-eslint/no-deprecated
-	stopEventPropagation,
-} from './lib/utils/dom'
 export { EditorAtom } from './lib/utils/EditorAtom'
-export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
-export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
-export { getDroppedShapesToNewParents, kickoutOccludedShapes } from './lib/utils/reparenting'
-export {
-	getFontsFromRichText,
-	type RichTextFontVisitor,
-	type RichTextFontVisitorState,
-	type TiptapEditor,
-	type TiptapNode,
-	type TLTextOptions,
-} from './lib/utils/richText'
-export {
-	applyRotationToSnapshotShapes,
-	getRotationSnapshot,
-	type TLRotationSnapshot,
-} from './lib/utils/rotation'
 export {
 	hardResetEditor,
 	openWindow,
@@ -601,11 +130,6 @@ export {
 	runtime,
 	setRuntimeOverrides,
 } from './lib/utils/runtime'
-export {
-	ReadonlySharedStyleMap,
-	SharedStyleMap,
-	type SharedStyle,
-} from './lib/utils/SharedStylesMap'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
@@ -619,5 +143,3 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
-
-export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'

@@ -4,7 +4,7 @@ import {
 	TLHighlightShape,
 	TldrawEditor,
 	createDefaultPlugins,
-	createKernelPlugins,
+	createCorePlugins,
 	createShapeId,
 	createTLStore,
 } from '@tldraw/editor'
@@ -103,7 +103,7 @@ describe('the highlight shape util', () => {
 	it('works in an editor with no React plugins', () => {
 		const highlightShape = defaultShapePlugins.find((p) => p.id === 'highlightShape')!
 		const editor = new Editor({
-			plugins: [...createKernelPlugins(), highlightShape],
+			plugins: [...createCorePlugins(), highlightShape],
 			shapeUtils: [],
 			bindingUtils: [],
 			tools: defaultTools,

@@ -1,4 +1,4 @@
-import { tlenv } from '../globals/environment'
+import { tlenv } from '@tldraw/core'
 import { TestEditor } from '../test/TestEditor'
 import { getPointerInfo } from './getPointerInfo'
 import { isDirectDisplayPen, isSecondaryClickEvent } from './pointer'

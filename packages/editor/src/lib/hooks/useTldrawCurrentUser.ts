@@ -1,12 +1,8 @@
+import { TLCurrentUser, createTLCurrentUser, defaultLocalStorageUserPrefs } from '@tldraw/core'
+import { TLUserPreferences } from '@tldraw/core'
 import { Signal, computed, isSignal } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import { useEffect, useMemo } from 'react'
-import {
-	TLCurrentUser,
-	createTLCurrentUser,
-	defaultLocalStorageUserPrefs,
-} from '../config/createTLCurrentUser'
-import { TLUserPreferences } from '../config/TLUserPreferences'
 import { useShallowObjectIdentity } from './useIdentity'
 
 /**
