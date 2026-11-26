@@ -2614,7 +2614,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 }): void;
 
 // @internal
-export type LicenseFeatureName = 'collaboration' | 'commenting';
+export type LicenseFeatureName = 'collaboration' | 'commenting' | 'libraries';
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -5477,6 +5477,8 @@ export interface ValidLicenseKeyResult {
     isEvaluationLicenseExpired: boolean;
     // (undocumented)
     isInternalLicense: boolean;
+    // (undocumented)
+    isLibrariesEnabled: boolean;
     // (undocumented)
     isLicensedWithWatermark: boolean;
     // (undocumented)

@@ -26,7 +26,7 @@ Runs inside the page with the tldraw `Editor` as `e`, after the page has been cl
 
 `setup` is serialized into the page, so it can't use anything from the module around it. Use `h` instead:
 
-- `h.label(cx, y)` adds the large "Before" or "After" text centred on `cx`.
+- `h.label(cx, y)` adds the large "Before" or "After" text centred on `cx`. It does nothing in an after-only clip, which is recorded without `--label`, so call it in every shot.
 - `h.screen(x, y)` turns a page point into a screen point.
 - `h.rt(text)` builds rich text for `text`, `geo` and `note` shapes. `\n` starts a new paragraph.
 - `h.W` and `h.H` are the viewport size.

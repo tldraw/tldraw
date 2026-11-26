@@ -1,11 +1,9 @@
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	LibraryItemContentTooNewError,
 	LibraryItemRecordType,
 	libraryItemValidator,
-	LibraryRecordType,
-	libraryValidator,
 	getThumbnailForColorMode,
 	mapThumbnail,
 	parseLibraryItemContent,
@@ -26,37 +24,6 @@ function itemContent(overrides: Record<string, unknown> = {}) {
 		...overrides,
 	}
 }
-
-describe('libraryValidator', () => {
-	const library = LibraryRecordType.create({
-		id: LibraryRecordType.createId('wireframes'),
-		name: 'Wireframes',
-	})
-
-	it('accepts a library', () => {
-		expect(libraryValidator.validate(library)).toEqual(library)
-	})
-
-	it('rejects a blank name', () => {
-		expect(() => libraryValidator.validate({ ...library, name: '  ' })).toThrow()
-	})
-
-	it('accepts an owner, but not a blank one', () => {
-		expect(libraryValidator.validate({ ...library, ownerId: 'acme' })).toEqual({
-			...library,
-			ownerId: 'acme',
-		})
-		expect(() => libraryValidator.validate({ ...library, ownerId: ' ' })).toThrow()
-	})
-
-	it('rejects an id that is not a library id', () => {
-		expect(() => libraryValidator.validate({ ...library, id: 'wireframes' })).toThrow()
-	})
-
-	it('rejects unknown properties', () => {
-		expect(() => libraryValidator.validate({ ...library, color: 'red' })).toThrow()
-	})
-})
 
 describe('libraryItemValidator', () => {
 	const item = LibraryItemRecordType.create({

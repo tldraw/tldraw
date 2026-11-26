@@ -9,7 +9,7 @@ import {
 	string,
 	table,
 } from '@rocicorp/zero'
-import { IndexKey } from '@tldraw/utils'
+import { IndexKey, JsonObject } from '@tldraw/utils'
 import { Role } from './roles'
 
 export interface ZColumn {
@@ -225,6 +225,59 @@ export const comment_reaction = table('comment_reaction')
 	})
 	.primaryKey('id')
 
+// A workspace's library of saved shapes. Its items' content is stored in R2 by the sync worker,
+// so these rows carry listing metadata only.
+export const library = table('library')
+	.columns({
+		id: string(),
+		name: string(),
+		owningGroupId: string(),
+		createdBy: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		meta: json<JsonObject>(),
+		// the user's default library, shown on every board they open; at most one per user, in their
+		// home workspace (059)
+		isDefault: boolean(),
+		// how many files the library is added to, including files the user can't see; kept by
+		// triggers on file_library (060)
+		fileCount: number(),
+		// how many items the library has, so it can be listed with its count without syncing them;
+		// kept by triggers on library_item (061)
+		itemCount: number(),
+	})
+	.primaryKey('id')
+
+/**
+ * An item's thumbnail: the public URL of one image for every colour mode, or of a light and a dark
+ * one, as @tldraw/libraries lists it.
+ */
+export type TlaLibraryItemThumbnail = string | { light: string; dark: string }
+
+export const library_item = table('library_item')
+	.columns({
+		id: string(),
+		libraryId: string(),
+		name: string().optional(),
+		thumbnail: json<TlaLibraryItemThumbnail>().optional(),
+		createdBy: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		meta: json<JsonObject>(),
+	})
+	.primaryKey('id')
+
+// A library added to a file. Everyone who can access the file sees it, whether or not they're a
+// member of the library's workspace.
+export const file_library = table('file_library')
+	.columns({
+		fileId: string(),
+		libraryId: string(),
+		addedBy: string(),
+		addedAt: number(),
+	})
+	.primaryKey('fileId', 'libraryId')
+
 const fileRelationships = relationships(file, ({ many }) => ({
 	states: many({
 		sourceField: ['id'],
@@ -235,6 +288,11 @@ const fileRelationships = relationships(file, ({ many }) => ({
 		sourceField: ['id'],
 		destField: ['fileId'],
 		destSchema: group_file,
+	}),
+	fileLibraries: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: file_library,
 	}),
 }))
 
@@ -383,6 +441,49 @@ const commentThreadRelationships = relationships(comment_thread, ({ one, many })
 	}),
 }))
 
+const libraryRelationships = relationships(library, ({ one, many }) => ({
+	group: one({
+		sourceField: ['owningGroupId'],
+		destField: ['id'],
+		destSchema: group,
+	}),
+	items: many({
+		sourceField: ['id'],
+		destField: ['libraryId'],
+		destSchema: library_item,
+	}),
+	fileLibraries: many({
+		sourceField: ['id'],
+		destField: ['libraryId'],
+		destSchema: file_library,
+	}),
+}))
+
+// fileStates and groupFiles are the file's access rows, correlated straight on fileId as on
+// `comment`, so the file-access gate sits one hop from file_library.
+const fileLibraryRelationships = relationships(file_library, ({ one, many }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	library: one({
+		sourceField: ['libraryId'],
+		destField: ['id'],
+		destSchema: library,
+	}),
+	fileStates: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+	groupFiles: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: group_file,
+	}),
+}))
+
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
@@ -452,6 +553,19 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+/** library_item columns the Zero schema leaves out, so they never replicate to clients. */
+export interface LibraryItemPersistenceColumns {
+	/** The ROOMS bucket key of the item's content, which a library's copy shares. */
+	contentKey: string
+}
+
+/** An R2 object a library item uses. Server-only: not in the Zero schema. */
+export interface TlaLibraryItemObject {
+	itemId: string
+	bucket: 'rooms' | 'uploads'
+	objectName: string
+}
+
 export interface TlaEffectOutbox {
 	id: number
 	tableName: string
@@ -515,6 +629,10 @@ export interface DB {
 	comment_mention: TlaCommentMention
 	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
 	effect_outbox: TlaEffectOutbox
+	library: TlaLibrary
+	library_item: TlaLibraryItem & LibraryItemPersistenceColumns
+	library_item_object: TlaLibraryItemObject
+	file_library: TlaFileLibrary
 }
 
 export const schema = createSchema({
@@ -531,6 +649,9 @@ export const schema = createSchema({
 		comment_read,
 		comment_mention,
 		comment_reaction,
+		library,
+		library_item,
+		file_library,
 	],
 	relationships: [
 		fileRelationships,
@@ -541,6 +662,8 @@ export const schema = createSchema({
 		groupFileRelationships,
 		commentRelationships,
 		commentThreadRelationships,
+		libraryRelationships,
+		fileLibraryRelationships,
 	],
 })
 
@@ -557,6 +680,9 @@ export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 export type TlaCommentRead = Row<typeof schema.tables.comment_read>
 export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
 export type TlaCommentReaction = Row<typeof schema.tables.comment_reaction>
+export type TlaLibrary = Row<typeof schema.tables.library>
+export type TlaLibraryItem = Row<typeof schema.tables.library_item>
+export type TlaFileLibrary = Row<typeof schema.tables.file_library>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

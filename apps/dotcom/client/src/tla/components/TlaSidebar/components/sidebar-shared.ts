@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { defineMessages, tltime, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
-import type { TldrawApp } from '../../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -31,12 +30,6 @@ export function useHideSidebarToggle() {
 	return useValue('hideSidebarToggle', () => !editor || editor.getInstanceState().isFocusMode, [
 		editor,
 	])
-}
-
-/** Opens a new file's name for editing in the sidebar. v3 has no sidebar, so there it does nothing. */
-export function startSidebarRename(app: TldrawApp, fileId: string, workspaceId: string) {
-	if (app.isUiV3Enabled) return
-	app.sidebarState.update((prev) => ({ ...prev, renameState: { fileId, workspaceId } }))
 }
 
 export function useHandleSidebarCreateFile() {
@@ -72,7 +65,12 @@ export function useHandleSidebarCreateFile() {
 				throw e
 			}
 			const isMobile = getIsCoarsePointer()
-			if (!isMobile && !name) startSidebarRename(app, fileId, activeWorkspaceId)
+			if (!isMobile && !name) {
+				app.sidebarState.update((prev) => ({
+					...prev,
+					renameState: { fileId, workspaceId: activeWorkspaceId },
+				}))
+			}
 			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source })
 			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)

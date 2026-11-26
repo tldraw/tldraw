@@ -1,0 +1,541 @@
+{
+	"register": "tú; buttons and menu items use the infinitive; confirmations use '¿Estás seguro de que quieres…?'",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Accesibilidad"
+		},
+		{
+			"term": "align",
+			"translation": "alinear"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Texto alternativo"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "punta de flecha",
+			"note": "feminine; arrowhead options agree (Invertida, Ninguna)"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Puntas de flecha"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Relación de aspecto"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Automático"
+		},
+		{
+			"term": "Bold",
+			"translation": "Negrita"
+		},
+		{
+			"term": "Bookmark (web link shape)",
+			"translation": "Marcador"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "Traer al frente"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Lista con viñetas"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Cancelar"
+		},
+		{
+			"term": "Canvas",
+			"translation": "Lienzo"
+		},
+		{
+			"term": "Close",
+			"translation": "Cerrar"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta de comandos"
+		},
+		{
+			"term": "comment",
+			"translation": "comentario",
+			"note": "Noun; plural 'comentarios'"
+		},
+		{
+			"term": "comments",
+			"translation": "comentarios"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Copiar"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "No se pudo abrir el archivo"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Cortar"
+		},
+		{
+			"term": "Delete",
+			"translation": "Eliminar"
+		},
+		{
+			"term": "Delete (permanent)",
+			"translation": "Eliminar"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Rombo"
+		},
+		{
+			"term": "distribute",
+			"translation": "distribuir"
+		},
+		{
+			"term": "duplicate",
+			"translation": "duplicar"
+		},
+		{
+			"term": "Editor (access role)",
+			"translation": "Editor"
+		},
+		{
+			"term": "Editor (link role)",
+			"translation": "Editor"
+		},
+		{
+			"term": "Ellipse / Oval",
+			"translation": "Elipse / Óvalo"
+		},
+		{
+			"term": "embed",
+			"translation": "incrustación",
+			"note": "tool.embed, action.insert-embed, embed-dialog.*"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "incrustación",
+			"note": "Insert embed = 'Insertar incrustación'"
+		},
+		{
+			"term": "Export",
+			"translation": "Exportar"
+		},
+		{
+			"term": "feedback",
+			"translation": "comentarios"
+		},
+		{
+			"term": "file",
+			"translation": "archivo"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "archivo"
+		},
+		{
+			"term": "file history",
+			"translation": "historial del archivo"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "relleno",
+			"note": "masculine; style values agree (Ninguno, Sólido)"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Seguir"
+		},
+		{
+			"term": "Forget",
+			"translation": "Olvidar"
+		},
+		{
+			"term": "Forget (remove from own list)",
+			"translation": "Olvidar",
+			"note": "distinct from Eliminar (delete)"
+		},
+		{
+			"term": "frame (shape/tool)",
+			"translation": "marco",
+			"note": "tool.frame; verb 'enmarcar'"
+		},
+		{
+			"term": "Highlight (marker)",
+			"translation": "Resaltar",
+			"note": "Not 'Destacar' (emphasise)"
+		},
+		{
+			"term": "Highlighter (tool)",
+			"translation": "Resaltador",
+			"note": "'Marcador' is Bookmark"
+		},
+		{
+			"term": "Home (app start page)",
+			"translation": "Inicio"
+		},
+		{
+			"term": "Insert",
+			"translation": "Insertar"
+		},
+		{
+			"term": "Italic",
+			"translation": "Cursiva"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "elemento"
+		},
+		{
+			"term": "item (library)",
+			"translation": "elemento"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Atajos de teclado"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Horizontal"
+		},
+		{
+			"term": "Leave (workspace)",
+			"translation": "Abandonar"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Bibliotecas"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteca",
+			"note": "collection of reusable shapes"
+		},
+		{
+			"term": "link",
+			"translation": "enlace"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Enlace"
+		},
+		{
+			"term": "Lock / unlock (shapes)",
+			"translation": "Bloquear / Desbloquear"
+		},
+		{
+			"term": "Media",
+			"translation": "Multimedia"
+		},
+		{
+			"term": "member",
+			"translation": "miembro"
+		},
+		{
+			"term": "minimap",
+			"translation": "minimapa"
+		},
+		{
+			"term": "mouse",
+			"translation": "ratón"
+		},
+		{
+			"term": "Mouse (device)",
+			"translation": "Ratón"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opacidad"
+		},
+		{
+			"term": "Ordered list",
+			"translation": "Lista numerada"
+		},
+		{
+			"term": "Owner",
+			"translation": "Propietario"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "Propietario",
+			"note": "not 'Dueño'"
+		},
+		{
+			"term": "owner (workspace role)",
+			"translation": "propietario"
+		},
+		{
+			"term": "padding (export margin)",
+			"translation": "Margen",
+			"note": "'Relleno' is the SDK's fill style"
+		},
+		{
+			"term": "page",
+			"translation": "página"
+		},
+		{
+			"term": "page (document page)",
+			"translation": "página"
+		},
+		{
+			"term": "Paste",
+			"translation": "Pegar"
+		},
+		{
+			"term": "pin / unpin",
+			"translation": "anclar / desanclar",
+			"note": "catalog: 'Desanclar archivo'"
+		},
+		{
+			"term": "pin / unpin (file)",
+			"translation": "anclar / desanclar",
+			"note": "Matches existing 'Desanclar archivo'"
+		},
+		{
+			"term": "pipe (arrowhead)",
+			"translation": "barra vertical",
+			"note": "bar is 'barra'"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Vertical"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferencias"
+		},
+		{
+			"term": "reaction",
+			"translation": "reacción"
+		},
+		{
+			"term": "read-only",
+			"translation": "solo lectura",
+			"note": "No accent on 'solo'"
+		},
+		{
+			"term": "Redo",
+			"translation": "Rehacer"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Reducir movimiento"
+		},
+		{
+			"term": "refresh (the page)",
+			"translation": "actualizar la página",
+			"note": "never 'actualizar el navegador'"
+		},
+		{
+			"term": "Refresh page (reload)",
+			"translation": "Actualizar página",
+			"note": "Don't use 'actualizar el navegador', which reads as updating the browser"
+		},
+		{
+			"term": "Remove (from file, non-destructive)",
+			"translation": "Quitar",
+			"note": "Keep distinct from Eliminar"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "Quitar",
+			"note": "distinct from Delete"
+		},
+		{
+			"term": "remove (unwrap / unlink)",
+			"translation": "quitar",
+			"note": "distinct from delete 'eliminar'"
+		},
+		{
+			"term": "Rename",
+			"translation": "Cambiar nombre"
+		},
+		{
+			"term": "Reopen",
+			"translation": "Reabrir"
+		},
+		{
+			"term": "Reset data",
+			"translation": "Restablecer datos",
+			"note": "Means wiping stored data, not settings"
+		},
+		{
+			"term": "Resolve",
+			"translation": "Resolver"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Resuelto",
+			"note": "agrees with hilo/comentario"
+		},
+		{
+			"term": "resolved (comment thread)",
+			"translation": "resuelto"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Romboide",
+			"note": "Diamond is 'Rombo'"
+		},
+		{
+			"term": "rhombus (geo shape)",
+			"translation": "romboide",
+			"note": "diamond is 'rombo'"
+		},
+		{
+			"term": "Rhombus (slanted parallelogram shape)",
+			"translation": "Romboide",
+			"note": "Must differ from Diamond"
+		},
+		{
+			"term": "Save",
+			"translation": "Guardar"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Guardar una copia",
+			"note": "sdk action.save-copy"
+		},
+		{
+			"term": "select (canvas)",
+			"translation": "seleccionar"
+		},
+		{
+			"term": "Selection",
+			"translation": "Selección"
+		},
+		{
+			"term": "Settings",
+			"translation": "Ajustes",
+			"note": "standalone label; 'Configuración de usuario' is also existing for User settings"
+		},
+		{
+			"term": "shape",
+			"translation": "forma"
+		},
+		{
+			"term": "Share",
+			"translation": "Compartir"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Iniciar sesión"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Cerrar sesión"
+		},
+		{
+			"term": "Snap (alignment)",
+			"translation": "Ajustar",
+			"note": "snapping to shapes, not to the grid ('cuadrícula')"
+		},
+		{
+			"term": "Sort by",
+			"translation": "Ordenar por"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Tachado"
+		},
+		{
+			"term": "Submit",
+			"translation": "Enviar"
+		},
+		{
+			"term": "Success (toast severity)",
+			"translation": "Éxito"
+		},
+		{
+			"term": "Task list",
+			"translation": "Lista de tareas"
+		},
+		{
+			"term": "terms of use",
+			"translation": "condiciones de uso"
+		},
+		{
+			"term": "thread",
+			"translation": "hilo"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "Alternar …"
+		},
+		{
+			"term": "Toggle (long command form)",
+			"translation": "Alternar"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "Bloqueo de herramienta"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Panel táctil"
+		},
+		{
+			"term": "Transparent (export background)",
+			"translation": "Transparente"
+		},
+		{
+			"term": "Undo",
+			"translation": "Deshacer"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Desagrupar",
+			"note": "pairs with action.group 'Agrupar'"
+		},
+		{
+			"term": "unpublish",
+			"translation": "anular la publicación"
+		},
+		{
+			"term": "upload",
+			"translation": "subir",
+			"note": "not 'cargar', which reads as loading"
+		},
+		{
+			"term": "URL",
+			"translation": "URL"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Vista"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "Lector",
+			"note": "read-only access role; not 'Espectador'"
+		},
+		{
+			"term": "Viewer (link role)",
+			"translation": "Espectador"
+		},
+		{
+			"term": "Viewer / Editor",
+			"translation": "Lector / Editor"
+		},
+		{
+			"term": "workspace",
+			"translation": "espacio de trabajo"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Acercar"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Alejar"
+		}
+	]
+}

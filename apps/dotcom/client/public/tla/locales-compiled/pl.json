@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Zaproś członków drużyny"
+      "value": "Zaproś członków zespołu"
     }
   ],
   "05b2656486": [
@@ -66,7 +66,7 @@
     },
     {
       "type": 0,
-      "value": " wspomniał o Tobie"
+      "value": " wspomina o Tobie"
     }
   ],
   "05f43078e9": [
@@ -154,7 +154,7 @@
   "10fb1df194": [
     {
       "type": 0,
-      "value": "Kopiuj do osobistej przestrzeni roboczej"
+      "value": "Kopiuj do osobistego obszaru roboczego"
     }
   ],
   "110a4b01be": [
@@ -167,6 +167,12 @@
     {
       "type": 0,
       "value": "Odepnij plik"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Ten obszar roboczy osiągnął maksymalną liczbę bibliotek. Usuń stare biblioteki, zanim utworzysz nowe."
     }
   ],
   "13ddd375ad": [
@@ -202,7 +208,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Przenieś się do"
+      "value": "Przenieś do"
     }
   ],
   "1da2e8106b": [
@@ -220,7 +226,13 @@
   "1ffd709937": [
     {
       "type": 0,
-      "value": "Przestrzeń robocza musi mieć co najmniej jednego właściciela. Najpierw niech ktoś inny zostanie właścicielem."
+      "value": "Obszar roboczy musi mieć co najmniej jednego właściciela. Najpierw nadaj komuś innemu rolę właściciela."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Moja kolekcja"
     }
   ],
   "21f66c9c00": [
@@ -232,7 +244,7 @@
   "23dcace54a": [
     {
       "type": 0,
-      "value": "Zostałeś zaproszony do dołączenia do "
+      "value": "Zaproszono Cię do dołączenia do "
     },
     {
       "children": [
@@ -255,6 +267,12 @@
       "value": "O tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Ta biblioteka osiągnęła maksymalną liczbę elementów. Usuń stare elementy, zanim dodasz nowe."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -264,7 +282,7 @@
   "2944edaa8d": [
     {
       "type": 0,
-      "value": "W imieniu "
+      "value": "W imieniu: "
     },
     {
       "type": 1,
@@ -280,7 +298,7 @@
   "2a1167f869": [
     {
       "type": 0,
-      "value": "Witamy w Twoim miejscu pracy"
+      "value": "Witaj w swoim obszarze roboczym"
     }
   ],
   "2a37324bb4": [
@@ -298,7 +316,7 @@
   "2de510be71": [
     {
       "type": 0,
-      "value": "Regeneracja zastępuje obecny link z zaproszeniem nowym. Każdy, kto korzysta ze starego linku, będzie potrzebował nowego, aby dołączyć."
+      "value": "Wygenerowanie nowego linku zastąpi obecny link z zaproszeniem. Osoby korzystające ze starego linku będą potrzebować nowego, aby dołączyć."
     }
   ],
   "2e2b3c700b": [
@@ -332,7 +350,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Brak wyróżnienia"
+      "value": "i18n: Podświetl brakujące tłumaczenia"
     }
   ],
   "324a0f3182": [
@@ -344,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Duplikat pliku"
+      "value": "Duplikuj plik"
     }
   ],
   "335defdafe": [
@@ -362,7 +380,7 @@
   "344a7f427f": [
     {
       "type": 0,
-      "value": "Edytor"
+      "value": "Edytujący"
     }
   ],
   "34e34c43ec": [
@@ -419,6 +437,12 @@
       "value": "Motyw kolorystyczny"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menu biblioteki"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -472,13 +496,13 @@
   "46de2de6bb": [
     {
       "type": 0,
-      "value": "Akceptuję warunki użytkowania"
+      "value": "Zaakceptuj warunki korzystania"
     }
   ],
   "477df802ca": [
     {
       "type": 0,
-      "value": "Aby kontynuować edycję skopiuj plik do swoich plików."
+      "value": "Aby kontynuować edycję, skopiuj plik do swoich plików."
     }
   ],
   "47f493a590": [
@@ -528,7 +552,13 @@
     },
     {
       "type": 0,
-      "value": " skomentował"
+      "value": " skomentował(a)"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Ten plik"
     }
   ],
   "4d0d3ddec9": [
@@ -558,7 +588,7 @@
   "51317dcad5": [
     {
       "type": 0,
-      "value": "To Twoja prywatna przestrzeń robocza. Utwórz nową przestrzeń roboczą, aby zaprosić członków zespołu."
+      "value": "To jest Twoja prywatna przestrzeń robocza. Utwórz nową przestrzeń roboczą, aby zaprosić członków zespołu."
     }
   ],
   "517bb809d9": [
@@ -576,7 +606,7 @@
   "536b51486d": [
     {
       "type": 0,
-      "value": "Eksport…"
+      "value": "Eksportuj…"
     }
   ],
   "53770fd374": [
@@ -658,7 +688,7 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Podziel się"
+      "value": "Udostępnij"
     }
   ],
   "5bec508475": [
@@ -670,13 +700,13 @@
   "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Moje miejsce pracy"
+      "value": "Moja przestrzeń robocza"
     }
   ],
   "5d04a002ea": [
     {
       "type": 0,
-      "value": "Nie można połączyć"
+      "value": "Nie można nawiązać połączenia"
     }
   ],
   "5d26ae7550": [
@@ -694,13 +724,13 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Kopia"
+      "value": "Kopiuj"
     }
   ],
   "608e9d366e": [
     {
       "type": 0,
-      "value": "Jesteście na bieżąco."
+      "value": "Jesteś na bieżąco."
     }
   ],
   "60a68c29d6": [
@@ -724,19 +754,19 @@
   "625fd29749": [
     {
       "type": 0,
-      "value": "Starszy"
+      "value": "Starsze"
     }
   ],
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "Ty"
+      "value": "ty"
     }
   ],
   "63a6a88c06": [
     {
       "type": 0,
-      "value": "Odświeżać"
+      "value": "Odśwież"
     }
   ],
   "6609dd239e": [
@@ -795,6 +825,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " inne osoby"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " innych osób"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -802,7 +854,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " inna osoba"
             }
           ]
         },
@@ -813,7 +865,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " innej osoby"
             }
           ]
         }
@@ -836,7 +888,7 @@
   "694f82ed9d": [
     {
       "type": 0,
-      "value": "Usuń obszar roboczy"
+      "value": "Usuń przestrzeń roboczą"
     }
   ],
   "697c59072d": [
@@ -851,10 +903,24 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osoby zareagowały"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osób zareagowało"
+            }
           ]
         },
         "one": {
@@ -872,7 +938,7 @@
             },
             {
               "type": 0,
-              "value": " osób zareagowało"
+              "value": " osoby zareagowało"
             }
           ]
         }
@@ -925,7 +991,7 @@
   "71a29b007b": [
     {
       "type": 0,
-      "value": "Masz błąd, problem lub pomysł na tldraw? Daj nam znać!"
+      "value": "Błąd, problem lub pomysł dotyczący tldraw? Daj nam znać!"
     }
   ],
   "73ab799383": [
@@ -1003,19 +1069,25 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Ten anonimowy plik tldraw do gry wieloosobowej jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
+      "value": "Ten anonimowy wspólny plik tldraw jest teraz tylko do odczytu. Aby kontynuować edycję, zaloguj się i skopiuj go do swoich plików."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Nie ma jeszcze bibliotek."
     }
   ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "Zrozumiałem"
+      "value": "Rozumiem"
     }
   ],
   "797799f35e": [
     {
       "type": 0,
-      "value": "Prześlij problem na GitHub"
+      "value": "Zgłoś problem w serwisie GitHub"
     }
   ],
   "797c5be9a7": [
@@ -1081,13 +1153,13 @@
   "801ab24683": [
     {
       "type": 0,
-      "value": "Pobierać"
+      "value": "Pobierz"
     }
   ],
   "8030793ce3": [
     {
       "type": 0,
-      "value": "Nowe miejsce pracy"
+      "value": "Nowa przestrzeń robocza"
     }
   ],
   "815e116a2e": [
@@ -1147,7 +1219,7 @@
   "8413c683b4": [
     {
       "type": 0,
-      "value": "Uwagi"
+      "value": "Komentarze"
     }
   ],
   "858ba4765e": [
@@ -1198,6 +1270,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " inne osoby"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " innych osób"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1205,7 +1299,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " inna osoba"
             }
           ]
         },
@@ -1216,7 +1310,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " innej osoby"
             }
           ]
         }
@@ -1245,7 +1339,7 @@
   "8cf04a9734": [
     {
       "type": 0,
-      "value": "Dom"
+      "value": "Strona główna"
     }
   ],
   "8eb2c00e96": [
@@ -1257,13 +1351,13 @@
   "8f7f4c1ce7": [
     {
       "type": 0,
-      "value": "O"
+      "value": "Informacje"
     }
   ],
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Ograniczona szybkość"
+      "value": "Przekroczono limit żądań"
     }
   ],
   "902b0d55fd": [
@@ -1301,7 +1395,7 @@
   "91f3a2c0e4": [
     {
       "type": 0,
-      "value": "Akta"
+      "value": "Pliki"
     }
   ],
   "930390d222": [
@@ -1319,7 +1413,7 @@
   "95d2109dc8": [
     {
       "type": 0,
-      "value": "Kompilacja z użyciem zestawu SDK tldraw"
+      "value": "Twórz z tldraw SDK"
     }
   ],
   "96165d6df5": [
@@ -1348,6 +1442,12 @@
     {
       "type": 0,
       "value": "Warunki korzystania"
+    }
+  ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Wypróbuj serwer MCP"
     }
   ],
   "9914a0ce04": [
@@ -1400,6 +1500,60 @@
       "value": "Wygląda na to, że jesteś offline. Sprawdź połączenie i spróbuj ponownie."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementy"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementów"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementu"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1412,6 +1566,82 @@
       "value": "Opublikuj ten plik"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Usunąć "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wraz z "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementami"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementami"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementem"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementu"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1421,7 +1651,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Zrezygnuj"
+      "value": "Odrzuć"
     }
   ],
   "a078644c42": [
@@ -1501,7 +1731,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Wypełnienie"
+      "value": "Margines"
     }
   ],
   "a18366b217": [
@@ -1543,7 +1773,7 @@
   "a4d3b161ce": [
     {
       "type": 0,
-      "value": "Składać"
+      "value": "Wyślij"
     }
   ],
   "a52945dbe2": [
@@ -1570,6 +1800,12 @@
       "value": "Plik staje się duży"
     }
   ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Usuń bibliotekę"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1579,7 +1815,7 @@
   "aac449eef6": [
     {
       "type": 0,
-      "value": "Utwórz obszar roboczy"
+      "value": "Utwórz przestrzeń roboczą"
     }
   ],
   "aaec8f7cde": [
@@ -1637,13 +1873,13 @@
     },
     {
       "type": 0,
-      "value": " odpowiedział"
+      "value": " odpowiedział(a)"
     }
   ],
   "b1c94ca2fb": [
     {
       "type": 0,
-      "value": "Wszystko"
+      "value": "Wszystkie"
     }
   ],
   "b2326c3a34": [
@@ -1833,7 +2069,7 @@
   "c17466812d": [
     {
       "type": 0,
-      "value": "Zarządzaj obszarem roboczym"
+      "value": "Zarządzaj przestrzenią roboczą"
     }
   ],
   "c2276c9127": [
@@ -1933,7 +2169,7 @@
   "c6f16003f2": [
     {
       "type": 0,
-      "value": "Kopiuj do mojego obszaru roboczego"
+      "value": "Kopiuj do mojej przestrzeni roboczej"
     }
   ],
   "c87aacf567": [
@@ -2057,7 +2293,7 @@
   "d721757161": [
     {
       "type": 0,
-      "value": "Temat"
+      "value": "Motyw"
     }
   ],
   "d876a9fe1a": [
@@ -2087,7 +2323,7 @@
   "dbf9b24193": [
     {
       "type": 0,
-      "value": "Opuść miejsce pracy"
+      "value": "Opuść przestrzeń roboczą"
     }
   ],
   "dfdb78a4e4": [
@@ -2100,6 +2336,12 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Nie udało się zmienić biblioteki"
     }
   ],
   "e2198d6228": [
@@ -2123,7 +2365,7 @@
   "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "Lub"
+      "value": "lub"
     }
   ],
   "ea13ecec38": [
@@ -2141,7 +2383,7 @@
   "eb1e2b0542": [
     {
       "type": 0,
-      "value": "Poproś właściciela miejsca pracy o nowe."
+      "value": "Poproś właściciela przestrzeni roboczej o nowy link."
     }
   ],
   "ebfe9ce86e": [
@@ -2171,7 +2413,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Duplikat"
+      "value": "Duplikuj"
     }
   ],
   "ede55d955f": [
@@ -2228,6 +2470,12 @@
     {
       "type": 0,
       "value": "Ustawienia użytkownika"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Nieużywana w żadnym pliku"
     }
   ],
   "f13001876b": [
@@ -2293,7 +2541,7 @@
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Oglądający"
+      "value": "Przeglądający"
     }
   ],
   "fc9d47046b": [
@@ -2305,7 +2553,13 @@
   "fed5ec05eb": [
     {
       "type": 0,
-      "value": "Skopiowany link"
+      "value": "Skopiowano link"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Biblioteki publiczne"
     }
   ],
   "ff2fefd3c6": [
@@ -2325,7 +2579,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Załóż bezpłatne konto, aby zapisywać pliki i rysować je wspólnie z członkami drużyny."
+      "value": "Utwórz darmowe konto, aby zapisywać swoje pliki i rysować w tldraw razem z członkami zespołu."
     }
   ],
   "ffad261a48": [

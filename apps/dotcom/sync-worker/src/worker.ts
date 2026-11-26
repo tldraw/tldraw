@@ -38,15 +38,16 @@ import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
+import { copyLibrary } from './routes/tla/copyLibrary'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
-import { getBoardPresence } from './routes/tla/getBoardPresence'
 import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleInitUser } from './routes/tla/initUser'
+import { addLibraryItems, getLibraryItemContent } from './routes/tla/libraryItems'
 import {
 	ROOT_MCP_SERVER_PATH,
 	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
@@ -71,7 +72,7 @@ import { verifyVersionChainRoute } from './routes/verifyVersionChain'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
-import { getFeatureFlags } from './utils/featureFlags'
+import { getFeatureFlags, isFeatureFlagEnabledForUser } from './utils/featureFlags'
 import { getAuth, getZeroAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 import { createMcpMutators } from './utils/tla/mcpMutators'
@@ -190,7 +191,6 @@ const router = createRouter<Environment>()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
 	.get('/app/file/:boardId/thumbnail', getBoardThumbnail)
-	.post('/app/board-presence', getBoardPresence)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({
@@ -201,6 +201,9 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.post('/app/libraries/:libraryId/items', addLibraryItems)
+	.post('/app/libraries/:libraryId/copy', copyLibrary)
+	.get('/app/library-items/:itemId/content', getLibraryItemContent)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
@@ -245,7 +248,13 @@ const router = createRouter<Environment>()
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
 		// Mutators close over userId. `userID` is what zero-cache checks the client's claim against.
-		const mutators = auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId)
+		const mutators = auth.mcp
+			? createMcpMutators(auth.userId)
+			: createMutators(auth.userId, {
+					// Read without the stale value: the mutators consult a flag only to admit a change.
+					isFeatureEnabled: (flag) =>
+						isFeatureFlagEnabledForUser(env, flag, auth.userId, { staleOnError: false }),
+				})
 		const result = await handleMutateRequest({
 			dbProvider: zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
 			handler: (transact) =>
@@ -291,10 +300,7 @@ const router = createRouter<Environment>()
 	.get('/app/zero/schema', async (req, env) => {
 		const auth = await getMcpTokenAuth(req, env)
 		if (!auth.ok) {
-			return Response.json(
-				{ error: 'Unauthorized' },
-				{ status: auth.reason === 'not_allowlisted' ? 403 : 401 }
-			)
+			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
 		if (!env.ZERO_SERVER) {
 			return Response.json({ error: 'Zero is not deployed here' }, { status: 503 })
@@ -303,7 +309,7 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
-// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path, and their setup resources.
+// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path, and the landing page around them.
 // A router of its own rather than routes on the main one, so no API route is reachable through the
 // host and no server's path can collide with one.
 const mcpHostRouter = createRouter<Environment>()
@@ -316,15 +322,11 @@ const mcpHostRouter = createRouter<Environment>()
 	// Discovery paths the host doesn't serve keep this worker's JSON 404, whatever the site does with
 	// an unknown path.
 	.all('/.well-known/*', notFound)
-	// Keep the setup text and other static assets available at their existing URLs.
+	// Everything else is the landing page, a static-assets worker reached through the MCP_WEB service
+	// binding, so the page shares the host without any route of its own. Read-only methods only;
+	// unbound environments keep the 404.
 	.all('*', (req, env) => {
 		if (!env.MCP_WEB || (req.method !== 'GET' && req.method !== 'HEAD')) return notFound()
-		if (new URL(req.url).pathname === '/') {
-			return Response.redirect(
-				'https://tldraw.notion.site/tldraw-MCP-server-41e3e4c324c08115adc1cf0389b40755',
-				302
-			)
-		}
 		return env.MCP_WEB.fetch(req)
 	})
 

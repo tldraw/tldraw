@@ -4,12 +4,12 @@ Libraries of reusable shapes: named lists of items that people save from a canva
 
 ## Status: unreleased
 
-This package is `private`, so the publish scripts skip it and it never reaches npm. tldraw.com is its first consumer and installs it through the workspace, behind a feature flag. It ships when a release PR sets `private` to `false` and adds its API report, docs and an example.
+This package is `private`, so the publish scripts skip it and it never reaches npm. tldraw.com is its first consumer and installs it through the workspace, behind a feature flag. It ships when a release PR sets `private` to `false` and adds its API report and docs.
 
 Until then:
 
 - No published package may depend on it.
-- It stays out of the docs, release notes and examples.
+- It stays out of the docs and release notes.
 
 ## License
 

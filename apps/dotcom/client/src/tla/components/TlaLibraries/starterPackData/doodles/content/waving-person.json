@@ -1,0 +1,359 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 4,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 14,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 7,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 15,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 6,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1,
+				"com.tldraw.library": 1,
+				"com.tldraw.library-item": 1,
+				"com.tldraw.library-item-content": 1
+			}
+		},
+		"shapes": [
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:waving-person",
+				"type": "group",
+				"parentId": "page:page",
+				"index": "a9RNb",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 17.750337845034664,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:YIIv1N9HrRrvR9IOXcn0T",
+				"type": "geo",
+				"props": {
+					"w": 55.4490280356574,
+					"h": 52.58219928317396,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "l",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:waving-person",
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 35.12330641020708,
+				"y": 22.121591684584928,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:TbdPt-nNXuRuR_qYp6DnV",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAA=",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "l",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1.8668311519302356,
+					"scaleY": 1.8668311519302356
+				},
+				"parentId": "shape:waving-person",
+				"index": "a2KWQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 58.99890697934461,
+				"y": 19.484443160476076,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:yv9kvZfqQRhfPuj_8IRFh",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAA=",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "l",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1.8668311519302356,
+					"scaleY": 1.8668311519302356
+				},
+				"parentId": "shape:waving-person",
+				"index": "a3uTj",
+				"typeName": "shape"
+			},
+			{
+				"x": 58.99890697934461,
+				"y": 29.28022511510676,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:7EbnkccnHV5O8KFmsda0M",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAGYqAAB7MAAAZjIAAFwzAAB7NCmw7DWuszM3rrMKNwC0CjcAtAA4ALThNs2wKTQpsAA0KbAANK6vADQpsAA0e6wANK6ruDKur8Mxrq9cM66vwzEpsBQyrq/DMa6vKTB7sHswuLKuM3u0zTSatXE1M7fhNhS44TYpuBQ2CrcUNhS2HzX2tK4zzbSuM8O1XDPhtsMxSLVmLgC0KTAAtK4vALQpMCm0ri8AtCkwKbQfLQC0risptK4rw7EAABSyrivDsa4rFLIAAHu0rieata4rw7UfJey1AADstQAAw7UAAOy1AAAUtgAA7LUAAM20rqvNtHGxw7Wus7iyzbCurwqvH7Gur8Oxrq8Ush+tw7Guq3uwZq4Kr8OxKbAUssOxw7F7sK6zrq8AtCmwUrQfsQC0rrN7tMOxKbS4sq6zcbHNtCmwzbTDsXu0cbHNtCmwFLKur66vH7FxsQqvcbGuqwqvrqsKrx+pw60Kr66vrq8Kr2aqrq+uqwqvrquur66rCq8Kr66vH60Kr2aqCq9mqq6vH6EKrwAACq8AAGauAABmrmaqZqpmqnusH6EKr2aqrquuq2aq",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:waving-person",
+				"index": "a4jMI",
+				"typeName": "shape"
+			},
+			{
+				"x": 28.659423828125,
+				"y": 57.708233544826044,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:8OK4DuKzKNSlUCMZnhRLH",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAABmqgAAH7EAAFyzAABxsQAAw7EAAPa0H6kUtgqvFLYpsOy1KbA9thSyCrcUshS4KbAUuGayALjDsQC4FLLstSmwSLWuq6S0rqtItQAAcbVmqgC0rqsftXusSLV7rHG1H6WPtnusmrV7rHG1AABxtQAASLUAAHG1AAA9tgAA9rgAAFy5AABcuQAAcbkAAFy5AABcuWYqALquKxS6ezBcuSk0XLlmMki5FDJmth8xFLJ7LMOxHyUptK4rZrKuKxSyeyxcs2YuALSuK7iyeyzDsQovrrN7LCm0eywptK4ve7TNMHG1CjPNtFwzzbSuM7i29jTXt+E2pLgKN7i4XDc9uD02FLgfNey19jRcsx8xe7DDLWauZi57sB8te6xmKmaqCi9mrnssrq+uK3usZi6uqwovZqoKL66rriuuq64rZqoKL66rCi+uq8MtZq7DLQqvKTCurykwCq/DLQqvri8Kr3ExCq8KM3GxXDNcswozcbFcM8OtCi9mqq4rrqtmKgqvZip7rAovrqtmKmaqZip7rK4rZqpmKgAAZi6uq2YqrquuK2YqZipmLgAACi8AAHswAAAfMQAA",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:waving-person",
+				"index": "a5UzwV",
+				"typeName": "shape"
+			},
+			{
+				"x": 59.73827110352977,
+				"y": 57.708233544826044,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:AIv4689ZXrkjb-NL3qrXb",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAADDLQAASDUAAHs4AAC4OgAAhTt7LB88ezAAPHswjzp7LNc3rieuM3ssKTQfJQA0AAD2NAAAZjYAAOw1AABINQAAPTYAAI82AADhNgAAjzYAABQ4AADhOHusSDlxsSk6ZrIzO3u0ADxxtSk8w7WaO7i2UjqPtuE4SLU9OFK0KTgAtNc3ALQAOAC0HzVxsQA0rq8KM3GxwzEUshQyzbAKLwqvri+urwovZqquL66vri/DsQovKbCuLxSyri/DsQozALQfNTO39jQzt1I0H7VcMym0wzFcs8MxFLIfMXGxcTFxscMxrq9mKgqv",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:waving-person",
+				"index": "a6co2",
+				"typeName": "shape"
+			},
+			{
+				"x": 35.12330641020708,
+				"y": 95.81108487447045,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:d2d0lQNB3q1ya0TniT2RZ",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAGYqAABmLgAAZi4AAMMtAABmLgAAKTAAAAovAAAKLwAAri8AAMMxAADDMQAAezAAAFI0AABxNQAAmjUAAB81AAAfNQAA4TYAALg2AAAUNgAACjcAABQ4AAAAOAAASDkAAK43AABINR+pPTZ7sI82e7DDNa6rSDV7rGY2KbBINR+tcTV7rEg1rq+aNSmwHzUpsFI0Zq7DNXGxPThmsvY4zbDNOBSyXDdcswo3uLLXNwC0zThItVw5KbS4OCm0pDgptEg5cbFmNimwADQpsM00KbBINSmwpDQpsAA0KbAANMOxADQUsik0KbCuMymwKTQUsgA0FLIpNB+x9jQKsxQ2rrPsNQC0SDUUsik0w7HNNFyzmjWus8M1ALQUNlyz9jSus800w7GkNAqvcTGuqwovrqfDLa6vri8frQovrqsKL2aqri+uq2YqrquuKwAACi9mqnssZqquK3usritmqmYqZqpmKq6rZq4=",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:waving-person",
+				"index": "a7sCA",
+				"typeName": "shape"
+			},
+			{
+				"x": 53.57463193001604,
+				"y": 93.19774256979895,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:rmEP8jJgUuqJlDRCq1y7b",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAACkwAACFNwAAcTkAAFw5AADsOQAAADoAACk6e7CPOmay7Dl7rDM3e6xINa6rcTUAAB81H6mkNHusADQfpQA0AABINa6rjzaur9c3KbDNOCmwFDgpsKQ4KbCPOGauSDWuq64ze6wpNCmwSDV7sEg1rq8ANHuw9jQpsEg1KbBxNSmwSDV7sJo1ZrJINWaymjVmsoU3cbXhOMO11znDtcM5PbaFOUi14ThxtT047LUpOB+1CjcAtBQ2w7GkNAqvXDPDrXswZq5mLq6vCi+uq64ve6yuLwqvCi9mrmYu",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "none",
+					"dash": "draw",
+					"size": "m",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:waving-person",
+				"index": "a872v",
+				"typeName": "shape"
+			},
+			{
+				"x": 27.312188389329094,
+				"y": 46.43907572705211,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:HSfZiwj--JctTMVqdUVY5",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAGYqAAAfLQAAFDIAACk0AABxMQAACi8AAB8xAADDMQAAezAAAAovAACuLwAACi8AAK4vAAB7MAAA9jQAAI82AADsNQAAFDYAAB81AAD2NAAAwzUAAOw1AAApOAAAADoAAI86AAApOAAASDUAAHE1AABINQAAezQAAEg1AABxNQAAADQAAAA0AABINQAAcTUAAAA0AABINQAAhTcAAFw5AAAAOgAAFDoAAAA6AAAUOgAAjzoAAFw7AACFOwAAzToAALg6AACPOgAAjzoAAD04AACPNgAAuDYAAEg1AABxNQAAjzYAAJo1AAAANGYqKTSuKwA0HyFmMgAAwzGuKwA0riv2NB8ppDh7LGY6Zi7NOq4vuDquK7g6Hy24OnsscTsfLXs8eyx7PAAAFDx7LEg7eyw9OAAASDUAAEg1AABINQAApDQAAK4zAAApNAAAADRmKik0risfNR8hcTUAAAA0AAApNK4n9jSuKzM3eywUOK4rjzh7LDM5eyxxOR8l4ThmKoU3risUNgAAzTSuKwozZipcMwAArjMAAMMxHynDLWYqCi8fJQovAACuLwAACi+uK64rritmKmYqritmKnssAAAKL2YqCi+uK2YurieuL2YuCi9xMWYqFDIAAHExAAC4MgAAXDMAAFwzAADNNAAAwzUAAOE2AAAfNQAAwzEAABQyAADDMQAAFDIAAMMxAADDMQAAADQAACk0AAAANAAAHzUAAEg1AACaNQAAFDgAAFI6H6lxO3usmjsKrwA8e6yFPAAAUj0AALg9rqu4PR+tUj3NsNc8zbDDPB+tKTofrQA4e6yPOHusmjl7rDM5rq/NOM2w4Ti4spo5XLOuOcOxzTgfrVI4e6yPNnusuDYfrUg1e6xxNQAAwzUAABQ2AACuNx+pzTgKr1w5ZrK4OLiyFDYfrQA0AADDMQAACi8AAGYurqsKLwqvwy3DrQovrquuL66rCi9mqh8trqtmKq6rZi4fpQovAACuL2aqHy3DscMtKbTDLVK0ritcs64rXLMfJVyzH6EKswAAzbQAAAq3AAApuAAACrcAAOG2AADhtgAAKbQAAMOxAACuswAASLUAAHG1AACPtgAAuLYAAI+2AAAUuAAAALgAAAq3AACPtgAAKbgAAOG4H6kAunusuLofrUi7e6xmvK6n4bwAAOy8AACPvAAAH7x7rHG7e6y4unusXLsfrVy5AAAAuAAAKbh7rM24H61muAAAj7YAANe3AAAAuGaqM7d7rBS4H6EpuAAAj7Z7rLi2e6x7uAAAuLp7rB+7e6w9ugAArrkAAHG5AABIuQAASLkAAHG5e6yFuXusXLkAAM24e6wUuK6rH7UAAEi1H6lxta6rALSup/a0AABItWaqe7SuqwC0H6UptAAAw7EAABSyAAAUsgAArq9mqsOtrqtmrmaqH61mqmaqZqoKr66vCq+uqx8p",
+							"dim": 2
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:waving-person",
+				"index": "a972v",
+				"typeName": "shape"
+			}
+		],
+		"rootShapeIds": ["shape:waving-person"],
+		"bindings": [],
+		"assets": [],
+		"users": []
+	}
+}

@@ -7,8 +7,6 @@ import {
 } from '@tldraw/dotcom-shared'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { createPostgresConnectionPool } from '../postgres'
-import { ensureUser } from '../routes/tla/initUser'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
 
@@ -29,23 +27,6 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Send the per-step first_load and file_load timing events (client marks + sync server echo) to PostHog. Users with a @tldraw.com email always send them, regardless of this flag',
 		},
-		mcp_server_access: {
-			type: 'allowlist',
-			users: [],
-			allowEveryone: false,
-			percentage: 0,
-			description:
-				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
-		},
-		version_chain: {
-			type: 'percentage',
-			// On by default everywhere, production included: a durable object whose KV read fails lands
-			// here, and `off` would have it write a whole keyframe on every save for its lifetime.
-			percentage: 100,
-			enabled: true,
-			description:
-				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
-		},
 		libraries: {
 			type: 'allowlist',
 			users: [],
@@ -54,19 +35,11 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
-		thumbnail_render_push: {
-			type: 'percentage',
-			// 0% by default: a deployment whose KV read fails keeps fetching, the path that predates push.
-			percentage: 0,
-			enabled: true,
-			description:
-				'Board thumbnail and OG renders send the board to the render page instead of the page fetching it. Bucketed per BOARD, not per user: the sync worker passes the board kind and slug as the id, and the per-user value browsers see is meaningless. MCP renders follow mcp_render_push instead. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH (dev, previews, staging push every board). A change lands within about a minute',
-		},
-		mcp_render_push: {
+		libraries_anonymous: {
 			type: 'boolean',
-			enabled: true,
+			enabled: false,
 			description:
-				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
+				'Lets signed-out visitors browse and place libraries read-only: the starter packs, and the libraries kept in a shared file. Saving to a library asks them to sign in. Signed-in users follow the libraries flag instead. A change reaches a tab when it next reloads',
 		},
 		headless_shadow: {
 			type: 'percentage',
@@ -112,7 +85,7 @@ export function hashToPercentage(userId: string, flagName: string): number {
 	return (hash >>> 0) % 100
 }
 
-// Per-isolate cache of stored values. Every page load fetches all flags and every MCP request
+// Per-isolate cache of stored values. Every page load fetches all flags and every MCP page read
 // checks one, so without it each costs a KV read per flag. A flip lands within this TTL plus KV's
 // own edge cache (~60s).
 const FLAG_CACHE_TTL_MS = 30_000
@@ -120,7 +93,6 @@ const flagCache = new Map<FeatureFlagKey, { value: FeatureFlagValue; readAt: num
 
 export function resetFeatureFlagCacheForTests() {
 	flagCache.clear()
-	usersWithRows.clear()
 }
 
 /**
@@ -241,83 +213,18 @@ export function evaluateFlagForUser(
 }
 
 /**
+ * Whether a caller may reach the libraries routes and mutators: the `libraries` flag, which also
+ * decides whether the client shows them. Read without the stale value, so a removal from the list lands
+ * even while KV is failing.
+ */
+export async function canUseLibraries(env: Environment, userId: string): Promise<boolean> {
+	return await isFeatureFlagEnabledForUser(env, 'libraries', userId, { staleOnError: false })
+}
+
+/**
  * Whether a flag is on for one user, server-side. The counterpart to `getFeatureFlags` (which
  * evaluates every flag for a browser) for a route that gates itself on a single one.
  */
-/**
- * Whether a caller may drive the MCP server: the `mcp_server_access` flag, or a verified
- * @tldraw.com email.
- *
- * The domain check is second on purpose. It needs the account's email, which is a Postgres read the
- * flag evaluation does not otherwise make, so putting it after the flag means anybody already
- * granted pays for no email read. They still get one `ensureUser` SELECT per isolate, so an
- * account granted by the flag also ends up with a workspace.
- *
- * Read from our own `user` row rather than Clerk, so an account that has one costs a single SELECT.
- * An account without one, signed up on the consent screen but never opened tldraw.com, has its rows
- * created here: a Clerk lookup and three inserts, once per account rather than per request.
- */
-export async function canUseMcpServer(env: Environment, userId: string): Promise<boolean> {
-	const opts = { staleOnError: false }
-	if (await isFeatureFlagEnabledForUser(env, 'mcp_server_access', userId, opts)) {
-		// A granted account can have signed up on the consent screen too, most of all once
-		// allowEveryone opens the flag, and without rows it has no workspace for create_board.
-		if (!usersWithRows.has(userId)) await ensureUserRowsForGrantedUser(env, userId)
-		return true
-	}
-	return await hasTldrawEmail(env, userId)
-}
-
-// Accounts this isolate has already seen with their rows in place, so a granted caller pays for the
-// ensureUser read once per isolate rather than on every request its token makes.
-// Capped because a long-lived isolate would otherwise hold every user it has ever served.
-const usersWithRows = new Set<string>()
-const MAX_USERS_WITH_ROWS = 10_000
-
-async function ensureUserRowsForGrantedUser(env: Environment, userId: string) {
-	const db = createPostgresConnectionPool(env, 'sync-worker/ensureGrantedUser')
-	try {
-		const result = await ensureUser(env, db, userId)
-		if (!('email' in result)) return
-		if (usersWithRows.size >= MAX_USERS_WITH_ROWS) usersWithRows.clear()
-		usersWithRows.add(userId)
-	} catch (e) {
-		// The flag already admitted them; a database or Clerk blip costs the rows, not the access.
-		// Not cached, so the next request tries again.
-		console.error(
-			'MCP access check failed to ensure a granted user (Postgres, Clerk or rate limiter):',
-			e
-		)
-	} finally {
-		await db.destroy()
-	}
-}
-
-async function hasTldrawEmail(env: Environment, userId: string): Promise<boolean> {
-	const db = createPostgresConnectionPool(env, 'sync-worker/hasTldrawEmail')
-	try {
-		// Someone who signed up on the consent screen has a Clerk account but no row until they open
-		// tldraw.com, so create it here rather than refusing them for an email we never stored.
-		// ensureUser does the only read, so a concurrent first request or /init creating the row
-		// first still yields its email rather than a refusal.
-		const result = await ensureUser(env, db, userId)
-		if (!('email' in result)) return false
-		// Lowercased because the column stores whatever the account signed up with, and a capitalised
-		// domain is the same domain.
-		return result.email.toLowerCase().endsWith('@tldraw.com')
-	} catch (e) {
-		// An access check that fails open on a database or Clerk blip would be the wrong direction
-		// entirely.
-		console.error(
-			'MCP access check failed to ensure the user (Postgres, Clerk or rate limiter):',
-			e
-		)
-		return false
-	} finally {
-		await db.destroy()
-	}
-}
-
 export async function isFeatureFlagEnabledForUser(
 	env: Environment,
 	flag: FeatureFlagKey,
