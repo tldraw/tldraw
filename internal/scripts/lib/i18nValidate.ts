@@ -299,3 +299,27 @@ export function validateCatalogs(root: string): I18nValidationResult {
 
 	return { errors, warnings, missingCount }
 }
+
+/**
+ * Checks proposed translations before they are written, so the translate skill never records an
+ * entry as reviewed that CI would then reject. Returns the errors for each failing entry.
+ */
+export function validateEntries(
+	root: string,
+	entries: { project: I18nProject; locale: string; key: string; text: string }[]
+): Record<string, string[]> {
+	const sources: Partial<Record<I18nProject, Record<string, unknown>>> = {}
+	const failures: Record<string, string[]> = {}
+	for (const entry of entries) {
+		const config = PROJECTS[entry.project]
+		if (!config) throw new Error(`Unknown project: ${entry.project}`)
+		sources[entry.project] ??= readJson(path.join(root, config.source))
+		const english = messageText(entry.project, sources[entry.project]![entry.key])
+		const errors =
+			english === undefined
+				? ['key is not in the English catalog']
+				: checkMessage(entry.locale, english, entry.text)
+		if (errors.length) failures[problemId(entry)] = errors
+	}
+	return failures
+}

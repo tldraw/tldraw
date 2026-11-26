@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { checkMessage, validateCatalogs } from './i18nValidate'
+import { checkMessage, validateCatalogs, validateEntries } from './i18nValidate'
 
 const COUNT = '{count, plural, one {# shape} other {# shapes}}'
 
@@ -189,6 +189,22 @@ describe('validateCatalogs', () => {
 			],
 			warnings: ['assets/translations/ku.json is not in languages.json, so it is never loaded'],
 			missingCount: 1,
+		})
+	})
+
+	it('checks proposed entries against the English', () => {
+		expect(
+			validateEntries(makeRepo(), [
+				{ project: 'sdk', locale: 'fr', key: 'action.paste', text: 'Coller' },
+				{ project: 'dotcom', locale: 'fr', key: 'abc', text: 'Salut {nom}' },
+				{ project: 'sdk', locale: 'fr', key: 'action.gone', text: 'Parti' },
+			])
+		).toEqual({
+			'dotcom:fr:abc': [
+				'unknown argument {nom} (renamed or translated?)',
+				'missing argument {name}',
+			],
+			'sdk:fr:action.gone': ['key is not in the English catalog'],
 		})
 	})
 })
