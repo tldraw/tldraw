@@ -1,6 +1,6 @@
 # Editor plugins
 
-The editor is a small core plus plugins. The core holds the store, history, camera, shape and binding records, the state chart, and the plugin host. Plugins add everything else.
+The editor is a small core plus plugins. The core holds the store and history, shape, binding and asset records and their operations, pages, selection and the other page state, styles, the state chart, and the plugin host. Plugins add everything else, including the camera and event dispatch. See [What is a plugin](#what-is-a-plugin) for the full list.
 
 ```ts
 const editor = createEditor({
@@ -28,28 +28,30 @@ Public APIs stay on the editor or as free functions over it. The host does not m
 
 The old members are facades over the plugins. They stay plain fields. When no plugin provides the capability, the field holds a stub that throws a "no installed plugin provides" error when it is used.
 
-| Old API                                                                                           | Now                                                                                                                    |
-| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `editor.snaps`                                                                                    | `snappingCapability`, from `snappingPlugin`                                                                            |
-| `editor.user`                                                                                     | `userPreferencesCapability`, from `userPreferencesPlugin`                                                              |
-| `getCurrentTheme`, `getColorMode` and the other theme methods                                     | `themesCapability`, from `themesPlugin`                                                                                |
-| `editor.inputs`                                                                                   | `inputsCapability`, from `inputsPlugin`                                                                                |
-| double, triple and quadruple clicks                                                               | `clickDetectionCapability`, from `clickDetectionPlugin`                                                                |
-| hit testing (`getShapeAtPoint`, `getShapesAtPoint`) and brushing                                  | `spatialIndexCapability`, from `spatialIndexPlugin`                                                                    |
-| `editor.scribbles`                                                                                | `scribblesCapability`, from `scribblesPlugin`                                                                          |
-| `editor.edgeScrollManager`                                                                        | `edgeScrollCapability`, from `edgeScrollPlugin`                                                                        |
-| `editor.overlays`                                                                                 | `overlaysCapability`, from `overlaysPlugin`                                                                            |
-| `editor.collaborators`, `getCollaborators`                                                        | `collaboratorsCapability`, from `collaboratorsPlugin`                                                                  |
-| `editor.performance`                                                                              | `performanceCapability`, from `performancePlugin`. Without it, the editor emits no performance events.                 |
-| `editor.fonts`                                                                                    | `fontsCapability`, from `domFontsPlugin`. Without it, the editor renders and exports without waiting for fonts.        |
-| `editor.textMeasure`                                                                              | `textMeasurementCapability`, from `domTextMeasurementPlugin`                                                           |
-| `registerExternalContentHandler`, `putExternalContent`, `externalContentHandlers`, asset handlers | `externalContentCapability`, from `externalContentPlugin`. The legacy handler map is the end of `externalContentSlot`. |
-| `editor.focus()` and `editor.blur()` container focus                                              | `containerFocusCapability`, from `domFocusPlugin`. The focused state stays in instance data.                           |
-| the frame loop (`tick` and `frame` events)                                                        | `animationFrameTickPlugin`. A headless editor gets ticks only when the caller emits them.                              |
-| `getSvgElement`                                                                                   | `svgExportCapability`, from `reactSvgExportPlugin`                                                                     |
-| `getSvgString`, `toImage`, `toImageDataUrl`                                                       | `imageExportCapability`, from `domImageExportPlugin`, which builds on `getSvgElement`                                  |
-| `ShapeUtil.canSnap`                                                                               | the initial value of `canSnapToShapeSlot`                                                                              |
-| `ShapeUtil.component`                                                                             | the fallback when `shapeComponentSlot` has no contribution for the shape type                                          |
+| Old API                                                                                                           | Now                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `editor.snaps`                                                                                                    | `snappingCapability`, from `snappingPlugin`                                                                            |
+| the camera and viewport (`getCamera`, `setCamera`, `zoomIn`, `screenToPage`, `startFollowingUser` and the others) | `cameraCapability`, from `cameraPlugin`                                                                                |
+| `dispatch` and the event pipeline (panning, pinch, wheel, modifier keys, long press)                              | `eventDispatchCapability`, from `eventDispatchPlugin`                                                                  |
+| `editor.user`                                                                                                     | `userPreferencesCapability`, from `userPreferencesPlugin`                                                              |
+| `getCurrentTheme`, `getColorMode` and the other theme methods                                                     | `themesCapability`, from `themesPlugin`                                                                                |
+| `editor.inputs`                                                                                                   | `inputsCapability`, from `inputsPlugin`                                                                                |
+| double, triple and quadruple clicks                                                                               | `clickDetectionCapability`, from `clickDetectionPlugin`                                                                |
+| hit testing (`getShapeAtPoint`, `getShapesAtPoint`) and brushing                                                  | `spatialIndexCapability`, from `spatialIndexPlugin`                                                                    |
+| `editor.scribbles`                                                                                                | `scribblesCapability`, from `scribblesPlugin`                                                                          |
+| `editor.edgeScrollManager`                                                                                        | `edgeScrollCapability`, from `edgeScrollPlugin`                                                                        |
+| `editor.overlays`                                                                                                 | `overlaysCapability`, from `overlaysPlugin`                                                                            |
+| `editor.collaborators`, `getCollaborators`                                                                        | `collaboratorsCapability`, from `collaboratorsPlugin`                                                                  |
+| `editor.performance`                                                                                              | `performanceCapability`, from `performancePlugin`. Without it, the editor emits no performance events.                 |
+| `editor.fonts`                                                                                                    | `fontsCapability`, from `domFontsPlugin`. Without it, the editor renders and exports without waiting for fonts.        |
+| `editor.textMeasure`                                                                                              | `textMeasurementCapability`, from `domTextMeasurementPlugin`                                                           |
+| `registerExternalContentHandler`, `putExternalContent`, `externalContentHandlers`, asset handlers                 | `externalContentCapability`, from `externalContentPlugin`. The legacy handler map is the end of `externalContentSlot`. |
+| `editor.focus()` and `editor.blur()` container focus                                                              | `containerFocusCapability`, from `domFocusPlugin`. The focused state stays in instance data.                           |
+| the frame loop (`tick` and `frame` events)                                                                        | `animationFrameTickPlugin`. A headless editor gets ticks only when the caller emits them.                              |
+| `getSvgElement`                                                                                                   | `svgExportCapability`, from `reactSvgExportPlugin`                                                                     |
+| `getSvgString`, `toImage`, `toImageDataUrl`                                                                       | `imageExportCapability`, from `domImageExportPlugin`, which builds on `getSvgElement`                                  |
+| `ShapeUtil.canSnap`                                                                                               | the initial value of `canSnapToShapeSlot`                                                                              |
+| `ShapeUtil.component`                                                                                             | the fallback when `shapeComponentSlot` has no contribution for the shape type                                          |
 
 `createDefaultPlugins` lives in the React layer (`react/defaultPlugins.ts`), because it includes the React plugins. `TldrawEditor` calls it directly. For a direct `new Editor()`, the package entry registers it with `setDefaultEditorPlugins`. This is a provisional seam until the kernel moves to its own package.
 
@@ -61,5 +63,36 @@ The `react/` folder is the only place in this design that imports React. `reactR
 
 1. Move each default shape's `component`, `toSvg` and `backgroundComponent` into `shapeComponentSlot` contributions. Then `ShapeUtil` has no render methods and shape utils are headless.
 2. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
-3. Lift the camera and the event pipeline the same way.
+3. Lift more of the editor the same way, for example the shape arrangement commands (align, distribute, stack, pack).
 4. Turn shapes, bindings and tools into plugins in `packages/tldraw`, so that `defaultShapeUtils` becomes a list of plugins.
+
+## What is a plugin
+
+| Feature                                                        | Where                                                      | Plugin                              |
+| -------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------- |
+| Store, history, undo and redo                                  | core                                                       |                                     |
+| Shape, binding and asset records and their operations          | core                                                       |                                     |
+| Pages, selection, hover, editing and the other page state      | core                                                       |                                     |
+| Styles, document settings, instance state                      | core                                                       |                                     |
+| The state chart                                                | core                                                       | tools come from plugins and options |
+| Rendering shapes and culling                                   | core                                                       |                                     |
+| User preferences                                               | kernel plugin                                              | `userPreferencesPlugin`             |
+| Themes                                                         | kernel plugin                                              | `themesPlugin`                      |
+| Camera, viewport, zooming, animation, following                | kernel plugin                                              | `cameraPlugin`                      |
+| Event dispatch: batching, panning, pinch, wheel, modifier keys | kernel plugin                                              | `eventDispatchPlugin`               |
+| Input state                                                    | kernel plugin                                              | `inputsPlugin`                      |
+| Double, triple and quadruple clicks                            | kernel plugin                                              | `clickDetectionPlugin`              |
+| Hit testing and brushing (spatial index)                       | kernel plugin                                              | `spatialIndexPlugin`                |
+| Snapping                                                       | kernel plugin                                              | `snappingPlugin`                    |
+| Scribbles                                                      | kernel plugin                                              | `scribblesPlugin`                   |
+| Edge scrolling                                                 | kernel plugin                                              | `edgeScrollPlugin`                  |
+| Overlays                                                       | kernel plugin                                              | `overlaysPlugin`                    |
+| Collaborators                                                  | kernel plugin                                              | `collaboratorsPlugin`               |
+| Performance events                                             | kernel plugin                                              | `performancePlugin`                 |
+| External content (paste, drop, embeds)                         | kernel plugin                                              | `externalContentPlugin`             |
+| Text measurement                                               | DOM plugin, or `approximateTextMeasurementPlugin` headless | `domTextMeasurementPlugin`          |
+| Fonts                                                          | DOM plugin                                                 | `domFontsPlugin`                    |
+| Container focus                                                | DOM plugin                                                 | `domFocusPlugin`                    |
+| Frame loop                                                     | DOM plugin                                                 | `animationFrameTickPlugin`          |
+| Image export                                                   | DOM plugin                                                 | `domImageExportPlugin`              |
+| SVG export and group rendering                                 | React plugins                                              | `reactRenderingPlugins`             |

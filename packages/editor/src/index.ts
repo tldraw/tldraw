@@ -60,6 +60,8 @@ export {
 export { TLPluginHost } from './lib/plugins/PluginHost'
 export { cameraCapability, cameraPlugin } from './lib/plugins/builtin/camera'
 export { CameraController } from './lib/plugins/builtin/CameraController'
+export { eventDispatchCapability, eventDispatchPlugin } from './lib/plugins/builtin/eventDispatch'
+export { EventDispatcher } from './lib/plugins/builtin/EventDispatcher'
 export {
 	clickDetectionCapability,
 	clickDetectionPlugin,

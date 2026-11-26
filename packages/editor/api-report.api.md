@@ -71,6 +71,7 @@ import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
+import { TLInstancePageStateId } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
@@ -1410,7 +1411,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
-    dispatch(info: TLEventInfo): this;
+    dispatch(info: TLEventInfo): Editor;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
@@ -1420,6 +1421,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     _ensureUserRecord(user: TLUser): void;
     // @internal (undocumented)
+    readonly _eventDispatcher: EventDispatcher;
+    // @internal (undocumented)
     readonly externalAssetContentHandlers: TLExternalAssetHandlers;
     // @internal (undocumented)
     readonly externalContentHandlers: TLExternalContentHandlers;
@@ -1427,7 +1430,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
-    _flushEventForTick(info: TLEventInfo): this | undefined;
+    _flushEventForTick(info: TLEventInfo): Editor | undefined;
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
@@ -1502,6 +1505,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];
     getCurrentPageState(): TLInstancePageState;
+    // @internal (undocumented)
+    _getCurrentPageStateId(): TLInstancePageStateId;
     getCurrentTheme(): TLTheme;
     getCurrentThemeId(): TLThemeId;
     getCurrentTool(): StateNode;
@@ -1996,6 +2001,35 @@ export function ErrorScreen({ children }: LoadingScreenProps): JSX.Element;
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
+
+// @public (undocumented)
+export const eventDispatchCapability: TLCapability<EventDispatcher>;
+
+// @public
+export class EventDispatcher {
+    constructor(editor: Editor, _clickManager: ClickManager);
+    dispatch(info: TLEventInfo): Editor;
+    // (undocumented)
+    _flushEventForTick(info: TLEventInfo): Editor | undefined;
+    // (undocumented)
+    _flushEventsForTick(elapsed: number): void;
+    // @internal
+    _releaseAltKey(): void;
+    // @internal
+    _releaseCtrlKey(): void;
+    // @internal
+    _releaseMetaKey(): void;
+    // @internal
+    _releaseShiftKey(): void;
+}
+
+// @public
+export const eventDispatchPlugin: {
+    readonly id: "eventDispatch";
+    readonly provides: readonly [TLCapability<EventDispatcher>];
+    readonly requires: readonly [TLCapability<InputsManager>, TLCapability<ClickManager>, TLCapability<CameraController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export const externalContentCapability: TLCapability<TLExternalContentService>;

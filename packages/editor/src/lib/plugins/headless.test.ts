@@ -95,6 +95,31 @@ describe('a headless editor', () => {
 		expect(editor.getShape(id)).toBeDefined()
 	})
 
+	it('moves the camera and dispatches pointer events without a DOM', () => {
+		const editor = headlessEditor()
+		editor.setCamera({ x: 10, y: 20, z: 2 })
+		// (100 / 2) - 10 = 40, (100 / 2) - 20 = 30
+		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 40, y: 30 })
+
+		editor.dispatch({
+			type: 'pointer',
+			name: 'pointer_move',
+			target: 'canvas',
+			point: { x: 100, y: 100 },
+			pointerId: 1,
+			button: 0,
+			isPen: false,
+			shiftKey: false,
+			altKey: false,
+			ctrlKey: false,
+			metaKey: false,
+			accelKey: false,
+		})
+		// The dispatcher batches pointer moves until the caller emits the next tick.
+		editor.emit('tick', 16)
+		expect(editor.inputs.getCurrentPagePoint()).toMatchObject({ x: 40, y: 30 })
+	})
+
 	it('keeps focus as instance state without a DOM focus plugin', () => {
 		const editor = headlessEditor()
 		editor.focus()
@@ -152,6 +177,7 @@ describe('a headless editor', () => {
 			'No installed plugin provides "inputs"'
 		)
 		expect(() => editor.getCurrentTheme()).toThrow('No installed plugin provides "themes"')
+		expect(() => editor.setCamera({ x: 0, y: 0 })).toThrow('No installed plugin provides "camera"')
 	})
 
 	it('refuses DOM image export without an SVG exporter', () => {
