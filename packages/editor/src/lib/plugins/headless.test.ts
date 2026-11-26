@@ -4,9 +4,12 @@
 // given. These tests also show how a plugin extends behavior that the core or another plugin owns.
 import { RecordProps, TLShape, createShapeId } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
+import { DEFAULT_CAMERA_OPTIONS } from '../constants'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLExternalContent } from '../editor/types/external-content'
 import { Rectangle2d } from '../primitives/geometry/Rectangle2d'
+import { cameraCapability } from './builtin/camera'
+import { CameraController } from './builtin/CameraController'
 import { domImageExportPlugin } from './builtin/domImageExport'
 import {
 	externalContentCapability,
@@ -118,6 +121,49 @@ describe('a headless editor', () => {
 		// The dispatcher batches pointer moves until the caller emits the next tick.
 		editor.emit('tick', 16)
 		expect(editor.inputs.getCurrentPagePoint()).toMatchObject({ x: 40, y: 30 })
+	})
+
+	it('uses a replacement kernel plugin', () => {
+		const lockedCameraPlugin = definePlugin({
+			id: 'lockedCamera',
+			provides: [cameraCapability],
+			setup(ctx) {
+				ctx.provide(
+					cameraCapability,
+					new CameraController(ctx.editor, { ...DEFAULT_CAMERA_OPTIONS, isLocked: true })
+				)
+			},
+		})
+		const editor = createEditor({
+			plugins: [
+				cardsPlugin,
+				approximateTextMeasurementPlugin(),
+				...kernelPlugins.filter((p) => p.id !== 'camera'),
+				lockedCameraPlugin,
+			],
+		})
+		editor.setCamera({ x: 100, y: 100 })
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0 })
+	})
+
+	it('edits and undoes without event dispatch, and names it when an event arrives', () => {
+		const editor = createEditor({
+			plugins: [
+				cardsPlugin,
+				approximateTextMeasurementPlugin(),
+				...kernelPlugins.filter((p) => p.id !== 'eventDispatch'),
+			],
+		})
+		const id = createShapeId('card')
+		editor.markHistoryStoppingPoint()
+		editor.createShape<CardShape>({ id, type: CARD, props: { text: 'a' } })
+		editor.undo()
+		expect(editor.getShape(id)).toBeUndefined()
+		expect(() => editor.cancel()).not.toThrow()
+		expect(() => editor.dispatch({ type: 'misc', name: 'cancel' })).toThrow(
+			'No installed plugin provides "eventDispatch"'
+		)
+		editor.dispose()
 	})
 
 	it('keeps focus as instance state without a DOM focus plugin', () => {

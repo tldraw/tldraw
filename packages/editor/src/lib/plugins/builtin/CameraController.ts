@@ -141,12 +141,12 @@ export class CameraController {
 	private _debouncedZoomLevel = atom('debounced zoom level', 1)
 
 	/**
-	 * Get the debounced zoom level. When the camera is moving, this.editor returns the zoom level
+	 * Get the debounced zoom level. When the camera is moving, this returns the zoom level
 	 * from when the camera started moving rather than the current zoom level. This can be
 	 * used to avoid expensive re-renders during camera movements.
 	 *
 	 * This behavior is controlled by the `useDebouncedZoom` option. When `useDebouncedZoom`
-	 * is `false`, this.editor method always returns the current zoom level.
+	 * is `false`, this method always returns the current zoom level.
 	 *
 	 * @public
 	 */
@@ -883,7 +883,7 @@ export class CameraController {
 			this.editor.off('tick', this._animateViewport)
 			this._viewportAnimation = null
 			// Forward the caller's options, otherwise a forced move to a position outside the
-			// constraints animates there and then snaps back on this.editor last frame
+			// constraints animates there and then snaps back on this last frame
 			this._setCamera(
 				new Vec(-end.x, -end.y, this.editor.getViewportScreenBounds().width / end.width),
 				opts
@@ -1435,7 +1435,7 @@ export class CameraController {
 			() => {
 				// commit the current camera to the store
 				this.editor.store.put([this.editor.getCamera()])
-				// this.editor must happen after the camera is committed
+				// this must happen after the camera is committed
 				this._isLockedOnFollowingUser.set(false)
 				this.editor.updateInstanceState({ followingUserId: null })
 				this.editor.emit('stop-following')
@@ -1450,7 +1450,7 @@ export class CameraController {
 	// the camera is moving or not; and second, it allows us to update the rendering
 	// shapes on the canvas. Changing the rendering shapes may cause shapes to
 	// unmount / remount in the DOM, which is expensive; and computing visibility is
-	// also expensive in large projects. For this.editor reason, we use a second bounding
+	// also expensive in large projects. For this reason, we use a second bounding
 	// box just for rendering, and we only update after the camera stops moving.
 	private _cameraStateTimeoutRemaining = 0
 
@@ -1487,11 +1487,6 @@ export class CameraController {
 	 */
 	getCameraState() {
 		return this.editor.getInstanceState().cameraState
-	}
-
-	/** @internal */
-	dispose() {
-		this._setCameraState('idle')
 	}
 }
 

@@ -241,7 +241,7 @@ export class ShapeArranger {
 		const _gap = gap ?? this.editor.options.adjacentShapeMargin
 		if (this.editor.getIsReadonly()) return this.editor
 
-		// todo: this.editor has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this.editor stuff.
+		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
 		const { clusters: shapeClustersToStack } = this.getShapeClusters(shapes, 'stack')
 
@@ -256,7 +256,7 @@ export class ShapeArranger {
 		shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
 
 		if (_gap === 0) {
-			// note: this.editor is not used in the current tldraw.com; there we use a specified stack
+			// note: this is not used in the current tldraw.com; there we use a specified stack
 
 			const gaps: Record<number, number> = {}
 

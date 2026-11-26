@@ -72,7 +72,7 @@ export class ShapeAnimator {
 
 		const animations: ShapeAnimation[] = []
 
-		// Snapshot the lock override now: when this.editor animation is started inside
+		// Snapshot the lock override now: when this animation is started inside
 		// editor.run(..., { ignoreShapeLock: true }), run() restores the flag before any tick
 		// fires, so the final updateShapes below would refuse the locked shape and strand it
 		const ignoreShapeLock = this.editor._shouldIgnoreShapeLock
@@ -129,7 +129,7 @@ export class ShapeAnimator {
 			let animationIdForShape: string | undefined
 			for (let i = 0, n = animations.length; i < n; i++) {
 				const { start, end } = animations[i]
-				// Is the animation for this.editor shape still active?
+				// Is the animation for this shape still active?
 				animationIdForShape = animatingShapes.get(start.id)
 				if (animationIdForShape !== animationId) continue
 

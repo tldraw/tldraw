@@ -487,8 +487,6 @@ export class CameraController {
     // (undocumented)
     _cameraOptions: Atom<TLCameraOptions, unknown>;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): Editor;
-    // @internal (undocumented)
-    dispose(): void;
     getBaseZoom(): number;
     getCamera(): TLCamera;
     getCameraOptions(): TLCameraOptions;

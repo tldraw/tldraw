@@ -24,6 +24,5 @@ export const cameraPlugin = definePlugin({
 			...options?.camera,
 		})
 		ctx.provide(cameraCapability, camera)
-		ctx.onDispose(() => camera.dispose())
 	},
 })

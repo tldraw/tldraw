@@ -191,7 +191,13 @@ import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
-import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
+import {
+	TLCancelEventInfo,
+	TLCompleteEventInfo,
+	TLEventInfo,
+	TLInterruptEventInfo,
+	TLPointerEventInfo,
+} from './types/event-types'
 import { TLExternalAsset, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
 import {
@@ -1093,10 +1099,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly plugins: TLPluginHost
 
 	/**
-	 * The members that predate plugins, as facades over plugin capabilities. The constructor
-	 * assigns them twice. Before plugin setup they forward to their capability once its plugin has
-	 * set up, so a plugin can use another plugin's member during setup. After setup they are the
-	 * capability itself, or a stub that throws when no plugin provides it.
+	 * The editor members that forward to plugin capabilities. The constructor assigns them twice.
+	 * Before plugin setup they forward to their capability once its plugin has set up, so a plugin
+	 * can use another plugin's member during setup. After setup they are the capability itself, or
+	 * a stub that throws when no plugin provides it.
 	 */
 	private _getPluginFacades() {
 		const p = this.plugins
@@ -1281,6 +1287,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
+		this.plugins.getOptional(cameraCapability)?._setCameraState('idle')
 
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
@@ -8638,7 +8645,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	cancel(): this {
-		this.dispatch({ type: 'misc', name: 'cancel' })
+		this._dispatchStateEvent({ type: 'misc', name: 'cancel' })
 		return this
 	}
 
@@ -8653,7 +8660,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	interrupt(): this {
-		this.dispatch({ type: 'misc', name: 'interrupt' })
+		this._dispatchStateEvent({ type: 'misc', name: 'interrupt' })
 		return this
 	}
 
@@ -8668,8 +8675,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	complete(): this {
-		this.dispatch({ type: 'misc', name: 'complete' })
+		this._dispatchStateEvent({ type: 'misc', name: 'complete' })
 		return this
+	}
+
+	/**
+	 * Cancel, interrupt and complete are state commands, not input. Without an event dispatch
+	 * plugin they go straight to the root state, so headless edits and undo still work.
+	 */
+	private _dispatchStateEvent(
+		info: TLCancelEventInfo | TLInterruptEventInfo | TLCompleteEventInfo
+	) {
+		if (this.plugins.getOptional(eventDispatchCapability)) {
+			this.dispatch(info)
+			return
+		}
+		this.emit('before-event', info)
+		this.root.handleEvent(info)
+		this.emit('event', info)
 	}
 
 	/**

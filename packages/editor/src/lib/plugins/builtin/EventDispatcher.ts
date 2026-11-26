@@ -316,7 +316,7 @@ export class EventDispatcher {
 
 		if (info.metaKey && info.name !== 'key_up') {
 			// Unlike the other modifiers, the native metaKey property is still true on keyup.
-			// If we don't have this.editor guard, then the metakey will be left true without the timeout.
+			// If we don't have this guard, then the metakey will be left true without the timeout.
 			this.editor.timers.clearTimeout(this._metaKeyTimeout)
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
@@ -559,7 +559,7 @@ export class EventDispatcher {
 								this.editor.dispatch({
 									...info,
 									// important! non-obvious!! the screenpoint was adjusted using the
-									// viewport bounds, and will be again when this.editor event is handled...
+									// viewport bounds, and will be again when this event is handled...
 									// so we need to counter-adjust from the stored value so that the
 									// new value is set correctly.
 									point: this.editor.inputs.getOriginScreenPoint().clone().addXY(vsb.x, vsb.y),
@@ -639,7 +639,7 @@ export class EventDispatcher {
 					case 'pointer_move': {
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.editor.getCamera())
 
-						// Right-click pointing: waiting to see if this.editor becomes a drag
+						// Right-click pointing: waiting to see if this becomes a drag
 						if (this.editor.inputs.getIsRightPointing() && !this.editor.inputs.getIsPanning()) {
 							const currentScreenPoint = this.editor.inputs.getCurrentScreenPoint()
 							const originScreenPoint = this.editor.inputs.getOriginScreenPoint()
@@ -702,7 +702,7 @@ export class EventDispatcher {
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
-						// Right-click pointing ended without dragging—this.editor is a static
+						// Right-click pointing ended without dragging—this is a static
 						// right-click, so let it through to the state chart as right_click.
 						// Check isPanning first: if we transitioned to panning, isRightPointing
 						// is still true but we want the panning cleanup path instead.
@@ -876,7 +876,7 @@ export class EventDispatcher {
 						// A repeat is the only positive evidence that a key is still physically
 						// down, so it is also the only way one we lost track of can get back in.
 						// A key still held when Meta is released is dropped there on the
-						// assumption macOS ate its keyup; this.editor is what corrects that.
+						// assumption macOS ate its keyup; this is what corrects that.
 						inputs.keys.add(info.code)
 						break
 					}
@@ -897,7 +897,7 @@ export class EventDispatcher {
 			// current selection. Route a right-click through the select tool before
 			// the event reaches the state chart, so the select tool's idle resolves
 			// the selection at the click point (select the shape under the pointer,
-			// or clear it) no matter which tool was active. Without this.editor, opening the
+			// or clear it) no matter which tool was active. Without this, opening the
 			// menu from another tool leaves a stale selection that doesn't match the
 			// click (#8828). Guarded on the select tool existing, since the bare
 			// editor can be configured without it.
