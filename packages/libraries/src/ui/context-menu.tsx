@@ -68,6 +68,11 @@ export function openContextMenu(
 	editor.menus.addOpenMenu(menuId)
 }
 
+/** Forgets what {@link openContextMenu} kept for a menu, such as the element that opened it. */
+export function forgetContextMenu(menuId: string) {
+	anchors.delete(menuId)
+}
+
 function placeAnchor(element: HTMLElement, point: VecModel | undefined) {
 	const { style } = element
 	const parent = element.offsetParent

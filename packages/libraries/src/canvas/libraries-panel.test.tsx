@@ -1039,6 +1039,32 @@ describe('a burst of changes', () => {
 	)
 
 	it(
+		'keeps the panel up through a burst after a library menu has been opened and closed',
+		{ timeout: 20_000 },
+		async () => {
+			const source = new InMemoryLibrarySource()
+			const icons = await source.createLibrary('Icons')
+			const container = await renderPanel(source)
+			act(() => panelEditor!.menus.addOpenMenu(`libraries-library-menu-${icons.id}`))
+			await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
+			act(() => panelEditor!.menus.clearOpenMenus())
+			await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).toBeNull())
+			await vi.waitFor(() =>
+				expect(container.querySelector('.tlui-libraries-section button[data-state]')).toBeNull()
+			)
+
+			await oneMicrotaskApart(60, (i) => void source.createLibrary(`Library ${i}`))
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+			const libraries = source.getLibraries()
+			await oneMicrotaskApart(
+				libraries.length,
+				(i) => void source.renameLibrary(libraries[i].id, `Renamed ${i}`)
+			)
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+		}
+	)
+
+	it(
 		'keeps the panel up while many items are added to one library',
 		{ timeout: 20_000 },
 		async () => {
