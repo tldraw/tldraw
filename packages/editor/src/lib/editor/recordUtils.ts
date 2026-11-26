@@ -1,7 +1,8 @@
-import type { UnknownRecord } from '@tldraw/store'
 // This module is part of the headless editor kernel. It must not import React or touch the DOM.
-import type { TLShape, TLShapeId } from '@tldraw/tlschema'
-import type { JsonObject } from '@tldraw/utils'
+import { reverseRecordsDiff, type UnknownRecord } from '@tldraw/store'
+import type { TLBindingId, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { Result, type JsonObject } from '@tldraw/utils'
+import type { Editor } from './Editor'
 
 /**
  * Apply a partial to a shape or binding record. Props and meta merge one level deep. Returns
@@ -59,4 +60,74 @@ export function toShapeIds(shapes: TLShapeId[] | TLShape[]): TLShapeId[] {
 	return typeof shapes[0] === 'string'
 		? (shapes as TLShapeId[])
 		: (shapes as TLShape[]).map((shape) => shape.id)
+}
+
+/**
+ * Tell listeners that a page has reached its shape limit.
+ *
+ * @internal
+ */
+export function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
+	const name = editor.getPage(pageId)!.name
+	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
+}
+
+/**
+ * Run `callback` in a world where all bindings from the shapes in `shapeIds` to shapes not in
+ * `shapeIds` are removed. This is useful when you want to duplicate/copy shapes without worrying
+ * about bindings that might be pointing to shapes that are not being duplicated.
+ *
+ * The callback is given the set of bindings that should be maintained.
+ *
+ * @internal
+ */
+export function withIsolatedShapes<T>(
+	editor: Editor,
+	shapeIds: Set<TLShapeId>,
+	callback: (bindingsWithBoth: Set<TLBindingId>) => T
+): T {
+	let result!: Result<T, unknown>
+
+	editor.run(
+		() => {
+			const changes = editor.store.extractingChanges(() => {
+				const bindingsWithBoth = new Set<TLBindingId>()
+				const bindingsToRemove = new Set<TLBindingId>()
+
+				for (const shapeId of shapeIds) {
+					const shape = editor.getShape(shapeId)
+					if (!shape) continue
+
+					for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
+						const hasFrom = shapeIds.has(binding.fromId)
+						const hasTo = shapeIds.has(binding.toId)
+						if (hasFrom && hasTo) {
+							bindingsWithBoth.add(binding.id)
+							continue
+						}
+						if (!hasFrom || !hasTo) {
+							bindingsToRemove.add(binding.id)
+						}
+					}
+				}
+
+				editor._deleteBindings([...bindingsToRemove], { isolateShapes: true })
+
+				try {
+					result = Result.ok(callback(bindingsWithBoth))
+				} catch (error) {
+					result = Result.err(error)
+				}
+			})
+
+			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
+		},
+		{ history: 'ignore' }
+	)
+
+	if (result.ok) {
+		return result.value
+	} else {
+		throw result.error
+	}
 }

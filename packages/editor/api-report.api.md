@@ -665,6 +665,30 @@ export interface ContainerProviderProps {
     container: HTMLElement;
 }
 
+// @public
+export class ContentController {
+    constructor(editor: Editor);
+    getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    putContentOntoCurrentPage(content: TLContent, opts?: {
+        point?: VecLike;
+        preserveIds?: boolean;
+        preservePosition?: boolean;
+        select?: boolean;
+    }): Editor;
+    // (undocumented)
+    resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
+}
+
+// @public (undocumented)
+export const contentTransferCapability: TLCapability<ContentController>;
+
+// @public
+export const contentTransferPlugin: {
+    readonly id: "contentTransfer";
+    readonly provides: readonly [TLCapability<ContentController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
@@ -1104,6 +1128,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     protected _clickManager: ClickManager;
     readonly collaborators: CollaboratorsManager;
     complete(): this;
+    // @internal (undocumented)
+    readonly _contentTransfer: ContentController;
     // (undocumented)
     readonly contextId: string;
     // @internal (undocumented)

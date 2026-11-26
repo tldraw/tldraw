@@ -2,6 +2,7 @@
 import { cameraPlugin } from './builtin/camera'
 import { clickDetectionPlugin } from './builtin/clickDetection'
 import { collaboratorsPlugin } from './builtin/collaborators'
+import { contentTransferPlugin } from './builtin/contentTransfer'
 import { edgeScrollPlugin } from './builtin/edgeScroll'
 import { eventDispatchPlugin } from './builtin/eventDispatch'
 import { externalContentPlugin } from './builtin/externalContent'
@@ -48,6 +49,7 @@ export function createKernelPlugins(): TLPlugin[] {
 		shapeArrangementPlugin,
 		shapeAnimationPlugin,
 		stylesPlugin,
+		contentTransferPlugin,
 		scribblesPlugin,
 		edgeScrollPlugin,
 		overlaysPlugin,
