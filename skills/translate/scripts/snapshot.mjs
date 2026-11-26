@@ -1,7 +1,6 @@
 // Builds the generator's workspace: the committed repo (HEAD) without any existing translation,
-// so new candidates can't copy old wording. English, code and context notes stay.
-//
-//   node skills/translate/scripts/snapshot.mjs <out-dir> [--with-glossaries]
+// so new candidates can't copy old wording. English, code and context notes stay. This is a
+// procedure, not a sandbox: it only works if the generator is told to stay inside it.
 //
 // Glossaries are built from existing translations, so they are left out unless asked for
 // (incremental and full-review runs pass them; retranslation doesn't).
@@ -28,9 +27,14 @@ const REMOVE = [
 	'apps/dotcom/client/public/tla/locales-compiled',
 	'packages/assets/translations',
 	'internal/i18n/translation-state.json',
-	// The old Lokalise fix list quotes translations; gone once Lokalise is removed, kept here in
-	// case an older commit is snapshotted.
+	// These quote real translations: the Lokalise fix list, examples in skill docs and test
+	// fixtures, and an e2e test that matches French UI text.
 	'internal/scripts/i18n-fix-strings.ts',
+	'skills/review-translations',
+	'skills/translate/references/dispositions.md',
+	'skills/translate/scripts/pipeline.test.mjs',
+	'skills/translate/scripts/translation-state.test.mjs',
+	'apps/dotcom/client/e2e',
 ]
 
 function walk(directory, visit) {
@@ -48,6 +52,16 @@ export function snapshot(repoRoot, outDir, { withGlossaries = false } = {}) {
 		throw new Error(`${outDir} is not empty`)
 	}
 	mkdirSync(outDir, { recursive: true })
+	try {
+		build(repoRoot, outDir, withGlossaries)
+	} catch (error) {
+		rmSync(outDir, { recursive: true, force: true })
+		throw error
+	}
+	return outDir
+}
+
+function build(repoRoot, outDir, withGlossaries) {
 	const archive = execFileSync('git', ['archive', '--format=tar', 'HEAD'], {
 		cwd: repoRoot,
 		maxBuffer: 1024 * 1024 * 1024,
@@ -64,12 +78,14 @@ export function snapshot(repoRoot, outDir, { withGlossaries = false } = {}) {
 	for (const path of REMOVE) rmSync(join(outDir, path), { recursive: true, force: true })
 	if (!withGlossaries) rmSync(join(outDir, 'internal/i18n/glossary'), { recursive: true, force: true })
 
-	verify(outDir)
-	return outDir
+	checkClean(outDir)
 }
 
-/** Fails if anything that looks like a translation catalog, or a link out of the snapshot, is left. */
-export function verify(outDir) {
+/**
+ * Fails if anything that looks like a translation catalog is left. Symlinks that point out of the
+ * snapshot are removed, since following one would leave it.
+ */
+function checkClean(outDir) {
 	const root = realpathSync(outDir)
 	const locales = JSON.parse(readFileSync(join(root, 'assets/translations/languages.json'), 'utf8'))
 		.map(({ locale }) => locale)
@@ -82,6 +98,7 @@ export function verify(outDir) {
 			const target = resolve(dirname(path), readlinkSync(path))
 			if (relative(root, target).startsWith('..')) {
 				rmSync(path)
+				console.warn(`snapshot: removed ${relative(root, path)}, which links outside it`)
 			}
 			return
 		}

@@ -1,24 +1,15 @@
 // Cached context notes: what each English message is for, so translators and reviewers don't
 // have to rediscover it from the code on every run. See references/context-notes.md.
-//
-//   node skills/translate/scripts/context.mjs plan [--all]
-//   node skills/translate/scripts/context.mjs record <notes.json>
 
-import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { dirname, isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { hash, projects, read, text } from './translation-state.mjs'
 
 export const contextDirectory = 'internal/i18n/context'
-const sources = {
-	sdk: 'assets/translations/main.json',
-	dotcom: 'apps/dotcom/client/public/tla/locales/en.json',
-}
+const sources = Object.fromEntries(Object.entries(projects).map(([p, c]) => [p, c.source]))
 const ROLES = ['action', 'label', 'state', 'heading', 'tooltip', 'announcement', 'error', 'body']
 
-const read = (path) => JSON.parse(readFileSync(path, 'utf8'))
-const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex')
-const english = (project, value) => (project === 'sdk' ? value : value.translation)
 
 function loadNotes(root, project) {
 	const path = resolve(root, contextDirectory, `${project}.json`)
@@ -54,7 +45,7 @@ export function plan(root, { all = false } = {}) {
 				key,
 				reason,
 				sourceHash,
-				english: english(project, value),
+				english: text(project, value),
 				...(value.notes ? { description: value.notes } : {}),
 				...(note ? { previousNote: note } : {}),
 			})
@@ -77,6 +68,9 @@ function checkNote(root, note, source) {
 		throw new Error(`A note needs at least one call site: ${id}`)
 	}
 	for (const file of note.callSites) {
+		if (isAbsolute(file) || relative(root, resolve(root, file)).startsWith('..')) {
+			throw new Error(`Call site must be a repo-relative path, got ${file}: ${id}`)
+		}
 		if (!existsSync(resolve(root, file))) throw new Error(`Missing call site ${file}: ${id}`)
 	}
 	if (typeof note.meaning !== 'string' || !note.meaning.trim()) {

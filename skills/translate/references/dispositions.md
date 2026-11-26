@@ -60,9 +60,9 @@ Candidates are proposals only; nothing reads them except the reviewer.
 | `revise`     | Use the reviewer's corrected text.                   | required |
 | `unresolved` | Needs another pass or a human; change nothing.       | omit     |
 
-`confidence` is required on every entry. `low` means the reviewer can't vouch for the result, usually because it doesn't know the language's software conventions well enough. `apply.mjs` treats `low` exactly like `unresolved`: nothing is written or recorded, the entry stays pending, and the weekly workflow won't auto-merge. Give a `reason` for every `revise`, `unresolved` and `low` entry.
+`confidence` is required on every entry. `low` means the reviewer can't vouch for the result, usually because it doesn't know the language's software conventions well enough. `apply.mjs` treats `low` exactly like `unresolved`: nothing is written or recorded, an earlier approval is withdrawn, and the entry comes back on the next run. Give a `reason` for every `revise`, `unresolved` and `low` entry.
 
-`apply.mjs` validates the whole file before writing anything: unknown keys, `retain` on a missing translation, text on `retain`, or missing text on `accept`/`revise` fail the run.
+`apply.mjs` checks the whole file before writing anything: unknown keys, `retain` on a missing translation, text on `retain`, missing text on `accept`/`revise`, or a malformed glossary fail the run. It then runs every proposed and retained text through `pnpm i18n-validate --entries`; an entry that fails is held back like `unresolved`, with the errors as its reason.
 
 ## Glossaries
 

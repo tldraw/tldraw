@@ -4,16 +4,16 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const statePath = 'internal/i18n/translation-state.json'
-const projects = {
+export const projects = {
 	sdk: { source: 'assets/translations/main.json', directory: 'assets/translations' },
 	dotcom: {
 		source: 'apps/dotcom/client/public/tla/locales/en.json',
 		directory: 'apps/dotcom/client/public/tla/locales',
 	},
 }
-const read = (path) => JSON.parse(readFileSync(path, 'utf8'))
-const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex')
-const text = (project, value) => (project === 'sdk' ? value : value?.translation)
+export const read = (path) => JSON.parse(readFileSync(path, 'utf8'))
+export const hash = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex')
+export const text = (project, value) => (project === 'sdk' ? value : value?.translation)
 
 function loadState(root) {
 	const path = resolve(root, statePath)

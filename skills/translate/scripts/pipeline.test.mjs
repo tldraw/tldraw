@@ -33,6 +33,8 @@ function fixture(t) {
 }
 
 const disposition = (entry) => ({ project: 'sdk', locale: 'es', confidence: 'high', ...entry })
+// Fixture repos have no ICU validator; tests that need one pass their own.
+const valid = { validate: () => ({}) }
 
 test('apply writes accepted text, records it, and leaves out-of-scope keys alone', (t) => {
 	const { root, readJson } = fixture(t)
@@ -41,7 +43,7 @@ test('apply writes accepted text, records it, and leaves out-of-scope keys alone
 			disposition({ key: 'paste', decision: 'accept', text: 'Pegar' }),
 			disposition({ key: 'copy', decision: 'retain' }),
 		],
-	})
+	}, valid)
 	assert.deepEqual({ ...result, unresolved: result.unresolved.length }, {
 		applied: 1,
 		retained: 1,
@@ -75,7 +77,7 @@ test('apply holds back unresolved and low-confidence entries', (t) => {
 			disposition({ key: 'paste', decision: 'accept', text: 'Pegar', confidence: 'low' }),
 			disposition({ key: 'cut', decision: 'unresolved', reason: 'Clipboard sense unclear' }),
 		],
-	})
+	}, valid)
 	assert.equal(result.applied, 0)
 	assert.deepEqual(
 		result.unresolved.map(({ key, translation }) => ({ key, translation })),
@@ -95,7 +97,7 @@ test('apply keeps the dotcom shape and carries English metadata to new entries',
 			disposition({ project: 'dotcom', key: 'def', decision: 'accept', text: 'Publicado' }),
 			disposition({ project: 'dotcom', key: 'abc', decision: 'revise', text: 'Abrir archivo' }),
 		],
-	})
+	}, valid)
 	assert.deepEqual(readJson('apps/dotcom/client/public/tla/locales/es.json'), {
 		abc: { translation: 'Abrir archivo' },
 		def: { notes: 'Shown after publishing', translation: 'Publicado' },
@@ -118,7 +120,7 @@ test('apply rejects bad input before writing anything', (t) => {
 	]
 	for (const [entry, error] of bad) {
 		assert.throws(
-			() => apply(root, { entries: [disposition({ key: 'cut', decision: 'retain' }), entry] }),
+			() => apply(root, { entries: [disposition({ key: 'cut', decision: 'retain' }), entry] }, valid),
 			error
 		)
 	}
@@ -137,7 +139,7 @@ test('apply merges glossary updates into existing terms', (t) => {
 		glossary: {
 			es: { terms: [{ term: 'Paste', translation: 'Pegar', note: 'Clipboard command, not glue' }] },
 		},
-	})
+	}, valid)
 	assert.deepEqual(readJson('internal/i18n/glossary/es.json'), {
 		register: 'Usted, imperative for actions',
 		terms: [
@@ -189,6 +191,9 @@ test('context record refuses notes that do not match the current English', (t) =
 		() => recordContext(root, [{ ...note, sourceHash, callSites: ['nope.ts'] }]),
 		/Missing call site/
 	)
+	for (const callSite of ['/etc/passwd', '../outside.ts']) {
+		assert.throws(() => recordContext(root, [{ ...note, sourceHash, callSites: [callSite] }]), /repo-relative/)
+	}
 	assert.equal(existsSync(join(root, 'internal/i18n/context/sdk.json')), false)
 })
 
@@ -198,6 +203,8 @@ test('snapshot keeps English, code and context notes but no translations or glos
 	write('internal/i18n/context/sdk.json', {})
 	write('internal/i18n/translation-state.json', { version: 1, entries: {} })
 	write('apps/dotcom/client/public/tla/locales-compiled/es.json', {})
+	write('skills/review-translations/SKILL.md', 'pl: Wróć')
+	write('apps/dotcom/client/e2e/tests/homepage.spec.ts', "'Charger un média'")
 	const git = (...args) => execFileSync('git', args, { cwd: root, stdio: 'ignore' })
 	git('init', '-q')
 	git('add', '-A')
@@ -218,6 +225,7 @@ test('snapshot keeps English, code and context notes but no translations or glos
 			compiled: has('apps/dotcom/client/public/tla/locales-compiled'),
 			ledger: has('internal/i18n/translation-state.json'),
 			glossary: has('internal/i18n/glossary'),
+			examples: has('skills/review-translations') || has('apps/dotcom/client/e2e'),
 		},
 		{
 			main: true,
@@ -229,6 +237,81 @@ test('snapshot keeps English, code and context notes but no translations or glos
 			compiled: false,
 			ledger: false,
 			glossary: false,
+			examples: false,
 		}
 	)
 })
+
+test('apply holds back entries the validator rejects and retained text that is already broken', (t) => {
+	const { root, readJson } = fixture(t)
+	const seen = []
+	const result = apply(
+		root,
+		{
+			entries: [
+				disposition({ key: 'paste', decision: 'accept', text: '{pegar}' }),
+				disposition({ key: 'copy', decision: 'retain' }),
+			],
+		},
+		{
+			validate: (_root, entries) => {
+				seen.push(...entries)
+				return { 'sdk:es:paste': ['unknown argument {pegar}'], 'sdk:es:copy': ['broken'] }
+			},
+		}
+	)
+	assert.deepEqual(
+		seen.map((e) => e.text),
+		['{pegar}', 'Copiar']
+	)
+	assert.equal(result.applied + result.retained, 0)
+	assert.equal(result.unresolved[0].reason, 'Fails validation: unknown argument {pegar}')
+	assert.equal(readJson('assets/translations/es.json').paste, undefined)
+	assert.equal(plan(root, ['es']).counts.current, 0)
+})
+
+test('apply withdraws the approval of a current entry it holds back', (t) => {
+	const { root } = fixture(t)
+	apply(root, { entries: [disposition({ key: 'copy', decision: 'retain' })] }, valid)
+	assert.equal(plan(root, ['es']).counts.current, 1)
+	apply(root, { entries: [disposition({ key: 'copy', decision: 'retain', confidence: 'low' })] }, valid)
+	assert.equal(plan(root, ['es']).counts.current, 0)
+})
+
+test('apply checks the glossary before writing anything', (t) => {
+	const { root } = fixture(t)
+	const before = readFileSync(join(root, 'assets/translations/es.json'), 'utf8')
+	const entries = [disposition({ key: 'paste', decision: 'accept', text: 'Pegar' })]
+	for (const [glossary, error] of [
+		[{ '../../escaped': { terms: [] } }, /unsupported locale/],
+		[{ es: { register: 5, terms: [] } }, /register must be a string/],
+		[{ es: { terms: [{ term: 'Paste' }] } }, /needs a translation/],
+	]) {
+		assert.throws(() => apply(root, { entries, glossary }, valid), error)
+	}
+	assert.equal(readFileSync(join(root, 'assets/translations/es.json'), 'utf8'), before)
+	assert.equal(existsSync(join(root, 'internal/i18n')), false)
+})
+
+test("apply keeps a catalog's existing key order", (t) => {
+	const { root, write } = fixture(t)
+	write('apps/dotcom/client/public/tla/locales/es.json', {
+		zzz: { translation: 'Último' },
+		abc: { translation: 'Abrir' },
+	})
+	write('apps/dotcom/client/public/tla/locales/en.json', {
+		abc: { translation: 'Open' },
+		def: { translation: 'Published' },
+		zzz: { translation: 'Last' },
+	})
+	apply(
+		root,
+		{ entries: [disposition({ project: 'dotcom', key: 'def', decision: 'accept', text: 'Publicado' })] },
+		valid
+	)
+	assert.deepEqual(
+		Object.keys(JSON.parse(readFileSync(join(root, 'apps/dotcom/client/public/tla/locales/es.json'), 'utf8'))),
+		['def', 'zzz', 'abc']
+	)
+})
+
