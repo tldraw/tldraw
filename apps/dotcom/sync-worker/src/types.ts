@@ -156,10 +156,6 @@ export interface Environment {
 	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
-	// 'true' pushes the board's records into the render page with the screenshot request, instead of
-	// the page fetching them back from the snapshot route, for every board. Where it is unset
-	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
-	THUMBNAIL_RENDER_PUSH: string | undefined
 	// 'true' hands rendering to the private render worker (RENDER_WORKER) instead of the local render
 	// path in thumbnailRender.ts. Off everywhere it is unset; flipped per environment once the worker
 	// renders end-to-end. See apps/dotcom/render-worker.
@@ -179,7 +175,7 @@ export interface Environment {
 	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
 	// the host has no route (production for now, dev, previews).
 	MCP_HOST_ORIGIN: string | undefined
-	// The MCP host's static-assets worker with no route or public URL of its own.
+	// The MCP host's landing page: a static-assets worker with no route or public URL of its own.
 	// mcpHostRouter hands it every GET and HEAD it doesn't serve itself.
 	// Bound per environment in wrangler.toml; unbound, the host 404s those paths as before.
 	MCP_WEB: Fetcher | undefined

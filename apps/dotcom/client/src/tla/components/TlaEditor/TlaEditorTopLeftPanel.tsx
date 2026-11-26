@@ -1,5 +1,5 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
-import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
+import { librariesPanelOpen, toggleLibrariesPanel, useLibrariesEnabled } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
@@ -40,6 +40,7 @@ import {
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	ZoomTo100MenuItem,
 	ZoomToFitMenuItem,
@@ -65,6 +66,7 @@ import {
 } from '../menu-items/menu-items'
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { useAnonLibrariesOffered } from '../TlaLibraries/useAnonLibrariesOffered'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
@@ -171,6 +173,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 					<DefaultPageMenu />
 				</>
 			)}
+			{!app && <LibrariesPanelButton />}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
@@ -328,23 +331,29 @@ function TlaEditorTopLeftPanelSignedIn() {
 function LibrariesPanelButton() {
 	const msg = useTranslation()
 	const editor = useEditor()
-	const hasLibraries = !!useMaybeApp()?.libraries
+	const trackEvent = useUiEvents()
+	const librariesEnabled = useLibrariesEnabled()
+	const anonLibrariesOffered = useAnonLibrariesOffered()
+	const hasLibraries = !!useMaybeApp()?.libraries || anonLibrariesOffered
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const label = msg(messages.libraries)
 
-	if (!hasLibraries) return null
+	if (!librariesEnabled || !hasLibraries) return null
 
 	return (
 		<TldrawUiButton
 			type="icon"
-			className={styles.topLeftMainMenuTrigger}
+			className={`${styles.topLeftMainMenuTrigger} ${styles.librariesButton}`}
 			data-testid="tla-libraries-button"
 			aria-pressed={open}
 			tooltip={label}
 			title={label}
-			onClick={() => toggleLibrariesPanel(editor)}
+			onClick={() => {
+				trackEvent('toggle-libraries-panel', { source: 'libraries', open: !open })
+				toggleLibrariesPanel(editor)
+			}}
 		>
-			<TlaIcon icon="library" />
+			<TlaIcon icon="library-strong" />
 		</TldrawUiButton>
 	)
 }

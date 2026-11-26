@@ -1,0 +1,748 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1
+			}
+		},
+		"shapes": [
+			{
+				"x": -8,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug",
+				"type": "group",
+				"parentId": "page:fpd4xhq71gchq",
+				"index": "aKT7f",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 8,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-0",
+				"type": "geo",
+				"props": {
+					"w": 200,
+					"h": 140,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 18,
+				"y": 10,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-1",
+				"type": "geo",
+				"props": {
+					"w": 180,
+					"h": 120,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a2D3Q",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 14,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-2",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a3Nfr",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 28,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-3",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a4Q2E",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 42,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-4",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a5TCn",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 56,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-5",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a6hSb",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 70,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-6",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a71In",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 84,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-7",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a8Ubq",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 98,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-8",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "a9iQn",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 112,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-9",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aAq4z",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 126,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-10",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aBZTI",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 14,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-11",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aC4RM",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 28,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-12",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aDDQM",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 42,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-13",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aE8dI",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 56,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-14",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aFmgQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 70,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-15",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aGafb",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 84,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-16",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aHmor",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 98,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-17",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aIUk3",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 112,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-18",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aJScI",
+				"typeName": "shape"
+			},
+			{
+				"x": 208,
+				"y": 126,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:floor-plan-rug-19",
+				"type": "line",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 8,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"parentId": "shape:floor-plan-rug",
+				"index": "aKiLv",
+				"typeName": "shape"
+			}
+		],
+		"rootShapeIds": ["shape:floor-plan-rug"],
+		"bindings": [],
+		"assets": [],
+		"users": []
+	}
+}

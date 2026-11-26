@@ -1,7 +1,7 @@
 import { signJwt } from '@clerk/backend/jwt'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { canUseMcpServer } from '../../utils/featureFlags'
+import { ensureMcpUserRows } from './initUser'
 import {
 	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
@@ -25,7 +25,7 @@ import {
 // token" is the load-bearing claim of the file under test, and a mocked verifier cannot demonstrate
 // it at all: an earlier version of this file mocked the whole verifier and its two "verification"
 // tests were assertions about what the mock had been *called with*.
-vi.mock('../../utils/featureFlags', () => ({ canUseMcpServer: vi.fn() }))
+vi.mock('./initUser', () => ({ ensureMcpUserRows: vi.fn() }))
 
 const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
 
@@ -139,7 +139,6 @@ const fetchMock = vi.fn(async (input: string | URL | Request, _init?: RequestIni
 beforeEach(() => {
 	vi.clearAllMocks()
 	vi.stubGlobal('fetch', fetchMock)
-	vi.mocked(canUseMcpServer).mockResolvedValue(true)
 	// The refusal cases below are the expected way to see these logged, and a test run that prints them
 	// reads like a failure. Tests that care which branch refused a token assert on the spy.
 	vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -431,25 +430,14 @@ describe('authenticateMcpRequest', () => {
 		expect(logged).not.toContain(token)
 	})
 
-	// 403, not 401: the caller did authenticate and still may not in, which retrying the flow cannot
-	// fix. A 401 here would have clients loop through sign-in forever.
-	it('answers 403 for an authenticated user the flag does not cover', async () => {
-		vi.mocked(canUseMcpServer).mockResolvedValue(false)
-
+	it('ensures the rows of an authenticated user', async () => {
 		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
 
-		expect(result).toMatchObject({ ok: false, reason: 'not_allowlisted' })
-		const response = responseOf(result)
-		expect(response.status).toBe(403)
-		expect(response.headers.get('WWW-Authenticate')).toBe(null)
-		// The flag name is no longer an argument: canUseMcpServer owns which flag it consults, and the
-		// @tldraw.com fallback behind it.
-		expect(canUseMcpServer).toHaveBeenCalledWith(expect.anything(), 'user_123')
+		expect(result).toMatchObject({ ok: true, userId: 'user_123' })
+		expect(ensureMcpUserRows).toHaveBeenCalledWith(expect.anything(), 'user_123')
 	})
 
-	// The reason rides on the refusal so the route can put it on a datapoint: during a flag-gated
-	// rollout, "not signed in" and "signed in and not on the list" are the two numbers worth watching
-	// and they call for entirely different responses.
+	// The reason rides on the refusal so the route can put it on a datapoint.
 	it('names no_token distinctly from the other refusals', async () => {
 		const noToken = await authenticateMcpRequest(makeRequest(), makeEnv())
 

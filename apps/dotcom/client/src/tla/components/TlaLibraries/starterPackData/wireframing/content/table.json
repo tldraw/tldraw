@@ -1,0 +1,752 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 408.0000000000001,
+				"y": 11454,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "table",
+						"pack": "wireframing",
+						"name": "Simple table",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Content",
+						"tags": ["Simple table", "table", "Content"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-table",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b0xxCX",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-body",
+				"type": "geo",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"w": 304,
+					"h": 172,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-header",
+				"type": "geo",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"w": 304,
+					"h": 43,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "grey",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a2n9X",
+				"typeName": "shape"
+			},
+			{
+				"x": 101,
+				"y": 1,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-col0",
+				"type": "line",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 170
+						}
+					},
+					"scale": 1
+				},
+				"index": "a3Up3",
+				"typeName": "shape"
+			},
+			{
+				"x": 202.00000000000006,
+				"y": 1,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-col1",
+				"type": "line",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 170
+						}
+					},
+					"scale": 1
+				},
+				"index": "a4Uau",
+				"typeName": "shape"
+			},
+			{
+				"x": 1,
+				"y": 43,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-row0",
+				"type": "line",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 302,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a5vUy",
+				"typeName": "shape"
+			},
+			{
+				"x": 1,
+				"y": 86,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-row1",
+				"type": "line",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 302,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a6qSQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 1,
+				"y": 129,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-row2",
+				"type": "line",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 302,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a7XC6",
+				"typeName": "shape"
+			},
+			{
+				"x": 10,
+				"y": 9,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-heading0",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "black",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Name"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a8keQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 111,
+				"y": 9,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-heading1",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "black",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Type"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a92Nb",
+				"typeName": "shape"
+			},
+			{
+				"x": 212.00000000000006,
+				"y": 9,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-heading2",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "black",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Status"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aAjkX",
+				"typeName": "shape"
+			},
+			{
+				"x": 10,
+				"y": 52,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value00",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Item 1"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aBWQz",
+				"typeName": "shape"
+			},
+			{
+				"x": 111,
+				"y": 52,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value01",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Type"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aC5yE",
+				"typeName": "shape"
+			},
+			{
+				"x": 212.00000000000006,
+				"y": 52,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value02",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Ready"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aDDQj",
+				"typeName": "shape"
+			},
+			{
+				"x": 10,
+				"y": 95,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value10",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Item 2"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aEPYI",
+				"typeName": "shape"
+			},
+			{
+				"x": 111,
+				"y": 95,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value11",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Type"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aFZGz",
+				"typeName": "shape"
+			},
+			{
+				"x": 212.00000000000006,
+				"y": 95,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value12",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Ready"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aGFRv",
+				"typeName": "shape"
+			},
+			{
+				"x": 10,
+				"y": 138,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value20",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Item 3"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aHTCE",
+				"typeName": "shape"
+			},
+			{
+				"x": 111,
+				"y": 138,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value21",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Type"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aIHw6",
+				"typeName": "shape"
+			},
+			{
+				"x": 212.00000000000006,
+				"y": 138,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-table-value22",
+				"type": "text",
+				"parentId": "shape:full-catalog-table",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Ready"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aJPnv",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-table"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

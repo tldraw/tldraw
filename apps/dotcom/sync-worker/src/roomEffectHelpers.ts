@@ -28,7 +28,6 @@ export type BootStage =
 	| 'storage-load:file-record'
 	| 'storage-load:comments'
 	| 'storage-load:supabase'
-	| 'storage-load:kv-rollout'
 	| 'source-await-persist'
 	| 'source-r2-fetch'
 	| 'source-welcome'

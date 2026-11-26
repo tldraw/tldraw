@@ -1,0 +1,239 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 624,
+				"y": 3182,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "identity-provider",
+						"pack": "architecture",
+						"name": "Identity / auth",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Networking and security",
+						"tags": ["Identity / auth", "identity-provider", "Networking and security"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-identity-provider",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b3un5A",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 66,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-identity-provider-shield",
+				"type": "line",
+				"parentId": "shape:full-catalog-identity-provider",
+				"props": {
+					"dash": "draw",
+					"size": "m",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 66,
+							"y": 23
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": 58,
+							"y": 82
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 31,
+							"y": 116
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": 0,
+							"y": 136
+						},
+						"a6": {
+							"id": "a6",
+							"index": "a6",
+							"x": -31,
+							"y": 116
+						},
+						"a7": {
+							"id": "a7",
+							"index": "a7",
+							"x": -58,
+							"y": 82
+						},
+						"a8": {
+							"id": "a8",
+							"index": "a8",
+							"x": -66,
+							"y": 23
+						},
+						"a9": {
+							"id": "a9",
+							"index": "a9",
+							"x": 0,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 51,
+				"y": 30,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-identity-provider-head",
+				"type": "geo",
+				"parentId": "shape:full-catalog-identity-provider",
+				"props": {
+					"w": 30,
+					"h": 30,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a2tUm",
+				"typeName": "shape"
+			},
+			{
+				"x": 36,
+				"y": 102,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-identity-provider-shoulders",
+				"type": "line",
+				"parentId": "shape:full-catalog-identity-provider",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "blue",
+					"spline": "cubic",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 5,
+							"y": -23
+						},
+						"a3": {
+							"id": "a3",
+							"index": "a3",
+							"x": 30,
+							"y": -33
+						},
+						"a4": {
+							"id": "a4",
+							"index": "a4",
+							"x": 55,
+							"y": -23
+						},
+						"a5": {
+							"id": "a5",
+							"index": "a5",
+							"x": 60,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a3a3Q",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-identity-provider"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

@@ -1,5 +1,6 @@
 import { createRouter, notFound } from '@tldraw/worker-shared'
 import { sql } from 'kysely'
+import { countStalledEffectOutboxRows } from './effectOutboxQueries'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { isDebugLogging, type Environment } from './types'
@@ -207,19 +208,9 @@ export const healthCheckRoutes = createRouter<Environment>()
 
 			// outbox-stalled: parked-only detection needs the drain to run at all. If the alarm
 			// chain died, unparked rows sit untouched forever and never reach the parked
-			// threshold, so the check above stays green. A row is stalled when it has been
-			// ELIGIBLE to process (created, or past its backoff) for 15+ minutes: a live drain
-			// sweeps every 30s and backoff caps at 5 minutes, so it would have deleted, bumped,
-			// or re-deferred any eligible row long before that.
+			// threshold, so the check above stays green.
 			try {
-				const result = await sql<{ stalled: string }>`
-					SELECT count(*) AS stalled
-					FROM effect_outbox
-					WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}
-						AND GREATEST("createdAt", coalesce("nextRetryAt", "createdAt")) < now() - interval '15 minutes'
-				`.execute(db)
-				const row = result.rows[0]
-				const stalled = row?.stalled ? parseInt(row.stalled, 10) : 0
+				const stalled = await countStalledEffectOutboxRows(db)
 				if (stalled > 0) {
 					failures.push(`outbox-stalled: ${stalled} rows untouched > 15m`)
 				} else {

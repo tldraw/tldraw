@@ -1,0 +1,55 @@
+{
+	"id": "diagramming",
+	"name": "Diagramming",
+	"version": 3,
+	"items": [
+		{
+			"id": "process",
+			"name": "Process",
+			"thumbnail": {
+				"light": "thumbnails/process-light.webp",
+				"dark": "thumbnails/process-dark.webp"
+			}
+		},
+		{
+			"id": "decision",
+			"name": "Decision",
+			"thumbnail": {
+				"light": "thumbnails/decision-light.webp",
+				"dark": "thumbnails/decision-dark.webp"
+			}
+		},
+		{
+			"id": "terminal",
+			"name": "Start or end",
+			"thumbnail": {
+				"light": "thumbnails/terminal-light.webp",
+				"dark": "thumbnails/terminal-dark.webp"
+			}
+		},
+		{
+			"id": "arrow",
+			"name": "Arrow",
+			"thumbnail": {
+				"light": "thumbnails/arrow-light.webp",
+				"dark": "thumbnails/arrow-dark.webp"
+			}
+		},
+		{
+			"id": "note",
+			"name": "Note",
+			"thumbnail": {
+				"light": "thumbnails/note-light.webp",
+				"dark": "thumbnails/note-dark.webp"
+			}
+		},
+		{
+			"id": "step",
+			"name": "Step to decision",
+			"thumbnail": {
+				"light": "thumbnails/step-light.webp",
+				"dark": "thumbnails/step-dark.webp"
+			}
+		}
+	]
+}

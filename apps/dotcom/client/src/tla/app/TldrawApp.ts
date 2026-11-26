@@ -27,7 +27,6 @@ import {
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
-import type { LibrarySource } from '@tldraw/libraries'
 import {
 	Result,
 	compact,
@@ -68,10 +67,11 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { fileDocumentRecords } from '../../utils/fileSchemaRecords'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { createLibrariesSource } from '../components/TlaLibraries/librariesSource'
+import { TldrawAppLibrariesSource } from '../components/TlaLibraries/librariesSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -209,7 +209,10 @@ export class TldrawApp {
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
 	/** Null when the `libraries` flag is off for this user. */
-	readonly libraries: LibrarySource | null
+	readonly libraries: TldrawAppLibrariesSource | null
+	/** Empty until {@link startLibraries}. */
+	private readonly libraryRows$: Atom<QueryResultType<typeof queries.libraries>>
+	private readonly librariesLoaded$ = atom('libraries loaded', false)
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -232,6 +235,14 @@ export class TldrawApp {
 
 	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
 	private bindQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
+		this.feedQuery(val$, view)
+		this.disposables.push(() => {
+			view.destroy()
+		})
+	}
+
+	/** {@link bindQuery}'s feed alone, for a view whose owner destroys it. */
+	private feedQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
 		let reportedError = false
 		view.addListener((res, resultType, error) => {
 			// a failed query just leaves its signal empty, which looks like no data rather than broken.
@@ -254,9 +265,6 @@ export class TldrawApp {
 				this.changesFlushed?.resolve(undefined)
 				this.changesFlushed = null
 			})
-		})
-		this.disposables.push(() => {
-			view.destroy()
 		})
 	}
 
@@ -298,8 +306,10 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.libraryRows$ = atom('library rows signal', [], { isEqual })
 		if (flags.libraries?.enabled) {
-			const libraries = createLibrariesSource(userId)
+			// Annotated: inferred, its type would depend on TldrawApp's own and make them circular.
+			const libraries: TldrawAppLibrariesSource = new TldrawAppLibrariesSource(this, getToken)
 			this.libraries = libraries
 			this.disposables.push(() => libraries.dispose())
 		} else {
@@ -450,6 +460,84 @@ export class TldrawApp {
 			this.reactions$,
 			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
 		)
+	}
+
+	/**
+	 * Subscribe the libraries of the user's workspaces, when the `libraries` flag is on. Like
+	 * {@link startNotificationFeeds}, once {@link preload} has resolved.
+	 */
+	startLibraries() {
+		const { libraries } = this
+		if (!libraries) return
+		const view = this.materializeQuery<QueryResultType<typeof queries.libraries>>(
+			queries.libraries()
+		)
+		this.bindQuery(this.libraryRows$, view)
+		view.addListener((_rows, resultType) => {
+			if (resultType !== 'complete' || this.librariesLoaded$.get()) return
+			// After bindQuery's flush, so the rows are in place before anyone reads them as loaded.
+			void this.changesFlushed?.then(() => {
+				this.librariesLoaded$.set(true)
+				libraries.ensureDefaultLibrary()
+			})
+		})
+	}
+
+	/** Whether the libraries query has synced, so an empty list means there are none. */
+	areLibrariesLoaded() {
+		return this.librariesLoaded$.get()
+	}
+
+	/** The libraries of every workspace the user is in, with their items. */
+	getLibraryRows(): QueryResultType<typeof queries.libraries> {
+		return this.libraryRows$.get()
+	}
+
+	/**
+	 * The libraries a file shows, with their items, until `stop` is called: those added to it and
+	 * the user's default (see `queries.fileLibraries`).
+	 */
+	watchFileLibraries(fileId: string) {
+		const rows$ = atom<QueryResultType<typeof queries.fileLibraries>>(
+			`file libraries ${fileId}`,
+			[],
+			{ isEqual }
+		)
+		const view = this.materializeQuery<QueryResultType<typeof queries.fileLibraries>>(
+			queries.fileLibraries({ fileId })
+		)
+		this.feedQuery(rows$, view)
+		return {
+			rows: rows$ as Signal<QueryResultType<typeof queries.fileLibraries>>,
+			stop: () => view.destroy(),
+		}
+	}
+
+	/**
+	 * One library's items, until `stop` is called (see `queries.libraryItems`). `loaded` turns true
+	 * once the query has synced, so an empty list means the library has none.
+	 */
+	watchLibraryItems(libraryId: string) {
+		const row$ = atom<QueryResultType<typeof queries.libraryItems>>(
+			`library items ${libraryId}`,
+			undefined,
+			{ isEqual }
+		)
+		const loaded$ = atom(`library items loaded ${libraryId}`, false)
+		const view = this.materializeQuery<QueryResultType<typeof queries.libraryItems>>(
+			queries.libraryItems({ libraryId })
+		)
+		this.feedQuery(row$, view)
+		view.addListener((_row, resultType) => {
+			if (resultType !== 'complete' || loaded$.get()) return
+			// After feedQuery's flush, so the items are in place before anyone reads them as loaded.
+			void this.changesFlushed?.then(() => loaded$.set(true))
+		})
+		return {
+			items: computed(`library item rows ${libraryId}`, () => row$.get()?.items ?? []),
+			loaded: loaded$ as Signal<boolean>,
+			stop: () => view.destroy(),
+		}
 	}
 
 	/**
@@ -647,6 +735,14 @@ export class TldrawApp {
 		max_files_reached: {
 			defaultMessage:
 				'You have reached the maximum number of files. You need to delete old files before creating new ones.',
+		},
+		max_libraries_reached: {
+			defaultMessage:
+				'This workspace has reached the maximum number of libraries. Delete old libraries before creating new ones.',
+		},
+		max_library_items_reached: {
+			defaultMessage:
+				'This library has reached the maximum number of items. Delete old items before adding new ones.',
 		},
 		uploadingTldrFiles: {
 			defaultMessage:
@@ -1283,6 +1379,7 @@ export class TldrawApp {
 		try {
 			await app.preload(opts.signal)
 			app.startNotificationFeeds()
+			app.startLibraries()
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.
@@ -1454,7 +1551,7 @@ export class TldrawApp {
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
-			schema: createTLSchema(),
+			schema: createTLSchema({ records: fileDocumentRecords }),
 			json,
 		})
 

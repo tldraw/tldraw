@@ -1,10 +1,10 @@
 import { LibraryRecordType, InMemoryLibrarySource } from '@tldraw/libraries'
 import { Editor } from 'tldraw'
+import { saveSamples, shapeSample } from '../libraries-fixtures/samples'
 import { LibrariesExample, type Showing } from './libraries-example'
-import { saveSamples, shapeSample } from './libraries-samples'
 
-// Unlisted, like /develop: @tldraw/libraries is unreleased. Each page of the document loads the
-// panel with no items, many items, or many libraries. /libraries shows each LibrarySource.
+// Unlisted, like /develop: a harness for the panel's performance. Each page of the document loads
+// the panel with no items, many items, or many libraries.
 
 const PAGES = ['Empty', 'Many items', 'Many libraries'] as const
 type PageName = (typeof PAGES)[number]

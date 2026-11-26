@@ -2,7 +2,16 @@ import { useAuth, useClerk, useUser } from '@clerk/react'
 import { commentToolOverrides } from '@tldraw/commenting'
 import { useEffect, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { assert, getFromSessionStorage, omit, react, useDialogs } from 'tldraw'
+import {
+	assert,
+	DefaultContextMenu,
+	DefaultContextMenuContent,
+	getFromSessionStorage,
+	omit,
+	react,
+	TLComponents,
+	useDialogs,
+} from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
@@ -13,6 +22,11 @@ import { SneakyDebugModeToast } from '../components/TlaEditor/sneaky/SneakyDebug
 import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { VIA_LAST_FILE_CACHE } from '../components/TlaEditor/TlaFileSyncHost'
 import { useAnonCommentToolOverrides } from '../components/TlaEditor/useAnonCommentToolOverrides'
+import {
+	TlaAnonAddToLibraryMenuItem,
+	TlaAnonLibrariesPanel,
+	TlaAnonLibrariesProvider,
+} from '../components/TlaLibraries/TlaAnonLibraries'
 import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { hasNotAcceptedLegal } from '../utils/auth'
@@ -129,6 +143,17 @@ export function Component() {
 	return null
 }
 
+const localComponents: TLComponents = {
+	...components,
+	ContextMenu: (props) => (
+		<DefaultContextMenu {...props}>
+			<TlaAnonAddToLibraryMenuItem />
+			<DefaultContextMenuContent />
+		</DefaultContextMenu>
+	),
+	InFrontOfTheCanvas: TlaAnonLibrariesPanel,
+}
+
 function LocalTldraw() {
 	useOpenSignInFromLocationState()
 	// No comments exist on the scratch board — the button is only a sign-in prompt, so the tool
@@ -141,28 +166,30 @@ function LocalTldraw() {
 
 	return (
 		<TlaAnonLayout>
-			<LocalEditor
-				data-testid="tla-editor"
-				components={components}
-				overrides={commentToolItemOverrides}
-				onMount={(editor) => {
-					globalEditor.set(editor)
-					const shapes$ = editor.store.query.ids('shape')
+			<TlaAnonLibrariesProvider>
+				<LocalEditor
+					data-testid="tla-editor"
+					components={localComponents}
+					overrides={commentToolItemOverrides}
+					onMount={(editor) => {
+						globalEditor.set(editor)
+						const shapes$ = editor.store.query.ids('shape')
 
-					return react('updateShouldSlurpFile', () => {
-						if (shapes$.get().size > 0) {
-							setShouldSlurpFile()
-						} else {
-							clearShouldSlurpFile()
-						}
-					})
-				}}
-				options={{ actionShortcutsLocation: 'toolbar' }}
-			>
-				<SneakyDarkModeSync />
-				<SneakyDebugModeToast />
-				<TlaAnonDotDevLink />
-			</LocalEditor>
+						return react('updateShouldSlurpFile', () => {
+							if (shapes$.get().size > 0) {
+								setShouldSlurpFile()
+							} else {
+								clearShouldSlurpFile()
+							}
+						})
+					}}
+					options={{ actionShortcutsLocation: 'toolbar' }}
+				>
+					<SneakyDarkModeSync />
+					<SneakyDebugModeToast />
+					<TlaAnonDotDevLink />
+				</LocalEditor>
+			</TlaAnonLibrariesProvider>
 		</TlaAnonLayout>
 	)
 }

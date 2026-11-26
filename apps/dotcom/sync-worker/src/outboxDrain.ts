@@ -45,7 +45,7 @@ function describeError(error: unknown): string {
 }
 
 export interface OutboxDeps {
-	getBatch(): Promise<TlaEffectOutbox[]> // WHERE attempts < MAX_ATTEMPTS AND ("nextRetryAt" IS NULL OR "nextRetryAt" <= now()) ORDER BY id LIMIT 50
+	getBatch(): Promise<TlaEffectOutbox[]> // WHERE attempts < MAX_ATTEMPTS AND ("nextRetryAt" IS NULL OR "nextRetryAt" <= now()) ORDER BY id LIMIT 50, leaving out library object deletes in their grace period (selectEffectOutboxBatch)
 	deleteRow(id: number): Promise<void>
 	// Called with the FAILED row (its `attempts` is the current count, so backoff can be derived).
 	// The implementation must both back off the failed row AND defer its later same-entity
@@ -67,12 +67,18 @@ export interface OutboxDeps {
 //    past-due alarm can't be trusted to fire on its own, so honor the poke by arming now+1s
 //    (a small delay, still never trusting the stale past-due alarm).
 //  - otherwise (future, sooner than nextSweep): a legit imminent poke → leave it.
+// `dueAt`, when a row the drain left for later becomes processable, brings the next sweep forward
+// to it (never sooner than now+1s, so a row that's already due can't spin the alarm).
 export function computeNextAlarm(
 	scheduled: number | null,
 	now: number,
-	sweepIntervalMs: number
+	sweepIntervalMs: number,
+	dueAt: number | null = null
 ): number | null {
-	const nextSweep = now + sweepIntervalMs
+	const nextSweep = Math.min(
+		now + sweepIntervalMs,
+		dueAt === null ? Infinity : Math.max(dueAt, now + 1_000)
+	)
 	if (scheduled === null || scheduled > nextSweep) return nextSweep
 	if (scheduled <= now) return now + 1_000
 	return null

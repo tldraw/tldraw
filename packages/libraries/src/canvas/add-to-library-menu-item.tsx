@@ -6,15 +6,15 @@ import {
 	useEditor,
 	useTranslation,
 	useValue,
+	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId } from '../lib/schema'
 import { InContextMenu, MenuItem, MenuTargetItems } from '../ui/menu-items'
-import { toMenuTargets, useLibraryGrouping } from './library-groups'
+import { useLibrariesEnabled } from './license'
+import { getLibraryMenuTargets } from './menu-targets'
 import { canCreateNewLibrary } from './new-library'
-import { sortByRecentlyAddedTo } from './recent-libraries'
 import type { PrepareItemContent } from './save-shapes'
-import { useSaveSelection } from './use-save-selection'
+import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
 const messages = defineMessages({
 	addToLibrary: { id: 'libraries.add-to-library', defaultMessage: 'Add to library' },
@@ -29,32 +29,31 @@ export interface AddToLibraryMenuItemProps {
 }
 
 /**
- * An "Add to library" submenu listing the libraries the selection can be added to, under
- * their owners' names when the source has two or more, and a new library when the source allows
- * creating one. Hidden when nothing is selected or there is nowhere to add it. Drop it into your
+ * An "Add to library" submenu listing the libraries the selection can be added to, in the panel's
+ * order, and a new library when the source allows creating one. Hidden when nothing is selected or there is nowhere to add it. Drop it into your
  * context menu, e.g. above `DefaultContextMenuContent`.
  * @public @react
  */
 export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibraryMenuItemProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const librariesEnabled = useLibrariesEnabled()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
-	const libraries = useValue(
-		'writable libraries',
+	const targets = useValue(
+		'add to library targets',
 		() =>
-			sortByRecentlyAddedTo(
-				source.id,
+			getLibraryMenuTargets(
+				source,
 				source.getLibraries().filter((library) => source.can('addItem', library.id))
 			),
 		[source]
 	)
-	const grouping = useLibraryGrouping(source)
 	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
-	const { saveSelection, saveToNewLibrary } = useSaveSelection(source, prepareItemContent)
+	const { saveSelection, saveToNewLibrary } = useSaveSelectionToLibrary(source, prepareItemContent)
 
-	if (!hasSelection || (libraries.length === 0 && !canCreate)) return null
+	if (!librariesEnabled || !hasSelection || (targets.length === 0 && !canCreate)) return null
 
 	return (
 		<TldrawUiMenuGroup id="libraries">
@@ -62,12 +61,12 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 				<InContextMenu>
 					<TldrawUiDropdownMenuGroup className="tlui-libraries-menu__submenu">
 						<MenuTargetItems
-							targets={toMenuTargets(libraries, grouping)}
+							targets={targets}
 							onSelect={(libraryId) => saveSelection(libraryId as TLLibraryId)}
 						/>
 						{canCreate && (
 							<>
-								{libraries.length > 0 && (
+								{targets.length > 0 && (
 									<div role="separator" className="tlui-libraries-menu__divider" />
 								)}
 								<MenuItem label={msg(messages.newLibrary)} onClick={saveToNewLibrary} />

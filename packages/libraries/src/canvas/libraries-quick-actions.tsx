@@ -6,10 +6,12 @@ import {
 	TldrawUiToolbarButton,
 	useEditor,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	type TLUiQuickActionsProps,
 } from 'tldraw'
 import { LibraryIcon } from '../ui/library-icon'
+import { useLibrariesEnabled } from './license'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 
 const messages = defineMessages({
@@ -36,10 +38,31 @@ export function LibrariesQuickActions({ children }: TLUiQuickActionsProps) {
 	)
 }
 
-function LibrariesToolbarButton() {
+/**
+ * The button {@link LibrariesQuickActions} adds: opens and closes the {@link LibrariesPanel}, and
+ * shows nothing when libraries aren't enabled. Use it to keep the button while choosing which of
+ * tldraw's quick actions to show.
+ *
+ * @example
+ * ```tsx
+ * const components: TLComponents = {
+ * 	QuickActions: () => (
+ * 		<DefaultQuickActions>
+ * 			<LibrariesToolbarButton />
+ * 		</DefaultQuickActions>
+ * 	),
+ * }
+ * ```
+ * @public @react
+ */
+export function LibrariesToolbarButton() {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+
+	if (!librariesEnabled) return null
 
 	return (
 		<TldrawUiToolbarButton
@@ -47,7 +70,10 @@ function LibrariesToolbarButton() {
 			aria-pressed={open}
 			isActive={open}
 			title={msg(messages.title)}
-			onClick={() => toggleLibrariesPanel(editor)}
+			onClick={() => {
+				trackEvent('toggle-libraries-panel', { source: 'libraries', open: !open })
+				toggleLibrariesPanel(editor)
+			}}
 		>
 			<TldrawUiButtonIcon icon={<LibraryIcon />} small />
 		</TldrawUiToolbarButton>
