@@ -140,24 +140,30 @@ function useItemPreviewUrls(
 	colorMode: 'light' | 'dark'
 ) {
 	const editor = useEditor()
-	const [previews, setPreviews] = useState<Record<string, string>>({})
+	// Kept with their source: another source's item can share an id.
+	const [previews, setPreviews] = useState<{ source: LibrarySource; urls: Record<string, string> }>(
+		() => ({ source, urls: {} })
+	)
 	const latestItems = useRef(items)
 	latestItems.current = items
 	const itemIds = items.map((item) => item.id).join(' ')
-	const themeId = useValue('preview theme', () => editor.getCurrentThemeId(), [editor])
+	const theme = useValue('preview theme', () => editor.getCurrentTheme(), [editor])
 	useEffect(() => {
 		const controller = new AbortController()
 		const { signal } = controller
 		const darkMode = colorMode === 'dark'
 		for (const item of latestItems.current) {
-			getItemPreviewUrl(editor, source, item, { darkMode, themeId, signal }).then((url) => {
+			getItemPreviewUrl(editor, source, item, { darkMode, theme, signal }).then((url) => {
 				if (signal.aborted || !url) return
-				setPreviews((urls) => (urls[item.id] === url ? urls : { ...urls, [item.id]: url }))
+				setPreviews((previous) => {
+					const urls = previous.source === source ? previous.urls : {}
+					return urls[item.id] === url ? previous : { source, urls: { ...urls, [item.id]: url } }
+				})
 			})
 		}
 		return () => controller.abort()
-	}, [editor, source, itemIds, colorMode, themeId])
-	return previews
+	}, [editor, source, itemIds, colorMode, theme])
+	return previews.source === source ? previews.urls : {}
 }
 
 function useTileWidth(container: HTMLElement | null, enabled: boolean) {

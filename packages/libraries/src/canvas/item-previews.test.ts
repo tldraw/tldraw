@@ -1,4 +1,5 @@
 import {
+	DEFAULT_THEME,
 	Editor,
 	createShapeId,
 	createTLStore,
@@ -44,8 +45,8 @@ afterEach(() => {
 })
 
 const blob = new Blob(['png'])
-const LIGHT = { darkMode: false, themeId: 'default' as const }
-const DARK = { darkMode: true, themeId: 'default' as const }
+const LIGHT = { darkMode: false, theme: DEFAULT_THEME }
+const DARK = { darkMode: true, theme: DEFAULT_THEME }
 
 it('renders an item once for each colour mode', async () => {
 	const render = vi.fn(
@@ -152,9 +153,22 @@ it('renders again in another theme', async () => {
 		editor,
 		source,
 		item,
-		{ darkMode: false, themeId: 'ocean' as any },
+		{ darkMode: false, theme: { ...DEFAULT_THEME, id: 'ocean' } as any },
 		render
 	)
 	expect(ocean).not.toBe(plain)
+	expect(render).toHaveBeenCalledTimes(2)
+})
+
+it('renders again for a new definition of the same theme', async () => {
+	const render = vi.fn(async () => blob)
+	await getItemPreviewUrl(editor, source, item, LIGHT, render)
+	await getItemPreviewUrl(
+		editor,
+		source,
+		item,
+		{ darkMode: false, theme: { ...DEFAULT_THEME } },
+		render
+	)
 	expect(render).toHaveBeenCalledTimes(2)
 })
