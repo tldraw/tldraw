@@ -2,6 +2,7 @@ import { act } from '@testing-library/react'
 import { createShapeId } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { Tldraw } from '../../lib/Tldraw'
+import { getActionState } from '../../lib/ui/context/action-state'
 import { TLUiActionsContextType, useActions } from '../../lib/ui/context/actions'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
@@ -36,7 +37,7 @@ describe('the default actions ask capabilities', () => {
 			])
 			editor.select(id, other)
 		})
-		const isEnabled = (actionId: string) => actions[actionId].isEnabled!(editor)
+		const isEnabled = (actionId: string) => getActionState(editor, actions[actionId]).enabled
 		expect([isEnabled('delete'), isEnabled('duplicate'), isEnabled('align-left')]).toEqual([
 			true,
 			true,
