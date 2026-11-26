@@ -1,5 +1,5 @@
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { copyPack } from './copyPack'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import type { LibraryPack } from './LibraryPack'
@@ -47,6 +47,26 @@ describe('copyPack', () => {
 		expect(source.can('addItem', copy.id)).toBe(true)
 	})
 
+	it("adds the pack's items together, in the pack's order", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const addItems = vi.spyOn(source, 'addItems')
+		const addItem = vi.spyOn(source, 'addItem')
+		const copy = await copyPack(source, pack)
+		expect(addItems).toHaveBeenCalledTimes(1)
+		expect(addItem).not.toHaveBeenCalled()
+		const byCreation = [...source.getItems(copy.id)]
+			.sort((a, b) => a.createdAt! - b.createdAt!)
+			.map((item) => item.name)
+		expect(byCreation).toEqual(['Button', undefined])
+	})
+
+	it('deletes the copy when its items cannot be added', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		vi.spyOn(source, 'addItems').mockRejectedValue(new Error('offline'))
+		await expect(copyPack(source, pack)).rejects.toThrow('offline')
+		expect(source.getLibraries()).toEqual([])
+	})
+
 	it("uses the source's default owner and records only the pack unless told otherwise", async () => {
 		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
 		const copy = await copyPack(source, pack)
@@ -58,6 +78,18 @@ describe('copyPack', () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const copy = await copyPack(source, pack, { meta: { packId: 'other', packVersion: 1 } })
 		expect(copy.meta).toEqual({ packId: 'wireframing', packVersion: 3 })
+	})
+
+	it("stores each item's meta on its copy", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const copy = await copyPack(source, {
+			...pack,
+			items: [
+				{ id: 'button', name: 'Button', content: content('button'), meta: { category: 'Actions' } },
+				{ id: 'card', content: content('card') },
+			],
+		})
+		expect(source.getItems(copy.id).map((item) => item.meta)).toEqual([{ category: 'Actions' }, {}])
 	})
 
 	it("numbers the copy's name when the source already has one by the pack's name", async () => {

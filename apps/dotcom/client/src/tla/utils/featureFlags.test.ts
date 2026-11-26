@@ -12,11 +12,8 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
 		rum_enabled: { enabled: false },
 		load_rum: { enabled: false },
-		mcp_server_access: { enabled: false },
-		version_chain: { enabled: false },
 		libraries: { enabled: false },
-		thumbnail_render_push: { enabled: false },
-		mcp_render_push: { enabled: false },
+		libraries_anonymous: { enabled: false },
 		headless_shadow: { enabled: false },
 		ui_v3: { enabled: false },
 		mcp_hidden_tab: { enabled: false },

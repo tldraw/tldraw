@@ -173,6 +173,12 @@
       "value": "Unpin file"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "This workspace has reached the maximum number of libraries. Delete old libraries before creating new ones."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -227,6 +233,12 @@
       "value": "A workspace must keep at least one owner. Make someone else an owner first."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "My stash"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -257,6 +269,12 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "This library has reached the maximum number of items. Delete old items before adding new ones."
     }
   ],
   "28b2464e1f": [
@@ -423,6 +441,12 @@
       "value": "Color theme"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Library menu"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -533,6 +557,12 @@
     {
       "type": 0,
       "value": " commented"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "This file"
     }
   ],
   "4d0d3ddec9": [
@@ -1002,6 +1032,12 @@
       "value": "This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "No libraries yet."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1402,6 +1438,38 @@
       "value": "You appear to be offline. Check your connection and try again."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1412,6 +1480,60 @@
     {
       "type": 0,
       "value": "Publish this file"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " and its "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1548,6 +1670,12 @@
     {
       "type": 0,
       "value": "File is getting large"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Delete library"
     }
   ],
   "a9ded1e5ce": [
@@ -2004,6 +2132,12 @@
       "value": "OK"
     }
   ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Couldn't change library"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2132,6 +2266,12 @@
       "value": "User settings"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Not in any file"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2212,6 +2352,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Public libraries"
     }
   ],
   "ff2fefd3c6": [

@@ -1,7 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ensureUser } from '../routes/tla/initUser'
 import {
-	canUseMcpServer,
 	resetFeatureFlagCacheForTests,
 	evaluateFlagForUser,
 	getAllFeatureFlagValues,
@@ -14,15 +12,6 @@ import {
 
 vi.mock('./tla/getAuth', () => ({
 	getAuth: vi.fn(),
-}))
-
-// canUseMcpServer takes the account's email from ensureUser when the flag does not cover them.
-vi.mock('../routes/tla/initUser', () => ({
-	ensureUser: vi.fn(async () => ({ outcome: 'no_clerk_user' })),
-}))
-
-vi.mock('../postgres', () => ({
-	createPostgresConnectionPool: () => ({ destroy: async () => {} }),
 }))
 
 beforeEach(() => resetFeatureFlagCacheForTests())
@@ -347,11 +336,11 @@ describe('getFeatureFlagValue', () => {
 	// matched, and the fall-through admitted everyone holding any token.
 	it('discards a stored type that disagrees with the default', async () => {
 		const env = makeEnv({
-			mcp_server_access: JSON.stringify({ type: 'allowList', enabled: true }),
+			libraries: JSON.stringify({ type: 'allowList', enabled: true }),
 		})
-		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
+		const value = await getFeatureFlagValue(env as any, 'libraries')
 		expect(value.type).toBe('allowlist')
-		expect(evaluateFlagForUser(value, 'mcp_server_access', 'user-1')).toBe(false)
+		expect(evaluateFlagForUser(value, 'libraries', 'user-1')).toBe(false)
 	})
 
 	// Same rule as `type`: a save writes the whole value back, so the description a flag was first
@@ -359,15 +348,15 @@ describe('getFeatureFlagValue', () => {
 	// would go on describing a control by a name the code had already renamed.
 	it('discards a stored description in favour of the current default', async () => {
 		const env = makeEnv({
-			mcp_server_access: JSON.stringify({
+			libraries: JSON.stringify({
 				type: 'allowlist',
 				enabled: true,
-				description: 'Allow everyone opens it to every signed-in account',
+				description: 'A stale description',
 			}),
 		})
-		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
-		expect(value.description).toContain('Allow all')
-		expect(value.description).not.toContain('Allow everyone')
+		const value = await getFeatureFlagValue(env as any, 'libraries')
+		expect(value.description).toContain('libraries UI')
+		expect(value.description).not.toContain('A stale description')
 	})
 
 	it('reads an allowlist stored before percentage existed as 0%', async () => {
@@ -461,7 +450,7 @@ describe('setFeatureFlag', () => {
 	// Replaced rather than merged, so removing someone is an ordinary save.
 	it('replaces the allowlist wholesale', async () => {
 		const env = makeEnv({
-			mcp_server_access: JSON.stringify({
+			libraries: JSON.stringify({
 				type: 'allowlist',
 				enabled: true,
 				users: [
@@ -470,7 +459,7 @@ describe('setFeatureFlag', () => {
 				],
 			}),
 		})
-		await setFeatureFlag(env as any, 'mcp_server_access', {
+		await setFeatureFlag(env as any, 'libraries', {
 			type: 'allowlist',
 			users: [{ userId: 'user-2', email: 'two@example.com' }],
 		})
@@ -590,6 +579,20 @@ describe('getFeatureFlags (route handler)', () => {
 		expect(body.rum_enabled.enabled).toBe(false)
 	})
 
+	it('serves libraries_anonymous to unauthenticated users, off until it is turned on', async () => {
+		const { getAuth } = await import('./tla/getAuth')
+		vi.mocked(getAuth).mockResolvedValue(null)
+
+		const off: any = await (await getFeatureFlags({} as any, makeEnv() as any)).json()
+		expect(off.libraries_anonymous.enabled).toBe(false)
+
+		resetFeatureFlagCacheForTests()
+		const env = makeEnv({ libraries_anonymous: JSON.stringify({ enabled: true }) })
+		const on: any = await (await getFeatureFlags({} as any, env as any)).json()
+		expect(on.libraries_anonymous.enabled).toBe(true)
+		expect(on.libraries.enabled).toBe(false)
+	})
+
 	it('forces legacy zero_enabled/zero_kill_switch/commenting_enabled flags for old client bundles, even unauthenticated', async () => {
 		const { getAuth } = await import('./tla/getAuth')
 		vi.mocked(getAuth).mockResolvedValue(null)
@@ -637,14 +640,11 @@ describe('getAllFeatureFlagValues', () => {
 		// the worker is bound in the environment (see the test below).
 		expect(Object.keys(flags).sort()).toEqual([
 			'libraries',
+			'libraries_anonymous',
 			'load_rum',
 			'mcp_hidden_tab',
-			'mcp_render_push',
-			'mcp_server_access',
 			'rum_enabled',
-			'thumbnail_render_push',
 			'ui_v3',
-			'version_chain',
 		])
 	})
 
@@ -668,7 +668,7 @@ describe('allowEveryone', () => {
 			enabled: true,
 			description: '',
 		}
-		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'not-on-the-list')).toBe(true)
+		expect(evaluateFlagForUser(flag, 'libraries', 'not-on-the-list')).toBe(true)
 	})
 
 	// Same as above from the other side: a stale `enabled: false` does not hold back allow all either.
@@ -680,7 +680,7 @@ describe('allowEveryone', () => {
 			enabled: false,
 			description: '',
 		}
-		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(true)
+		expect(evaluateFlagForUser(flag, 'libraries', 'anyone')).toBe(true)
 	})
 
 	// Absent reads as false: a value stored before this field existed must not start admitting
@@ -692,145 +692,6 @@ describe('allowEveryone', () => {
 			enabled: true,
 			description: '',
 		}
-		expect(evaluateFlagForUser(flag, 'mcp_server_access', 'anyone')).toBe(false)
-	})
-})
-
-describe('canUseMcpServer', () => {
-	const withEmail = (email: string) =>
-		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'existing', email })
-
-	beforeEach(() => {
-		vi.mocked(ensureUser).mockClear()
-	})
-
-	it('admits a verified @tldraw.com account the flag does not name', async () => {
-		withEmail('someone@tldraw.com')
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
-	})
-
-	it('is case-insensitive about the domain', async () => {
-		withEmail('Someone@TLDRAW.com')
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
-	})
-
-	// The obvious near-miss: a domain that merely ends the same way is a different company.
-	it('refuses a lookalike domain', async () => {
-		withEmail('someone@nottldraw.com')
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
-	})
-
-	it('refuses everyone else', async () => {
-		withEmail('someone@example.com')
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
-	})
-
-	it('admits a @tldraw.com account whose rows it just created', async () => {
-		vi.mocked(ensureUser).mockResolvedValueOnce({ outcome: 'created', email: 'someone@tldraw.com' })
-		expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(true)
-	})
-
-	// A token whose account no longer exists is refused, not turned into a 500.
-	it.each(['no_clerk_user', 'no_email', 'rate_limited'] as const)(
-		'refuses when ensureUser returns %s',
-		async (outcome) => {
-			vi.mocked(ensureUser).mockResolvedValueOnce({ outcome })
-			expect(await canUseMcpServer(makeEnv() as any, 'user-1')).toBe(false)
-		}
-	)
-
-	it('still admits staff and refuses everyone else when the flag is unreadable', async () => {
-		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-		const env = makeEnv()
-		env.FEATURE_FLAGS.get = kvDown()
-
-		withEmail('someone@tldraw.com')
-		expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-		withEmail('someone@example.com')
-		expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
-		consoleSpy.mockRestore()
-	})
-
-	describe('when KV fails after the flag was cached', () => {
-		let consoleSpy: ReturnType<typeof vi.spyOn>
-		beforeEach(() => {
-			consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-			vi.useFakeTimers()
-		})
-		afterEach(() => {
-			consoleSpy.mockRestore()
-			vi.useRealTimers()
-		})
-
-		async function warmThenBreak(stored: object) {
-			const env = makeEnv({ mcp_server_access: JSON.stringify(stored) })
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-			vi.advanceTimersByTime(30_000)
-			env.FEATURE_FLAGS.get = kvDown()
-			return env
-		}
-
-		it.each([
-			['an individual grant', { users: [{ userId: 'user-1', email: 'someone@example.com' }] }],
-			['allowEveryone', { users: [], allowEveryone: true }],
-		])('does not keep admitting through %s', async (_, stored) => {
-			const env = await warmThenBreak(stored)
-			withEmail('someone@example.com')
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
-		})
-
-		// Stale-on-error reads (the flags route) must not re-arm the cached grant for this check.
-		it('does not keep admitting after a stale-on-error read of the flag', async () => {
-			const env = await warmThenBreak({ users: [], allowEveryone: true })
-			await getFeatureFlagValue(env as any, 'mcp_server_access')
-			withEmail('someone@example.com')
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(false)
-		})
-
-		it('still admits staff', async () => {
-			const env = await warmThenBreak({ users: [], allowEveryone: true })
-			withEmail('someone@tldraw.com')
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-		})
-	})
-
-	// Every account the check sees gets its rows and home workspace, whatever the domain and
-	// whether or not it is admitted.
-	it.each([
-		['a @tldraw.com account', 'someone@tldraw.com', false, true],
-		['any other account', 'someone@example.com', false, false],
-		['any other account the flag grants', 'someone@example.com', true, true],
-	])('ensures the rows of %s', async (_, email, granted, admitted) => {
-		const env = granted
-			? makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
-			: makeEnv()
-		withEmail(email)
-		expect(await canUseMcpServer(env as any, 'user-1')).toBe(admitted)
-		expect(ensureUser).toHaveBeenCalledWith(env, expect.anything(), 'user-1')
-	})
-
-	describe('for an account the flag grants', () => {
-		const grantedEnv = () =>
-			makeEnv({ mcp_server_access: JSON.stringify({ users: [], allowEveryone: true }) })
-
-		// Granted accounts can sign up on the consent screen too, and need a workspace like anyone.
-		it('ensures their rows once per isolate', async () => {
-			const env = grantedEnv()
-			withEmail('someone@example.com')
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-			expect(ensureUser).toHaveBeenCalledTimes(1)
-		})
-
-		it('admits them and retries the rows next time when ensuring fails', async () => {
-			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-			const env = grantedEnv()
-			vi.mocked(ensureUser).mockRejectedValueOnce(new Error('Postgres down'))
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-			withEmail('someone@example.com')
-			expect(await canUseMcpServer(env as any, 'user-1')).toBe(true)
-			expect(ensureUser).toHaveBeenCalledTimes(2)
-			consoleSpy.mockRestore()
-		})
+		expect(evaluateFlagForUser(flag, 'libraries', 'anyone')).toBe(false)
 	})
 })

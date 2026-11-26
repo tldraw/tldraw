@@ -216,6 +216,10 @@ button.topLeftInputNameWidthSetter {
 	margin-left: -4px;
 }
 
+.librariesButton {
+	color: var(--tl-color-text-1);
+}
+
 .topLeftMainMenuTrigger:focus-visible {
 	outline: 2px solid var(--tl-color-focus);
 	outline-offset: -5px;
@@ -232,6 +236,10 @@ button.topLeftInputNameWidthSetter {
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
 		color: var(--tl-color-text-1);
+	}
+
+	:global(.tlui-button).topLeftMainMenuTrigger:not(:disabled, [data-disabled]):hover {
+		z-index: 4;
 	}
 
 	.topLeftMainMenuTrigger:hover::after {

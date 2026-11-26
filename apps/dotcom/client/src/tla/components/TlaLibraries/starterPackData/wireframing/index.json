@@ -1,0 +1,462 @@
+{
+	"id": "wireframing",
+	"name": "Wireframing",
+	"version": 6,
+	"items": [
+		{
+			"id": "button",
+			"name": "Primary button",
+			"thumbnail": {
+				"light": "thumbnails/button-light.webp",
+				"dark": "thumbnails/button-dark.webp"
+			},
+			"meta": {
+				"category": "Actions",
+				"tags": ["Primary button", "button", "Actions"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "secondary-button",
+			"name": "Secondary button",
+			"thumbnail": {
+				"light": "thumbnails/secondary-button-light.webp",
+				"dark": "thumbnails/secondary-button-dark.webp"
+			},
+			"meta": {
+				"category": "Actions",
+				"tags": ["Secondary button", "secondary-button", "Actions"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "icon-button",
+			"name": "Icon button",
+			"thumbnail": {
+				"light": "thumbnails/icon-button-light.webp",
+				"dark": "thumbnails/icon-button-dark.webp"
+			},
+			"meta": {
+				"category": "Actions",
+				"tags": ["Icon button", "icon-button", "Actions"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "disabled-button",
+			"name": "Disabled button",
+			"thumbnail": {
+				"light": "thumbnails/disabled-button-light.webp",
+				"dark": "thumbnails/disabled-button-dark.webp"
+			},
+			"meta": {
+				"category": "Actions",
+				"tags": ["Disabled button", "disabled-button", "Actions"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "danger-button",
+			"name": "Destructive action",
+			"thumbnail": {
+				"light": "thumbnails/danger-button-light.webp",
+				"dark": "thumbnails/danger-button-dark.webp"
+			},
+			"meta": {
+				"category": "Actions",
+				"tags": ["Destructive action", "danger-button", "Actions"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "link",
+			"name": "Link",
+			"thumbnail": {
+				"light": "thumbnails/link-light.webp",
+				"dark": "thumbnails/link-dark.webp"
+			},
+			"meta": {
+				"category": "Actions",
+				"tags": ["Link", "link", "Actions"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "text-area",
+			"name": "Text area",
+			"thumbnail": {
+				"light": "thumbnails/text-area-light.webp",
+				"dark": "thumbnails/text-area-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Text area", "text-area", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "text-input",
+			"name": "Text input",
+			"thumbnail": {
+				"light": "thumbnails/text-input-light.webp",
+				"dark": "thumbnails/text-input-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Text input", "text-input", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "search-input",
+			"name": "Search input",
+			"thumbnail": {
+				"light": "thumbnails/search-input-light.webp",
+				"dark": "thumbnails/search-input-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Search input", "search-input", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "select",
+			"name": "Select",
+			"thumbnail": {
+				"light": "thumbnails/select-light.webp",
+				"dark": "thumbnails/select-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Select", "select", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "error-input",
+			"name": "Input / error",
+			"thumbnail": {
+				"light": "thumbnails/error-input-light.webp",
+				"dark": "thumbnails/error-input-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Input / error", "error-input", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "disabled-input",
+			"name": "Input / disabled",
+			"thumbnail": {
+				"light": "thumbnails/disabled-input-light.webp",
+				"dark": "thumbnails/disabled-input-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Input / disabled", "disabled-input", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "focused-input",
+			"name": "Input / focus",
+			"thumbnail": {
+				"light": "thumbnails/focused-input-light.webp",
+				"dark": "thumbnails/focused-input-dark.webp"
+			},
+			"meta": {
+				"category": "Inputs and states",
+				"tags": ["Input / focus", "focused-input", "Inputs and states"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "checkbox-off",
+			"name": "Checkbox / off",
+			"thumbnail": {
+				"light": "thumbnails/checkbox-off-light.webp",
+				"dark": "thumbnails/checkbox-off-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Checkbox / off", "checkbox-off", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "checkbox",
+			"name": "Checkbox / on",
+			"thumbnail": {
+				"light": "thumbnails/checkbox-light.webp",
+				"dark": "thumbnails/checkbox-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Checkbox / on", "checkbox", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "radio-off",
+			"name": "Radio / off",
+			"thumbnail": {
+				"light": "thumbnails/radio-off-light.webp",
+				"dark": "thumbnails/radio-off-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Radio / off", "radio-off", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "radio-on",
+			"name": "Radio / on",
+			"thumbnail": {
+				"light": "thumbnails/radio-on-light.webp",
+				"dark": "thumbnails/radio-on-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Radio / on", "radio-on", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "toggle-off",
+			"name": "Toggle / off",
+			"thumbnail": {
+				"light": "thumbnails/toggle-off-light.webp",
+				"dark": "thumbnails/toggle-off-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Toggle / off", "toggle-off", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "toggle",
+			"name": "Toggle / on",
+			"thumbnail": {
+				"light": "thumbnails/toggle-light.webp",
+				"dark": "thumbnails/toggle-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Toggle / on", "toggle", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "slider",
+			"name": "Slider",
+			"thumbnail": {
+				"light": "thumbnails/slider-light.webp",
+				"dark": "thumbnails/slider-dark.webp"
+			},
+			"meta": {
+				"category": "Selection controls",
+				"tags": ["Slider", "slider", "Selection controls"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "sidebar",
+			"name": "Sidebar",
+			"thumbnail": {
+				"light": "thumbnails/sidebar-light.webp",
+				"dark": "thumbnails/sidebar-dark.webp"
+			},
+			"meta": {
+				"category": "Navigation",
+				"tags": ["Sidebar", "sidebar", "Navigation"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "navbar",
+			"name": "Navigation bar",
+			"thumbnail": {
+				"light": "thumbnails/navbar-light.webp",
+				"dark": "thumbnails/navbar-dark.webp"
+			},
+			"meta": {
+				"category": "Navigation",
+				"tags": ["Navigation bar", "navbar", "Navigation"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "tabs",
+			"name": "Tabs",
+			"thumbnail": {
+				"light": "thumbnails/tabs-light.webp",
+				"dark": "thumbnails/tabs-dark.webp"
+			},
+			"meta": {
+				"category": "Navigation",
+				"tags": ["Tabs", "tabs", "Navigation"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "breadcrumbs",
+			"name": "Breadcrumbs",
+			"thumbnail": {
+				"light": "thumbnails/breadcrumbs-light.webp",
+				"dark": "thumbnails/breadcrumbs-dark.webp"
+			},
+			"meta": {
+				"category": "Navigation",
+				"tags": ["Breadcrumbs", "breadcrumbs", "Navigation"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "content-card",
+			"name": "Content card",
+			"thumbnail": {
+				"light": "thumbnails/content-card-light.webp",
+				"dark": "thumbnails/content-card-dark.webp"
+			},
+			"meta": {
+				"category": "Content",
+				"tags": ["Content card", "content-card", "Content"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "image-placeholder",
+			"name": "Image placeholder",
+			"thumbnail": {
+				"light": "thumbnails/image-placeholder-light.webp",
+				"dark": "thumbnails/image-placeholder-dark.webp"
+			},
+			"meta": {
+				"category": "Content",
+				"tags": ["Image placeholder", "image-placeholder", "Content"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "avatar",
+			"name": "Avatar",
+			"thumbnail": {
+				"light": "thumbnails/avatar-light.webp",
+				"dark": "thumbnails/avatar-dark.webp"
+			},
+			"meta": {
+				"category": "Content",
+				"tags": ["Avatar", "avatar", "Content"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "table",
+			"name": "Simple table",
+			"thumbnail": {
+				"light": "thumbnails/table-light.webp",
+				"dark": "thumbnails/table-dark.webp"
+			},
+			"meta": {
+				"category": "Content",
+				"tags": ["Simple table", "table", "Content"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "list-row",
+			"name": "List row",
+			"thumbnail": {
+				"light": "thumbnails/list-row-light.webp",
+				"dark": "thumbnails/list-row-dark.webp"
+			},
+			"meta": {
+				"category": "Content",
+				"tags": ["List row", "list-row", "Content"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "phone",
+			"name": "Phone frame",
+			"thumbnail": {
+				"light": "thumbnails/phone-light.webp",
+				"dark": "thumbnails/phone-dark.webp"
+			},
+			"meta": {
+				"category": "Containers",
+				"tags": ["Phone frame", "phone", "Containers"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "modal",
+			"name": "Modal",
+			"thumbnail": {
+				"light": "thumbnails/modal-light.webp",
+				"dark": "thumbnails/modal-dark.webp"
+			},
+			"meta": {
+				"category": "Containers",
+				"tags": ["Modal", "modal", "Containers"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "browser-window",
+			"name": "Browser window",
+			"thumbnail": {
+				"light": "thumbnails/browser-window-light.webp",
+				"dark": "thumbnails/browser-window-dark.webp"
+			},
+			"meta": {
+				"category": "Containers",
+				"tags": ["Browser window", "browser-window", "Containers"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "panel",
+			"name": "Panel",
+			"thumbnail": {
+				"light": "thumbnails/panel-light.webp",
+				"dark": "thumbnails/panel-dark.webp"
+			},
+			"meta": {
+				"category": "Containers",
+				"tags": ["Panel", "panel", "Containers"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "login-screen",
+			"name": "Login screen",
+			"thumbnail": {
+				"light": "thumbnails/login-screen-light.webp",
+				"dark": "thumbnails/login-screen-dark.webp"
+			},
+			"meta": {
+				"category": "Screen templates",
+				"tags": ["Login screen", "login-screen", "Screen templates"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "list-detail-screen",
+			"name": "List / detail screen",
+			"thumbnail": {
+				"light": "thumbnails/list-detail-screen-light.webp",
+				"dark": "thumbnails/list-detail-screen-dark.webp"
+			},
+			"meta": {
+				"category": "Screen templates",
+				"tags": ["List / detail screen", "list-detail-screen", "Screen templates"],
+				"source": "tldraw"
+			}
+		}
+	]
+}

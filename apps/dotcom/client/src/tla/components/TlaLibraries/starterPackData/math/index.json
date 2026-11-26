@@ -1,0 +1,813 @@
+{
+	"id": "math",
+	"name": "Math",
+	"version": 1,
+	"items": [
+		{
+			"id": "plus",
+			"name": "Plus",
+			"thumbnail": {
+				"light": "thumbnails/plus-light.webp",
+				"dark": "thumbnails/plus-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Plus", "plus", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "minus",
+			"name": "Minus",
+			"thumbnail": {
+				"light": "thumbnails/minus-light.webp",
+				"dark": "thumbnails/minus-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Minus", "minus", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "times",
+			"name": "Multiply",
+			"thumbnail": {
+				"light": "thumbnails/times-light.webp",
+				"dark": "thumbnails/times-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Multiply", "times", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "divide",
+			"name": "Divide",
+			"thumbnail": {
+				"light": "thumbnails/divide-light.webp",
+				"dark": "thumbnails/divide-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Divide", "divide", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "equals",
+			"name": "Equals",
+			"thumbnail": {
+				"light": "thumbnails/equals-light.webp",
+				"dark": "thumbnails/equals-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Equals", "equals", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "not-equals",
+			"name": "Not equal",
+			"thumbnail": {
+				"light": "thumbnails/not-equals-light.webp",
+				"dark": "thumbnails/not-equals-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Not equal", "not-equals", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "approximately",
+			"name": "Approximately",
+			"thumbnail": {
+				"light": "thumbnails/approximately-light.webp",
+				"dark": "thumbnails/approximately-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Approximately", "approximately", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "plus-minus",
+			"name": "Plus / minus",
+			"thumbnail": {
+				"light": "thumbnails/plus-minus-light.webp",
+				"dark": "thumbnails/plus-minus-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Plus / minus", "plus-minus", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "less-than",
+			"name": "Less than",
+			"thumbnail": {
+				"light": "thumbnails/less-than-light.webp",
+				"dark": "thumbnails/less-than-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Less than", "less-than", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "greater-than",
+			"name": "Greater than",
+			"thumbnail": {
+				"light": "thumbnails/greater-than-light.webp",
+				"dark": "thumbnails/greater-than-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Greater than", "greater-than", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "less-equal",
+			"name": "Less / equal",
+			"thumbnail": {
+				"light": "thumbnails/less-equal-light.webp",
+				"dark": "thumbnails/less-equal-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Less / equal", "less-equal", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "greater-equal",
+			"name": "Greater / equal",
+			"thumbnail": {
+				"light": "thumbnails/greater-equal-light.webp",
+				"dark": "thumbnails/greater-equal-dark.webp"
+			},
+			"meta": {
+				"category": "Operators and relations",
+				"tags": ["Greater / equal", "greater-equal", "Operators and relations"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "fraction",
+			"name": "Fraction",
+			"thumbnail": {
+				"light": "thumbnails/fraction-light.webp",
+				"dark": "thumbnails/fraction-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Fraction", "fraction", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "nth-root",
+			"name": "Nth root",
+			"thumbnail": {
+				"light": "thumbnails/nth-root-light.webp",
+				"dark": "thumbnails/nth-root-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Nth root", "nth-root", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "parentheses",
+			"name": "Parentheses",
+			"thumbnail": {
+				"light": "thumbnails/parentheses-light.webp",
+				"dark": "thumbnails/parentheses-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Parentheses", "parentheses", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "square-root",
+			"name": "Square root",
+			"thumbnail": {
+				"light": "thumbnails/square-root-light.webp",
+				"dark": "thumbnails/square-root-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Square root", "square-root", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "subscript",
+			"name": "Subscript",
+			"thumbnail": {
+				"light": "thumbnails/subscript-light.webp",
+				"dark": "thumbnails/subscript-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Subscript", "subscript", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "power",
+			"name": "Power",
+			"thumbnail": {
+				"light": "thumbnails/power-light.webp",
+				"dark": "thumbnails/power-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Power", "power", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "braces",
+			"name": "Braces",
+			"thumbnail": {
+				"light": "thumbnails/braces-light.webp",
+				"dark": "thumbnails/braces-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Braces", "braces", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "square-brackets",
+			"name": "Square brackets",
+			"thumbnail": {
+				"light": "thumbnails/square-brackets-light.webp",
+				"dark": "thumbnails/square-brackets-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Square brackets", "square-brackets", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "absolute-value",
+			"name": "Absolute value",
+			"thumbnail": {
+				"light": "thumbnails/absolute-value-light.webp",
+				"dark": "thumbnails/absolute-value-dark.webp"
+			},
+			"meta": {
+				"category": "Algebra scaffolds",
+				"tags": ["Absolute value", "absolute-value", "Algebra scaffolds"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "integral",
+			"name": "Integral",
+			"thumbnail": {
+				"light": "thumbnails/integral-light.webp",
+				"dark": "thumbnails/integral-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Integral", "integral", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "double-integral",
+			"name": "Double integral",
+			"thumbnail": {
+				"light": "thumbnails/double-integral-light.webp",
+				"dark": "thumbnails/double-integral-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Double integral", "double-integral", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "triple-integral",
+			"name": "Triple integral",
+			"thumbnail": {
+				"light": "thumbnails/triple-integral-light.webp",
+				"dark": "thumbnails/triple-integral-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Triple integral", "triple-integral", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "contour-integral",
+			"name": "Contour integral",
+			"thumbnail": {
+				"light": "thumbnails/contour-integral-light.webp",
+				"dark": "thumbnails/contour-integral-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Contour integral", "contour-integral", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "summation",
+			"name": "Summation",
+			"thumbnail": {
+				"light": "thumbnails/summation-light.webp",
+				"dark": "thumbnails/summation-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Summation", "summation", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "derivative",
+			"name": "Derivative",
+			"thumbnail": {
+				"light": "thumbnails/derivative-light.webp",
+				"dark": "thumbnails/derivative-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Derivative", "derivative", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "partial",
+			"name": "Partial derivative",
+			"thumbnail": {
+				"light": "thumbnails/partial-light.webp",
+				"dark": "thumbnails/partial-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Partial derivative", "partial", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "product",
+			"name": "Product",
+			"thumbnail": {
+				"light": "thumbnails/product-light.webp",
+				"dark": "thumbnails/product-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Product", "product", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "limit",
+			"name": "Limit",
+			"thumbnail": {
+				"light": "thumbnails/limit-light.webp",
+				"dark": "thumbnails/limit-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Limit", "limit", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "nabla",
+			"name": "Nabla",
+			"thumbnail": {
+				"light": "thumbnails/nabla-light.webp",
+				"dark": "thumbnails/nabla-dark.webp"
+			},
+			"meta": {
+				"category": "Calculus",
+				"tags": ["Nabla", "nabla", "Calculus"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "beta",
+			"name": "Beta",
+			"thumbnail": {
+				"light": "thumbnails/beta-light.webp",
+				"dark": "thumbnails/beta-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Beta", "beta", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "variable-x",
+			"name": "x",
+			"thumbnail": {
+				"light": "thumbnails/variable-x-light.webp",
+				"dark": "thumbnails/variable-x-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["x", "variable-x", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "variable-y",
+			"name": "y",
+			"thumbnail": {
+				"light": "thumbnails/variable-y-light.webp",
+				"dark": "thumbnails/variable-y-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["y", "variable-y", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "variable-z",
+			"name": "z",
+			"thumbnail": {
+				"light": "thumbnails/variable-z-light.webp",
+				"dark": "thumbnails/variable-z-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["z", "variable-z", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "theta",
+			"name": "Theta",
+			"thumbnail": {
+				"light": "thumbnails/theta-light.webp",
+				"dark": "thumbnails/theta-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Theta", "theta", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "alpha",
+			"name": "Alpha",
+			"thumbnail": {
+				"light": "thumbnails/alpha-light.webp",
+				"dark": "thumbnails/alpha-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Alpha", "alpha", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "pi",
+			"name": "Pi",
+			"thumbnail": {
+				"light": "thumbnails/pi-light.webp",
+				"dark": "thumbnails/pi-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Pi", "pi", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "infinity",
+			"name": "Infinity",
+			"thumbnail": {
+				"light": "thumbnails/infinity-light.webp",
+				"dark": "thumbnails/infinity-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Infinity", "infinity", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "mu",
+			"name": "Mu",
+			"thumbnail": {
+				"light": "thumbnails/mu-light.webp",
+				"dark": "thumbnails/mu-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Mu", "mu", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "lambda",
+			"name": "Lambda",
+			"thumbnail": {
+				"light": "thumbnails/lambda-light.webp",
+				"dark": "thumbnails/lambda-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Lambda", "lambda", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "sigma",
+			"name": "Sigma",
+			"thumbnail": {
+				"light": "thumbnails/sigma-light.webp",
+				"dark": "thumbnails/sigma-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Sigma", "sigma", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "omega",
+			"name": "Omega",
+			"thumbnail": {
+				"light": "thumbnails/omega-light.webp",
+				"dark": "thumbnails/omega-dark.webp"
+			},
+			"meta": {
+				"category": "Variables and constants",
+				"tags": ["Omega", "omega", "Variables and constants"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "not-member",
+			"name": "Not a member",
+			"thumbnail": {
+				"light": "thumbnails/not-member-light.webp",
+				"dark": "thumbnails/not-member-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Not a member", "not-member", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "subset-equal",
+			"name": "Subset / equal",
+			"thumbnail": {
+				"light": "thumbnails/subset-equal-light.webp",
+				"dark": "thumbnails/subset-equal-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Subset / equal", "subset-equal", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "union",
+			"name": "Union",
+			"thumbnail": {
+				"light": "thumbnails/union-light.webp",
+				"dark": "thumbnails/union-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Union", "union", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "intersection",
+			"name": "Intersection",
+			"thumbnail": {
+				"light": "thumbnails/intersection-light.webp",
+				"dark": "thumbnails/intersection-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Intersection", "intersection", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "member",
+			"name": "Member of",
+			"thumbnail": {
+				"light": "thumbnails/member-light.webp",
+				"dark": "thumbnails/member-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Member of", "member", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "subset",
+			"name": "Subset",
+			"thumbnail": {
+				"light": "thumbnails/subset-light.webp",
+				"dark": "thumbnails/subset-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Subset", "subset", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "empty-set",
+			"name": "Empty set",
+			"thumbnail": {
+				"light": "thumbnails/empty-set-light.webp",
+				"dark": "thumbnails/empty-set-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Empty set", "empty-set", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "not",
+			"name": "Not",
+			"thumbnail": {
+				"light": "thumbnails/not-light.webp",
+				"dark": "thumbnails/not-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Not", "not", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "and",
+			"name": "And",
+			"thumbnail": {
+				"light": "thumbnails/and-light.webp",
+				"dark": "thumbnails/and-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["And", "and", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "or",
+			"name": "Or",
+			"thumbnail": {
+				"light": "thumbnails/or-light.webp",
+				"dark": "thumbnails/or-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Or", "or", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "implies",
+			"name": "Implies",
+			"thumbnail": {
+				"light": "thumbnails/implies-light.webp",
+				"dark": "thumbnails/implies-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["Implies", "implies", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "iff",
+			"name": "If and only if",
+			"thumbnail": {
+				"light": "thumbnails/iff-light.webp",
+				"dark": "thumbnails/iff-dark.webp"
+			},
+			"meta": {
+				"category": "Sets and logic",
+				"tags": ["If and only if", "iff", "Sets and logic"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "axes",
+			"name": "Coordinate axes",
+			"thumbnail": {
+				"light": "thumbnails/axes-light.webp",
+				"dark": "thumbnails/axes-dark.webp"
+			},
+			"meta": {
+				"category": "Structures",
+				"tags": ["Coordinate axes", "axes", "Structures"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "matrix",
+			"name": "Matrix 2 × 2",
+			"thumbnail": {
+				"light": "thumbnails/matrix-light.webp",
+				"dark": "thumbnails/matrix-dark.webp"
+			},
+			"meta": {
+				"category": "Structures",
+				"tags": ["Matrix 2 × 2", "matrix", "Structures"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "column-vector",
+			"name": "Column vector",
+			"thumbnail": {
+				"light": "thumbnails/column-vector-light.webp",
+				"dark": "thumbnails/column-vector-dark.webp"
+			},
+			"meta": {
+				"category": "Structures",
+				"tags": ["Column vector", "column-vector", "Structures"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "number-line",
+			"name": "Number line",
+			"thumbnail": {
+				"light": "thumbnails/number-line-light.webp",
+				"dark": "thumbnails/number-line-dark.webp"
+			},
+			"meta": {
+				"category": "Structures",
+				"tags": ["Number line", "number-line", "Structures"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "series-template",
+			"name": "Series",
+			"thumbnail": {
+				"light": "thumbnails/series-template-light.webp",
+				"dark": "thumbnails/series-template-dark.webp"
+			},
+			"meta": {
+				"category": "Equation templates",
+				"tags": ["Series", "series-template", "Equation templates"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "definite-integral",
+			"name": "Definite integral",
+			"thumbnail": {
+				"light": "thumbnails/definite-integral-light.webp",
+				"dark": "thumbnails/definite-integral-dark.webp"
+			},
+			"meta": {
+				"category": "Equation templates",
+				"tags": ["Definite integral", "definite-integral", "Equation templates"],
+				"source": "tldraw"
+			}
+		},
+		{
+			"id": "quadratic-template",
+			"name": "Quadratic",
+			"thumbnail": {
+				"light": "thumbnails/quadratic-template-light.webp",
+				"dark": "thumbnails/quadratic-template-dark.webp"
+			},
+			"meta": {
+				"category": "Equation templates",
+				"tags": ["Quadratic", "quadratic-template", "Equation templates"],
+				"source": "tldraw"
+			}
+		}
+	]
+}

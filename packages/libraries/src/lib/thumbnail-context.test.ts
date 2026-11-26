@@ -1,4 +1,6 @@
-import { getThumbnailContext } from './thumbnail-context'
+import { readFileSync } from 'fs'
+import path from 'path'
+import { getThumbnailContext, LIBRARIES_TILE_WIDTH } from './thumbnail-context'
 
 const base = { colorMode: 'dark' as const, dpr: 1, networkEffectiveType: '4g' }
 
@@ -22,5 +24,15 @@ describe('getThumbnailContext', () => {
 			dpr: 1,
 			networkEffectiveType: null,
 		})
+	})
+})
+
+describe('LIBRARIES_TILE_WIDTH', () => {
+	it("matches the panel's default tile width in canvas.css", () => {
+		const css = readFileSync(path.resolve(__dirname, '../canvas/canvas.css'), 'utf8')
+		const declared = css.match(
+			/\.tlui-libraries-panel \{[^}]*--tlui-libraries-tile-width:\s*([\d.]+)px;/
+		)
+		expect(Number(declared?.[1])).toBe(LIBRARIES_TILE_WIDTH)
 	})
 })

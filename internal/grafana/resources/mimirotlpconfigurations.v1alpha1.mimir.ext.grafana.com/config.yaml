@@ -1,0 +1,9 @@
+apiVersion: mimir.ext.grafana.com/v1alpha1
+kind: MimirOTLPConfiguration
+metadata:
+  name: config
+spec:
+  resourceAttributes:
+    promote:
+      - process.worker
+      - process.worker_index

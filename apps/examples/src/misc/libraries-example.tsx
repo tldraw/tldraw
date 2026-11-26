@@ -1,5 +1,6 @@
 import {
 	AddToLibraryMenuItem,
+	CommandPaletteLibrariesGroup,
 	type LibrariesComponents,
 	type LibrarySource,
 	LibrariesPanel,
@@ -8,6 +9,8 @@ import {
 } from '@tldraw/libraries'
 import { type ReactNode, useEffect, useMemo } from 'react'
 import {
+	DefaultCommandPalette,
+	DefaultCommandPaletteContent,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	Editor,
@@ -75,6 +78,11 @@ function makeComponents(getShowing: (editor: Editor) => Showing): TLComponents {
 		return <AddToLibraryMenuItem source={source} />
 	}
 
+	function ExamplePaletteGroup() {
+		const { source } = useShowing()
+		return <CommandPaletteLibrariesGroup source={source} />
+	}
+
 	return {
 		InFrontOfTheCanvas: ExamplePanel,
 		ContextMenu: (props) => (
@@ -84,6 +92,12 @@ function makeComponents(getShowing: (editor: Editor) => Showing): TLComponents {
 			</DefaultContextMenu>
 		),
 		QuickActions: LibrariesQuickActions,
+		CommandPalette: (props) => (
+			<DefaultCommandPalette {...props}>
+				<ExamplePaletteGroup />
+				<DefaultCommandPaletteContent />
+			</DefaultCommandPalette>
+		),
 	}
 }
 
