@@ -1,4 +1,5 @@
 import { formatRelativeTime } from '@tldraw/commenting'
+import { isFileCreatedByUser } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { MouseEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react'
@@ -143,9 +144,7 @@ function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): Board
 				// The sidebar's test for its "Shared by" badge: boards the user can't administer.
 				const isShared = !app.canUpdateFile(fileId)
 				if (tab === 'shared' && !isShared) continue
-				// TODO: files don't record who created them. In the home workspace every board that isn't
-				// shared is the user's own, but a team workspace can't tell yet.
-				if (tab === 'mine' && (isShared || workspaceId !== app.getHomeWorkspaceId())) continue
+				if (tab === 'mine' && !isFileCreatedByUser(file, app.userId)) continue
 				boards.push({
 					fileId,
 					name,

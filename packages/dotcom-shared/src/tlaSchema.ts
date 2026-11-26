@@ -93,6 +93,11 @@ export const file = table('file')
 		isEmpty: boolean(),
 		isDeleted: boolean(),
 		createSource: string().optional(),
+		/**
+		 * The user who created the board. Ownership is per workspace (owningGroupId); this only says
+		 * who made it. Can be null for boards created before the column existed: use isFileCreatedByUser.
+		 */
+		createdBy: string().optional(),
 	})
 	.primaryKey('id')
 
@@ -537,6 +542,7 @@ export const immutableColumns = {
 		'thumbnail',
 		'isDeleted',
 		'createSource',
+		'createdBy',
 		'updatedAt',
 		'createdAt',
 	]),
@@ -545,6 +551,18 @@ export const immutableColumns = {
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
 	return !immutableColumns[tableName].has(column as never)
+}
+
+/**
+ * Whether the user created this board. Boards from before `file.createdBy` existed have it null,
+ * and the ones in a home workspace are not backfilled: a home workspace's id is its user's id, so
+ * the user created them (or moved them in), and backfilling would rewrite most of the file table.
+ */
+export function isFileCreatedByUser(
+	file: Pick<TlaFile, 'createdBy' | 'owningGroupId'>,
+	userId: string
+) {
+	return file.createdBy ? file.createdBy === userId : file.owningGroupId === userId
 }
 
 export interface TlaAsset {

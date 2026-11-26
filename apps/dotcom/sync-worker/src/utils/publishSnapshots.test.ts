@@ -29,6 +29,7 @@ function file(partial: Partial<TlaFile>): TlaFile {
 		isEmpty: false,
 		isDeleted: false,
 		createSource: null,
+		createdBy: null,
 		owningGroupId: null,
 		...partial,
 	}
