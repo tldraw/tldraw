@@ -8,7 +8,7 @@ import {
 	TLAnyShapeUtilConstructor,
 	TLShapeId,
 } from '@tldraw/editor'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import { DefaultKeyboardShortcutsDialogContent } from '../../lib/ui/components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialogContent'
@@ -166,12 +166,8 @@ describe('keyboard shortcuts dialog with shortcuts turned off', () => {
 	function OpenShortcutsDialog() {
 		const dialogs = useDialogs()
 		const actions = useActions()
-		// The actions rebuild when their inputs change, so open the dialog only once.
-		const opened = useRef(false)
 		useEffect(() => {
 			clearDialogs = dialogs.clearDialogs
-			if (opened.current) return
-			opened.current = true
 			actions['open-kbd-shortcuts'].onSelect('kbd')
 		}, [dialogs, actions])
 		return null

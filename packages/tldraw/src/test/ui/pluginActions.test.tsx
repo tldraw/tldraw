@@ -91,6 +91,21 @@ describe('actions from plugins', () => {
 		expect(Object.keys(actions)).toEqual(expected)
 	})
 
+	it('keeps the same actions across renders of the UI', async () => {
+		const seen = new Set<TLUiActionsContextType>()
+		function CollectActions() {
+			seen.add(useActions())
+			return null
+		}
+		await renderTldrawComponent(
+			<Tldraw>
+				<CollectActions />
+			</Tldraw>,
+			{ waitForPatterns: false }
+		)
+		expect(seen.size).toBe(1)
+	})
+
 	it('has no action or shortcut for a plugin that is left out', async () => {
 		const leftOut = Object.keys(pluginActionIds)
 		const plugins = createTldrawPlugins().filter((p) => !leftOut.includes(p.id))
