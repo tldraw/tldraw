@@ -96,6 +96,8 @@ import type { ContentController } from '../plugins/builtin/ContentController'
 import { contentTransferCapability } from '../plugins/builtin/contentTransfer'
 import { containerFocusCapability } from '../plugins/builtin/domFocus'
 import { edgeScrollCapability } from '../plugins/builtin/edgeScroll'
+import { editingCapability } from '../plugins/builtin/editing'
+import type { EditingController } from '../plugins/builtin/EditingController'
 import { eventDispatchCapability } from '../plugins/builtin/eventDispatch'
 import type { EventDispatcher } from '../plugins/builtin/EventDispatcher'
 import {
@@ -1107,6 +1109,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_eventDispatcher: p.facade(eventDispatchCapability, (c) => c),
 			_arranger: p.facade(shapeArrangementCapability, (c) => c),
 			_shapeAnimator: p.facade(shapeAnimationCapability, (c) => c),
+			_editing: p.facade(editingCapability, (c) => c),
 			_selection: p.facade(selectionCapability, (c) => c),
 			_contentTransfer: p.facade(contentTransferCapability, (c) => c),
 			_styles: p.facade(stylesCapability, (c) => c),
@@ -1146,6 +1149,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	readonly _shapeAnimator!: ShapeAnimator
+
+	/** @internal */
+	readonly _editing!: EditingController
 
 	/** @internal */
 	readonly _selection!: SelectionController
@@ -2523,17 +2529,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the shape can be edited, false otherwise.
 	 */
 	canEditShape<T extends TLShape | TLShapeId>(shape: T | null, info?: TLEditStartInfo): shape is T {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false // no shape
-		if (id === this.getEditingShapeId()) return false // already editing this shape
-		const _shape = this.getShape(id)
-		if (!_shape) return false // no shape
-		const util = this.getShapeUtil(_shape)
-		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
-		if (!util.canEdit(_shape, _info)) return false // shape is not editable
-		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
-		return true // shape is editable
+		return this._editing.canEditShape(shape, info)
 	}
 
 	/**
@@ -2550,55 +2546,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-
-		// id was provided but the next editing shape was not editable or didn't exist, so do nothing
-		if (id && !this.canEditShape(id)) return this
-
-		this.run(() => {
-			// Clean up the previous editing shape. This runs outside the history-ignored batch below,
-			// otherwise document changes made by onEditEnd (e.g. deleting an empty text shape) are
-			// never recorded and leave a phantom undo entry whose redo resurrects the shape.
-			const prevEditingShapeId = this.getEditingShapeId()
-			if (prevEditingShapeId) {
-				const prevEditingShape = this.getShape(prevEditingShapeId)
-				if (prevEditingShape) {
-					this.getShapeUtil(prevEditingShape).onEditEnd?.(prevEditingShape)
-				}
-			}
-
-			this.run(
-				() => {
-					// Clean up the editing shape state and rich text editor
-					this._updateCurrentPageState({ editingShapeId: null })
-					this._currentRichTextEditor.set(null)
-
-					if (!id) return
-
-					this.select(id)
-					this._updateCurrentPageState({ editingShapeId: id })
-
-					const nextEditingShape = this.getShape(id)! // shape should be there because canEditShape checked it. Possible small chance that onEditEnd deleted it?
-					this.getShapeUtil(nextEditingShape).onEditStart?.(nextEditingShape)
-				},
-				{ history: 'ignore' }
-			)
-		})
-
+		this._editing.setEditingShape(shape)
 		return this
 	}
-
-	// Rich text editor
-
-	private _currentRichTextEditor = atom('rich text editor', null as TiptapEditor | null)
 
 	/**
 	 * The current editing shape's text editor.
 	 *
 	 * @public
 	 */
-	@computed getRichTextEditor(): TiptapEditor | null {
-		return this._currentRichTextEditor.get()
+	getRichTextEditor(): TiptapEditor | null {
+		return this._editing.getRichTextEditor()
 	}
 
 	/**
@@ -2614,8 +2572,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setRichTextEditor(textEditor: TiptapEditor | null) {
-		this._currentRichTextEditor.set(textEditor)
-		return this
+		return this._editing.setRichTextEditor(textEditor)
 	}
 
 	// Hovered
@@ -2783,16 +2740,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the shape can be cropped, false otherwise.
 	 */
 	canCropShape<T extends TLShape | TLShapeId>(shape: T | null): shape is T {
-		if (!shape) return false
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (!id) return false
-		const _shape = this.getShape(id)
-		if (!_shape) return false
-		const util = this.getShapeUtil(_shape)
-		if (!util.canCrop(_shape)) return false
-		if (this.getIsReadonly()) return false
-		if (this.isShapeOrAncestorLocked(_shape)) return false
-		return true
+		return this._editing.canCropShape(shape)
 	}
 
 	/**
@@ -2810,19 +2758,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
-		const id = typeof shape === 'string' ? shape : (shape?.id ?? null)
-		if (id !== this.getCroppingShapeId()) {
-			this.run(
-				() => {
-					if (!id) {
-						this.updateCurrentPageState({ croppingShapeId: null })
-					} else if (this.canCropShape(id)) {
-						this.updateCurrentPageState({ croppingShapeId: id })
-					}
-				},
-				{ history: 'ignore' }
-			)
-		}
+		this._editing.setCroppingShape(shape)
 		return this
 	}
 

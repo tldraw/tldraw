@@ -1068,6 +1068,27 @@ export const edgeScrollPlugin: {
 };
 
 // @public (undocumented)
+export const editingCapability: TLCapability<EditingController>;
+
+// @public
+export class EditingController {
+    constructor(editor: Editor);
+    canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
+    canEditShape<T extends TLShape | TLShapeId>(shape: null | T, info?: TLEditStartInfo): shape is T;
+    getRichTextEditor(): null | TiptapEditor;
+    setCroppingShape(shape: null | TLShape | TLShapeId): Editor;
+    setEditingShape(shape: null | TLShape | TLShapeId): Editor;
+    setRichTextEditor(textEditor: null | TiptapEditor): Editor;
+}
+
+// @public
+export const editingPlugin: {
+    readonly id: "editing";
+    readonly provides: readonly [TLCapability<EditingController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor(editorOptions: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
@@ -1444,6 +1465,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
+    // @internal (undocumented)
+    readonly _editing: EditingController;
     // @internal
     _ensureUserRecord(user: TLUser): void;
     // @internal (undocumented)
@@ -1821,7 +1844,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
-    setRichTextEditor(textEditor: null | TiptapEditor): this;
+    setRichTextEditor(textEditor: null | TiptapEditor): Editor;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;

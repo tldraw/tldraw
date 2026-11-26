@@ -72,6 +72,8 @@ export {
 	shapeArrangementPlugin,
 } from './lib/plugins/builtin/shapeArrangement'
 export { ShapeArranger } from './lib/plugins/builtin/ShapeArranger'
+export { editingCapability, editingPlugin } from './lib/plugins/builtin/editing'
+export { EditingController } from './lib/plugins/builtin/EditingController'
 export { selectionCapability, selectionPlugin } from './lib/plugins/builtin/selection'
 export { SelectionController } from './lib/plugins/builtin/SelectionController'
 export {

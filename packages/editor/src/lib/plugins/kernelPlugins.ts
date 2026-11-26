@@ -4,6 +4,7 @@ import { clickDetectionPlugin } from './builtin/clickDetection'
 import { collaboratorsPlugin } from './builtin/collaborators'
 import { contentTransferPlugin } from './builtin/contentTransfer'
 import { edgeScrollPlugin } from './builtin/edgeScroll'
+import { editingPlugin } from './builtin/editing'
 import { eventDispatchPlugin } from './builtin/eventDispatch'
 import { externalContentPlugin } from './builtin/externalContent'
 import { inputsPlugin } from './builtin/inputs'
@@ -52,6 +53,7 @@ export function createKernelPlugins(): TLPlugin[] {
 		stylesPlugin,
 		contentTransferPlugin,
 		selectionPlugin,
+		editingPlugin,
 		scribblesPlugin,
 		edgeScrollPlugin,
 		overlaysPlugin,

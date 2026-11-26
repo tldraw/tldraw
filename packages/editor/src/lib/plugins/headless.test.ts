@@ -171,6 +171,7 @@ describe('a headless editor', () => {
 		['styles', (editor: Editor) => editor.getSharedStyles()],
 		['contentTransfer', (editor: Editor) => editor.getContentFromCurrentPage([])],
 		['selection', (editor: Editor) => editor.selectAll()],
+		['editing', (editor: Editor) => editor.setEditingShape(null)],
 		['shapeArrangement', (editor: Editor) => editor.flipShapes([], 'horizontal')],
 		['shapeAnimation', (editor: Editor) => editor.animateShapes([])],
 	] as const)(
