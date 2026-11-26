@@ -33,6 +33,8 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 | `editor.snaps`                                                                                                    | `snappingCapability`, from `snappingPlugin`                                                                            |
 | the camera and viewport (`getCamera`, `setCamera`, `zoomIn`, `screenToPage`, `startFollowingUser` and the others) | `cameraCapability`, from `cameraPlugin`                                                                                |
 | `dispatch` and the event pipeline (panning, pinch, wheel, modifier keys, long press)                              | `eventDispatchCapability`, from `eventDispatchPlugin`                                                                  |
+| `flipShapes`, `stackShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `stretchShapes`, `resizeToBounds`   | `shapeArrangementCapability`, from `shapeArrangementPlugin`                                                            |
+| `animateShape`, `animateShapes`                                                                                   | `shapeAnimationCapability`, from `shapeAnimationPlugin`                                                                |
 | `editor.user`                                                                                                     | `userPreferencesCapability`, from `userPreferencesPlugin`                                                              |
 | `getCurrentTheme`, `getColorMode` and the other theme methods                                                     | `themesCapability`, from `themesPlugin`                                                                                |
 | `editor.inputs`                                                                                                   | `inputsCapability`, from `inputsPlugin`                                                                                |
@@ -63,7 +65,7 @@ The `react/` folder is the only place in this design that imports React. `reactR
 
 1. Move each default shape's `component`, `toSvg` and `backgroundComponent` into `shapeComponentSlot` contributions. Then `ShapeUtil` has no render methods and shape utils are headless.
 2. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
-3. Lift more of the editor the same way, for example the shape arrangement commands (align, distribute, stack, pack).
+3. Lift more of the editor the same way, for example deep links, the z-order commands and the content (copy and paste) methods.
 4. Turn shapes, bindings and tools into plugins in `packages/tldraw`, so that `defaultShapeUtils` becomes a list of plugins.
 
 ## What is a plugin

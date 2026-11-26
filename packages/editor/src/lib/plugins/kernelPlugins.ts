@@ -9,6 +9,8 @@ import { inputsPlugin } from './builtin/inputs'
 import { overlaysPlugin } from './builtin/overlays'
 import { performancePlugin } from './builtin/performance'
 import { scribblesPlugin } from './builtin/scribbles'
+import { shapeAnimationPlugin } from './builtin/shapeAnimation'
+import { shapeArrangementPlugin } from './builtin/shapeArrangement'
 import { snappingPlugin } from './builtin/snappingPlugin'
 import { spatialIndexPlugin } from './builtin/spatialIndex'
 import { themesPlugin } from './builtin/themes'
@@ -18,8 +20,8 @@ import type { TLPlugin } from './plugin'
 /**
  * Create the plugins that give the editor its standard behavior without a DOM or React: user
  * preferences and themes, the camera, event dispatch, input state and click detection, hit
- * testing, snapping, scribbles, edge scrolling, overlays, collaborators, performance events and
- * external content.
+ * testing, snapping, shape arrangement and animation, scribbles, edge scrolling, overlays,
+ * collaborators, performance events and external content.
  *
  * A headless editor usually starts from these and adds a text measurement plugin:
  *
@@ -42,6 +44,8 @@ export function createKernelPlugins(): TLPlugin[] {
 		eventDispatchPlugin,
 		spatialIndexPlugin,
 		snappingPlugin,
+		shapeArrangementPlugin,
+		shapeAnimationPlugin,
 		scribblesPlugin,
 		edgeScrollPlugin,
 		overlaysPlugin,

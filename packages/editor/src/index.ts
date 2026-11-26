@@ -63,6 +63,16 @@ export { CameraController } from './lib/plugins/builtin/CameraController'
 export { eventDispatchCapability, eventDispatchPlugin } from './lib/plugins/builtin/eventDispatch'
 export { EventDispatcher } from './lib/plugins/builtin/EventDispatcher'
 export {
+	shapeAnimationCapability,
+	shapeAnimationPlugin,
+} from './lib/plugins/builtin/shapeAnimation'
+export { ShapeAnimator } from './lib/plugins/builtin/ShapeAnimator'
+export {
+	shapeArrangementCapability,
+	shapeArrangementPlugin,
+} from './lib/plugins/builtin/shapeArrangement'
+export { ShapeArranger } from './lib/plugins/builtin/ShapeArranger'
+export {
 	clickDetectionCapability,
 	clickDetectionPlugin,
 } from './lib/plugins/builtin/clickDetection'

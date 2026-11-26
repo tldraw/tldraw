@@ -4,7 +4,6 @@ import {
 	RecordType,
 	StoreSideEffects,
 	StoreSnapshot,
-	UnknownRecord,
 	reverseRecordsDiff,
 } from '@tldraw/store'
 import {
@@ -77,7 +76,6 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
-	lerp,
 	minBy,
 	sortById,
 	sortByIndex,
@@ -122,6 +120,10 @@ import { inputsCapability } from '../plugins/builtin/inputs'
 import { overlaysCapability } from '../plugins/builtin/overlays'
 import { performanceCapability } from '../plugins/builtin/performance'
 import { scribblesCapability } from '../plugins/builtin/scribbles'
+import { shapeAnimationCapability } from '../plugins/builtin/shapeAnimation'
+import type { ShapeAnimator } from '../plugins/builtin/ShapeAnimator'
+import { shapeArrangementCapability } from '../plugins/builtin/shapeArrangement'
+import type { ShapeArranger } from '../plugins/builtin/ShapeArranger'
 import { snappingCapability } from '../plugins/builtin/snapping'
 import { spatialIndexCapability } from '../plugins/builtin/spatialIndex'
 import { svgExportCapability } from '../plugins/builtin/svgExport'
@@ -132,13 +134,11 @@ import { createKernelPlugins } from '../plugins/kernelPlugins'
 import type { TLPlugin } from '../plugins/plugin'
 import { TLPluginHost } from '../plugins/PluginHost'
 import { Box, BoxLike } from '../primitives/Box'
-import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
 import {
-	HALF_PI,
 	approximately,
 	areAnglesCompatible,
 	pointInPolygon,
@@ -179,12 +179,12 @@ import type { ThemeManager } from './managers/ThemeManager/ThemeManager'
 import type { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
 import type { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
+import { applyPartialToRecordWithProps, toShapeIds } from './recordUtils'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
 	TLGeometryOpts,
 	TLResizeMode,
-	TLShapeUtilCanBeLaidOutOpts,
 	TLShapeUtilCanBindOpts,
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
@@ -362,11 +362,6 @@ let createDefaultEditorPlugins: () => readonly TLPlugin[] = createKernelPlugins
 export function setDefaultEditorPlugins(create: () => readonly TLPlugin[]) {
 	createDefaultEditorPlugins = create
 }
-
-const AXIS = {
-	horizontal: { val: 'x', min: 'minX', max: 'maxX', dim: 'width' },
-	vertical: { val: 'y', min: 'minY', max: 'maxY', dim: 'height' },
-} as const
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
@@ -1108,6 +1103,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return {
 			_camera: p.facade(cameraCapability, (c) => c),
 			_eventDispatcher: p.facade(eventDispatchCapability, (c) => c),
+			_arranger: p.facade(shapeArrangementCapability, (c) => c),
+			_shapeAnimator: p.facade(shapeAnimationCapability, (c) => c),
 			snaps: p.facade(snappingCapability, (c) => c),
 			textMeasure: p.facade(textMeasurementCapability, (c) => c),
 			externalContentHandlers: p.facade(externalContentCapability, (c) => c.contentHandlers),
@@ -1138,6 +1135,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	readonly _eventDispatcher!: EventDispatcher
+
+	/** @internal */
+	readonly _arranger!: ShapeArranger
+
+	/** @internal */
+	readonly _shapeAnimator!: ShapeAnimator
 
 	/**
 	 * A manager for performance measurement hooks.
@@ -1726,7 +1729,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _shouldIgnoreShapeLock = false
+	/** @internal */
+	_shouldIgnoreShapeLock = false
 
 	/**
 	 * Run a function in a transaction with optional options for context.
@@ -6097,7 +6101,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// frame or group would move along its parent's axes instead of the page's.
 	// todo: a shape laid out together with its own parent moves twice, once with the parent and once
 	// on its own; the layout commands should skip shapes whose ancestors are also being laid out
-	private getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
+	/** @internal */
+	getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
 		const localDelta = Vec.From(pageDelta).rot(-this.getShapeParentTransform(shape).rotation())
 		return this.getChangesToTranslateShape(shape, localDelta.add(shape))
 	}
@@ -6478,110 +6483,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Shared clustering logic for layout methods. Resolves shapes, optionally filters to
-	 * axis-aligned shapes, checks canBeLaidOut, and groups shapes into clusters via arrow bindings.
-	 *
-	 * @internal
-	 */
-	private getShapeClusters(
-		shapes: TLShapeId[] | TLShape[],
-		type: TLShapeUtilCanBeLaidOutOpts['type'],
-		opts?: { filterAxisAligned?: boolean }
-	): { clusters: { shapes: TLShape[]; pageBounds: Box }[]; allBounds: Box[] } {
-		const ids = toShapeIds(shapes)
-
-		// always fresh shapes
-		let freshShapes = compact(ids.map((id) => this.getShape(id)))
-
-		// optionally filter to axis-aligned shapes (rotation is a multiple of 90 degrees)
-		if (opts?.filterAxisAligned) {
-			freshShapes = freshShapes.filter((s) => {
-				// Page rotations come back through atan2 on a composed matrix, so a 270° shape can land
-				// a hair either side of the multiple; an exact === 0 check drops it
-				const remainder = Math.abs(this.getShapePageTransform(s).rotation() % HALF_PI)
-				return Math.min(remainder, HALF_PI - remainder) < 1e-9
-			})
-		}
-
-		const clusters: { shapes: TLShape[]; pageBounds: Box }[] = []
-		const allBounds: Box[] = []
-		const visited = new Set<TLShapeId>()
-
-		for (const shape of freshShapes) {
-			if (visited.has(shape.id)) continue
-			visited.add(shape.id)
-
-			const shapePageBounds = this.getShapePageBounds(shape)
-			if (!shapePageBounds) continue
-
-			if (
-				!this.getShapeUtil(shape).canBeLaidOut?.(shape, {
-					type,
-					shapes: freshShapes,
-				})
-			) {
-				continue
-			}
-
-			const shapesMovingTogether = [shape]
-			const boundsOfShapesMovingTogether: Box[] = [shapePageBounds]
-
-			// Seed with bindings in both directions, otherwise an arrow visited before the shapes it
-			// binds ends up in a cluster of its own and the result depends on input order
-			this.collectShapesViaArrowBindings({
-				bindings: this.getBindingsInvolvingShape(shape.id, 'arrow'),
-				initialShapes: freshShapes,
-				resultShapes: shapesMovingTogether,
-				resultBounds: boundsOfShapesMovingTogether,
-				visited,
-			})
-
-			const commonPageBounds = Box.Common(boundsOfShapesMovingTogether)
-			if (!commonPageBounds) continue
-
-			clusters.push({
-				shapes: shapesMovingTogether,
-				pageBounds: commonPageBounds,
-			})
-
-			allBounds.push(commonPageBounds)
-		}
-
-		return { clusters, allBounds }
-	}
-
-	/**
-	 * @internal
-	 */
-	private collectShapesViaArrowBindings(info: {
-		initialShapes: TLShape[]
-		resultShapes: TLShape[]
-		resultBounds: Box[]
-		bindings: TLBinding[]
-		visited: Set<TLShapeId>
-	}) {
-		const { initialShapes, resultShapes, resultBounds, bindings, visited } = info
-		for (const binding of bindings) {
-			for (const id of [binding.fromId, binding.toId]) {
-				if (!visited.has(id)) {
-					const aligningShape = initialShapes.find((s) => s.id === id)
-					if (aligningShape && !visited.has(aligningShape.id)) {
-						visited.add(aligningShape.id)
-						const shapePageBounds = this.getShapePageBounds(aligningShape)
-						if (!shapePageBounds) continue
-						resultShapes.push(aligningShape)
-						resultBounds.push(shapePageBounds)
-						this.collectShapesViaArrowBindings({
-							...info,
-							bindings: this.getBindingsInvolvingShape(aligningShape, 'arrow'),
-						})
-					}
-				}
-			}
-		}
-	}
-
-	/**
 	 * Flip shape positions.
 	 *
 	 * @example
@@ -6596,78 +6497,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
-
-		const ids = toShapeIds(shapes)
-
-		// Collect a greedy list of shapes to flip
-		const shapesToFlipFirstPass = compact(ids.map((id) => this.getShape(id)))
-
-		for (const shape of shapesToFlipFirstPass) {
-			if (this.isShapeOfType(shape, 'group')) {
-				const childrenOfGroups = compact(
-					this.getSortedChildIdsForParent(shape.id).map((id) => this.getShape(id))
-				)
-				shapesToFlipFirstPass.push(...childrenOfGroups)
-			}
-		}
-
-		// exclude shapes that can't be flipped
-		const shapesToFlip: {
-			shape: TLShape
-			localBounds: Box
-			pageTransform: Mat
-			isAspectRatioLocked: boolean
-		}[] = []
-
-		const allBounds: Box[] = []
-
-		for (const shape of shapesToFlipFirstPass) {
-			const util = this.getShapeUtil(shape)
-			if (
-				!util.canBeLaidOut(shape, {
-					type: 'flip',
-					shapes: shapesToFlipFirstPass,
-				})
-			) {
-				continue
-			}
-
-			const pageBounds = this.getShapePageBounds(shape)
-			const localBounds = this.getShapeGeometry(shape).bounds
-			const pageTransform = this.getShapePageTransform(shape.id)
-			if (!(pageBounds && localBounds && pageTransform)) continue
-			shapesToFlip.push({
-				shape,
-				localBounds,
-				pageTransform,
-				isAspectRatioLocked: util.isAspectRatioLocked(shape),
-			})
-			allBounds.push(pageBounds)
-		}
-
-		if (!shapesToFlip.length) return this
-
-		const scaleOriginPage = Box.Common(allBounds).center
-
-		this.run(() => {
-			for (const { shape, localBounds, pageTransform, isAspectRatioLocked } of shapesToFlip) {
-				this.resizeShape(
-					shape.id,
-					{ x: operation === 'horizontal' ? -1 : 1, y: operation === 'vertical' ? -1 : 1 },
-					{
-						initialBounds: localBounds,
-						initialPageTransform: pageTransform,
-						initialShape: shape,
-						isAspectRatioLocked,
-						mode: 'scale_shape',
-						scaleOrigin: scaleOriginPage,
-						scaleAxisRotation: 0,
-					}
-				)
-			}
-		})
-
+		this._arranger.flipShapes(shapes, operation)
 		return this
 	}
 
@@ -6691,81 +6521,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		operation: 'horizontal' | 'vertical',
 		gap?: number
 	): this {
-		const _gap = gap ?? this.options.adjacentShapeMargin
-		if (this.getIsReadonly()) return this
-
-		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
-
-		const { clusters: shapeClustersToStack } = this.getShapeClusters(shapes, 'stack')
-
-		const len = shapeClustersToStack.length
-		if ((_gap === 0 && len < 3) || len < 2) return this
-
-		const { val, min, max, dim } = AXIS[operation]
-
-		let shapeGap: number = 0
-
-		// Stack in spatial order rather than input (z) order, otherwise shapes swap places
-		shapeClustersToStack.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])
-
-		if (_gap === 0) {
-			// note: this is not used in the current tldraw.com; there we use a specified stack
-
-			const gaps: Record<number, number> = {}
-
-			// Collect all of the gaps between shapes. We want to find
-			// patterns (equal gaps between shapes) and use the most common
-			// one as the gap for all of the shapes.
-			for (let i = 0; i < len - 1; i++) {
-				const currCluster = shapeClustersToStack[i]
-				const nextCluster = shapeClustersToStack[i + 1]
-				const gap = nextCluster.pageBounds[min] - currCluster.pageBounds[max]
-				if (!gaps[gap]) {
-					gaps[gap] = 0
-				}
-				gaps[gap]++
-			}
-
-			// Which gap is the most common?
-			let maxCount = 1
-			for (const [gap, count] of Object.entries(gaps)) {
-				if (count > maxCount) {
-					maxCount = count
-					shapeGap = parseFloat(gap)
-				}
-			}
-
-			// If there is no most-common gap, use the average gap.
-			if (maxCount === 1) {
-				let totalCount = 0
-				for (const [gap, count] of Object.entries(gaps)) {
-					shapeGap += parseFloat(gap) * count
-					totalCount += count
-				}
-				shapeGap /= totalCount
-			}
-		} else {
-			// If a gap was provided, then use that instead.
-			shapeGap = _gap
-		}
-
-		const changes: TLShapePartial[] = []
-
-		let v = shapeClustersToStack[0].pageBounds[max]
-
-		for (let i = 1; i < shapeClustersToStack.length; i++) {
-			const { shapes, pageBounds } = shapeClustersToStack[i]
-			const delta = new Vec()
-			delta[val] = v + shapeGap - pageBounds[val]
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-
-			v += pageBounds[dim] + shapeGap
-		}
-
-		this.updateShapes(changes)
+		this._arranger.stackShapes(shapes, operation, gap)
 		return this
 	}
 
@@ -6783,106 +6539,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param gap - The padding to apply to the packed shapes. Defaults to the editor's `adjacentShapeMargin` option.
 	 */
 	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): this {
-		if (this.getIsReadonly()) return this
-
-		const gap = _gap ?? this.options.adjacentShapeMargin
-
-		const { clusters, allBounds } = this.getShapeClusters(shapes, 'pack')
-
-		const shapeClustersToPack = clusters.map((cluster) => ({
-			...cluster,
-			nextPageBounds: cluster.pageBounds.clone(),
-		}))
-
-		if (shapeClustersToPack.length < 2) return this
-
-		let area = 0
-		for (const { pageBounds } of shapeClustersToPack) {
-			area += pageBounds.width * pageBounds.height
-		}
-
-		const commonBounds = Box.Common(allBounds)
-
-		const maxWidth = commonBounds.width
-
-		// sort the shape clusters by width and then height, descending: potpack fills each row's
-		// right-hand space with the shapes that follow, so they must be no taller than the row
-		shapeClustersToPack
-			.sort((a, b) => b.pageBounds.width - a.pageBounds.width)
-			.sort((a, b) => b.pageBounds.height - a.pageBounds.height)
-
-		// Start with is (sort of) the square of the area
-		const startWidth = Math.max(Math.ceil(Math.sqrt(area / 0.95)), maxWidth)
-
-		// first shape fills the width and is infinitely tall
-		const spaces: Box[] = [new Box(commonBounds.x, commonBounds.y, startWidth, Infinity)]
-
-		let width = 0
-		let height = 0
-		let space: Box
-		let last: Box
-
-		for (const { nextPageBounds } of shapeClustersToPack) {
-			// starting at the back (smaller shapes)
-			for (let i = spaces.length - 1; i >= 0; i--) {
-				space = spaces[i]
-
-				// find a space that is big enough to contain the shape
-				if (nextPageBounds.width > space.width || nextPageBounds.height > space.height) continue
-
-				// add the shape to its top-left corner
-				nextPageBounds.x = space.x
-				nextPageBounds.y = space.y
-
-				height = Math.max(height, nextPageBounds.maxY)
-				width = Math.max(width, nextPageBounds.maxX)
-
-				if (nextPageBounds.width === space.width && nextPageBounds.height === space.height) {
-					// remove the space on a perfect fit
-					last = spaces.pop()!
-					if (i < spaces.length) spaces[i] = last
-				} else if (nextPageBounds.height === space.height) {
-					// fit the shape into the space (width)
-					space.x += nextPageBounds.width + gap
-					space.width -= nextPageBounds.width + gap
-				} else if (nextPageBounds.width === space.width) {
-					// fit the shape into the space (height)
-					space.y += nextPageBounds.height + gap
-					space.height -= nextPageBounds.height + gap
-				} else {
-					// split the space into two spaces
-					spaces.push(
-						new Box(
-							space.x + (nextPageBounds.width + gap),
-							space.y,
-							space.width - (nextPageBounds.width + gap),
-							nextPageBounds.height
-						)
-					)
-					space.y += nextPageBounds.height + gap
-					space.height -= nextPageBounds.height + gap
-				}
-				break
-			}
-		}
-
-		const commonAfter = Box.Common(shapeClustersToPack.map((s) => s.nextPageBounds))
-		const centerDelta = Vec.Sub(commonBounds.center, commonAfter.center)
-
-		const changes: TLShapePartial<any>[] = []
-
-		for (const { shapes, pageBounds, nextPageBounds } of shapeClustersToPack) {
-			const delta = Vec.Sub(nextPageBounds.point, pageBounds.point).add(centerDelta)
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		}
-
-		if (changes.length) {
-			this.updateShapes(changes)
-		}
-
+		this._arranger.packShapes(shapes, _gap)
 		return this
 	}
 
@@ -6911,55 +6568,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			| 'bottom'
 			| 'center'
 	): this {
-		if (this.getIsReadonly()) return this
-		if (operation === 'center') {
-			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
-		}
-
-		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
-
-		if (shapeClustersToAlign.length < 2) return this
-
-		const commonBounds = Box.Common(allBounds)
-
-		const changes: TLShapePartial[] = []
-
-		shapeClustersToAlign.forEach(({ shapes, pageBounds }) => {
-			const delta = new Vec()
-
-			switch (operation) {
-				case 'top': {
-					delta.y = commonBounds.minY - pageBounds.minY
-					break
-				}
-				case 'center-vertical': {
-					delta.y = commonBounds.midY - pageBounds.minY - pageBounds.height / 2
-					break
-				}
-				case 'bottom': {
-					delta.y = commonBounds.maxY - pageBounds.minY - pageBounds.height
-					break
-				}
-				case 'left': {
-					delta.x = commonBounds.minX - pageBounds.minX
-					break
-				}
-				case 'center-horizontal': {
-					delta.x = commonBounds.midX - pageBounds.minX - pageBounds.width / 2
-					break
-				}
-				case 'right': {
-					delta.x = commonBounds.maxX - pageBounds.minX - pageBounds.width
-					break
-				}
-			}
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-		})
-
-		this.updateShapes(changes)
+		this._arranger.alignShapes(shapes, operation)
 		return this
 	}
 
@@ -6978,62 +6587,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
-
-		const { clusters: shapeClustersToDistribute } = this.getShapeClusters(shapes, 'distribute')
-
-		if (shapeClustersToDistribute.length < 3) return this
-
-		const { val, min, max, dim } = AXIS[operation]
-		const changes: TLShapePartial[] = []
-
-		const first = shapeClustersToDistribute.sort((a, b) => a.pageBounds[min] - b.pageBounds[min])[0]
-		const last = shapeClustersToDistribute.sort((a, b) => b.pageBounds[max] - a.pageBounds[max])[0]
-
-		// If the first shape group is also the last shape group, distribute without it
-		if (first === last) {
-			const excludedShapeIds = new Set(first.shapes.map((s) => s.id))
-			const ids = toShapeIds(shapes)
-			return this.distributeShapes(
-				ids.filter((id) => !excludedShapeIds.has(id)),
-				operation
-			)
-		}
-
-		const shapeClustersToMove = shapeClustersToDistribute
-			.filter((shape) => shape !== first && shape !== last)
-			.sort((a, b) => {
-				if (a.pageBounds[min] === b.pageBounds[min]) {
-					return a.shapes[0].id < b.shapes[0].id ? -1 : 1
-				}
-				return a.pageBounds[min] - b.pageBounds[min]
-			})
-
-		// The gap is the amount of space "left over" between the first and last shape. This can be a negative number if the shapes are overlapping.
-		const maxFirst = first.pageBounds[max]
-		const range = last.pageBounds[min] - maxFirst
-		const summedShapeDimensions = shapeClustersToMove.reduce((acc, s) => acc + s.pageBounds[dim], 0)
-		const gap = (range - summedShapeDimensions) / (shapeClustersToMove.length + 1)
-
-		for (let v = maxFirst + gap, i = 0; i < shapeClustersToMove.length; i++) {
-			const { shapes, pageBounds } = shapeClustersToMove[i]
-			const delta = new Vec()
-			delta[val] = v - pageBounds[val]
-
-			// If for some reason the new position would be more than the maximum, we need to adjust the delta
-			// This will likely throw off some of the other placements but hey, it's better than changing the common bounds
-			if (v + pageBounds[dim] > last.pageBounds[max] - 1) {
-				delta[val] = last.pageBounds[max] - pageBounds[max] - 1
-			}
-
-			for (const shape of shapes) {
-				changes.push(this.getChangesToTranslateShapeByPageDelta(shape, delta))
-			}
-
-			v += pageBounds[dim] + gap
-		}
-
-		this.updateShapes(changes)
+		this._arranger.distributeShapes(shapes, operation)
 		return this
 	}
 
@@ -7052,45 +6606,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
-
-		const { clusters: shapeClustersToStretch, allBounds } = this.getShapeClusters(
-			shapes,
-			'stretch',
-			{ filterAxisAligned: true }
-		)
-
-		if (shapeClustersToStretch.length < 2) return this
-
-		const commonBounds = Box.Common(allBounds)
-		const { val, min, dim } = AXIS[operation]
-
-		this.run(() => {
-			shapeClustersToStretch.forEach(({ shapes, pageBounds }) => {
-				const pageOffset = new Vec()
-				pageOffset[val] = commonBounds[min] - pageBounds[min]
-
-				const scaleOrigin = pageBounds.center.clone()
-				scaleOrigin[val] = commonBounds[min]
-
-				const scale = new Vec(1, 1)
-				scale[val] = commonBounds[dim] / pageBounds[dim]
-
-				for (const shape of shapes) {
-					// First translate
-					this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-					// Then resize
-					this.resizeShape(shape.id, scale, {
-						initialBounds: this.getShapeGeometry(shape).bounds,
-						scaleOrigin,
-						isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-						scaleAxisRotation: 0,
-					})
-				}
-			})
-		})
-
+		this._arranger.stretchShapes(shapes, operation)
 		return this
 	}
 
@@ -7110,53 +6626,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): this {
-		if (this.getIsReadonly()) return this
-
-		const targetBounds = Box.From(bounds)
-
-		const { clusters: shapeClusters, allBounds } = this.getShapeClusters(
-			shapes,
-			'resize_to_bounds',
-			{ filterAxisAligned: true }
-		)
-
-		if (shapeClusters.length === 0) return this
-
-		const commonBounds = Box.Common(allBounds)
-		if (!commonBounds) return this
-		if (commonBounds.width === 0 || commonBounds.height === 0) return this
-
-		const scaleX = targetBounds.width / commonBounds.width
-		const scaleY = targetBounds.height / commonBounds.height
-		const scale = new Vec(scaleX, scaleY)
-
-		shapeClusters.forEach(({ shapes, pageBounds }) => {
-			const pageOffset = new Vec(
-				targetBounds.minX -
-					commonBounds.minX +
-					(pageBounds.minX - commonBounds.minX) * (scaleX - 1),
-				targetBounds.minY - commonBounds.minY + (pageBounds.minY - commonBounds.minY) * (scaleY - 1)
-			)
-
-			const scaleOrigin = new Vec(
-				targetBounds.minX + (pageBounds.minX - commonBounds.minX) * scaleX,
-				targetBounds.minY + (pageBounds.minY - commonBounds.minY) * scaleY
-			)
-
-			for (const shape of shapes) {
-				// First translate
-				this.updateShape(this.getChangesToTranslateShapeByPageDelta(shape, pageOffset))
-
-				// Then resize
-				this.resizeShape(shape.id, scale, {
-					initialBounds: this.getShapeGeometry(shape).bounds,
-					scaleOrigin,
-					isAspectRatioLocked: this.getShapeUtil(shape).isAspectRatioLocked(shape),
-					scaleAxisRotation: 0,
-				})
-			}
-		})
-
+		this._arranger.resizeToBounds(shapes, bounds)
 		return this
 	}
 
@@ -7759,8 +7229,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private animatingShapes = new Map<TLShapeId, string>()
-
 	/**
 	 * Animate a shape.
 	 *
@@ -7779,7 +7247,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: TLShapePartial | null | undefined,
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
 	): this {
-		return this.animateShapes([partial], opts)
+		this._shapeAnimator.animateShape(partial, opts)
+		return this
 	}
 
 	/**
@@ -7800,99 +7269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partials: (TLShapePartial | null | undefined)[],
 		opts = { animation: DEFAULT_ANIMATION_OPTIONS } as TLCameraMoveOptions
 	): this {
-		if (!opts.animation) return this
-		const { duration = 500, easing = EASINGS.linear } = opts.animation
-
-		const animationId = uniqueId()
-
-		let remaining = duration
-		let t: number
-
-		interface ShapeAnimation {
-			start: TLShape
-			end: TLShape
-		}
-
-		const animations: ShapeAnimation[] = []
-
-		// Snapshot the lock override now: when this animation is started inside
-		// editor.run(..., { ignoreShapeLock: true }), run() restores the flag before any tick
-		// fires, so the final updateShapes below would refuse the locked shape and strand it
-		const ignoreShapeLock = this._shouldIgnoreShapeLock
-
-		let partial: TLShapePartial | null | undefined, result: ShapeAnimation
-		for (let i = 0, n = partials.length; i < n; i++) {
-			partial = partials[i]
-			if (!partial) continue
-
-			const shape = this.getShape(partial.id)!
-			if (!shape) continue
-
-			// Apply the same lock rule as updateShapes up front: the intermediate frames go through
-			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
-			// every frame but the last and end up stranded at the penultimate one
-			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
-			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
-				continue
-			}
-
-			result = {
-				start: structuredClone(shape),
-				end: applyPartialToRecordWithProps(structuredClone(shape), partial),
-			}
-
-			animations.push(result)
-			this.animatingShapes.set(shape.id, animationId)
-		}
-
-		const handleTick = (elapsed: number) => {
-			remaining -= elapsed
-
-			if (remaining < 0) {
-				const { animatingShapes } = this
-				const partialsToUpdate = partials.filter(
-					(p) => p && animatingShapes.get(p.id) === animationId
-				)
-				if (partialsToUpdate.length) {
-					// the regular update shapes also removes the shape from
-					// the animating shapes set
-					this.run(() => this.updateShapes(partialsToUpdate), { ignoreShapeLock })
-				}
-
-				this.off('tick', handleTick)
-				return
-			}
-
-			t = easing(1 - remaining / duration)
-
-			const { animatingShapes } = this
-
-			const updates: TLShapePartial[] = []
-
-			let animationIdForShape: string | undefined
-			for (let i = 0, n = animations.length; i < n; i++) {
-				const { start, end } = animations[i]
-				// Is the animation for this shape still active?
-				animationIdForShape = animatingShapes.get(start.id)
-				if (animationIdForShape !== animationId) continue
-
-				updates.push({
-					...end,
-					x: lerp(start.x, end.x, t),
-					y: lerp(start.y, end.y, t),
-					opacity: lerp(start.opacity, end.opacity, t),
-					rotation: lerp(start.rotation, end.rotation, t),
-					props: this.getShapeUtil(end).getInterpolatedProps?.(start, end, t) ?? end.props,
-				})
-			}
-
-			// The _updateShapes method does NOT remove the
-			// shapes from the animated shapes set
-			this._updateShapes(updates)
-		}
-
-		this.on('tick', handleTick)
-
+		this._shapeAnimator.animateShapes(partials, opts)
 		return this
 	}
 
@@ -8098,6 +7475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateShapes<T extends TLShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
 		const compactedPartials: TLShapePartial<T>[] = []
+		const animatingShapes = this.plugins.getOptional(shapeAnimationCapability)?.animatingShapes
 
 		for (let i = 0, n = partials.length; i < n; i++) {
 			const partial = partials[i]
@@ -8123,7 +7501,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Remove any animating shapes from the list of partials
-			this.animatingShapes.delete(partial.id)
+			animatingShapes?.delete(partial.id)
 
 			compactedPartials.push(partial)
 		}
@@ -9788,44 +9166,6 @@ function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
 	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
 }
 
-function applyPartialToRecordWithProps<
-	T extends UnknownRecord & { type: string; props: object; meta: object },
->(
-	prev: T,
-	partial?: T extends T ? Omit<Partial<T>, 'props'> & { props?: Partial<T['props']> } : never
-): T {
-	if (!partial) return prev
-	let next = null as null | T
-	const entries = Object.entries(partial)
-	for (let i = 0, n = entries.length; i < n; i++) {
-		const [k, v] = entries[i]
-		if (v === undefined) continue
-
-		// Is the key a special key? We don't update those
-		if (k === 'id' || k === 'type' || k === 'typeName') continue
-
-		// Is the value the same as it was before?
-		if (v === (prev as any)[k]) continue
-
-		// There's a new value, so create the new shape if we haven't already (should we be cloning this?)
-		if (!next) next = { ...prev }
-
-		// for props / meta properties, we support updates with partials of this object
-		if (k === 'props' || k === 'meta') {
-			next[k] = { ...prev[k] } as JsonObject
-			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				;(next[k] as JsonObject)[nextKey] = nextValue
-			}
-			continue
-		}
-
-		// base property
-		;(next as any)[k] = v
-	}
-	if (!next) return prev
-	return next
-}
-
 function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape[]): void {
 	const shape = editor.getShape(id)
 	if (!shape) return
@@ -9834,16 +9174,6 @@ function pushShapeWithDescendants(editor: Editor, id: TLShapeId, result: TLShape
 	for (let i = 0, n = childIds.length; i < n; i++) {
 		pushShapeWithDescendants(editor, childIds[i], result)
 	}
-}
-
-/**
- * When `shapes` already holds ids this returns that same array, not a copy, so a caller that
- * mutates the result (for example to sort it) must copy it first.
- */
-function toShapeIds(shapes: TLShapeId[] | TLShape[]): TLShapeId[] {
-	return typeof shapes[0] === 'string'
-		? (shapes as TLShapeId[])
-		: (shapes as TLShape[]).map((shape) => shape.id)
 }
 
 /**

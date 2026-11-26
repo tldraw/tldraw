@@ -1058,6 +1058,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         willCrashApp: boolean;
     }): this;
+    // @internal (undocumented)
+    readonly _arranger: ShapeArranger;
     assetUtils: {
         readonly [K in string]?: AssetUtil<TLAsset>;
     };
@@ -1481,6 +1483,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanRedo(): boolean;
     // (undocumented)
     getCanUndo(): boolean;
+    // @internal (undocumented)
+    getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape;
     getCollaborators(): TLInstancePresence[];
     getCollaboratorsOnCurrentPage(): TLInstancePresence[];
     getColorMode(): 'dark' | 'light';
@@ -1796,9 +1800,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
+    // @internal (undocumented)
+    readonly _shapeAnimator: ShapeAnimator;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLShape>;
     };
+    // @internal (undocumented)
+    _shouldIgnoreShapeLock: boolean;
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
@@ -3355,6 +3363,47 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
+
+// @public (undocumented)
+export const shapeAnimationCapability: TLCapability<ShapeAnimator>;
+
+// @public
+export const shapeAnimationPlugin: {
+    readonly id: "shapeAnimation";
+    readonly provides: readonly [TLCapability<ShapeAnimator>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public
+export class ShapeAnimator {
+    constructor(editor: Editor);
+    animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): Editor;
+    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): Editor;
+    // (undocumented)
+    animatingShapes: Map<TLShapeId, string>;
+}
+
+// @public (undocumented)
+export const shapeArrangementCapability: TLCapability<ShapeArranger>;
+
+// @public
+export const shapeArrangementPlugin: {
+    readonly id: "shapeArrangement";
+    readonly provides: readonly [TLCapability<ShapeArranger>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public
+export class ShapeArranger {
+    constructor(editor: Editor);
+    alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): Editor;
+    distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+    flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+    packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): Editor;
+    resizeToBounds(shapes: TLShape[] | TLShapeId[], bounds: BoxLike): Editor;
+    stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): Editor;
+    stretchShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): Editor;
+}
 
 // @public (undocumented)
 export const shapeComponentSlot: TLSlot<TLShapeComponent<any>>;
