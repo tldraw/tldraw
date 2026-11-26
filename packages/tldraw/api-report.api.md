@@ -3327,6 +3327,14 @@ export interface PlainTextLabelProps {
 }
 
 // @public
+export function PluginMenuItems({ slot }: PluginMenuItemsProps): JSX.Element | null;
+
+// @public (undocumented)
+export interface PluginMenuItemsProps {
+    slot: TLSlot<TLUiMenuPlacement>;
+}
+
+// @public
 export function PluginToolbarItems(): JSX.Element;
 
 // @public (undocumented)
@@ -5660,6 +5668,11 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
     spinner?: boolean;
 }
 
+// @public
+export interface TLUiMenuPlacement {
+    action: string;
+}
+
 // @public (undocumented)
 export interface TLUiMenuSubmenuProps<Translation extends string = string> {
     // (undocumented)
@@ -6593,6 +6606,12 @@ export function truncateStringWithEllipsis(str: string, maxLength: number): stri
 
 // @public
 export const uiActionItemsSlot: TLSlot<(ctx: TLUiActionItemsContext) => TLUiActionItem[]>;
+
+// @public
+export const uiContextMenuSlot: TLSlot<TLUiMenuPlacement>;
+
+// @public
+export const uiMainMenuSlot: TLSlot<TLUiMenuPlacement>;
 
 // @public
 export const uiToolbarSlot: TLSlot<TLUiToolbarPlacement>;

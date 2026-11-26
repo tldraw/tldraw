@@ -115,3 +115,35 @@ export interface TLUiActionItemsContext {
  */
 export const uiActionItemsSlot =
 	defineSlot<(ctx: TLUiActionItemsContext) => TLUiActionItem[]>('ui.actionItems')
+
+/**
+ * A place for an action in a default menu. The menu shows its built-in items first, then these
+ * placements as one group, in plugin order. A placement for an action that no plugin defines, or
+ * that is disabled, shows nothing.
+ *
+ * @example
+ * ```ts
+ * ctx.contribute(uiActionItemsSlot, () => [{ id: 'shuffle-cards', ... }])
+ * ctx.contribute(uiContextMenuSlot, { action: 'shuffle-cards' })
+ * ```
+ *
+ * @public
+ */
+export interface TLUiMenuPlacement {
+	/** The id of the action, from {@link uiActionItemsSlot}. */
+	action: string
+}
+
+/**
+ * Where actions appear in the default context menu. See {@link TLUiMenuPlacement}.
+ *
+ * @public
+ */
+export const uiContextMenuSlot = defineSlot<TLUiMenuPlacement>('ui.contextMenu')
+
+/**
+ * Where actions appear in the default main menu. See {@link TLUiMenuPlacement}.
+ *
+ * @public
+ */
+export const uiMainMenuSlot = defineSlot<TLUiMenuPlacement>('ui.mainMenu')

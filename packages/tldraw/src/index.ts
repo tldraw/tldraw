@@ -865,12 +865,16 @@ export {
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
 export {
 	uiActionItemsSlot,
+	uiContextMenuSlot,
+	uiMainMenuSlot,
 	uiToolItemsSlot,
 	uiToolbarSlot,
 	type TLUiActionItemsContext,
+	type TLUiMenuPlacement,
 	type TLUiToolItemsContext,
 	type TLUiToolbarPlacement,
 } from './lib/ui/uiSlots'
+export { PluginMenuItems, type PluginMenuItemsProps } from './lib/ui/components/PluginMenuItems'
 export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,
