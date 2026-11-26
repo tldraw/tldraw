@@ -18,7 +18,7 @@ Omit the locale argument to plan every supported non-English locale. `--all` inc
 - `missing`: no nonempty target text, regardless of review state. Generate a translation.
 - `unverified`: existing text without review state. Review for retention first; absence of state is not evidence of a bad translation.
 - `sourceChanged`: source text or metadata differs from the reviewed source. Review meaning and retranslate only when needed.
-- `translationChanged`: source still matches, but target text or metadata was changed externally. Review the new value; do not silently overwrite a human or Lokalise edit.
+- `translationChanged`: source still matches, but target text or metadata was changed externally. Review the new value; do not silently overwrite a contributor's or Lokalise edit.
 - `current`: both hashes match the accepted pair. Preserve in incremental mode; it is counted but omitted unless `--all` is used. Matching hashes mean unchanged inputs, not correct terminology.
 - `unsupported`: locale catalog files outside the supported list, excluding known source, metadata and `xx-` debug files. Report without translating or deleting.
 - `obsolete`: target key no longer appears in English. Report it separately and retain it unless cleanup was requested.
@@ -30,6 +30,8 @@ On bootstrap, use Git history and source context to prioritize likely stale tran
 Hashes cover `JSON.stringify` of the parsed entire source/target value (including metadata), not the file bytes. Whitespace outside strings does not invalidate review. Target edits by another workflow are detected even when English remains unchanged. Changes in code behavior without message changes require the separate context pass described in the skill.
 
 ## Record accepted pairs
+
+`apply.mjs` records the pairs from a dispositions file itself, so this section is only needed when recording by hand (for example, approving entries a person reviewed outside a run).
 
 After merging a reviewed candidate or deciding to keep the existing text, re-run `plan` (with `--all` for comprehensive modes) to obtain the hashes of the actual values. The reviewer must have evaluated those exact values. Build an approval array by selecting only the accepted entries; do not transform every pending entry into an approval automatically.
 
