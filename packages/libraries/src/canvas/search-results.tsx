@@ -98,7 +98,11 @@ function SearchResultGroup({
 
 	return (
 		<section ref={setElement} className="tlui-libraries-section" aria-label={library.name}>
-			<h3 className="tlui-libraries-panel__group-label">{library.name}</h3>
+			<header className="tlui-libraries-panel__header">
+				<h3 className="tlui-libraries-panel__title">
+					<span className="tlui-libraries-panel__name">{library.name}</span>
+				</h3>
+			</header>
 			<LibraryItems
 				source={source}
 				library={library}
