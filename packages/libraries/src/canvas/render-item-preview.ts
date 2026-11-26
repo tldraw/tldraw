@@ -1,4 +1,4 @@
-import { Editor, coreShapes, createTLStore, type TLContent } from 'tldraw'
+import { Editor, coreShapes, createTLStore, type TLContent, type TLThemeId } from 'tldraw'
 import { getThumbnailExport } from './save-shapes'
 
 const coreShapeTypes = new Set<string>(coreShapes.map((util) => util.type))
@@ -8,6 +8,11 @@ const constructorsOf = <T extends object>(utils: { readonly [type: string]: T | 
 		util && !coreShapeTypes.has(type) ? [util.constructor as never] : []
 	)
 
+export interface ItemPreviewOptions {
+	darkMode: boolean
+	themeId: TLThemeId
+}
+
 /**
  * Renders an item's content as a saved thumbnail would look, or null when it has no shapes. The
  * content is placed in an editor of its own, made with `host`'s shapes, bindings, assets and
@@ -16,7 +21,7 @@ const constructorsOf = <T extends object>(utils: { readonly [type: string]: T | 
 export async function renderItemPreview(
 	host: Editor,
 	content: TLContent,
-	darkMode: boolean
+	{ darkMode, themeId }: ItemPreviewOptions
 ): Promise<Blob | null> {
 	const doc = host.getContainerDocument()
 	const container = doc.createElement('div')
@@ -35,6 +40,7 @@ export async function renderItemPreview(
 		options: host.options,
 	})
 	try {
+		editor.setCurrentTheme(themeId)
 		editor.putContentOntoCurrentPage(content, { select: true })
 		const shapeIds = editor.getSelectedShapeIds()
 		if (shapeIds.length === 0) return null

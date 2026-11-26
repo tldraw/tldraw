@@ -1,12 +1,23 @@
-import type { Editor } from 'tldraw'
+import type { Editor, TLThemeId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibraryItem } from '../lib/schema'
-import { renderItemPreview } from './render-item-preview'
+import { renderItemPreview, type ItemPreviewOptions } from './render-item-preview'
 
 export type RenderItemPreview = typeof renderItemPreview
 
+export interface ItemPreviewRequest extends ItemPreviewOptions {
+	/** Once aborted, the caller no longer wants the preview; it's skipped if nobody else does. */
+	signal?: AbortSignal
+}
+
+interface Job {
+	url: Promise<string | null>
+	waiting: number
+}
+
 interface Previews {
-	urls: Map<string, Promise<string | null>>
+	bySource: WeakMap<LibrarySource, Map<string, Job>>
+	jobs: Set<Job>
 	queue: Promise<unknown>
 }
 
@@ -15,49 +26,74 @@ const previewsByEditor = new WeakMap<Editor, Previews>()
 function getPreviews(editor: Editor) {
 	const existing = previewsByEditor.get(editor)
 	if (existing) return existing
-	const created: Previews = { urls: new Map(), queue: Promise.resolve() }
+	const created: Previews = { bySource: new WeakMap(), jobs: new Set(), queue: Promise.resolve() }
 	previewsByEditor.set(editor, created)
 	editor.disposables.add(() => {
-		for (const url of created.urls.values()) revoke(url)
-		created.urls.clear()
+		for (const job of created.jobs) job.url.then((url) => url && URL.revokeObjectURL(url))
+		created.jobs.clear()
 	})
 	return created
 }
 
-function revoke(url: Promise<string | null>) {
-	url.then((u) => u && URL.revokeObjectURL(u))
+function getSourceJobs(previews: Previews, source: LibrarySource) {
+	const existing = previews.bySource.get(source)
+	if (existing) return existing
+	const created = new Map<string, Job>()
+	previews.bySource.set(source, created)
+	return created
 }
+
+const keyOf = (item: TLLibraryItem, themeId: TLThemeId, darkMode: boolean) =>
+	`${item.id}:${themeId}:${darkMode ? 'dark' : 'light'}`
 
 /**
  * A `blob:` URL of an item's content rendered as its thumbnail would be, or null when it can't be
- * rendered. Items never change, so each is rendered once per colour mode for as long as `editor`
- * lives, one at a time.
+ * rendered or nobody wants it any more. Items never change, so each is rendered once per source,
+ * theme and colour mode for as long as `editor` lives, one at a time.
  */
 export function getItemPreviewUrl(
 	editor: Editor,
 	source: LibrarySource,
 	item: TLLibraryItem,
-	darkMode: boolean,
+	{ signal, ...options }: ItemPreviewRequest,
 	render: RenderItemPreview = renderItemPreview
 ): Promise<string | null> {
 	const previews = getPreviews(editor)
-	const key = `${item.id}:${darkMode ? 'dark' : 'light'}`
-	const existing = previews.urls.get(key)
-	if (existing) return existing
-	const url = previews.queue
-		.then(async () => {
-			if (editor.isDisposed) return null
-			const { content } = await source.getItemContent(item.id)
-			const blob = await render(editor, content, darkMode)
-			if (!blob || editor.isDisposed) return null
-			return URL.createObjectURL(blob)
-		})
-		.catch(() => {
-			// A failed load or render is tried again the next time the item is shown.
-			previews.urls.delete(key)
-			return null
-		})
-	previews.queue = url
-	previews.urls.set(key, url)
-	return url
+	const jobs = getSourceJobs(previews, source)
+	const key = keyOf(item, options.themeId, options.darkMode)
+	const job = jobs.get(key) ?? createJob()
+	if (signal && signal.aborted) return job.url
+	job.waiting++
+	if (signal) signal.addEventListener('abort', () => job.waiting--, { once: true })
+	return job.url
+
+	function createJob(): Job {
+		const created: Job = { waiting: 0, url: Promise.resolve(null) }
+		const forget = () => {
+			jobs.delete(key)
+			previews.jobs.delete(created)
+		}
+		created.url = previews.queue
+			.then(async () => {
+				if (editor.isDisposed) return null
+				// Nobody is showing it any more: skip it, and render it when it's next asked for.
+				if (created.waiting <= 0) {
+					forget()
+					return null
+				}
+				const { content } = await source.getItemContent(item.id)
+				const blob = await render(editor, content, options)
+				if (!blob || editor.isDisposed) return null
+				return URL.createObjectURL(blob)
+			})
+			.catch(() => {
+				// A failed load or render is tried again the next time the item is shown.
+				forget()
+				return null
+			})
+		previews.queue = created.url
+		jobs.set(key, created)
+		previews.jobs.add(created)
+		return created
+	}
 }
