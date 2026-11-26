@@ -172,3 +172,41 @@ it('renders again for a new definition of the same theme', async () => {
 	)
 	expect(render).toHaveBeenCalledTimes(2)
 })
+
+it('renders again with new font URLs', async () => {
+	const render = vi.fn(async () => blob)
+	await getItemPreviewUrl(
+		editor,
+		source,
+		item,
+		{ ...LIGHT, fontAssetUrls: { tldraw_draw: 'https://a/draw.woff2' } },
+		render
+	)
+	await getItemPreviewUrl(
+		editor,
+		source,
+		item,
+		{ ...LIGHT, fontAssetUrls: { tldraw_draw: 'https://b/draw.woff2' } },
+		render
+	)
+	expect(render).toHaveBeenCalledTimes(2)
+})
+
+it('shares a preview between equal font URLs in different objects', async () => {
+	const render = vi.fn(async () => blob)
+	await getItemPreviewUrl(
+		editor,
+		source,
+		item,
+		{ ...LIGHT, fontAssetUrls: { tldraw_draw: 'https://a/draw.woff2' } },
+		render
+	)
+	await getItemPreviewUrl(
+		editor,
+		source,
+		item,
+		{ ...LIGHT, fontAssetUrls: { tldraw_draw: 'https://a/draw.woff2' } },
+		render
+	)
+	expect(render).toHaveBeenCalledTimes(1)
+})

@@ -8,7 +8,7 @@ import {
 	getThumbnailContext,
 	stepThumbnailWidth,
 } from '../lib/thumbnail-context'
-import { getItemPreviewUrl } from './item-previews'
+import { fontAssetUrlsKey, getItemPreviewUrl } from './item-previews'
 
 interface ThumbnailRequest {
 	source: LibrarySource
@@ -151,23 +151,29 @@ function useItemPreviewUrls(
 	const itemIds = items.map((item) => item.id).join(' ')
 	const theme = useValue('preview theme', () => editor.getCurrentTheme(), [editor])
 	const fontAssetUrls = useAssetUrls().fonts
+	const latestFontAssetUrls = useRef(fontAssetUrls)
+	latestFontAssetUrls.current = fontAssetUrls
+	const fonts = fontAssetUrlsKey(fontAssetUrls)
 	useEffect(() => {
 		const controller = new AbortController()
 		const { signal } = controller
 		const darkMode = colorMode === 'dark'
 		for (const item of latestItems.current) {
-			getItemPreviewUrl(editor, source, item, { darkMode, theme, fontAssetUrls, signal }).then(
-				(url) => {
-					if (signal.aborted || !url) return
-					setPreviews((previous) => {
-						const urls = previous.source === source ? previous.urls : {}
-						return urls[item.id] === url ? previous : { source, urls: { ...urls, [item.id]: url } }
-					})
-				}
-			)
+			getItemPreviewUrl(editor, source, item, {
+				darkMode,
+				theme,
+				fontAssetUrls: latestFontAssetUrls.current,
+				signal,
+			}).then((url) => {
+				if (signal.aborted || !url) return
+				setPreviews((previous) => {
+					const urls = previous.source === source ? previous.urls : {}
+					return urls[item.id] === url ? previous : { source, urls: { ...urls, [item.id]: url } }
+				})
+			})
 		}
 		return () => controller.abort()
-	}, [editor, source, itemIds, colorMode, theme, fontAssetUrls])
+	}, [editor, source, itemIds, colorMode, theme, fonts])
 	return previews.source === source ? previews.urls : {}
 }
 
