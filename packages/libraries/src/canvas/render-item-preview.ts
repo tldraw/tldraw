@@ -11,6 +11,8 @@ const constructorsOf = <T extends object>(utils: { readonly [type: string]: T | 
 export interface ItemPreviewOptions {
 	darkMode: boolean
 	themeId: TLThemeId
+	/** The host's font files by name, as `<Tldraw>`'s asset URLs give them, to embed the fonts. */
+	fontAssetUrls?: { [key: string]: string | undefined }
 }
 
 /**
@@ -21,7 +23,7 @@ export interface ItemPreviewOptions {
 export async function renderItemPreview(
 	host: Editor,
 	content: TLContent,
-	{ darkMode, themeId }: ItemPreviewOptions
+	{ darkMode, themeId, fontAssetUrls }: ItemPreviewOptions
 ): Promise<Blob | null> {
 	const doc = host.getContainerDocument()
 	const container = doc.createElement('div')
@@ -36,6 +38,7 @@ export async function renderItemPreview(
 		assetUtils: constructorsOf(host.assetUtils),
 		tools: [],
 		getContainer: () => container,
+		fontAssetUrls,
 		themes: host.getThemes(),
 		options: host.options,
 	})
