@@ -1,13 +1,13 @@
 // Checks every translation in both catalogs (SDK and dotcom) against its English: ICU syntax,
-// arguments, tags, select options and the plural forms each locale needs. Runs in the workflows
-// that change translations (the weekly strings download and i18n-translate), not on every PR: a
-// feature PR that renames an English placeholder shouldn't fail on 48 locales it doesn't own.
+// arguments, tags, select options and the plural forms each locale needs. Runs in the i18n-translate
+// workflow, not on every PR: a feature PR that renames an English placeholder shouldn't fail on 48
+// locales it doesn't own.
 //
 //   pnpm i18n-validate [--prune] [--verbose] | --entries <file>
 //
 // Failures that predate this check are listed in i18n-validate-known-failures.json, one entry per
 // error, so a new kind of breakage in an already-listed message still fails. Entries that no longer
-// fail are reported; --prune removes them (the weekly strings download runs it).
+// fail are reported; --prune removes them.
 
 import { readFileSync, writeFileSync } from 'fs'
 import path from 'path'
