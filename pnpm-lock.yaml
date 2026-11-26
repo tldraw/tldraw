@@ -1295,6 +1295,9 @@ importers:
 
   internal/scripts:
     dependencies:
+      '@formatjs/icu-messageformat-parser':
+        specifier: ^3.5.21
+        version: 3.5.21
       '@lokalise/node-api':
         specifier: ^12.8.0
         version: 12.8.0
