@@ -21,17 +21,14 @@ import { useMemo } from 'react'
 import { ImageAssetUtil } from './assets/ImageAssetUtil'
 import { VideoAssetUtil } from './assets/VideoAssetUtil'
 import { defaultAssetUtils } from './defaultAssetUtils'
-import { defaultBindingUtils } from './defaultBindingUtils'
 import { TLEmbedDefinition } from './defaultEmbedDefinitions'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
 import { defaultOverlayUtils } from './defaultOverlayUtils'
-import { defaultShapeTools } from './defaultShapeTools'
-import { defaultShapeUtils } from './defaultShapeUtils'
+import { createTldrawPlugins } from './defaultPlugins'
 import { registerDefaultSideEffects } from './defaultSideEffects'
-import { defaultTools } from './defaultTools'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { allDefaultFontFaces } from './shapes/shared/defaultFonts'
 import { TLUiAssetUrlOverrides, useDefaultUiAssetUrlsWithOverrides } from './ui/assetUrls'
@@ -75,6 +72,13 @@ export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 /** @public */
 export interface TldrawBaseProps
 	extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
+	/**
+	 * Every plugin that the editor installs. Defaults to {@link createTldrawPlugins}, which has the
+	 * default shapes and tools. To add your own, pass `[...createTldrawPlugins(), ...yours]`. The
+	 * `shapeUtils`, `bindingUtils` and `tools` props replace the plugins' records of the same type
+	 * or id. Keep the array stable between renders, because a new array creates a new editor.
+	 */
+	plugins?: TldrawEditorBaseProps['plugins']
 	/** Urls for custom assets.
 	 *
 	 * ⚠︎ Important! This must be memoized (with useMemo) or defined outside of any React component.
@@ -115,8 +119,6 @@ export interface TldrawBaseProps
 
 /** @public */
 export type TldrawProps = TldrawBaseProps & TldrawEditorStoreProps
-
-const allDefaultTools = [...defaultTools, ...defaultShapeTools]
 
 function configureDefaultAssetUtils(
 	assetUtils: readonly TLAnyAssetUtilConstructor[],
@@ -161,6 +163,7 @@ export function Tldraw(props: TldrawProps) {
 		assetUtils = [],
 		overlayUtils = [],
 		tools = [],
+		plugins: _plugins,
 		// needs to be here for backwards compatibility
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		embeds,
@@ -196,17 +199,10 @@ export function Tldraw(props: TldrawProps) {
 		[_components, InFrontOfTheCanvas]
 	)
 
+	const defaultPlugins = useMemo(() => createTldrawPlugins(), [])
+	const plugins = useShallowArrayIdentity(_plugins ?? defaultPlugins)
 	const _shapeUtils = useShallowArrayIdentity(shapeUtils)
-	const shapeUtilsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('type', _shapeUtils, defaultShapeUtils),
-		[_shapeUtils]
-	)
-
 	const _bindingUtils = useShallowArrayIdentity(bindingUtils)
-	const bindingUtilsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('type', _bindingUtils, defaultBindingUtils),
-		[_bindingUtils]
-	)
 
 	const _assetUtils = useShallowArrayIdentity(assetUtils)
 	const assetUtilsWithDefaults = useMemo(
@@ -225,10 +221,6 @@ export function Tldraw(props: TldrawProps) {
 	)
 
 	const _tools = useShallowArrayIdentity(tools)
-	const toolsWithDefaults = useMemo(
-		() => mergeArraysAndReplaceDefaults('id', _tools, allDefaultTools),
-		[_tools]
-	)
 
 	const _imageMimeTypes = useShallowArrayIdentity(
 		acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES
@@ -266,8 +258,10 @@ export function Tldraw(props: TldrawProps) {
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 
-	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
-	if (embedShapeUtil && embeds) {
+	const hasEmbedShape =
+		_shapeUtils.some((util) => util.type === 'embed') ||
+		plugins.some((p) => p.shapeUtils?.some((util) => util.type === 'embed'))
+	if (hasEmbedShape && embeds) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		EmbedShapeUtil.setEmbedDefinitions(embeds)
 	}
@@ -286,11 +280,12 @@ export function Tldraw(props: TldrawProps) {
 					initialState="select"
 					{...rest}
 					components={componentsWithDefault}
-					shapeUtils={shapeUtilsWithDefaults}
-					bindingUtils={bindingUtilsWithDefaults}
+					plugins={plugins}
+					shapeUtils={_shapeUtils}
+					bindingUtils={_bindingUtils}
 					assetUtils={assetUtilsWithDefaults}
 					overlayUtils={overlayUtilsWithDefaults}
-					tools={toolsWithDefaults}
+					tools={_tools}
 					options={optionsWithDefaults}
 					assetUrls={assets}
 				>

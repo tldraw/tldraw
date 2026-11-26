@@ -153,6 +153,7 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPlugin } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
@@ -886,6 +887,9 @@ export function createEmptyBookmarkShape(editor: Editor, url: string, position: 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
 
+// @public
+export function createTldrawPlugins(): TLPlugin[];
+
 // @public (undocumented)
 export interface CropBoxOptions {
     // (undocumented)
@@ -1500,6 +1504,9 @@ export interface DefaultRichTextToolbarContentProps {
     textEditor: TiptapEditor;
 }
 
+// @public
+export const defaultShapePlugins: readonly TLPlugin[];
+
 // @public (undocumented)
 export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
@@ -1539,6 +1546,9 @@ export interface DefaultToolbarProps {
     // (undocumented)
     orientation?: 'horizontal' | 'vertical';
 }
+
+// @public
+export const defaultToolPlugins: readonly TLPlugin[];
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
@@ -4255,6 +4265,7 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     // @deprecated
     embeds?: TLEmbedDefinition[];
     locale?: string;
+    plugins?: TldrawEditorBaseProps['plugins'];
     // @deprecated
     textOptions?: TLTextOptions;
 }

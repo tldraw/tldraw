@@ -152,6 +152,7 @@ export {
 	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
+export { createTldrawPlugins, defaultShapePlugins, defaultToolPlugins } from './lib/defaultPlugins'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { registerDefaultSideEffects } from './lib/defaultSideEffects'
