@@ -39,6 +39,8 @@ export interface ActorLayout extends SvgRect {
 export interface FragmentFrameLayout {
 	top: number
 	bottom: number
+	/** The layout's right edge for the frame, which can reach past its last lifeline. */
+	right: number
 	sectionYs: number[]
 }
 
@@ -250,6 +252,8 @@ interface ComputedActorLayouts {
 	actorLayouts: ActorLayout[]
 	/** Maps a y in the rendered SVG into the space of `actorLayouts`, when they were read from it. */
 	toLayoutY?(svgY: number): number
+	/** Maps an x in the rendered SVG into the space of `actorLayouts`, when they were read from it. */
+	toLayoutX?(svgX: number): number
 }
 
 /**
@@ -284,6 +288,8 @@ function layoutActorsFromSvg(top: SvgRect[], bottom: SvgRect[]): Required<Comput
 		svgY +
 		(footerTop > headerBottom ? yStretch * clamp(invLerp(headerBottom, footerTop, svgY), 0, 1) : 0)
 
+	const toLayoutX = (svgX: number) => (svgX - svgCenters[0]) * scale - totalSpan / 2
+
 	const actorLayouts = top.map((topRect, i) => {
 		const w = topRect.w + ACTOR_PADDING_WIDTH
 		const h = topRect.h + ACTOR_PADDING_HEIGHT
@@ -297,7 +303,7 @@ function layoutActorsFromSvg(top: SvgRect[], bottom: SvgRect[]): Required<Comput
 			bottomY: toLayoutY(bottom[i].y),
 		}
 	})
-	return { actorLayouts, toLayoutY }
+	return { actorLayouts, toLayoutY, toLayoutX }
 }
 
 function getFallbackActorLayouts(actorCount: number, eventCount: number): ComputedActorLayouts {
@@ -372,7 +378,10 @@ export function parseSequenceLayout(root: Element, model: SequenceModel): Parsed
 		)
 		return { actorLayouts, noteRects: [], rowYs: new Map(), fragmentFrames: new Map() }
 	}
-	const { actorLayouts, toLayoutY } = layoutActorsFromSvg(actorBoxes.top, actorBoxes.bottom)
+	const { actorLayouts, toLayoutY, toLayoutX } = layoutActorsFromSvg(
+		actorBoxes.top,
+		actorBoxes.bottom
+	)
 
 	const rowYs = new Map<number, number>()
 	const labelTops = new Map<number, number>()
@@ -421,7 +430,7 @@ export function parseSequenceLayout(root: Element, model: SequenceModel): Parsed
 		actorLayouts,
 		noteRects: notes.map((note) => note.rect),
 		rowYs,
-		fragmentFrames: parsePeleFragmentFrames(root, model.messages, toLayoutY),
+		fragmentFrames: parsePeleFragmentFrames(root, model.messages, toLayoutY, toLayoutX),
 	}
 }
 
@@ -496,7 +505,8 @@ function parsePeleActorBoxes(
 function parsePeleFragmentFrames(
 	root: Element,
 	messages: SequenceMessage[],
-	toLayoutY: (svgY: number) => number
+	toLayoutY: (svgY: number) => number,
+	toLayoutX: (svgX: number) => number
 ): Map<number, FragmentFrameLayout> {
 	const closedByKeyword = new Map<string, { startIndex: number; endIndex: number }[]>()
 	const open: { keyword: string; startIndex: number }[] = []
@@ -525,7 +535,7 @@ function parsePeleFragmentFrames(
 			const el = elements[i]
 			const outline = isRect ? el : el.querySelector('rect')
 			if (!outline) continue
-			const { y, h } = getRect(outline)
+			const { x, y, w, h } = getRect(outline)
 			const originY = getOrigin(el).y
 			const sectionYs = isRect
 				? []
@@ -536,6 +546,7 @@ function parsePeleFragmentFrames(
 			frames.set(closed[i].endIndex, {
 				top: toLayoutY(y),
 				bottom: toLayoutY(y + h),
+				right: toLayoutX(x + w),
 				sectionYs: sectionYs.sort((a, b) => a - b).map(toLayoutY),
 			})
 		}
@@ -835,7 +846,14 @@ export function sequenceToBlueprint(
 		const minIndex = Math.min(...indices)
 		const maxIndex = Math.max(...indices)
 		const leftX = layouts[minIndex].x - FRAGMENT_PADDING_X
-		const fragW = layouts[maxIndex].x + layouts[maxIndex].w + FRAGMENT_PADDING_X - leftX
+		// A frame around one participant's self-message is no wider than that lifeline's box, which
+		// squeezes the title onto several lines. The layout's frame also holds the title and the
+		// loop's label.
+		const rightX = Math.max(
+			layouts[maxIndex].x + layouts[maxIndex].w + FRAGMENT_PADDING_X,
+			frame?.right ?? -Infinity
+		)
+		const fragW = rightX - leftX
 		const fragH = fragBottom - fragTop
 
 		const rgbColor =

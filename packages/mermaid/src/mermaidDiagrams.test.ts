@@ -1563,7 +1563,9 @@ describe('sequenceToBlueprint', () => {
 					[4, 120],
 				]),
 				// Keyed by the statement that closes the fragment.
-				fragmentFrames: new Map([[5, { top: -100, bottom: 140, sectionYs: [60] }]]),
+				fragmentFrames: new Map([
+					[5, { top: -100, bottom: 140, right: -Infinity, sectionYs: [60] }],
+				]),
 			})
 			const actors = new Map([actor('User'), actor('App')])
 			const messages = [

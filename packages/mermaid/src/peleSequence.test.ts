@@ -267,6 +267,19 @@ describe('pele sequence renderer', () => {
 		])
 	})
 
+	it("widens a frame around one participant's self-message to hold its title and label", async () => {
+		const { nodes } = await toBlueprint(`sequenceDiagram
+  A->>B: go
+  opt Customer included coupon
+    B->>B: Apply discount rules
+  end`)
+
+		const frame = nodes.find((node) => node.kind === 'sequence_fragment')!
+		const actor = nodes.find((node) => node.id === 'actor-top-B')!
+		// Sized from the lifeline alone, the frame would end 30 past B's box.
+		expect(frame.x + frame.w).toBeGreaterThan(actor.x + actor.w + 60)
+	})
+
 	it("ids messages, their labels and notes as i<n>, the event's index in the model", async () => {
 		// parseSequenceLayout matches rows to model events by this id alone.
 		const parsed = (await parsePeleDiagram(`sequenceDiagram
