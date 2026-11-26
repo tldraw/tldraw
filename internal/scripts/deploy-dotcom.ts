@@ -146,11 +146,16 @@ const zeroRmv2 = env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production'
 // RMv1 with v5 backups before zeroRmv2 turns on for it (production did in #11619).
 const zeroRmBackupV5 = zeroRmv2
 // View-syncers restore from the URL the RM hands them, with the v5 binary whatever this flag says.
-// So production's stays off: turning it on would restart all 13 in the deploy that changes it.
-const zeroVsBackupV5 = env.TLDRAW_ENV === 'staging'
-// Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
-// would redeploy production's zero apps in place.
-const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
+// Changing it restarts them, which the zero 1.12 image change does anyway.
+const zeroVsBackupV5 = zeroRmv2
+// zero 1.12 defaults to a slot per RM, which every zero process asserts needs v5 backups. If RMv2
+// is turned off, v5 goes with it, so pin the shared slot. The deploy gate hashes the config text,
+// so changing either line redeploys the app it's in.
+const sharedSlotEnv = 'ZERO_UPSTREAM_PG_REPLICATION_SLOT_PER_REPLICA = "false"\n'
+const rmv2Env = zeroRmv2
+	? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n'
+	: sharedSlotEnv
+const vsSlotEnv = zeroVsBackupV5 ? '' : sharedSlotEnv
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -919,6 +924,7 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
+		.replace('__VS_SLOT_ENV\n', vsSlotEnv)
 		.replaceAll('__BACKUP_V5', String(zeroVsBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
