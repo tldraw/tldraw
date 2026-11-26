@@ -1078,23 +1078,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Ask the checks registered for a capability. A readonly editor rejects the shape and page
-	 * capabilities. Other capabilities, such as the ones that commenting adds, follow only their
-	 * checks. A capability with no registered check is allowed. Reactive.
+	 * Ask the checks registered for a capability, or for each of several. A readonly editor rejects
+	 * the shape and page capabilities. Other capabilities, such as the ones that commenting adds,
+	 * follow only their checks. A capability with no registered check is allowed. Reactive.
 	 *
-	 * @param capability - The capability to check.
-	 * @returns `null` if allowed, or the rejection.
+	 * @example
+	 * ```ts
+	 * // Creating a shape by dragging also edits it
+	 * if (editor.checkCapability(['create-shape', 'edit-shape'])) return
+	 * ```
+	 *
+	 * @param capability - The capability to check, or several that must all be allowed.
+	 * @returns `null` if allowed, or the first rejection.
 	 *
 	 * @public
 	 */
-	checkCapability(capability: TLCapability): TLCheckRejection | null {
-		if (this.getIsReadonly() && DOCUMENT_CAPABILITIES.has(capability)) {
+	checkCapability(capability: TLCapability | TLCapability[]): TLCheckRejection | null {
+		const capabilities = Array.isArray(capability) ? capability : [capability]
+		if (this.getIsReadonly() && capabilities.some((c) => DOCUMENT_CAPABILITIES.has(c))) {
 			return { reason: 'readonly' }
 		}
-		for (const handler of this._capabilityChecks.get().get(capability) ?? EMPTY_ARRAY) {
-			const rejection = runCheck(handler)
-			if (rejection) {
-				return rejection
+		const checks = this._capabilityChecks.get()
+		for (const c of capabilities) {
+			for (const handler of checks.get(c) ?? EMPTY_ARRAY) {
+				const rejection = runCheck(handler)
+				if (rejection) {
+					return rejection
+				}
 			}
 		}
 		return null
@@ -9732,7 +9742,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		if (!opts.force && this.checkCapability('edit-shape')) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

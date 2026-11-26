@@ -933,7 +933,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
-    checkCapability(capability: TLCapability): null | TLCheckRejection;
+    checkCapability(capability: TLCapability | TLCapability[]): null | TLCheckRejection;
     // (undocumented)
     clearHistory(): this;
     // @internal

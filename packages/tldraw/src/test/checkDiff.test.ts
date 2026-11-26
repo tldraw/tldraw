@@ -118,6 +118,17 @@ describe('capability checks', () => {
 		removeA()
 	})
 
+	it('checks several capabilities, and the first rejection wins', () => {
+		const editor = new TestEditor()
+		editor.registerCapabilityCheck('edit-shape', () => ({ reason: 'edit' }))
+		editor.registerCapabilityCheck('delete-shape', () => ({ reason: 'delete' }))
+		expect(editor.checkCapability(['create-shape', 'delete-shape', 'edit-shape'])).toEqual({
+			reason: 'delete',
+		})
+		expect(editor.checkCapability(['create-shape', 'create-page'])).toBeNull()
+		expect(editor.checkCapability([])).toBeNull()
+	})
+
 	it('rejects the shape and page capabilities in a readonly editor', () => {
 		const editor = new TestEditor()
 		editor.updateInstanceState({ isReadonly: true })

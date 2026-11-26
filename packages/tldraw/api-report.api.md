@@ -95,6 +95,7 @@ import { TLAssetStore } from '@tldraw/editor';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
+import { TLCapability } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
@@ -4718,6 +4719,7 @@ export interface TLUiA11yContextType {
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
+    capabilities?: TLCapability[];
     // (undocumented)
     checkbox?: boolean;
     commandPalette?: {

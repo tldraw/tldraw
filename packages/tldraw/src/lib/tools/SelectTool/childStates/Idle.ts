@@ -339,7 +339,7 @@ export class Idle extends StateNode {
 						info.handle === 'bottom_right' ||
 						info.handle === 'bottom_left'
 
-					if (this.editor.getIsReadonly()) {
+					if (this.editor.checkCapability('edit-shape')) {
 						// includes readonly check
 						if (
 							this.editor.canEditShape(onlySelectedShape, {
@@ -417,7 +417,7 @@ export class Idle extends StateNode {
 				const util = this.editor.getShapeUtil(shape)
 
 				// Shapes that opt into read-only editing (embeds, custom utils) still get their double click
-				if (this.editor.getIsReadonly() && !util.canEditInReadonly(shape)) break
+				if (this.editor.checkCapability('edit-shape') && !util.canEditInReadonly(shape)) break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
@@ -704,7 +704,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.checkCapability('create-shape') || this.editor.checkCapability('edit-shape')) {
+		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
 			return
 		}
 

@@ -341,7 +341,9 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
-	 * Whether the shape can be edited in read-only mode.
+	 * Whether the shape can be edited in read-only mode, or while the `edit-shape` capability is
+	 * rejected. Return true only for shapes whose editing doesn't change the document, like
+	 * interacting with an embed.
 	 *
 	 * @public
 	 */
