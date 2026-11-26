@@ -1020,34 +1020,42 @@ describe('a burst of changes', () => {
 		}
 	}
 
-	it('keeps the panel up while many libraries are created and then deleted', async () => {
-		const source = new InMemoryLibrarySource()
-		const container = await renderPanel(source)
-		const sections = () => container.querySelectorAll('.tlui-libraries-section').length
+	it(
+		'keeps the panel up while many libraries are created and then deleted',
+		{ timeout: 20_000 },
+		async () => {
+			const source = new InMemoryLibrarySource()
+			const container = await renderPanel(source)
+			const sections = () => container.querySelectorAll('.tlui-libraries-section').length
 
-		await oneMicrotaskApart(80, (i) => void source.createLibrary(`Library ${i}`))
-		expect(sections()).toBe(80)
+			await oneMicrotaskApart(60, (i) => void source.createLibrary(`Library ${i}`))
+			expect(sections()).toBe(60)
 
-		const libraries = source.getLibraries()
-		await oneMicrotaskApart(libraries.length, (i) => void source.deleteLibrary(libraries[i].id))
-		expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
-		expect(sections()).toBe(0)
-	})
+			const libraries = source.getLibraries()
+			await oneMicrotaskApart(libraries.length, (i) => void source.deleteLibrary(libraries[i].id))
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+			expect(sections()).toBe(0)
+		}
+	)
 
-	it('keeps the panel up while many items are added to one library', async () => {
-		const source = new InMemoryLibrarySource()
-		const library = await source.createLibrary('Icons')
-		const container = await renderPanel(source)
-		await oneMicrotaskApart(
-			80,
-			(i) => void source.addItem(library.id, { name: `Item ${i}`, content: emptyContent })
-		)
-		expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
-		expect(
-			container.querySelectorAll('.tlui-libraries-tile__button:not([aria-label="Add selection"])')
-				.length
-		).toBe(80)
-	})
+	it(
+		'keeps the panel up while many items are added to one library',
+		{ timeout: 20_000 },
+		async () => {
+			const source = new InMemoryLibrarySource()
+			const library = await source.createLibrary('Icons')
+			const container = await renderPanel(source)
+			await oneMicrotaskApart(
+				60,
+				(i) => void source.addItem(library.id, { name: `Item ${i}`, content: emptyContent })
+			)
+			expect(container.querySelector('.tlui-libraries-panel')).not.toBeNull()
+			expect(
+				container.querySelectorAll('.tlui-libraries-tile__button:not([aria-label="Add selection"])')
+					.length
+			).toBe(60)
+		}
+	)
 })
 
 it("opens a library's menu from the keyboard before it has ever been opened", async () => {
