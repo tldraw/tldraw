@@ -65,15 +65,14 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 
 The `react/` folder is the only place in this design that imports React. `reactRenderingPlugins` contributes the group shape view (`GroupShapeUtil` has no JSX) and provides SVG export.
 
-A shape view (`TLShapeView`, contributed to `shapeViewSlot`) draws one shape type: `component`, and optionally `backgroundComponent`, `toSvg` and `toBackgroundSvg`. Each gets the shape and its util. A util calls the view from its render methods with `this.getView()`. The renderers still call the util's methods, so a subclass that overrides a render method, or calls `super`, keeps working. Two views for the same type throw.
+A shape view (`TLShapeView`, contributed to `shapeViewSlot`) draws one shape type: `component`, and optionally `backgroundComponent`, `toSvg`, `toBackgroundSvg` and `getCanvasSvgDefs`. Each gets the shape and its util. A util calls the view from its render methods with `this.getView()`. The renderers still call the util's methods, so a subclass that overrides a render method, or calls `super`, keeps working. Two views for the same type throw.
 
-In `tldraw`, the highlight shape is split this way: `HighlightShapeUtil.ts` imports no React, and `HighlightShapeView.tsx` has `highlightShapeViewPlugin`. The default views are in `defaultShapeViewPlugins`. Importing `tldraw` adds them to `createDefaultPlugins` with `registerDefaultPlugins`, so an editor built from `shapeUtils={defaultShapeUtils}` without the tldraw plugins still draws them. This is a provisional seam, like `setDefaultEditorPlugins`.
+In `tldraw`, each default shape is split this way. For example, `HighlightShapeUtil.ts` imports no React, and `HighlightShapeView.tsx` has `highlightShapeView` and `highlightShapeViewPlugin`. A test walks the imports of every default util. `shared/PathBuilder.tsx` is the one allowed `.tsx` import, because its public `toSvg` returns JSX. The default views are in `defaultShapeViewPlugins`. Importing `tldraw` adds them to `createDefaultPlugins` with `registerDefaultPlugins`, so an editor built from `shapeUtils={defaultShapeUtils}` without the tldraw plugins still draws them. This is a provisional seam, like `setDefaultEditorPlugins`.
 
 ## Next steps
 
-1. Split the other default shapes like highlight: a util module with no React and a view in `defaultShapeViewPlugins`. Utils with `getCanvasSvgDefs` (arrow, draw, geo) also need those defs in the view.
-2. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
-3. Lift more of the editor the same way, for example deep links, grouping and duplication, and the page operations.
+1. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
+2. Lift more of the editor the same way, for example deep links, grouping and duplication, and the page operations.
 
 ## Shapes and tools in `tldraw`
 
