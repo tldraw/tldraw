@@ -31,6 +31,7 @@ import {
 	frameActionItems,
 	geoActionItems,
 	imageActionItems,
+	mediaActionItems,
 	textActionItems,
 	videoActionItems,
 	zoomActionItems,
@@ -145,6 +146,7 @@ export const defaultShapePlugins: readonly TLPlugin[] = [
 		setup(ctx) {
 			ctx.contribute(uiToolItemsSlot, mediaToolItems)
 			ctx.contribute(uiActionItemsSlot, imageActionItems)
+			ctx.contribute(uiActionItemsSlot, mediaActionItems)
 		},
 	}),
 	definePlugin({

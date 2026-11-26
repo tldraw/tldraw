@@ -155,7 +155,6 @@ const messages = defineMessages({
 	actionFlipHorizontalShort: { id: 'action.flip-horizontal.short', defaultMessage: 'Flip H' },
 	actionFlipVertical: { id: 'action.flip-vertical', defaultMessage: 'Flip vertically' },
 	actionFlipVerticalShort: { id: 'action.flip-vertical.short', defaultMessage: 'Flip V' },
-	actionFrameSelection: { id: 'action.frame-selection', defaultMessage: 'Frame selection' },
 	actionGroup: { id: 'action.group', defaultMessage: 'Group' },
 	actionOpenCursorChat: { id: 'action.open-cursor-chat', defaultMessage: 'Cursor chat' },
 	actionOpenKbdShortcuts: { id: 'action.open-kbd-shortcuts', defaultMessage: 'Keyboard shortcuts' },
@@ -808,7 +807,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'toggle-frame',
 				isEnabled: (editor) => editor.isIn('select') && getFrameToggleAction(editor) !== null,
-				label: messages.actionFrameSelection.id,
+				label: 'action.frame-selection',
 				kbd: 'cmd+alt+g,ctrl+alt+g',
 				readonlyOk: false,
 				commandPalette: false,

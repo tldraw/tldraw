@@ -337,9 +337,8 @@ export function zoomActionItems({
 	]
 }
 
-/** The image shape's actions: upload media, crop, replace, and flatten shapes to an image. @internal */
-export function imageActionItems({
-	editor,
+/** The upload action, which inserts images and videos. @internal */
+export function mediaActionItems({
 	helpers,
 	trackEvent,
 }: TLUiActionItemsContext): DefaultActionItem[] {
@@ -355,6 +354,16 @@ export function imageActionItems({
 				helpers.insertMedia()
 			},
 		},
+	]
+}
+
+/** The image shape's actions: crop, replace, and flatten shapes to an image. @internal */
+export function imageActionItems({
+	editor,
+	helpers,
+	trackEvent,
+}: TLUiActionItemsContext): DefaultActionItem[] {
+	return [
 		{
 			id: 'crop-image',
 			label: messages.toolImageCrop.id,
@@ -445,6 +454,10 @@ export const legacyActionItems: readonly {
 	{ items: frameActionItems, isAvailable: ({ editor }) => editor.hasShapeUtil('frame') },
 	{ items: geoActionItems, isAvailable: ({ editor }) => hasTool(editor, 'geo') },
 	{ items: zoomActionItems, isAvailable: ({ editor }) => hasTool(editor, 'zoom') },
+	{
+		items: mediaActionItems,
+		isAvailable: ({ editor }) => editor.hasShapeUtil('image') || editor.hasShapeUtil('video'),
+	},
 	{ items: imageActionItems, isAvailable: ({ editor }) => editor.hasShapeUtil('image') },
 	{ items: videoActionItems, isAvailable: ({ editor }) => editor.hasShapeUtil('video') },
 ]
