@@ -27,7 +27,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'video-toolbar'
-	const isReadonly = editor.getIsReadonly()
+	const cannotEdit = !!editor.checkCapability('edit-shape')
 
 	const actions = useActions()
 
@@ -49,7 +49,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 
 	return (
 		<>
-			{!isReadonly && (
+			{!cannotEdit && (
 				<TldrawUiToolbarButton
 					type="icon"
 					title={msg(messages.toolReplaceMedia)}
@@ -67,7 +67,7 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 			>
 				<TldrawUiButtonIcon small icon="download" />
 			</TldrawUiToolbarButton>
-			{(altText || !isReadonly) && (
+			{(altText || !cannotEdit) && (
 				<TldrawUiToolbarButton
 					type="icon"
 					isActive={!!altText}
