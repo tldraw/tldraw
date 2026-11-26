@@ -144,6 +144,27 @@ describe('tool items from plugins', () => {
 		expect(editor.getCurrentToolId()).toBe('card')
 	})
 
+	it('throws when two plugins contribute a tool item with the same id', async () => {
+		const cardAgain = definePlugin({
+			id: 'cardAgain',
+			setup(ctx) {
+				ctx.contribute(uiToolItemsSlot, () => [
+					{ id: 'card', label: 'tool.card', icon: 'tool-note', onSelect() {} },
+				])
+			},
+		})
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const plugins = [...createTldrawPlugins(), cardPlugin, cardAgain]
+		// The error boundary catches the error and logs it, so the editor never shows its canvas.
+		await renderTldrawComponent(<Tldraw plugins={plugins} />, { waitForPatterns: false }).catch(
+			() => {}
+		)
+		expect(errorSpy.mock.calls.flat().map(String).join('\n')).toContain(
+			'Two plugins contribute a tool item with id "card"'
+		)
+		errorSpy.mockRestore()
+	})
+
 	it('applies tool overrides to plugin tool items', async () => {
 		const overrides = {
 			tools(_editor: Editor, tools: TLUiToolsContextType) {

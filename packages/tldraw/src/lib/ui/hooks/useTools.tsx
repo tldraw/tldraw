@@ -77,9 +77,13 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
 		if (!editor) return {}
 		const ctx: TLUiToolItemsContext = { editor, helpers, onToolSelect, trackEvent }
-		const contributed = new Map(
-			contributions.flatMap((items) => items(ctx)).map((item) => [item.id, item])
-		)
+		const contributed = new Map<string, TLUiToolItem>()
+		for (const item of contributions.flatMap((items) => items(ctx))) {
+			if (contributed.has(item.id)) {
+				throw Error(`Two plugins contribute a tool item with id "${item.id}"`)
+			}
+			contributed.set(item.id, item)
+		}
 		// The built-in items keep their usual order, which the command palette and the keyboard
 		// shortcuts follow. A contributed item takes the place of the built-in item with its id.
 		const toolsArray: TLUiToolItem[] = []
