@@ -337,6 +337,20 @@ export function MoveToPageMenu() {
 	const trackEvent = useUiEvents()
 	const isReadonlyMode = useReadonly()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+	const allowedPages = useValue(
+		'allowed move destinations',
+		() =>
+			new Set(
+				pages
+					.filter(
+						(page) =>
+							editor.isPermitted('tl:shape:update', { pageId: currentPageId }) &&
+							editor.isPermitted('tl:shape:update', { pageId: page.id })
+					)
+					.map((page) => page.id)
+			),
+		[editor, pages, currentPageId]
+	)
 
 	if (!oneSelected) return null
 	if (isReadonlyMode) return null
@@ -348,7 +362,7 @@ export function MoveToPageMenu() {
 					<TldrawUiMenuItem
 						id={page.id}
 						key={page.id}
-						disabled={currentPageId === page.id}
+						disabled={currentPageId === page.id || !allowedPages.has(page.id)}
 						label={page.name.length > 30 ? `${page.name.slice(0, 30)}…` : page.name}
 						onSelect={(source) => {
 							editor.markHistoryStoppingPoint('move_shapes_to_page')

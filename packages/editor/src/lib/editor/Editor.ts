@@ -185,7 +185,10 @@ import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { WriteRuleManager } from './managers/WriteRuleManager/WriteRuleManager'
+import {
+	isChangeAllowedByWriteRule,
+	WriteRuleManager,
+} from './managers/WriteRuleManager/WriteRuleManager'
 import { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
@@ -320,13 +323,15 @@ export interface TLEditorOptions {
 	 * isChangePermitted={(change) => change.type !== 'delete'}
 	 * ```
 	 *
-	 * @param change - The change: `{ type, prev, next }`.
-	 * @param editor - The editor instance.
+	 * Set to `'write-rule'` to query the configured rule with one change and the current store as
+	 * both readers. Opt in only for rules that can judge records independently. This does not
+	 * simulate side effects or predict which edits a no-op update permits. Missing rules or
+	 * sessions and thrown rules answer false. Without sync, an omitted getSession uses the same
+	 * default local session as enforcement. Rules must be synchronous and must not mutate state.
 	 */
-	isChangePermitted?(
-		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
-		editor: Editor
-	): boolean
+	isChangePermitted?:
+		| 'write-rule'
+		| ((change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>, editor: Editor) => boolean)
 
 	/**
 	 * Whether the UI should offer a kind of canvas action, for controls with no record to ask
@@ -341,8 +346,9 @@ export interface TLEditorOptions {
 	 *
 	 * @param permission - The permission's name.
 	 * @param editor - The editor instance.
+	 * @param context - The target page, defaulting to the current page. Other context is available on the editor.
 	 */
-	isPermitted?(permission: TLPermission, editor: Editor): boolean
+	isPermitted?(permission: TLPermission, editor: Editor, context: { pageId: TLPageId }): boolean
 	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
@@ -1077,8 +1083,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Whether the UI should offer a change to a record: not on a readonly document, not an update
 	 * or delete of a locked shape (or one under a locked ancestor), and not denied by the
-	 * `isChangePermitted` option. Advisory: it doesn't stop editor methods, and it never asks the
-	 * store's write rule, which judges whole operations rather than one record. Reactive.
+	 * `isChangePermitted` option. Advisory: it doesn't stop editor methods. Only the explicit
+	 * `'write-rule'` option queries the store's rule with one change. Reactive.
 	 *
 	 * @example
 	 * ```ts
@@ -1112,6 +1118,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// checked only when something applies: an unlicensed check warns
 		if (!isChangePermitted && permissions === null) return false
 		if (!this._arePermissionsLicensed()) return false
+		if (isChangePermitted === 'write-rule') return !isChangeAllowedByWriteRule(this.store, change)
 		if (isChangePermitted) return !isChangePermitted(change, this)
 		return !isChangePermittedByList(permissions, change)
 	}
@@ -1128,24 +1135,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param permission - The permission's name.
+	 * @param context - An explicit target page for actions on another page. Defaults to the current page.
 	 *
 	 * @public
 	 */
-	isPermitted(permission: TLPermission): boolean {
+	isPermitted(permission: TLPermission, context?: { pageId: TLPageId }): boolean {
 		if (this.getIsReadonly()) return false
-		return !this._isPermissionDeniedByHost(permission)
+		return !this._isPermissionDeniedByHost(permission, context)
 	}
 
 	/**
 	 * The host's `isPermitted` alone, without readonly: `force` writes still get its answer. Without one,
 	 * the session's permissions, when the app uses them.
 	 */
-	private _isPermissionDeniedByHost(permission: TLPermission) {
+	private _isPermissionDeniedByHost(permission: TLPermission, context?: { pageId: TLPageId }) {
 		const { isPermitted } = this._hostPermissions.get()
 		const permissions = isPermitted ? null : this.getPermissions()
 		if (!isPermitted && permissions === null) return false
 		if (!this._arePermissionsLicensed()) return false
-		if (isPermitted) return !isPermitted(permission, this)
+		if (isPermitted)
+			return !isPermitted(permission, this, context ?? { pageId: this.getCurrentPageId() })
 		return !isPermittedByList(permissions, permission)
 	}
 
