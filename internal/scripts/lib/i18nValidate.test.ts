@@ -170,15 +170,9 @@ describe('validateCatalogs', () => {
 		return root
 	}
 
-	it('checks both projects and reports keys, gaps and unsupported files', () => {
+	it('checks both projects, counts gaps and removed keys, and reports unsupported files', () => {
 		expect(validateCatalogs(makeRepo())).toEqual({
 			errors: [
-				{
-					project: 'sdk',
-					locale: 'fr',
-					key: 'action.gone',
-					message: 'key is not in the English catalog',
-				},
 				{
 					project: 'dotcom',
 					locale: 'fr',
@@ -189,6 +183,7 @@ describe('validateCatalogs', () => {
 			],
 			warnings: ['assets/translations/ku.json is not in languages.json, so it is never loaded'],
 			missingCount: 1,
+			obsoleteCount: 1,
 		})
 	})
 
