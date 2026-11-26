@@ -1,13 +1,9 @@
-// Cardinal plural categories per supported locale, from CLDR 49 (Node 26's Intl).
+// Cardinal plural categories per supported locale, from CLDR 49 (Node 26's Intl), pinned so CI's
+// older Node gives the same answer. `required` is the subset an integer from 0 to 200 selects, so
+// a missing Polish `few` ("5 kształt" instead of "5 kształtów") fails, while French `many`, which
+// only 1,000,000-style numbers select, doesn't.
 //
-// Pinned so the check gives the same answer on every Node version: CI runs an older Node whose
-// CLDR differs (CLDR 49 gave Vietnamese a `one` form, for example). `all` is every category the
-// locale has. `required` is the subset an integer from 0 to 200 selects: French, Spanish, Italian
-// and Portuguese have `many` only for numbers like 1,000,000, and requiring it would fail nearly
-// every plural, while a missing form just falls back to `other`.
-//
-// When adding a locale to languages.json, add it here too: the validator fails on a supported
-// locale with no entry.
+// Add a locale here when adding it to languages.json; the validator fails without an entry.
 export const PLURAL_CATEGORIES: Record<string, { required: string[]; all: string[] }> = {
 	ar: {
 		required: ['zero', 'one', 'two', 'few', 'many', 'other'],
@@ -57,7 +53,8 @@ export const PLURAL_CATEGORIES: Record<string, { required: string[]; all: string
 	tr: { required: ['one', 'other'], all: ['one', 'other'] },
 	uk: { required: ['one', 'few', 'many', 'other'], all: ['one', 'few', 'many', 'other'] },
 	ur: { required: ['one', 'other'], all: ['one', 'other'] },
-	vi: { required: ['one', 'other'], all: ['one', 'other'] },
+	// Vietnamese has no grammatical number; CLDR 49 added `one`, older browsers select only `other`.
+	vi: { required: ['other'], all: ['one', 'other'] },
 	'zh-cn': { required: ['other'], all: ['other'] },
 	'zh-tw': { required: ['other'], all: ['other'] },
 }

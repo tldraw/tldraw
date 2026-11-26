@@ -3,7 +3,7 @@ import path from 'path'
 import { MessageFormatElement, TYPE, parse } from '@formatjs/icu-messageformat-parser'
 import { PLURAL_CATEGORIES } from './pluralCategories'
 
-export type I18nProject = 'sdk' | 'dotcom'
+type I18nProject = 'sdk' | 'dotcom'
 
 export interface I18nProblem {
 	project: I18nProject
@@ -12,7 +12,7 @@ export interface I18nProblem {
 	message: string
 }
 
-export interface I18nValidationResult {
+interface I18nValidationResult {
 	errors: I18nProblem[]
 	warnings: string[]
 	/** Source keys with no translation yet. These fall back to English at runtime, so aren't errors. */
@@ -32,28 +32,28 @@ const NON_LOCALE_FILES = new Set(['en', 'main', 'languages'])
 const CLDR_CATEGORIES = new Set(['zero', 'one', 'two', 'few', 'many', 'other'])
 // Lokalise's `[%1$s:name]` and bare printf specifiers. ICU parses both as literal text, so a
 // translation that switched to them still passes the argument check without this.
-const FOREIGN_PLACEHOLDER = /\[%[^\]]*\]|%\d+\$[sd@]|%[sd@]/g
+// The lookahead keeps ordinary text like "50%de réduction" from matching.
+const FOREIGN_PLACEHOLDER = /\[%[^\]]*\]|%(?:\d+\$)?[sd@](?![\p{L}\p{N}])/gu
 
-/** Required and allowed plural categories for `locale`. See PLURAL_CATEGORIES for the rules. */
-export function pluralCategories(locale: string, type: 'cardinal' | 'ordinal') {
-	if (type === 'cardinal') {
-		const pinned = PLURAL_CATEGORIES[locale]
-		if (!pinned)
-			throw new Error(`No plural categories for ${locale}; add it to pluralCategories.ts`)
-		return pinned
+function pluralCategories(locale: string, type: 'cardinal' | 'ordinal') {
+	if (type === 'ordinal') {
+		throw new Error('selectordinal has no pinned categories yet; add them to pluralCategories.ts')
 	}
-	// No message uses selectordinal yet, so ordinals aren't pinned.
-	const rules = new Intl.PluralRules(locale, { type })
-	const required = new Set<string>(['other'])
-	for (let n = 0; n <= 200; n++) required.add(rules.select(n))
-	return { required: [...required], all: rules.resolvedOptions().pluralCategories as string[] }
+	const pinned = PLURAL_CATEGORIES[locale]
+	if (!pinned) throw new Error(`No plural categories for ${locale}; add it to pluralCategories.ts`)
+	return pinned
 }
 
 interface Signature {
 	/** argument name -> element kinds it appears as (`argument`, `number`, `plural`, ...) */
 	args: Map<string, Set<string>>
 	tags: Set<string>
-	choices: { kind: 'plural' | 'selectordinal' | 'select'; name: string; options: string[] }[]
+	choices: {
+		kind: 'plural' | 'selectordinal' | 'select'
+		name: string
+		options: string[]
+		emptyOptions: string[]
+	}[]
 }
 
 const KIND: Partial<Record<TYPE, string>> = {
@@ -85,12 +85,23 @@ function signature(elements: MessageFormatElement[], sig: Signature = emptySigna
 					: el.pluralType === 'ordinal'
 						? 'selectordinal'
 						: 'plural'
-			sig.choices.push({ kind: choiceKind, name, options: Object.keys(el.options) })
+			const emptyOptions = Object.entries(el.options)
+				.filter(([, option]) => isBlank(option.value))
+				.map(([key]) => key)
+			sig.choices.push({ kind: choiceKind, name, options: Object.keys(el.options), emptyOptions })
 			for (const option of Object.values(el.options)) signature(option.value, sig)
 		}
 	}
 	return sig
 }
+
+function isBlank(elements: MessageFormatElement[]) {
+	return elements.every((el) => el.type === TYPE.literal && !el.value.trim())
+}
+
+// `{count}` inside a branch instead of `#`, or a plural that a locale without plural forms drops
+// (or one that needs plurals adds), are both fine: the value is the same number either way.
+const comparableKind = (kind: string) => (kind === 'plural' ? 'argument' : kind)
 
 function emptySignature(): Signature {
 	return { args: new Map(), tags: new Set(), choices: [] }
@@ -114,7 +125,6 @@ export function checkMessage(
 	translation: string,
 	warn: (message: string) => void = () => {}
 ): string[] {
-	const errors: string[] = []
 	if (!translation.trim()) return ['empty translation']
 
 	const sourceAst = tryParse(english)
@@ -124,6 +134,7 @@ export function checkMessage(
 
 	const source = signature(sourceAst)
 	const target = signature(targetAst)
+	const errors: string[] = []
 
 	for (const [name, kinds] of target.args) {
 		const sourceKinds = source.args.get(name)
@@ -131,15 +142,20 @@ export function checkMessage(
 			errors.push(`unknown argument {${name}} (renamed or translated?)`)
 			continue
 		}
+		const comparable = new Set([...sourceKinds].map(comparableKind))
 		for (const kind of kinds) {
-			if (!sourceKinds.has(kind))
+			if (!comparable.has(comparableKind(kind)))
 				errors.push(
 					`{${name}} is used as ${kind}, English uses it as ${[...sourceKinds].join('/')}`
 				)
 		}
 	}
 	for (const name of source.args.keys()) {
-		if (!target.args.has(name)) errors.push(`missing argument {${name}}`)
+		if (target.args.has(name)) continue
+		// A lone apostrophe before `{` starts an ICU quoted span (French and Italian `l'{name}`),
+		// which hides the argument.
+		const hint = translation.includes("'{") ? ` (a single ' before { quotes it; write '')` : ''
+		errors.push(`missing argument {${name}}${hint}`)
 	}
 
 	for (const tag of target.tags) {
@@ -150,13 +166,19 @@ export function checkMessage(
 	}
 
 	for (const choice of target.choices) {
+		const englishChoices = source.choices.filter(
+			(c) => c.kind === choice.kind && c.name === choice.name
+		)
+		// Lokalise sends Google's `one`/`other` and leaves the forms Google didn't fill as `{}`, so
+		// Polish with 2–4 items rendered nothing at all.
+		for (const option of choice.emptyOptions) {
+			if (!englishChoices.some((c) => c.emptyOptions.includes(option))) {
+				errors.push(`${choice.kind} {${choice.name}} has an empty "${option}" form`)
+			}
+		}
 		if (choice.kind === 'select') {
 			// Select keys are values the code passes in, so they must match English exactly.
-			const sourceOptions = new Set(
-				source.choices
-					.filter((c) => c.kind === 'select' && c.name === choice.name)
-					.flatMap((c) => c.options)
-			)
+			const sourceOptions = new Set(englishChoices.flatMap((c) => c.options))
 			for (const option of choice.options) {
 				if (!sourceOptions.has(option))
 					errors.push(`select {${choice.name}} has unknown option "${option}"`)
@@ -181,11 +203,8 @@ export function checkMessage(
 		}
 		// English like `{count, plural, =1 {…} =2 {…} other {…}}` spells out exact values and leaves
 		// the rest to `other`; its translations need the same shape, not the locale's categories.
-		const englishUsesCategories = source.choices.some(
-			(c) =>
-				c.kind === choice.kind &&
-				c.name === choice.name &&
-				c.options.some((o) => o !== 'other' && CLDR_CATEGORIES.has(o))
+		const englishUsesCategories = englishChoices.some((c) =>
+			c.options.some((o) => o !== 'other' && CLDR_CATEGORIES.has(o))
 		)
 		for (const category of englishUsesCategories ? required : ['other']) {
 			if (!choice.options.includes(category)) {

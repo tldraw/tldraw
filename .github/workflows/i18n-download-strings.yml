@@ -46,10 +46,9 @@ jobs:
         run: 'pnpm build-i18n'
 
       - name: Validate the strings
-        # The SDK's English lives in main.json; its en.json is an empty stub.
-        run: |
-          pnpm i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en --only invalidKeys
-          pnpm i18n-check -f react-intl --locales ./assets/translations/ --source main --only invalidKeys
+        # --prune drops known failures this download fixed, so the strings PR passes the same
+        # check in CI without a hand edit.
+        run: pnpm i18n-validate --prune
 
       - name: Commit and push changes
         id: commit

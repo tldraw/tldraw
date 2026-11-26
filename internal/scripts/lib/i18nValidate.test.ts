@@ -1,7 +1,7 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import path from 'path'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { checkMessage, validateCatalogs } from './i18nValidate'
 
 const COUNT = '{count, plural, one {# shape} other {# shapes}}'
@@ -101,6 +101,42 @@ describe('checkMessage', () => {
 		])
 	})
 
+	it('accepts {count} in place of # and a plural dropped or added for the locale', () => {
+		expect(
+			checkMessage('fr', COUNT, '{count, plural, one {une forme} other {{count} formes}}')
+		).toEqual([])
+		expect(checkMessage('ja', COUNT, '{count}個の図形')).toEqual([])
+		expect(
+			checkMessage(
+				'pl',
+				'{count} shapes',
+				'{count, plural, one {# kształt} few {# kształty} many {# kształtów} other {# kształtu}}'
+			)
+		).toEqual([])
+	})
+
+	it('rejects empty plural forms', () => {
+		// From dotcom pl.json: Polish with 2–4 or 5+ reactions rendered nothing.
+		expect(
+			checkMessage(
+				'pl',
+				'{count, plural, one {Someone reacted} other {# people reacted}}',
+				'{count, plural, one {Ktoś zareagował} few {} many {} other {# osób zareagowało}}'
+			)
+		).toEqual(['plural {count} has an empty "few" form', 'plural {count} has an empty "many" form'])
+	})
+
+	it('explains a lone apostrophe before an argument', () => {
+		expect(checkMessage('fr', 'Edit {name}', "Modifier l'{name}")).toEqual([
+			"missing argument {name} (a single ' before { quotes it; write '')",
+		])
+		expect(checkMessage('fr', 'Edit {name}', "Modifier l''{name}")).toEqual([])
+	})
+
+	it('ignores percent signs in ordinary text', () => {
+		expect(checkMessage('fr', '50% off', '50%de réduction')).toEqual([])
+	})
+
 	it('requires the same rich-text tags', () => {
 		expect(checkMessage('fr', '<b>{name}</b> joined', '{name} a rejoint')).toEqual([
 			'missing tag <b>',
@@ -112,8 +148,14 @@ describe('checkMessage', () => {
 })
 
 describe('validateCatalogs', () => {
+	const roots: string[] = []
+	afterEach(() => {
+		for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
+	})
+
 	function makeRepo() {
 		const root = mkdtempSync(path.join(tmpdir(), 'i18n-validate-'))
+		roots.push(root)
 		const write = (rel: string, value: unknown) => {
 			mkdirSync(path.dirname(path.join(root, rel)), { recursive: true })
 			writeFileSync(path.join(root, rel), JSON.stringify(value))
