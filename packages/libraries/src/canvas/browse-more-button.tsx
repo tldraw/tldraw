@@ -1,4 +1,4 @@
-import type { Ref } from 'react'
+import { forwardRef } from 'react'
 import {
 	defineMessages,
 	TldrawUiButton,
@@ -12,26 +12,22 @@ const messages = defineMessages({
 })
 
 /** The panel's footer button that opens the libraries to browse. */
-export function BrowseMoreButton({
-	onBrowse,
-	ref,
-}: {
-	onBrowse(): void
-	ref?: Ref<HTMLButtonElement>
-}) {
-	const msg = useTranslation()
-	const label = msg(messages.addLibraries)
+export const BrowseMoreButton = forwardRef<HTMLButtonElement, { onBrowse(): void }>(
+	function BrowseMoreButton({ onBrowse }, ref) {
+		const msg = useTranslation()
+		const label = msg(messages.addLibraries)
 
-	return (
-		<TldrawUiButton
-			ref={ref}
-			type="menu"
-			className="tlui-libraries-panel__footer tlui-libraries-panel__browse-more"
-			title={label}
-			onClick={onBrowse}
-		>
-			<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-			<TldrawUiButtonIcon icon="plus" small />
-		</TldrawUiButton>
-	)
-}
+		return (
+			<TldrawUiButton
+				ref={ref}
+				type="menu"
+				className="tlui-libraries-panel__footer tlui-libraries-panel__browse-more"
+				title={label}
+				onClick={onBrowse}
+			>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+				<TldrawUiButtonIcon icon="plus" small />
+			</TldrawUiButton>
+		)
+	}
+)
