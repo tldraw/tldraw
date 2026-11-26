@@ -1,6 +1,7 @@
 import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
+import { uiToolbarSlot } from '../../uiSlots'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
 /** @public @react */
@@ -40,6 +41,28 @@ export function DefaultToolbarContent() {
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
 			<FrameToolbarItem />
+
+			<PluginToolbarItems />
+		</>
+	)
+}
+
+/**
+ * The toolbar items that plugins place with {@link uiToolbarSlot}, after the built-in items.
+ *
+ * @public @react
+ */
+export function PluginToolbarItems() {
+	const editor = useEditor()
+	const placements = useValue('toolbar placements', () => editor.plugins.list(uiToolbarSlot), [
+		editor,
+	])
+	const toolIds = [...new Set(placements.map((p) => p.tool))]
+	return (
+		<>
+			{toolIds.map((tool) => (
+				<ToolbarItem key={tool} tool={tool} />
+			))}
 		</>
 	)
 }

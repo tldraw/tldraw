@@ -715,6 +715,7 @@ export {
 	CloudToolbarItem,
 	CommentToolbarItem,
 	DefaultToolbarContent,
+	PluginToolbarItems,
 	DiamondToolbarItem,
 	DrawToolbarItem,
 	EllipseToolbarItem,
@@ -853,13 +854,21 @@ export { useSomeActionsEnabled } from './lib/ui/hooks/useActionState'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
 	onDragFromToolbarToCreateShape,
-	useTools,
 	type OnDragFromToolbarToCreateShapesOpts,
+} from './lib/ui/dragFromToolbar'
+export {
+	useTools,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
 	type TLUiToolsProviderProps,
 } from './lib/ui/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
+export {
+	uiToolItemsSlot,
+	uiToolbarSlot,
+	type TLUiToolItemsContext,
+	type TLUiToolbarPlacement,
+} from './lib/ui/uiSlots'
 export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,

@@ -791,6 +791,10 @@ export async function createShapesForAssets(
 	position: VecLike
 ): Promise<TLShapeId[]> {
 	assets = assets.filter((asset) => {
+		if (!editor.getShapeUtilForAssetType(asset.type)) {
+			console.error(`Skipped asset ${asset.id}: no shape util handles "${asset.type}" assets`)
+			return false
+		}
 		if (hasValidSize(asset)) return true
 		console.error(`Skipped asset ${asset.id}: it has no size`)
 		return false

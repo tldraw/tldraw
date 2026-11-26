@@ -1,6 +1,7 @@
-import { StateNode, createDefaultPlugins, definePlugin } from '@tldraw/editor'
+import { AssetRecordType, StateNode, createDefaultPlugins, definePlugin } from '@tldraw/editor'
 import { TestEditor } from '../test/TestEditor'
 import { defaultBindingUtils } from './defaultBindingUtils'
+import { createShapesForAssets } from './defaultExternalContentHandlers'
 import { createTldrawPlugins, defaultShapePlugins, defaultToolPlugins } from './defaultPlugins'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
@@ -82,5 +83,29 @@ describe('default shape and tool plugins', () => {
 
 	it('are not installed by the editor defaults', () => {
 		expect(createDefaultPlugins().some((p) => p.shapeUtils?.length || p.tools?.length)).toBe(false)
+	})
+})
+
+describe('createShapesForAssets', () => {
+	it('skips assets that no shape util handles', async () => {
+		const editor = new TestEditor({
+			plugins: createTldrawPlugins().filter((p) => p.id !== 'videoShape'),
+		})
+		const asset = AssetRecordType.create({
+			id: AssetRecordType.createId(),
+			type: 'video',
+			props: {
+				name: 'a.mp4',
+				src: 'a.mp4',
+				w: 100,
+				h: 100,
+				mimeType: 'video/mp4',
+				isAnimated: true,
+			},
+		})
+		const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		expect(await createShapesForAssets(editor, [asset], { x: 0, y: 0 })).toEqual([])
+		expect(editor.getAsset(asset.id)).toBeUndefined()
+		errorSpy.mockRestore()
 	})
 })

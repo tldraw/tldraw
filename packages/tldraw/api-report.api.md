@@ -171,6 +171,7 @@ import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilConstructor } from '@tldraw/editor';
+import { TLSlot } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
@@ -3325,6 +3326,9 @@ export interface PlainTextLabelProps {
     wrap?: boolean;
 }
 
+// @public
+export function PluginToolbarItems(): JSX.Element;
+
 // @public (undocumented)
 export const PORTRAIT_BREAKPOINT: {
     readonly DESKTOP: 7;
@@ -5931,6 +5935,11 @@ export interface TLUiToolbarButtonProps extends React_3.HTMLAttributes<HTMLButto
     type: 'icon' | 'menu' | 'tool';
 }
 
+// @public
+export interface TLUiToolbarPlacement {
+    tool: string;
+}
+
 // @public (undocumented)
 export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
@@ -6000,6 +6009,17 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     readonlyOk?: boolean;
     // (undocumented)
     shortcutsLabel?: TranslationKey;
+}
+
+// @public
+export interface TLUiToolItemsContext {
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    helpers: TLUiOverrideHelpers;
+    onToolSelect(source: TLUiEventSource, tool: TLUiToolItem, id?: string): void;
+    // (undocumented)
+    trackEvent: TLUiEventHandler;
 }
 
 // @public (undocumented)
@@ -6560,6 +6580,12 @@ export function TriangleToolbarItem(): JSX.Element;
 
 // @public (undocumented)
 export function truncateStringWithEllipsis(str: string, maxLength: number): string;
+
+// @public
+export const uiToolbarSlot: TLSlot<TLUiToolbarPlacement>;
+
+// @public
+export const uiToolItemsSlot: TLSlot<(ctx: TLUiToolItemsContext) => TLUiToolItem[]>;
 
 // @public (undocumented)
 export function UndoRedoGroup(): JSX.Element;
