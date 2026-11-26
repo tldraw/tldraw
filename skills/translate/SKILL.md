@@ -30,6 +30,8 @@ Treat “full review” or “audit existing translations” as full review; “
 
 English is authored in source descriptors and extracted by `pnpm i18n-extract`; never edit the English catalogs or compiled outputs by hand. Catalogs, the ledger, notes and glossaries are written only by the scripts below, never by an agent editing JSON. `$SCRATCH` below is a task-specific scratch directory.
 
+For incremental and full-review modes, `node skills/translate/scripts/run.mjs --mode <mode> [--locales es,pl] [--budget 25] [--limit n]` runs steps 1–6 unattended, each phase a separate `claude -p` with read-only tools, and stops starting work when the budget is spent. The `i18n translate` workflow runs it and opens a PR. The steps below are what it does, and how to do them by hand or for retranslation.
+
 ## 1. Plan
 
 Work on a dedicated branch or worktree from the intended base, preserving unrelated edits, and check for open translation PRs that overlap. Run `pnpm i18n-extract` and commit any English change, so the English is current and in HEAD.

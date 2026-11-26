@@ -1,0 +1,142 @@
+name: i18n translate
+# Translates in the repo with the translate skill (skills/translate) and opens a PR for a person to
+# review. Manual only while it is being proven out; Lokalise still runs alongside it.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'incremental: new, changed and unreviewed entries. full-review: every entry.'
+        type: choice
+        options: [incremental, full-review]
+        default: incremental
+      locales:
+        description: 'Comma-separated locales, such as es,pl. Empty for all.'
+        type: string
+        default: ''
+      budget:
+        description: 'Most this run may spend on Claude, in USD.'
+        type: string
+        default: '25'
+      limit:
+        description: 'Only the first n messages, for a trial run. Empty for all.'
+        type: string
+        default: ''
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+concurrency: i18n-translate
+
+jobs:
+  translate:
+    name: 'Translate'
+    runs-on: ubuntu-latest
+    # A full review of one tier takes hours; GitHub stops jobs at 6.
+    timeout-minutes: 350
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          # Claude runs in this checkout; keep the token off disk.
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.332
+
+      - name: Translate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODE: ${{ inputs.mode }}
+          LOCALES: ${{ inputs.locales }}
+          BUDGET: ${{ inputs.budget }}
+          LIMIT: ${{ inputs.limit }}
+        run: |
+          args=(--mode "$MODE" --budget "$BUDGET" --out "$RUNNER_TEMP/i18n-run")
+          [ -n "$LOCALES" ] && args+=(--locales "$LOCALES")
+          [ -n "$LIMIT" ] && args+=(--limit "$LIMIT")
+          node skills/translate/scripts/run.mjs "${args[@]}"
+
+      - name: Rebuild generated files
+        run: pnpm i18n-extract && pnpm refresh-assets
+
+      - name: Validate
+        run: pnpm i18n-validate && pnpm i18n-extract --check
+
+      - name: Check changed paths
+        # Claude only ever produces JSON that the scripts apply, so anything outside these paths
+        # means something went wrong.
+        run: |
+          unexpected=$(git status --porcelain | cut -c4- | grep -vE '^(assets/translations/|apps/dotcom/client/public/tla/locales(-compiled)?/|packages/assets/translations/|internal/i18n/)' || true)
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected changes:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+      - name: Save the run
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i18n-run
+          path: |
+            ${{ runner.temp }}/i18n-run/*.json
+            ${{ runner.temp }}/i18n-run/*.md
+          if-no-files-found: ignore
+
+      - name: Generate a token
+        id: token
+        # An app token, not GITHUB_TOKEN: a PR opened with GITHUB_TOKEN doesn't run the checks.
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+
+      - name: Open the PR
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          MODE: ${{ inputs.mode }}
+          LOCALES: ${{ inputs.locales }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          body="$RUNNER_TEMP/i18n-run/summary.md"
+          # The summary quotes reviewer reasons, which are model output; never post one holding a key.
+          if grep -qF "$ANTHROPIC_API_KEY" "$body" || grep -qE 'sk-ant-[A-Za-z0-9_-]{20,}' "$body"; then
+            echo "The summary contains an API key; not posting it."
+            exit 1
+          fi
+          branch="i18n-translate/${GITHUB_RUN_ID}"
+          git config user.name 'huppy-bot[bot]'
+          git config user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add -A
+          git commit --no-verify -m "chore(i18n): ${MODE} translation run${LOCALES:+ for $LOCALES}"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
+          {
+            echo "Translations from a \`${MODE}\` run of the translate skill. Review before merging, and disable the Lokalise workflows first: the weekly download would overwrite these files."
+            echo
+            head -c 60000 "$body"
+            echo
+            echo '### Change type'
+            echo
+            echo '- [x] `other`'
+          } > "$RUNNER_TEMP/pr-body.md"
+          gh pr create --title "chore(i18n): ${MODE} translations${LOCALES:+ for $LOCALES}" \
+            --body-file "$RUNNER_TEMP/pr-body.md" --base main --head "$branch"
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
