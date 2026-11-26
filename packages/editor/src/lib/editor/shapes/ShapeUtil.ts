@@ -238,15 +238,27 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract component(shape: Shape): any
 
 	/**
-	 * The view for this util's shape type, from {@link shapeViewSlot}. Reactive.
+	 * The view for this util's shape type, from {@link shapeViewSlot}. A util that extends another
+	 * util with a new type, and has no view of its own, uses the view of the util it extends.
+	 * Reactive.
 	 *
 	 * @public
 	 */
 	getView(): TLShapeView<Shape> | undefined {
-		const type = (this.constructor as typeof ShapeUtil).type
-		const views = this.editor.plugins.list(shapeViewSlot).filter((view) => view.type === type)
-		if (views.length > 1) throw Error(`Two plugins contribute a view for the "${type}" shape`)
-		return views[0]
+		const views = this.editor.plugins.list(shapeViewSlot)
+		for (
+			let util = this.constructor as typeof ShapeUtil;
+			util !== ShapeUtil;
+			util = Object.getPrototypeOf(util)
+		) {
+			if (!Object.prototype.hasOwnProperty.call(util, 'type')) continue
+			const matches = views.filter((view) => view.type === util.type)
+			if (matches.length > 1) {
+				throw Error(`Two plugins contribute a view for the "${util.type}" shape`)
+			}
+			if (matches.length === 1) return matches[0]
+		}
+		return undefined
 	}
 
 	/**

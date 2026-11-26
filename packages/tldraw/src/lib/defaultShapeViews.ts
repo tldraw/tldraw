@@ -7,7 +7,8 @@ import { highlightShapeViewPlugin } from './shapes/highlight/HighlightShapeView'
  *
  * Importing `tldraw` adds them to {@link @tldraw/editor#createDefaultPlugins}, so every editor
  * draws the default shapes, including one built from `shapeUtils={defaultShapeUtils}` without
- * the tldraw plugins.
+ * the tldraw plugins. Do not add them to a list that already has `createDefaultPlugins()`: two
+ * plugins with the same id throw.
  *
  * @public
  */

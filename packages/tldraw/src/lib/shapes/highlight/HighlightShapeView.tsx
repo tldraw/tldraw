@@ -95,7 +95,8 @@ export const highlightShapeView: TLShapeView<TLHighlightShape, HighlightShapeUti
 }
 
 /**
- * Draws highlight shapes with {@link highlightShapeView}.
+ * Draws highlight shapes with {@link highlightShapeView}. Importing `tldraw` adds it to
+ * `createDefaultPlugins()`, see {@link defaultShapeViewPlugins}.
  *
  * @public
  */

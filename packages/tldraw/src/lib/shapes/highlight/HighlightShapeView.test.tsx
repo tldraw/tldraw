@@ -37,6 +37,10 @@ function highlightPaths() {
 }
 
 describe('the highlight shape view', () => {
+	// SVG export and the <Tldraw> mount wait on real timers.
+	beforeAll(() => vi.useRealTimers())
+	afterAll(() => vi.useFakeTimers())
+
 	it('draws and exports the shape in an editor built from shapeUtils, without the tldraw plugins', async () => {
 		let resolveMount!: (editor: Editor) => void
 		const mounted = new Promise<Editor>((r) => (resolveMount = r))
@@ -59,9 +63,18 @@ describe('the highlight shape view', () => {
 			tools: defaultTools,
 		})
 		createHighlight(editor)
-		vi.useRealTimers()
 		const svg = await editor.getSvgString([id])
 		expect(svg?.svg).toContain('<path')
+	})
+
+	it('draws a subclass with its own type with the view of the util it extends', async () => {
+		class MarkerShapeUtil extends HighlightShapeUtil {
+			static override type = 'marker' as any
+			static override migrations = { sequence: [] } as any
+		}
+		const editor = new TestEditor({ shapeUtils: [MarkerShapeUtil] })
+		const util = editor.getShapeUtil('marker' as TLHighlightShape['type'])
+		expect(util.getView()?.type).toBe('highlight')
 	})
 
 	it('lets a subclass override component and call super', async () => {

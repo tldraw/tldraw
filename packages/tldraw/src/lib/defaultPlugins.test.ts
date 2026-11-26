@@ -213,6 +213,21 @@ describe('default paste and drop handlers without a shape plugin', () => {
 		expect(types.size).toBeGreaterThan(0)
 	})
 
+	it('pastes unbound arrows from excalidraw content when the bound shapes are left out', async () => {
+		const editor = editorWithout('geoShape')
+		const content = JSON.parse(
+			readFileSync(
+				join(__dirname, 'utils/excalidraw/excalidraw-test-fixtures/bound-arrows.json'),
+				'utf-8'
+			)
+		)
+		await editor.putExternalContent({ type: 'excalidraw', content })
+		const types = new Set(editor.getCurrentPageShapes().map((s) => s.type))
+		expect(types.has('arrow')).toBe(true)
+		expect(types.has('geo')).toBe(false)
+		expect(editor.getBindingsInvolvingShape(editor.getCurrentPageShapes()[0])).toEqual([])
+	})
+
 	it('pastes the shapes it can from tldraw content', async () => {
 		const source = new TestEditor()
 		source.createShapes([
