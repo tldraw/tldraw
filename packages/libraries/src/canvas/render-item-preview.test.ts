@@ -1,4 +1,5 @@
 import {
+	DEFAULT_THEME,
 	Editor,
 	createShapeId,
 	createTLStore,
@@ -11,7 +12,7 @@ import { vi } from 'vitest'
 import { renderItemPreview } from './render-item-preview'
 
 let host: Editor
-let exported: { svg: string; darkMode?: boolean }[]
+let exported: { svg: string; darkMode?: boolean; themeId: string }[]
 
 beforeEach(() => {
 	host = new Editor({
@@ -20,6 +21,7 @@ beforeEach(() => {
 		tools: [],
 		store: createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils }),
 		getContainer: () => document.body,
+		themes: { ocean: { ...DEFAULT_THEME, id: 'ocean' } } as any,
 	})
 	exported = []
 	// jsdom can't rasterise, so the preview is checked as the SVG the PNG would be made from.
@@ -29,7 +31,7 @@ beforeEach(() => {
 		opts: TLImageExportOptions = {}
 	) {
 		const result = await this.getSvgString(ids as TLShapeId[], opts)
-		exported.push({ svg: result!.svg, darkMode: opts.darkMode })
+		exported.push({ svg: result!.svg, darkMode: opts.darkMode, themeId: this.getCurrentThemeId() })
 		return { blob: new Blob([result!.svg]), width: result!.width, height: result!.height }
 	})
 })
@@ -49,7 +51,7 @@ it('draws the item’s shapes without adding them to the document', async () => 
 	const content = contentOf([id])
 	host.deleteShapes([id])
 
-	const blob = await renderItemPreview(host, content, true)
+	const blob = await renderItemPreview(host, content, { darkMode: true, themeId: 'default' })
 
 	expect(blob).not.toBeNull()
 	expect(exported).toHaveLength(1)
@@ -67,5 +69,15 @@ it('draws nothing for content without shapes', async () => {
 		assets: [],
 		schema: host.store.schema.serialize(),
 	}
-	expect(await renderItemPreview(host, content, false)).toBeNull()
+	expect(await renderItemPreview(host, content, { darkMode: false, themeId: 'default' })).toBeNull()
+})
+
+it('draws in the theme it is given', async () => {
+	const id = createShapeId('box')
+	host.createShapes([{ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+	await renderItemPreview(host, host.getContentFromCurrentPage([id])!, {
+		darkMode: false,
+		themeId: 'ocean' as any,
+	})
+	expect(exported[0].themeId).toBe('ocean')
 })

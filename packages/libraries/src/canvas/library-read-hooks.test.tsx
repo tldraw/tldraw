@@ -22,7 +22,9 @@ import { useLibraryItemOrder } from './use-library-item-order'
 import { useLibraryItems } from './use-library-items'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
 
-const renderItemPreview = vi.hoisted(() => vi.fn(async (): Promise<Blob | null> => null))
+const renderItemPreview = vi.hoisted(() =>
+	vi.fn(async (..._args: unknown[]): Promise<Blob | null> => null)
+)
 vi.mock('./render-item-preview', () => ({ renderItemPreview }))
 
 const library = LibraryRecordType.create({ name: 'Shapes' })
@@ -184,12 +186,26 @@ describe('useLibraryThumbnailUrls', () => {
 		})
 		expect(urls()[withThumb.id]).toBe('https://x/box.png')
 		expect(renderItemPreview).toHaveBeenCalledTimes(1)
-		expect(renderItemPreview).toHaveBeenCalledWith(
-			editor,
-			content.content,
-			editor.getColorMode() === 'dark'
-		)
+		expect(renderItemPreview).toHaveBeenCalledWith(editor, content.content, {
+			darkMode: editor.getColorMode() === 'dark',
+			themeId: editor.getCurrentThemeId(),
+		})
 		renderItemPreview.mockResolvedValue(null)
+	})
+
+	it('stops rendering previews once nobody is showing them', async () => {
+		renderItemPreview.mockClear()
+		renderItemPreview.mockImplementation(
+			() => new Promise((resolve) => setTimeout(() => resolve(null), 20))
+		)
+		const items = [makeItem('A', 1), makeItem('B', 2), makeItem('C', 3), makeItem('D', 4)]
+		const source = makeSource(items)
+		renderHook(() => useLibraryThumbnailUrls(source, items))
+		act(() => root.unmount())
+		await new Promise((resolve) => setTimeout(resolve, 200))
+		expect(renderItemPreview.mock.calls.length).toBeLessThanOrEqual(1)
+		renderItemPreview.mockImplementation(async () => null)
+		root = createRoot(container)
 	})
 
 	function makeResolvingSource() {

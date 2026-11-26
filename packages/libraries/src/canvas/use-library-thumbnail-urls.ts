@@ -144,18 +144,19 @@ function useItemPreviewUrls(
 	const latestItems = useRef(items)
 	latestItems.current = items
 	const itemIds = items.map((item) => item.id).join(' ')
+	const themeId = useValue('preview theme', () => editor.getCurrentThemeId(), [editor])
 	useEffect(() => {
-		let cancelled = false
+		const controller = new AbortController()
+		const { signal } = controller
+		const darkMode = colorMode === 'dark'
 		for (const item of latestItems.current) {
-			getItemPreviewUrl(editor, source, item, colorMode === 'dark').then((url) => {
-				if (cancelled || !url) return
+			getItemPreviewUrl(editor, source, item, { darkMode, themeId, signal }).then((url) => {
+				if (signal.aborted || !url) return
 				setPreviews((urls) => (urls[item.id] === url ? urls : { ...urls, [item.id]: url }))
 			})
 		}
-		return () => {
-			cancelled = true
-		}
-	}, [editor, source, itemIds, colorMode])
+		return () => controller.abort()
+	}, [editor, source, itemIds, colorMode, themeId])
 	return previews
 }
 
