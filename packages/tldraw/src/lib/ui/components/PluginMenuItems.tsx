@@ -1,5 +1,6 @@
 import { TLSlot, useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../context/actions'
+import { useSomeActionsEnabled } from '../hooks/useActionState'
 import { TLUiMenuPlacement } from '../uiSlots'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
@@ -21,7 +22,9 @@ export function PluginMenuItems({ slot }: PluginMenuItemsProps) {
 	const actions = useActions()
 	const placements = useValue('menu placements', () => editor.plugins.list(slot), [editor, slot])
 	const actionIds = [...new Set(placements.map((p) => p.action))].filter((id) => actions[id])
-	if (actionIds.length === 0) return null
+	// The items hide while their actions are disabled, so the group hides with them.
+	const show = useSomeActionsEnabled(actionIds)
+	if (!show) return null
 	return (
 		<TldrawUiMenuGroup id="plugins">
 			{actionIds.map((id) => (

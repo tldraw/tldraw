@@ -71,10 +71,14 @@ describe('menu items from plugins', () => {
 		await screen.findByTestId('main-menu.jump')
 	})
 
-	it('adds no group when no placement has an action', async () => {
+	it('adds no group when no placed action is defined and enabled', async () => {
 		const strayPlugin = definePlugin({
 			id: 'stray',
 			setup(ctx) {
+				ctx.contribute(uiActionItemsSlot, () => [
+					{ id: 'never', label: 'action.never', isEnabled: () => false, onSelect() {} },
+				])
+				ctx.contribute(uiContextMenuSlot, { action: 'never' })
 				ctx.contribute(uiContextMenuSlot, { action: 'not-defined' })
 			},
 		})

@@ -272,10 +272,11 @@ export class ContentController {
 		// with a plugin that this editor leaves out, keeps the records that this editor can hold.
 		// Creating the others would throw.
 		const unknownShapes = shapes.filter((shape) => !this.editor.hasShapeUtil(shape.type))
-		if (unknownShapes.length > 0) {
+		const unknownBindings = bindings.filter((binding) => !this.editor.bindingUtils[binding.type])
+		if (unknownShapes.length > 0 || unknownBindings.length > 0) {
 			const droppedShapeIds = new Set(unknownShapes.map((shape) => shape.id))
 			// A child of a dropped shape has lost its parent, so it goes too.
-			let grew = true
+			let grew = droppedShapeIds.size > 0
 			while (grew) {
 				grew = false
 				for (const shape of shapes) {
@@ -285,19 +286,19 @@ export class ContentController {
 					}
 				}
 			}
+			const droppedTypes = new Set([...unknownShapes, ...unknownBindings].map((r) => r.type))
 			console.warn(
-				`Skipped pasted shapes of types with no shape util: ${[...new Set(unknownShapes.map((s) => s.type))].join(', ')}`
+				`Skipped pasted records of types this editor has no util for: ${[...droppedTypes].join(', ')}`
 			)
 			shapes = shapes.filter((shape) => !droppedShapeIds.has(shape.id))
+			bindings = bindings.filter(
+				(binding) =>
+					!!this.editor.bindingUtils[binding.type] &&
+					!droppedShapeIds.has(binding.fromId) &&
+					!droppedShapeIds.has(binding.toId)
+			)
+			if (shapes.length === 0) return this.editor
 		}
-		const keptShapeIds = new Set(shapes.map((shape) => shape.id))
-		bindings = bindings.filter(
-			(binding) =>
-				!!this.editor.bindingUtils[binding.type] &&
-				keptShapeIds.has(binding.fromId) &&
-				keptShapeIds.has(binding.toId)
-		)
-		if (shapes.length === 0) return this.editor
 
 		// Ok, we've got our migrated records, now we can continue!
 		const shapeIdMap = new Map<string, TLShapeId>(
