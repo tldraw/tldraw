@@ -20,6 +20,7 @@ import {
 	textMeasurementCapability,
 } from './builtin/textMeasurement'
 import { createEditor } from './createEditor'
+import { createKernelPlugins } from './kernelPlugins'
 import { TLPlugin, definePlugin } from './plugin'
 
 const CARD = 'test-card'
@@ -61,9 +62,14 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 
 const cardsPlugin = definePlugin({ id: 'cards', shapeUtils: [CardShapeUtil] })
 
+// The kernel without the plugins that these tests install or leave out on purpose.
+const kernelPlugins = createKernelPlugins().filter(
+	(p) => p.id !== 'snapping' && p.id !== 'externalContent'
+)
+
 function headlessEditor(...plugins: TLPlugin[]) {
 	return createEditor({
-		plugins: [cardsPlugin, approximateTextMeasurementPlugin(), ...plugins],
+		plugins: [cardsPlugin, approximateTextMeasurementPlugin(), ...kernelPlugins, ...plugins],
 	})
 }
 
@@ -138,6 +144,14 @@ describe('a headless editor', () => {
 				'No installed plugin provides "imageExport"'
 			),
 		])
+	})
+
+	it('names the missing kernel plugin when the editor needs it', () => {
+		const editor = createEditor({ plugins: [cardsPlugin, approximateTextMeasurementPlugin()] })
+		expect(() => editor.inputs.getCurrentPagePoint()).toThrow(
+			'No installed plugin provides "inputs"'
+		)
+		expect(() => editor.getCurrentTheme()).toThrow('No installed plugin provides "themes"')
 	})
 
 	it('refuses DOM image export without an SVG exporter', () => {

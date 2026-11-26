@@ -538,6 +538,16 @@ export function clampRadians(r: number): number;
 export function clampToBrowserMaxCanvasSize(width: number, height: number): [number, number];
 
 // @public (undocumented)
+export const clickDetectionCapability: TLCapability<ClickManager>;
+
+// @public
+export const clickDetectionPlugin: {
+    readonly id: "clickDetection";
+    readonly provides: readonly [TLCapability<ClickManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public (undocumented)
 export class ClickManager {
     constructor(editor: Editor);
     // @internal
@@ -556,6 +566,9 @@ export class ClickManager {
 // @public
 export function clockwiseAngleDist(a0: number, a1: number): number;
 
+// @public (undocumented)
+export const collaboratorsCapability: TLCapability<CollaboratorsManager>;
+
 // @public
 export class CollaboratorsManager {
     constructor(editor: Editor);
@@ -564,6 +577,13 @@ export class CollaboratorsManager {
     getVisibleCollaborators(): TLInstancePresence[];
     getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
 }
+
+// @public
+export const collaboratorsPlugin: {
+    readonly id: "collaborators";
+    readonly provides: readonly [TLCapability<CollaboratorsManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export const containerFocusCapability: TLCapability<TLContainerFocus>;
@@ -599,6 +619,9 @@ export function createDefaultPlugins(): TLPlugin[];
 
 // @public
 export function createEditor({ plugins, store, getContainer, ...rest }: TLCreateEditorOptions): Editor;
+
+// @public
+export function createKernelPlugins(): TLPlugin[];
 
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
@@ -872,6 +895,13 @@ export const domFocusPlugin: {
 };
 
 // @public
+export const domFontsPlugin: {
+    readonly id: "domFonts";
+    readonly provides: readonly [TLCapability<FontManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public
 export const domImageExportPlugin: {
     readonly id: "domImageExport";
     readonly provides: readonly [TLCapability<TLImageExporter>];
@@ -928,6 +958,9 @@ export class Edge2d extends Geometry2d {
 }
 
 // @public (undocumented)
+export const edgeScrollCapability: TLCapability<EdgeScrollManager>;
+
+// @public (undocumented)
 export class EdgeScrollManager {
     constructor(editor: Editor);
     // (undocumented)
@@ -937,9 +970,16 @@ export class EdgeScrollManager {
     updateEdgeScrolling(elapsed: number): void;
 }
 
+// @public
+export const edgeScrollPlugin: {
+    readonly id: "edgeScroll";
+    readonly provides: readonly [TLCapability<EdgeScrollManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, plugins, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor(editorOptions: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -991,7 +1031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     clearHistory(): this;
     // @internal
-    protected _clickManager: ClickManager;
+    protected readonly _clickManager: ClickManager;
     readonly collaborators: CollaboratorsManager;
     complete(): this;
     // (undocumented)
@@ -1931,6 +1971,9 @@ export class FontManager {
 }
 
 // @public (undocumented)
+export const fontsCapability: TLCapability<FontManager>;
+
+// @public (undocumented)
 export interface GapsSnapIndicator {
     // (undocumented)
     direction: 'horizontal' | 'vertical';
@@ -2345,6 +2388,9 @@ export const imageExportCapability: TLCapability<TLImageExporter>;
 export const inlineBase64AssetStore: TLAssetStore;
 
 // @public (undocumented)
+export const inputsCapability: TLCapability<InputsManager>;
+
+// @public (undocumented)
 export class InputsManager extends EditorManager {
     constructor(editor: Editor);
     // @deprecated (undocumented)
@@ -2472,6 +2518,13 @@ export class InputsManager extends EditorManager {
     // @internal
     updatePointerVelocity(elapsed: number): void;
 }
+
+// @public
+export const inputsPlugin: {
+    readonly id: "inputs";
+    readonly provides: readonly [TLCapability<InputsManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
@@ -2830,6 +2883,16 @@ export interface OverlayOptionsWithDisplayValues<Overlay extends TLOverlay, Disp
     getDefaultDisplayValues(editor: Editor, overlay: Overlay, theme: TLTheme, colorMode: 'dark' | 'light'): DisplayValues;
 }
 
+// @public (undocumented)
+export const overlaysCapability: TLCapability<OverlayManager>;
+
+// @public
+export const overlaysPlugin: {
+    readonly id: "overlays";
+    readonly provides: readonly [TLCapability<OverlayManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
 // @public
 export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     constructor(editor: Editor);
@@ -2865,6 +2928,9 @@ export class PerformanceApiAdapter {
     dispose(): void;
 }
 
+// @public (undocumented)
+export const performanceCapability: TLCapability<PerformanceManager>;
+
 // @public
 export class PerformanceManager extends EditorManager {
     // @internal (undocumented)
@@ -2882,6 +2948,13 @@ export class PerformanceManager extends EditorManager {
     on<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
     once<K extends keyof TLPerfEventMap>(event: K, fn: (...args: TLPerfEventMap[K]) => void): () => void;
 }
+
+// @public
+export const performancePlugin: {
+    readonly id: "performance";
+    readonly provides: readonly [TLCapability<PerformanceManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
@@ -3143,6 +3216,9 @@ export class ScribbleManager {
 }
 
 // @public (undocumented)
+export const scribblesCapability: TLCapability<ScribbleManager>;
+
+// @public (undocumented)
 export interface ScribbleSessionOptions {
     fadeDurationMs?: number;
     fadeEasing?: 'ease-in' | 'linear';
@@ -3151,6 +3227,13 @@ export interface ScribbleSessionOptions {
     idleTimeoutMs?: number;
     selfConsume?: boolean;
 }
+
+// @public
+export const scribblesPlugin: {
+    readonly id: "scribbles";
+    readonly provides: readonly [TLCapability<ScribbleManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export type SelectionCorner = 'bottom_left' | 'bottom_right' | 'top_left' | 'top_right';
@@ -3346,6 +3429,9 @@ export const snappingPlugin: {
     readonly setup: (ctx: TLPluginContext) => void;
 };
 
+// @internal (undocumented)
+export const spatialIndexCapability: TLCapability<SpatialIndexManager>;
+
 // @internal
 export class SpatialIndexManager {
     constructor(editor: Editor);
@@ -3361,6 +3447,13 @@ export class SpatialIndexManager {
     // @public
     getShapeIdsInsideBounds(bounds: Box): Set<TLShapeId>;
 }
+
+// @internal
+export const spatialIndexPlugin: {
+    readonly id: "spatialIndex";
+    readonly provides: readonly [TLCapability<SpatialIndexManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export class Stadium2d extends Geometry2d {
@@ -3548,6 +3641,17 @@ export class ThemeManager {
     updateTheme(theme: TLTheme): void;
     updateThemes(themes: ((themes: TLThemes) => TLThemes) | TLThemes): void;
 }
+
+// @public (undocumented)
+export const themesCapability: TLCapability<ThemeManager>;
+
+// @public
+export const themesPlugin: {
+    readonly id: "themes";
+    readonly provides: readonly [TLCapability<ThemeManager>];
+    readonly requires: readonly [TLCapability<UserPreferencesManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public
 export type TiptapEditor = Editor_2;
@@ -4801,6 +4905,7 @@ export interface TLPluginContext {
     contribute<T>(slot: TLSlot<T>, value: T, order?: TLContributionOrder): () => void;
     // (undocumented)
     readonly editor: Editor;
+    readonly editorOptions: Readonly<TLEditorOptions>;
     get<T>(capability: TLCapability<T>): T;
     getOptional<T>(capability: TLCapability<T>): T | undefined;
     onDispose(dispose: () => void): void;
@@ -4809,7 +4914,7 @@ export interface TLPluginContext {
 
 // @public
 export class TLPluginHost {
-    constructor(editor: Editor, plugins: readonly TLPlugin[]);
+    constructor(editor: Editor, plugins: readonly TLPlugin[], editorOptions: Readonly<TLEditorOptions>);
     chain<In, Out>(slot: TLSlot<TLChainHandler<In, Out>>, input: In, terminal: (input: In) => Out): Out;
     // @internal (undocumented)
     dispose(): void;
@@ -5474,6 +5579,9 @@ export function useReactiveEvent<Args extends Array<unknown>, Result>(handler: (
 export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>];
 
 // @public (undocumented)
+export const userPreferencesCapability: TLCapability<UserPreferencesManager>;
+
+// @public (undocumented)
 export class UserPreferencesManager {
     constructor(user: TLCurrentUser, colorScheme: 'dark' | 'light' | 'system');
     // (undocumented)
@@ -5533,6 +5641,13 @@ export class UserPreferencesManager {
     // (undocumented)
     updateUserPreferences(userPreferences: Partial<TLUserPreferences>): void;
 }
+
+// @public
+export const userPreferencesPlugin: {
+    readonly id: "userPreferences";
+    readonly provides: readonly [TLCapability<UserPreferencesManager>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUserPreferences>;

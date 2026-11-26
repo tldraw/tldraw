@@ -4,7 +4,7 @@ The editor is a small core plus plugins. The core holds the store, history, came
 
 ```ts
 const editor = createEditor({
-	plugins: [myShapesPlugin, approximateTextMeasurementPlugin(), snappingPlugin],
+	plugins: [...createKernelPlugins(), approximateTextMeasurementPlugin(), myShapesPlugin],
 })
 ```
 
@@ -24,13 +24,24 @@ Public APIs stay on the editor or as free functions over it. The host does not m
 
 ## Compatibility: the old interface is a layer over plugins
 
-`plugins` is the complete list of plugins that an editor installs. When you leave it out, `new Editor()` and `TldrawEditor` install `createDefaultPlugins()`. To add plugins, spread the defaults: `plugins: [...createDefaultPlugins(), myPlugin]`. To replace one, filter it out by id and add yours. Two plugins that provide the same capability throw, so a duplicate is never silent. A list without the defaults, such as `[myPlugin]`, gives an editor without a frame loop, DOM focus or React group rendering.
+`plugins` is the complete list of plugins that an editor installs. When you leave it out, `new Editor()` and `TldrawEditor` install `createDefaultPlugins()`. That is `createKernelPlugins()`, which needs no DOM, plus the browser and React plugins. To add plugins, spread the defaults: `plugins: [...createDefaultPlugins(), myPlugin]`. To replace one, filter it out by id and add yours. Two plugins that provide the same capability throw, so a duplicate is never silent. A list without the defaults, such as `[myPlugin]`, gives an editor without a frame loop, DOM focus or React group rendering.
 
 The old members are facades over the plugins. They stay plain fields. When no plugin provides the capability, the field holds a stub that throws a "no installed plugin provides" error when it is used.
 
 | Old API                                                                                           | Now                                                                                                                    |
 | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `editor.snaps`                                                                                    | `snappingCapability`, from `snappingPlugin`                                                                            |
+| `editor.user`                                                                                     | `userPreferencesCapability`, from `userPreferencesPlugin`                                                              |
+| `getCurrentTheme`, `getColorMode` and the other theme methods                                     | `themesCapability`, from `themesPlugin`                                                                                |
+| `editor.inputs`                                                                                   | `inputsCapability`, from `inputsPlugin`                                                                                |
+| double, triple and quadruple clicks                                                               | `clickDetectionCapability`, from `clickDetectionPlugin`                                                                |
+| hit testing (`getShapeAtPoint`, `getShapesAtPoint`) and brushing                                  | `spatialIndexCapability`, from `spatialIndexPlugin`                                                                    |
+| `editor.scribbles`                                                                                | `scribblesCapability`, from `scribblesPlugin`                                                                          |
+| `editor.edgeScrollManager`                                                                        | `edgeScrollCapability`, from `edgeScrollPlugin`                                                                        |
+| `editor.overlays`                                                                                 | `overlaysCapability`, from `overlaysPlugin`                                                                            |
+| `editor.collaborators`, `getCollaborators`                                                        | `collaboratorsCapability`, from `collaboratorsPlugin`                                                                  |
+| `editor.performance`                                                                              | `performanceCapability`, from `performancePlugin`. Without it, the editor emits no performance events.                 |
+| `editor.fonts`                                                                                    | `fontsCapability`, from `domFontsPlugin`. Without it, the editor renders and exports without waiting for fonts.        |
 | `editor.textMeasure`                                                                              | `textMeasurementCapability`, from `domTextMeasurementPlugin`                                                           |
 | `registerExternalContentHandler`, `putExternalContent`, `externalContentHandlers`, asset handlers | `externalContentCapability`, from `externalContentPlugin`. The legacy handler map is the end of `externalContentSlot`. |
 | `editor.focus()` and `editor.blur()` container focus                                              | `containerFocusCapability`, from `domFocusPlugin`. The focused state stays in instance data.                           |
@@ -50,5 +61,5 @@ The `react/` folder is the only place in this design that imports React. `reactR
 
 1. Move each default shape's `component`, `toSvg` and `backgroundComponent` into `shapeComponentSlot` contributions. Then `ShapeUtil` has no render methods and shape utils are headless.
 2. Move the kernel (`editor/`, `plugins/`, `primitives/`, `config/`) to its own package with no React dependency. The `@tldraw/editor` package then re-exports it with the React layer, and `setDefaultEditorPlugins` goes away.
-3. Lift the other managers the same way: fonts, edge scroll, scribbles, clicks, collaborators.
+3. Lift the camera and the event pipeline the same way.
 4. Turn shapes, bindings and tools into plugins in `packages/tldraw`, so that `defaultShapeUtils` becomes a list of plugins.

@@ -1,7 +1,7 @@
 // This module is part of the headless editor kernel. It must not import React or touch the DOM.
 import type { TLAnyBindingUtilConstructor } from '../config/defaultBindings'
 import type { TLAnyShapeUtilConstructor } from '../config/defaultShapes'
-import type { Editor } from '../editor/Editor'
+import type { Editor, TLEditorOptions } from '../editor/Editor'
 import type { TLStateNodeConstructor } from '../editor/tools/StateNode'
 
 /**
@@ -94,6 +94,11 @@ export interface TLContributionOrder {
  */
 export interface TLPluginContext {
 	readonly editor: Editor
+	/**
+	 * The options that the editor was created with. Plugins read their configuration from here,
+	 * for example `themes` or `fontAssetUrls`.
+	 */
+	readonly editorOptions: Readonly<TLEditorOptions>
 	/** Get a capability. The plugin must list it in `requires` or `optional`, or provide it. */
 	get<T>(capability: TLCapability<T>): T
 	/** Get a capability that the plugin lists in `optional`, or undefined when no plugin provides it. */

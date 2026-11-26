@@ -58,6 +58,24 @@ export {
 	type TLSlot,
 } from './lib/plugins/plugin'
 export { TLPluginHost } from './lib/plugins/PluginHost'
+export {
+	clickDetectionCapability,
+	clickDetectionPlugin,
+} from './lib/plugins/builtin/clickDetection'
+export { collaboratorsCapability, collaboratorsPlugin } from './lib/plugins/builtin/collaborators'
+export { edgeScrollCapability, edgeScrollPlugin } from './lib/plugins/builtin/edgeScroll'
+export { domFontsPlugin, fontsCapability } from './lib/plugins/builtin/fonts'
+export { inputsCapability, inputsPlugin } from './lib/plugins/builtin/inputs'
+export { overlaysCapability, overlaysPlugin } from './lib/plugins/builtin/overlays'
+export { performanceCapability, performancePlugin } from './lib/plugins/builtin/performance'
+export { scribblesCapability, scribblesPlugin } from './lib/plugins/builtin/scribbles'
+export { spatialIndexCapability, spatialIndexPlugin } from './lib/plugins/builtin/spatialIndex'
+export { themesCapability, themesPlugin } from './lib/plugins/builtin/themes'
+export {
+	userPreferencesCapability,
+	userPreferencesPlugin,
+} from './lib/plugins/builtin/userPreferences'
+export { createKernelPlugins } from './lib/plugins/kernelPlugins'
 export { createDefaultPlugins } from './lib/react/defaultPlugins'
 export { imageExportCapability, type TLImageExporter } from './lib/plugins/builtin/imageExport'
 export { svgExportCapability, type TLSvgExporter } from './lib/plugins/builtin/svgExport'

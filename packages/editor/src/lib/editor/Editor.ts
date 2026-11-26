@@ -97,7 +97,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
+import { TLCurrentUser } from '../config/createTLCurrentUser'
 import { TLAnyAssetUtilConstructor, checkAssets } from '../config/defaultAssets'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
@@ -124,16 +124,28 @@ import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { LicenseManager } from '../license/LicenseManager'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
+import { clickDetectionCapability } from '../plugins/builtin/clickDetection'
+import { collaboratorsCapability } from '../plugins/builtin/collaborators'
 import { containerFocusCapability } from '../plugins/builtin/domFocus'
+import { edgeScrollCapability } from '../plugins/builtin/edgeScroll'
 import {
 	TLExternalAssetHandlers,
 	TLExternalContentHandlers,
 	externalContentCapability,
 } from '../plugins/builtin/externalContent'
+import { fontsCapability } from '../plugins/builtin/fonts'
 import { imageExportCapability } from '../plugins/builtin/imageExport'
+import { inputsCapability } from '../plugins/builtin/inputs'
+import { overlaysCapability } from '../plugins/builtin/overlays'
+import { performanceCapability } from '../plugins/builtin/performance'
+import { scribblesCapability } from '../plugins/builtin/scribbles'
 import { snappingCapability } from '../plugins/builtin/snapping'
+import { spatialIndexCapability } from '../plugins/builtin/spatialIndex'
 import { svgExportCapability } from '../plugins/builtin/svgExport'
 import { TLTextMeasurer, textMeasurementCapability } from '../plugins/builtin/textMeasurement'
+import { themesCapability } from '../plugins/builtin/themes'
+import { userPreferencesCapability } from '../plugins/builtin/userPreferences'
+import { createKernelPlugins } from '../plugins/kernelPlugins'
 import type { TLPlugin } from '../plugins/plugin'
 import { TLPluginHost } from '../plugins/PluginHost'
 import { Box, BoxLike } from '../primitives/Box'
@@ -172,19 +184,19 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { ClickManager } from './managers/ClickManager/ClickManager'
-import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
-import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
-import { FontManager } from './managers/FontManager/FontManager'
+import type { ClickManager } from './managers/ClickManager/ClickManager'
+import type { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
+import type { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
+import type { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
-import { InputsManager } from './managers/InputsManager/InputsManager'
-import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
-import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
-import { SnapManager } from './managers/SnapManager/SnapManager'
-import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
-import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
-import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
-import { OverlayManager } from './overlays/OverlayManager'
+import type { InputsManager } from './managers/InputsManager/InputsManager'
+import type { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
+import type { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
+import type { SnapManager } from './managers/SnapManager/SnapManager'
+import type { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
+import type { ThemeManager } from './managers/ThemeManager/ThemeManager'
+import type { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
+import type { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
 	ShapeUtil,
@@ -361,10 +373,10 @@ export interface TLRenderingShape {
 
 const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
 
-// The plugins for `new Editor()` without `plugins`. The kernel has none. The `@tldraw/editor`
-// entry sets this to `createDefaultPlugins`, which includes the DOM and React plugins, so that
-// this module does not import React and `createEditor` stays headless.
-let createDefaultEditorPlugins: () => readonly TLPlugin[] = () => []
+// The plugins for `new Editor()` without `plugins`. Here they are the kernel plugins. The
+// `@tldraw/editor` entry sets this to `createDefaultPlugins`, which adds the DOM and React
+// plugins, so that this module does not import React and `createEditor` stays headless.
+let createDefaultEditorPlugins: () => readonly TLPlugin[] = createKernelPlugins
 
 /** @internal */
 export function setDefaultEditorPlugins(create: () => readonly TLPlugin[]) {
@@ -379,33 +391,28 @@ const AXIS = {
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	readonly id = uniqueId()
-	constructor({
-		store,
-		user,
-		shapeUtils,
-		bindingUtils,
-		assetUtils: assetUtilConstructors,
-		overlayUtils: overlayUtilConstructors,
-		tools,
-		plugins = createDefaultEditorPlugins(),
-		getContainer,
-		// needs to be here for backwards compatibility with TldrawEditor
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		cameraOptions,
-		initialState,
-		autoFocus,
-		options: _options,
-		// needs to be here for backwards compatibility with TldrawEditor
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		textOptions: _textOptions,
-		getShapeVisibility,
-		colorScheme,
-		fontAssetUrls,
-		themes,
-		initialTheme,
-		i18n,
-	}: TLEditorOptions) {
+	constructor(editorOptions: TLEditorOptions) {
 		super()
+		const {
+			store,
+			shapeUtils,
+			bindingUtils,
+			assetUtils: assetUtilConstructors,
+			tools,
+			plugins = createDefaultEditorPlugins(),
+			getContainer,
+			// needs to be here for backwards compatibility with TldrawEditor
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			cameraOptions,
+			initialState,
+			autoFocus,
+			options: _options,
+			// needs to be here for backwards compatibility with TldrawEditor
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			textOptions: _textOptions,
+			getShapeVisibility,
+			i18n,
+		} = editorOptions
 
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
@@ -425,24 +432,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		})
 
-		this.plugins = new TLPluginHost(this, plugins)
+		this.plugins = new TLPluginHost(this, plugins, editorOptions)
 		const installedPlugins = this.plugins.getPlugins()
 		// Members that predate plugins are facades over plugin capabilities. Until setup, they
 		// forward to the capability once its plugin has set up. After setup (below), they are the
 		// capability itself, or a stub that throws when no plugin provides it.
-		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
-		this.textMeasure = this.plugins.facade(textMeasurementCapability, (c) => c)
-		this.externalContentHandlers = this.plugins.facade(
-			externalContentCapability,
-			(c) => c.contentHandlers
-		)
-		this.externalAssetContentHandlers = this.plugins.facade(
-			externalContentCapability,
-			(c) => c.assetHandlers
-		)
-
-		this._spatialIndex = new SpatialIndexManager(this)
-		this.disposables.add(() => this._spatialIndex.dispose())
+		Object.assign(this, this._getPluginFacades())
 
 		this.disposables.add(this.timers.dispose)
 
@@ -457,27 +452,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
-		this.disposables.add(() => this.user.dispose())
-
-		this._themeManager = new ThemeManager(this, {
-			themes: resolveThemes(themes),
-			initial: initialTheme ?? 'default',
-		})
-		this.disposables.add(() => this._themeManager.dispose())
-
 		this.disposables.add(() => {
 			this._setCameraState('idle')
 		})
-
-		this.fonts = new FontManager(this, fontAssetUrls)
-		this.disposables.add(() => this.fonts.dispose())
-
-		this.inputs = new InputsManager(this)
-		this.disposables.add(() => this.inputs.dispose())
-		this.performance = new PerformanceManager(this)
-		this.disposables.add(() => this.performance.dispose())
-		this.collaborators = new CollaboratorsManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -559,18 +536,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}
 			this.root.children![Tool.id] = new Tool(this, this.root)
-		}
-
-		this.scribbles = new ScribbleManager(this)
-
-		// Overlay utils
-		this.overlays = new OverlayManager(this)
-		this.disposables.add(() => this.overlays.dispose())
-		if (overlayUtilConstructors) {
-			for (const Util of overlayUtilConstructors) {
-				const util = new Util(this)
-				this.overlays.registerUtil(util)
-			}
 		}
 
 		// Cleanup
@@ -983,20 +948,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// and before the first tool is entered.
 		this.plugins.setup()
 		this.disposables.add(() => this.plugins.dispose())
-		this.snaps = this.plugins.facade(snappingCapability, (c) => c)
-		this.textMeasure = this.plugins.facade(textMeasurementCapability, (c) => c)
-		this.externalContentHandlers = this.plugins.facade(
-			externalContentCapability,
-			(c) => c.contentHandlers
-		)
-		this.externalAssetContentHandlers = this.plugins.facade(
-			externalContentCapability,
-			(c) => c.assetHandlers
-		)
+		Object.assign(this, this._getPluginFacades())
 
 		this.root.enter(undefined, 'initial')
 
-		this.edgeScrollManager = new EdgeScrollManager(this)
 		if (!!autoFocus !== this.getInstanceState().isFocused) {
 			this.updateInstanceState({ isFocused: !!autoFocus })
 		}
@@ -1167,7 +1122,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly inputs: InputsManager
+	readonly inputs!: InputsManager
 
 	/**
 	 * The editor's plugins: their capabilities and slot contributions.
@@ -1177,25 +1132,52 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly plugins: TLPluginHost
 
 	/**
+	 * The members that predate plugins, as facades over plugin capabilities. The constructor
+	 * assigns them twice. Before plugin setup they forward to their capability once its plugin has
+	 * set up, so a plugin can use another plugin's member during setup. After setup they are the
+	 * capability itself, or a stub that throws when no plugin provides it.
+	 */
+	private _getPluginFacades() {
+		const p = this.plugins
+		return {
+			snaps: p.facade(snappingCapability, (c) => c),
+			textMeasure: p.facade(textMeasurementCapability, (c) => c),
+			externalContentHandlers: p.facade(externalContentCapability, (c) => c.contentHandlers),
+			externalAssetContentHandlers: p.facade(externalContentCapability, (c) => c.assetHandlers),
+			user: p.facade(userPreferencesCapability, (c) => c),
+			_themeManager: p.facade(themesCapability, (c) => c),
+			inputs: p.facade(inputsCapability, (c) => c),
+			_clickManager: p.facade(clickDetectionCapability, (c) => c),
+			_spatialIndex: p.facade(spatialIndexCapability, (c) => c),
+			scribbles: p.facade(scribblesCapability, (c) => c),
+			edgeScrollManager: p.facade(edgeScrollCapability, (c) => c),
+			overlays: p.facade(overlaysCapability, (c) => c),
+			collaborators: p.facade(collaboratorsCapability, (c) => c),
+			performance: p.facade(performanceCapability, (c) => c),
+			fonts: p.facade(fontsCapability, (c) => c),
+		}
+	}
+
+	/**
 	 * A manager for the editor's snapping feature. The snapping plugin provides it.
 	 *
 	 * @public
 	 */
-	readonly snaps: SnapManager
+	readonly snaps!: SnapManager
 
 	/**
 	 * A manager for performance measurement hooks.
 	 *
 	 * @public
 	 */
-	readonly performance: PerformanceManager
+	readonly performance!: PerformanceManager
 
 	/**
 	 * A manager for the spatial index, tracking where shapes exist on the canvas.
 	 *
 	 * @internal
 	 */
-	private readonly _spatialIndex: SpatialIndexManager
+	private readonly _spatialIndex!: SpatialIndexManager
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -1210,49 +1192,49 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly collaborators: CollaboratorsManager
+	readonly collaborators!: CollaboratorsManager
 
 	/**
 	 * A manager for the user and their preferences.
 	 *
 	 * @public
 	 */
-	readonly user: UserPreferencesManager
+	readonly user!: UserPreferencesManager
 
 	/**
 	 * A manager for the editor's themes.
 	 *
 	 * @internal
 	 */
-	private readonly _themeManager: ThemeManager
+	private readonly _themeManager!: ThemeManager
 
 	/**
 	 * A helper for measuring text. A text measurement plugin provides it.
 	 *
 	 * @public
 	 */
-	readonly textMeasure: TLTextMeasurer
+	readonly textMeasure!: TLTextMeasurer
 
 	/**
 	 * A utility for managing the set of fonts that should be rendered in the document.
 	 *
 	 * @public
 	 */
-	readonly fonts: FontManager
+	readonly fonts!: FontManager
 
 	/**
 	 * A manager for the editor's scribbles.
 	 *
 	 * @public
 	 */
-	readonly scribbles: ScribbleManager
+	readonly scribbles!: ScribbleManager
 
 	/**
 	 * A manager for canvas overlay UI elements (selection handles, shape handles, etc.).
 	 *
 	 * @public
 	 */
-	readonly overlays: OverlayManager
+	readonly overlays!: OverlayManager
 
 	/**
 	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
@@ -1266,7 +1248,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	edgeScrollManager: EdgeScrollManager
+	edgeScrollManager!: EdgeScrollManager
 
 	/**
 	 * The current HTML element containing the editor.
@@ -1620,7 +1602,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
-		this.performance._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
+		this.plugins
+			.getOptional(performanceCapability)
+			?._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1651,7 +1635,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
-		this.performance._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
+		this.plugins
+			.getOptional(performanceCapability)
+			?._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -5428,7 +5414,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._shapeGeometryCaches[context] = this.store.createComputedCache(
 				'bounds',
 				(shape) => {
-					this.fonts.trackFontsForShape(shape)
+					this.plugins.getOptional(fontsCapability)?.trackFontsForShape(shape)
 					return this.getShapeUtil(shape).getGeometry(shape, opts)
 				},
 				{ areRecordsEqual: areShapesContentEqual }
@@ -9483,7 +9469,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Content -------------------- */
 
 	/** @internal */
-	readonly externalAssetContentHandlers: TLExternalAssetHandlers
+	readonly externalAssetContentHandlers!: TLExternalAssetHandlers
 
 	/** @internal */
 	private readonly temporaryAssetPreview = new Map<TLAssetId, string>()
@@ -9586,7 +9572,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	readonly externalContentHandlers: TLExternalContentHandlers
+	readonly externalContentHandlers!: TLExternalContentHandlers
 
 	/**
 	 * Register an external content handler. This handler will be called when the editor receives
@@ -10204,7 +10190,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// layout of any text within it - depend on the right fonts having loaded. Wait for them
 		// before we measure; otherwise an export taken before fonts finish loading (e.g. right
 		// after the editor mounts) is sized and laid out with fallback-font metrics.
-		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
+		await this.plugins
+			.getOptional(fontsCapability)
+			?.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
 
 		return this.plugins.get(svgExportCapability).exportToSvg(ids, opts)
 	}
@@ -10681,7 +10669,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	protected _clickManager = new ClickManager(this)
+	protected readonly _clickManager!: ClickManager
 
 	/**
 	 * Prevent a double click event from firing the next time the user clicks
@@ -10949,7 +10937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })
 			}
-			this.scribbles.tick(elapsed)
+			this.plugins.getOptional(scribblesCapability)?.tick(elapsed)
 		})
 	}
 
@@ -11097,7 +11085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
-						this.performance._notifyCameraOperation('zooming')
+						this.plugins.getOptional(performanceCapability)?._notifyCameraOperation('zooming')
 						this.emit('event', info)
 						return // Stop here!
 					}
@@ -11192,7 +11180,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
-							this.performance._notifyCameraOperation('zooming')
+							this.plugins.getOptional(performanceCapability)?._notifyCameraOperation('zooming')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -11203,7 +11191,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
-							this.performance._notifyCameraOperation('panning')
+							this.plugins.getOptional(performanceCapability)?._notifyCameraOperation('panning')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -11348,7 +11336,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
-							this.performance._notifyCameraOperation('panning')
+							this.plugins.getOptional(performanceCapability)?._notifyCameraOperation('panning')
 							return
 						}
 

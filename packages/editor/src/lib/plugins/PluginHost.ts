@@ -1,6 +1,6 @@
 // This module is part of the headless editor kernel. It must not import React or touch the DOM.
 import { Atom, atom } from '@tldraw/state'
-import type { Editor } from '../editor/Editor'
+import type { Editor, TLEditorOptions } from '../editor/Editor'
 import type {
 	TLCapability,
 	TLChainHandler,
@@ -39,7 +39,8 @@ export class TLPluginHost {
 	 */
 	constructor(
 		private readonly editor: Editor,
-		plugins: readonly TLPlugin[]
+		plugins: readonly TLPlugin[],
+		private readonly editorOptions: Readonly<TLEditorOptions>
 	) {
 		this.plugins = sortPlugins(plugins)
 	}
@@ -173,6 +174,7 @@ export class TLPluginHost {
 		}
 		return {
 			editor: this.editor,
+			editorOptions: this.editorOptions,
 			get: (cap) => {
 				assertDeclared(cap)
 				return this.get(cap)
