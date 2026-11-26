@@ -72,6 +72,8 @@ export {
 	shapeArrangementPlugin,
 } from './lib/plugins/builtin/shapeArrangement'
 export { ShapeArranger } from './lib/plugins/builtin/ShapeArranger'
+export { stylesCapability, stylesPlugin } from './lib/plugins/builtin/styles'
+export { StyleController } from './lib/plugins/builtin/StyleController'
 export {
 	clickDetectionCapability,
 	clickDetectionPlugin,

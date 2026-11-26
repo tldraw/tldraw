@@ -5,6 +5,7 @@
 import { RecordProps, TLShape, createShapeId } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { DEFAULT_CAMERA_OPTIONS } from '../constants'
+import type { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { TLExternalContent } from '../editor/types/external-content'
 import { Rectangle2d } from '../primitives/geometry/Rectangle2d'
@@ -165,6 +166,37 @@ describe('a headless editor', () => {
 		)
 		editor.dispose()
 	})
+
+	it.each([
+		['styles', (editor: Editor) => editor.getSharedStyles()],
+		['shapeArrangement', (editor: Editor) => editor.flipShapes([], 'horizontal')],
+		['shapeAnimation', (editor: Editor) => editor.animateShapes([])],
+	] as const)(
+		'creates, edits, deletes and undoes without %s, and names it when used',
+		(id, use) => {
+			const editor = createEditor({
+				plugins: [
+					cardsPlugin,
+					approximateTextMeasurementPlugin(),
+					...kernelPlugins.filter((p) => p.id !== id),
+				],
+			})
+			const shapeId = createShapeId('card')
+			editor.markHistoryStoppingPoint()
+			editor.createShape<CardShape>({ id: shapeId, type: CARD, props: { text: 'a' } })
+			editor.markHistoryStoppingPoint()
+			editor.updateShape<CardShape>({ id: shapeId, type: CARD, props: { text: 'b' } })
+			editor.markHistoryStoppingPoint()
+			editor.deleteShape(shapeId)
+			editor.undo()
+			editor.undo()
+			expect(editor.getShape<CardShape>(shapeId)?.props.text).toBe('a')
+			editor.redo()
+			expect(editor.getShape<CardShape>(shapeId)?.props.text).toBe('b')
+			expect(() => use(editor)).toThrow(`No installed plugin provides "${id}"`)
+			editor.dispose()
+		}
+	)
 
 	it('keeps focus as instance state without a DOM focus plugin', () => {
 		const editor = headlessEditor()

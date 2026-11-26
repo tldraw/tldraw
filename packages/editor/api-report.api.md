@@ -1825,6 +1825,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     styleProps: {
         [key: string]: Map<StyleProp<any>, string>;
     };
+    // @internal (undocumented)
+    readonly _styles: StyleController;
     readonly textMeasure: TLTextMeasurer;
     readonly timers: {
         cancelAnimationFrame: (id: number | undefined) => void;
@@ -3728,6 +3730,27 @@ export type StoreName = (typeof Table)[keyof typeof Table];
 
 // @public
 export function strokeShapeIndicators(editor: Editor, ctx: CanvasRenderingContext2D, shapeIds: TLShapeId[]): void;
+
+// @public
+export class StyleController {
+    constructor(editor: Editor);
+    getSharedOpacity(): SharedStyle<number>;
+    getSharedStyles(): ReadonlySharedStyleMap;
+    setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): Editor;
+    setOpacityForSelectedShapes(opacity: number): Editor;
+    setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): Editor;
+    setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): Editor;
+}
+
+// @public (undocumented)
+export const stylesCapability: TLCapability<StyleController>;
+
+// @public
+export const stylesPlugin: {
+    readonly id: "styles";
+    readonly provides: readonly [TLCapability<StyleController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;

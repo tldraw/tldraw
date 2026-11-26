@@ -126,6 +126,8 @@ import { shapeArrangementCapability } from '../plugins/builtin/shapeArrangement'
 import type { ShapeArranger } from '../plugins/builtin/ShapeArranger'
 import { snappingCapability } from '../plugins/builtin/snapping'
 import { spatialIndexCapability } from '../plugins/builtin/spatialIndex'
+import type { StyleController } from '../plugins/builtin/StyleController'
+import { stylesCapability } from '../plugins/builtin/styles'
 import { svgExportCapability } from '../plugins/builtin/svgExport'
 import { TLTextMeasurer, textMeasurementCapability } from '../plugins/builtin/textMeasurement'
 import { themesCapability } from '../plugins/builtin/themes'
@@ -158,7 +160,7 @@ import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { getDroppedShapesToNewParents, kickoutOccludedShapes } from '../utils/reparenting'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
-import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { ReadonlySharedStyleMap, SharedStyle } from '../utils/SharedStylesMap'
 import { AssetUtil } from './assets/AssetUtil'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
@@ -1111,6 +1113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_eventDispatcher: p.facade(eventDispatchCapability, (c) => c),
 			_arranger: p.facade(shapeArrangementCapability, (c) => c),
 			_shapeAnimator: p.facade(shapeAnimationCapability, (c) => c),
+			_styles: p.facade(stylesCapability, (c) => c),
 			snaps: p.facade(snappingCapability, (c) => c),
 			textMeasure: p.facade(textMeasurementCapability, (c) => c),
 			externalContentHandlers: p.facade(externalContentCapability, (c) => c.contentHandlers),
@@ -1147,6 +1150,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	readonly _shapeAnimator!: ShapeAnimator
+
+	/** @internal */
+	readonly _styles!: StyleController
 
 	/**
 	 * A manager for performance measurement hooks.
@@ -7629,45 +7635,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Styles --------------------- */
 
 	/**
-	 * Groups have no styles of their own: a style read or write on a selection applies to the
-	 * non-group shapes beneath each group, however deeply nested. Returns those shapes.
-	 *
-	 * @internal
-	 */
-	private _getStyleableShapes(shapes: TLShape[]): TLShape[] {
-		const result: TLShape[] = []
-		const visit = (shape: TLShape) => {
-			if (this.isShapeOfType(shape, 'group')) {
-				for (const childId of this.getSortedChildIdsForParent(shape.id)) {
-					const child = this.getShape(childId)
-					if (child) visit(child)
-				}
-			} else {
-				result.push(shape)
-			}
-		}
-		for (const shape of shapes) visit(shape)
-		return result
-	}
-
-	/**
-	 * A derived map containing all current styles among the user's selected shapes.
-	 *
-	 * @internal
-	 */
-	@computed
-	private _getSelectionSharedStyles(): ReadonlySharedStyleMap {
-		const sharedStyles = new SharedStyleMap()
-		for (const shape of this._getStyleableShapes(this.getSelectedShapes())) {
-			for (const [style, propKey] of this.styleProps[shape.type]) {
-				sharedStyles.applyValue(style, getOwnProperty(shape.props, propKey))
-			}
-		}
-
-		return sharedStyles
-	}
-
-	/**
 	 * Get the style for the next shape.
 	 *
 	 * @example
@@ -7703,28 +7670,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
 	getSharedStyles(): ReadonlySharedStyleMap {
-		// If we're in selecting and if we have a selection, return the shared styles from the
-		// current selection
-		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
-			return this._getSelectionSharedStyles()
-		}
-
-		// If the current tool is associated with a shape, return the styles for that shape.
-		// Otherwise, just return an empty map.
-		const currentTool = this.root.getCurrent()!
-		const styles = new SharedStyleMap()
-
-		if (!currentTool) return styles
-
-		if (currentTool.shapeType) {
-			for (const style of this.styleProps[currentTool.shapeType].keys()) {
-				styles.applyValue(style, this.getStyleForNextShape(style))
-			}
-		}
-
-		return styles
+		return this._styles.getSharedStyles()
 	}
 
 	/**
@@ -7734,20 +7681,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed getSharedOpacity(): SharedStyle<number> {
-		if (this.isIn('select') && this.getSelectedShapeIds().length > 0) {
-			let opacity: number | null = null
-			for (const shape of this._getStyleableShapes(this.getSelectedShapes())) {
-				if (opacity === null) {
-					opacity = shape.opacity
-				} else if (opacity !== shape.opacity) {
-					return { type: 'mixed' }
-				}
-			}
-
-			if (opacity !== null) return { type: 'shared', value: opacity }
-		}
-		return { type: 'shared', value: this.getOpacityForNextShape() }
+	getSharedOpacity(): SharedStyle<number> {
+		return this._styles.getSharedOpacity()
 	}
 
 	/**
@@ -7762,12 +7697,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param historyOptions - The history options for the change.
 	 */
 	setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this {
-		this.updateInstanceState({ opacityForNextShape: opacity }, historyOptions)
+		this._styles.setOpacityForNextShapes(opacity, historyOptions)
 		return this
-	}
-
-	@computed private getOpacityForNextShape(): number {
-		return this.getInstanceState().opacityForNextShape
 	}
 
 	/**
@@ -7781,18 +7712,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opacity - The opacity to set. Must be a number between 0 and 1 inclusive.
 	 */
 	setOpacityForSelectedShapes(opacity: number): this {
-		const selectedShapes = this.getSelectedShapes()
-
-		if (selectedShapes.length > 0) {
-			this.updateShapes(
-				this._getStyleableShapes(selectedShapes).map((shape) => ({
-					id: shape.id,
-					type: shape.type,
-					opacity,
-				}))
-			)
-		}
-
+		this._styles.setOpacityForSelectedShapes(opacity)
 		return this
 	}
 
@@ -7816,13 +7736,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		value: T,
 		historyOptions?: TLHistoryBatchOptions
 	): this {
-		const stylesForNextShape = this.getInstanceState().stylesForNextShape
-
-		this.updateInstanceState(
-			{ stylesForNextShape: { ...stylesForNextShape, [style.id]: value } },
-			historyOptions
-		)
-
+		this._styles.setStyleForNextShapes(style, value, historyOptions)
 		return this
 	}
 
@@ -7840,24 +7754,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this {
-		const selectedShapes = this.getSelectedShapes()
-
-		if (selectedShapes.length > 0) {
-			const updates: TLShapePartial[] = []
-			for (const shape of this._getStyleableShapes(selectedShapes)) {
-				const stylePropKey = this.styleProps[shape.type].get(style)
-				if (stylePropKey) {
-					updates.push({
-						id: shape.id,
-						type: shape.type,
-						props: { [stylePropKey]: value },
-					})
-				}
-			}
-
-			this.updateShapes(updates)
-		}
-
+		this._styles.setStyleForSelectedShapes(style, value)
 		return this
 	}
 

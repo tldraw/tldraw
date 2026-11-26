@@ -13,6 +13,7 @@ import { shapeAnimationPlugin } from './builtin/shapeAnimation'
 import { shapeArrangementPlugin } from './builtin/shapeArrangement'
 import { snappingPlugin } from './builtin/snappingPlugin'
 import { spatialIndexPlugin } from './builtin/spatialIndex'
+import { stylesPlugin } from './builtin/styles'
 import { themesPlugin } from './builtin/themes'
 import { userPreferencesPlugin } from './builtin/userPreferences'
 import type { TLPlugin } from './plugin'
@@ -46,6 +47,7 @@ export function createKernelPlugins(): TLPlugin[] {
 		snappingPlugin,
 		shapeArrangementPlugin,
 		shapeAnimationPlugin,
+		stylesPlugin,
 		scribblesPlugin,
 		edgeScrollPlugin,
 		overlaysPlugin,
