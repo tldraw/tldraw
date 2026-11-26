@@ -9,7 +9,7 @@ Summarize what's shipping in this week's dotcom release (the commits on `main` t
 
 This is the marketing counterpart to [[dotcom-release-crew]]. Same commit range, different audience: the release-crew message names engineers to have on hand; this one tells non-technical folks **what users will notice** so they can plan announcements, social posts, and changelog copy. No engineer pings, no release-risk framing.
 
-[[dotcom-release-clips]] films the bullets that can be shown as before/after clips, so keep track of which PRs each bullet comes from even though they don't go in the message.
+[[dotcom-release-clips]] films the bullets that can be shown as before/after clips, so keep track of which PRs each bullet comes from even though they don't go in the message. The weekly workflow runs it straight after this skill, using the bullets saved with `--bullets-out`.
 
 The output is a **draft for a human to edit**, not finished copy. It should read like a streamlined version of the SDK release notes: the same voice, the same discipline about describing bugs precisely, but only the highlights and with every developer-facing detail removed.
 
@@ -17,6 +17,7 @@ The output is a **draft for a human to edit**, not finished copy. It should read
 
 - `--dry-run` — print the finished message to stdout instead of posting it. Use this for testing and for reviewing a draft locally.
 - `--range <base>...<head>` — compare this range instead of `production...main`. Use it to regenerate a past week's summary (for example, the previous deploy's source commit against `main` as it was at the time).
+- `--bullets-out <file>` — after posting (or printing), save the bullets for [[dotcom-release-clips]]. See step 7.
 
 ## Inputs
 
@@ -56,7 +57,7 @@ gh api "repos/tldraw/tldraw/compare/${RANGE}" --paginate \
 
 Also capture the human-readable diff URL: `https://github.com/tldraw/tldraw/compare/${RANGE}`.
 
-If there are **zero** commits, post a brief note that there's nothing new shipping this week and stop.
+If there are **zero** commits, post a brief note that there's nothing new shipping this week, then go to step 7.
 
 ### 2. Select what's worth telling marketing about
 
@@ -167,7 +168,7 @@ Before posting, read the message once more and confirm:
 
 ### 6. Post to Discord (or print)
 
-With `--dry-run`, print the finished message to stdout and stop.
+With `--dry-run`, print the finished message to stdout instead of posting it, then go to step 7.
 
 Otherwise post the message as the webhook's `content`. Build the JSON safely (do not string-interpolate the message into the JSON by hand — use `jq` so newlines and quotes are escaped):
 
@@ -180,9 +181,20 @@ jq -n --arg content "$MESSAGE" '{content: $content, allowed_mentions: {parse: []
 
 A successful post returns HTTP 204 with an empty body. Report to the user what was posted (or that the post failed, with the curl output).
 
+### 7. Save the bullets for the clips (only with `--bullets-out`)
+
+Write every bullet from the message to the given file, one per line, each followed by the PR numbers it came from in brackets:
+
+```
+- You can now wrap a single shape in a frame. Select it and choose Frame selection, and the frame fits around it. [11129]
+- Pressing Z right after picking a tool could leave the zoom tool stuck on. It now switches off when you let go. [11158, 11160]
+```
+
+Use the bullets exactly as posted. If the message had no bullets, write an empty file.
+
 ## Notes
 
 - Do not commit or echo the full webhook URL anywhere.
-- This skill only reads git history and posts a message; it never modifies the repo.
+- This skill only reads git history and posts a message; it never modifies the repo. The `--bullets-out` file goes in the gitignored `skills/dotcom-release-clips/tmp/`.
 - `production...main` assumes the normal weekly flow where the dotcom release is the `main → production` promotion, so this range is exactly what's about to ship. During SDK freeze weeks the range is less precise — see the note in [[dotcom-release-crew]].
 - The SDK release notes for the same PRs are drafted into `apps/docs/content/releases/next.mdx` by the update-release-notes workflow after the production push, so they are not available when this runs. PRs labelled `dotcom` never appear there at all. Write from the commit bodies.
