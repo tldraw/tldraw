@@ -30,10 +30,10 @@ import { ZoomTool } from './tools/ZoomTool/ZoomTool'
  * One plugin for each default shape. Each plugin declares the shape util, the tool that creates
  * the shape, and the bindings that the shape owns. The arrow plugin declares the arrow binding.
  *
- * The plugin ids are the shape type followed by `Shape`, for example `geoShape`. To remove a shape
- * from `<Tldraw>`, filter its plugin out of {@link createTldrawPlugins}. To change a shape, pass
- * your shape util in `shapeUtils`: it replaces the plugin's util of the same type and keeps the
- * plugin's tool.
+ * The plugin ids are the shape type followed by `Shape`, for example `geoShape`. To change a
+ * shape, pass your shape util in `shapeUtils`: it replaces the plugin's util of the same type and
+ * keeps the plugin's tool. The `<Tldraw>` UI and paste handlers expect every default shape and
+ * tool, so keep these plugins when you use `<Tldraw>`. An editor without the UI can leave them out.
  *
  * @public
  */
@@ -79,11 +79,11 @@ export const defaultToolPlugins: readonly TLPlugin[] = [
  * The plugins that `<Tldraw>` installs when you do not pass `plugins`: the editor's
  * {@link @tldraw/editor#createDefaultPlugins}, then {@link defaultToolPlugins} and
  * {@link defaultShapePlugins}. The `plugins` prop is the complete list, so spread this to add
- * your own plugins, and filter it by id to remove one.
+ * your own plugins.
  *
  * @example
  * ```tsx
- * <Tldraw plugins={[...createTldrawPlugins().filter((p) => p.id !== 'videoShape'), myPlugin]} />
+ * <Tldraw plugins={[...createTldrawPlugins(), myPlugin]} />
  * ```
  *
  * @public

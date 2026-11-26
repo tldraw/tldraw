@@ -65,8 +65,19 @@ describe('default shape and tool plugins', () => {
 	it('throw when two plugins declare the same shape type', () => {
 		const geoAgain = definePlugin({ id: 'geoAgain', shapeUtils: [MyGeoShapeUtil] })
 		expect(() => new TestEditor({ plugins: [...createTldrawPlugins(), geoAgain] })).toThrow(
-			'Shape type "geo" is defined more than once'
+			'Shape type "geo" is declared by both plugin "geoShape" and plugin "geoAgain"'
 		)
+	})
+
+	it('throw for two plugins with the same shape type even when an option replaces it', () => {
+		const geoAgain = definePlugin({ id: 'geoAgain', shapeUtils: [MyGeoShapeUtil] })
+		expect(
+			() =>
+				new TestEditor({
+					plugins: [...createTldrawPlugins(), geoAgain],
+					shapeUtils: [MyGeoShapeUtil],
+				})
+		).toThrow('declared by both plugin "geoShape" and plugin "geoAgain"')
 	})
 
 	it('are not installed by the editor defaults', () => {

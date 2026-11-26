@@ -492,9 +492,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.assetUtils = _assetUtils
 		}
 
-		// Tools.
-		// Accept tools from constructor parameters which may not conflict with the root note's default or
-		// "baked in" tools, select and zoom.
+		// Tools. An option tool already replaced any plugin tool with its id, so a repeated id here
+		// means two option tools share it.
 		for (const Tool of records.tools) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)

@@ -21,7 +21,7 @@ export interface TLEditorRecords {
  * option replaces a plugin record of the same shape type, binding type or tool id, so
  * `shapeUtils: [MyGeoShapeUtil]` replaces the geo shape util of the geo plugin and keeps its tool.
  * Plugin records come first, in plugin order, then the options. Two plugins that declare the same
- * type are not combined here: the editor throws for them.
+ * type or id throw.
  *
  * @internal
  */
@@ -33,17 +33,43 @@ export function resolvePluginRecords(
 		shapeUtils: mergeArraysAndReplaceDefaults(
 			'type',
 			options.shapeUtils ?? [],
-			plugins.flatMap((p) => p.shapeUtils ?? [])
+			uniquePluginRecords(plugins, 'shapeUtils', 'type', 'Shape type')
 		),
 		bindingUtils: mergeArraysAndReplaceDefaults(
 			'type',
 			options.bindingUtils ?? [],
-			plugins.flatMap((p) => p.bindingUtils ?? [])
+			uniquePluginRecords(plugins, 'bindingUtils', 'type', 'Binding type')
 		),
 		tools: mergeArraysAndReplaceDefaults(
 			'id',
 			options.tools ?? [],
-			plugins.flatMap((p) => p.tools ?? [])
+			uniquePluginRecords(plugins, 'tools', 'id', 'Tool id')
 		),
 	}
+}
+
+// An option replaces every plugin record of its type, so a conflict between two plugins must be
+// caught here: after the merge, an option would hide it.
+function uniquePluginRecords<K extends 'shapeUtils' | 'bindingUtils' | 'tools'>(
+	plugins: readonly TLPlugin[],
+	kind: K,
+	key: 'type' | 'id',
+	label: string
+): NonNullable<TLPlugin[K]>[number][] {
+	const owners = new Map<string, string>()
+	const records: NonNullable<TLPlugin[K]>[number][] = []
+	for (const plugin of plugins) {
+		for (const record of plugin[kind] ?? []) {
+			const name = (record as unknown as Record<string, string>)[key]
+			const owner = owners.get(name)
+			if (owner !== undefined) {
+				throw Error(
+					`${label} "${name}" is declared by both plugin "${owner}" and plugin "${plugin.id}"`
+				)
+			}
+			owners.set(name, plugin.id)
+			records.push(record)
+		}
+	}
+	return records
 }

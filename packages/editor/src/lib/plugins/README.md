@@ -75,7 +75,7 @@ The `react/` folder is the only place in this design that imports React. `reactR
 
 `packages/tldraw` declares each default shape as a plugin, in `defaultShapePlugins`. A shape plugin has the shape util, the tool that creates the shape, and the bindings that the shape owns, so the `arrowShape` plugin also has the arrow binding. `defaultToolPlugins` has the tools that do not create a shape: select, hand, eraser, laser and zoom. `createTldrawPlugins()` is `createDefaultPlugins()` plus both lists, and `<Tldraw>` and `TestEditor` install it when they get no `plugins`.
 
-The `shapeUtils`, `bindingUtils` and `tools` options replace a plugin record of the same type or id (`resolvePluginRecords`), so `shapeUtils={[MyGeoShapeUtil]}` replaces the geo util and keeps the geo tool. Two plugins that declare the same type throw. `defaultShapeUtils`, `defaultBindingUtils`, `defaultShapeTools` and `defaultTools` stay as typed lists for code that builds a store or an editor from them; a test checks that they match the plugins.
+The `shapeUtils`, `bindingUtils` and `tools` options replace a plugin record of the same type or id (`resolvePluginRecords`), so `shapeUtils={[MyGeoShapeUtil]}` replaces the geo util and keeps the geo tool. Two plugins that declare the same type throw. The `<Tldraw>` UI and paste handlers still expect every default shape and tool, so `<Tldraw>` supports adding plugins but not removing default ones. `defaultShapeUtils`, `defaultBindingUtils`, `defaultShapeTools` and `defaultTools` stay as typed lists for code that builds a store or an editor from them; a test checks that they match the plugins.
 
 The shape utils still import React for their components, so the shape plugins are not headless. Next step 1 removes that.
 
