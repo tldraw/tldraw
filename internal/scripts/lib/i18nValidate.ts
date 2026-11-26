@@ -1,7 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'fs'
 import path from 'path'
 import { MessageFormatElement, TYPE, parse } from '@formatjs/icu-messageformat-parser'
-import { PLURAL_CATEGORIES } from './pluralCategories'
 
 type I18nProject = 'sdk' | 'dotcom'
 
@@ -40,14 +39,26 @@ const CLDR_CATEGORIES = new Set(['zero', 'one', 'two', 'few', 'many', 'other'])
 // The lookahead keeps ordinary text like "50%de réduction" from matching.
 const FOREIGN_PLACEHOLDER = /\[%[^\]]*\]|%(?:\d+\$)?[sd@](?![\p{L}\p{N}])/gu
 
+/**
+ * The plural forms a translation into `locale` must have (`required`) and may have (`all`), from
+ * the runtime's CLDR data. Only forms an integer from 0 to 200 selects are required, so a missing
+ * Polish `few` ("5 kształt" instead of "5 kształtów") fails while French `many`, which only
+ * 1,000,000-style numbers select, doesn't.
+ *
+ */
 function pluralCategories(locale: string, type: 'cardinal' | 'ordinal') {
-	if (type === 'ordinal') {
-		throw new Error('selectordinal has no pinned categories yet; add them to pluralCategories.ts')
-	}
-	const pinned = PLURAL_CATEGORIES[locale]
-	if (!pinned) throw new Error(`No plural categories for ${locale}; add it to pluralCategories.ts`)
-	return pinned
+	const rules = new Intl.PluralRules(locale, { type })
+	const reached = new Set<string>(['other'])
+	for (let n = 0; n <= 200; n++) reached.add(rules.select(n))
+	for (const category of NOT_REQUIRED[locale] ?? []) reached.delete(category)
+	const all = rules.resolvedOptions().pluralCategories as string[]
+	return { required: all.filter((c) => reached.has(c)), all }
 }
+
+// Forms that only newer CLDR data selects, so the answer doesn't depend on the Node version:
+// CLDR 49 (Node 26) gave Vietnamese, which has no grammatical number, a `one` that CI's Node 24
+// and older browsers never select.
+const NOT_REQUIRED: Record<string, string[]> = { vi: ['one'] }
 
 interface Signature {
 	/** argument name -> element kinds it appears as (`argument`, `number`, `plural`, ...) */
