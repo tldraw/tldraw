@@ -67,6 +67,34 @@ it('reopens after tldraw closes the menu itself', async () => {
 	await screen.findByTestId('context-menu')
 })
 
+it('allows Escape to deselect shapes after tldraw closes the menu itself', async () => {
+	const id = createShapeId()
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => (
+			<Tldraw
+				onMount={(editor) => {
+					editor.createShape({ id, type: 'geo' }).select(id)
+					onMount(editor)
+				}}
+			/>
+		),
+		{ waitForPatterns: false }
+	)
+
+	fireEvent.contextMenu(await screen.findByTestId('canvas'))
+	await screen.findByTestId('context-menu')
+	act(() => editor.menus.clearOpenMenus())
+	expect(screen.queryByTestId('context-menu')).toBeNull()
+	await act(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())))
+
+	act(() => {
+		editor.select(id)
+		editor.getContainer().focus()
+	})
+	fireEvent.keyDown(editor.getContainer(), { key: 'Escape', code: 'Escape' })
+	expect(editor.getSelectedShapeIds()).toEqual([])
+})
+
 describe('returning focus on close', () => {
 	async function openMenu() {
 		const { editor } = await renderTldrawComponentWithEditor(
