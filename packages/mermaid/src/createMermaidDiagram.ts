@@ -140,7 +140,7 @@ export async function createMermaidDiagram(
 				}
 				blueprint = await withMountedPeleSvg(text, sequenceOptions, (root) =>
 					sequenceToBlueprint(
-						parseSequenceLayout(root, sequence),
+						parseSequenceLayout(root, sequence, createLabelSizeMeasurer(editor)),
 						sequence.actors,
 						[...sequence.actors.keys()],
 						sequence.messages,

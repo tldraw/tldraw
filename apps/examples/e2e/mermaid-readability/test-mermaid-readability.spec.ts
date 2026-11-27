@@ -39,37 +39,6 @@ interface KnownProblem {
 // is a pixel from colliding.
 const KNOWN_PROBLEMS: KnownProblem[] = [
 	{
-		// Not a bug: a label is part of its arrow, so a self-message's sits on its loop. Placing it
-		// above the loop, as mermaid does, would mean detaching it. Closed as intended in #10796.
-		reason: 'Sequence self-message labels are centered on their loop, over the lifeline',
-		findings: [
-			overlap('sequence', 6, 'Recompute backoff', 'line'),
-			overlap('sequence', 9, 'Recalculate cache', 'line'),
-			overlap('sequence', 24, '9  Apply discount rules', 'line'),
-			overlap('sequence', 24, '9  Apply discount rules', 'rectangle with no text'),
-			overlap('sequence', 25, 'Recompute eviction policy', 'line'),
-			overlap('sequence', 28, 'Retry parsing malformed input', 'line'),
-			overlap(
-				'sequence',
-				29,
-				'perform an unusually long internal bookkeeping step with a very wide label',
-				'line'
-			),
-			overlap(
-				'sequence',
-				32,
-				'parse chunk 3 with a suspiciously long status label for layout testing',
-				'line'
-			),
-			overlap(
-				'sequence',
-				32,
-				'parse chunk 3 with a suspiciously long status label for layout testing',
-				'rectangle with no text'
-			),
-		],
-	},
-	{
 		// tldraw squeezes an arrow's label to the arrow's width less a margin whenever the arrow is
 		// wider than it is tall.
 		reason: 'A label on a short, wide arrow wraps mid-word',

@@ -8,7 +8,7 @@ import type {
 	MermaidBlueprintLineNode,
 } from './blueprint'
 import { parseRgbToTldrawColor } from './colors'
-import type { MeasureLabelWidth } from './mermaidNodeCreateShape'
+import type { MeasureLabelSize, MeasureLabelWidth } from './mermaidNodeCreateShape'
 import { getOrigin, parsePathPoints } from './peleDiagram'
 import type { Vec2 } from './svgParsing'
 
@@ -212,8 +212,10 @@ const FRAGMENT_PADDING_TOP = 50
 const FRAGMENT_PADDING_BOTTOM = 25
 const ACTOR_PADDING_WIDTH = 30
 const ACTOR_PADDING_HEIGHT = 10
-const SELF_MSG_Y_OFFSET = 0.04
-const SELF_MSG_BEND = -80
+const SELF_MSG_CHORD = 24
+const SELF_MSG_LABEL_GAP = 8
+const MIN_SELF_MSG_BEND = 40
+const MAX_SELF_MSG_BEND = 160
 // How far up into the label drawn above a message's line our arrow sits. Our labels are
 // centred on the arrow and taller than the layout's, so halfway pushed them into a fragment's section
 // title above, while the line itself pushed them across the frame's bottom edge.
@@ -256,12 +258,23 @@ interface ComputedActorLayouts {
 	toLayoutX?(svgX: number): number
 }
 
+/** A span of the layout's SVG, top to bottom, that our shapes need `extra` more height to fill. */
+interface VerticalGrowth {
+	top: number
+	bottom: number
+	extra: number
+}
+
 /**
  * Space the actors read from the SVG out to {@link TARGET_ACTOR_SPACING} and stretch short diagrams
  * to {@link MIN_VERTICAL_GAP}. `top` and `bottom` hold each actor's header and footer box, in actor
  * order.
  */
-function layoutActorsFromSvg(top: SvgRect[], bottom: SvgRect[]): Required<ComputedActorLayouts> {
+function layoutActorsFromSvg(
+	top: SvgRect[],
+	bottom: SvgRect[],
+	growth: VerticalGrowth[] = []
+): Required<ComputedActorLayouts> {
 	const svgCenters = top.map((r) => r.x + r.w / 2)
 	const spacings: number[] = []
 	for (let i = 1; i < svgCenters.length; i++) {
@@ -281,12 +294,24 @@ function layoutActorsFromSvg(top: SvgRect[], bottom: SvgRect[]): Required<Comput
 	const yStretch = Math.max(0, MIN_VERTICAL_GAP - (footerTop - headerBottom))
 	const topMinY = Math.min(...top.map((r) => r.y))
 	const bottomMaxY = Math.max(...bottom.map((r) => r.y + r.h))
-	const originY = -(bottomMaxY + yStretch + topMinY) / 2
+	const totalGrowth = growth.reduce((sum, g) => sum + g.extra, 0)
+	const originY = -(bottomMaxY + yStretch + totalGrowth + topMinY) / 2
 	// The stretch pushes the footer down, so spread it over the rows between header and footer.
+	// Each growth opens up across the span it replaces: whatever sits above the span stays put,
+	// whatever sits below moves down by all of it, and the span's middle by half.
 	const toLayoutY = (svgY: number) =>
 		originY +
 		svgY +
-		(footerTop > headerBottom ? yStretch * clamp(invLerp(headerBottom, footerTop, svgY), 0, 1) : 0)
+		(footerTop > headerBottom
+			? yStretch * clamp(invLerp(headerBottom, footerTop, svgY), 0, 1)
+			: 0) +
+		growth.reduce(
+			(sum, g) =>
+				sum +
+				g.extra *
+					(g.bottom > g.top ? clamp(invLerp(g.top, g.bottom, svgY), 0, 1) : +(svgY > g.top)),
+			0
+		)
 
 	const toLayoutX = (svgX: number) => (svgX - svgCenters[0]) * scale - totalSpan / 2
 
@@ -354,6 +379,19 @@ function fitActorsToLabels(
 	})
 }
 
+/**
+ * tldraw draws a self-message as an arc with its label centred on the arc's far point, so the arc
+ * must bend out past half the label or the label covers the lifeline. Bent that far over a short
+ * chord, the arc is most of a circle and about as tall as it is bent, far taller than the layout's
+ * own loop, so the layout makes room for `height` (see `parseSequenceLayout`).
+ */
+export function getSelfMessageLoop(labelWidth: number) {
+	const bend = clamp(labelWidth / 2 + SELF_MSG_LABEL_GAP, MIN_SELF_MSG_BEND, MAX_SELF_MSG_BEND)
+	const halfChord = SELF_MSG_CHORD / 2
+	const height = bend > halfChord ? (halfChord * halfChord + bend * bend) / bend : SELF_MSG_CHORD
+	return { bend, chord: SELF_MSG_CHORD, height }
+}
+
 function getMessageLabel(msg: SequenceMessage): string | undefined {
 	return typeof msg.message === 'string' ? msg.message : undefined
 }
@@ -368,7 +406,11 @@ export function countSequenceEvents(messages: SequenceMessage[]): number {
  * `i<index into messages>` in `data-id` and actors their key, but fragment frames carry
  * no id, so those are matched to the messages that close them by order.
  */
-export function parseSequenceLayout(root: Element, model: SequenceModel): ParsedSequenceLayout {
+export function parseSequenceLayout(
+	root: Element,
+	model: SequenceModel,
+	measureLabel?: MeasureLabelSize
+): ParsedSequenceLayout {
 	const actorKeys = [...model.actors.keys()]
 	const actorBoxes = parsePeleActorBoxes(root, actorKeys)
 	if (!actorBoxes) {
@@ -378,9 +420,43 @@ export function parseSequenceLayout(root: Element, model: SequenceModel): Parsed
 		)
 		return { actorLayouts, noteRects: [], rowYs: new Map(), fragmentFrames: new Map() }
 	}
+
+	// The layout sizes notes and self-message loops for its own text and loop, and ours are taller,
+	// so a note ran into the footer below it and a self-message's loop out of its frame. Open up
+	// the difference where each one sits, pushing everything below it down.
+	const growth: VerticalGrowth[] = []
+	const notes: { index: number; rect: SvgRect; svgCenterY: number }[] = []
+	for (const el of root.querySelectorAll('.pele-note[data-id]')) {
+		const index = getMessageIndex(el)
+		const rect = el.querySelector('rect')
+		if (index === undefined || !rect) continue
+		const svgRect = getRect(rect)
+		const label = getMessageLabel(model.messages[index] ?? { message: '' })
+		const h = Math.max(svgRect.h, label && measureLabel ? measureLabel(label, 's').h : 0)
+		growth.push({ top: svgRect.y, bottom: svgRect.y + svgRect.h, extra: h - svgRect.h })
+		notes.push({ index, rect: { ...svgRect, h }, svgCenterY: svgRect.y + svgRect.h / 2 })
+	}
+	notes.sort((a, b) => a.index - b.index)
+	const selfLoopSpans = new Map<number, { top: number; bottom: number }>()
+	for (const el of root.querySelectorAll('.pele-message[data-id]')) {
+		const index = getMessageIndex(el)
+		const msg = index === undefined ? undefined : model.messages[index]
+		const path = el.querySelector('path:not(.pele-marker)')
+		if (index === undefined || !msg || msg.from !== msg.to || !path) continue
+		const ys = parsePathPoints(path.getAttribute('d') ?? '').map((point) => point.y)
+		if (!ys.length) continue
+		const originY = getOrigin(el).y
+		const span = { top: originY + Math.min(...ys), bottom: originY + Math.max(...ys) }
+		selfLoopSpans.set(index, span)
+		const label = getMessageLabel(msg)
+		const { height } = getSelfMessageLoop(label && measureLabel ? measureLabel(label, 's').w : 0)
+		growth.push({ ...span, extra: Math.max(0, height - (span.bottom - span.top)) })
+	}
+
 	const { actorLayouts, toLayoutY, toLayoutX } = layoutActorsFromSvg(
 		actorBoxes.top,
-		actorBoxes.bottom
+		actorBoxes.bottom,
+		growth
 	)
 
 	const rowYs = new Map<number, number>()
@@ -401,30 +477,20 @@ export function parseSequenceLayout(root: Element, model: SequenceModel): Parsed
 		if (index === undefined || !path) continue
 		const ys = parsePathPoints(path.getAttribute('d') ?? '').map((point) => point.y)
 		if (!ys.length) continue
-		const originY = getOrigin(el).y
+		const selfLoop = selfLoopSpans.get(index)
 		let y: number
-		if (Math.max(...ys) > ys[0]) {
-			// Our self-message loop is far taller than pele's and holds its own label, so it centres
-			// on pele's loop.
-			y = originY + (Math.min(...ys) + Math.max(...ys)) / 2
+		if (selfLoop) {
+			// Our self-message loop holds its own label, so it centres on the layout's loop.
+			y = (selfLoop.top + selfLoop.bottom) / 2
 		} else {
-			const lineY = originY + ys[0]
+			const lineY = getOrigin(el).y + ys[0]
 			const labelTopY = Math.min(lineY, labelTops.get(index) ?? lineY)
 			y = lineY - (lineY - labelTopY) * MESSAGE_ROW_LABEL_SHARE
 		}
 		rowYs.set(index, toLayoutY(y))
 	}
 
-	const notes: { index: number; rect: SvgRect }[] = []
-	for (const el of root.querySelectorAll('.pele-note[data-id]')) {
-		const index = getMessageIndex(el)
-		const rect = el.querySelector('rect')
-		if (index === undefined || !rect) continue
-		const noteRect = getRect(rect)
-		notes.push({ index, rect: noteRect })
-		rowYs.set(index, toLayoutY(noteRect.y + noteRect.h / 2))
-	}
-	notes.sort((a, b) => a.index - b.index)
+	for (const { index, svgCenterY } of notes) rowYs.set(index, toLayoutY(svgCenterY))
 
 	return {
 		actorLayouts,
@@ -984,28 +1050,25 @@ export function sequenceToBlueprint(
 			}
 
 			const rowY = eventY(eventIndex)
-			const startAnchor = anchorOnLifeline(fromIdx, rowY)
-			const endAnchor = anchorOnLifeline(toIdx, rowY)
+			const label = getMessageLabel(msg)
+			const selfLoop = isSelf
+				? getSelfMessageLoop(label ? measureLabelWidth(label, 's') : 0)
+				: undefined
+			const halfChord = selfLoop ? selfLoop.chord / 2 : 0
+			const startAnchor = anchorOnLifeline(fromIdx, rowY - halfChord)
+			const endAnchor = anchorOnLifeline(toIdx, rowY + halfChord)
 
 			const edge: MermaidBlueprintEdge = {
 				startNodeId: startBoxId ?? `lifeline-${fromKey}`,
 				endNodeId: endBoxId ?? `lifeline-${toKey}`,
-				label: getMessageLabel(msg),
-				bend: isSelf ? SELF_MSG_BEND : 0,
+				label,
+				bend: selfLoop ? -selfLoop.bend : 0,
 				dash,
 				arrowheadEnd,
 				arrowheadStart: bidir ? 'arrow' : 'none',
 				size: 's',
-				anchorStartY: startBoxId
-					? 0.5
-					: isSelf
-						? clamp(startAnchor - SELF_MSG_Y_OFFSET, 0, 1)
-						: startAnchor,
-				anchorEndY: endBoxId
-					? 0.5
-					: isSelf
-						? clamp(endAnchor + SELF_MSG_Y_OFFSET, 0, 1)
-						: endAnchor,
+				anchorStartY: startBoxId ? 0.5 : startAnchor,
+				anchorEndY: endBoxId ? 0.5 : endAnchor,
 				isExact: !startBoxId,
 				isPrecise: !startBoxId,
 				isExactEnd: !endBoxId,

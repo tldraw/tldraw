@@ -1,20 +1,29 @@
 import type { SequenceModel } from 'pele'
+import type { MeasureLabelSize } from './mermaidNodeCreateShape'
 import { parsePeleDiagram } from './peleDiagram'
-import { LINETYPE, parseSequenceLayout, sequenceToBlueprint } from './sequenceDiagram'
+import {
+	getSelfMessageLoop,
+	LINETYPE,
+	parseSequenceLayout,
+	sequenceToBlueprint,
+} from './sequenceDiagram'
 
 const measureLabelWidth = () => 0
 
-async function renderLayout(text: string) {
+async function renderLayout(text: string, measureLabel?: MeasureLabelSize) {
 	const parsed = await parsePeleDiagram(text)
 	if (!parsed) throw new Error('not a diagram')
 	const model = parsed.model as SequenceModel
 	const container = document.createElement('div')
 	container.innerHTML = parsed.pele.render(model, { fontSize: 16 }).svg
-	return { model, layout: parseSequenceLayout(container.querySelector('svg')!, model) }
+	return {
+		model,
+		layout: parseSequenceLayout(container.querySelector('svg')!, model, measureLabel),
+	}
 }
 
-async function toBlueprint(text: string) {
-	const { model, layout } = await renderLayout(text)
+async function toBlueprint(text: string, measureLabel?: MeasureLabelSize) {
+	const { model, layout } = await renderLayout(text, measureLabel)
 	const blueprint = sequenceToBlueprint(
 		layout,
 		model.actors,
@@ -22,7 +31,7 @@ async function toBlueprint(text: string) {
 		model.messages,
 		model.createdActors,
 		model.destroyedActors,
-		measureLabelWidth
+		measureLabel ? (label, size) => measureLabel(label, size).w : measureLabelWidth
 	)
 	return { ...blueprint, lines: blueprint.lines ?? [] }
 }
@@ -149,10 +158,59 @@ describe('pele sequence renderer', () => {
 			startNodeId: think.startNodeId,
 			endNodeId: think.endNodeId,
 			bend: think.bend,
-		}).toEqual({ startNodeId: 'lifeline-B', endNodeId: 'lifeline-B', bend: -80 })
+		}).toEqual({
+			startNodeId: 'lifeline-B',
+			endNodeId: 'lifeline-B',
+			bend: -getSelfMessageLoop(0).bend,
+		})
 		expect(think.anchorEndY).toBeGreaterThan(think.anchorStartY!)
 		expect(think.anchorStartY).toBeGreaterThan(go.anchorStartY!)
 		expect(done.anchorStartY).toBeGreaterThan(think.anchorEndY!)
+	})
+
+	it("bends a self message's loop past half its label, and makes room for the loop", async () => {
+		// tldraw centres the label on the loop's far point, so a shallower loop puts the label on
+		// the lifeline; and a loop that deep is far taller than the layout's.
+		const text = `sequenceDiagram
+  A->>B: go
+  B->>B: recompute the whole thing
+  B-->>A: done`
+		const measureLabel: MeasureLabelSize = (label) => ({ w: label.length * 10, h: 30 })
+		const { model, layout } = await renderLayout(text, measureLabel)
+		const loop = getSelfMessageLoop(measureLabel('recompute the whole thing', 's').w)
+		const unadjusted = (await renderLayout(text)).layout
+
+		const { edges } = await toBlueprint(text, measureLabel)
+
+		expect(edges[1].bend).toBe(-loop.bend)
+		expect(loop.bend).toBeGreaterThan(measureLabel('recompute the whole thing', 's').w / 2)
+		expect(model.messages[1].from).toBe(model.messages[1].to)
+		// Unmeasured, the loop is sized for an empty label; the rows either side of it move apart by
+		// exactly how much taller the measured loop is.
+		const gap = (l: typeof layout) => l.rowYs.get(2)! - l.rowYs.get(0)!
+		expect(gap(layout) - gap(unadjusted)).toBeCloseTo(loop.height - getSelfMessageLoop(0).height)
+	})
+
+	it('makes room for a note taller than the layout drew it', async () => {
+		// Grown in place, a tall note reached into the footer below it.
+		const text = `sequenceDiagram
+  A->>B: go
+  Note over B: a note with a lot to say`
+		const measureLabel: MeasureLabelSize = () => ({ w: 100, h: 200 })
+		const { layout } = await renderLayout(text, measureLabel)
+		const unadjusted = (await renderLayout(text)).layout
+
+		const { nodes } = await toBlueprint(text, measureLabel)
+
+		const note = nodes.find((node) => node.kind === 'sequence_note')!
+		expect(note.h).toBe(200)
+		const footerGap = (l: typeof layout, noteBottom: number) =>
+			l.actorLayouts[1].bottomY - noteBottom
+		const unadjustedNote = unadjusted.noteRects[0]
+		const unadjustedNoteBottom = unadjusted.rowYs.get(1)! + unadjustedNote.h / 2
+		expect(footerGap(layout, note.y + note.h)).toBeCloseTo(
+			footerGap(unadjusted, unadjustedNoteBottom)
+		)
 	})
 
 	it('places notes beside, over, and across lifelines', async () => {
