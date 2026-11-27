@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatFullDateTime, formatRelativeTime } from './format-time'
+import { formatCompactDateTime, formatFullDateTime, formatRelativeTime } from './format-time'
 
 /** An ISO timestamp `seconds` in the past, relative to now. */
 function agoIso(seconds: number): string {
@@ -65,5 +65,13 @@ describe('formatFullDateTime', () => {
 
 	it('returns an empty string for invalid dates', () => {
 		expect(formatFullDateTime('not a date')).toBe('')
+	})
+})
+
+describe('formatCompactDateTime', () => {
+	it('writes day, short month, year, 24-hour time and zone', () => {
+		expect(formatCompactDateTime('2026-11-14T09:33:00.000Z', 'en')).toMatch(
+			/^\d{1,2} Nov 2026 \d{2}:\d{2}\S+$/
+		)
 	})
 })
