@@ -13,6 +13,7 @@ import {
 	TLDefaultSizeStyle,
 	TLDefaultTextAlignStyle,
 	TLOpacityType,
+	TLShape,
 	TLShapeId,
 	Vec,
 	VecLike,
@@ -60,6 +61,8 @@ export async function putExcalidrawContent(
 	const rootShapeIds: TLShapeId[] = []
 
 	const skipIds = new Set<string>()
+	// Elements of a shape type that the editor does not have. Arrows do not bind to them.
+	const skippedIds = new Set<string>()
 
 	elements.forEach((element: any) => {
 		excElementIdsToTldrawShapeIds.set(element.id, createShapeId())
@@ -77,6 +80,13 @@ export async function putExcalidrawContent(
 
 	for (const element of elements) {
 		if (skipIds.has(element.id)) {
+			continue
+		}
+
+		// An editor without the plugin for a shape type keeps the elements it can hold.
+		const shapeType = excalidrawShapeTypes[element.type]
+		if (shapeType && !editor.hasShapeUtil(shapeType)) {
+			skippedIds.add(element.id)
 			continue
 		}
 
@@ -222,8 +232,12 @@ export async function putExcalidrawContent(
 				const start = element.points[0]
 				const end = element.points[element.points.length - 1]
 
-				const startTargetId = excElementIdsToTldrawShapeIds.get(element.startBinding?.elementId)
-				const endTargetId = excElementIdsToTldrawShapeIds.get(element.endBinding?.elementId)
+				const startTargetId = skippedIds.has(element.startBinding?.elementId)
+					? undefined
+					: excElementIdsToTldrawShapeIds.get(element.startBinding?.elementId)
+				const endTargetId = skippedIds.has(element.endBinding?.elementId)
+					? undefined
+					: excElementIdsToTldrawShapeIds.get(element.endBinding?.elementId)
 
 				tldrawContent.shapes.push({
 					...base,
@@ -378,6 +392,17 @@ export async function putExcalidrawContent(
 }
 
 /* --------------- Translating Helpers --------_------ */
+
+const excalidrawShapeTypes: Record<string, TLShape['type']> = {
+	rectangle: 'geo',
+	ellipse: 'geo',
+	diamond: 'geo',
+	freedraw: 'draw',
+	line: 'line',
+	arrow: 'arrow',
+	text: 'text',
+	image: 'image',
+}
 
 const getOpacity = (opacity: number): TLOpacityType => {
 	const t = opacity / 100

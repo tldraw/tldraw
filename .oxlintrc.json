@@ -281,7 +281,12 @@
 			}
 		},
 		{
-			"files": ["packages/editor/**/*", "packages/tldraw/**/*", "packages/utils/**/*"],
+			"files": [
+				"packages/core/**/*",
+				"packages/editor/**/*",
+				"packages/tldraw/**/*",
+				"packages/utils/**/*"
+			],
 			"rules": {
 				"no-restricted-globals": [
 					"error",

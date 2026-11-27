@@ -1,5 +1,5 @@
 import { b64Vecs, TLPointerEventInfo } from '@tldraw/editor'
-import { onDragFromToolbarToCreateShape } from '../lib/ui/hooks/useTools'
+import { onDragFromToolbarToCreateShape } from '../lib/ui/dragFromToolbar'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

@@ -7,6 +7,7 @@ import {
 	TLShapeId,
 	TLStore,
 	VecModel,
+	createDefaultPlugins,
 	createShapeId,
 	defaultAddFontsFromNode,
 	defaultBindingUtils,
@@ -102,6 +103,8 @@ export class FuzzEditor extends RandomSource {
 			shapeUtils: defaultShapeUtils,
 			bindingUtils: defaultBindingUtils,
 			tools: defaultTools,
+			// No frame loop: the fuzzer drives the editor step by step.
+			plugins: createDefaultPlugins().filter((p) => p.id !== 'animationFrameTick'),
 			initialState: 'select',
 			store,
 			getContainer: () => document.createElement('div'),

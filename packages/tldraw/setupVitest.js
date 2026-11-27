@@ -11,18 +11,17 @@ vi.mock('./src/lib/ui/context/breakpoints', async () => {
 })
 
 // Mock the translation hooks to provide default translation functions in tests
-// This prevents errors when components use useTranslation() without a TldrawUiTranslationProvider
+// This prevents errors when components use useTranslation() without a TldrawUiTranslationProvider.
+// The values are stable like the real hooks': a new function on each call would rebuild every
+// memo that depends on it whenever a component re-renders.
 vi.mock('./src/lib/ui/hooks/useTranslation/useTranslation', async () => {
 	const actual = await vi.importActual('./src/lib/ui/hooks/useTranslation/useTranslation')
+	const translation = { locale: 'en', label: 'English', dir: 'ltr', messages: {} }
+	const msg = (message) => (typeof message === 'object' ? message.id : message || '')
 	return {
 		...actual,
-		useCurrentTranslation: () => ({
-			locale: 'en',
-			label: 'English',
-			dir: 'ltr',
-			messages: {},
-		}),
-		useTranslation: () => (message) => (typeof message === 'object' ? message.id : message || ''),
+		useCurrentTranslation: () => translation,
+		useTranslation: () => msg,
 	}
 })
 

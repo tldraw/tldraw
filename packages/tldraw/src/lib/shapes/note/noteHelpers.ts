@@ -16,6 +16,11 @@ export const CLONE_HANDLE_MARGIN = 0
 /** @internal */
 export const NOTE_ADJACENT_POSITION_SNAP_RADIUS = 10
 
+/** The page height of a note: its display height plus its growY, times its scale. */
+export function getNoteHeight(shape: TLNoteShape, noteHeight: number) {
+	return (noteHeight + shape.props.growY) * shape.props.scale
+}
+
 const BASE_NOTE_POSITIONS = (editor: Editor, noteWidth: number, noteHeight: number) =>
 	[
 		[

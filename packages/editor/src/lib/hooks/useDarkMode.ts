@@ -1,6 +1,6 @@
+import { debugFlags } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
 import React from 'react'
-import { debugFlags } from '../utils/debug-flags'
 import { useColorMode } from './useColorMode'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'

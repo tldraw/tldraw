@@ -43,7 +43,7 @@ function tmp(name: string) {
 }
 
 const MAIN_JSON = path.join(REPO_ROOT, 'assets/translations/main.json')
-const SDK_PACKAGES = ['tldraw', 'commenting', 'mentions', 'editor', 'libraries']
+const SDK_PACKAGES = ['tldraw', 'commenting', 'mentions', 'editor', 'core', 'libraries']
 
 interface Extracted {
 	[id: string]: { defaultMessage: string; description?: string }

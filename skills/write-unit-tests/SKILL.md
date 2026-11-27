@@ -12,8 +12,8 @@ Read a neighboring test before writing a new one — the existing suites are the
 - `packages/tldraw/src/test/SelectTool.test.ts` — tool state machine assertions
 - `packages/tldraw/src/test/resizing.test.ts` — pointer-driven interaction with handles
 - `packages/tldraw/src/lib/shapes/arrow/ArrowShapeUtil.test.ts` — shape util plus bindings
-- `packages/editor/src/lib/editor/managers/ClickManager/ClickManager.test.ts` — a UI-free manager
-- `packages/editor/src/lib/primitives/Vec.test.ts` — a plain primitive
+- `packages/core/src/lib/editor/managers/ClickManager/ClickManager.test.ts` — a UI-free manager
+- `packages/core/src/lib/primitives/Vec.test.ts` — a plain primitive
 
 For the available `TestEditor` methods, read the class itself rather than a list here: `packages/tldraw/src/test/TestEditor.ts`.
 
@@ -45,7 +45,7 @@ editor.dispatch(wheelEvent)
 editor.emit('tick', 16)
 ```
 
-See `packages/editor/src/lib/editor/Editor.test.ts` for the full pattern.
+See `packages/editor/src/lib/test/Editor.test.ts` for the full pattern.
 
 **`toCloselyMatchObject` is ours, not Vitest's.** Use it instead of `toMatchObject` whenever floating-point geometry is involved, or tests fail on rounding noise. It takes an optional `roundToNearest`. Defined in `packages/tldraw/src/test/TestEditor.ts`.
 

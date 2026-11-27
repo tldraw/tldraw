@@ -1,5 +1,6 @@
 import { defineMessages } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
+import { uiMainMenuSlot } from '../../uiSlots'
 import { AccessibilityMenu } from '../AccessibilityMenu'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { CommandPaletteMenuItem } from '../CommandPalette/CommandPaletteMenuItem'
@@ -35,6 +36,7 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from '../menu-items'
+import { PluginMenuItems } from '../PluginMenuItems'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
@@ -56,6 +58,7 @@ export function DefaultMainMenuContent() {
 				<ExportFileContentSubMenu />
 				<ExtrasGroup />
 			</TldrawUiMenuGroup>
+			<PluginMenuItems slot={uiMainMenuSlot} />
 			<PreferencesGroup />
 		</>
 	)

@@ -1,14 +1,14 @@
-import { Signal, transact } from '@tldraw/state'
-import { RecordsDiff, SerializedSchema, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
-import { TLStore } from '@tldraw/tlschema'
-import { assert, noop } from '@tldraw/utils'
 import {
 	TAB_ID,
 	TLSessionStateSnapshot,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
-} from '../../config/TLSessionStateSnapshot'
+} from '@tldraw/core'
+import { Signal, transact } from '@tldraw/state'
+import { RecordsDiff, SerializedSchema, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
+import { TLStore } from '@tldraw/tlschema'
+import { assert, noop } from '@tldraw/utils'
 import { refreshPage } from '../runtime'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
 import { LocalIndexedDb } from './LocalIndexedDb'

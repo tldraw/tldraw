@@ -1,3 +1,10 @@
+import type { Editor, TLRenderingShape } from '@tldraw/core'
+import { getColorValue } from '@tldraw/core'
+import { ShapeUtil } from '@tldraw/core'
+import { TLImageExportOptions } from '@tldraw/core'
+import { SvgExportContext, SvgExportDef } from '@tldraw/core'
+import { Box } from '@tldraw/core'
+import { Mat } from '@tldraw/core'
 import { useAtom, useValue } from '@tldraw/state-react'
 import { DefaultColorStyle, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { TLFontFace } from '@tldraw/tlschema'
@@ -15,21 +22,11 @@ import {
 import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
-import type { Editor, TLRenderingShape } from '../editor/Editor'
-import { getColorValue } from '../editor/managers/ThemeManager/defaultThemes'
-import { ShapeUtil } from '../editor/shapes/ShapeUtil'
-import { TLImageExportOptions } from '../editor/types/misc-types'
-import {
-	SvgExportContext,
-	SvgExportContextProvider,
-	SvgExportDef,
-} from '../editor/types/SvgExportContext'
 import { useEditor } from '../hooks/useEditor'
 import { useEvent } from '../hooks/useEvent'
 import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'
-import { Box } from '../primitives/Box'
-import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
+import { SvgExportContextProvider } from './SvgExportContextProvider'
 
 export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
 	const editorDocument = editor.getContainerDocument()

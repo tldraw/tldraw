@@ -1,7 +1,7 @@
+import { createTLStore } from '@tldraw/core'
 import { PageRecordType } from '@tldraw/tlschema'
 import { IndexKey, promiseWithResolve } from '@tldraw/utils'
 import { Mock, vi } from 'vitest'
-import { createTLStore } from '../../config/createTLStore'
 import { hardReset } from './hardReset'
 import { LocalIndexedDb } from './LocalIndexedDb'
 import { TLLocalSyncClient } from './TLLocalSyncClient'

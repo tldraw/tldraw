@@ -1,7 +1,7 @@
+import { LicenseManager } from '@tldraw/core'
 import { useValue } from '@tldraw/state-react'
 import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useMaybeEditor } from '../hooks/useEditor'
-import { LicenseManager } from './LicenseManager'
 
 /** @internal */
 export const LicenseContext = createContext<LicenseManager | null>(null)

@@ -1,5 +1,5 @@
+import type { Editor } from '@tldraw/core'
 import React, { createContext } from 'react'
-import type { Editor } from '../editor/Editor'
 import { IdProvider } from './useSafeId'
 
 /** @public */

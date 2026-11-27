@@ -1,6 +1,6 @@
+import { Editor } from '@tldraw/core'
+import { tleditors } from '@tldraw/core'
 import { createTLStore } from '../..'
-import { Editor } from '../editor/Editor'
-import { tleditors } from './editors'
 
 const editors: Editor[] = []
 

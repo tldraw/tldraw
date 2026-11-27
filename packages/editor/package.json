@@ -53,9 +53,7 @@
 		"build-types": "tsc --build"
 	},
 	"dependencies": {
-		"@tiptap/core": "^3.12.1",
-		"@tiptap/pm": "^3.12.1",
-		"@tiptap/react": "^3.12.1",
+		"@tldraw/core": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
@@ -63,10 +61,8 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"classnames": "^2.5.1",
-		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
-		"is-plain-object": "^5.0.0",
-		"rbush": "^3.0.1"
+		"is-plain-object": "^5.0.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
@@ -76,7 +72,6 @@
 		"@peculiar/webcrypto": "^1.5.0",
 		"@testing-library/dom": "^10.0.0",
 		"@testing-library/react": "^16.0.0",
-		"@types/rbush": "^3.0.0",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/wicg-file-system-access": "^2020.9.8",

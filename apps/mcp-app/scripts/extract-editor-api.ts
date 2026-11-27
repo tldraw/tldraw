@@ -73,7 +73,7 @@ const repoRoot = path.resolve(__dirname, '..', '..', '..')
 const editorDtsPath = path.join(
 	repoRoot,
 	'packages',
-	'editor',
+	'core',
 	'.tsbuild',
 	'lib',
 	'editor',

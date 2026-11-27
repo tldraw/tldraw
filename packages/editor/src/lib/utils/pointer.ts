@@ -1,5 +1,5 @@
+import { tlenv } from '@tldraw/core'
 import type React from 'react'
-import { tlenv } from '../globals/environment'
 
 /**
  * Decide whether a pen pointer event looks like direct manipulation on the display (e.g. Apple
@@ -13,7 +13,7 @@ import { tlenv } from '../globals/environment'
  * a non-touch desktop alongside a mouse. A device with no touch input therefore can't host a
  * direct-display pen.
  *
- * Note this uses {@link tlenv.isTouchDevice} — the device's fixed touch capability — not the
+ * Note this uses {@link @tldraw/core#tlenv.isTouchDevice} — the device's fixed touch capability — not the
  * editor's dynamic `isCoarsePointer` state, which a pen `pointerdown` flips to coarse regardless
  * of device.
  *

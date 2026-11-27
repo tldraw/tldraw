@@ -1,6 +1,6 @@
+import { tlenvReactive } from '@tldraw/core'
 import { unsafe__withoutCapture } from '@tldraw/state'
 import { useReactor } from '@tldraw/state-react'
-import { tlenvReactive } from '../globals/environment'
 import { useEditor } from './useEditor'
 
 /** @internal */

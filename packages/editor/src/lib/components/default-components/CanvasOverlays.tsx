@@ -1,9 +1,9 @@
+import { Geometry2d } from '@tldraw/core'
+import { Group2d } from '@tldraw/core'
+import { debugFlags } from '@tldraw/core'
 import { EffectScheduler, computed } from '@tldraw/state'
 import { memo, useEffect, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
-import { Geometry2d } from '../../primitives/geometry/Geometry2d'
-import { Group2d } from '../../primitives/geometry/Group2d'
-import { debugFlags } from '../../utils/debug-flags'
 
 interface RenderInputs {
 	dpr: number

@@ -44,7 +44,7 @@ Individual npm packages are not part of this taxonomy. A package declares the co
 - `type` — `product` (top-level line item) or `feature` (part of a parent).
 - `parent` — for features, the component they belong to.
 - `premium` — whether the component is separately licensed rather than part of the standard SDK offering.
-- `licenseFlag` — for premium components, the license key `FLAGS` bit in `packages/editor/src/lib/license/LicenseManager.ts` that entitles a customer to the component. This is the bridge between order forms and runtime enforcement: a license key whose flags include this bit grants the component.
+- `licenseFlag` — for premium components, the license key `FLAGS` bit in `packages/core/src/lib/license/LicenseManager.ts` that entitles a customer to the component. This is the bridge between order forms and runtime enforcement: a license key whose flags include this bit grants the component.
 
 ## Rules
 

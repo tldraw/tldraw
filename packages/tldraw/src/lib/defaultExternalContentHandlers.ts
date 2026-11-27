@@ -18,6 +18,7 @@ import {
 	TLFileReplaceExternalContent,
 	TLImageAsset,
 	TLImageShape,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -408,6 +409,8 @@ export function defaultHandleExternalEmbedContent<T>(
 	editor: Editor,
 	{ point, url, embed }: { point?: VecLike; url: string; embed: T }
 ) {
+	if (!hasShapeType(editor, 'embed', 'an embed')) return
+
 	const position =
 		point ??
 		(editor.inputs.getShiftKey()
@@ -489,6 +492,11 @@ export async function defaultHandleExternalFileContent(
 			continue
 		}
 		if (!assetInfo) continue
+		// Check before the upload: without a shape for the asset, the upload would be wasted.
+		if (!editor.getShapeUtilForAssetType(assetInfo.type)) {
+			console.warn(`Skipped ${file.name}: no shape util handles "${assetInfo.type}" assets`)
+			continue
+		}
 		if (assetInfo.type === 'image') {
 			editor.createTemporaryAssetPreview(assetInfo.id, sanitizedFile)
 		}
@@ -530,6 +538,8 @@ export async function defaultHandleExternalTextContent(
 	editor: Editor,
 	{ point, text, html }: { point?: VecLike; text: string; html?: string }
 ) {
+	if (!hasShapeType(editor, 'text', 'pasted text')) return
+
 	const p =
 		point ??
 		(editor.inputs.getShiftKey()
@@ -677,7 +687,9 @@ export async function defaultHandleExternalUrlContent(
 	}
 
 	// try to paste as an embed first
-	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+	const embedUtil = editor.hasShapeUtil('embed')
+		? (editor.getShapeUtil('embed') as EmbedShapeUtil)
+		: undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
 
 	if (embedInfo && embedInfo.definition.embedOnPaste !== false) {
@@ -688,6 +700,8 @@ export async function defaultHandleExternalUrlContent(
 			embed: embedInfo.definition,
 		})
 	}
+
+	if (!hasShapeType(editor, 'bookmark', `the url ${JSON.stringify(url)}`)) return
 
 	const position =
 		point ??
@@ -707,6 +721,14 @@ export async function defaultHandleExternalUrlContent(
 	}
 
 	editor.select(result.value.id)
+}
+
+// The default handlers create default shapes. An editor without the plugin for one of those shapes
+// skips the content instead of throwing.
+function hasShapeType(editor: Editor, type: TLShape['type'], content: string) {
+	if (editor.hasShapeUtil(type)) return true
+	console.warn(`Skipped ${content}: the editor has no "${type}" shape`)
+	return false
 }
 
 /** @public */
@@ -791,6 +813,10 @@ export async function createShapesForAssets(
 	position: VecLike
 ): Promise<TLShapeId[]> {
 	assets = assets.filter((asset) => {
+		if (!editor.getShapeUtilForAssetType(asset.type)) {
+			console.error(`Skipped asset ${asset.id}: no shape util handles "${asset.type}" assets`)
+			return false
+		}
 		if (hasValidSize(asset)) return true
 		console.error(`Skipped asset ${asset.id}: it has no size`)
 		return false

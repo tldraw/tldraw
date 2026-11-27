@@ -1,8 +1,8 @@
 import { act, cleanup, render } from '@testing-library/react'
+import { createTLStore } from '@tldraw/core'
+import { Editor } from '@tldraw/core'
+import { TLKeyboardEventInfo } from '@tldraw/core'
 import { vi } from 'vitest'
-import { createTLStore } from '../config/createTLStore'
-import { Editor } from '../editor/Editor'
-import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { TL_CONTAINER_CLASS, TldrawEditor } from '../TldrawEditor'
 
 async function renderEditor() {

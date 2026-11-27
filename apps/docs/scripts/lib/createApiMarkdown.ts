@@ -5,7 +5,7 @@ import { APIGroup, InputSection } from '@/types/content-types'
 import { nicelog } from '@/utils/nicelog'
 import { TldrawApiModel } from '@/utils/TldrawApiModel'
 import { getApiMarkdown } from './getApiMarkdown'
-import { CONTENT_DIR, getSlug } from './utils'
+import { CONTENT_DIR, getDocsCategory, getSlug } from './utils'
 
 export async function createApiMarkdown() {
 	const apiInputSection: InputSection = {
@@ -55,7 +55,7 @@ export async function createApiMarkdown() {
 	await model.preprocessReactComponents()
 
 	for (const packageModel of packageModels) {
-		const categoryName = packageModel.name.replace(`@tldraw/`, '')
+		const categoryName = getDocsCategory(packageModel.name)
 
 		if (!addedCategories.has(categoryName)) {
 			apiInputSection.categories!.push({
@@ -69,6 +69,10 @@ export async function createApiMarkdown() {
 				hero: null,
 			})
 			addedCategories.add(categoryName)
+		}
+		// A category that holds several packages takes its title from the package of the same name
+		if (packageModel.name.replace(/^@tldraw\//, '') === categoryName) {
+			apiInputSection.categories!.find((c) => c.id === categoryName)!.title = packageModel.name
 		}
 
 		const entrypoint = packageModel.entryPoints[0]

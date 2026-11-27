@@ -1,6 +1,6 @@
+import { setStyleProperty } from '@tldraw/core'
 import { TLShapeId } from '@tldraw/tlschema'
 import { createContext, useCallback, useContext, useMemo, useRef } from 'react'
-import { setStyleProperty } from '../utils/dom'
 
 interface ShapeContainerEntry {
 	container: HTMLDivElement

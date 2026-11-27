@@ -162,7 +162,7 @@ The keyboard interception is registered in `onMount` so its cleanup runs when th
 unmounts.
 
 [5]
-Because we call `stopImmediatePropagation()` in [6] and [7], the editor's `FocusManager`
+Because we call `stopImmediatePropagation()` in [6] and [7], the editor's DOM focus plugin
 (which listens on `document.body`) never sees the Tab key and so never removes
 `tl-container__no-focus-ring`. Removing it ourselves keeps the focus outline visible on
 the toolbar buttons.

@@ -150,13 +150,13 @@ Configure timing for collaborator presence:
 
 Configure image and SVG export behavior:
 
-| Option                      | Default  | Description                              |
-| --------------------------- | -------- | ---------------------------------------- |
-| `defaultSvgPadding`         | 32       | Padding around exported SVG content      |
-| `maxExportDelayMs`          | 5000     | Maximum wait time for export completion  |
-| `flattenImageBoundsExpand`  | 64       | Expansion when flattening images         |
-| `flattenImageBoundsPadding` | 16       | Padding when flattening images           |
-| `exportProvider`            | Fragment | React provider wrapping exported content |
+| Option                      | Default      | Description                              |
+| --------------------------- | ------------ | ---------------------------------------- |
+| `defaultSvgPadding`         | 32           | Padding around exported SVG content      |
+| `maxExportDelayMs`          | 5000         | Maximum wait time for export completion  |
+| `flattenImageBoundsExpand`  | 64           | Expansion when flattening images         |
+| `flattenImageBoundsPadding` | 16           | Padding when flattening images           |
+| `exportProvider`            | Pass-through | React provider wrapping exported content |
 
 The `exportProvider` option wraps exported content in a React component. Use this when your custom shapes depend on context providers that must be present during rendering:
 

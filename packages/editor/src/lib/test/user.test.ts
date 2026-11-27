@@ -1,5 +1,5 @@
-import { createTLStore } from '../config/createTLStore'
-import { Editor } from '../editor/Editor'
+import { createTLStore } from '@tldraw/core'
+import { Editor } from '@tldraw/core'
 
 let editor: Editor
 

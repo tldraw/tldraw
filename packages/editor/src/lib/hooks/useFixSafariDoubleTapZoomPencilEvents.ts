@@ -1,5 +1,5 @@
+import { elementShouldCaptureKeys, preventDefault } from '@tldraw/core'
 import { useEffect } from 'react'
-import { elementShouldCaptureKeys, preventDefault } from '../utils/dom'
 import { useEditor } from './useEditor'
 
 /**

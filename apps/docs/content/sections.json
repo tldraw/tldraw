@@ -47,8 +47,8 @@
 		"description": "Reference for the tldraw package's APIs (generated).",
 		"categories": [
 			{
-				"id": "driver",
-				"title": "@tldraw/driver",
+				"id": "editor",
+				"title": "@tldraw/editor",
 				"description": "",
 				"groups": [
 					{
@@ -87,8 +87,8 @@
 				"hero": null
 			},
 			{
-				"id": "editor",
-				"title": "@tldraw/editor",
+				"id": "driver",
+				"title": "@tldraw/driver",
 				"description": "",
 				"groups": [
 					{

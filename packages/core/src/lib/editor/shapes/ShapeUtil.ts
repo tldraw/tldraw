@@ -1,0 +1,1211 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { EMPTY_ARRAY } from '@tldraw/state'
+import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
+import {
+	RecordProps,
+	TLAsset,
+	TLHandle,
+	TLParentId,
+	TLPropsMigrations,
+	TLShape,
+	TLShapeCrop,
+	TLShapeId,
+	TLShapePartial,
+	TLUnknownShape,
+	VecModel,
+} from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
+import { IndexKey } from '@tldraw/utils'
+import type { ReactElement } from 'react'
+import { Box, SelectionHandle } from '../../primitives/Box'
+import { Geometry2d } from '../../primitives/geometry/Geometry2d'
+import { Vec } from '../../primitives/Vec'
+import type { Editor } from '../Editor'
+import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
+import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
+import { TLClickEventInfo } from '../types/event-types'
+import { TLResizeHandle } from '../types/selection-types'
+import type { SvgExportContext } from '../types/SvgExportContext'
+import { shapeViewSlot, type TLShapeView } from './shapeViews'
+
+/** @public */
+export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
+	new (editor: Editor): U
+	type: T['type']
+	props?: RecordProps<T>
+	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+	handledAssetTypes?: readonly string[]
+}
+
+/**
+ * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
+ * `fromShape` or `toShape` will belong to this shape util.
+ *
+ * The shapes may be full {@link @tldraw/tlschema#TLShape} objects when available, or just
+ * `{ type }` stubs when the shape hasn't been created yet (e.g. during arrow creation). Use
+ * `'id' in shape` to check whether the full shape is available.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBindOpts<Shape extends TLShape = TLShape> {
+	/** The shape referenced by the `fromId` of the binding, or a `{ type }` stub if unavailable. */
+	fromShape: TLShape | { type: TLShape['type'] }
+	/** The shape referenced by the `toId` of the binding, or a `{ type }` stub if unavailable. */
+	toShape: TLShape | { type: TLShape['type'] }
+	/** The type of binding. */
+	bindingType: string
+	/**
+	 * The type of shape referenced by the `fromId` of the binding.
+	 * @deprecated Use `fromShape.type` instead.
+	 */
+	fromShapeType: TLShape['type']
+	/**
+	 * The type of shape referenced by the `toId` of the binding.
+	 * @deprecated Use `toShape.type` instead.
+	 */
+	toShapeType: TLShape['type']
+}
+
+/**
+ * Options passed to {@link ShapeUtil.canBeLaidOut}.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBeLaidOutOpts {
+	/** The type of action causing the layout. */
+	type?: 'align' | 'distribute' | 'pack' | 'stack' | 'flip' | 'stretch' | 'resize_to_bounds'
+	/** The other shapes being laid out */
+	shapes?: TLShape[]
+}
+
+/** Additional options for the {@link ShapeUtil.getGeometry} method.
+ *
+ * @public
+ */
+export interface TLGeometryOpts {
+	/** The context in which the geometry is being requested. */
+	context?: string
+}
+
+/** @public */
+export interface TLShapeUtilCanvasSvgDef {
+	key: string
+	component: React.ComponentType
+}
+
+/**
+ * Return type for {@link ShapeUtil.getIndicatorPath}. Can be either a simple Path2D
+ * or an object with additional rendering info like clip paths for complex indicators.
+ * @public
+ */
+export type TLIndicatorPath =
+	| Path2D
+	| {
+			path: Path2D
+			clipPath?: Path2D
+			additionalPaths?: Path2D[]
+	  }
+
+/** @public */
+export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
+	/** Configure this shape utils {@link ShapeUtil.options | `options`}. */
+	static configure<T extends TLShapeUtilConstructor<any, any>>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		// @ts-expect-error -- typescript has no idea what's going on here but it's fine
+		return class extends this {
+			// @ts-expect-error
+			options = { ...this.options, ...options }
+		}
+	}
+
+	constructor(public editor: Editor) {}
+
+	/**
+	 * Options for this shape util. If you're implementing a custom shape util, you can override
+	 * this to provide customization options for your shape. If using an existing shape util, you
+	 * can customizing this by calling {@link ShapeUtil.configure}.
+	 */
+	options = {}
+
+	/**
+	 * Props allow you to define the shape's properties in a way that the editor can understand.
+	 * This has two main uses:
+	 *
+	 * 1. Validation. Shapes will be validated using these props to stop bad data from being saved.
+	 * 2. Styles. Each {@link @tldraw/tlschema#StyleProp} in the props can be set on many shapes at
+	 *    once, and will be remembered from one shape to the next.
+	 *
+	 * @example
+	 * ```tsx
+	 * import {T, TLBaseShape, TLDefaultColorStyle, DefaultColorStyle, ShapeUtil} from 'tldraw'
+	 *
+	 * type MyShape = TLBaseShape<'mine', {
+	 *      color: TLDefaultColorStyle,
+	 *      text: string,
+	 * }>
+	 *
+	 * class MyShapeUtil extends ShapeUtil<MyShape> {
+	 *     static props = {
+	 *         // we use tldraw's built-in color style:
+	 *         color: DefaultColorStyle,
+	 *         // validate that the text prop is a string:
+	 *         text: T.string,
+	 *     }
+	 * }
+	 * ```
+	 */
+	static props?: RecordProps<TLUnknownShape>
+
+	/**
+	 * Migrations allow you to make changes to a shape's props over time. Read the
+	 * {@link https://www.tldraw.dev/docs/persistence#Shape-props-migrations | shape prop migrations}
+	 * guide for more information.
+	 */
+	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+
+	/**
+	 * The type of the shape util, which should match the shape's type.
+	 *
+	 * @public
+	 */
+	static type: string
+
+	/**
+	 * The asset types that this shape can be created from.
+	 * When a file is dropped on the canvas, the editor finds the shape util
+	 * whose `handledAssetTypes` includes the asset's type and calls
+	 * {@link ShapeUtil.createShapeForAsset} to produce the shape.
+	 *
+	 * @public
+	 */
+	static handledAssetTypes?: readonly string[]
+
+	/**
+	 * Get the default props for a shape.
+	 *
+	 * @public
+	 */
+	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Create a shape partial for placing an asset on the canvas.
+	 * Only called for shapes whose constructor declares matching
+	 * {@link ShapeUtil.handledAssetTypes | `handledAssetTypes`}.
+	 *
+	 * @param asset - The asset to create a shape for.
+	 * @param position - Where to place the shape.
+	 * @returns A shape partial, or null if this shape can't be created for the asset.
+	 * @public
+	 */
+	createShapeForAsset?(asset: TLAsset, position: VecModel): TLShapePartial | null
+
+	/**
+	 * The shape's name, translated, as a screen reader should announce it.
+	 *
+	 * Return `undefined` — the default — and the shape is announced by its tool's label, under the
+	 * `tool.<type>` convention. Override this when the name isn't that: a geo shape is a "Rectangle"
+	 * or an "Ellipse" rather than a "Shape", so it names itself from its geo style.
+	 *
+	 * Resolve the name through {@link translateMessage} and the editor's `i18n` rather than
+	 * returning English, so it follows the user's locale and still reads as words when an app
+	 * supplies no translations.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getShapeName(_shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
+	 * Get the shape's geometry.
+	 *
+	 * @param shape - The shape.
+	 * @param opts - Additional options for the request.
+	 * @public
+	 */
+	abstract getGeometry(shape: Shape, opts?: TLGeometryOpts): Geometry2d
+
+	/**
+	 * Get a JSX element for the shape (as an HTML element). A util without React returns its view's
+	 * component, see {@link TLShapeView}.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	abstract component(shape: Shape): any
+
+	/**
+	 * The view for this util's shape type, from {@link shapeViewSlot}. A util that extends another
+	 * util with a new type, and has no view of its own, uses the view of the util it extends.
+	 * Reactive.
+	 *
+	 * @public
+	 */
+	getView(): TLShapeView<Shape> | undefined {
+		const views = this.editor.plugins.list(shapeViewSlot)
+		for (
+			let util = this.constructor as typeof ShapeUtil;
+			util !== ShapeUtil;
+			util = Object.getPrototypeOf(util)
+		) {
+			if (!Object.prototype.hasOwnProperty.call(util, 'type')) continue
+			const matches = views.filter((view) => view.type === util.type)
+			if (matches.length > 1) {
+				throw Error(`Two plugins contribute a view for the "${util.type}" shape`)
+			}
+			if (matches.length === 1) return matches[0]
+		}
+		return undefined
+	}
+
+	/**
+	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the
+	 * shape's indicator on the canvas. Shapes that return `undefined` will not render
+	 * an indicator.
+	 *
+	 * For complex indicators that need clipping (e.g., arrows with labels), return an
+	 * object with `path`, `clipPath`, and `additionalPaths` properties.
+	 *
+	 * @param shape - The shape.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to skip.
+	 * @public
+	 */
+	abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @deprecated SVG indicators are no longer rendered. Override
+	 * {@link ShapeUtil.getIndicatorPath} instead. This stub is retained so legacy
+	 * subclasses that still call `super.indicator()` keep type-checking; new shapes
+	 * should not implement it.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	indicator(_shape: Shape): any {
+		return null
+	}
+
+	/**
+	 * Get the font faces that should be rendered in the document in order for this shape to render
+	 * correctly.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getFontFaces(shape: Shape): TLFontFace[] {
+		return EMPTY_ARRAY
+	}
+
+	/**
+	 * Whether the shape can be snapped to by another shape.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	canSnap(shape: Shape): boolean {
+		return true
+	}
+
+	/**
+	 * Whether the shape can be tabbed to.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	canTabTo(shape: Shape): boolean {
+		return true
+	}
+
+	/**
+	 * Whether the shape can be scrolled while editing.
+	 *
+	 * @public
+	 */
+	canScroll(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape can be bound to. See {@link TLShapeUtilCanBindOpts} for details.
+	 *
+	 * @public
+	 */
+	canBind(opts: TLShapeUtilCanBindOpts): boolean {
+		return true
+	}
+
+	/**
+	 * Whether the shape can be double clicked to edit.
+	 *
+	 * @public
+	 */
+	canEdit(shape: Shape, info: TLEditStartInfo): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape can be resized.
+	 *
+	 * @public
+	 */
+	canResize(shape: Shape): boolean {
+		return true
+	}
+
+	/**
+	 * When the shape is resized, whether the shape's children should also be resized.
+	 *
+	 * @public
+	 */
+	canResizeChildren(shape: Shape): boolean {
+		return true
+	}
+
+	/**
+	 * Whether the shape can be edited in read-only mode.
+	 *
+	 * @public
+	 */
+	canEditInReadonly(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape can be edited while locked or while an ancestor is locked.
+	 *
+	 * @public
+	 */
+	canEditWhileLocked(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape can be cropped.
+	 *
+	 * @public
+	 */
+	canCrop(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether flipping changes the shape itself, by mirroring it or toggling its stored flip. The
+	 * default UI only offers flip for a lone selected shape when this is true; {@link Editor.flipShapes}
+	 * doesn't check it, so shapes that return false still move when flipped as part of a larger
+	 * selection. Use {@link ShapeUtil.canBeLaidOut} to opt out of that.
+	 *
+	 * @public
+	 */
+	canFlip(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape can participate in layout functions such as alignment or distribution.
+	 *
+	 * @param shape - The shape.
+	 * @param info - Additional context information: the type of action causing the layout and the
+	 * @public
+	 *
+	 * @public
+	 */
+	canBeLaidOut(shape: Shape, info: TLShapeUtilCanBeLaidOutOpts): boolean {
+		return true
+	}
+
+	/**
+	 * Whether this shape can be culled. By default, shapes are culled for
+	 * performance reasons when they are outside of the viewport. Culled shapes are still rendered
+	 * to the DOM, but have their `display` property set to `none`.
+	 *
+	 * @param shape - The shape.
+	 */
+	canCull(shape: Shape): boolean {
+		return true
+	}
+
+	/**
+	 * Does this shape provide a background for its children? If this is true,
+	 * then any children with a `renderBackground` method will have their
+	 * backgrounds rendered _above_ this shape. Otherwise, the children's
+	 * backgrounds will be rendered above either the next ancestor that provides
+	 * a background, or the canvas background.
+	 *
+	 * @internal
+	 */
+	providesBackgroundForChildren(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Get the clip path to apply to this shape's children.
+	 *
+	 * The returned points should define the **inner** clip boundary - the area where
+	 * children will be visible. If your shape has a stroke, you should inset the clip
+	 * path by half the stroke width so children are clipped to the inner edge of the
+	 * stroke rather than its center line.
+	 *
+	 * @example
+	 * ```ts
+	 * override getClipPath(shape: MyShape): Vec[] | undefined {
+	 *   const strokeWidth = 2
+	 *   const inset = strokeWidth / 2
+	 *   // Return points inset by half the stroke width
+	 *   return [
+	 *     new Vec(inset, inset),
+	 *     new Vec(shape.props.w - inset, inset),
+	 *     new Vec(shape.props.w - inset, shape.props.h - inset),
+	 *     new Vec(inset, shape.props.h - inset),
+	 *   ]
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape to get the clip path for
+	 * @returns Array of points defining the clipping polygon in local coordinates, or undefined if no clipping
+	 * @public
+	 */
+	getClipPath?(shape: Shape): Vec[] | undefined
+
+	/**
+	 * Whether a specific child shape should be clipped by this shape.
+	 * Only called if getClipPath returns a valid polygon.
+	 *
+	 * If not defined, the default behavior is to clip all children.
+	 *
+	 * @param child - The child shape to check
+	 * @returns boolean indicating if this child should be clipped
+	 * @public
+	 */
+	shouldClipChild?(child: TLShape): boolean
+
+	/**
+	 * Whether a specific shape should hide in the minimap.
+	 *
+	 * If not defined, the default behavior is to show all shapes in the minimap.
+	 *
+	 * @returns boolean indicating if this shape should hide in the minimap
+	 * @public
+	 */
+	hideInMinimap?(shape: Shape): boolean
+
+	/**
+	 * Whether the shape should hide its resize handles when selected.
+	 *
+	 * @public
+	 */
+	hideResizeHandles(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape should hide its rotation handles when selected.
+	 *
+	 * @public
+	 */
+	hideRotateHandle(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape should hide its selection bounds background when selected.
+	 *
+	 * @public
+	 */
+	hideSelectionBoundsBg(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape should hide its selection bounds foreground when selected.
+	 *
+	 * @public
+	 */
+	hideSelectionBoundsFg(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape's aspect ratio is locked.
+	 *
+	 * @public
+	 */
+	isAspectRatioLocked(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Whether the shape behaves like a frame — a container that has child shapes,
+	 * requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isFrameLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * By default, the bounds of an image export are the bounds of all the shapes it contains, plus
+	 * some padding. If an export includes a shape where `isExportBoundsContainer` is true, then the
+	 * padding is skipped _if the bounds of that shape contains all the other shapes_. This is
+	 * useful in cases like annotating on top of an image, where you usually want to avoid extra
+	 * padding around the image if you don't need it.
+	 *
+	 * @param shape - The shape to check
+	 * @returns True if this shape should be treated as an export bounds container
+	 */
+	isExportBoundsContainer(shape: Shape): boolean {
+		return false
+	}
+
+	/**
+	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
+	 *
+	 * @param shape - The shape.
+	 * @internal
+	 */
+	backgroundComponent?(shape: Shape): any
+
+	/**
+	 * Get the interpolated props for an animating shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getInterpolatedProps?.(startShape, endShape, t)
+	 * ```
+	 *
+	 * @param startShape - The initial shape.
+	 * @param endShape - The initial shape.
+	 * @param progress - The normalized progress between zero (start) and 1 (end).
+	 * @public
+	 */
+	getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props']
+
+	/**
+	 * Get an array of handle models for the shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getHandles?.(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getHandles?(shape: Shape): TLHandle[]
+
+	/**
+	 * Get whether the shape can receive children of a given type. Used by the drag and drop system
+	 * to decide whether {@link ShapeUtil.onDragShapesIn} should fire when a shape of the given type
+	 * is dragged over this one.
+	 *
+	 * @param shape - The shape.
+	 * @param type - The shape type.
+	 * @public
+	 */
+	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
+		return false
+	}
+
+	/**
+	 * Get whether children of a given type can be removed from this shape. Used by the drag and
+	 * drop system to decide whether {@link ShapeUtil.onDragShapesOut} should fire when a child of
+	 * the given type is dragged out of this shape, and by `kickoutOccludedShapes` to decide
+	 * whether to auto-reparent a child of the given type when it has moved outside this shape's
+	 * geometry. Returning `false` therefore "pins" matching children — they stay parented to this
+	 * shape even when dragged or moved outside it. Defaults to `true`.
+	 *
+	 * @param shape - The shape.
+	 * @param type - The shape type.
+	 * @public
+	 */
+	canRemoveChildrenOfType(shape: Shape, type: TLShape['type']) {
+		return true
+	}
+
+	/**
+	 * Get the shape as an SVG object.
+	 *
+	 * @param shape - The shape.
+	 * @param ctx - The export context for the SVG - used for adding e.g. \<def\>s
+	 * @returns An SVG element.
+	 * @public
+	 */
+	toSvg?(shape: Shape, ctx: SvgExportContext): ReactElement | null | Promise<ReactElement | null>
+
+	/**
+	 * Get the shape's background layer as an SVG object.
+	 *
+	 * @param shape - The shape.
+	 * @param ctx - ctx - The export context for the SVG - used for adding e.g. \<def\>s
+	 * @returns An SVG element.
+	 * @public
+	 */
+	toBackgroundSvg?(
+		shape: Shape,
+		ctx: SvgExportContext
+	): ReactElement | null | Promise<ReactElement | null>
+
+	/** @internal */
+	expandSelectionOutlinePx(shape: Shape): number | Box {
+		return 0
+	}
+
+	/**
+	 * Return elements to be added to the \<defs\> section of the canvases SVG context. This can be
+	 * used to define SVG content (e.g. patterns & masks) that can be referred to by ID from svg
+	 * elements returned by `component`.
+	 *
+	 * Each def should have a unique `key`. If multiple defs from different shapes all have the same
+	 * key, only one will be used.
+	 */
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return []
+	}
+
+	/**
+	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
+	 * {@link BoundsSnapGeometry} for details.
+	 */
+	getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry {
+		return {}
+	}
+
+	/**
+	 * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry}
+	 * for details.
+	 */
+	getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
+		return {}
+	}
+
+	getText(shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
+	 * Return user IDs referenced in shape-specific props.
+	 * Used when copying shapes to include referenced users on the clipboard.
+	 * Override this if your shape stores user IDs in custom props.
+	 *
+	 * @public
+	 */
+	getReferencedUserIds(shape: Shape): string[] {
+		return EMPTY_ARRAY
+	}
+
+	getAriaDescriptor(shape: Shape): string | undefined {
+		return undefined
+	}
+
+	//  Events
+
+	/**
+	 * A callback called just before a shape is created. This method provides a last chance to modify
+	 * the created shape.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onBeforeCreate = (next) => {
+	 * 	return { ...next, x: next.x + 1 }
+	 * }
+	 * ```
+	 *
+	 * @param next - The next shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onBeforeCreate?(next: Shape): Shape | void
+
+	/**
+	 * A callback called when a shape is reproduced from an existing shape, either by duplicating
+	 * ({@link Editor.duplicateShapes}) or by pasting/putting content onto the page
+	 * ({@link Editor.putContentOntoCurrentPage}). This provides a last chance to modify the copy
+	 * before it's created — for example, to re-stamp attribution so the copy is credited to the
+	 * current user rather than the original author. It is not called when content is put with
+	 * `preserveIds` (e.g. {@link Editor.moveShapesToPage}), since the shape keeps its identity
+	 * and no copy is made.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onBeforeDuplicate = (source, duplicate) => {
+	 * 	return { ...duplicate, props: { ...duplicate.props, editedBy: this.editor.getAttributionUserId() } }
+	 * }
+	 * ```
+	 *
+	 * @param source - The shape being copied from.
+	 * @param duplicate - The new copy (with its own id), before it's created.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onBeforeDuplicate?(source: Shape, duplicate: Shape): Shape | void
+
+	/**
+	 * A callback called just before a shape is updated. This method provides a last chance to modify
+	 * the updated shape.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onBeforeUpdate = (prev, next) => {
+	 * 	if (prev.x === next.x) {
+	 * 		return { ...next, x: next.x + 1 }
+	 * 	}
+	 * }
+	 * ```
+	 *
+	 * @param prev - The previous shape.
+	 * @param next - The next shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onBeforeUpdate?(prev: Shape, next: Shape): Shape | void
+
+	/**
+	 * A callback called when a shape changes from a crop.
+	 *
+	 * @param shape - The shape at the start of the crop.
+	 * @param info - Info about the crop.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onCrop?(
+		shape: Shape,
+		info: TLCropInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
+
+	/**
+	 * A callback called when some other shapes are dragged into this one. This fires when the shapes are dragged over the shape for the first time.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged in.
+	 * @public
+	 */
+	onDragShapesIn?(shape: Shape, shapes: TLShape[], info: TLDragShapesInInfo): void
+
+	/**
+	 * A callback called when some other shapes are dragged over this one. This fires when the shapes are dragged over the shape for the first time (after the onDragShapesIn callback), and again on every update while the shapes are being dragged.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onDragShapesOver = (shape, shapes) => {
+	 * 	this.editor.reparentShapes(shapes, shape.id)
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged over this one.
+	 * @public
+	 */
+	onDragShapesOver?(shape: Shape, shapes: TLShape[], info: TLDragShapesOverInfo): void
+
+	/**
+	 * A callback called when some other shapes are dragged out of this one.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged out.
+	 * @public
+	 */
+	onDragShapesOut?(shape: Shape, shapes: TLShape[], info: TLDragShapesOutInfo): void
+
+	/**
+	 * A callback called when some other shapes are dropped over this one.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dropped over this one.
+	 * @public
+	 */
+	onDropShapesOver?(shape: Shape, shapes: TLShape[], info: TLDropShapesOverInfo): void
+
+	/**
+	 * A callback called when a shape starts being resized.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onResizeStart?(shape: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape changes from a resize.
+	 *
+	 * @param shape - The shape at the start of the resize.
+	 * @param info - Info about the resize.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onResize?(
+		shape: Shape,
+		info: TLResizeInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
+
+	/**
+	 * A callback called when a shape finishes resizing.
+	 *
+	 * @param initial - The shape at the start of the resize.
+	 * @param current - The current shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape resize is cancelled.
+	 *
+	 * @param initial - The shape at the start of the resize.
+	 * @param current - The current shape.
+	 * @public
+	 */
+	onResizeCancel?(initial: Shape, current: Shape): void
+
+	/**
+	 * A callback called when a shape starts being translated.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape changes from a translation.
+	 *
+	 * @param initial - The shape at the start of the translation.
+	 * @param current - The current shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape finishes translating.
+	 *
+	 * @param initial - The shape at the start of the translation.
+	 * @param current - The current shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape translation is cancelled.
+	 *
+	 * @param initial - The shape at the start of the translation.
+	 * @param current - The current shape.
+	 * @public
+	 */
+	onTranslateCancel?(initial: Shape, current: Shape): void
+
+	/**
+	 * A callback called when a shape's handle starts being dragged.
+	 *
+	 * @param shape - The shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDragStart?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's handle changes.
+	 *
+	 * @param shape - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's handle finishes being dragged.
+	 *
+	 * @param current - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onHandleDragEnd?(current: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's handle drag is cancelled.
+	 *
+	 * @param current - The current shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @public
+	 */
+	onHandleDragCancel?(current: Shape, info: TLHandleDragInfo<Shape>): void
+
+	/**
+	 * A callback called when a shape starts being rotated.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onRotateStart?(shape: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape changes from a rotation.
+	 *
+	 * @param initial - The shape at the start of the rotation.
+	 * @param current - The current shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onRotate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape finishes rotating.
+	 *
+	 * @param initial - The shape at the start of the rotation.
+	 * @param current - The current shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape rotation is cancelled.
+	 *
+	 * @param initial - The shape at the start of the rotation.
+	 * @param current - The current shape.
+	 * @public
+	 */
+	onRotateCancel?(initial: Shape, current: Shape): void
+
+	/**
+	 * Not currently used.
+	 *
+	 * @internal
+	 */
+	onBindingChange?(shape: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's children change.
+	 *
+	 * @param shape - The shape.
+	 * @returns An array of shape updates, or void.
+	 * @public
+	 */
+	onChildrenChange?(shape: Shape): TLShapePartial[] | void
+
+	/**
+	 * A callback called when a shape's handle is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @param handle - The handle that is double-clicked.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's edge is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @param info - Info about the edge.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onDoubleClickEdge?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape's corner is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @param info - Info about the corner.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onDoubleClickCorner?(shape: Shape, info: TLClickEventInfo): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape is clicked.
+	 *
+	 * @param shape - The shape.
+	 * @returns A change to apply to the shape, or void.
+	 * @public
+	 */
+	onClick?(shape: Shape): TLShapePartial<Shape> | void
+
+	/**
+	 * A callback called when a shape starts being edited.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	onEditStart?(shape: Shape): void
+
+	/**
+	 * A callback called when a shape finishes being edited.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	onEditEnd?(shape: Shape): void
+
+	/**
+	 * Provide an app-owned element to be rendered inside the shape, alongside the output of
+	 * {@link ShapeUtil.component}. While the shape remains mounted, tldraw guarantees the
+	 * element keeps the same DOM position: it is never unmounted, recreated, or relocated by
+	 * reordering, reparenting, culling, or re-renders. When adopting the element, tldraw uses
+	 * `Node.moveBefore` where available so stateful content like cross-origin iframes keeps
+	 * its state across the move, falling back to `appendChild` elsewhere.
+	 *
+	 * Pair this with {@link ShapeUtil.onReleaseAppOwnedElement} to reclaim the element before
+	 * the shape or editor unmounts.
+	 *
+	 * This is called once per shape mount, not on every prop change, so the adopted element is
+	 * not refreshed when the shape's props change. If the element's content depends on props,
+	 * return a stable element and mutate it in place (for example from {@link ShapeUtil.component}
+	 * or an effect) rather than returning a different element.
+	 *
+	 * @param shape - The shape.
+	 * @returns The element to adopt, or null to render nothing.
+	 * @public
+	 */
+	getAppOwnedElement?(shape: Shape): HTMLElement | null
+
+	/**
+	 * A callback called before the shape's app-owned element slot is destroyed: when the shape
+	 * unmounts (for example when it is deleted or the current page changes) or when the whole
+	 * editor unmounts, including error teardown. The slot is still connected to the document
+	 * when this is called, so the app can move the element to another connected parent with
+	 * `Node.moveBefore` to preserve its state. An element left in the slot is destroyed along
+	 * with it.
+	 *
+	 * This is not only a "shape deleted" signal: it also fires on page changes, editor unmount,
+	 * and (in dev under React StrictMode) on the throwaway mount/unmount cycle while the shape
+	 * still exists. Make it safe to call when the shape is still present, and check the store
+	 * (`this.editor.getShape(shape.id)`) if you need to distinguish deletion from a remount.
+	 *
+	 * @param shape - The shape.
+	 * @param element - The element returned by {@link ShapeUtil.getAppOwnedElement}.
+	 * @public
+	 */
+	onReleaseAppOwnedElement?(shape: Shape, element: HTMLElement): void
+}
+
+/**
+ * Info about a crop.
+ * @param handle - The handle being dragged.
+ * @param change - The distance the handle is moved.
+ * @param initialShape - The shape at the start of the resize.
+ * @public
+ */
+export interface TLCropInfo<T extends TLShape> {
+	handle: SelectionHandle
+	change: Vec
+	crop: TLShapeCrop
+	uncroppedSize: { w: number; h: number }
+	initialShape: T
+	aspectRatioLocked?: boolean
+	isResizingFromCenter?: boolean
+}
+
+/** @public */
+export interface TLDragShapesInInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	prevDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDragShapesOverInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDragShapesOutInfo {
+	nextDraggingOverShapeId: TLShapeId | null
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/** @public */
+export interface TLDropShapesOverInfo {
+	initialDraggingOverShapeId: TLShapeId | null
+	initialParentIds: Map<TLShapeId, TLParentId>
+	initialIndices: Map<TLShapeId, IndexKey>
+}
+
+/**
+ * The type of resize.
+ *
+ * 'scale_shape' - The shape is being scaled, usually as part of a larger selection.
+ *
+ * 'resize_bounds' - The user is directly manipulating an individual shape's bounds using a resize
+ * handle. It is up to shape util implementers to decide how they want to handle the two
+ * situations.
+ *
+ * @public
+ */
+export type TLResizeMode = 'scale_shape' | 'resize_bounds'
+
+/**
+ * Info about a resize.
+ * @param newPoint - The new local position of the shape.
+ * @param handle - The handle being dragged.
+ * @param mode - The type of resize.
+ * @param scaleX - The scale in the x-axis.
+ * @param scaleY - The scale in the y-axis.
+ * @param initialBounds - The bounds of the shape at the start of the resize.
+ * @param initialShape - The shape at the start of the resize.
+ * @public
+ */
+export interface TLResizeInfo<T extends TLShape> {
+	newPoint: Vec
+	handle: TLResizeHandle
+	mode: TLResizeMode
+	scaleX: number
+	scaleY: number
+	initialBounds: Box
+	initialShape: T
+}
+
+/* -------------------- Dragging -------------------- */
+
+/** @public */
+export interface TLHandleDragInfo<T extends TLShape> {
+	handle: TLHandle
+	isPrecise: boolean
+	isCreatingShape: boolean
+	initial?: T | undefined
+}
+
+/* --------------------------------- Editing -------------------------------- */
+
+/** @public */
+export interface TLEditStartInfo {
+	type:
+		| 'press_enter'
+		| 'click'
+		| 'double-click'
+		| 'double-click-edge'
+		| 'double-click-corner'
+		| 'click-header'
+		| 'unknown'
+}

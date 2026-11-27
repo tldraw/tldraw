@@ -91,6 +91,7 @@ import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLAssetId as TLAssetId_2 } from '@tldraw/tlschema';
 import { TLAssetStore } from '@tldraw/editor';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
@@ -153,6 +154,8 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLOverlay } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPlugin } from '@tldraw/editor';
+import { TLPluginContext } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
@@ -170,6 +173,8 @@ import { TLShapeUtilCanBeLaidOutOpts } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilConstructor } from '@tldraw/editor';
+import { TLShapeView } from '@tldraw/editor';
+import { TLSlot } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
@@ -338,7 +343,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap(shape: TLArrowShape): boolean;
     // (undocumented)
-    component(shape: TLArrowShape): JSX.Element | null;
+    component(shape: TLArrowShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
@@ -416,7 +421,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     static props: RecordProps<TLArrowShape>;
     // (undocumented)
-    toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'arrow';
 }
@@ -446,6 +451,15 @@ export interface ArrowShapeUtilDisplayValues {
     // (undocumented)
     strokeWidth: number;
 }
+
+// @public (undocumented)
+export const arrowShapeView: TLShapeView<TLArrowShape, ArrowShapeUtil>;
+
+// @public
+export const arrowShapeViewPlugin: {
+    readonly id: "arrowShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public
 export interface ArrowTargetState {
@@ -554,7 +568,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize(shape: TLBookmarkShape): boolean;
     // (undocumented)
-    component(shape: TLBookmarkShape): JSX.Element;
+    component(shape: TLBookmarkShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getAriaDescriptor(shape: TLBookmarkShape): string | undefined;
     // (undocumented)
@@ -582,7 +596,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         opacity: TLOpacityType;
         parentId: TLParentId;
         props: {
-            assetId: null | TLAssetId;
+            assetId: TLAssetId_2 | null;
             h: number;
             url: string;
             w: number;
@@ -605,6 +619,15 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 // @public (undocumented)
 export type BookmarkShapeUtilDisplayValues = object;
+
+// @public (undocumented)
+export const bookmarkShapeView: TLShapeView<TLBookmarkShape, BookmarkShapeUtil>;
+
+// @public
+export const bookmarkShapeViewPlugin: {
+    readonly id: "bookmarkShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export interface BoxWidthHeight {
@@ -885,6 +908,9 @@ export function createEmptyBookmarkShape(editor: Editor, url: string, position: 
 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
+
+// @public
+export function createTldrawPlugins(): TLPlugin[];
 
 // @public (undocumented)
 export interface CropBoxOptions {
@@ -1500,11 +1526,17 @@ export interface DefaultRichTextToolbarContentProps {
     textEditor: TiptapEditor;
 }
 
+// @public
+export const defaultShapePlugins: readonly TLPlugin[];
+
 // @public (undocumented)
 export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
 export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+
+// @public
+export const defaultShapeViewPlugins: readonly TLPlugin[];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX.Element | null;
@@ -1539,6 +1571,9 @@ export interface DefaultToolbarProps {
     // (undocumented)
     orientation?: 'horizontal' | 'vertical';
 }
+
+// @public
+export const defaultToolPlugins: readonly TLPlugin[];
 
 // @public (undocumented)
 export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
@@ -1637,7 +1672,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     canFlip(): boolean;
     // (undocumented)
-    component(shape: TLDrawShape): JSX.Element;
+    component(shape: TLDrawShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
     // (undocumented)
@@ -1670,7 +1705,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     static props: RecordProps<TLDrawShape>;
     // (undocumented)
-    toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLDrawShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'draw';
 }
@@ -1686,6 +1721,15 @@ export interface DrawShapeUtilDisplayValues {
     // (undocumented)
     strokeWidth: number;
 }
+
+// @public (undocumented)
+export const drawShapeView: TLShapeView<TLDrawShape, DrawShapeUtil>;
+
+// @public
+export const drawShapeViewPlugin: {
+    readonly id: "drawShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function DrawToolbarItem(): JSX.Element;
@@ -1899,7 +1943,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canResize(shape: TLEmbedShape): boolean;
     // (undocumented)
-    component(shape: TLEmbedShape): JSX.Element | null;
+    component(shape: TLEmbedShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getAriaDescriptor(shape: TLEmbedShape): string | undefined;
     // (undocumented)
@@ -1940,6 +1984,15 @@ export interface EmbedShapeUtilDisplayValues {
     // (undocumented)
     showShadow: boolean;
 }
+
+// @public (undocumented)
+export const embedShapeView: TLShapeView<TLEmbedShape, EmbedShapeUtil>;
+
+// @public
+export const embedShapeViewPlugin: {
+    readonly id: "embedShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export class EraserTool extends StateNode {
@@ -2068,7 +2121,7 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     canResizeChildren(shape: TLFrameShape): boolean;
     // (undocumented)
-    component(shape: TLFrameShape): JSX.Element;
+    component(shape: TLFrameShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
@@ -2110,7 +2163,7 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)
-    toSvg(shape: TLFrameShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLFrameShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'frame';
 }
@@ -2138,6 +2191,15 @@ export interface FrameShapeUtilDisplayValues {
     // (undocumented)
     strokeColor: string;
 }
+
+// @public (undocumented)
+export const frameShapeView: TLShapeView<TLFrameShape, FrameShapeUtil>;
+
+// @public
+export const frameShapeViewPlugin: {
+    readonly id: "frameShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function FrameToolbarItem(): JSX.Element;
@@ -2168,7 +2230,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canFlip(): boolean;
     // (undocumented)
-    component(shape: TLGeoShape): JSX.Element;
+    component(shape: TLGeoShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     static configure<T extends TLShapeUtilConstructor<any, any>>(this: T, options: T extends new (...args: any[]) => {
         options: infer Options;
@@ -2339,7 +2401,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'geo';
 }
@@ -2387,6 +2449,15 @@ export interface GeoShapeUtilDisplayValues {
     // (undocumented)
     strokeWidth: number;
 }
+
+// @public (undocumented)
+export const geoShapeView: TLShapeView<TLGeoShape, GeoShapeUtil>;
+
+// @public
+export const geoShapeViewPlugin: {
+    readonly id: "geoShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public
 export interface GeoTypeDefinition {
@@ -2564,11 +2635,11 @@ export class HighlightShapeTool extends StateNode {
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
-    backgroundComponent(shape: TLHighlightShape): JSX.Element;
+    backgroundComponent(shape: TLHighlightShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     canFlip(): boolean;
     // (undocumented)
-    component(shape: TLHighlightShape): JSX.Element;
+    component(shape: TLHighlightShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
@@ -2597,9 +2668,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
+    toBackgroundSvg(shape: TLHighlightShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
-    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLHighlightShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'highlight';
 }
@@ -2615,6 +2686,15 @@ export interface HighlightShapeUtilDisplayValues {
     // (undocumented)
     underlayOpacity: number;
 }
+
+// @public (undocumented)
+export const highlightShapeView: TLShapeView<TLHighlightShape, HighlightShapeUtil>;
+
+// @public
+export const highlightShapeViewPlugin: {
+    readonly id: "highlightShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function HighlightToolbarItem(): JSX.Element;
@@ -2663,7 +2743,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canFlip(): boolean;
     // (undocumented)
-    component(shape: TLImageShape): JSX.Element;
+    component(shape: TLImageShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     createShapeForAsset(asset: TLAsset, position: VecModel): null | TLShapePartial;
     // (undocumented)
@@ -2695,7 +2775,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
-    toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
+    toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'image';
 }
@@ -2703,6 +2783,15 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 // @public (undocumented)
 export interface ImageShapeUtilDisplayValues {
 }
+
+// @public (undocumented)
+export const imageShapeView: TLShapeView<TLImageShape, ImageShapeUtil>;
+
+// @public
+export const imageShapeViewPlugin: {
+    readonly id: "imageShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function InputModeMenu(): JSX.Element;
@@ -2765,7 +2854,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     canFlip(): boolean;
     // (undocumented)
-    component(shape: TLLineShape): JSX.Element;
+    component(shape: TLLineShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getDefaultProps(): TLLineShape['props'];
     // (undocumented)
@@ -2868,7 +2957,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
-    toSvg(shape: TLLineShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLLineShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'line';
 }
@@ -2880,6 +2969,15 @@ export interface LineShapeUtilDisplayValues {
     // (undocumented)
     strokeWidth: number;
 }
+
+// @public (undocumented)
+export const lineShapeView: TLShapeView<TLLineShape, LineShapeUtil>;
+
+// @public
+export const lineShapeViewPlugin: {
+    readonly id: "lineShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function LineToolbarItem(): JSX.Element;
@@ -2926,7 +3024,7 @@ export interface NonePathBuilderOpts extends BasePathBuilderOpts {
 
 // @public (undocumented)
 export interface NoteShapeOptions extends ShapeOptionsWithDisplayValues<TLNoteShape, NoteShapeUtilDisplayValues> {
-    AttributionComponent: TLNoteShapeAttributionComponent;
+    AttributionComponent?: TLNoteShapeAttributionComponent;
     resizeMode: 'none' | 'scale';
 }
 
@@ -2947,7 +3045,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit(shape: TLNoteShape): boolean;
     // (undocumented)
-    component(shape: TLNoteShape): JSX.Element;
+    component(shape: TLNoteShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
@@ -2974,7 +3072,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
-        id: TLShapeId;
+        id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -3017,7 +3115,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
-    toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLNoteShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'note';
 }
@@ -3057,6 +3155,15 @@ export interface NoteShapeUtilDisplayValues {
     // (undocumented)
     noteWidth: number;
 }
+
+// @public (undocumented)
+export const noteShapeView: TLShapeView<TLNoteShape, NoteShapeUtil>;
+
+// @public
+export const noteShapeViewPlugin: {
+    readonly id: "noteShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function NoteToolbarItem(): JSX.Element;
@@ -3314,6 +3421,17 @@ export interface PlainTextLabelProps {
     // (undocumented)
     wrap?: boolean;
 }
+
+// @public
+export function PluginMenuItems({ slot }: PluginMenuItemsProps): JSX.Element | null;
+
+// @public (undocumented)
+export interface PluginMenuItemsProps {
+    slot: TLSlot<TLUiMenuPlacement>;
+}
+
+// @public
+export function PluginToolbarItems(): JSX.Element;
 
 // @public (undocumented)
 export const PORTRAIT_BREAKPOINT: {
@@ -3932,7 +4050,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit(shape: TLTextShape): boolean;
     // (undocumented)
-    component(shape: TLTextShape): JSX.Element;
+    component(shape: TLTextShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
@@ -3954,7 +4072,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     static migrations: TLPropsMigrations;
     // (undocumented)
     onBeforeUpdate(prev: TLTextShape, next: TLTextShape): {
-        id: TLShapeId;
+        id: TLShapeId_2;
         index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
@@ -3980,7 +4098,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     onEditEnd(shape: TLTextShape): void;
     // (undocumented)
     onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>): {
-        id: TLShapeId;
+        id: TLShapeId_2;
         props: {
             autoSize: boolean;
             w: number;
@@ -3989,7 +4107,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         x: number;
         y: number;
     } | {
-        id: TLShapeId;
+        id: TLShapeId_2;
         props: {
             scale: number;
         };
@@ -4002,7 +4120,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     static props: RecordProps<TLTextShape>;
     // (undocumented)
-    toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLTextShape, ctx: SvgExportContext): ReactElement<unknown, JSXElementConstructor<any> | string> | null | Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'text';
 }
@@ -4026,6 +4144,15 @@ export interface TextShapeUtilDisplayValues {
     // (undocumented)
     lineHeight: number;
 }
+
+// @public (undocumented)
+export const textShapeView: TLShapeView<TLTextShape, TextShapeUtil>;
+
+// @public
+export const textShapeViewPlugin: {
+    readonly id: "textShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function TextToolbarItem(): JSX.Element;
@@ -4255,6 +4382,7 @@ export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, T
     // @deprecated
     embeds?: TLEmbedDefinition[];
     locale?: string;
+    plugins?: TldrawEditorBaseProps['plugins'];
     // @deprecated
     textOptions?: TLTextOptions;
 }
@@ -4741,6 +4869,16 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
     readonlyOk?: boolean;
+}
+
+// @public
+export interface TLUiActionItemsContext {
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    helpers: TLUiOverrideHelpers;
+    // (undocumented)
+    trackEvent: TLUiEventHandler;
 }
 
 // @public (undocumented)
@@ -5636,6 +5774,11 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
     spinner?: boolean;
 }
 
+// @public
+export interface TLUiMenuPlacement {
+    action: string;
+}
+
 // @public (undocumented)
 export interface TLUiMenuSubmenuProps<Translation extends string = string> {
     // (undocumented)
@@ -5921,6 +6064,11 @@ export interface TLUiToolbarButtonProps extends React_3.HTMLAttributes<HTMLButto
     type: 'icon' | 'menu' | 'tool';
 }
 
+// @public
+export interface TLUiToolbarPlacement {
+    tool: string;
+}
+
 // @public (undocumented)
 export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
@@ -5990,6 +6138,17 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     readonlyOk?: boolean;
     // (undocumented)
     shortcutsLabel?: TranslationKey;
+}
+
+// @public
+export interface TLUiToolItemsContext {
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    helpers: TLUiOverrideHelpers;
+    onToolSelect(source: TLUiEventSource, tool: TLUiToolItem, id?: string): void;
+    // (undocumented)
+    trackEvent: TLUiEventHandler;
 }
 
 // @public (undocumented)
@@ -6551,6 +6710,21 @@ export function TriangleToolbarItem(): JSX.Element;
 // @public (undocumented)
 export function truncateStringWithEllipsis(str: string, maxLength: number): string;
 
+// @public
+export const uiActionItemsSlot: TLSlot<(ctx: TLUiActionItemsContext) => TLUiActionItem[]>;
+
+// @public
+export const uiContextMenuSlot: TLSlot<TLUiMenuPlacement>;
+
+// @public
+export const uiMainMenuSlot: TLSlot<TLUiMenuPlacement>;
+
+// @public
+export const uiToolbarSlot: TLSlot<TLUiToolbarPlacement>;
+
+// @public
+export const uiToolItemsSlot: TLSlot<(ctx: TLUiToolItemsContext) => TLUiToolItem[]>;
+
 // @public (undocumented)
 export function UndoRedoGroup(): JSX.Element;
 
@@ -6826,7 +7000,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit(shape: TLVideoShape): boolean;
     // (undocumented)
-    component(shape: TLVideoShape): JSX.Element;
+    component(shape: TLVideoShape): bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string;
     // (undocumented)
     createShapeForAsset(asset: TLAsset, position: VecModel): null | TLShapePartial;
     // (undocumented)
@@ -6848,7 +7022,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static props: RecordProps<TLVideoShape>;
     // (undocumented)
-    toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<JSX.Element | null>;
+    toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<ReactElement<unknown, JSXElementConstructor<any> | string> | null>;
     // (undocumented)
     static type: 'video';
 }
@@ -6856,6 +7030,15 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 // @public (undocumented)
 export interface VideoShapeUtilDisplayValues {
 }
+
+// @public (undocumented)
+export const videoShapeView: TLShapeView<TLVideoShape, VideoShapeUtil>;
+
+// @public
+export const videoShapeViewPlugin: {
+    readonly id: "videoShapeView";
+    readonly setup: (ctx: TLPluginContext) => undefined;
+};
 
 // @public (undocumented)
 export function ViewSubmenu(): JSX.Element;

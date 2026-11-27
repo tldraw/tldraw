@@ -1,3 +1,4 @@
+import { setStyleProperty } from '@tldraw/core'
 import { track, useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useLayoutEffect, useRef } from 'react'
@@ -5,7 +6,6 @@ import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
 import { useSharedSafeId } from '../hooks/useSafeId'
 import { isCursorInViewport } from '../utils/collaborators'
-import { setStyleProperty } from '../utils/dom'
 import { getHtmlLayerTransform } from '../utils/getHtmlLayerTransform'
 
 /**

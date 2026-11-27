@@ -1,6 +1,6 @@
+import { Editor } from '@tldraw/core'
 import { atom, Atom } from '@tldraw/state'
 import { WeakCache } from '@tldraw/utils'
-import { Editor } from '../editor/Editor'
 
 /**
  * An Atom that is scoped to the lifetime of an Editor.

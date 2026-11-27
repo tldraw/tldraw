@@ -1,4 +1,5 @@
 import { useMaybeEditor } from '@tldraw/editor'
+import { useCallback } from 'react'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 
 /** @internal */
@@ -14,7 +15,8 @@ export function useGetEmbedShapeUtil() {
 /** @public */
 export function useGetEmbedDefinition() {
 	const embedUtil = useGetEmbedShapeUtil()
-	return (url: string) => {
-		return embedUtil ? embedUtil.getEmbedDefinition(url) : undefined
-	}
+	return useCallback(
+		(url: string) => (embedUtil ? embedUtil.getEmbedDefinition(url) : undefined),
+		[embedUtil]
+	)
 }

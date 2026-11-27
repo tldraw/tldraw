@@ -15,10 +15,9 @@ import {
 	TLStoreOptions,
 	createShapeId,
 	createTLStore,
+	resolvePluginRecords,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
-import { defaultBindingUtils } from '../lib/defaultBindingUtils'
-import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { BrushOverlayUtil } from '../lib/overlays/BrushOverlayUtil'
 import { SelectionForegroundOverlayUtil } from '../lib/overlays/SelectionForegroundOverlayUtil'
 import { SnapIndicatorOverlayUtil } from '../lib/overlays/SnapIndicatorOverlayUtil'
@@ -37,9 +36,8 @@ export const defaultHandleOverlays = [
 	ZoomBrushOverlayUtil,
 	SnapIndicatorOverlayUtil,
 ]
-import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { createTldrawPlugins } from '../lib/defaultPlugins'
 import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
-import { defaultTools } from '../lib/defaultTools'
 import { defaultAddFontsFromNode, tipTapDefaultExtensions } from '../lib/utils/text/richText'
 import { shapesFromJsx } from './test-jsx'
 
@@ -94,23 +92,18 @@ export class TestEditor extends Editor {
 		elm.tabIndex = 0
 		elm.getBoundingClientRect = () => bounds as DOMRect
 
-		const shapeUtilsWithDefaults = [
-			...defaultShapeUtils.filter((s) => !options.shapeUtils?.some((su) => su.type === s.type)),
-			...(options.shapeUtils ?? []),
-		]
-		const bindingUtilsWithDefaults = [
-			...defaultBindingUtils.filter((b) => !options.bindingUtils?.some((bu) => bu.type === b.type)),
-			...(options.bindingUtils ?? []),
-		]
+		const plugins = options.plugins ?? createTldrawPlugins()
+		const records = resolvePluginRecords(plugins, options)
 
 		super({
 			...options,
-			shapeUtils: shapeUtilsWithDefaults,
-			bindingUtils: bindingUtilsWithDefaults,
-			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
+			plugins,
+			shapeUtils: options.shapeUtils ?? [],
+			bindingUtils: options.bindingUtils ?? [],
+			tools: options.tools ?? [],
 			store: createTLStore({
-				shapeUtils: shapeUtilsWithDefaults,
-				bindingUtils: bindingUtilsWithDefaults,
+				shapeUtils: records.shapeUtils,
+				bindingUtils: records.bindingUtils,
 				...storeOptions,
 			}),
 			getContainer: () => elm,

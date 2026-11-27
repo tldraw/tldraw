@@ -5,7 +5,13 @@ import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
 } from '../test/testutils/renderTldrawComponent'
+import { createTldrawPlugins } from './defaultPlugins'
+import { defaultShapeUtils } from './defaultShapeUtils'
+import { GeoShapeTool } from './shapes/geo/GeoShapeTool'
+import { GeoShapeUtil } from './shapes/geo/GeoShapeUtil'
 import { Tldraw } from './Tldraw'
+
+class MyGeoShapeUtil extends GeoShapeUtil {}
 
 describe('<Tldraw />', () => {
 	it('Renders without crashing', async () => {
@@ -337,5 +343,36 @@ describe('<Tldraw />', () => {
 			editor.user.updateUserPreferences({ locale: 'zz' })
 		})
 		expect(editor.i18n().locale).toBe('zz')
+	})
+})
+
+describe('<Tldraw /> with plugins', () => {
+	it('installs the default shapes and tools', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw hideUi onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		for (const Util of defaultShapeUtils) expect(editor.hasShapeUtil(Util.type)).toBe(true)
+		expect(editor.getCurrentToolId()).toBe('select')
+	})
+
+	it('replaces a default shape util with the shapeUtils prop', async () => {
+		const shapeUtils = [MyGeoShapeUtil]
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw hideUi onMount={onMount} shapeUtils={shapeUtils} />,
+			{ waitForPatterns: false }
+		)
+		expect(editor.getShapeUtil('geo')).toBeInstanceOf(MyGeoShapeUtil)
+		expect(editor.root.children!.geo).toBeInstanceOf(GeoShapeTool)
+	})
+
+	it('installs only the plugins in the plugins prop', async () => {
+		const plugins = createTldrawPlugins().filter((p) => p.id !== 'videoShape')
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw hideUi onMount={onMount} plugins={plugins} />,
+			{ waitForPatterns: false }
+		)
+		expect(editor.hasShapeUtil('video')).toBe(false)
+		expect(editor.hasShapeUtil('image')).toBe(true)
 	})
 })

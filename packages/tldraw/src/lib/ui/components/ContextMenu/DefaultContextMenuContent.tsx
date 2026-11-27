@@ -2,6 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useShowCollaborationUi } from '../../hooks/useCollaborationStatus'
 import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useTools } from '../../hooks/useTools'
+import { uiContextMenuSlot } from '../../uiSlots'
 import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
@@ -12,6 +13,7 @@ import {
 	ReorderMenuSubmenu,
 	SelectAllMenuItem,
 } from '../menu-items'
+import { PluginMenuItems } from '../PluginMenuItems'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
@@ -50,6 +52,7 @@ export function DefaultContextMenuContent() {
 			<TldrawUiMenuGroup id="select-all">
 				<SelectAllMenuItem />
 			</TldrawUiMenuGroup>
+			<PluginMenuItems slot={uiContextMenuSlot} />
 		</>
 	)
 }

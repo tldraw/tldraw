@@ -8,8 +8,8 @@
  */
 
 import crypto from 'crypto'
-import { FLAGS } from '../../packages/editor/src/lib/license/LicenseManager'
-import { str2ab } from '../../packages/editor/src/lib/utils/licensing'
+import { FLAGS } from '../../packages/core/src/lib/license/LicenseManager'
+import { str2ab } from '../../packages/core/src/lib/utils/licensing'
 // Utility function copied from LicenseManager.test.ts to avoid import issues
 function ab2str(buf: ArrayBuffer) {
 	return String.fromCharCode.apply(null, Array.from(new Uint8Array(buf)))

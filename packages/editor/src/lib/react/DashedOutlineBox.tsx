@@ -1,0 +1,37 @@
+import { getPerfectDashProps } from '@tldraw/core'
+import { Box } from '@tldraw/core'
+import { useValue } from '@tldraw/state-react'
+import { useEditor } from '../hooks/useEditor'
+
+export function DashedOutlineBox({ bounds, className }: { bounds: Box; className: string }) {
+	const editor = useEditor()
+
+	const zoomLevel = useValue('zoom level', () => editor.getEfficientZoomLevel(), [editor])
+
+	return (
+		<g className={className} pointerEvents="none" strokeLinecap="round" strokeLinejoin="round">
+			{bounds.sides.map((side, i) => {
+				const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+					side[0].dist(side[1]),
+					1 / zoomLevel,
+					{
+						style: 'dashed',
+						lengthRatio: 4,
+					}
+				)
+
+				return (
+					<line
+						key={i}
+						x1={side[0].x}
+						y1={side[0].y}
+						x2={side[1].x}
+						y2={side[1].y}
+						strokeDasharray={strokeDasharray}
+						strokeDashoffset={strokeDashoffset}
+					/>
+				)
+			})}
+		</g>
+	)
+}

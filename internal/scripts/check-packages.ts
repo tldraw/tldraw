@@ -364,7 +364,7 @@ async function checkProductMetadata({
 	}
 
 	const licenseManagerSource = await readFileIfExists(
-		join(REPO_ROOT, 'packages/editor/src/lib/license/LicenseManager.ts')
+		join(REPO_ROOT, 'packages/core/src/lib/license/LicenseManager.ts')
 	)
 	if (!licenseManagerSource) {
 		throw new Error('Could not read LicenseManager.ts to validate license flags')

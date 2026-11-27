@@ -458,7 +458,7 @@ export interface UseSyncOptionsBase {
 	 *
 	 * The asset store must implement upload (for new files) and resolve
 	 * (for displaying existing files) methods. For prototyping, you can use
-	 * {@link @tldraw/editor#inlineBase64AssetStore} but this is not recommended for production.
+	 * {@link @tldraw/core#inlineBase64AssetStore} but this is not recommended for production.
 	 *
 	 * @example
 	 * ```ts

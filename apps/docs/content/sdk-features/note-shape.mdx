@@ -97,10 +97,10 @@ The note's text color is determined by its `labelColor` property. When set to `'
 
 Notes support the following configuration options:
 
-| Option                 | Type                                                   | Default                       | Description                                                                                       |
-| ---------------------- | ------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------- |
-| `resizeMode`           | `'none'` \| `'scale'`                                  | `'none'`                      | How the note resizes. Set to `'scale'` for manual resize handles.                                 |
-| `AttributionComponent` | `ComponentType<TLNoteShapeAttributionProps>` \| `null` | `DefaultNoteShapeAttribution` | Component for the attribution badge. Set to `null` to hide it, or provide your own to replace it. |
+| Option                 | Type                                                   | Default  | Description                                                                                                                                                       |
+| ---------------------- | ------------------------------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resizeMode`           | `'none'` \| `'scale'`                                  | `'none'` | How the note resizes. Set to `'scale'` for manual resize handles.                                                                                                 |
+| `AttributionComponent` | `ComponentType<TLNoteShapeAttributionProps>` \| `null` | unset    | Component for the attribution badge. When it is unset, the note draws `DefaultNoteShapeAttribution`. Set to `null` to hide it, or provide your own to replace it. |
 
 By default, notes can't be manually resized—they only grow based on text content. To allow user resizing with locked aspect ratio:
 

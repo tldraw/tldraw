@@ -1,3 +1,6 @@
+import { createTLStore } from '@tldraw/core'
+import { Editor } from '@tldraw/core'
+import { Box } from '@tldraw/core'
 import {
 	BaseFrameLikeShapeUtil,
 	Geometry2d,
@@ -8,9 +11,6 @@ import {
 	TLShape,
 	createShapeId,
 } from '../..'
-import { createTLStore } from '../config/createTLStore'
-import { Editor } from '../editor/Editor'
-import { Box } from '../primitives/Box'
 import { getExportDefaultBounds } from './getSvgJsx'
 
 const TEST_SHAPE_TYPE = 'test-shape'

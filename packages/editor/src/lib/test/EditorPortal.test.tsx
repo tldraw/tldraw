@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react'
+import { createTLStore } from '@tldraw/core'
 import { EditorPortal } from '../components/EditorPortal'
-import { createTLStore } from '../config/createTLStore'
 import { TL_CONTAINER_CLASS, TldrawEditor } from '../TldrawEditor'
 
 /** Mounted in a canvas slot — the deep-in-the-tree case the portal exists for. */

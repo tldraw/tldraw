@@ -152,6 +152,7 @@ export {
 	type TLDefaultExternalContentHandlerOpts,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
+export { createTldrawPlugins, defaultShapePlugins, defaultToolPlugins } from './lib/defaultPlugins'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { registerDefaultSideEffects } from './lib/defaultSideEffects'
@@ -236,6 +237,22 @@ export {
 	type HighlightShapeOptions,
 	type HighlightShapeUtilDisplayValues,
 } from './lib/shapes/highlight/HighlightShapeUtil'
+export {
+	highlightShapeView,
+	highlightShapeViewPlugin,
+} from './lib/shapes/highlight/HighlightShapeView'
+export { defaultShapeViewPlugins } from './lib/defaultShapeViews'
+export { arrowShapeView, arrowShapeViewPlugin } from './lib/shapes/arrow/ArrowShapeView'
+export { bookmarkShapeView, bookmarkShapeViewPlugin } from './lib/shapes/bookmark/BookmarkShapeView'
+export { drawShapeView, drawShapeViewPlugin } from './lib/shapes/draw/DrawShapeView'
+export { embedShapeView, embedShapeViewPlugin } from './lib/shapes/embed/EmbedShapeView'
+export { frameShapeView, frameShapeViewPlugin } from './lib/shapes/frame/FrameShapeView'
+export { geoShapeView, geoShapeViewPlugin } from './lib/shapes/geo/GeoShapeView'
+export { imageShapeView, imageShapeViewPlugin } from './lib/shapes/image/ImageShapeView'
+export { lineShapeView, lineShapeViewPlugin } from './lib/shapes/line/LineShapeView'
+export { noteShapeView, noteShapeViewPlugin } from './lib/shapes/note/NoteShapeView'
+export { textShapeView, textShapeViewPlugin } from './lib/shapes/text/TextShapeView'
+export { videoShapeView, videoShapeViewPlugin } from './lib/shapes/video/VideoShapeView'
 export {
 	ImageShapeUtil,
 	type ImageShapeOptions,
@@ -714,6 +731,7 @@ export {
 	CloudToolbarItem,
 	CommentToolbarItem,
 	DefaultToolbarContent,
+	PluginToolbarItems,
 	DiamondToolbarItem,
 	DrawToolbarItem,
 	EllipseToolbarItem,
@@ -852,13 +870,27 @@ export { useSomeActionsEnabled } from './lib/ui/hooks/useActionState'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
 	onDragFromToolbarToCreateShape,
-	useTools,
 	type OnDragFromToolbarToCreateShapesOpts,
+} from './lib/ui/dragFromToolbar'
+export {
+	useTools,
 	type TLUiToolItem,
 	type TLUiToolsContextType,
 	type TLUiToolsProviderProps,
 } from './lib/ui/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/ui/hooks/useTranslation/TLUiTranslationKey'
+export {
+	uiActionItemsSlot,
+	uiContextMenuSlot,
+	uiMainMenuSlot,
+	uiToolItemsSlot,
+	uiToolbarSlot,
+	type TLUiActionItemsContext,
+	type TLUiMenuPlacement,
+	type TLUiToolItemsContext,
+	type TLUiToolbarPlacement,
+} from './lib/ui/uiSlots'
+export { PluginMenuItems, type PluginMenuItemsProps } from './lib/ui/components/PluginMenuItems'
 export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslation/translations'
 export {
 	useCurrentTranslation,

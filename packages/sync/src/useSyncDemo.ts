@@ -89,7 +89,7 @@ const MIN_RESIZE_DIMENSION = 400
  * }
  * ```
  *
- * @param options - Options for the multiplayer demo sync store. See {@link UseSyncDemoOptions} and {@link @tldraw/editor#TLStoreSchemaOptions}.
+ * @param options - Options for the multiplayer demo sync store. See {@link UseSyncDemoOptions} and {@link @tldraw/core#TLStoreSchemaOptions}.
  *
  * @public
  */

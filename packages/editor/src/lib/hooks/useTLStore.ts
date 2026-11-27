@@ -1,11 +1,11 @@
-import { areObjectsShallowEqual } from '@tldraw/utils'
-import { useState } from 'react'
 import {
 	TLStoreOptions,
 	TLStoreSchemaOptions,
 	createTLSchemaFromUtils,
 	createTLStore,
-} from '../config/createTLStore'
+} from '@tldraw/core'
+import { areObjectsShallowEqual } from '@tldraw/utils'
+import { useState } from 'react'
 
 /** @public */
 export function useTLStore(opts: TLStoreOptions) {

@@ -12,6 +12,7 @@
 				"@tldraw/mentions#build-api",
 				"@tldraw/mermaid#build-api",
 				"@tldraw/state#build-api",
+				"@tldraw/core#build-api",
 				"@tldraw/state-react#build-api",
 				"@tldraw/store#build-api",
 				"@tldraw/sync#build-api",

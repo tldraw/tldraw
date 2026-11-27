@@ -1,5 +1,5 @@
+import { VecLike } from '@tldraw/core'
 import { useLayoutEffect } from 'react'
-import { VecLike } from '../primitives/Vec'
 
 /**
  * Position an element by writing its `transform` directly, outside React's render output — the

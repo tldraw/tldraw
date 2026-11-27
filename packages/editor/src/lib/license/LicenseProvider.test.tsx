@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react'
+import { LicenseFromKeyResult, LicenseManager } from '@tldraw/core'
 import { vi } from 'vitest'
-import { LicenseFromKeyResult, LicenseManager } from './LicenseManager'
 import { LICENSE_TIMEOUT, LicenseProvider, useLicenseContext } from './LicenseProvider'
 
 const NO_KEY: LicenseFromKeyResult = { isLicenseParseable: false, reason: 'no-key-provided' }

@@ -60,6 +60,16 @@ export function getSlug(item: ApiItem): string {
 	return githubSlug(item.displayName, true)
 }
 
+// `@tldraw/core` holds most of the editor API, and `@tldraw/editor` re-exports it. Its reference
+// pages stay in the editor category, so their URLs do not change.
+const DOCS_CATEGORY_FOR_PACKAGE: Record<string, string> = { core: 'editor' }
+
+/** The reference category for a package, such as `editor` for `@tldraw/core`. */
+export function getDocsCategory(packageName: string): string {
+	const name = packageName.replace(/^@tldraw\//, '')
+	return DOCS_CATEGORY_FOR_PACKAGE[name] ?? name
+}
+
 export function getPath(item: ApiItem): string {
 	if (isOnParentPage(item.kind)) {
 		const parentPath = getPath(item.parent!)
@@ -75,9 +85,9 @@ export function getPath(item: ApiItem): string {
 		return `${parentPath}#${childSlug}`
 	}
 
-	return item.canonicalReference
-		.toString()
-		.replace(/^@tldraw\//, '')
+	const reference = item.canonicalReference.toString()
+	const packageName = reference.slice(0, reference.indexOf('!'))
+	return (getDocsCategory(packageName) + reference.slice(packageName.length))
 		.replace(/:.+$/, '')
 		.replace(/!/g, '/')
 		.replace(/\./g, '-')

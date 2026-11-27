@@ -1,6 +1,6 @@
+import { getOwnerWindow } from '@tldraw/core'
 import { throttle } from '@tldraw/utils'
 import { useLayoutEffect } from 'react'
-import { getOwnerWindow } from '../exports/domUtils'
 import { useEditor } from './useEditor'
 
 export function useScreenBounds(ref: React.RefObject<HTMLElement | null>) {

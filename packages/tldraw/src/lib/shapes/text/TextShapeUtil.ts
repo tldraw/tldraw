@@ -1,0 +1,321 @@
+import {
+	Editor,
+	Rectangle2d,
+	ShapeUtil,
+	SvgExportContext,
+	TLGeometryOpts,
+	TLResizeInfo,
+	TLTextShape,
+	Vec,
+	createComputedCache,
+	getColorValue,
+	getFontsFromRichText,
+	isEqual,
+	resizeScaled,
+	textShapeMigrations,
+	textShapeProps,
+	toRichText,
+} from '@tldraw/editor'
+import {
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
+import {
+	FONT_SIZES,
+	TEXT_PROPS,
+	STANDARD_CHECKBOX_STYLE,
+	getFontCheckboxStyle,
+	getFontFamily,
+} from '../shared/default-shape-constants'
+import { getThemeFontFaces } from '../shared/defaultFonts'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+
+const sizeCache = createComputedCache(
+	'text size',
+	(editor: Editor, shape: TLTextShape) => {
+		editor.fonts.trackFontsForShape(shape)
+		const util = editor.getShapeUtil(shape) as TextShapeUtil
+		const dv = getDisplayValues(util, shape)
+		return getTextSize(editor, shape.props, dv)
+	},
+	{ areRecordsEqual: (a, b) => a.props === b.props }
+)
+/** @public */
+export interface TextShapeUtilDisplayValues {
+	color: string
+	fontFamily: string
+	checkboxStyle: Record<string, string> | undefined
+	fontSize: number
+	lineHeight: number
+	fontWeight: string
+	fontStyle: string
+	fontVariant: string
+}
+
+/** @public */
+export interface TextShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLTextShape,
+	TextShapeUtilDisplayValues
+> {
+	/** How much addition padding should be added to the horizontal geometry of the shape when binding to an arrow? */
+	extraArrowHorizontalPadding: number
+	/** Whether to show the outline of the text shape (using the same color as the canvas). This helps with overlapping shapes. It does not show up on Safari, where text outline is a performance issues. */
+	showTextOutline: boolean
+}
+
+/** @public */
+export class TextShapeUtil extends ShapeUtil<TLTextShape> {
+	static override type = 'text' as const
+	static override props = textShapeProps
+	static override migrations = textShapeMigrations
+
+	override options: TextShapeOptions = {
+		extraArrowHorizontalPadding: 10,
+		showTextOutline: true,
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): TextShapeUtilDisplayValues {
+			const { color, font, size } = shape.props
+			return {
+				color: getColorValue(theme.colors[colorMode], color, 'solid'),
+				fontFamily: getFontFamily(theme, font),
+				checkboxStyle: getFontCheckboxStyle(theme, font) ?? STANDARD_CHECKBOX_STYLE,
+				fontSize: theme.fontSize * FONT_SIZES[size],
+				lineHeight: theme.lineHeight,
+				fontWeight: TEXT_PROPS.fontWeight,
+				fontStyle: TEXT_PROPS.fontStyle,
+				fontVariant: TEXT_PROPS.fontVariant,
+			}
+		},
+		getCustomDisplayValues(): Partial<TextShapeUtilDisplayValues> {
+			return {}
+		},
+	}
+
+	getDefaultProps(): TLTextShape['props'] {
+		return {
+			color: 'black',
+			size: 'm',
+			w: 8,
+			font: 'draw',
+			textAlign: 'start',
+			autoSize: true,
+			scale: 1,
+			richText: toRichText(''),
+		}
+	}
+
+	getMinDimensions(shape: TLTextShape) {
+		return sizeCache.get(this.editor, shape.id)!
+	}
+
+	getGeometry(shape: TLTextShape, opts: TLGeometryOpts) {
+		const { scale } = shape.props
+		const { width, height } = this.getMinDimensions(shape)!
+		const context = opts?.context ?? 'none'
+		return new Rectangle2d({
+			x:
+				(context === '@tldraw/arrow-without-arrowhead'
+					? -this.options.extraArrowHorizontalPadding
+					: 0) * scale,
+			width:
+				(width +
+					(context === '@tldraw/arrow-without-arrowhead'
+						? this.options.extraArrowHorizontalPadding * 2
+						: 0)) *
+				scale,
+			height: height * scale,
+			isFilled: true,
+			isLabel: true,
+		})
+	}
+
+	override getFontFaces(shape: TLTextShape) {
+		const themeFaces = getThemeFontFaces(this.editor.getCurrentTheme(), shape.props.font)
+		if (themeFaces) return themeFaces
+		return getFontsFromRichText(this.editor, shape.props.richText, {
+			family: `tldraw_${shape.props.font}`,
+			weight: 'normal',
+			style: 'normal',
+		})
+	}
+
+	override getText(shape: TLTextShape) {
+		return renderPlaintextFromRichText(this.editor, shape.props.richText)
+	}
+
+	override canEdit(shape: TLTextShape) {
+		return true
+	}
+
+	override isAspectRatioLocked(shape: TLTextShape) {
+		return true
+	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
+
+	// The React view draws the shape, see `textShapeView`. These methods call it so that a
+	// subclass can override them or call `super`.
+	component(shape: TLTextShape) {
+		return this.getView()?.component(shape, this) ?? null
+	}
+
+	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {
+		if (shape.props.autoSize && this.editor.getEditingShapeId() === shape.id) return undefined
+		const bounds = this.editor.getShapeGeometry(shape).bounds
+		const path = new Path2D()
+		path.rect(0, 0, bounds.width, bounds.height)
+		return path
+	}
+
+	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
+		return this.getView()?.toSvg?.(shape, ctx, this) ?? null
+	}
+
+	override onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>) {
+		const { newPoint, initialBounds, initialShape, scaleX, handle } = info
+
+		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
+			return {
+				id: shape.id,
+				type: shape.type,
+				...resizeScaled(shape, info),
+			}
+		} else {
+			const nextWidth = Math.max(1, Math.abs(initialBounds.width * scaleX))
+			const { x, y } =
+				scaleX < 0 ? Vec.Sub(newPoint, Vec.FromAngle(shape.rotation).mul(nextWidth)) : newPoint
+
+			return {
+				id: shape.id,
+				type: shape.type,
+				x,
+				y,
+				props: {
+					w: nextWidth / initialShape.props.scale,
+					autoSize: false,
+				},
+			}
+		}
+	}
+
+	override onEditEnd(shape: TLTextShape) {
+		// todo: find a way to check if the rich text has any nodes that aren't empty spaces
+		const trimmedText = renderPlaintextFromRichText(this.editor, shape.props.richText).trimEnd()
+
+		if (trimmedText.length === 0) {
+			this.editor.deleteShapes([shape.id])
+		}
+	}
+
+	override onBeforeUpdate(prev: TLTextShape, next: TLTextShape) {
+		if (!next.props.autoSize) return
+
+		const styleDidChange =
+			prev.props.size !== next.props.size ||
+			prev.props.textAlign !== next.props.textAlign ||
+			prev.props.font !== next.props.font ||
+			(prev.props.scale !== 1 && next.props.scale === 1)
+
+		const textDidChange = !isEqual(prev.props.richText, next.props.richText)
+
+		// Only update position if either changed
+		if (!styleDidChange && !textDidChange) return
+
+		// Might return a cached value for the bounds
+		const boundsA = this.getMinDimensions(prev)
+
+		// Will always be a fresh call to getTextSize
+		const dv = getDisplayValues(this, next)
+		const boundsB = getTextSize(this.editor, next.props, dv)
+
+		const wA = boundsA.width * prev.props.scale
+		const hA = boundsA.height * prev.props.scale
+		const wB = boundsB.width * next.props.scale
+		const hB = boundsB.height * next.props.scale
+
+		let delta: Vec | undefined
+
+		switch (next.props.textAlign) {
+			case 'middle': {
+				delta = new Vec((wB - wA) / 2, textDidChange ? 0 : (hB - hA) / 2)
+				break
+			}
+			case 'end': {
+				delta = new Vec(wB - wA, textDidChange ? 0 : (hB - hA) / 2)
+				break
+			}
+			default: {
+				if (textDidChange) break
+				delta = new Vec(0, (hB - hA) / 2)
+				break
+			}
+		}
+
+		if (delta) {
+			// account for shape rotation when writing text:
+			delta.rot(next.rotation)
+			const { x, y } = next
+			return {
+				...next,
+				x: x - delta.x,
+				y: y - delta.y,
+				props: { ...next.props, w: wB },
+			}
+		} else {
+			return {
+				...next,
+				props: { ...next.props, w: wB },
+			}
+		}
+	}
+
+	// 	todo: The edge doubleclicking feels like a mistake more often than
+	//  not, especially on multiline text. Removed June 16 2024
+
+	// override onDoubleClickEdge = (shape: TLTextShape) => {
+	// 	// If the shape has a fixed width, set it to autoSize.
+	// 	if (!shape.props.autoSize) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				autoSize: true,
+	// 			},
+	// 		}
+	// 	}
+	// 	// If the shape is scaled, reset the scale to 1.
+	// 	if (shape.props.scale !== 1) {
+	// 		return {
+	// 			id: shape.id,
+	// 			type: shape.type,
+	// 			props: {
+	// 				scale: 1,
+	// 			},
+	// 		}
+	// 	}
+	// }
+}
+
+function getTextSize(editor: Editor, props: TLTextShape['props'], dv: TextShapeUtilDisplayValues) {
+	const { richText, w } = props
+
+	const minWidth = 16
+
+	const maybeFixedWidth = props.autoSize ? null : Math.max(minWidth, Math.floor(w))
+
+	const html = renderHtmlFromRichTextForMeasurement(editor, richText)
+	const result = editor.textMeasure.measureHtml(html, {
+		lineHeight: dv.lineHeight,
+		fontWeight: dv.fontWeight,
+		fontStyle: dv.fontStyle,
+		padding: '0px',
+		fontFamily: dv.fontFamily,
+		fontSize: dv.fontSize,
+		maxWidth: maybeFixedWidth,
+	})
+
+	// If we're autosizing the measureText will essentially `Math.floor`
+	// the numbers so `19` rather than `19.3`, this means we must +1 to
+	// whatever we get to avoid wrapping.
+	return {
+		width: maybeFixedWidth ?? Math.max(minWidth, result.w + 1),
+		height: Math.max(dv.fontSize, result.h),
+	}
+}

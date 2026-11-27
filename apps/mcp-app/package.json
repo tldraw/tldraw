@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"extract-api": "tsx scripts/extract-editor-api.ts",
-		"generate-agent-sdk-docs": "pnpm exec tsc --build ../../packages/editor/tsconfig.json ../../packages/store/tsconfig.json ../../packages/tlschema/tsconfig.json && pnpm extract-api",
+		"generate-agent-sdk-docs": "pnpm exec tsc --build ../../packages/core/tsconfig.json ../../packages/editor/tsconfig.json ../../packages/store/tsconfig.json ../../packages/tlschema/tsconfig.json && pnpm extract-api",
 		"build:widget": "pnpm generate-agent-sdk-docs && vite build && mv dist/index.html dist/mcp-app.html",
 		"build": "pnpm build:widget",
 		"dev": "pnpm dev:http",
