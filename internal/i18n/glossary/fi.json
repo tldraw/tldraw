@@ -1,0 +1,654 @@
+{
+	"register": "imperative for actions",
+	"terms": [
+		{
+			"term": "(fine) rotation step",
+			"translation": "(hienosäätö)"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "Esteettömyys"
+		},
+		{
+			"term": "account",
+			"translation": "tili"
+		},
+		{
+			"term": "Actions (menu)",
+			"translation": "Toiminnot"
+		},
+		{
+			"term": "align",
+			"translation": "tasaa",
+			"note": "imperative for menu commands"
+		},
+		{
+			"term": "Alt text",
+			"translation": "Vaihtoehtoinen teksti"
+		},
+		{
+			"term": "analytics",
+			"translation": "analytiikka"
+		},
+		{
+			"term": "Arc (arrow kind)",
+			"translation": "Kaari"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Nuoli"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Nuoli"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "nuolenkärki"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Nuolenpäät"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Kuvasuhde"
+		},
+		{
+			"term": "Auto (automatic)",
+			"translation": "Automaattinen",
+			"note": "bare 'Auto' means car"
+		},
+		{
+			"term": "Auto (theme)",
+			"translation": "Automaattinen",
+			"note": "'Auto' means car in Finnish"
+		},
+		{
+			"term": "Backup (action)",
+			"translation": "Varmuuskopioi"
+		},
+		{
+			"term": "backup (noun)",
+			"translation": "varmuuskopio"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Viiva",
+			"note": "Pipe must differ, e.g. Pystyviiva"
+		},
+		{
+			"term": "Bold",
+			"translation": "Lihavoitu"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "Tuo eteenpäin"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "Tuo eteen"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Peruuta"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Valittu",
+			"note": "Not 'Tarkistettu'"
+		},
+		{
+			"term": "clipboard",
+			"translation": "leikepöytä"
+		},
+		{
+			"term": "Close",
+			"translation": "Sulje"
+		},
+		{
+			"term": "color theme",
+			"translation": "väriteema"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Komentopaletti"
+		},
+		{
+			"term": "Comment",
+			"translation": "Kommentti"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Vahvista"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Vahvista",
+			"note": "imperative, not infinitive Vahvistaa"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Kontekstivalikko"
+		},
+		{
+			"term": "cookie",
+			"translation": "eväste"
+		},
+		{
+			"term": "Cookie policy",
+			"translation": "Evästekäytäntö"
+		},
+		{
+			"term": "cookies",
+			"translation": "evästeet"
+		},
+		{
+			"term": "Copy",
+			"translation": "Kopioi"
+		},
+		{
+			"term": "Copy (action)",
+			"translation": "Kopioi",
+			"note": "imperative for commands"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Kopioi"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "Tiedostoa ei voitu avata"
+		},
+		{
+			"term": "counterclockwise / clockwise",
+			"translation": "vastapäivään / myötäpäivään"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Leikkaa"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Tumma"
+		},
+		{
+			"term": "Delete",
+			"translation": "Poista"
+		},
+		{
+			"term": "Details",
+			"translation": "Tiedot"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Timantti",
+			"note": "Distinct from rhombus 'Neljäkäs'"
+		},
+		{
+			"term": "Draw (style)",
+			"translation": "Kynä",
+			"note": "Used for both dash-style.draw and font-style.draw"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Monista"
+		},
+		{
+			"term": "Duplicate (verb, command)",
+			"translation": "Monista"
+		},
+		{
+			"term": "Edge scrolling",
+			"translation": "Reunojen vieritys"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Muokkaa"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Muokkaaja"
+		},
+		{
+			"term": "Editor (sharing role)",
+			"translation": "Muokkaaja",
+			"note": "Person who can edit; pairs with Viewer 'Katselija'. Not 'Toimittaja'."
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Ellipsi",
+			"note": "Distinct from Oval"
+		},
+		{
+			"term": "embed",
+			"translation": "upotus"
+		},
+		{
+			"term": "Embed (noun)",
+			"translation": "Upotus"
+		},
+		{
+			"term": "Export",
+			"translation": "Vie"
+		},
+		{
+			"term": "Export (verb)",
+			"translation": "Vie"
+		},
+		{
+			"term": "feedback",
+			"translation": "palaute"
+		},
+		{
+			"term": "file",
+			"translation": "tiedosto"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "tiedosto"
+		},
+		{
+			"term": "Fill",
+			"translation": "Täyttö"
+		},
+		{
+			"term": "fill (noun)",
+			"translation": "täyttö"
+		},
+		{
+			"term": "fill (style noun)",
+			"translation": "täyttö"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "Peilaa"
+		},
+		{
+			"term": "flip horizontally",
+			"translation": "käännä vaakasuunnassa"
+		},
+		{
+			"term": "flip vertically",
+			"translation": "käännä pystysuunnassa"
+		},
+		{
+			"term": "Focus mode",
+			"translation": "Keskittymistila"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Seuraa"
+		},
+		{
+			"term": "Forget",
+			"translation": "Unohda"
+		},
+		{
+			"term": "Frame",
+			"translation": "Kehys"
+		},
+		{
+			"term": "Grid",
+			"translation": "Ruudukko"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Ryhmitä"
+		},
+		{
+			"term": "Heading",
+			"translation": "Otsikko"
+		},
+		{
+			"term": "Help",
+			"translation": "Ohje"
+		},
+		{
+			"term": "horizontal / horizontally",
+			"translation": "vaaka / vaakasuunnassa"
+		},
+		{
+			"term": "horizontal / vertical",
+			"translation": "vaaka / pysty",
+			"note": "short forms V / P"
+		},
+		{
+			"term": "horizontally",
+			"translation": "vaakasuunnassa",
+			"note": "vaaka = horizontal; short form initial is V"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Tuo tiedosto…"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "kutsu"
+		},
+		{
+			"term": "invite link",
+			"translation": "kutsulinkki"
+		},
+		{
+			"term": "Italic",
+			"translation": "Kursiivi"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "kohde"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "kohde"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Pikanäppäimet"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Vaakasuuntainen"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Kirjastot"
+		},
+		{
+			"term": "library",
+			"translation": "kirjasto"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Vaalea"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "Vaalean<color> (compound, e.g. Vaaleansininen, Vaaleanvihreä)"
+		},
+		{
+			"term": "Link",
+			"translation": "linkki"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Linkki"
+		},
+		{
+			"term": "menu",
+			"translation": "valikko"
+		},
+		{
+			"term": "Minimap",
+			"translation": "Minikartta"
+		},
+		{
+			"term": "mouse",
+			"translation": "hiiri"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Ilmoitukset"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Peittävyys"
+		},
+		{
+			"term": "options",
+			"translation": "valinnat",
+			"note": "not 'asetukset' (settings)"
+		},
+		{
+			"term": "Ordered list",
+			"translation": "Numeroitu luettelo"
+		},
+		{
+			"term": "Oval",
+			"translation": "Soikio"
+		},
+		{
+			"term": "Oval (geo shape)",
+			"translation": "Soikio",
+			"note": "Reserved for oval; ellipse must differ (Ellipsi)"
+		},
+		{
+			"term": "owner",
+			"translation": "omistaja"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Tiivistä"
+		},
+		{
+			"term": "page",
+			"translation": "sivu"
+		},
+		{
+			"term": "Paste",
+			"translation": "Liitä"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "Kiinnitä",
+			"note": "pin to top of list"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Pystysuuntainen"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Asetukset"
+		},
+		{
+			"term": "Privacy policy",
+			"translation": "Tietosuojakäytäntö"
+		},
+		{
+			"term": "publish",
+			"translation": "julkaista"
+		},
+		{
+			"term": "Redo",
+			"translation": "Tee uudelleen"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Vähennä liikettä"
+		},
+		{
+			"term": "refresh (reload page)",
+			"translation": "päivittää"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "poistaa (tästä tiedostosta)",
+			"note": "Add 'from this file' to keep it distinct from deleting"
+		},
+		{
+			"term": "Rename",
+			"translation": "Nimeä uudelleen"
+		},
+		{
+			"term": "reset (clear stored data)",
+			"translation": "nollata",
+			"note": "Not 'palauttaa' (restore)"
+		},
+		{
+			"term": "Reset (data)",
+			"translation": "nollata"
+		},
+		{
+			"term": "Resolve (thread)",
+			"translation": "Ratkaise"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Ratkaistu"
+		},
+		{
+			"term": "Restore",
+			"translation": "Palauta"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Rombi",
+			"note": "Pairs with 'Rombi vasemmalle'"
+		},
+		{
+			"term": "Save",
+			"translation": "Tallenna"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Tallenna kopio",
+			"note": "action.save-copy label"
+		},
+		{
+			"term": "selection",
+			"translation": "valinta"
+		},
+		{
+			"term": "Settings",
+			"translation": "Asetukset"
+		},
+		{
+			"term": "shape",
+			"translation": "muoto",
+			"note": "'kuvio' is the fill pattern"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Jaa",
+			"note": "imperative, not 'Jakaa'"
+		},
+		{
+			"term": "Show",
+			"translation": "Näytä"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Kirjaudu sisään"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Kirjaudu ulos"
+		},
+		{
+			"term": "Size",
+			"translation": "Koko"
+		},
+		{
+			"term": "Size values",
+			"translation": "Pieni/Keskikokoinen/Suuri/Erittäin suuri"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Yhtenäinen"
+		},
+		{
+			"term": "Sticky note",
+			"translation": "Muistilappu"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Yliviivattu"
+		},
+		{
+			"term": "Styles",
+			"translation": "Tyylit"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "välilehti"
+		},
+		{
+			"term": "terms of use",
+			"translation": "käyttöehdot"
+		},
+		{
+			"term": "Text formatting",
+			"translation": "Tekstin muotoilu"
+		},
+		{
+			"term": "Theme",
+			"translation": "Teema"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "teema"
+		},
+		{
+			"term": "thread",
+			"translation": "ketju"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "X päälle/pois",
+			"note": "nominative + päälle/pois"
+		},
+		{
+			"term": "Toggle X (action)",
+			"translation": "X päälle/pois",
+			"note": "Pattern for on/off toggle commands; avoid 'Vaihda'"
+		},
+		{
+			"term": "tool lock",
+			"translation": "työkalun lukitus"
+		},
+		{
+			"term": "Tools",
+			"translation": "Työkalut"
+		},
+		{
+			"term": "trackpad",
+			"translation": "kosketuslevy"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Valitsematon"
+		},
+		{
+			"term": "Undo",
+			"translation": "Peru"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Pura ryhmittely"
+		},
+		{
+			"term": "URL (in sentences)",
+			"translation": "URL-osoite"
+		},
+		{
+			"term": "vertical / vertically",
+			"translation": "pysty / pystysuunnassa"
+		},
+		{
+			"term": "vertically",
+			"translation": "pystysuunnassa",
+			"note": "pysty = vertical; short form initial is P"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Näytä"
+		},
+		{
+			"term": "workspace",
+			"translation": "työtila"
+		},
+		{
+			"term": "Zoom (noun)",
+			"translation": "Zoomaus"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Lähennä"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Loitonna"
+		}
+	]
+}

@@ -1,6 +1,6 @@
 {
   "0095a9fa74": {
-    "translation": "Exporta"
+    "translation": "Exportació"
   },
   "00b177e080": {
     "translation": "Accepta la invitació"
@@ -27,7 +27,7 @@
     "translation": "Fitxer sense títol"
   },
   "08331c1710": {
-    "translation": "S'ha superat el límit de tarifa; torna-ho a provar més tard."
+    "translation": "S'ha superat el límit de sol·licituds; torna-ho a provar més tard."
   },
   "08bd40c754": {
     "translation": "Compte"
@@ -36,19 +36,19 @@
     "translation": "Encara no es poden obrir els fitxers {extension}"
   },
   "0a91f7fa87": {
-    "translation": "Aquest fitxer ha arribat al límit de mida i és possible que els canvis ja no es puguin desar. Elimineu part del contingut o comenceu un fitxer nou."
+    "translation": "Aquest fitxer ha arribat al límit de mida i és possible que els canvis ja no es desin. Elimina contingut o comença un fitxer nou."
   },
   "0b27918290": {
     "translation": "Fitxer"
   },
   "0b9a4cde72": {
-    "translation": "Menú Fitxer"
+    "translation": "Menú del fitxer"
   },
   "0c4383617a": {
     "translation": "S'ha produït un error en carregar aquesta invitació. Torna-ho a provar."
   },
   "0d1f2bb523": {
-    "translation": "Enviar comentaris"
+    "translation": "Envia comentaris"
   },
   "0e4a10d921": {
     "translation": "Marca totes les notificacions com a llegides"
@@ -63,7 +63,10 @@
     "translation": "Publicar"
   },
   "12a6766ba1": {
-    "translation": "Desfixar fitxer"
+    "translation": "Deixa de fixar el fitxer"
+  },
+  "13cad4c2e8": {
+    "translation": "Aquest espai de treball ha arribat al nombre màxim de biblioteques. Suprimeix biblioteques antigues abans de crear-ne de noves."
   },
   "13ddd375ad": {
     "translation": "Exporta com a"
@@ -81,7 +84,7 @@
     "translation": "Creat per mi"
   },
   "1a7222b4e5": {
-    "translation": "Moure a"
+    "translation": "Mou a"
   },
   "1da2e8106b": {
     "translation": "S'ha produït un error inesperat."
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "Un espai de treball ha de tenir com a mínim un propietari. Primer, fes que algú altre sigui el propietari."
   },
+  "20746febc9": {
+    "translation": "La meva col·lecció"
+  },
   "21f66c9c00": {
     "translation": "Nom de l'espai de treball"
   },
@@ -99,7 +105,10 @@
     "translation": "Has estat convidat a unir-te a <strong>{workspaceName}</strong>. Crea un compte gratuït per continuar."
   },
   "250ddea65c": {
-    "translation": "Sobre tldraw"
+    "translation": "Quant a tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Aquesta biblioteca ha arribat al nombre màxim d'elements. Suprimeix elements antics abans d'afegir-ne de nous."
   },
   "28b2464e1f": {
     "translation": "No s'han pogut enviar comentaris"
@@ -135,13 +144,13 @@
     "translation": "Heu d'iniciar la sessió per veure aquest fitxer."
   },
   "31418ce4ad": {
-    "translation": "i18n: Ressaltar que falta"
+    "translation": "i18n: Ressalta els que falten"
   },
   "324a0f3182": {
     "translation": "Torna a tldraw"
   },
   "32811caa8c": {
-    "translation": "Fitxer duplicat"
+    "translation": "Duplica el fitxer"
   },
   "335defdafe": {
     "translation": "Si us plau, prova d'actualitzar la pàgina."
@@ -179,6 +188,9 @@
   "402bf0c47e": {
     "translation": "Tema de color"
   },
+  "4236087d6b": {
+    "translation": "Menú de la biblioteca"
+  },
   "42e53c47c1": {
     "translation": "Contacta amb el propietari per sol·licitar accés."
   },
@@ -204,7 +216,7 @@
     "translation": "Per continuar editant, copieu el fitxer als vostres fitxers."
   },
   "47f493a590": {
-    "translation": "Fitxer fixat"
+    "translation": "Fixa el fitxer"
   },
   "4970317944": {
     "translation": "Objecte"
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> ha comentat"
+  },
+  "4c4a28e97a": {
+    "translation": "Aquest fitxer"
   },
   "4d0d3ddec9": {
     "translation": "Aquest lloc web utilitza cookies per fer que l'aplicació funcioni i per recopilar dades analítiques."
@@ -246,7 +261,7 @@
     "translation": "Exporta…"
   },
   "53770fd374": {
-    "translation": "No llegit"
+    "translation": "No llegides"
   },
   "542248f0ba": {
     "translation": "Aquest fitxer ara és de només lectura"
@@ -282,7 +297,7 @@
     "translation": "Comparteix"
   },
   "5bec508475": {
-    "translation": "S'ha detectat un navegador antic. Actualitzeu el navegador per utilitzar aquesta aplicació."
+    "translation": "S'ha detectat un navegador antic. Actualitza el navegador per utilitzar aquesta aplicació."
   },
   "5bff3c9c88": {
     "translation": "El meu espai de treball"
@@ -294,13 +309,13 @@
     "translation": "No hem pogut penjar part del contingut que vas crear abans d'iniciar la sessió."
   },
   "5f3c333678": {
-    "translation": "S'ha enviat comentaris"
+    "translation": "Comentaris enviats"
   },
   "5fb63579fc": {
-    "translation": "Còpia"
+    "translation": "Copia"
   },
   "608e9d366e": {
-    "translation": "Ja esteu tots al dia."
+    "translation": "Ja ho tens tot al dia."
   },
   "60a68c29d6": {
     "translation": "Inicia la sessió per comentar"
@@ -312,7 +327,7 @@
     "translation": "Recents"
   },
   "625fd29749": {
-    "translation": "Més vell"
+    "translation": "Més antics"
   },
   "639bae9ac6": {
     "translation": "tu"
@@ -333,10 +348,10 @@
     "translation": "Fitxer nou"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# other} other {# others}} han reaccionat"
+    "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# altre} other {# altres}} han reaccionat"
   },
   "6832ac5936": {
-    "translation": "Introdueix la teva adreça electrònica"
+    "translation": "Introdueix el teu correu electrònic"
   },
   "694f82ed9d": {
     "translation": "Suprimeix l'espai de treball"
@@ -366,7 +381,7 @@
     "translation": "Aquesta setmana"
   },
   "71a29b007b": {
-    "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber!"
+    "translation": "Tens un error, un problema o una idea per a tldraw? Fes-nos-ho saber!"
   },
   "73ab799383": {
     "translation": "Aquesta versió de tldraw ja no és compatible."
@@ -375,7 +390,7 @@
     "translation": "Torneu a carregar la pàgina"
   },
   "747ee44424": {
-    "translation": "Deseu el contingut com a fitxer .tldr: seleccioneu \"Desa una còpia\" al menú superior esquerre."
+    "translation": "Desa el contingut com a fitxer .tldr: selecciona «Desar una còpia» al menú de dalt a l'esquerra."
   },
   "74ff4bad28": {
     "translation": "No s'han trobat fitxers"
@@ -407,11 +422,14 @@
   "7827371d1a": {
     "translation": "Aquest fitxer multijugador anònim de tldraw ara és de només lectura. Per continuar editant-lo, inicia la sessió i copia'l als teus fitxers."
   },
+  "7897a855d3": {
+    "translation": "Encara no hi ha cap biblioteca."
+  },
   "78e9815992": {
     "translation": "Ho entenc"
   },
   "797799f35e": {
-    "translation": "Envieu un problema a GitHub"
+    "translation": "Envia una incidència a GitHub"
   },
   "797c5be9a7": {
     "translation": "· En aquest fòrum ara"
@@ -432,13 +450,13 @@
     "translation": "Inicia la sessió per editar la configuració del perfil"
   },
   "7cb5f8b4a5": {
-    "translation": "Oblida't"
+    "translation": "Oblida"
   },
   "7d69b3cb4c": {
     "translation": "Arxivat"
   },
   "7daeced9ff": {
-    "translation": "Publicar els canvis"
+    "translation": "Publica els canvis"
   },
   "7fcdcc6455": {
     "translation": "Oblida el fitxer"
@@ -453,7 +471,7 @@
     "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber! Emplena aquest formulari i et contactarem per correu electrònic si cal. També pots <discord>xatejar amb nosaltres a Discord</discord> o <github>enviar un problema a GitHub</github>."
   },
   "81666c6e4a": {
-    "translation": "Esteu segur que voleu oblidar <strong>{fileName}</strong>?"
+    "translation": "Segur que vols oblidar <strong>{fileName}</strong>?"
   },
   "8413c683b4": {
     "translation": "Comentaris"
@@ -474,7 +492,7 @@
     "translation": "Ja ets membre d'aquest espai de treball"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> i {count, plural, one {# other} other {# others}} han reaccionat"
+    "translation": "<name>{author}</name> i {count, plural, one {# altre} other {# altres}} han reaccionat"
   },
   "88bf6ab42c": {
     "translation": "Aquest enllaç d'invitació ha caducat"
@@ -492,7 +510,7 @@
     "translation": "Sobre"
   },
   "8ff3d0a705": {
-    "translation": "Tarifa limitada"
+    "translation": "Límit de sol·licituds assolit"
   },
   "902b0d55fd": {
     "translation": "Error"
@@ -513,7 +531,7 @@
     "translation": "Inicia la sessió amb Google"
   },
   "95d2109dc8": {
-    "translation": "Compilar amb el SDK de tldraw"
+    "translation": "Crea amb l'SDK de tldraw"
   },
   "96165d6df5": {
     "translation": "Aquest mes"
@@ -524,8 +542,11 @@
   "985a4b720f": {
     "translation": "Condicions d'ús"
   },
+  "987453f3dd": {
+    "translation": "Prova el servidor MCP"
+  },
   "9914a0ce04": {
-    "translation": "Llum"
+    "translation": "Clar"
   },
   "9983381c21": {
     "translation": "Esborra la cerca"
@@ -534,7 +555,7 @@
     "translation": "Fitxer no desat"
   },
   "9b33f5c63c": {
-    "translation": "No has rebut cap codi? <resend>Torna a enviar</resend>."
+    "translation": "No has rebut cap codi? <resend>Torna a enviar-lo</resend>."
   },
   "9bef626805": {
     "translation": "Esborra el fitxer"
@@ -542,17 +563,23 @@
   "9c228b6834": {
     "translation": "Sembla que no tens connexió. Comprova la connexió i torna-ho a provar."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# element} other {# elements}}"
+  },
   "9ccb565b86": {
-    "translation": "Tenim problemes per connectar-nos al nostre servei d'autenticació. Això sol ser temporal. Si us plau, proveu d'actualitzar la pàgina."
+    "translation": "Tenim problemes per connectar amb el nostre servei d'autenticació. Normalment és temporal. Prova d'actualitzar la pàgina."
   },
   "9ceb927baa": {
     "translation": "Publica aquest fitxer"
+  },
+  "9d102330ee": {
+    "translation": "Vols suprimir <strong>{name}</strong> i {count, plural, one {el seu # element} other {els seus # elements}}?"
   },
   "9e076f5885": {
     "translation": "No s'ha trobat"
   },
   "9e93c98d88": {
-    "translation": "Desactivar"
+    "translation": "Rebutja"
   },
   "a078644c42": {
     "translation": "Has estat convidat a unir-te a <strong>{workspaceName}</strong>."
@@ -561,16 +588,16 @@
     "translation": "{count, plural, one {# sense llegir} other {# sense llegir}}"
   },
   "a104439641": {
-    "translation": "Encoixinat"
+    "translation": "Marge interior"
   },
   "a18366b217": {
     "translation": "Fosc"
   },
   "a1c915578c": {
-    "translation": "El fitxer que busqueu no existeix."
+    "translation": "El fitxer que cerques no existeix."
   },
   "a239905023": {
-    "translation": "Exportar imatge"
+    "translation": "Exporta la imatge"
   },
   "a274f4d467": {
     "translation": "Notificacions"
@@ -595,6 +622,9 @@
   },
   "a8873770ab": {
     "translation": "El fitxer s'està fent gran"
+  },
+  "a8c92ffd87": {
+    "translation": "Suprimeix la biblioteca"
   },
   "a9ded1e5ce": {
     "translation": "Fons"
@@ -625,7 +655,7 @@
     "translation": "<name>{author}</name> ha respost"
   },
   "b1c94ca2fb": {
-    "translation": "Tot"
+    "translation": "Totes"
   },
   "b2326c3a34": {
     "translation": "Regenera"
@@ -649,10 +679,10 @@
     "translation": "Inicia sessió"
   },
   "b6f4a2ec63": {
-    "translation": "propietari"
+    "translation": "Propietari"
   },
   "b74dbb40c5": {
-    "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O seleccioneu l'opció \"Importa fitxer\" al menú Fitxer a la part superior esquerra."
+    "translation": "Arrossegueu el fitxer a la barra lateral d'aquesta pàgina. O bé seleccioneu l'opció «Importa el fitxer» del menú «Fitxer» a la part superior esquerra."
   },
   "b758336699": {
     "translation": "Copia l'enllaç"
@@ -664,7 +694,7 @@
     "translation": "Les invitacions estan desactivades"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {S'està penjant el fitxer .tldr...} other {S'estan penjant {uploaded} de {total} fitxers .tldr...}}"
+    "translation": "{total, plural, one {S'està penjant el fitxer .tldr…} other {S'estan penjant {uploaded} de {total} fitxers .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Compartit per {ownerName}"
@@ -691,7 +721,7 @@
     "translation": "Galetes essencials"
   },
   "c6a00f137b": {
-    "translation": "Convidar"
+    "translation": "Convida"
   },
   "c6f16003f2": {
     "translation": "Copia al meu espai de treball"
@@ -727,13 +757,13 @@
     "translation": "Anul·la la publicació del fitxer"
   },
   "d3d2e61733": {
-    "translation": "Tancar"
+    "translation": "Tanca"
   },
   "d46632fe1f": {
     "translation": "Massa sol·licituds. Si us plau, afluixa."
   },
   "d4bbf74f3e": {
-    "translation": "Canvia la barra lateral"
+    "translation": "Mostra/amaga la barra lateral"
   },
   "d5e92609cf": {
     "translation": "Espais de treball"
@@ -754,16 +784,19 @@
     "translation": "Entra aquí per veure el contingut"
   },
   "dbbebf3c03": {
-    "translation": "Només convidar"
+    "translation": "Només amb invitació"
   },
   "dbf9b24193": {
-    "translation": "Sortir de l'espai de treball"
+    "translation": "Surt de l'espai de treball"
   },
   "dfdb78a4e4": {
-    "translation": "Banderes de depuració d'aplicacions"
+    "translation": "Indicadors de depuració de l'aplicació"
   },
   "e0aa021e21": {
     "translation": "D'acord"
+  },
+  "e1cbe6f097": {
+    "translation": "No s'ha pogut canviar la biblioteca"
   },
   "e2198d6228": {
     "translation": "Copia l'enllaç d'invitació"
@@ -778,13 +811,13 @@
     "translation": "o"
   },
   "ea13ecec38": {
-    "translation": "Historial de fitxers"
+    "translation": "Historial del fitxer"
   },
   "ea4788705e": {
     "translation": "Cancel·la"
   },
   "eb1e2b0542": {
-    "translation": "Demana'n un de nou al propietari de l'espai de treball."
+    "translation": "Demaneu-ne un de nou al propietari de l'espai de treball."
   },
   "ebfe9ce86e": {
     "translation": "Ahir"
@@ -799,10 +832,10 @@
     "translation": "No hi ha fitxers que coincideixin amb la teva cerca."
   },
   "ed75712b0e": {
-    "translation": "Duplicat"
+    "translation": "Duplica"
   },
   "ede55d955f": {
-    "translation": "Llegiu la nostra <a>política de cookies</a> per obtenir més informació."
+    "translation": "Llegiu la nostra <a>política de galetes</a> per obtenir més informació."
   },
   "edec9387f9": {
     "translation": "Aquest comentari ha estat suprimit."
@@ -821,6 +854,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Configuració de l'usuari"
+  },
+  "f129f24bec": {
+    "translation": "· No és en cap fitxer"
   },
   "f13001876b": {
     "translation": "Vista de llista"
@@ -844,13 +880,16 @@
     "translation": "Política de privacitat"
   },
   "fb15c53f22": {
-    "translation": "Visor"
+    "translation": "Lector"
   },
   "fc9d47046b": {
     "translation": "Esteu segur que voleu sortir d'aquest espai de treball?"
   },
   "fed5ec05eb": {
     "translation": "Enllaç copiat"
+  },
+  "feebd72b89": {
+    "translation": "Biblioteques públiques"
   },
   "ff2fefd3c6": {
     "translation": "Esteu segur que voleu eliminar {name} d'aquest espai de treball?"

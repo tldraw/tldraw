@@ -2,7 +2,7 @@
   "0095a9fa74": [
     {
       "type": 0,
-      "value": "Izvozi"
+      "value": "Izvoz"
     }
   ],
   "00b177e080": [
@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Povabi soigralce"
+      "value": "Povabi sodelavce"
     }
   ],
   "05b2656486": [
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Omejitev stopnje je presežena, poskusite znova pozneje."
+      "value": "Omejitev števila zahtevkov je presežena, poskusite znova pozneje."
     }
   ],
   "08bd40c754": [
@@ -170,7 +170,13 @@
   "12a6766ba1": [
     {
       "type": 0,
-      "value": "Odpri datoteko"
+      "value": "Odpni datoteko"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Ta delovni prostor je dosegel največje število knjižnic. Izbrišite stare knjižnice, preden ustvarite nove."
     }
   ],
   "13ddd375ad": [
@@ -227,6 +233,12 @@
       "value": "Delovni prostor mora imeti vsaj enega lastnika. Najprej za lastnika določite nekoga drugega."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Moja zbirka"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -257,6 +269,12 @@
     {
       "type": 0,
       "value": "O tldrawu"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Ta knjižnica je dosegla največje število elementov. Izbrišite stare elemente, preden dodate nove."
     }
   ],
   "28b2464e1f": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Oznaka manjka"
+      "value": "i18n: Označi manjkajoče"
     }
   ],
   "324a0f3182": [
@@ -348,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Podvojena datoteka"
+      "value": "Podvoji datoteko"
     }
   ],
   "335defdafe": [
@@ -423,6 +441,12 @@
       "value": "Barvna tema"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Meni knjižnice"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -438,7 +462,7 @@
   "44db318ee5": [
     {
       "type": 0,
-      "value": "Poiščite pomoč pri Discordu"
+      "value": "Poiščite pomoč na Discordu"
     }
   ],
   "454aad3b3c": [
@@ -535,6 +559,12 @@
       "value": " je komentiral"
     }
   ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Ta datoteka"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -562,7 +592,7 @@
   "51317dcad5": [
     {
       "type": 0,
-      "value": "To je vaš zasebni delovni prostor. Ustvarite nov delovni prostor, da povabite soigralce."
+      "value": "To je vaš zasebni delovni prostor. Ustvarite nov delovni prostor, da povabite sodelavce."
     }
   ],
   "517bb809d9": [
@@ -686,7 +716,7 @@
   "5d26ae7550": [
     {
       "type": 0,
-      "value": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
+      "value": "Nekaterih vsebin, ki ste jih ustvarili pred prijavo, nismo uspeli naložiti."
     }
   ],
   "5f3c333678": [
@@ -728,13 +758,13 @@
   "625fd29749": [
     {
       "type": 0,
-      "value": "Starejši"
+      "value": "Starejše"
     }
   ],
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "ti"
+      "value": "vi"
     }
   ],
   "63a6a88c06": [
@@ -769,10 +799,6 @@
   ],
   "68240daa8f": [
     {
-      "type": 0,
-      "value": "Odzvali so se "
-    },
-    {
       "children": [
         {
           "type": 1,
@@ -803,6 +829,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " drugi"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -810,7 +847,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " drug"
             }
           ]
         },
@@ -821,7 +858,18 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " drugih"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " druga"
             }
           ]
         }
@@ -829,6 +877,10 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " so reagirali"
     }
   ],
   "6832ac5936": [
@@ -853,15 +905,33 @@
     {
       "offset": 0,
       "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Nekdo se je odzval"
+            }
+          ]
+        },
         "few": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osebe so se odzvale"
+            }
           ]
         },
         "one": {
           "value": [
             {
+              "type": 7
+            },
+            {
               "type": 0,
-              "value": "Nekdo se je odzval"
+              "value": " oseba se je odzvala"
             }
           ]
         },
@@ -878,6 +948,13 @@
         },
         "two": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " osebi sta se odzvali"
+            }
           ]
         }
       },
@@ -1010,6 +1087,12 @@
       "value": "Ta anonimna datoteka za več igralcev tldraw je zdaj samo za branje. Če želite nadaljevati z urejanjem, se prijavite in jo kopirajte v svoje datoteke."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Še ni knjižnic."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1019,7 +1102,7 @@
   "797799f35e": [
     {
       "type": 0,
-      "value": "Predložite težavo na GitHub"
+      "value": "Prijavi težavo na GitHubu"
     }
   ],
   "797c5be9a7": [
@@ -1202,6 +1285,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " drugi"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1209,7 +1303,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " drug"
             }
           ]
         },
@@ -1220,7 +1314,18 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " drugih"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " druga"
             }
           ]
         }
@@ -1231,7 +1336,7 @@
     },
     {
       "type": 0,
-      "value": " sta se odzvala"
+      "value": " so reagirali"
     }
   ],
   "88bf6ab42c": [
@@ -1323,7 +1428,7 @@
   "95d2109dc8": [
     {
       "type": 0,
-      "value": "Zgradite s kompletom za razvoj programske opreme tldraw"
+      "value": "Gradi z SDK-jem tldraw"
     }
   ],
   "96165d6df5": [
@@ -1352,6 +1457,12 @@
     {
       "type": 0,
       "value": "Pogoji uporabe"
+    }
+  ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Preizkusi strežnik MCP"
     }
   ],
   "9914a0ce04": [
@@ -1404,6 +1515,60 @@
       "value": "Zdi se, da nimate povezave. Preverite povezavo in poskusite znova."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementi"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementov"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementa"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1413,7 +1578,83 @@
   "9ceb927baa": [
     {
       "type": 0,
-      "value": "Objavite to datoteko"
+      "value": "Objavi to datoteko"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Izbrisati "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " in "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemente"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementov"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementa"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1425,7 +1666,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Odjavi se"
+      "value": "Zavrni"
     }
   ],
   "a078644c42": [
@@ -1505,7 +1746,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Obroba"
+      "value": "Odmik"
     }
   ],
   "a18366b217": [
@@ -1553,7 +1794,7 @@
   "a52945dbe2": [
     {
       "type": 0,
-      "value": "Odidi"
+      "value": "Zapusti"
     }
   ],
   "a6cc403d56": [
@@ -1565,13 +1806,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "analitika"
+      "value": "Analitika"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Datoteka postaja velika"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Izbriši knjižnico"
     }
   ],
   "a9ded1e5ce": [
@@ -1726,6 +1973,14 @@
     {
       "offset": 0,
       "options": {
+        "=1": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Nalaganje datoteke .tldr…"
+            }
+          ]
+        },
         "few": {
           "value": [
             {
@@ -1746,7 +2001,7 @@
             },
             {
               "type": 0,
-              "value": " datotek .tldr …"
+              "value": " datotek .tldr…"
             }
           ]
         },
@@ -1754,7 +2009,23 @@
           "value": [
             {
               "type": 0,
-              "value": "Nalaganje datoteke .tldr …"
+              "value": "Nalaganje "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " od "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " datoteke .tldr…"
             }
           ]
         },
@@ -1778,7 +2049,7 @@
             },
             {
               "type": 0,
-              "value": " datotek .tldr …"
+              "value": " datotek .tldr…"
             }
           ]
         },
@@ -1802,7 +2073,7 @@
             },
             {
               "type": 0,
-              "value": " datotek .tldr …"
+              "value": " datotek .tldr…"
             }
           ]
         }
@@ -1815,7 +2086,7 @@
   "bc88b0e89e": [
     {
       "type": 0,
-      "value": "Delil "
+      "value": "Z vami je delil(a) "
     },
     {
       "type": 1,
@@ -2091,7 +2362,7 @@
   "dbf9b24193": [
     {
       "type": 0,
-      "value": "Zapustite delovni prostor"
+      "value": "Zapusti delovni prostor"
     }
   ],
   "dfdb78a4e4": [
@@ -2104,6 +2375,12 @@
     {
       "type": 0,
       "value": "V redu"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Knjižnice ni bilo mogoče spremeniti"
     }
   ],
   "e2198d6228": [
@@ -2133,7 +2410,7 @@
   "ea13ecec38": [
     {
       "type": 0,
-      "value": "Zgodovina datotek"
+      "value": "Zgodovina datoteke"
     }
   ],
   "ea4788705e": [
@@ -2145,7 +2422,7 @@
   "eb1e2b0542": [
     {
       "type": 0,
-      "value": "Prosite lastnika delovnega prostora za novega."
+      "value": "Prosite lastnika delovnega prostora za novo povezavo."
     }
   ],
   "ebfe9ce86e": [
@@ -2181,7 +2458,7 @@
   "ede55d955f": [
     {
       "type": 0,
-      "value": "Za več informacij preberite našo "
+      "value": "Za več informacij preberite naš "
     },
     {
       "children": [
@@ -2213,7 +2490,7 @@
   "ef7de3f485": [
     {
       "type": 0,
-      "value": "izbrano"
+      "value": "izbrana"
     }
   ],
   "f07e75296c": [
@@ -2232,6 +2509,12 @@
     {
       "type": 0,
       "value": "Uporabniške nastavitve"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Ni v nobeni datoteki"
     }
   ],
   "f13001876b": [
@@ -2312,6 +2595,12 @@
       "value": "Povezava kopirana"
     }
   ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Javne knjižnice"
+    }
+  ],
   "ff2fefd3c6": [
     {
       "type": 0,
@@ -2329,7 +2618,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
+      "value": "Ustvarite brezplačen račun, da shranite svoje datoteke in rišete s svojimi sodelavci v tldrawu."
     }
   ],
   "ffad261a48": [

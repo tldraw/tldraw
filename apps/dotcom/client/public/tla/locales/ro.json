@@ -27,7 +27,7 @@
     "translation": "Fișier fără titlu"
   },
   "08331c1710": {
-    "translation": "Limita ratei a fost depășită, încercați din nou mai târziu."
+    "translation": "Limita de solicitări a fost depășită, încearcă din nou mai târziu."
   },
   "08bd40c754": {
     "translation": "Cont"
@@ -39,10 +39,10 @@
     "translation": "Acest fișier a atins limita de dimensiune și este posibil ca modificările să nu mai fie salvate. Eliminați o parte din conținut sau începeți un fișier nou."
   },
   "0b27918290": {
-    "translation": "Fişier"
+    "translation": "Fișier"
   },
   "0b9a4cde72": {
-    "translation": "meniul Fișier"
+    "translation": "Meniul fișierului"
   },
   "0c4383617a": {
     "translation": "Ceva nu a funcționat la încărcarea acestei invitații. Vă rugăm să încercați din nou."
@@ -54,16 +54,19 @@
     "translation": "Marchează toate notificările ca citite"
   },
   "1063e38cb5": {
-    "translation": "Elimina"
+    "translation": "Eliminați"
   },
   "10fb1df194": {
     "translation": "Copiază în spațiul de lucru personal"
   },
   "110a4b01be": {
-    "translation": "Publica"
+    "translation": "Publică"
   },
   "12a6766ba1": {
     "translation": "Anulează fixarea fișierului"
+  },
+  "13cad4c2e8": {
+    "translation": "Acest spațiu de lucru a atins numărul maxim de biblioteci. Șterge bibliotecile vechi înainte de a crea altele noi."
   },
   "13ddd375ad": {
     "translation": "Exportați ca"
@@ -81,7 +84,7 @@
     "translation": "Creat de mine"
   },
   "1a7222b4e5": {
-    "translation": "Mută ​​la"
+    "translation": "Mută în"
   },
   "1da2e8106b": {
     "translation": "A apărut o eroare neașteptată."
@@ -92,20 +95,26 @@
   "1ffd709937": {
     "translation": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar. Mai întâi, setează pe altcineva drept proprietar."
   },
+  "20746febc9": {
+    "translation": "Colecția mea"
+  },
   "21f66c9c00": {
     "translation": "Numele spațiului de lucru"
   },
   "23dcace54a": {
-    "translation": "Ai fost invitat să te alături la <strong>{workspaceName}</strong>. Creează un cont gratuit pentru a continua."
+    "translation": "Ați primit o invitație să vă alăturați spațiului de lucru <strong>{workspaceName}</strong>. Creați un cont gratuit pentru a continua."
   },
   "250ddea65c": {
     "translation": "Despre tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Această bibliotecă a atins numărul maxim de elemente. Șterge elementele vechi înainte de a adăuga altele noi."
   },
   "28b2464e1f": {
     "translation": "Nu s-a putut trimite feedback"
   },
   "2944edaa8d": {
-    "translation": "În numele {name}"
+    "translation": "În numele lui {name}"
   },
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
@@ -135,13 +144,13 @@
     "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
   },
   "31418ce4ad": {
-    "translation": "i18n: Evidențiați Lipsă"
+    "translation": "i18n: Evidențiază elementele lipsă"
   },
   "324a0f3182": {
     "translation": "Înapoi la tldraw"
   },
   "32811caa8c": {
-    "translation": "Fișier duplicat"
+    "translation": "Duplică fișierul"
   },
   "335defdafe": {
     "translation": "Vă rugăm să încercați să reîmprospătați pagina."
@@ -179,6 +188,9 @@
   "402bf0c47e": {
     "translation": "Temă de culoare"
   },
+  "4236087d6b": {
+    "translation": "Meniul bibliotecii"
+  },
   "42e53c47c1": {
     "translation": "Contactați proprietarul pentru a solicita acces."
   },
@@ -189,13 +201,13 @@
     "translation": "Obțineți ajutor pe Discord"
   },
   "454aad3b3c": {
-    "translation": "Sigur vrei să ștergi <strong>{fileName}</strong>?"
+    "translation": "Sigur doriți să ștergeți <strong>{fileName}</strong>?"
   },
   "46137245cd": {
     "translation": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
   },
   "4630b65bb2": {
-    "translation": "Mută ​​fișierul în"
+    "translation": "Mutați fișierul în"
   },
   "46de2de6bb": {
     "translation": "Acceptați termenii de utilizare"
@@ -204,7 +216,7 @@
     "translation": "Pentru a continua editarea, vă rugăm să copiați fișierul în fișierele dvs."
   },
   "47f493a590": {
-    "translation": "Fișier fixat"
+    "translation": "Fixează fișierul"
   },
   "4970317944": {
     "translation": "Obiect"
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> a comentat"
+  },
+  "4c4a28e97a": {
+    "translation": "Acest fișier"
   },
   "4d0d3ddec9": {
     "translation": "Acest site folosește cookie-uri pentru a face aplicația să funcționeze și pentru a colecta date analitice."
@@ -246,7 +261,7 @@
     "translation": "Export…"
   },
   "53770fd374": {
-    "translation": "Necitit"
+    "translation": "Necitite"
   },
   "542248f0ba": {
     "translation": "Acest fișier este acum doar pentru citire"
@@ -258,7 +273,7 @@
     "translation": "Nu s-a putut restaura desenul local. Încercați să reîncărcați această pagină."
   },
   "554a05155c": {
-    "translation": "Mai ai probleme? <a>Raportați o problemă</a>"
+    "translation": "Mai aveți probleme? <a>Raportați o problemă</a>"
   },
   "55505ba281": {
     "translation": "PNG"
@@ -297,10 +312,10 @@
     "translation": "Feedback trimis"
   },
   "5fb63579fc": {
-    "translation": "Copie"
+    "translation": "Copiază"
   },
   "608e9d366e": {
-    "translation": "Ești la zi."
+    "translation": "Sunteți la zi."
   },
   "60a68c29d6": {
     "translation": "Conectați-vă pentru a comenta"
@@ -312,13 +327,13 @@
     "translation": "Recente"
   },
   "625fd29749": {
-    "translation": "Mai în vârstă"
+    "translation": "Mai vechi"
   },
   "639bae9ac6": {
     "translation": "tu"
   },
   "63a6a88c06": {
-    "translation": "Reîmprospăta"
+    "translation": "Reîmprospătează"
   },
   "6609dd239e": {
     "translation": "Ceva a mers prost"
@@ -333,10 +348,10 @@
     "translation": "Fișier nou"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> și {count, plural, one {# other} other {# others}} au reacționat"
+    "translation": "<name>{a}</name>, <name>{b}</name> și {count, plural, one {# altă persoană} few {# alte persoane} other {# de alte persoane}} au reacționat"
   },
   "6832ac5936": {
-    "translation": "Introdu adresa ta de e-mail"
+    "translation": "Introduceți adresa de e-mail"
   },
   "694f82ed9d": {
     "translation": "Șterge spațiul de lucru"
@@ -345,7 +360,7 @@
     "translation": "Conectați-vă pentru a salva"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, one {Cineva a reacționat} few {} other {# persoane au reacționat}}"
+    "translation": "{count, plural, one {Cineva a reacționat} few {# persoane au reacționat} other {# de persoane au reacționat}}"
   },
   "6a26f54883": {
     "translation": "Ajutor"
@@ -366,7 +381,7 @@
     "translation": "În această săptămână"
   },
   "71a29b007b": {
-    "translation": "Ai o eroare, o problemă sau o idee pentru tldraw? Anunță-ne!"
+    "translation": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne!"
   },
   "73ab799383": {
     "translation": "Această versiune de tldraw nu mai este acceptată."
@@ -375,7 +390,7 @@
     "translation": "Vă rugăm să reîncărcați pagina"
   },
   "747ee44424": {
-    "translation": "Salvați conținutul ca fișier .tldr: selectați „Salvați o copie” în meniul din stânga sus."
+    "translation": "Salvați conținutul ca fișier .tldr: selectați „Salvează o copie” din meniul din stânga sus."
   },
   "74ff4bad28": {
     "translation": "Nu s-au găsit fișiere"
@@ -384,7 +399,7 @@
     "translation": "Ați atins numărul maxim de fișiere. Trebuie să ștergeți fișierele vechi înainte de a crea altele noi."
   },
   "7542d62aac": {
-    "translation": "Marchează toate ca citite"
+    "translation": "Marcați toate ca citite"
   },
   "7573b8110a": {
     "translation": "Fără acces"
@@ -407,8 +422,11 @@
   "7827371d1a": {
     "translation": "Acest fișier multiplayer anonim tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să vă conectați și să îl copiați în fișierele dvs."
   },
+  "7897a855d3": {
+    "translation": "Încă nu există biblioteci."
+  },
   "78e9815992": {
-    "translation": "Am înţeles"
+    "translation": "Am înțeles"
   },
   "797799f35e": {
     "translation": "Trimiteți o problemă pe GitHub"
@@ -432,7 +450,7 @@
     "translation": "Conectați-vă pentru a edita setările profilului"
   },
   "7cb5f8b4a5": {
-    "translation": "Uita"
+    "translation": "Uitați"
   },
   "7d69b3cb4c": {
     "translation": "Arhivat"
@@ -474,7 +492,7 @@
     "translation": "Ești deja membru al acestui spațiu de lucru"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> și {count, plural, one {# other} other {# others}} au reacționat"
+    "translation": "<name>{author}</name> și {count, plural, one {# altă persoană} few {# alte persoane} other {# de alte persoane}} au reacționat"
   },
   "88bf6ab42c": {
     "translation": "Acest link de invitație a expirat"
@@ -486,13 +504,13 @@
     "translation": "Acasă"
   },
   "8eb2c00e96": {
-    "translation": "Împărtășită cu tine"
+    "translation": "Distribuit cu dvs."
   },
   "8f7f4c1ce7": {
     "translation": "Despre"
   },
   "8ff3d0a705": {
-    "translation": "Tarif limitat"
+    "translation": "Limită de solicitări depășită"
   },
   "902b0d55fd": {
     "translation": "Eroare"
@@ -524,11 +542,14 @@
   "985a4b720f": {
     "translation": "Termeni de utilizare"
   },
+  "987453f3dd": {
+    "translation": "Încercați serverul MCP"
+  },
   "9914a0ce04": {
-    "translation": "Aprinde"
+    "translation": "Luminos"
   },
   "9983381c21": {
-    "translation": "Șterge căutarea"
+    "translation": "Ștergeți căutarea"
   },
   "9ac3b80777": {
     "translation": "Fișier nesalvat"
@@ -542,29 +563,35 @@
   "9c228b6834": {
     "translation": "Se pare că ești offline. Verifică conexiunea și încearcă din nou."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# element} few {# elemente} other {# de elemente}}"
+  },
   "9ccb565b86": {
     "translation": "Întâmpinăm probleme la conectarea la serviciul nostru de autentificare. De obicei, aceasta este o problemă temporară. Vă rugăm să încercați să actualizați pagina."
   },
   "9ceb927baa": {
     "translation": "Publicați acest fișier"
   },
+  "9d102330ee": {
+    "translation": "Ștergeți <strong>{name}</strong> și {count, plural, one {# element} few {# elemente} other {# de elemente}} din ea?"
+  },
   "9e076f5885": {
     "translation": "Nu a fost găsit"
   },
   "9e93c98d88": {
-    "translation": "A renunța"
+    "translation": "Refuză"
   },
   "a078644c42": {
-    "translation": "Ai fost invitat(ă) să te alături la <strong>{workspaceName}</strong>."
+    "translation": "Ați primit o invitație să vă alăturați spațiului de lucru <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
     "translation": "{count, plural, one {# necitit} few {# necitite} other {# de necitite}}"
   },
   "a104439641": {
-    "translation": "Captuseala"
+    "translation": "Margine"
   },
   "a18366b217": {
-    "translation": "Întuneric"
+    "translation": "Întunecat"
   },
   "a1c915578c": {
     "translation": "Fișierul pe care îl căutați nu există."
@@ -579,7 +606,7 @@
     "translation": "Politica de cookie-uri"
   },
   "a4bef6414b": {
-    "translation": "Comutare bara laterală de comentarii"
+    "translation": "Comutați bara laterală a comentariilor"
   },
   "a4d3b161ce": {
     "translation": "Trimiteți"
@@ -591,10 +618,13 @@
     "translation": "Oricine are linkul"
   },
   "a768caa988": {
-    "translation": "Analytics"
+    "translation": "Analiză"
   },
   "a8873770ab": {
     "translation": "Fișierul devine mare"
+  },
+  "a8c92ffd87": {
+    "translation": "Șterge biblioteca"
   },
   "a9ded1e5ce": {
     "translation": "Fundal"
@@ -628,7 +658,7 @@
     "translation": "Toate"
   },
   "b2326c3a34": {
-    "translation": "Regenera"
+    "translation": "Regenerează"
   },
   "b2c3c2e30c": {
     "translation": "Fișierul este plin"
@@ -691,13 +721,13 @@
     "translation": "Cookie-uri esențiale"
   },
   "c6a00f137b": {
-    "translation": "Invita"
+    "translation": "Invită"
   },
   "c6f16003f2": {
     "translation": "Copiază în spațiul meu de lucru"
   },
   "c87aacf567": {
-    "translation": "Sign out"
+    "translation": "Deconectare"
   },
   "c8a59e7135": {
     "translation": "Închide"
@@ -727,7 +757,7 @@
     "translation": "Anulează publicarea fișierului"
   },
   "d3d2e61733": {
-    "translation": "Aproape"
+    "translation": "Închide"
   },
   "d46632fe1f": {
     "translation": "Prea multe solicitări. Vă rugăm să încetiniți."
@@ -745,13 +775,13 @@
     "translation": "Temă"
   },
   "d876a9fe1a": {
-    "translation": "Încearcă din nou"
+    "translation": "Încercați din nou"
   },
   "d88ad2dc74": {
     "translation": "Acceptați și continuați"
   },
   "d9100f3e10": {
-    "translation": "Intră aici pentru a vedea conținutul"
+    "translation": "Mergeți aici pentru a vedea conținutul"
   },
   "dbbebf3c03": {
     "translation": "Numai cu invitație"
@@ -764,6 +794,9 @@
   },
   "e0aa021e21": {
     "translation": "Bine"
+  },
+  "e1cbe6f097": {
+    "translation": "Nu s-a putut modifica biblioteca"
   },
   "e2198d6228": {
     "translation": "Copiați linkul de invitație"
@@ -778,10 +811,10 @@
     "translation": "sau"
   },
   "ea13ecec38": {
-    "translation": "Istoricul fișierelor"
+    "translation": "Istoricul fișierului"
   },
   "ea4788705e": {
-    "translation": "Anula"
+    "translation": "Anulați"
   },
   "eb1e2b0542": {
     "translation": "Cereți proprietarului spațiului de lucru unul nou."
@@ -793,13 +826,13 @@
     "translation": "Acest fișier a atins numărul maxim de colaboratori activi."
   },
   "ec611e9a08": {
-    "translation": "meniul cont"
+    "translation": "Meniul contului"
   },
   "ed6241a422": {
     "translation": "Niciun fișier nu corespunde căutării dvs."
   },
   "ed75712b0e": {
-    "translation": "Duplicat"
+    "translation": "Duplică"
   },
   "ede55d955f": {
     "translation": "Citiți <a>politica noastră privind cookie-urile</a> pentru a afla mai multe."
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "Setări utilizator"
   },
+  "f129f24bec": {
+    "translation": "· Nu e în niciun fișier"
+  },
   "f13001876b": {
     "translation": "Vizualizare listă"
   },
@@ -829,7 +865,7 @@
     "translation": "Folosim aceste cookie-uri pentru a salva fișierele și setările dumneavoastră."
   },
   "f2a6c498fb": {
-    "translation": "Şterge"
+    "translation": "Ștergeți"
   },
   "f408fa5fbd": {
     "translation": "Acest link de invitație este invalid sau a expirat."
@@ -851,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Link copiat"
+  },
+  "feebd72b89": {
+    "translation": "Biblioteci publice"
   },
   "ff2fefd3c6": {
     "translation": "Sigur vrei să elimini {name} din acest spațiu de lucru?"
