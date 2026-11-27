@@ -46,14 +46,15 @@ function registerChecks(editor: Editor, user: string) {
 		return { ...shape, meta: { ...shape.meta, owner: user } }
 	})
 
-	function canChangeSelection() {
-		if (!editor.getSelectedShapes().every((shape) => canChange(shape, user))) {
+	function canChangeShapes(data?: { shapes: TLShape[] }) {
+		const shapes = data?.shapes ?? editor.getSelectedShapes()
+		if (!shapes.every((shape) => canChange(shape, user))) {
 			return { reason: 'You can only change your own shapes' }
 		}
 		return null
 	}
-	editor.registerCapabilityCheck('edit-shape', canChangeSelection)
-	editor.registerCapabilityCheck('delete-shape', canChangeSelection)
+	editor.registerCapabilityCheck('edit-shapes', canChangeShapes)
+	editor.registerCapabilityCheck('delete-shapes', canChangeShapes)
 }
 
 // Two editors on one page: only the one that you click gets keyboard shortcuts.
@@ -95,9 +96,12 @@ function UserEditor({ user }: { user: string }) {
 
 function Status({ editor }: { editor: Editor }) {
 	// [3]
-	const status = useValue('status', () => editor.checkCapability('edit-shape')?.reason ?? '', [
-		editor,
-	])
+	const status = useValue(
+		'status',
+		() =>
+			editor.checkCapability('edit-shapes', { shapes: editor.getSelectedShapes() })?.reason ?? '',
+		[editor]
+	)
 	return <span>{status}</span>
 }
 
@@ -190,8 +194,8 @@ own changes, not on changes that sync in from the other user. Return nothing to 
 
 [2]
 A side effect stamps the owner on each shape that this user creates. Side effects also run for
-changes that sync in, so check the source. The capability checks read the selection from
-the editor: a capability carries no data.
+changes that sync in, so check the source. The default UI passes the shapes that an action
+changes. A caller can leave the data out, so the checks fall back to the selection.
 
 [3]
 `checkCapability` is reactive. It returns `null` when allowed, or the rejection.
