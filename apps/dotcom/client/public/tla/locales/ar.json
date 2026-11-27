@@ -348,7 +348,7 @@
     "translation": "ملف جديد"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> و {count, plural, one {# other} other {# others}} reacted"
+    "translation": "تفاعل <name>{a}</name> و<name>{b}</name> و{count, plural, zero {# شخص آخر} one {شخص آخر} two {شخصان آخران} few {# أشخاص آخرون} many {# شخصًا آخر} other {# شخص آخر}}"
   },
   "6832ac5936": {
     "translation": "أدخل عنوان بريدك الإلكتروني"
@@ -492,7 +492,7 @@
     "translation": "أنت بالفعل عضو في مساحة العمل هذه"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> و {count, plural, one {# other} other {# others}} تفاعلوا"
+    "translation": "تفاعل <name>{author}</name> و{count, plural, zero {# شخص آخر} one {شخص آخر} two {شخصان آخران} few {# أشخاص آخرون} many {# شخصًا آخر} other {# شخص آخر}}"
   },
   "88bf6ab42c": {
     "translation": "انتهت صلاحية رابط الدعوة هذا"

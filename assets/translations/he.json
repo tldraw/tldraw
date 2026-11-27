@@ -430,6 +430,7 @@
 	"libraries.select-to-add": "בחרו צורות כדי להוסיף אותן",
 	"libraries.sheet.close": "סגירת הספריות",
 	"libraries.sheet.resize": "שינוי גודל חלונית הספריות",
+	"libraries.this-file.add": "הוספה",
 	"libraries.this-file.empty": "עדיין לא נוספו ספריות.",
 	"libraries.this-file.suggested": "ספריות מוצעות",
 	"libraries.title": "ספריות",

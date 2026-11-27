@@ -379,6 +379,7 @@
 	"libraries.empty": "لا توجد مكتبات بعد.",
 	"libraries.empty-library": "لا توجد عناصر بعد.",
 	"libraries.item-details.created": "تاريخ الإنشاء",
+	"libraries.item-details.created-by": "أنشأه",
 	"libraries.item-details.library": "المكتبة",
 	"libraries.item-details.name": "الاسم",
 	"libraries.item-details.saved-on": "{date, date, medium}",
