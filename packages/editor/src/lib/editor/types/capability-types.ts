@@ -1,4 +1,4 @@
-import { TLCreateShapePartial, TLPage, TLShape } from '@tldraw/tlschema'
+import { TLComment, TLCreateShapePartial, TLPage, TLShape } from '@tldraw/tlschema'
 
 /**
  * The capabilities that the UI asks about before it offers an action, with the data each one can
@@ -15,6 +15,9 @@ export interface TLCapabilities {
 	'create-page': null
 	'edit-page': { page: TLPage }
 	'delete-page': { page: TLPage }
+	'create-comment': null
+	'edit-comment': { comment: TLComment }
+	'delete-comment': { comment: TLComment }
 }
 
 /** @public */

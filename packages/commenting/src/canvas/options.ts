@@ -293,13 +293,15 @@ function permits(option: string, check: () => boolean): boolean {
 
 /**
  * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
- * (defaulting to `currentUserId != null` when unset). A callback that throws denies.
+ * (defaulting to `currentUserId != null` when unset). A callback that throws denies. The editor's
+ * `create-comment` capability must also be allowed.
  *
  * This is a plain, untracked read — in React, use {@link useCanComment} instead.
  *
  * @public
  */
 export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
+	if (editor.checkCapability('create-comment')) return false
 	const { canComment } = getCommentingOptions(editor)
 	if (!canComment) return currentUserId != null
 	return permits('canComment', () => canComment({ editor, currentUserId: currentUserId ?? null }))
@@ -339,7 +341,8 @@ export function defaultCanModifyComment(ctx: CommentModificationContext): boolea
 /**
  * Whether the viewer may make a given write against a given record, per
  * {@link CommentingOptions.canModifyComment} (defaulting to {@link defaultCanModifyComment} when
- * unset). Where this is false the affordance isn't rendered.
+ * unset). Where this is false the affordance isn't rendered. The editor's `edit-comment`
+ * capability must also be allowed for an edit, and `delete-comment` for a delete.
  *
  * This is the per-record rule alone: the built-in UI additionally requires
  * {@link CommentingOptions.canComment}, since a viewer who may not participate gets no action
@@ -355,6 +358,11 @@ export function getCanModifyComment(
 	currentUserId: string | null | undefined,
 	modification: CommentModification
 ): boolean {
+	if (modification.action === 'delete-thread') {
+		if (editor.checkCapability('delete-comment')) return false
+	} else if (editor.checkCapability(modification.action, { comment: modification.comment })) {
+		return false
+	}
 	const { canModifyComment } = getCommentingOptions(editor)
 	const ctx: CommentModificationContext = {
 		editor,

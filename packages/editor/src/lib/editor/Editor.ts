@@ -358,6 +358,16 @@ const AXIS = {
 	vertical: { val: 'y', min: 'minY', max: 'maxY', dim: 'height' },
 } as const
 
+// A readonly editor can't change these. Commenting in a readonly editor is allowed.
+const DOCUMENT_CAPABILITIES: ReadonlySet<TLCapability> = new Set<TLCapability>([
+	'create-shapes',
+	'edit-shapes',
+	'delete-shapes',
+	'create-page',
+	'edit-page',
+	'delete-page',
+])
+
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	readonly id = uniqueId()
@@ -1079,8 +1089,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Ask the checks registered for a capability, or for each of several. A readonly editor rejects
-	 * every capability. A capability with no registered check is allowed. Reactive.
+	 * Ask the checks registered for a capability. A readonly editor rejects
+	 * the shape and page capabilities. Other capabilities, such as the ones that commenting adds,
+	 * follow only their checks. A capability with no registered check is allowed. Reactive.
 	 *
 	 * @example
 	 * ```ts
@@ -1099,7 +1110,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		capability: C,
 		data?: TLCapabilities[C]
 	): TLCheckRejection | null {
-		if (this.getIsReadonly()) {
+		if (this.getIsReadonly() && DOCUMENT_CAPABILITIES.has(capability)) {
 			return { reason: 'readonly' }
 		}
 		for (const handler of this._capabilityChecks.get().get(capability) ?? EMPTY_ARRAY) {

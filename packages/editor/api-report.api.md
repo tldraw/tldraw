@@ -62,6 +62,7 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCheckDiff } from '@tldraw/tlschema';
 import { TLCheckRejection } from '@tldraw/tlschema';
 import { TLCheckResult } from '@tldraw/tlschema';
+import { TLComment } from '@tldraw/tlschema';
 import { TLCreateShapePartial } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
@@ -3628,9 +3629,15 @@ export interface TLCanvasComponentProps {
 // @public
 export interface TLCapabilities {
     // (undocumented)
+    'create-comment': null;
+    // (undocumented)
     'create-page': null;
     'create-shapes': {
         shapes: TLCreateShapePartial[];
+    };
+    // (undocumented)
+    'delete-comment': {
+        comment: TLComment;
     };
     // (undocumented)
     'delete-page': {
@@ -3639,6 +3646,10 @@ export interface TLCapabilities {
     // (undocumented)
     'delete-shapes': {
         shapes: TLShape[];
+    };
+    // (undocumented)
+    'edit-comment': {
+        comment: TLComment;
     };
     // (undocumented)
     'edit-page': {

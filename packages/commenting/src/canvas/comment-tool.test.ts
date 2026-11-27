@@ -207,13 +207,22 @@ describe('commentToolOverrides', () => {
 		driver.pointerDown(400, 300).pointerUp(400, 300)
 		driver.pointerMove(600, 500)
 		getCommentTool().onSelect('context-menu')
-		expect(editor.isIn('select.idle')).toBe(true)
+		expect(editor.getCurrentToolId()).toBe('select')
 		expect(pendingComment.get(editor)?.point).toEqual({ x: 400, y: 300 })
 	})
 
 	it('only enters the tool from other sources', () => {
 		getCommentTool().onSelect('quick-actions')
 		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(pendingComment.get(editor)).toBeNull()
+	})
+
+	it('does nothing while the editor rejects create-comment', () => {
+		editor.setCurrentTool('select')
+		editor.registerCapabilityCheck('create-comment', () => false)
+		getCommentTool().onSelect('kbd')
+		getCommentTool().onSelect('context-menu')
+		expect(editor.getCurrentToolId()).toBe('select')
 		expect(pendingComment.get(editor)).toBeNull()
 	})
 })

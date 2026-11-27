@@ -1,4 +1,11 @@
-import { createComment, createCommentThread, toRichText, type Editor, type TLPageId } from 'tldraw'
+import {
+	createComment,
+	createCommentThread,
+	toRichText,
+	type Editor,
+	type TLCapability,
+	type TLPageId,
+} from 'tldraw'
 import { describe, expect, it, vi } from 'vitest'
 import { commitCommentMutation } from './comment-mutations'
 import { CommentTool } from './comment-tool'
@@ -61,10 +68,12 @@ describe('CommentTool.configure', () => {
 
 // A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
 // getStateDescendant, and commitCommentMutation forwards to run().
-function stubEditor(options: CommentingOptions) {
+function stubEditor(options: CommentingOptions, rejected: TLCapability[] = []) {
 	const runCalls: Array<{ history: unknown }> = []
 	const editor = {
 		getStateDescendant: () => ({ options }),
+		checkCapability: (capability: TLCapability) =>
+			rejected.includes(capability) ? { reason: 'no' } : null,
 		run: (fn: () => void, opts: { history: unknown }) => {
 			runCalls.push(opts)
 			fn()
@@ -123,6 +132,13 @@ describe('getCanComment', () => {
 			{ editor, currentUserId: 'alice' },
 			{ editor, currentUserId: 'bob' },
 		])
+	})
+
+	it('denies when the editor rejects create-comment, whatever the callback says', () => {
+		const { editor } = stubEditor({ ...defaultCommentingOptions, canComment: () => true }, [
+			'create-comment',
+		])
+		expect(getCanComment(editor, 'alice')).toBe(false)
 	})
 
 	it('lets the callback fully replace the signed-in default', () => {
@@ -225,6 +241,33 @@ describe('getCanModifyComment', () => {
 		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(true)
 		// Everyone else still gets nothing.
 		expect(getCanModifyComment(editor, 'bob', { action: 'delete-comment', comment })).toBe(false)
+	})
+
+	it('denies when the editor rejects the matching capability', () => {
+		const comment = makeComment('alice')
+		const thread = makeThread('alice')
+		const noEdit = stubEditor(defaultCommentingOptions, ['edit-comment']).editor
+		expect(getCanModifyComment(noEdit, 'alice', { action: 'edit-comment', comment })).toBe(false)
+		expect(getCanModifyComment(noEdit, 'alice', { action: 'delete-comment', comment })).toBe(true)
+		const noDelete = stubEditor(defaultCommentingOptions, ['delete-comment']).editor
+		expect(getCanModifyComment(noDelete, 'alice', { action: 'edit-comment', comment })).toBe(true)
+		expect(getCanModifyComment(noDelete, 'alice', { action: 'delete-comment', comment })).toBe(
+			false
+		)
+		expect(getCanModifyComment(noDelete, 'alice', { action: 'delete-thread', thread })).toBe(false)
+	})
+
+	it('passes the comment to the capability check', () => {
+		const comment = makeComment('alice')
+		const { editor } = stubEditor(defaultCommentingOptions)
+		const checkCapability = vi.fn(() => null)
+		Object.assign(editor, { checkCapability })
+		getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })
+		getCanModifyComment(editor, 'alice', { action: 'delete-comment', comment })
+		expect(checkCapability.mock.calls).toEqual([
+			['edit-comment', { comment }],
+			['delete-comment', { comment }],
+		])
 	})
 
 	it('lets a callback narrow the default', () => {
