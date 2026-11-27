@@ -118,7 +118,8 @@ describe('When binding an arrow to a shape', () => {
 	it('does not bind to the shape when dragged into margin', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
-		editor.pointerMove(99, 50)
+		// box1's stroke reaches 1.75 past its edge at x=100
+		editor.pointerMove(98, 50)
 		expect(bindings().start).toBeUndefined()
 		expect(bindings().end).toBeUndefined()
 	})
@@ -315,7 +316,7 @@ describe('When shapes are overlapping', () => {
 		editor.pointerMove(160, 90) // box3 is smaller and at the front and we're in box1 and box 3 and box 2
 		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.sendToBack([ids.box3])
-		editor.pointerMove(149, 90) // box3 is smaller, even when at the back
+		editor.pointerMove(147, 90) // box3 is smaller, even when at the back (clear of box2's stroke)
 		expect(bindings().end).toMatchObject({ toId: ids.box3 })
 		editor.pointerMove(175, 60) // inside of box1 and box 2, but box 1 is smaller
 		expect(bindings().end).toMatchObject({ toId: ids.box1 })

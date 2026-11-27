@@ -125,11 +125,12 @@ export class Erasing extends StateNode {
 
 			// If the line segment is entirely above / below / left / right of the shape's bounding box, skip the hit test
 			const { bounds } = geometry
+			const reach = Math.max(minDist, geometry.hitPadding)
 			if (
-				bounds.minX - minDist > Math.max(A.x, B.x) ||
-				bounds.minY - minDist > Math.max(A.y, B.y) ||
-				bounds.maxX + minDist < Math.min(A.x, B.x) ||
-				bounds.maxY + minDist < Math.min(A.y, B.y)
+				bounds.minX - reach > Math.max(A.x, B.x) ||
+				bounds.minY - reach > Math.max(A.y, B.y) ||
+				bounds.maxX + reach < Math.min(A.x, B.x) ||
+				bounds.maxY + reach < Math.min(A.y, B.y)
 			) {
 				continue
 			}

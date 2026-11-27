@@ -25,6 +25,11 @@ import { Vec, VecLike } from '../Vec'
 export interface Geometry2dFilters {
 	readonly includeLabels?: boolean
 	readonly includeInternal?: boolean
+	/**
+	 * Whether hit tests include {@link Geometry2d.hitPadding}. Defaults to true. Pass `false` for
+	 * exact outline checks, like whether a point is inside a shape.
+	 */
+	readonly includeHitPadding?: boolean
 }
 
 /** @public */
@@ -57,6 +62,37 @@ export interface TransformedGeometry2dOptions {
 export interface Geometry2dOptions extends TransformedGeometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean
+	/**
+	 * How far the visible stroke reaches past the geometry, in its own units. Usually half the
+	 * stroke width. Hit tests reach `max(margin, hitPadding)`. Defaults to 0.
+	 */
+	hitPadding?: number
+}
+
+/**
+ * Hit test reach: the margin, or the padding if it's larger. Never the sum.
+ *
+ * @internal
+ */
+export function getHitReach(
+	geometry: Geometry2d,
+	margin: number,
+	filters?: Geometry2dFilters
+): number {
+	if (filters?.includeHitPadding === false) return margin
+	return Math.max(margin, geometry.hitPadding)
+}
+
+function dist2ToSegment(P: VecLike, A: VecLike, B: VecLike): number {
+	const dx = B.x - A.x
+	const dy = B.y - A.y
+	const len2 = dx * dx + dy * dy
+	let t = len2 === 0 ? 0 : ((P.x - A.x) * dx + (P.y - A.y) * dy) / len2
+	if (t < 0) t = 0
+	else if (t > 1) t = 1
+	const ex = P.x - (A.x + dx * t)
+	const ey = P.y - (A.y + dy * t)
+	return ex * ex + ey * ey
 }
 
 /** @public */
@@ -68,6 +104,11 @@ export abstract class Geometry2d {
 	isEmptyLabel = false
 	isInternal = false
 	excludeFromShapeBounds = false
+	/**
+	 * How far the visible ink reaches past the geometry, in its own units. See
+	 * {@link Geometry2dOptions.hitPadding}.
+	 */
+	hitPadding = 0
 	debugColor?: string
 	ignore?: boolean
 
@@ -86,6 +127,7 @@ export abstract class Geometry2d {
 		this.isEmptyLabel = isEmptyLabel
 		this.isInternal = isInternal
 		this.excludeFromShapeBounds = excludeFromShapeBounds
+		this.hitPadding = opts.hitPadding ?? 0
 	}
 
 	isExcludedByFilter(filters?: Geometry2dFilters) {
@@ -99,13 +141,13 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: VecLike, _filters?: Geometry2dFilters): Vec
 
-	hitTestPoint(point: VecLike, margin = 0, hitInside = false, _filters?: Geometry2dFilters) {
+	hitTestPoint(point: VecLike, margin = 0, hitInside = false, filters?: Geometry2dFilters) {
 		// First check whether the point is inside
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return true
 		}
-		// Then check whether the distance is within the margin
-		return Vec.Dist2(point, this.nearestPoint(point)) <= margin * margin
+		const reach = getHitReach(this, margin, filters)
+		return Vec.Dist2(point, this.nearestPoint(point)) <= reach * reach
 	}
 
 	distanceToPoint(point: VecLike, hitInside = false, filters?: Geometry2dFilters) {
@@ -122,21 +164,32 @@ export abstract class Geometry2d {
 		const { vertices } = this
 		if (vertices.length === 0) throw Error('nearest point not found')
 		if (vertices.length === 1) return Vec.Dist(A, vertices[0])
-		let nearest: Vec | undefined
+		// The nearest point on AB, used to tell whether AB lies inside a filled shape
+		let nearest: VecLike | undefined
 		let dist = Infinity
-		let d: number, p: Vec, q: Vec
+		let d: number, p: Vec
 		const nextLimit = this.isClosed ? vertices.length : vertices.length - 1
 		for (let i = 0; i < vertices.length; i++) {
 			p = vertices[i]
 			if (i < nextLimit) {
 				const next = vertices[(i + 1) % vertices.length]
 				if (linesIntersect(A, B, p, next)) return 0
+				// Measuring only from the vertices misses a drag that runs alongside a long edge
+				d = dist2ToSegment(A, p, next)
+				if (d < dist) {
+					dist = d
+					nearest = A
+				}
+				d = dist2ToSegment(B, p, next)
+				if (d < dist) {
+					dist = d
+					nearest = B
+				}
 			}
-			q = Vec.NearestPointOnLineSegment(A, B, p, true)
-			d = Vec.Dist2(p, q)
+			d = dist2ToSegment(p, A, B)
 			if (d < dist) {
 				dist = d
-				nearest = q
+				nearest = Vec.NearestPointOnLineSegment(A, B, p, true)
 			}
 		}
 		if (!nearest) throw Error('nearest point not found')
@@ -145,7 +198,7 @@ export abstract class Geometry2d {
 	}
 
 	hitTestLineSegment(A: VecLike, B: VecLike, distance = 0, filters?: Geometry2dFilters): boolean {
-		return this.distanceToLineSegment(A, B, filters) <= distance
+		return this.distanceToLineSegment(A, B, filters) <= getHitReach(this, distance, filters)
 	}
 
 	intersectLineSegment(A: VecLike, B: VecLike, _filters?: Geometry2dFilters): VecLike[] {
@@ -450,6 +503,8 @@ export class TransformedGeometry2d extends Geometry2d {
 		super(geometry)
 		this.inverse = Mat.Inverse(matrix)
 		this.decomposed = Mat.Decompose(matrix)
+		// For callers in transformed space. Hit tests delegate to the wrapped geometry.
+		this.hitPadding = geometry.hitPadding * Math.abs(this.decomposed.scaleX)
 
 		if (opts) {
 			if (opts.isLabel != null) this.isLabel = opts.isLabel

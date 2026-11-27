@@ -85,6 +85,10 @@ export interface TldrawOptions {
 	readonly collaboratorIdleTimeoutMs: number
 	readonly collaboratorCheckIntervalMs: number
 	readonly cameraMovingTimeoutMs: number
+	/**
+	 * The minimum hit distance in screen pixels. Strokes thicker than this are hittable up to their
+	 * visible edge (see {@link Geometry2dOptions.hitPadding}).
+	 */
 	readonly hitTestMargin: number
 	readonly coarseHitTestMargin: number
 	readonly edgeScrollDelay: number

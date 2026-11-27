@@ -3,7 +3,7 @@ import { PI, PI2, clamp, perimeterOfEllipse, pointInPolygon } from '../utils'
 import { Vec, VecLike } from '../Vec'
 import { Edge2d } from './Edge2d'
 import { getVerticesCountForArcLength } from './geometry-constants'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
@@ -102,8 +102,14 @@ export class Ellipse2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		return this.edges.some((edge) => edge.hitTestLineSegment(A, B))
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
+		const reach = getHitReach(this, distance, filters)
+		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, reach))
 	}
 
 	getBounds() {

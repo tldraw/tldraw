@@ -269,12 +269,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)!
 
 		const debugGeom: Geometry2d[] = []
+		// dash none draws no stroke, so there is no ink to hit
+		const hitPadding =
+			shape.props.dash === 'none'
+				? 0
+				: (getDisplayValues(this, shape).strokeWidth * shape.props.scale) / 2
 
 		const bodyGeom =
 			info.type === 'straight'
 				? new Edge2d({
 						start: Vec.From(info.start.point),
 						end: Vec.From(info.end.point),
+						hitPadding,
 					})
 				: info.type === 'arc'
 					? new Arc2d({
@@ -283,8 +289,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							end: Vec.Cast(info.end.point),
 							sweepFlag: info.bodyArc.sweepFlag,
 							largeArcFlag: info.bodyArc.largeArcFlag,
+							hitPadding,
 						})
-					: new Polyline2d({ points: info.route.points })
+					: new Polyline2d({ points: info.route.points, hitPadding })
 
 		let labelGeom
 		if (info.isValid && (isEditing || !isEmptyRichText(shape.props.richText))) {

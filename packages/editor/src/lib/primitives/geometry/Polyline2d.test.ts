@@ -142,13 +142,6 @@ describe('Polyline2d.hitTestLineSegment', () => {
 		expect(polyline().hitTestLineSegment(new Vec(100, -10), new Vec(120, -10), 10)).toBe(true)
 		expect(polyline().hitTestLineSegment(new Vec(100, -10), new Vec(120, -10), 9)).toBe(false)
 	})
-
-	// Locks in current behaviour, see #10556.
-	it('measures the distance from the vertices, not the edges (known quirk)', () => {
-		// the segment is 10 units from the middle of the top edge but 41 from the nearest vertex
-		expect(polyline().hitTestLineSegment(new Vec(40, 10), new Vec(60, 10), 10)).toBe(false)
-		expect(polyline().hitTestLineSegment(new Vec(40, 10), new Vec(60, 10), 42)).toBe(true)
-	})
 })
 
 describe('Polyline2d.intersectLineSegment', () => {

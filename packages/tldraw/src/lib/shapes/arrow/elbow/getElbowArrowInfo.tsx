@@ -691,6 +691,12 @@ function convertTerminalToPoint(terminal: ElbowArrowTerminal): ElbowArrowTermina
  * Make sure the first path segments goes fully into the target, and doesn't just point to its
  * bounding box. This modifies the route in-place.
  */
+// Routing needs the exact outline, not the stroke
+const EXACT_OUTLINE_FILTERS: Geometry2dFilters = {
+	...Geometry2dFilters.EXCLUDE_NON_STANDARD,
+	includeHitPadding: false,
+}
+
 function castPathSegmentIntoGeometry(
 	segment: 'first' | 'last',
 	target: ElbowArrowTargetBox,
@@ -721,7 +727,7 @@ function castPathSegmentIntoGeometry(
 				target.target,
 				Math.max(1, target.arrowheadOffset),
 				true,
-				Geometry2dFilters.EXCLUDE_NON_STANDARD
+				EXACT_OUTLINE_FILTERS
 			)
 		) {
 			intersections.push(target.target)
@@ -757,10 +763,7 @@ function castPathSegmentIntoGeometry(
 		if (!target.isExact && offset !== 0) {
 			const nudged = Vec.Nudge(nearestIntersectionToPoint2, point2, offset)
 			nudgedPoint = nudged
-			if (
-				offset < 0 &&
-				!target.geometry.hitTestPoint(nudged, 0, true, Geometry2dFilters.EXCLUDE_NON_STANDARD)
-			) {
+			if (offset < 0 && !target.geometry.hitTestPoint(nudged, 0, true, EXACT_OUTLINE_FILTERS)) {
 				// point has been nudged _out_ of the shape so lets not actually apply the nudge
 				nudgedPoint = nearestIntersectionToPoint2
 			} else {

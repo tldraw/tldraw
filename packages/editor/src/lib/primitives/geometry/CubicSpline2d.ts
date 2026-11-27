@@ -1,6 +1,6 @@
 import { Vec, VecLike } from '../Vec'
 import { CubicBezier2d } from './CubicBezier2d'
-import { Geometry2d, Geometry2dOptions } from './Geometry2d'
+import { Geometry2d, Geometry2dFilters, Geometry2dOptions, getHitReach } from './Geometry2d'
 
 /** @public */
 export class CubicSpline2d extends Geometry2d {
@@ -85,8 +85,14 @@ export class CubicSpline2d extends Geometry2d {
 		return minDist
 	}
 
-	hitTestLineSegment(A: VecLike, B: VecLike): boolean {
-		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
+	override hitTestLineSegment(
+		A: VecLike,
+		B: VecLike,
+		distance = 0,
+		filters?: Geometry2dFilters
+	): boolean {
+		const reach = getHitReach(this, distance, filters)
+		return this.segments.some((segment) => segment.hitTestLineSegment(A, B, reach))
 	}
 
 	getSvgPathData() {
