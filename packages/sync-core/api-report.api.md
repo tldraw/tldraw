@@ -46,7 +46,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void): () => void;
     onStatusChange(cb: TLSocketStatusListener): () => void;
     // (undocumented)
-    readonly _reconnectManager: ReconnectManager;
+    _reconnectManager: ReconnectManager;
     restart(): void;
     sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void;
     // (undocumented)

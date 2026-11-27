@@ -41,6 +41,22 @@ async function waitFor(predicate: () => boolean) {
 	}
 }
 
+// Fires every automatic reconnect hint, then gives any attempt they (or a pending backoff timer)
+// scheduled enough real time to reach the server.
+async function fireReconnectHintsAndFlush(adapter: ClientWebSocketAdapter) {
+	vi.advanceTimersByTime(ACTIVE_MAX_DELAY * 10)
+	window.dispatchEvent(new Event('online'))
+	document.dispatchEvent(new Event('visibilitychange'))
+	adapter._reconnectManager.maybeReconnected()
+	vi.runAllTimers()
+	vi.useRealTimers()
+	try {
+		await sleep(100)
+	} finally {
+		vi.useFakeTimers()
+	}
+}
+
 // A minimal fake socket that satisfies the parts of the WebSocket interface
 // that ClientWebSocketAdapter._setNewSocket touches.
 function mockSocket(readyState: number = WebSocket.CONNECTING) {
@@ -186,6 +202,26 @@ describe('ClientWebSocketAdapter', () => {
 			expect(adapter.connectionStatus).toBe('error')
 		})
 
+		it('[CW3] stops reconnecting after the server closes with code 4099', async () => {
+			const onStatusChange = vi.fn()
+			adapter.onStatusChange(onStatusChange)
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			expect(connectMock).toHaveBeenCalledTimes(1)
+
+			connectedServerSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
+			await waitFor(() => adapter.connectionStatus === 'error')
+
+			await fireReconnectHintsAndFlush(adapter)
+
+			expect(connectMock).toHaveBeenCalledTimes(1)
+			expect(adapter._ws).toBeNull()
+			expect(adapter.connectionStatus).toBe('error')
+			expect(onStatusChange.mock.calls).toEqual([
+				[{ status: 'online' }],
+				[{ status: 'error', reason: TLSyncErrorCloseEventReason.NOT_FOUND }],
+			])
+		})
+
 		it('[CW3] a close with code 4099 and an empty reason reports UNKNOWN_ERROR', async () => {
 			const onStatusChange = vi.fn()
 			adapter.onStatusChange(onStatusChange)
@@ -284,6 +320,44 @@ describe('ClientWebSocketAdapter', () => {
 
 			expect(onStatusChange).not.toHaveBeenCalled()
 			expect(adapter.connectionStatus).toBe('offline')
+		})
+
+		it('[CW3][CW4] a suppressed error close still stops reconnecting', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			// an onerror moves the status to offline before the same socket's 4099 close arrives
+			adapter._ws!.onerror?.({} as any)
+			expect(adapter.connectionStatus).toBe('offline')
+
+			adapter._ws!.onclose?.({
+				code: TLSyncErrorCloseEventCode,
+				reason: TLSyncErrorCloseEventReason.NOT_FOUND,
+			} satisfies Partial<CloseEvent> as any)
+
+			expect(adapter._ws).toBeNull()
+			await fireReconnectHintsAndFlush(adapter)
+			expect(connectMock).toHaveBeenCalledTimes(1)
+			expect(adapter._ws).toBeNull()
+		})
+
+		it('[CW3] tears down before notifying, so a throwing status listener cannot skip it', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			const ws = adapter._ws!
+			adapter.onStatusChange((status) => {
+				if (status.status === 'error') throw new Error('listener failed')
+			})
+
+			expect(() =>
+				adapter.sendMessage({
+					...connectMessage(),
+					largeData: 'x'.repeat(MAX_ASSEMBLED_MESSAGE_CHARS),
+				} as any)
+			).toThrow('listener failed')
+
+			expect(adapter._ws).toBeNull()
+			await waitFor(() => ws.readyState === WebSocket.CLOSED)
+			await fireReconnectHintsAndFlush(adapter)
+			expect(connectMock).toHaveBeenCalledTimes(1)
+			expect(adapter.connectionStatus).toBe('error')
 		})
 
 		it('[CW5] a close with code 1006 on a socket that never opened logs a one-time warning', async () => {
@@ -427,6 +501,30 @@ describe('ClientWebSocketAdapter', () => {
 			})
 		})
 
+		it('[CW6] closes the socket and stops reconnecting after refusing a too-large message', async () => {
+			const onStatusChange = vi.fn()
+			adapter.onStatusChange(onStatusChange)
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			const ws = adapter._ws!
+
+			adapter.sendMessage({
+				...connectMessage(),
+				largeData: 'x'.repeat(MAX_ASSEMBLED_MESSAGE_CHARS),
+			} as any)
+
+			expect(adapter._ws).toBeNull()
+			await waitFor(() => ws.readyState === WebSocket.CLOSED)
+			await fireReconnectHintsAndFlush(adapter)
+
+			expect(connectMock).toHaveBeenCalledTimes(1)
+			expect(adapter._ws).toBeNull()
+			expect(adapter.connectionStatus).toBe('error')
+			expect(onStatusChange.mock.calls).toEqual([
+				[{ status: 'online' }],
+				[{ status: 'error', reason: TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE }],
+			])
+		})
+
 		it('[CW6] silently drops the message when there is no socket', async () => {
 			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 
@@ -532,6 +630,44 @@ describe('ClientWebSocketAdapter', () => {
 			expect(onStatusChange.mock.calls[0][0]).toEqual({ status: 'offline' })
 			expect(onStatusChange.mock.calls[1][0]).toEqual({ status: 'online' })
 			expect(adapter._ws).not.toBe(prevWs)
+		})
+
+		it('[CW3][CW8] restart after a fatal error re-arms reconnection and reconnects', async () => {
+			// only one adapter may connect, so the server socket and connection count are its own
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			adapter.close()
+			connectMock.mockClear()
+
+			let token = 'stale'
+			const retryingAdapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}?t=${token}`)
+			try {
+				const onStatusChange = vi.fn()
+				retryingAdapter.onStatusChange(onStatusChange)
+				await waitFor(() => retryingAdapter._ws?.readyState === WebSocket.OPEN)
+				connectedServerSocket.close(
+					TLSyncErrorCloseEventCode,
+					TLSyncErrorCloseEventReason.FORBIDDEN
+				)
+				await waitFor(() => retryingAdapter.connectionStatus === 'error')
+
+				token = 'fresh'
+				retryingAdapter.restart()
+				await waitFor(() => retryingAdapter._ws?.readyState === WebSocket.OPEN)
+
+				expect(connectMock).toHaveBeenCalledTimes(2)
+				expect(retryingAdapter._ws!.url).toBe(`ws://localhost:${port}/?t=fresh`)
+				expect(onStatusChange.mock.calls).toEqual([
+					[{ status: 'online' }],
+					[{ status: 'error', reason: TLSyncErrorCloseEventReason.FORBIDDEN }],
+					[{ status: 'online' }],
+				])
+
+				// the re-armed adapter reconnects after an ordinary drop again
+				connectedServerSocket.terminate()
+				await waitFor(() => connectMock.mock.calls.length === 3)
+			} finally {
+				retryingAdapter.close()
+			}
 		})
 	})
 
