@@ -21,7 +21,7 @@ import {
 	getSelfLoopEdgeLayout,
 	type ParsedDiagramLayout,
 } from './svgParsing'
-import { dropDanglingEdges, getRouteArcBend, orderTopDown } from './utils'
+import { dropDanglingEdges, FRAME_TOP_PAD, getRouteArcBend, orderTopDown } from './utils'
 
 function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowheadStyle {
 	if (type?.includes('circle')) return 'dot'
@@ -50,7 +50,6 @@ interface FlowSubGraph {
 	title: string
 }
 
-const FRAME_TOP_PAD = 14
 function buildHierarchy(subGraphs: FlowSubGraph[]) {
 	const subGraphIds = new Set(subGraphs.map((subGraph) => subGraph.id))
 	const nodeToSubGraph = new Map<string, string>()

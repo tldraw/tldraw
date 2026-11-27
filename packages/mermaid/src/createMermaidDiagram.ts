@@ -1,6 +1,7 @@
-import type { FlowchartModel, MindmapModel, SequenceModel, StateModel } from 'pele'
+import type { ClassModel, FlowchartModel, MindmapModel, SequenceModel, StateModel } from 'pele'
 import { Editor } from 'tldraw'
 import type { DiagramMermaidBlueprint } from './blueprint'
+import { classToBlueprint, parseClassDiagramLayout } from './classDiagram'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import {
 	createArrowLabelLongestWordMeasurer,
@@ -59,7 +60,7 @@ export interface MermaidDiagramOptions {
 
 /**
  * Parse Mermaid text and create tldraw shapes for supported diagram types (flowchart, state,
- * sequence and mindmap). Other diagram types are rendered to SVG and handed to
+ * sequence, mindmap and class). Other diagram types are rendered to SVG and handed to
  * `onUnsupportedDiagram`, or rejected when it isn't given.
  * Throws {@link MermaidDiagramError} if parsing fails.
  * @public
@@ -124,6 +125,15 @@ export async function createMermaidDiagram(
 						state.classes,
 						createArrowLabelLongestWordMeasurer(editor)
 					)
+				)
+				break
+			}
+			case 'class': {
+				const classModel = model as ClassModel
+				blueprint = await withMountedPeleSvg(
+					text,
+					layoutOptions(arrowLabelRoom(classModel.direction)),
+					(root) => classToBlueprint(parseClassDiagramLayout(root, classModel), classModel)
 				)
 				break
 			}
