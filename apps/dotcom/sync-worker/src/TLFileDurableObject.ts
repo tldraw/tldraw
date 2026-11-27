@@ -94,6 +94,7 @@ import { fileSyncSchema } from './fileSchema'
 import { Logger } from './Logger'
 import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
 import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
+import { StoredImage, planMcpImage } from './mcpImage'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -111,7 +112,12 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { CommentTarget, CommentWriteRefusal, getBoardUsers } from './routes/tla/boardTools'
+import {
+	AddImageRefusal,
+	CommentTarget,
+	CommentWriteRefusal,
+	getBoardUsers,
+} from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -3891,6 +3897,98 @@ export class TLFileDurableObject extends DurableObject {
 				)
 				.toArray().length > 0
 		return { ...written, queued }
+	}
+
+	/**
+	 * Puts a stored image on a page, for the MCP server's add_image. A storage write like
+	 * writeMcpComment's, so it works with nobody on the board, and tabs that are on it see the image
+	 * arrive.
+	 */
+	async writeMcpImage({
+		fileId,
+		userId,
+		image,
+		pageId,
+		position,
+		w,
+		altText,
+	}: {
+		fileId: string
+		userId: string
+		image: StoredImage
+		pageId: string | null
+		position: { x: number; y: number } | null
+		w: number | null
+		altText: string | null
+	}): Promise<
+		| {
+				ok: true
+				shapeId: string
+				pageId: string
+				pageName: string
+				x: number
+				y: number
+				w: number
+				h: number
+		  }
+		| ({ ok: false } & AddImageRefusal)
+	> {
+		if (this._documentInfo) {
+			const info = this._documentInfo
+			if (info.deleted || !info.isApp || info.slug !== fileId) {
+				return { ok: false, reason: 'not_found' }
+			}
+		}
+
+		const fileWithRole = this._documentInfo
+			? await this.getAppFileRecordWithRole(userId)
+			: await getFileRecordWithRole(this.db, fileId, userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) return { ok: false, reason: 'not_found' }
+		const { file, role } = fileWithRole
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
+			return { ok: false, reason: 'not_found' }
+		}
+		const access = getFileRoomAccess(file, role)
+		if (access === 'none') return { ok: false, reason: 'not_found' }
+		if (access === 'read') return { ok: false, reason: 'image_forbidden' }
+
+		// As appFileRecordCreated does for an object that has never been opened.
+		if (!this._documentInfo) {
+			this._fileRecordCache = file
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
+		}
+
+		let storage: TLSyncStorage<TLRecord>
+		try {
+			// See writeMcpComment: connected tabs only hear of a write a running room broadcasts.
+			if (this.state.getWebSockets().length > 0) await this.getRoom()
+			storage = await this.getStorage()
+		} catch (error) {
+			if (error instanceof RoomNotFoundError) return { ok: false, reason: 'board_empty' }
+			throw error
+		}
+
+		const planned = storage.transaction((txn) => {
+			const plan = planMcpImage({
+				records: txn.values(),
+				fileId: file.id,
+				userId,
+				image,
+				pageId,
+				position,
+				w,
+				altText,
+				now: Date.now(),
+			})
+			if (plan.ok) {
+				for (const record of plan.records) txn.set(record.id, record as TLRecord)
+			}
+			return plan
+		}).result
+		if (!planned.ok) return planned
+
+		const { records: _records, ...written } = planned
+		return written
 	}
 
 	// Created on first use: most boards never see an agent.
