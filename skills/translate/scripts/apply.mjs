@@ -100,13 +100,17 @@ function mergeGlossaries(root, glossary) {
  * out. Unresolved, low-confidence and invalid entries change no text, and are left pending in the
  * ledger (approval withdrawn if they had one), so the next run picks them up.
  *
- * `acceptLow` writes low-confidence text that passes validation but still doesn't record it, so
- * the entry stays unverified: for a missing translation or a known-broken one, an unsure fix beats
- * shipping English or the broken text. Low-confidence retains change nothing and stay held back.
+ * `acceptLow` ('none', 'missing' or 'all') writes low-confidence text that passes validation but
+ * doesn't record it, so the entry stays unverified: for a missing translation (shown in English
+ * otherwise) or a known-broken one, an unsure fix beats what ships. Low-confidence retains change
+ * nothing and stay held back.
  *
  * `validate` defaults to the repo's `pnpm i18n-validate --entries`.
  */
-export function apply(root, dispositions, { validate = validateWithRepo, acceptLow = false } = {}) {
+export function apply(root, dispositions, { validate = validateWithRepo, acceptLow = 'none' } = {}) {
+	if (!['none', 'missing', 'all'].includes(acceptLow)) {
+		throw new Error(`acceptLow must be none, missing or all: ${acceptLow}`)
+	}
 	const entries = dispositions?.entries
 	if (!Array.isArray(entries)) throw new Error('Expected { entries: [...] }')
 	const supported = read(resolve(root, 'assets/translations/languages.json')).map((l) => l.locale)
@@ -129,7 +133,10 @@ export function apply(root, dispositions, { validate = validateWithRepo, acceptL
 		}
 	}
 
-	const writesLow = (e) => acceptLow && e.confidence === 'low' && e.text !== undefined
+	const writesLow = (e) =>
+		e.confidence === 'low' &&
+		e.text !== undefined &&
+		(acceptLow === 'all' || (acceptLow === 'missing' && current.get(idOf(e)).reason === 'missing'))
 	const usable = (e) => e.decision !== 'unresolved' && (e.confidence === 'high' || writesLow(e))
 	// Retained text is checked too: a reviewer can keep a translation that is already broken.
 	const proposed = entries
@@ -233,7 +240,7 @@ export function apply(root, dispositions, { validate = validateWithRepo, acceptL
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 	const args = process.argv.slice(2)
-	const acceptLow = args.includes('--accept-low')
+	const acceptLow = args.includes('--accept-low') ? 'all' : 'none'
 	const [file, flag, unresolvedPath, ...rest] = args.filter((arg) => arg !== '--accept-low')
 	try {
 		if (!file || rest.length || (flag && (flag !== '--unresolved' || !unresolvedPath))) {

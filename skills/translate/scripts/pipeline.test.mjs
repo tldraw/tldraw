@@ -102,11 +102,32 @@ test('apply with acceptLow writes low-confidence text but leaves it unverified',
 				disposition({ key: 'cut', decision: 'revise', text: 'Cortar!', confidence: 'low' }),
 			],
 		},
-		{ validate: () => ({ 'sdk:es:cut': ['bad'] }), acceptLow: true }
+		{ validate: () => ({ 'sdk:es:cut': ['bad'] }), acceptLow: 'all' }
 	)
 	assert.deepEqual(
 		{ ...result, unresolved: result.unresolved.map((u) => u.key) },
 		{ applied: 1, retained: 0, writtenUnverified: 1, unresolved: ['copy', 'cut'] }
+	)
+	assert.equal(readJson('assets/translations/es.json').paste, 'Pegar')
+	assert.equal(readJson('assets/translations/es.json').cut, 'Cortar')
+	assert.equal(plan(root, ['es']).counts.current, 0)
+})
+
+test("apply with acceptLow 'missing' fills missing text but won't replace existing text", (t) => {
+	const { root, readJson } = fixture(t)
+	const result = apply(
+		root,
+		{
+			entries: [
+				disposition({ key: 'paste', decision: 'accept', text: 'Pegar', confidence: 'low' }),
+				disposition({ key: 'cut', decision: 'revise', text: 'Recortar', confidence: 'low' }),
+			],
+		},
+		{ ...valid, acceptLow: 'missing' }
+	)
+	assert.deepEqual(
+		{ ...result, unresolved: result.unresolved.map((u) => u.key) },
+		{ applied: 1, retained: 0, writtenUnverified: 1, unresolved: ['cut'] }
 	)
 	assert.equal(readJson('assets/translations/es.json').paste, 'Pegar')
 	assert.equal(readJson('assets/translations/es.json').cut, 'Cortar')

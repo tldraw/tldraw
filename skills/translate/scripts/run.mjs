@@ -486,13 +486,15 @@ export async function run(
 	writeFileSync(join(out, 'summary.json'), JSON.stringify({ ...summary, budget: costs() }, null, 2) + '\n')
 	const result = { entries: dispositions, glossary: glossaryUpdates }
 	writeFileSync(join(out, 'dispositions.json'), JSON.stringify(result, null, 2) + '\n')
-	const applied = apply(root, result, validate ? { validate } : undefined)
+	// A missing translation shows in English, so unsure text beats none; it stays unverified.
+	const applied = apply(root, result, { acceptLow: 'missing', ...(validate ? { validate } : {}) })
 	writeFileSync(join(out, 'unresolved.json'), JSON.stringify(applied.unresolved, null, 2) + '\n')
 
 	const decided = new Set(dispositions.map(idOf))
 	Object.assign(summary, {
 		applied: applied.applied,
 		retained: applied.retained,
+		writtenUnverified: applied.writtenUnverified,
 		unresolved: applied.unresolved.length,
 		// Entries with no decision at all: a failed call or the budget ran out. They stay pending.
 		undecided: work.filter((e) => !decided.has(idOf(e))).length,
@@ -520,7 +522,7 @@ function summaryMarkdown(summary, unresolved) {
 	const lines = [
 		`Mode: ${summary.mode}. Locales: ${Array.isArray(summary.locales) ? summary.locales.join(', ') : summary.locales}.`,
 		'',
-		`${summary.pending} entries: ${summary.applied} written, ${summary.retained} kept as they were, ${summary.unresolved} held back, ${summary.undecided} not reached.`,
+		`${summary.pending} entries: ${summary.applied} written (${summary.writtenUnverified} of them missing translations filled at low confidence, left unverified), ${summary.retained} kept as they were, ${summary.unresolved} held back, ${summary.undecided} not reached.`,
 		'',
 		`Cost: $${summary.budget.spent} of a $${summary.budget.limit} budget (${Object.entries(summary.budget.byPhase)
 			.map(([phase, usd]) => `${phase} $${usd.toFixed(2)}`)

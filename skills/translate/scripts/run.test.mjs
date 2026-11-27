@@ -34,7 +34,7 @@ process.stdin.on('data', (d) => (stdin += d)).on('end', () => {
 	} else {
 		output = { entries: each((m, locale, l) => m.key === 'paste' && locale === 'pl'
 			? { project: m.project, locale, key: m.key, decision: 'revise', text: 'Wklej', confidence: 'high', reason: 'Imperative' }
-			: { project: m.project, locale, key: m.key, decision: 'accept', confidence: 'high' }) }
+			: { project: m.project, locale, key: m.key, decision: 'accept', confidence: m.project === 'dotcom' && locale === 'pl' ? 'low' : 'high' }) }
 	}
 	process.stdout.write(JSON.stringify({ is_error: false, total_cost_usd: 0.01, structured_output: output }))
 })
@@ -93,9 +93,11 @@ test('run triages, generates blind, reviews and applies, holding back low confid
 		cut: 'Cut-pl',
 		paste: 'Wklej',
 	})
+	// Missing, so written although the reviewer was unsure; it stays unverified.
 	assert.deepEqual(read('apps/dotcom/client/public/tla/locales/pl.json'), {
 		abc: { translation: 'Open-pl' },
 	})
+	assert.equal(plan(root, ['pl']).entries.find((e) => e.key === 'abc').reason, 'unverified')
 	assert.deepEqual(read('internal/i18n/glossary/es.json'), {
 		register: '',
 		terms: [{ term: 'Copy', translation: 'Copiar' }],
@@ -105,12 +107,21 @@ test('run triages, generates blind, reviews and applies, holding back low confid
 		{
 			pending: summary.pending,
 			applied: summary.applied,
+			writtenUnverified: summary.writtenUnverified,
 			retained: summary.retained,
 			unresolved: summary.unresolved,
 			undecided: summary.undecided,
 			spent: summary.budget.spent,
 		},
-		{ pending: 8, applied: 5, retained: 2, unresolved: 1, undecided: 0, spent: 0.04 }
+		{
+			pending: 8,
+			applied: 5,
+			writtenUnverified: 1,
+			retained: 2,
+			unresolved: 1,
+			undecided: 0,
+			spent: 0.04,
+		}
 	)
 	assert.equal(plan(root, ['pl']).entries.find((e) => e.key === 'copy').reason, 'unverified')
 	assert.match(readFileSync(join(out, 'summary.md'), 'utf8'), /sdk:pl:copy/)
