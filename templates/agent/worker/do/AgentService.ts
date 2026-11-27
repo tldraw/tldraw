@@ -1,27 +1,24 @@
-import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
-import {
-	createGoogleGenerativeAI,
-	GoogleGenerativeAIProvider,
-	GoogleGenerativeAIProviderOptions,
-} from '@ai-sdk/google'
-import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
+import { createAnthropic } from '@ai-sdk/anthropic'
+import { createGoogle, GoogleLanguageModelOptions } from '@ai-sdk/google'
+import { createOpenAI, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import {
 	createOpenRouter,
 	OpenRouterProvider,
 	OpenRouterProviderOptions,
 } from '@openrouter/ai-sdk-provider'
 import {
+	createProviderRegistry,
 	JSONParseError,
 	LanguageModel,
-	ModelMessage,
 	NoSuchToolError,
+	parsePartialJson,
 	streamText,
 	tool,
 	ToolSet,
 	TypeValidationError,
 } from 'ai'
 import z from 'zod'
-import { AgentModelDefinition, getAgentModelDefinition } from '../../shared/models'
+import { AGENT_MODELS, AgentModelName, AgentModelOptions } from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { ActionMeta, AgentAction, getActionSchemaForMode } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -30,27 +27,37 @@ import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
-import { closeAndParseJson } from './closeAndParseJson'
+
+/** Resolves a model name, such as `anthropic/claude-sonnet-5`, to its provider's model. */
+function createProviders(env: Environment) {
+	return createProviderRegistry(
+		{
+			anthropic: createAnthropic({ apiKey: env.ANTHROPIC_API_KEY }),
+			google: createGoogle({ apiKey: env.GOOGLE_API_KEY }),
+			openai: createOpenAI({ apiKey: env.OPENAI_API_KEY }),
+		},
+		{ separator: '/' }
+	)
+}
 
 export class AgentService {
-	openai: OpenAIProvider
-	anthropic: AnthropicProvider
-	google: GoogleGenerativeAIProvider
+	providers: ReturnType<typeof createProviders>
 	// With an OpenRouter key, every model goes through OpenRouter and the provider keys are not used.
 	openrouter: OpenRouterProvider | null
 
 	constructor(env: Environment) {
-		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
-		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
-		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
+		this.providers = createProviders(env)
 		this.openrouter = env.OPENROUTER_API_KEY
 			? createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })
 			: null
 	}
 
-	getModel(definition: AgentModelDefinition): LanguageModel {
-		if (this.openrouter) return this.openrouter(definition.openRouterId)
-		return this[definition.provider](definition.id)
+	getModel(name: AgentModelName): LanguageModel {
+		if (this.openrouter) {
+			const options: AgentModelOptions = AGENT_MODELS[name]
+			return this.openrouter(options.openRouterId ?? name)
+		}
+		return this.providers.languageModel(name)
 	}
 
 	/**
@@ -76,34 +83,10 @@ export class AgentService {
 		finish: { toolCalls: number }
 	): AsyncGenerator<Streaming<AgentAction>> {
 		const modelName = getModelName(prompt)
-		const modelDefinition = getAgentModelDefinition(modelName)
-		const model = this.getModel(modelDefinition)
+		const modelOptions: AgentModelOptions = AGENT_MODELS[modelName]
+		const model = this.getModel(modelName)
 		const systemPrompt = buildSystemPrompt(prompt)
-
-		// Build messages with provider-specific options
-		const messages: ModelMessage[] = []
-
-		// Add system prompt with Anthropic caching if applicable
-		if (modelDefinition.provider === 'anthropic') {
-			// Anthropic requires explicit cache breakpoints. We set one at the end of the
-			// system prompt to cache all system content (which generally changes together).
-			messages.push({
-				role: 'system',
-				content: systemPrompt,
-				providerOptions: {
-					anthropic: { cacheControl: { type: 'ephemeral' } },
-				},
-			})
-		} else {
-			messages.push({
-				role: 'system',
-				content: systemPrompt,
-			})
-		}
-
-		// Add prompt messages
 		const promptMessages = buildMessages(prompt)
-		messages.push(...promptMessages)
 
 		// Check for debug flags and log if enabled
 		const debugPart = prompt.debug as DebugPart | undefined
@@ -118,17 +101,24 @@ export class AgentService {
 
 		const result = streamText({
 			model,
-			messages,
+			instructions: {
+				role: 'system',
+				content: systemPrompt,
+				// Anthropic caches only up to an explicit breakpoint. One at the end of the system prompt
+				// caches all of it. Only Claude gets it: OpenRouter sends the mark to any model.
+				providerOptions: modelName.startsWith('anthropic/')
+					? { anthropic: { cacheControl: { type: 'ephemeral' } } }
+					: undefined,
+			},
+			messages: promptMessages,
 			// The client carries out each tool call and sends the results in its next request.
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
 			maxOutputTokens: 8192,
-			// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
-			// thinks; sending it returns a 400.
-			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
+			reasoning: modelOptions.reasoning,
 			providerOptions: this.openrouter
-				? getOpenRouterProviderOptions(modelDefinition)
-				: getProviderOptions(modelDefinition),
+				? getOpenRouterProviderOptions(modelOptions)
+				: PROVIDER_OPTIONS,
 			onAbort() {
 				console.warn('Stream actions aborted')
 			},
@@ -166,7 +156,7 @@ export class AgentService {
 
 		// Read fullStream, not textStream: textStream drops error parts, so a failure partway through
 		// a response would end the stream silently.
-		for await (const part of result.fullStream) {
+		for await (const part of result.stream) {
 			if (part.type === 'error') throw part.error
 
 			switch (part.type) {
@@ -226,9 +216,9 @@ export class AgentService {
 				case 'tool-input-delta': {
 					if (open?.input === undefined) break
 					open.input += part.delta
-					const partialInput = closeAndParseJson(open.input)
-					if (!partialInput) break
-					open.action = { ...partialInput, _type: open.action._type } as AgentAction
+					const { value } = await parsePartialJson(open.input)
+					if (typeof value !== 'object' || value === null || Array.isArray(value)) break
+					open.action = { ...value, _type: open.action._type } as AgentAction
 					yield { ...open.action, complete: false, time: Date.now() - open.startTime }
 					break
 				}
@@ -327,73 +317,22 @@ function buildActionTools(prompt: AgentPrompt): ToolSet {
 type StreamTextProviderOptions = NonNullable<Parameters<typeof streamText>[0]['providerOptions']>
 
 /**
- * Map a model definition's reasoning preferences to AI SDK provider options.
- * Only the matching provider's options are set; the SDK ignores the rest.
+ * Stream reasoning summaries, which reach the client as think actions. Each provider reads only its
+ * own options.
  */
-function getProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
-	switch (definition.provider) {
-		case 'anthropic':
-			return {
-				anthropic: {
-					thinking:
-						definition.thinking === 'adaptive'
-							? { type: 'adaptive' }
-							: definition.thinking === 'disabled'
-								? { type: 'disabled' }
-								: { type: 'enabled', budgetTokens: definition.thinking.budgetTokens },
-					...(definition.effort ? { effort: definition.effort } : {}),
-				} satisfies AnthropicProviderOptions,
-			}
-		case 'google':
-			return {
-				google: {
-					// Stream thought summaries, which reach the client as think actions.
-					thinkingConfig: { thinkingLevel: definition.thinkingLevel, includeThoughts: true },
-				} satisfies GoogleGenerativeAIProviderOptions,
-			}
-		case 'openai':
-			return {
-				openai: {
-					...(definition.reasoningEffort ? { reasoningEffort: definition.reasoningEffort } : {}),
-					// Stream reasoning summaries, which reach the client as think actions.
-					reasoningSummary: 'auto',
-				} satisfies OpenAIResponsesProviderOptions,
-			}
-	}
+const PROVIDER_OPTIONS: StreamTextProviderOptions = {
+	google: { thinkingConfig: { includeThoughts: true } } satisfies GoogleLanguageModelOptions,
+	openai: { reasoningSummary: 'auto' } satisfies OpenAIResponsesProviderOptions,
 }
 
 /**
- * OpenRouter takes one reasoning effort for every model, or a token budget for a model that thinks
- * with one. Its effort has three levels, so `minimal` sends `low`, and `xhigh` and `max` send `high`.
- * A model with no effort uses OpenRouter's default.
+ * The OpenRouter provider does not read the AI SDK's `reasoning` option, so the effort goes in its
+ * own options. OpenRouter has no `max` level, so `max` sends `xhigh`.
  */
-function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
-	const effort =
-		definition.provider === 'anthropic'
-			? definition.thinking === 'adaptive'
-				? definition.effort
-				: undefined
-			: definition.provider === 'google'
-				? definition.thinkingLevel
-				: definition.reasoningEffort
-	const reasoningOff =
-		definition.provider === 'anthropic' ? definition.thinking === 'disabled' : effort === 'none'
-	const reasoning: OpenRouterProviderOptions['reasoning'] = reasoningOff
-		? // OpenRouter's type needs an effort even when reasoning is off.
-			{ enabled: false, effort: 'low' }
-		: definition.provider === 'anthropic' && typeof definition.thinking === 'object'
-			? { max_tokens: definition.thinking.budgetTokens }
-			: effort && effort !== 'none'
-				? { effort: OPENROUTER_EFFORT[effort] }
-				: undefined
-	return { openrouter: reasoning ? { reasoning } : {} }
+function getOpenRouterProviderOptions({ reasoning }: AgentModelOptions): StreamTextProviderOptions {
+	if (!reasoning) return {}
+	const effort = reasoning === 'max' ? 'xhigh' : reasoning
+	return {
+		openrouter: { reasoning: { effort } } satisfies OpenRouterProviderOptions,
+	}
 }
-
-const OPENROUTER_EFFORT = {
-	minimal: 'low',
-	low: 'low',
-	medium: 'medium',
-	high: 'high',
-	xhigh: 'high',
-	max: 'high',
-} as const

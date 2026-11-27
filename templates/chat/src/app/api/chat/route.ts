@@ -1,5 +1,11 @@
 import { google } from '@ai-sdk/google'
-import { convertToModelMessages, streamText, UIMessage } from 'ai'
+import {
+	convertToModelMessages,
+	createUIMessageStreamResponse,
+	streamText,
+	toUIMessageStream,
+	UIMessage,
+} from 'ai'
 
 // Allow streaming responses up to 60 seconds
 export const maxDuration = 60
@@ -9,7 +15,7 @@ export async function POST(req: Request) {
 
 	const result = streamText({
 		model: google('gemini-3.8-flash'),
-		system: [
+		instructions: [
 			"You're a friendly AI chatbot.",
 			'The user can send you images, sketches and diagrams using your built-in tldraw whiteboard.',
 			'You cannot create or edit whiteboards yourself.',
@@ -19,8 +25,8 @@ export async function POST(req: Request) {
 			'You can use markdown in your responses.',
 			'Keep your responses short and concise.',
 		].join(' '),
-		messages: convertToModelMessages(messages),
+		messages: await convertToModelMessages(messages),
 	})
 
-	return result.toUIMessageStreamResponse()
+	return createUIMessageStreamResponse({ stream: toUIMessageStream({ stream: result.stream }) })
 }
