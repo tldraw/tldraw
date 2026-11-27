@@ -1,3 +1,4 @@
+import { TLCreateShapePartial } from '@tldraw/tlschema'
 import { TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 
@@ -5,7 +6,8 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
+		const shapes = [{ type: this.parent.shapeType }] as TLCreateShapePartial[]
+		if (this.editor.checkCapability('create-shapes', { shapes })) {
 			return
 		}
 		this.parent.transition('pointing', info)
