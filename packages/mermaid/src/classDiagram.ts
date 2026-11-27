@@ -152,7 +152,9 @@ export function classToBlueprint(
 			color: 'black',
 			dash: 'draw',
 			size: 's',
-			align: 'middle',
+			// Top left, as pele draws it: centred, it sits where relations into the namespace come
+			// down its middle.
+			align: 'start',
 			verticalAlign: 'start',
 		})
 	}
