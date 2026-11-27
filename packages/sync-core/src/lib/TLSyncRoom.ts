@@ -29,6 +29,7 @@ import {
 	ValueOpType,
 } from './diff'
 import { interval } from './interval'
+import { getParentCycleOpIds } from './parentCycles'
 import {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
@@ -1427,7 +1428,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (message.diff) {
 					// The push request was for the document scope.
+					// Skipped like a veto. Only the room sees concurrent reparents in order, so it is the
+					// one place that can refuse the second of two that close a cycle together.
+					const parentCycleOpIds = getParentCycleOpIds(message.diff, (id) => txn.get(id))
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
+						if (parentCycleOpIds.has(id)) {
+							this.log?.warn?.('skipping op that would create a parent cycle', id)
+							continue
+						}
 						switch (op[0]) {
 							case RecordOpType.Put: {
 								// The write gate is checked before type validation so that a denied

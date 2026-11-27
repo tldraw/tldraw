@@ -160,3 +160,41 @@ it('adds children at a given index', () => {
 	expect(editor.getShape(ids.box5)!.index).toBe('a2')
 	expect(editor.getShape(ids.ellipse1)!.index).toBe('a1')
 })
+
+describe('reparents that would create a parent cycle (#6152)', () => {
+	it('undoes a redone reparent that a remote change has since made cyclic', () => {
+		editor.markHistoryStoppingPoint()
+		editor.reparentShapes([ids.box1], ids.box2)
+		editor.undo()
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([{ ...editor.getShape(ids.box2)!, parentId: ids.box1 }])
+		})
+		const before = editor.getShape(ids.box1)!
+
+		editor.redo()
+
+		expect(editor.getShape(ids.box1)).toEqual(before)
+		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.box1)
+	})
+
+	it('keeps the previous parent, index and position of a remote change, and applies the rest', () => {
+		editor.reparentShapes([ids.box2], ids.box1)
+		const before = editor.getShape(ids.box1)!
+
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([
+				{ ...before, parentId: ids.box2, index: 'a9' as IndexKey, x: 999, opacity: 0.5 },
+			])
+		})
+
+		expect(editor.getShape(ids.box1)).toEqual({ ...before, opacity: 0.5 })
+		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.box1)
+	})
+
+	it('leaves a remote reparent that forms no cycle alone', () => {
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([{ ...editor.getShape(ids.box3)!, parentId: ids.box1 }])
+		})
+		expect(editor.getShape(ids.box3)!.parentId).toBe(ids.box1)
+	})
+})

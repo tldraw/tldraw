@@ -22,8 +22,12 @@ import {
 	TLArrowShapeProps,
 	TLBaseShape,
 	TLDOCUMENT_ID,
+	TLFrameShape,
+	TLParentId,
 	TLRecord,
+	TLShape,
 	TLShapeId,
+	createShapeId,
 	createTLSchema,
 	createUserId,
 } from '@tldraw/tlschema'
@@ -1826,6 +1830,123 @@ describe('24. Push handling (RP)', () => {
 		expect(sentDataMessages(socketB)).toEqual([
 			{ type: 'patch', diff: { [newPage.id]: ['put', embellished] }, serverClock: 1 },
 		])
+	})
+
+	describe('[RP14] parent cycles', () => {
+		const frame = (id: string, parentId: TLParentId = pageRecord.id): TLFrameShape => ({
+			typeName: 'shape',
+			type: 'frame',
+			id: createShapeId(id),
+			index: 'a1' as IndexKey,
+			parentId,
+			x: 0,
+			y: 0,
+			rotation: 0,
+			opacity: 1,
+			isLocked: false,
+			props: { w: 100, h: 100, name: '', color: 'black' },
+			meta: {},
+		})
+
+		const parentOf = (storage: InMemorySyncStorage<TLRecord>, id: string) =>
+			(storage.documents.get(id)?.state as TLShape | undefined)?.parentId
+
+		it('discards the second of two concurrent reparents that would nest shapes in each other', () => {
+			vi.useFakeTimers()
+			const { room, storage } = makeRoom({
+				snapshot: makeSnapshot([...records, frame('f1'), frame('f2')]),
+			})
+			const socketA = connectSession(room, 'a')
+			const socketB = connectSession(room, 'b')
+
+			room.handleMessage('a', {
+				type: 'push',
+				clientClock: 1,
+				diff: { 'shape:f1': ['patch', { parentId: ['put', 'shape:f2'] }] },
+			} as TLPushRequest<TLRecord>)
+			room.handleMessage('b', {
+				type: 'push',
+				clientClock: 1,
+				diff: { 'shape:f2': ['patch', { parentId: ['put', 'shape:f1'] }] },
+			} as TLPushRequest<TLRecord>)
+			vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL)
+
+			expect(parentOf(storage, 'shape:f1')).toBe('shape:f2')
+			expect(parentOf(storage, 'shape:f2')).toBe(pageRecord.id)
+			expect(sentDataMessages(socketB).filter((m) => m.type === 'push_result')).toEqual([
+				{ type: 'push_result', clientClock: 1, serverClock: 1, action: 'discard' },
+			])
+			expect(combinedPatchDiff(socketA)).not.toHaveProperty('shape:f2')
+		})
+
+		it('refuses a put that parents a shape under its own descendant, keeping the rest of the push', () => {
+			const { room, storage } = makeRoom({
+				snapshot: makeSnapshot([...records, frame('f1'), frame('f2', createShapeId('f1'))]),
+			})
+			connectSession(room, 'a')
+
+			room.handleMessage('a', {
+				type: 'push',
+				clientClock: 1,
+				diff: {
+					'shape:f1': ['put', frame('f1', createShapeId('f2'))],
+					'shape:f3': ['put', frame('f3')],
+				},
+			} as TLPushRequest<TLRecord>)
+
+			expect(parentOf(storage, 'shape:f1')).toBe(pageRecord.id)
+			expect(parentOf(storage, 'shape:f3')).toBe(pageRecord.id)
+		})
+
+		it('refuses every op of a cycle formed within one push', () => {
+			const { room, storage } = makeRoom()
+			connectSession(room, 'a')
+
+			room.handleMessage('a', {
+				type: 'push',
+				clientClock: 1,
+				diff: {
+					'shape:f1': ['put', frame('f1', createShapeId('f2'))],
+					'shape:f2': ['put', frame('f2', createShapeId('f1'))],
+				},
+			} as TLPushRequest<TLRecord>)
+
+			expect(storage.documents.get('shape:f1')).toBeUndefined()
+			expect(storage.documents.get('shape:f2')).toBeUndefined()
+		})
+
+		it('judges a push by its end state, not op by op', () => {
+			const { room, storage } = makeRoom({
+				snapshot: makeSnapshot([...records, frame('f1'), frame('f2', createShapeId('f1'))]),
+			})
+			connectSession(room, 'a')
+
+			// Applied in key order, f1 moving into f2 comes before f2 leaves f1.
+			room.handleMessage('a', {
+				type: 'push',
+				clientClock: 1,
+				diff: {
+					'shape:f1': ['patch', { parentId: ['put', 'shape:f2'] }],
+					'shape:f2': ['patch', { parentId: ['put', pageRecord.id] }],
+				},
+			} as TLPushRequest<TLRecord>)
+
+			expect(parentOf(storage, 'shape:f1')).toBe('shape:f2')
+			expect(parentOf(storage, 'shape:f2')).toBe(pageRecord.id)
+		})
+
+		it('refuses a shape that is its own parent', () => {
+			const { room, storage } = makeRoom()
+			connectSession(room, 'a')
+
+			room.handleMessage('a', {
+				type: 'push',
+				clientClock: 1,
+				diff: { 'shape:f1': ['put', frame('f1', createShapeId('f1'))] },
+			} as TLPushRequest<TLRecord>)
+
+			expect(storage.documents.get('shape:f1')).toBeUndefined()
+		})
 	})
 })
 
