@@ -1,0 +1,669 @@
+{
+	"register": "你 (informal), as used in the zh-cn dotcom catalog",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "无障碍"
+		},
+		{
+			"term": "Account menu",
+			"translation": "账号菜单"
+		},
+		{
+			"term": "add",
+			"translation": "添加"
+		},
+		{
+			"term": "Align horizontally",
+			"translation": "水平对齐"
+		},
+		{
+			"term": "Align left",
+			"translation": "左对齐"
+		},
+		{
+			"term": "Align vertically",
+			"translation": "垂直对齐"
+		},
+		{
+			"term": "alt text",
+			"translation": "替代文本"
+		},
+		{
+			"term": "Always snap",
+			"translation": "始终吸附"
+		},
+		{
+			"term": "Arc (arrow kind)",
+			"translation": "弧线"
+		},
+		{
+			"term": "Arrange",
+			"translation": "排列"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "箭头"
+		},
+		{
+			"term": "Arrowhead end",
+			"translation": "终点"
+		},
+		{
+			"term": "Arrowhead start",
+			"translation": "起点"
+		},
+		{
+			"term": "backup",
+			"translation": "备份"
+		},
+		{
+			"term": "Bold",
+			"translation": "粗体"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "上移一层"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "置于顶层"
+		},
+		{
+			"term": "Cancel",
+			"translation": "取消"
+		},
+		{
+			"term": "canvas",
+			"translation": "画布",
+			"note": "drawing area"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "已选中 / 未选中"
+		},
+		{
+			"term": "Clipboard",
+			"translation": "剪贴板"
+		},
+		{
+			"term": "Close",
+			"translation": "关闭"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "云朵",
+			"note": "Weather-cloud shape, not 云/云端 computing"
+		},
+		{
+			"term": "Collaboration",
+			"translation": "协作"
+		},
+		{
+			"term": "Command palette",
+			"translation": "命令面板"
+		},
+		{
+			"term": "Comment",
+			"translation": "评论"
+		},
+		{
+			"term": "container",
+			"translation": "容器"
+		},
+		{
+			"term": "cookie",
+			"translation": "Cookie"
+		},
+		{
+			"term": "copy (clipboard action)",
+			"translation": "复制"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "复制",
+			"note": "Duplicate must use a different term, e.g. 创建副本"
+		},
+		{
+			"term": "Copy (noun, duplicate name marker)",
+			"translation": "副本"
+		},
+		{
+			"term": "Cut",
+			"translation": "剪切"
+		},
+		{
+			"term": "Dark (color scheme)",
+			"translation": "深色模式"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "深色模式"
+		},
+		{
+			"term": "Dash (stroke style)",
+			"translation": "线型"
+		},
+		{
+			"term": "dashed",
+			"translation": "虚线"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "调试模式"
+		},
+		{
+			"term": "Default",
+			"translation": "默认"
+		},
+		{
+			"term": "Delete",
+			"translation": "删除"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "菱形",
+			"note": "Rhombus geo is 平行四边形"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "分布",
+			"note": "e.g. 垂直分布"
+		},
+		{
+			"term": "Distribute horizontally",
+			"translation": "水平分布"
+		},
+		{
+			"term": "dotted",
+			"translation": "点线"
+		},
+		{
+			"term": "Draw (font)",
+			"translation": "手写",
+			"note": "hand-drawn typeface, not the Draw tool"
+		},
+		{
+			"term": "Draw (line style)",
+			"translation": "手绘"
+		},
+		{
+			"term": "duplicate (file)",
+			"translation": "创建副本",
+			"note": "Keep distinct from 复制 (copy)"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "编辑"
+		},
+		{
+			"term": "Editor (sharing role)",
+			"translation": "编辑者",
+			"note": "Not 编辑器 (software)"
+		},
+		{
+			"term": "Elbow (arrow kind)",
+			"translation": "折线"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "椭圆形"
+		},
+		{
+			"term": "embed",
+			"translation": "嵌入"
+		},
+		{
+			"term": "Export",
+			"translation": "导出"
+		},
+		{
+			"term": "feedback",
+			"translation": "反馈"
+		},
+		{
+			"term": "file",
+			"translation": "文件"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "填充"
+		},
+		{
+			"term": "filter (verb)",
+			"translation": "筛选"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "翻转"
+		},
+		{
+			"term": "focus mode",
+			"translation": "专注模式"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "跟随"
+		},
+		{
+			"term": "Font",
+			"translation": "字体"
+		},
+		{
+			"term": "forget (file)",
+			"translation": "从列表中移除"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "画框",
+			"note": "Container/artboard, as in Figma zh-CN"
+		},
+		{
+			"term": "grid",
+			"translation": "网格"
+		},
+		{
+			"term": "group (shape noun)",
+			"translation": "组合"
+		},
+		{
+			"term": "Hand (tool)",
+			"translation": "抓手"
+		},
+		{
+			"term": "Heading",
+			"translation": "标题"
+		},
+		{
+			"term": "Help",
+			"translation": "帮助"
+		},
+		{
+			"term": "Import file…",
+			"translation": "导入文件…"
+		},
+		{
+			"term": "invite link",
+			"translation": "邀请链接"
+		},
+		{
+			"term": "Italic",
+			"translation": "斜体"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "项目"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "项",
+			"note": "项目 reads as 'project'"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "键盘快捷键"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "横向"
+		},
+		{
+			"term": "library",
+			"translation": "资源库",
+			"note": "Not 图书馆"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "库"
+		},
+		{
+			"term": "library (reusable content)",
+			"translation": "素材库"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "素材库"
+		},
+		{
+			"term": "Light (color scheme)",
+			"translation": "浅色模式"
+		},
+		{
+			"term": "link",
+			"translation": "链接"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "链接"
+		},
+		{
+			"term": "Mark all as read",
+			"translation": "全部标记为已读"
+		},
+		{
+			"term": "Members",
+			"translation": "成员"
+		},
+		{
+			"term": "minimap",
+			"translation": "小地图"
+		},
+		{
+			"term": "Mono (font)",
+			"translation": "等宽"
+		},
+		{
+			"term": "More (overflow)",
+			"translation": "更多"
+		},
+		{
+			"term": "mouse",
+			"translation": "鼠标"
+		},
+		{
+			"term": "multiplayer (collaborative file)",
+			"translation": "多人协作"
+		},
+		{
+			"term": "Name (of a workspace/file)",
+			"translation": "名称",
+			"note": "Not 姓名, which means a person's name"
+		},
+		{
+			"term": "Notifications",
+			"translation": "通知"
+		},
+		{
+			"term": "Offline",
+			"translation": "离线"
+		},
+		{
+			"term": "Opacity",
+			"translation": "不透明度"
+		},
+		{
+			"term": "Open link",
+			"translation": "打开链接"
+		},
+		{
+			"term": "Oval",
+			"translation": "胶囊形"
+		},
+		{
+			"term": "Oval (geo shape)",
+			"translation": "胶囊形",
+			"note": "Pill shape; distinct from Ellipse 椭圆形"
+		},
+		{
+			"term": "Oval (geo)",
+			"translation": "胶囊形",
+			"note": "distinct from Ellipse 椭圆形"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "所有者"
+		},
+		{
+			"term": "Padding (export margin)",
+			"translation": "内边距"
+		},
+		{
+			"term": "page",
+			"translation": "页面"
+		},
+		{
+			"term": "Paste",
+			"translation": "粘贴"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "置顶",
+			"note": "Action: fix to the top of the list"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "纵向"
+		},
+		{
+			"term": "Preferences",
+			"translation": "偏好设置"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "隐私政策"
+		},
+		{
+			"term": "project",
+			"translation": "项目"
+		},
+		{
+			"term": "publish",
+			"translation": "发布"
+		},
+		{
+			"term": "reacted (emoji)",
+			"translation": "做出了反应"
+		},
+		{
+			"term": "Redo",
+			"translation": "重做"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "减弱动态效果",
+			"note": "Platform accessibility setting name"
+		},
+		{
+			"term": "Regenerate (invite link)",
+			"translation": "重新生成",
+			"note": "Not 再生, which means biological regeneration or recycling"
+		},
+		{
+			"term": "remove (a member)",
+			"translation": "移除",
+			"note": "Keep distinct from 删除 (delete)"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "移除",
+			"note": "distinct from delete 删除"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "移除"
+		},
+		{
+			"term": "Rename",
+			"translation": "重命名"
+		},
+		{
+			"term": "Rename page",
+			"translation": "重命名页面"
+		},
+		{
+			"term": "reply",
+			"translation": "回复"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "解决"
+		},
+		{
+			"term": "Rhombus (geo shape)",
+			"translation": "平行四边形",
+			"note": "Slanted parallelogram; kept distinct from Diamond 菱形"
+		},
+		{
+			"term": "Rhombus (geo)",
+			"translation": "平行四边形",
+			"note": "tldraw rhombus is a slanted parallelogram; Diamond is 菱形"
+		},
+		{
+			"term": "Sans (font)",
+			"translation": "无衬线"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "保存副本"
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "选择"
+		},
+		{
+			"term": "Select all",
+			"translation": "全选"
+		},
+		{
+			"term": "Select on wrap",
+			"translation": "完整框选",
+			"note": "Select only shapes fully enclosed by the selection box"
+		},
+		{
+			"term": "Send backward",
+			"translation": "下移一层"
+		},
+		{
+			"term": "Send to back",
+			"translation": "置于底层"
+		},
+		{
+			"term": "Serif (font)",
+			"translation": "衬线"
+		},
+		{
+			"term": "Settings",
+			"translation": "设置"
+		},
+		{
+			"term": "shape",
+			"translation": "形状"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "分享"
+		},
+		{
+			"term": "sidebar",
+			"translation": "侧边栏"
+		},
+		{
+			"term": "Sign out",
+			"translation": "退出登录"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "实线"
+		},
+		{
+			"term": "Stack",
+			"translation": "堆叠"
+		},
+		{
+			"term": "sticky note",
+			"translation": "便笺"
+		},
+		{
+			"term": "Stop following (viewport)",
+			"translation": "停止跟随"
+		},
+		{
+			"term": "Stretch",
+			"translation": "拉伸"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "删除线"
+		},
+		{
+			"term": "Styles (panel)",
+			"translation": "样式"
+		},
+		{
+			"term": "stylus / pen mode",
+			"translation": "手写笔"
+		},
+		{
+			"term": "Task list",
+			"translation": "任务清单"
+		},
+		{
+			"term": "terms of service",
+			"translation": "服务条款"
+		},
+		{
+			"term": "terms of use",
+			"translation": "使用条款"
+		},
+		{
+			"term": "thread",
+			"translation": "讨论串"
+		},
+		{
+			"term": "tldraw",
+			"translation": "tldraw",
+			"note": "product name, untranslated"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "切换X"
+		},
+		{
+			"term": "tool lock",
+			"translation": "工具锁定"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "触摸板"
+		},
+		{
+			"term": "Transform (shape category)",
+			"translation": "变换"
+		},
+		{
+			"term": "Undo",
+			"translation": "撤销"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "取消分组"
+		},
+		{
+			"term": "Unpin",
+			"translation": "取消置顶",
+			"note": "pin = keep at top of list"
+		},
+		{
+			"term": "Untitled",
+			"translation": "无标题"
+		},
+		{
+			"term": "upload",
+			"translation": "上传"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "视图"
+		},
+		{
+			"term": "workspace",
+			"translation": "工作区"
+		},
+		{
+			"term": "zoom",
+			"translation": "缩放"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "缩放"
+		},
+		{
+			"term": "Zoom (tool)",
+			"translation": "缩放"
+		},
+		{
+			"term": "zoom out",
+			"translation": "缩小"
+		}
+	]
+}

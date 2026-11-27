@@ -1,0 +1,723 @@
+{
+	"register": "Sie (formal) in body text; infinitive for buttons",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Barrierefreiheit"
+		},
+		{
+			"term": "account",
+			"translation": "Konto"
+		},
+		{
+			"term": "Align left",
+			"translation": "Links ausrichten"
+		},
+		{
+			"term": "alt text",
+			"translation": "Alternativtext"
+		},
+		{
+			"term": "Arrow (arrowhead style)",
+			"translation": "Pfeil"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Pfeil"
+		},
+		{
+			"term": "Arrow left (shape)",
+			"translation": "Pfeil nach links"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "Pfeilspitze"
+		},
+		{
+			"term": "arrowhead start/end",
+			"translation": "Startpfeilspitze / Endpfeilspitze"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Pfeilspitzen"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Seitenverhältnis"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Automatisch"
+		},
+		{
+			"term": "Auto (input mode)",
+			"translation": "Automatisch",
+			"note": "Same in Automatisch (Trackpad)/(Maus)"
+		},
+		{
+			"term": "Back to content",
+			"translation": "Zurück zum Inhalt"
+		},
+		{
+			"term": "background",
+			"translation": "Hintergrund",
+			"note": "export image background"
+		},
+		{
+			"term": "Bold",
+			"translation": "Fett"
+		},
+		{
+			"term": "Bookmark (link-card shape)",
+			"translation": "Lesezeichen"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "Eine Ebene nach vorne"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "In den Vordergrund"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Abbrechen"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "Abbrechen"
+		},
+		{
+			"term": "Cancel (dialog button)",
+			"translation": "Abbrechen"
+		},
+		{
+			"term": "canvas",
+			"translation": "Leinwand"
+		},
+		{
+			"term": "Clipboard",
+			"translation": "Zwischenablage"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "Wolke"
+		},
+		{
+			"term": "Collaboration",
+			"translation": "Zusammenarbeit"
+		},
+		{
+			"term": "Color",
+			"translation": "Farbe"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Befehlspalette"
+		},
+		{
+			"term": "Comment",
+			"translation": "Kommentar"
+		},
+		{
+			"term": "context menu",
+			"translation": "Kontextmenü"
+		},
+		{
+			"term": "copy (clipboard action)",
+			"translation": "Kopieren"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Kopieren"
+		},
+		{
+			"term": "Copy (noun, duplicate name marker)",
+			"translation": "Kopie"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "Kopieren"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "Datei konnte nicht geöffnet werden"
+		},
+		{
+			"term": "Crop image",
+			"translation": "Bild zuschneiden"
+		},
+		{
+			"term": "Cursor chat",
+			"translation": "Cursor-Chat"
+		},
+		{
+			"term": "Cut",
+			"translation": "Ausschneiden"
+		},
+		{
+			"term": "Dark (color scheme)",
+			"translation": "Dunkel"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Dunkel"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Dunkelmodus"
+		},
+		{
+			"term": "Dash (stroke pattern picker)",
+			"translation": "Strichart"
+		},
+		{
+			"term": "dashed",
+			"translation": "Gestrichelt"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "Debug-Modus"
+		},
+		{
+			"term": "Default",
+			"translation": "Standard"
+		},
+		{
+			"term": "Delete",
+			"translation": "Löschen"
+		},
+		{
+			"term": "Diamond (geo shape)",
+			"translation": "Raute"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Raute"
+		},
+		{
+			"term": "Distribute",
+			"translation": "verteilen"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "verteilen"
+		},
+		{
+			"term": "dotted",
+			"translation": "Gepunktet"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplizieren"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "duplizieren"
+		},
+		{
+			"term": "Duplicate (verb)",
+			"translation": "duplizieren"
+		},
+		{
+			"term": "edit",
+			"translation": "bearbeiten"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Bearbeiten"
+		},
+		{
+			"term": "embed",
+			"translation": "Einbettung"
+		},
+		{
+			"term": "Embed (shape)",
+			"translation": "Einbettung"
+		},
+		{
+			"term": "Error",
+			"translation": "Fehler"
+		},
+		{
+			"term": "Essential cookies",
+			"translation": "Notwendige Cookies"
+		},
+		{
+			"term": "Export",
+			"translation": "exportieren"
+		},
+		{
+			"term": "Export as {format}",
+			"translation": "Als {format} exportieren",
+			"note": "Verb last, the usual German menu-item form"
+		},
+		{
+			"term": "feedback",
+			"translation": "Feedback"
+		},
+		{
+			"term": "file",
+			"translation": "Datei"
+		},
+		{
+			"term": "File history",
+			"translation": "Dateiverlauf"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "Füllung"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "spiegeln"
+		},
+		{
+			"term": "focus mode",
+			"translation": "Fokus-Modus"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Folgen"
+		},
+		{
+			"term": "Font",
+			"translation": "Schriftart"
+		},
+		{
+			"term": "Forget (remove from own list)",
+			"translation": "vergessen",
+			"note": "Distinct from Delete (löschen)"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "Rahmen"
+		},
+		{
+			"term": "grid",
+			"translation": "Gitter"
+		},
+		{
+			"term": "Heading (text)",
+			"translation": "Überschrift"
+		},
+		{
+			"term": "Help",
+			"translation": "Hilfe"
+		},
+		{
+			"term": "Highlighter tool",
+			"translation": "Textmarker"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Datei importieren…"
+		},
+		{
+			"term": "Insert embed",
+			"translation": "Einbettung einfügen"
+		},
+		{
+			"term": "invite link",
+			"translation": "Einladungslink"
+		},
+		{
+			"term": "Italic",
+			"translation": "Kursiv"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "Element"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "Element"
+		},
+		{
+			"term": "justify (text)",
+			"translation": "Blocksatz"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "Tastaturkürzel"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Quer"
+		},
+		{
+			"term": "Learn more",
+			"translation": "Mehr erfahren"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Bibliotheken"
+		},
+		{
+			"term": "library",
+			"translation": "Bibliothek"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "Bibliothek"
+		},
+		{
+			"term": "Light (color scheme)",
+			"translation": "Hell"
+		},
+		{
+			"term": "Light (color tint)",
+			"translation": "Hell-",
+			"note": "Compound, e.g. Hellblau"
+		},
+		{
+			"term": "Link",
+			"translation": "Link"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Link"
+		},
+		{
+			"term": "member",
+			"translation": "Mitglied"
+		},
+		{
+			"term": "Members",
+			"translation": "Mitglieder"
+		},
+		{
+			"term": "Middle (alignment)",
+			"translation": "Mitte"
+		},
+		{
+			"term": "minimap",
+			"translation": "Minimap"
+		},
+		{
+			"term": "Mixed (various values)",
+			"translation": "Gemischt"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Maus"
+		},
+		{
+			"term": "Move to",
+			"translation": "Verschieben nach"
+		},
+		{
+			"term": "Move to (relocate file)",
+			"translation": "Verschieben nach"
+		},
+		{
+			"term": "Note (sticky)",
+			"translation": "Notiz"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Benachrichtigungen"
+		},
+		{
+			"term": "Octagon",
+			"translation": "Achteck"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Deckkraft"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Kompakt anordnen"
+		},
+		{
+			"term": "page",
+			"translation": "Seite",
+			"note": "Page of the drawing document"
+		},
+		{
+			"term": "Paste",
+			"translation": "Einfügen"
+		},
+		{
+			"term": "Pattern (fill)",
+			"translation": "Muster"
+		},
+		{
+			"term": "Pen mode (stylus input)",
+			"translation": "Stiftmodus"
+		},
+		{
+			"term": "Pentagon",
+			"translation": "Fünfeck"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "anheften"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "anheften"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Hoch"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Einstellungen"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Datenschutzerklärung"
+		},
+		{
+			"term": "project",
+			"translation": "Projekt"
+		},
+		{
+			"term": "publish",
+			"translation": "veröffentlichen"
+		},
+		{
+			"term": "read-only",
+			"translation": "schreibgeschützt"
+		},
+		{
+			"term": "Redo",
+			"translation": "Wiederholen"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Bewegung reduzieren"
+		},
+		{
+			"term": "Regenerate",
+			"translation": "Neu generieren"
+		},
+		{
+			"term": "register",
+			"translation": "Sie",
+			"note": "The catalog uses formal Sie"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "entfernen",
+			"note": "distinct from delete löschen"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "Entfernen"
+		},
+		{
+			"term": "Rename",
+			"translation": "Umbenennen"
+		},
+		{
+			"term": "Rename page",
+			"translation": "Seite umbenennen"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "Erledigen",
+			"note": "comments.resolve; resolved = Erledigt"
+		},
+		{
+			"term": "Resolve / Resolved (comments)",
+			"translation": "Erledigen / Erledigt",
+			"note": "Matches comments.resolve and comments.resolved"
+		},
+		{
+			"term": "resolved (comment)",
+			"translation": "erledigt"
+		},
+		{
+			"term": "Restore",
+			"translation": "wiederherstellen"
+		},
+		{
+			"term": "Rhombus (geo shape)",
+			"translation": "Rhombus",
+			"note": "Distinct from Diamond = Raute"
+		},
+		{
+			"term": "Rhombus (geo)",
+			"translation": "Rhombus",
+			"note": "Diamond is Raute"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Eine Kopie speichern",
+			"note": "action.save-copy"
+		},
+		{
+			"term": "search (prompt)",
+			"translation": "Suchen..."
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "Auswahl"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Auswahl"
+		},
+		{
+			"term": "Send backward",
+			"translation": "Eine Ebene nach hinten"
+		},
+		{
+			"term": "Send to back",
+			"translation": "In den Hintergrund"
+		},
+		{
+			"term": "Settings",
+			"translation": "Einstellungen"
+		},
+		{
+			"term": "shape",
+			"translation": "Form"
+		},
+		{
+			"term": "share",
+			"translation": "teilen"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Teilen"
+		},
+		{
+			"term": "Shared with you",
+			"translation": "Mit Ihnen geteilt"
+		},
+		{
+			"term": "sidebar",
+			"translation": "Seitenleiste"
+		},
+		{
+			"term": "sign in",
+			"translation": "anmelden"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Abmelden"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Durchgezogen"
+		},
+		{
+			"term": "Stack",
+			"translation": "stapeln"
+		},
+		{
+			"term": "stack trace",
+			"translation": "Stacktrace"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Durchgestrichen"
+		},
+		{
+			"term": "Task list",
+			"translation": "Aufgabenliste"
+		},
+		{
+			"term": "teammates",
+			"translation": "Teammitglieder"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "Nutzungsbedingungen"
+		},
+		{
+			"term": "terms of use",
+			"translation": "Nutzungsbedingungen"
+		},
+		{
+			"term": "Text formatting",
+			"translation": "Textformatierung"
+		},
+		{
+			"term": "theme",
+			"translation": "Design"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "… umschalten"
+		},
+		{
+			"term": "toggle (verb)",
+			"translation": "umschalten"
+		},
+		{
+			"term": "Toggle focus mode",
+			"translation": "Fokus-Modus umschalten"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "X umschalten"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "Tool-Sperre"
+		},
+		{
+			"term": "Tools",
+			"translation": "Tools",
+			"note": "Loanword used for the toolbar label"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Trackpad"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Dreieck"
+		},
+		{
+			"term": "Undo",
+			"translation": "Rückgängig"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Gruppierung auflösen"
+		},
+		{
+			"term": "Untitled",
+			"translation": "Ohne Titel"
+		},
+		{
+			"term": "upload",
+			"translation": "Hochladen"
+		},
+		{
+			"term": "Vertical align",
+			"translation": "Vertikale Ausrichtung"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Ansicht"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "Betrachter"
+		},
+		{
+			"term": "workspace",
+			"translation": "Arbeitsbereich"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "Zoom"
+		},
+		{
+			"term": "Zoom (zoom level noun)",
+			"translation": "Zoom"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Vergrößern"
+		}
+	]
+}

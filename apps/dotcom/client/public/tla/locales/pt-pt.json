@@ -15,7 +15,7 @@
     "translation": "Convide os seus colegas de equipa"
   },
   "05b2656486": {
-    "translation": "<name>{author}</name> mencionou você"
+    "translation": "<name>{author}</name> mencionou-o"
   },
   "05f43078e9": {
     "translation": "Atingiu o número máximo de espaços de trabalho. É necessário eliminar os espaços de trabalho antigos antes de criar novos."
@@ -42,7 +42,7 @@
     "translation": "Ficheiro"
   },
   "0b9a4cde72": {
-    "translation": "Menu Ficheiro"
+    "translation": "Menu do ficheiro"
   },
   "0c4383617a": {
     "translation": "Ocorreu um erro ao carregar este convite. Tente novamente."
@@ -65,6 +65,9 @@
   "12a6766ba1": {
     "translation": "Desafixar ficheiro"
   },
+  "13cad4c2e8": {
+    "translation": "Este espaço de trabalho atingiu o número máximo de bibliotecas. Elimine bibliotecas antigas antes de criar novas."
+  },
   "13ddd375ad": {
     "translation": "Exportar como"
   },
@@ -81,7 +84,7 @@
     "translation": "Criado por mim"
   },
   "1a7222b4e5": {
-    "translation": "Mudar para"
+    "translation": "Mover para"
   },
   "1da2e8106b": {
     "translation": "Ocorreu um erro inesperado."
@@ -92,17 +95,23 @@
   "1ffd709937": {
     "translation": "Um espaço de trabalho deve ter pelo menos um proprietário. Primeiro, nomeie outra pessoa como proprietária."
   },
+  "20746febc9": {
+    "translation": "A minha coleção"
+  },
   "21f66c9c00": {
     "translation": "Nome do espaço de trabalho"
   },
   "23dcace54a": {
-    "translation": "Você foi convidado(a) a participar do <strong>{workspaceName}</strong>. Crie uma conta gratuita para continuar."
+    "translation": "Foi convidado para aderir a <strong>{workspaceName}</strong>. Crie uma conta gratuita para continuar."
   },
   "250ddea65c": {
     "translation": "Sobre tldraw"
   },
+  "26111f65cc": {
+    "translation": "Esta biblioteca atingiu o número máximo de itens. Elimine itens antigos antes de adicionar novos."
+  },
   "28b2464e1f": {
-    "translation": "Não foi possível enviar o feedback."
+    "translation": "Não foi possível enviar o feedback"
   },
   "2944edaa8d": {
     "translation": "Em nome de {name}"
@@ -111,7 +120,7 @@
     "translation": "O carregamento falhou"
   },
   "2a1167f869": {
-    "translation": "Bem-vindo(a) ao seu espaço de trabalho."
+    "translation": "Bem-vindo ao seu espaço de trabalho"
   },
   "2a37324bb4": {
     "translation": "Procurar..."
@@ -135,19 +144,19 @@
     "translation": "Tem de iniciar sessão para ver este ficheiro."
   },
   "31418ce4ad": {
-    "translation": "i18n: Realce em falta"
+    "translation": "i18n: Destacar traduções em falta"
   },
   "324a0f3182": {
     "translation": "Voltar ao tldraw"
   },
   "32811caa8c": {
-    "translation": "Arquivo duplicado"
+    "translation": "Duplicar ficheiro"
   },
   "335defdafe": {
     "translation": "Tente atualizar a página."
   },
   "34082694d2": {
-    "translation": "Nome do arquivo"
+    "translation": "Nome do ficheiro"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -159,7 +168,7 @@
     "translation": "Remover membro"
   },
   "398f51738e": {
-    "translation": "Faça login para aceitar este convite."
+    "translation": "Inicie sessão para aceitar este convite."
   },
   "3bc7d6ea2f": {
     "translation": "Continuar com o e-mail"
@@ -179,6 +188,9 @@
   "402bf0c47e": {
     "translation": "Tema de cores"
   },
+  "4236087d6b": {
+    "translation": "Menu da biblioteca"
+  },
   "42e53c47c1": {
     "translation": "Contacte o proprietário para solicitar acesso."
   },
@@ -195,10 +207,10 @@
     "translation": "Obrigado por nos ajudar a melhorar o tldraw!"
   },
   "4630b65bb2": {
-    "translation": "Mover arquivo para"
+    "translation": "Mover ficheiro para"
   },
   "46de2de6bb": {
-    "translation": "Aceitar os termos de uso"
+    "translation": "Aceitar os termos de utilização"
   },
   "477df802ca": {
     "translation": "Para continuar a editar, copie o ficheiro para os seus ficheiros."
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> comentou"
+  },
+  "4c4a28e97a": {
+    "translation": "Este ficheiro"
   },
   "4d0d3ddec9": {
     "translation": "Este site utiliza cookies para fazer a aplicação funcionar e recolher dados analíticos."
@@ -246,16 +261,16 @@
     "translation": "Exportar…"
   },
   "53770fd374": {
-    "translation": "Não lido"
+    "translation": "Não lidas"
   },
   "542248f0ba": {
-    "translation": "Este ficheiro é agora apenas de leitura."
+    "translation": "Este ficheiro é agora só de leitura"
   },
   "54286b1d01": {
     "translation": "Limite de colaboradores atingido"
   },
   "550b25cc0c": {
-    "translation": "Não foi possível restaurar seu desenho local. Tente recarregar esta página."
+    "translation": "Não foi possível restaurar o seu desenho local. Tente recarregar esta página."
   },
   "554a05155c": {
     "translation": "Ainda está com problemas? <a>Reportar um problema</a>"
@@ -267,7 +282,7 @@
     "translation": "Crie um espaço de trabalho"
   },
   "5653ebed2e": {
-    "translation": "Acesse o arquivo"
+    "translation": "Ir para o ficheiro"
   },
   "5677e381d2": {
     "translation": "Usamos cookies analíticos para melhorar o tldraw."
@@ -285,7 +300,7 @@
     "translation": "Navegador antigo detetado. Atualize o seu navegador para utilizar esta aplicação."
   },
   "5bff3c9c88": {
-    "translation": "Meu espaço de trabalho"
+    "translation": "O meu espaço de trabalho"
   },
   "5d04a002ea": {
     "translation": "Não foi possível conectar"
@@ -333,10 +348,10 @@
     "translation": "Novo ficheiro"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# other} other {# others}} reagiram"
+    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# outra pessoa} other {# outras pessoas}} reagiram"
   },
   "6832ac5936": {
-    "translation": "Insira seu endereço de e-mail"
+    "translation": "Introduza o seu endereço de email"
   },
   "694f82ed9d": {
     "translation": "Eliminar espaço de trabalho"
@@ -345,7 +360,7 @@
     "translation": "Faça login para salvar"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, one {Alguém reagiu.} other {# pessoas reagiram}}"
+    "translation": "{count, plural, one {Alguém reagiu} other {# pessoas reagiram}}"
   },
   "6a26f54883": {
     "translation": "Ajuda"
@@ -366,7 +381,7 @@
     "translation": "Esta semana"
   },
   "71a29b007b": {
-    "translation": "Tem algum bug, problema ou ideia para o tldraw? Conte para a gente!"
+    "translation": "Tem um erro, problema ou ideia para o tldraw? Diga-nos!"
   },
   "73ab799383": {
     "translation": "Esta versão do tldraw já não é suportada."
@@ -375,7 +390,7 @@
     "translation": "Recarregue a página"
   },
   "747ee44424": {
-    "translation": "Salve o conteúdo como um arquivo .tldr: selecione 'Salvar uma cópia' no menu superior esquerdo."
+    "translation": "Guarde o conteúdo como ficheiro .tldr: selecione «Guardar uma cópia» no menu superior esquerdo."
   },
   "74ff4bad28": {
     "translation": "Nenhum ficheiro encontrado"
@@ -399,7 +414,7 @@
     "translation": "Fale connosco no Discord"
   },
   "76ec4e4ed9": {
-    "translation": "Copiar link do arquivo"
+    "translation": "Copiar ligação do ficheiro"
   },
   "777f9e90cf": {
     "translation": "Pedido inválido."
@@ -407,11 +422,14 @@
   "7827371d1a": {
     "translation": "Este ficheiro multiplayer anónimo do tldraw é agora apenas de leitura. Para continuar a editar, inicie sessão e copie-o para os seus ficheiros."
   },
+  "7897a855d3": {
+    "translation": "Ainda não há bibliotecas."
+  },
   "78e9815992": {
-    "translation": "Entendi"
+    "translation": "Percebi"
   },
   "797799f35e": {
-    "translation": "Envie um problema no GitHub"
+    "translation": "Reportar um problema no GitHub"
   },
   "797c5be9a7": {
     "translation": "• Neste fórum agora"
@@ -426,7 +444,7 @@
     "translation": "Restaurar versão"
   },
   "7c0747a5df": {
-    "translation": "Abra o tldraw"
+    "translation": "Abrir o tldraw"
   },
   "7c10d4771a": {
     "translation": "Inicie sessão para editar as configurações do perfil."
@@ -444,7 +462,7 @@
     "translation": "Esquecer o ficheiro"
   },
   "801ab24683": {
-    "translation": "Download"
+    "translation": "Transferir"
   },
   "8030793ce3": {
     "translation": "Novo espaço de trabalho"
@@ -471,16 +489,16 @@
     "translation": "Espaço de trabalho sem título"
   },
   "87fdb09de6": {
-    "translation": "Você já é membro deste espaço de trabalho."
+    "translation": "Já é membro deste espaço de trabalho"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> e {count, plural, one {# other} other {# others}} reagiram"
+    "translation": "<name>{author}</name> e {count, plural, one {# outra pessoa} other {# outras pessoas}} reagiram"
   },
   "88bf6ab42c": {
-    "translation": "Este link de convite expirou."
+    "translation": "Este link de convite expirou"
   },
   "8c2d3d730c": {
-    "translation": "Verifique seu e-mail para obter um código de verificação."
+    "translation": "Verifique o seu e-mail para obter um código de verificação."
   },
   "8cf04a9734": {
     "translation": "Lar"
@@ -504,7 +522,7 @@
     "translation": "Tem a certeza de que pretende eliminar <strong>{workspaceName}</strong>? Esta ação não pode ser desfeita."
   },
   "91f3a2c0e4": {
-    "translation": "Arquivos"
+    "translation": "Ficheiros"
   },
   "930390d222": {
     "translation": "Link do convite copiado"
@@ -522,7 +540,10 @@
     "translation": "<name>{author}</name> reagiu"
   },
   "985a4b720f": {
-    "translation": "Termos de Uso"
+    "translation": "Termos de Utilização"
+  },
+  "987453f3dd": {
+    "translation": "Experimente o servidor MCP"
   },
   "9914a0ce04": {
     "translation": "Claro"
@@ -540,13 +561,19 @@
     "translation": "Eliminar ficheiro"
   },
   "9c228b6834": {
-    "translation": "Parece que você está offline. Verifique sua conexão e tente novamente."
+    "translation": "Parece que está offline. Verifique a ligação e tente novamente."
+  },
+  "9c48785253": {
+    "translation": "{count, plural, one {# item} many {# itens} other {# itens}}"
   },
   "9ccb565b86": {
-    "translation": "Estamos com dificuldades para conectar ao nosso serviço de autenticação. Isso geralmente é temporário. Por favor, tente atualizar a página."
+    "translation": "Estamos com problemas em ligar ao nosso serviço de autenticação. Isto costuma ser temporário. Tente atualizar a página."
   },
   "9ceb927baa": {
     "translation": "Publicar este ficheiro"
+  },
+  "9d102330ee": {
+    "translation": "Eliminar <strong>{name}</strong> e {count, plural, one {o seu # item} many {os seus # itens} other {os seus # itens}}?"
   },
   "9e076f5885": {
     "translation": "Não encontrado"
@@ -555,13 +582,13 @@
     "translation": "Recusar"
   },
   "a078644c42": {
-    "translation": "Você foi convidado(a) a participar do <strong>{workspaceName}</strong>."
+    "translation": "Foi convidado para aderir a <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, one {# não lido} other {# não lido}}"
+    "translation": "{count, plural, one {# não lida} other {# não lidas}}"
   },
   "a104439641": {
-    "translation": "Enchimento"
+    "translation": "Margem"
   },
   "a18366b217": {
     "translation": "Escuro"
@@ -594,7 +621,10 @@
     "translation": "Análise"
   },
   "a8873770ab": {
-    "translation": "O ficheiro está a ficar grande."
+    "translation": "O ficheiro está a ficar grande"
+  },
+  "a8c92ffd87": {
+    "translation": "Eliminar biblioteca"
   },
   "a9ded1e5ce": {
     "translation": "Fundo"
@@ -606,10 +636,10 @@
     "translation": "Alguém"
   },
   "ab0df9ba36": {
-    "translation": "Limite do ficheiro atingido"
+    "translation": "Limite de ficheiros atingido"
   },
   "ac863f346e": {
-    "translation": "Aplicativo"
+    "translation": "Aplicação"
   },
   "aeb428554a": {
     "translation": "Bibliotecas"
@@ -625,16 +655,16 @@
     "translation": "<name>{author}</name> respondeu"
   },
   "b1c94ca2fb": {
-    "translation": "Todos"
+    "translation": "Todas"
   },
   "b2326c3a34": {
-    "translation": "Regenerado"
+    "translation": "Regenerar"
   },
   "b2c3c2e30c": {
     "translation": "O ficheiro está cheio"
   },
   "b3205c1e45": {
-    "translation": "Abra o painel de notificações"
+    "translation": "Abrir painel de notificações"
   },
   "b357b524e7": {
     "translation": "Endereço de email"
@@ -652,16 +682,16 @@
     "translation": "Proprietário"
   },
   "b74dbb40c5": {
-    "translation": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu Arquivo, no canto superior esquerdo."
+    "translation": "Arraste o ficheiro para a barra lateral nesta página. Ou selecione a opção \"Importar ficheiro\" no menu \"Ficheiro\" no canto superior esquerdo."
   },
   "b758336699": {
     "translation": "Copiar link"
   },
   "ba0318cb81": {
-    "translation": "Entre para compartilhar"
+    "translation": "Inicie sessão para partilhar"
   },
   "bbaaf8b6bf": {
-    "translation": "Os convites estão desativados."
+    "translation": "Convites desativados"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {A carregar ficheiro .tldr…} other {A carregar {uploaded} de {total} ficheiros .tldr…}}"
@@ -670,7 +700,7 @@
     "translation": "Partilhado por {ownerName}"
   },
   "bd8aac2696": {
-    "translation": "Arquivo atual"
+    "translation": "Ficheiro atual"
   },
   "bf9c7b5670": {
     "translation": "Procurar…"
@@ -724,13 +754,13 @@
     "translation": "Preferências"
   },
   "d28d6bbc42": {
-    "translation": "Cancelar publicação do arquivo"
+    "translation": "Anular publicação do ficheiro"
   },
   "d3d2e61733": {
     "translation": "Fechar"
   },
   "d46632fe1f": {
-    "translation": "Muitas solicitações. Por favor, diminua o ritmo."
+    "translation": "Demasiados pedidos. Por favor, abrande."
   },
   "d4bbf74f3e": {
     "translation": "Alternar barra lateral"
@@ -739,7 +769,7 @@
     "translation": "Espaços de trabalho"
   },
   "d638a3344b": {
-    "translation": "Antes de começar, aceite nossos <tos>termos de uso</tos> e <privacy>política de privacidade</privacy>."
+    "translation": "Antes de começar, aceite os nossos <tos>termos de utilização</tos> e a nossa <privacy>política de privacidade</privacy>."
   },
   "d721757161": {
     "translation": "Tema"
@@ -760,10 +790,13 @@
     "translation": "Sair do espaço de trabalho"
   },
   "dfdb78a4e4": {
-    "translation": "Sinalizadores de depuração do aplicativo"
+    "translation": "Opções de depuração da app"
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e1cbe6f097": {
+    "translation": "Não foi possível alterar a biblioteca"
   },
   "e2198d6228": {
     "translation": "Copiar link de convite"
@@ -778,7 +811,7 @@
     "translation": "ou"
   },
   "ea13ecec38": {
-    "translation": "Histórico de arquivos"
+    "translation": "Histórico do ficheiro"
   },
   "ea4788705e": {
     "translation": "Cancelar"
@@ -802,7 +835,7 @@
     "translation": "Duplicar"
   },
   "ede55d955f": {
-    "translation": "Leia nossa <a>política de cookies</a> para saber mais."
+    "translation": "Leia a nossa <a>política de cookies</a> para saber mais."
   },
   "edec9387f9": {
     "translation": "Este comentário foi apagado."
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "Definições do utilizador"
   },
+  "f129f24bec": {
+    "translation": "· Em nenhum ficheiro"
+  },
   "f13001876b": {
     "translation": "Visualização em lista"
   },
@@ -835,13 +871,13 @@
     "translation": "Este link de convite é inválido ou expirou."
   },
   "f4f70727dc": {
-    "translation": "Configurações"
+    "translation": "Definições"
   },
   "f5ddc8d9c1": {
     "translation": "Por agora, pode <a>exportar como um ficheiro {extension}</a> para o utilizar aqui."
   },
   "fa2ead697d": {
-    "translation": "política de Privacidade"
+    "translation": "Política de Privacidade"
   },
   "fb15c53f22": {
     "translation": "Visualizador"
@@ -851,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Link copiado"
+  },
+  "feebd72b89": {
+    "translation": "Bibliotecas públicas"
   },
   "ff2fefd3c6": {
     "translation": "Tem a certeza de que pretende remover {name} deste espaço de trabalho?"

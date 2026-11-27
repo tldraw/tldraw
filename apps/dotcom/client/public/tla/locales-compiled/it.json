@@ -107,6 +107,10 @@
     {
       "type": 1,
       "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " per ora"
     }
   ],
   "0a91f7fa87": [
@@ -148,7 +152,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Rimuovere"
+      "value": "Rimuovi"
     }
   ],
   "10fb1df194": [
@@ -169,6 +173,12 @@
       "value": "Sblocca il file"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Questo spazio di lavoro ha raggiunto il numero massimo di librerie. Elimina le vecchie librerie prima di crearne di nuove."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -184,7 +194,7 @@
   "15bf4fead9": [
     {
       "type": 0,
-      "value": "Passa allo spazio di lavoro"
+      "value": "Cambia spazio di lavoro"
     }
   ],
   "181b90f889": [
@@ -202,7 +212,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Spostarsi su"
+      "value": "Sposta in"
     }
   ],
   "1da2e8106b": [
@@ -220,7 +230,13 @@
   "1ffd709937": [
     {
       "type": 0,
-      "value": "Uno spazio di lavoro deve avere almeno un proprietario. Prima di tutto, assegna il proprietario a qualcun altro."
+      "value": "Un'area di lavoro deve avere almeno un proprietario. Prima nomina proprietario qualcun altro."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "La mia raccolta"
     }
   ],
   "21f66c9c00": [
@@ -255,6 +271,12 @@
       "value": "Informazioni su tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Questa libreria ha raggiunto il numero massimo di elementi. Elimina i vecchi elementi prima di aggiungerne di nuovi."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -286,7 +308,7 @@
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Ricerca..."
+      "value": "Cerca..."
     }
   ],
   "2d3cdcfdd4": [
@@ -332,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: evidenziazione mancante"
+      "value": "i18n: Evidenzia traduzioni mancanti"
     }
   ],
   "324a0f3182": [
@@ -344,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "File duplicato"
+      "value": "Duplica file"
     }
   ],
   "335defdafe": [
@@ -416,7 +438,13 @@
   "402bf0c47e": [
     {
       "type": 0,
-      "value": "Tema del colore"
+      "value": "Tema colore"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menu della libreria"
     }
   ],
   "42e53c47c1": [
@@ -466,7 +494,7 @@
   "4630b65bb2": [
     {
       "type": 0,
-      "value": "Spostare il file in"
+      "value": "Sposta file in"
     }
   ],
   "46de2de6bb": [
@@ -484,7 +512,7 @@
   "47f493a590": [
     {
       "type": 0,
-      "value": "File Pin"
+      "value": "Fissa file"
     }
   ],
   "4970317944": [
@@ -529,6 +557,12 @@
     {
       "type": 0,
       "value": " ha commentato"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Questo file"
     }
   ],
   "4d0d3ddec9": [
@@ -582,7 +616,7 @@
   "53770fd374": [
     {
       "type": 0,
-      "value": "Non letto"
+      "value": "Non lette"
     }
   ],
   "542248f0ba": [
@@ -730,7 +764,7 @@
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "Voi"
+      "value": "tu"
     }
   ],
   "63a6a88c06": [
@@ -864,7 +898,7 @@
             },
             {
               "type": 0,
-              "value": " le persone hanno reagito"
+              "value": " persone hanno reagito"
             }
           ]
         }
@@ -959,7 +993,7 @@
   "7573b8110a": [
     {
       "type": 0,
-      "value": "Accesso negato"
+      "value": "Nessun accesso"
     }
   ],
   "761e93ede9": [
@@ -995,13 +1029,19 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Questo file multigiocatore tldraw anonimo è ora di sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
+      "value": "Questo file collaborativo anonimo di tldraw è ora in sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Ancora nessuna libreria."
     }
   ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "Fatto"
+      "value": "Ho capito"
     }
   ],
   "797799f35e": [
@@ -1073,7 +1113,7 @@
   "801ab24683": [
     {
       "type": 0,
-      "value": "Scaricamento"
+      "value": "Scarica"
     }
   ],
   "8030793ce3": [
@@ -1225,7 +1265,7 @@
   "88bf6ab42c": [
     {
       "type": 0,
-      "value": "Questo link di invito è scaduto."
+      "value": "Questo link di invito è scaduto"
     }
   ],
   "8c2d3d730c": [
@@ -1243,7 +1283,7 @@
   "8eb2c00e96": [
     {
       "type": 0,
-      "value": "Condivisi con te"
+      "value": "Condiviso con te"
     }
   ],
   "8f7f4c1ce7": [
@@ -1342,6 +1382,12 @@
       "value": "Termini di utilizzo"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Prova il server MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1392,6 +1438,49 @@
       "value": "Sembra che tu sia offline. Verifica la tua connessione e riprova."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementi"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemento"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1404,6 +1493,83 @@
       "value": "Pubblica questo file"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Eliminare "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "i suoi "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementi"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "il suo "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemento"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "i suoi "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1413,7 +1579,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Decidere di uscire"
+      "value": "Rifiuta"
     }
   ],
   "a078644c42": [
@@ -1447,7 +1613,7 @@
             },
             {
               "type": 0,
-              "value": " non letto"
+              "value": " non letta"
             }
           ]
         },
@@ -1458,7 +1624,7 @@
             },
             {
               "type": 0,
-              "value": " non letto"
+              "value": " non lette"
             }
           ]
         }
@@ -1540,6 +1706,12 @@
       "value": "Il file sta diventando grande"
     }
   ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Elimina libreria"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1573,7 +1745,7 @@
   "aeb428554a": [
     {
       "type": 0,
-      "value": "Biblioteche"
+      "value": "Librerie"
     }
   ],
   "af3dc88931": [
@@ -1613,7 +1785,7 @@
   "b1c94ca2fb": [
     {
       "type": 0,
-      "value": "Tutto"
+      "value": "Tutte"
     }
   ],
   "b2326c3a34": [
@@ -1733,7 +1905,7 @@
   "bc88b0e89e": [
     {
       "type": 0,
-      "value": "Condivisi da "
+      "value": "Condiviso da "
     },
     {
       "type": 1,
@@ -1979,7 +2151,7 @@
   "dbf9b24193": [
     {
       "type": 0,
-      "value": "Lasciare l'area di lavoro"
+      "value": "Esci dallo spazio di lavoro"
     }
   ],
   "dfdb78a4e4": [
@@ -1992,6 +2164,12 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Impossibile modificare la libreria"
     }
   ],
   "e2198d6228": [
@@ -2015,13 +2193,13 @@
   "e81c4e4f2b": [
     {
       "type": 0,
-      "value": "O"
+      "value": "o"
     }
   ],
   "ea13ecec38": [
     {
       "type": 0,
-      "value": "Cronologia dei file"
+      "value": "Cronologia del file"
     }
   ],
   "ea4788705e": [
@@ -2122,6 +2300,12 @@
       "value": "Impostazioni utente"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· In nessun file"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2179,7 +2363,7 @@
   "fa2ead697d": [
     {
       "type": 0,
-      "value": "politica sulla riservatezza"
+      "value": "Informativa sulla privacy"
     }
   ],
   "fb15c53f22": [
@@ -2198,6 +2382,12 @@
     {
       "type": 0,
       "value": "Link copiato"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Librerie pubbliche"
     }
   ],
   "ff2fefd3c6": [

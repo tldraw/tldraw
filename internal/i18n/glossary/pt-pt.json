@@ -1,0 +1,325 @@
+{
+	"register": "formal third person, no 'você'",
+	"terms": [
+		{
+			"term": "app",
+			"translation": "aplicação"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Seta"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "ponta de flecha",
+			"note": "feminine"
+		},
+		{
+			"term": "Arrowhead end",
+			"translation": "Fim"
+		},
+		{
+			"term": "Arrowhead start",
+			"translation": "Início"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Automático"
+		},
+		{
+			"term": "Auto (input mode)",
+			"translation": "Automático"
+		},
+		{
+			"term": "backup (noun)",
+			"translation": "cópia de segurança"
+		},
+		{
+			"term": "camera (viewport)",
+			"translation": "câmara"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Marcado",
+			"note": "Never 'Verificado'"
+		},
+		{
+			"term": "Clipboard",
+			"translation": "área de transferência"
+		},
+		{
+			"term": "clockwise / counterclockwise",
+			"translation": "no sentido dos ponteiros do relógio / no sentido contrário ao dos ponteiros do relógio"
+		},
+		{
+			"term": "comment",
+			"translation": "comentário"
+		},
+		{
+			"term": "connection",
+			"translation": "ligação",
+			"note": "Not Brazilian 'conexão'"
+		},
+		{
+			"term": "container",
+			"translation": "contentor"
+		},
+		{
+			"term": "Cut",
+			"translation": "Cortar"
+		},
+		{
+			"term": "Dash (stroke style)",
+			"translation": "Traço"
+		},
+		{
+			"term": "Default",
+			"translation": "Predefinido"
+		},
+		{
+			"term": "Delete",
+			"translation": "Eliminar"
+		},
+		{
+			"term": "Delete (menu action)",
+			"translation": "Apagar"
+		},
+		{
+			"term": "Diamond (geo)",
+			"translation": "Diamante"
+		},
+		{
+			"term": "Download",
+			"translation": "Transferir"
+		},
+		{
+			"term": "Download (action)",
+			"translation": "Transferir"
+		},
+		{
+			"term": "embed",
+			"translation": "incorporação"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "incorporação"
+		},
+		{
+			"term": "export",
+			"translation": "exportação"
+		},
+		{
+			"term": "file",
+			"translation": "ficheiro"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "Preenchimento"
+		},
+		{
+			"term": "frame (tool)",
+			"translation": "Quadro"
+		},
+		{
+			"term": "grid",
+			"translation": "grelha"
+		},
+		{
+			"term": "Help",
+			"translation": "Ajuda"
+		},
+		{
+			"term": "hide",
+			"translation": "Ocultar"
+		},
+		{
+			"term": "Import file",
+			"translation": "Importar ficheiro…",
+			"note": "ffcd73e997"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importar ficheiro…"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "item"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteca"
+		},
+		{
+			"term": "Light (color tint)",
+			"translation": "-claro",
+			"note": "Hyphenated, e.g. Azul-claro"
+		},
+		{
+			"term": "Link",
+			"translation": "link"
+		},
+		{
+			"term": "media",
+			"translation": "multimédia"
+		},
+		{
+			"term": "minimap",
+			"translation": "minimapa"
+		},
+		{
+			"term": "mouse",
+			"translation": "rato"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "rato",
+			"note": "European Portuguese; not the pt-br 'mouse'"
+		},
+		{
+			"term": "Paste",
+			"translation": "Colar"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "Afixar"
+		},
+		{
+			"term": "project",
+			"translation": "projeto"
+		},
+		{
+			"term": "publish",
+			"translation": "publicar"
+		},
+		{
+			"term": "Rename",
+			"translation": "Mudar o nome"
+		},
+		{
+			"term": "reply (noun)",
+			"translation": "resposta"
+		},
+		{
+			"term": "requests",
+			"translation": "pedidos"
+		},
+		{
+			"term": "reset",
+			"translation": "redefinir"
+		},
+		{
+			"term": "Rhombus (geo shape)",
+			"translation": "Losango",
+			"note": "Distinct from Diamond = Diamante"
+		},
+		{
+			"term": "Rhombus (geo)",
+			"translation": "Losango"
+		},
+		{
+			"term": "Save",
+			"translation": "Guardar"
+		},
+		{
+			"term": "Save (button)",
+			"translation": "Guardar"
+		},
+		{
+			"term": "save (to library)",
+			"translation": "guardar"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Guardar uma cópia",
+			"note": "action.save-copy"
+		},
+		{
+			"term": "See more / See less",
+			"translation": "Ver mais / Ver menos"
+		},
+		{
+			"term": "Settings",
+			"translation": "Definições"
+		},
+		{
+			"term": "shape",
+			"translation": "forma"
+		},
+		{
+			"term": "share",
+			"translation": "partilhar"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Partilhar"
+		},
+		{
+			"term": "Shared with you",
+			"translation": "Partilhado consigo"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Iniciar sessão"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Contínuo"
+		},
+		{
+			"term": "Stack",
+			"translation": "Empilhar"
+		},
+		{
+			"term": "Stretch",
+			"translation": "Esticar"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Tachado"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "separador"
+		},
+		{
+			"term": "Task list",
+			"translation": "Lista de tarefas"
+		},
+		{
+			"term": "Terms of Use",
+			"translation": "Termos de Utilização"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "Alternar X"
+		},
+		{
+			"term": "Tools",
+			"translation": "Ferramentas"
+		},
+		{
+			"term": "trapezoid",
+			"translation": "Trapézio"
+		},
+		{
+			"term": "Undo",
+			"translation": "Desfazer"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Desagrupar"
+		},
+		{
+			"term": "user",
+			"translation": "utilizador"
+		},
+		{
+			"term": "workspace",
+			"translation": "espaço de trabalho"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "Zoom"
+		}
+	]
+}

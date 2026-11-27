@@ -1,0 +1,541 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "{name}'s (person)",
+			"translation": "{name} 님의",
+			"note": "space before 님"
+		},
+		{
+			"term": "accept (terms)",
+			"translation": "동의"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "접근성"
+		},
+		{
+			"term": "account",
+			"translation": "계정"
+		},
+		{
+			"term": "Account menu",
+			"translation": "계정 메뉴"
+		},
+		{
+			"term": "Align horizontally",
+			"translation": "가로 정렬"
+		},
+		{
+			"term": "Align left",
+			"translation": "왼쪽 정렬"
+		},
+		{
+			"term": "Align vertically",
+			"translation": "세로 정렬"
+		},
+		{
+			"term": "alt text",
+			"translation": "대체 텍스트"
+		},
+		{
+			"term": "analytics",
+			"translation": "분석"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "화살표"
+		},
+		{
+			"term": "Arrow left (shape)",
+			"translation": "왼쪽 화살표"
+		},
+		{
+			"term": "Arrowhead end",
+			"translation": "끝 모양"
+		},
+		{
+			"term": "Arrowhead start",
+			"translation": "시작 모양"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "화살촉"
+		},
+		{
+			"term": "backup",
+			"translation": "백업"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "앞으로 가져오기"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "맨 앞으로 가져오기"
+		},
+		{
+			"term": "Cancel",
+			"translation": "취소"
+		},
+		{
+			"term": "canvas",
+			"translation": "캔버스"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "선택됨 / 선택 안 됨"
+		},
+		{
+			"term": "Checked / Unchecked (state)",
+			"translation": "선택됨 / 선택 안 됨",
+			"note": "States, not actions; 선택 취소 means 'deselect'"
+		},
+		{
+			"term": "Close",
+			"translation": "닫기"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "구름"
+		},
+		{
+			"term": "Collaboration",
+			"translation": "협업"
+		},
+		{
+			"term": "Command palette",
+			"translation": "명령 팔레트"
+		},
+		{
+			"term": "comment",
+			"translation": "댓글"
+		},
+		{
+			"term": "comments",
+			"translation": "댓글"
+		},
+		{
+			"term": "copy (clipboard action)",
+			"translation": "복사"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "복사"
+		},
+		{
+			"term": "counterclockwise",
+			"translation": "반시계 방향"
+		},
+		{
+			"term": "Cubic (curve)",
+			"translation": "3차 곡선"
+		},
+		{
+			"term": "Dark (color scheme)",
+			"translation": "다크"
+		},
+		{
+			"term": "dashed",
+			"translation": "파선"
+		},
+		{
+			"term": "Delete",
+			"translation": "삭제"
+		},
+		{
+			"term": "dotted",
+			"translation": "점선"
+		},
+		{
+			"term": "Draw (font)",
+			"translation": "필기체"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "복제"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "편집"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "편집자"
+		},
+		{
+			"term": "Editor (sharing role)",
+			"translation": "편집자",
+			"note": "Person role; not 편집기 (software)"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "타원"
+		},
+		{
+			"term": "embed",
+			"translation": "임베드"
+		},
+		{
+			"term": "Error",
+			"translation": "오류"
+		},
+		{
+			"term": "Export",
+			"translation": "내보내기"
+		},
+		{
+			"term": "feedback",
+			"translation": "피드백"
+		},
+		{
+			"term": "file",
+			"translation": "파일"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "채우기"
+		},
+		{
+			"term": "Flatten (to image)",
+			"translation": "병합"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "뒤집기"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "따라가기",
+			"note": "Not 팔로우 (social media)"
+		},
+		{
+			"term": "Font",
+			"translation": "글꼴"
+		},
+		{
+			"term": "Forget (file)",
+			"translation": "목록에서 제거",
+			"note": "Distinct from 삭제"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "프레임"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "그룹화"
+		},
+		{
+			"term": "Heading",
+			"translation": "제목"
+		},
+		{
+			"term": "Heart (shape)",
+			"translation": "하트"
+		},
+		{
+			"term": "Help",
+			"translation": "도움말"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "항목"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "항목"
+		},
+		{
+			"term": "justify (text)",
+			"translation": "양쪽정렬"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "키보드 단축키"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "가로"
+		},
+		{
+			"term": "Later (dismiss button)",
+			"translation": "나중에"
+		},
+		{
+			"term": "Libraries",
+			"translation": "라이브러리",
+			"note": "Not 도서관"
+		},
+		{
+			"term": "library",
+			"translation": "라이브러리",
+			"note": "Not 도서관"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "라이브러리"
+		},
+		{
+			"term": "Light (color scheme)",
+			"translation": "라이트"
+		},
+		{
+			"term": "Light (color tint)",
+			"translation": "연-",
+			"note": "Prefix pattern: 연두, 연홍, 연보라."
+		},
+		{
+			"term": "light <color>",
+			"translation": "연- prefix (연파랑, 연두, 연홍, 연보라)"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "링크"
+		},
+		{
+			"term": "Member (role)",
+			"translation": "멤버"
+		},
+		{
+			"term": "member (workspace role)",
+			"translation": "멤버"
+		},
+		{
+			"term": "Members",
+			"translation": "멤버"
+		},
+		{
+			"term": "minimap",
+			"translation": "미니맵"
+		},
+		{
+			"term": "Mono (font)",
+			"translation": "고정폭"
+		},
+		{
+			"term": "More (overflow)",
+			"translation": "더보기"
+		},
+		{
+			"term": "Notifications",
+			"translation": "알림"
+		},
+		{
+			"term": "OK",
+			"translation": "확인",
+			"note": "Dialog dismiss button"
+		},
+		{
+			"term": "Opacity",
+			"translation": "불투명도"
+		},
+		{
+			"term": "Oval",
+			"translation": "캡슐형"
+		},
+		{
+			"term": "Owner",
+			"translation": "소유자"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "소유자"
+		},
+		{
+			"term": "Padding (export margin)",
+			"translation": "여백"
+		},
+		{
+			"term": "page",
+			"translation": "페이지"
+		},
+		{
+			"term": "Paste",
+			"translation": "붙여넣기"
+		},
+		{
+			"term": "Pattern (fill)",
+			"translation": "패턴"
+		},
+		{
+			"term": "Pointer down",
+			"translation": "포인터 누름"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "세로"
+		},
+		{
+			"term": "Preferences",
+			"translation": "설정"
+		},
+		{
+			"term": "privacy policy",
+			"translation": "개인정보처리방침"
+		},
+		{
+			"term": "publish",
+			"translation": "게시"
+		},
+		{
+			"term": "Redo",
+			"translation": "다시 실행"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "움직임 줄이기"
+		},
+		{
+			"term": "Refresh (page)",
+			"translation": "새로고침"
+		},
+		{
+			"term": "Refresh (reload page)",
+			"translation": "새로고침"
+		},
+		{
+			"term": "regenerate",
+			"translation": "재생성"
+		},
+		{
+			"term": "regenerate (invite link)",
+			"translation": "재생성"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "제거",
+			"note": "Distinct from 삭제 (delete)"
+		},
+		{
+			"term": "Remove member",
+			"translation": "멤버 제거",
+			"note": "제거, not 삭제"
+		},
+		{
+			"term": "Rename",
+			"translation": "이름 바꾸기"
+		},
+		{
+			"term": "Rename page",
+			"translation": "페이지 이름 변경"
+		},
+		{
+			"term": "Sans (font)",
+			"translation": "돋움체"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "사본 저장"
+		},
+		{
+			"term": "search (prompt)",
+			"translation": "검색..."
+		},
+		{
+			"term": "Send backward",
+			"translation": "뒤로 보내기"
+		},
+		{
+			"term": "Send to back",
+			"translation": "맨 뒤로 보내기"
+		},
+		{
+			"term": "Serif (font)",
+			"translation": "바탕체"
+		},
+		{
+			"term": "Settings",
+			"translation": "설정"
+		},
+		{
+			"term": "shape",
+			"translation": "도형"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "공유"
+		},
+		{
+			"term": "Sign out",
+			"translation": "로그아웃"
+		},
+		{
+			"term": "Small / Medium / Large / Extra large (size style)",
+			"translation": "소 / 중 / 대 / 특대"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "실선"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "취소선"
+		},
+		{
+			"term": "System (color scheme)",
+			"translation": "시스템"
+		},
+		{
+			"term": "terms of service",
+			"translation": "이용 약관"
+		},
+		{
+			"term": "terms of use",
+			"translation": "이용약관"
+		},
+		{
+			"term": "Text formatting",
+			"translation": "텍스트 서식"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "도구 잠금"
+		},
+		{
+			"term": "Tools",
+			"translation": "도구"
+		},
+		{
+			"term": "Undo",
+			"translation": "실행 취소"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "그룹화 해제"
+		},
+		{
+			"term": "Unpin",
+			"translation": "고정 해제"
+		},
+		{
+			"term": "Untitled",
+			"translation": "제목 없음"
+		},
+		{
+			"term": "upload",
+			"translation": "업로드"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "보기"
+		},
+		{
+			"term": "workspace",
+			"translation": "작업 공간",
+			"note": "Most of the catalog uses this; 워크스페이스 is the minority form"
+		},
+		{
+			"term": "You (current user)",
+			"translation": "나"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "확대/축소"
+		},
+		{
+			"term": "zoom out",
+			"translation": "축소"
+		}
+	]
+}
