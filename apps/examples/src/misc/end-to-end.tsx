@@ -1,4 +1,8 @@
-import { createMermaidDiagram } from '@tldraw/mermaid'
+import {
+	MermaidClassShapeUtil,
+	MermaidEndLabelBindingUtil,
+	createMermaidDiagram,
+} from '@tldraw/mermaid'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
@@ -134,7 +138,8 @@ export default function EndToEnd() {
 				onUiEvent={(name, data) => {
 					;(window as any).__tldraw_ui_event = { name, data }
 				}}
-				shapeUtils={[HtmlCssShapeUtil]}
+				shapeUtils={[HtmlCssShapeUtil, MermaidClassShapeUtil]}
+				bindingUtils={[MermaidEndLabelBindingUtil]}
 			>
 				<SneakyExportButton />
 			</Tldraw>
