@@ -1,0 +1,511 @@
+{
+	"register": "Infinitive for buttons, menu items and switch labels",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Доступність"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Альтернативний текст"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Стрілка"
+		},
+		{
+			"term": "Arrowhead",
+			"translation": "наконечник"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Співвідношення сторін"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Автоматично"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Лінія"
+		},
+		{
+			"term": "Bring to front / Send to back",
+			"translation": "На передній план / На задній план"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Маркірований список"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Скасувати"
+		},
+		{
+			"term": "canvas",
+			"translation": "полотно"
+		},
+		{
+			"term": "clipboard",
+			"translation": "буфер обміну"
+		},
+		{
+			"term": "Close",
+			"translation": "Закрити"
+		},
+		{
+			"term": "Close (dialog)",
+			"translation": "Закрити"
+		},
+		{
+			"term": "Color",
+			"translation": "Колір"
+		},
+		{
+			"term": "command palette",
+			"translation": "палітра команд"
+		},
+		{
+			"term": "comment",
+			"translation": "коментар"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Підтвердити"
+		},
+		{
+			"term": "content (shapes on canvas)",
+			"translation": "вміст",
+			"note": "not 'зміст' (table of contents)"
+		},
+		{
+			"term": "Copy",
+			"translation": "Копіювати"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Вирізати"
+		},
+		{
+			"term": "Dashed",
+			"translation": "Штриховий"
+		},
+		{
+			"term": "Delete",
+			"translation": "Видалити"
+		},
+		{
+			"term": "Details",
+			"translation": "Деталі"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Ромб"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "Розподілити"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Дублювати"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "Дублювати"
+		},
+		{
+			"term": "Dynamic size",
+			"translation": "Динамічний розмір"
+		},
+		{
+			"term": "Edit (action)",
+			"translation": "Редагувати"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Правка"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Редактор"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Еліпс"
+		},
+		{
+			"term": "Embed",
+			"translation": "Вбудовування"
+		},
+		{
+			"term": "Embed (noun)",
+			"translation": "Вбудовування"
+		},
+		{
+			"term": "Export",
+			"translation": "Експорт"
+		},
+		{
+			"term": "file",
+			"translation": "файл"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Файл",
+			"note": "dotcom 0b27918290"
+		},
+		{
+			"term": "Fill",
+			"translation": "Заливка",
+			"note": "feminine; fill values agree"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "заливка"
+		},
+		{
+			"term": "Flip",
+			"translation": "Віддзеркалити"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Стежити"
+		},
+		{
+			"term": "Font",
+			"translation": "Шрифт"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Забути"
+		},
+		{
+			"term": "Frame",
+			"translation": "Рамка"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Згрупувати"
+		},
+		{
+			"term": "Heading",
+			"translation": "Заголовок"
+		},
+		{
+			"term": "Highlight (tool)",
+			"translation": "Текстовиділювач"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Імпортувати файл…",
+			"note": "dotcom ffcd73e997"
+		},
+		{
+			"term": "input device",
+			"translation": "пристрій введення"
+		},
+		{
+			"term": "Italic",
+			"translation": "Курсив"
+		},
+		{
+			"term": "item",
+			"translation": "елемент"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "елемент"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "елемент"
+		},
+		{
+			"term": "Justify",
+			"translation": "За шириною"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Комбінації клавіш"
+		},
+		{
+			"term": "Landscape / Portrait (orientation)",
+			"translation": "Альбомна / Книжкова"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Бібліотеки"
+		},
+		{
+			"term": "library",
+			"translation": "бібліотека"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "Світло-<color>"
+		},
+		{
+			"term": "link",
+			"translation": "посилання"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Посилання"
+		},
+		{
+			"term": "Media",
+			"translation": "Медіа"
+		},
+		{
+			"term": "Member",
+			"translation": "Учасник"
+		},
+		{
+			"term": "Member (role)",
+			"translation": "Учасник"
+		},
+		{
+			"term": "minimap",
+			"translation": "міні-карта"
+		},
+		{
+			"term": "More (overflow toolbar)",
+			"translation": "Більше",
+			"note": "Not 'Детальніше' (more details)"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Миша"
+		},
+		{
+			"term": "Move up/down",
+			"translation": "Перемістити вгору/вниз"
+		},
+		{
+			"term": "Name (of workspace/file)",
+			"translation": "Назва"
+		},
+		{
+			"term": "Note (sticky note)",
+			"translation": "Нотатка"
+		},
+		{
+			"term": "notification",
+			"translation": "сповіщення"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Сповіщення"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Непрозорість"
+		},
+		{
+			"term": "Options (action menu)",
+			"translation": "Опції"
+		},
+		{
+			"term": "Oval",
+			"translation": "Овал"
+		},
+		{
+			"term": "page",
+			"translation": "сторінка"
+		},
+		{
+			"term": "Paste",
+			"translation": "Вставити"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "закріпити",
+			"note": "Pinned heading: 'Закріплені'"
+		},
+		{
+			"term": "Pinned",
+			"translation": "Закріплені",
+			"note": "Matches Закріпити файл"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Налаштування"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Політика конфіденційності"
+		},
+		{
+			"term": "project (board)",
+			"translation": "проєкт"
+		},
+		{
+			"term": "Refresh page",
+			"translation": "Оновити сторінку"
+		},
+		{
+			"term": "Regenerate",
+			"translation": "Згенерувати повторно"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "вилучити",
+			"note": "Distinct from delete (видалити)"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "Вилучити",
+			"note": "Distinct from Видалити (Delete)"
+		},
+		{
+			"term": "Remove from file",
+			"translation": "Вилучити з файлу",
+			"note": "Вилучити = remove/detach, Видалити = delete"
+		},
+		{
+			"term": "Rename",
+			"translation": "Перейменувати"
+		},
+		{
+			"term": "Reset data",
+			"translation": "Скинути дані"
+		},
+		{
+			"term": "Resolve",
+			"translation": "Вирішити"
+		},
+		{
+			"term": "Resolve / Resolved (comments)",
+			"translation": "Вирішити / вирішений"
+		},
+		{
+			"term": "rhombus (parallelogram shape)",
+			"translation": "Паралелограм",
+			"note": "'Ромб' is the Diamond label"
+		},
+		{
+			"term": "Rhombus (shape)",
+			"translation": "Паралелограм"
+		},
+		{
+			"term": "Save",
+			"translation": "Зберегти"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Зберегти копію",
+			"note": "SDK action.save-copy label"
+		},
+		{
+			"term": "See more / See less",
+			"translation": "Показати більше / Показати менше"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "виділення"
+		},
+		{
+			"term": "Settings",
+			"translation": "Налаштування"
+		},
+		{
+			"term": "shape",
+			"translation": "фігура"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Поділитися"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Увійти"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Вийти"
+		},
+		{
+			"term": "Size",
+			"translation": "Розмір"
+		},
+		{
+			"term": "Snap",
+			"translation": "прив’язування"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Суцільний"
+		},
+		{
+			"term": "Task list",
+			"translation": "Список завдань"
+		},
+		{
+			"term": "Theme Dark/Light",
+			"translation": "Темна/Світла",
+			"note": "Feminine, agrees with 'тема'"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Перемкнути"
+		},
+		{
+			"term": "Toggle (action)",
+			"translation": "Перемкнути"
+		},
+		{
+			"term": "Toggle (command label)",
+			"translation": "Перемкнути"
+		},
+		{
+			"term": "tools",
+			"translation": "інструменти"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Трекпад"
+		},
+		{
+			"term": "Transparent",
+			"translation": "Прозорий"
+		},
+		{
+			"term": "Undo",
+			"translation": "Скасувати"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Розгрупувати"
+		},
+		{
+			"term": "unpin",
+			"translation": "відкріпити"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Вигляд"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "Читач"
+		},
+		{
+			"term": "Warning (noun)",
+			"translation": "Попередження"
+		},
+		{
+			"term": "workspace",
+			"translation": "робочий простір",
+			"note": "Not робоча область / робоче середовище"
+		},
+		{
+			"term": "Zoom (level, noun)",
+			"translation": "Масштаб"
+		},
+		{
+			"term": "zoom (noun, level)",
+			"translation": "масштаб"
+		}
+	]
+}

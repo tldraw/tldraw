@@ -9,7 +9,6 @@ import {
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { useDesignSwitch } from '../../utils/designSwitches'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import {
 	TlaMenuTabsPage,
@@ -19,11 +18,10 @@ import {
 } from '../tla-menu/tla-menu'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { getShareMenuId } from './openShareMenu'
-import { TlaAnonCopyLink, TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
+import { TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
 import { TlaExportTab } from './Tabs/TlaExportTab'
 import { TlaInviteTab } from './Tabs/TlaInviteTab'
 import { TlaPublishTab } from './Tabs/TlaPublishTab'
-import { TlaSignInTab } from './Tabs/TlaSignInTab'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
@@ -63,21 +61,16 @@ export function TlaFileShareMenu({
 
 	let tabToShowAsActive = shareMenuActiveTab
 
-	// Published and legacy rooms have no Invite or Publish tab for sign-in to stand in for.
-	const hasSignedOutShare = useDesignSwitch('signedOutShare')
-	const needsSignIn = hasSignedOutShare && !app && (context === 'file' || context === 'scratch')
-
 	const okTabs = {
 		// If the context is a guest file or published file, show the anon share file
 		'anon-share':
-			!needsSignIn &&
 			!hasAdminRights &&
 			(context === 'file' || context === 'published-file' || context === 'legacy'),
 		export: true,
 		// Can the current user configure the file's sharing settings?
-		share: needsSignIn || (context === 'file' && fileId && file && hasAdminRights),
+		share: context === 'file' && fileId && file && hasAdminRights,
 		// Can the current user configure the file's publishing settings?
-		publish: needsSignIn || (context === 'file' && fileId && file && hasAdminRights),
+		publish: context === 'file' && fileId && file && hasAdminRights,
 	}
 
 	// If the user is not signed in and their local active tab is share, then show the anon share tab
@@ -89,6 +82,8 @@ export function TlaFileShareMenu({
 	if (!okTabs[tabToShowAsActive]) {
 		tabToShowAsActive = 'export'
 	}
+
+	// todo: replace disabled tabs for signed out users with "sign in to do X" content
 
 	return (
 		<TldrawUiPopover id={getShareMenuId(fileId, source)} onOpenChange={onOpenChange}>
@@ -103,6 +98,7 @@ export function TlaFileShareMenu({
 				<div className={styles.fileShareMenu}>
 					<TlaMenuTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaMenuTabsTabs>
+							{/* Disable share when on a scratchpad file */}
 							{okTabs.share && (
 								<TlaMenuTabsTab id="share" data-testid="tla-share-tab-button-share">
 									<F defaultMessage="Invite" />
@@ -124,15 +120,7 @@ export function TlaFileShareMenu({
 								</TlaMenuTabsTab>
 							)}
 						</TlaMenuTabsTabs>
-						{needsSignIn && (
-							<TlaMenuTabsPage id="share" data-testid="tla-share-tab-page-share">
-								<TlaSignInTab>
-									{/* A guest on a shared file can still pass its link on. */}
-									{context === 'file' && <TlaAnonCopyLink type="secondary" />}
-								</TlaSignInTab>
-							</TlaMenuTabsPage>
-						)}
-						{!needsSignIn && okTabs.share && fileId && (
+						{okTabs.share && fileId && (
 							// We have a file and we're authenticated
 							<TlaMenuTabsPage id="share" data-testid="tla-share-tab-page-share">
 								<TlaInviteTab fileId={fileId} />
@@ -146,13 +134,8 @@ export function TlaFileShareMenu({
 						<TlaMenuTabsPage id="export" data-testid="tla-share-tab-page-export">
 							<TlaExportTab />
 						</TlaMenuTabsPage>
-						{needsSignIn && (
-							<TlaMenuTabsPage id="publish" data-testid="tla-share-tab-page-publish">
-								<TlaSignInTab />
-							</TlaMenuTabsPage>
-						)}
 						{/* Only show the publish tab if the file is owned by the user */}
-						{!needsSignIn && okTabs.publish && file && (
+						{okTabs.publish && file && (
 							<TlaMenuTabsPage id="publish" data-testid="tla-share-tab-page-publish">
 								<TlaPublishTab file={file} />
 							</TlaMenuTabsPage>

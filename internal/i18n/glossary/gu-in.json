@@ -1,0 +1,50 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "comment",
+			"translation": "ટિપ્પણી"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "સંપાદન"
+		},
+		{
+			"term": "Export",
+			"translation": "નિકાસ કરો"
+		},
+		{
+			"term": "fill (noun)",
+			"translation": "ભરણ"
+		},
+		{
+			"term": "Import file…",
+			"translation": "ફાઇલ આયાત કરો…"
+		},
+		{
+			"term": "library",
+			"translation": "લાઇબ્રેરી"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "રેખા"
+		},
+		{
+			"term": "Note: (attention marker)",
+			"translation": "નોંધ:"
+		},
+		{
+			"term": "page",
+			"translation": "પૃષ્ઠ"
+		},
+		{
+			"term": "rhombus",
+			"translation": "રોમ્બસ"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "એક નકલ સાચવો",
+			"note": "SDK action.save-copy menu label"
+		}
+	]
+}

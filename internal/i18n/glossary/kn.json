@@ -1,0 +1,51 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "(fine)",
+			"translation": "(ಸೂಕ್ಷ್ಮ)"
+		},
+		{
+			"term": "clockwise / counterclockwise",
+			"translation": "ಪ್ರದಕ್ಷಿಣಾಕಾರವಾಗಿ / ಅಪ್ರದಕ್ಷಿಣಾಕಾರವಾಗಿ"
+		},
+		{
+			"term": "Comment (noun)",
+			"translation": "ಕಾಮೆಂಟ್"
+		},
+		{
+			"term": "library",
+			"translation": "ಲೈಬ್ರರಿ"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "ಲೈಟ್ / ಡಾರ್ಕ್"
+		},
+		{
+			"term": "Line (drawn)",
+			"translation": "ರೇಖೆ"
+		},
+		{
+			"term": "page",
+			"translation": "ಪುಟ"
+		},
+		{
+			"term": "pentagon",
+			"translation": "ಪಂಚಭುಜಾಕೃತಿ",
+			"note": "Matches ಷಡ್ಭುಜಾಕೃತಿ and ಅಷ್ಟಭುಜಾಕೃತಿ"
+		},
+		{
+			"term": "project",
+			"translation": "ಪ್ರಾಜೆಕ್ಟ್"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "ನಕಲನ್ನು ಉಳಿಸಿ",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "shape",
+			"translation": "ಆಕಾರ"
+		}
+	]
+}

@@ -1,0 +1,130 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "การช่วยการเข้าถึง"
+		},
+		{
+			"term": "Accessibility (menu)",
+			"translation": "การเข้าถึง"
+		},
+		{
+			"term": "alt text",
+			"translation": "ข้อความแสดงแทน"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "เมฆ"
+		},
+		{
+			"term": "Comment",
+			"translation": "ความคิดเห็น"
+		},
+		{
+			"term": "copy",
+			"translation": "คัดลอก"
+		},
+		{
+			"term": "delete",
+			"translation": "ลบ"
+		},
+		{
+			"term": "Duplicate (command)",
+			"translation": "ทำสำเนา",
+			"note": "ทำซ้ำ is Redo"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "ผู้แก้ไข"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "วงรี"
+		},
+		{
+			"term": "Export",
+			"translation": "ส่งออก"
+		},
+		{
+			"term": "file",
+			"translation": "ไฟล์"
+		},
+		{
+			"term": "Flip horizontally",
+			"translation": "พลิกแนวนอน"
+		},
+		{
+			"term": "Flip vertically",
+			"translation": "พลิกแนวตั้ง"
+		},
+		{
+			"term": "Frame",
+			"translation": "กรอบ"
+		},
+		{
+			"term": "Grid",
+			"translation": "ตาราง"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "แนวนอน"
+		},
+		{
+			"term": "Libraries",
+			"translation": "ไลบรารี",
+			"note": "Not ห้องสมุด"
+		},
+		{
+			"term": "library",
+			"translation": "ไลบรารี"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "ไลบรารี"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "สว่าง"
+		},
+		{
+			"term": "Oval",
+			"translation": "รูปไข่"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "ปักหมุด"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "แนวตั้ง"
+		},
+		{
+			"term": "Preferences",
+			"translation": "ตั้งค่า",
+			"note": "menu.preferences label"
+		},
+		{
+			"term": "Preferences (menu)",
+			"translation": "ตั้งค่า",
+			"note": "menu.preferences"
+		},
+		{
+			"term": "publish",
+			"translation": "เผยแพร่"
+		},
+		{
+			"term": "Resolved (comment thread)",
+			"translation": "แก้ไขแล้ว"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "บันทึกสำเนา"
+		},
+		{
+			"term": "video",
+			"translation": "วิดีโอ",
+			"note": "matches tool.video-toolbar-title"
+		}
+	]
+}

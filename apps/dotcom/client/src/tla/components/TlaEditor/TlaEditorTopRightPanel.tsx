@@ -12,37 +12,22 @@ import {
 	F,
 	PeopleMenu,
 	TldrawUiButton,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuCheckboxItem,
-	TldrawUiMenuContextProvider,
-	TldrawUiMenuGroup,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
-	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
-import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
-import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
-import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { FILE_HEADER_SHARE_SOURCE } from '../TlaFileShareMenu/openShareMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import {
-	messages as sidebarMessages,
-	useHandleSidebarCreateFile,
-} from '../TlaSidebar/components/sidebar-shared'
 import styles from './top.module.css'
 
 const ctaMessages = defineMessages({
@@ -51,10 +36,6 @@ const ctaMessages = defineMessages({
 
 const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
-})
-
-const settingsMessages = defineMessages({
-	settings: { defaultMessage: 'Settings' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -73,10 +54,6 @@ export function TlaEditorTopRightPanel({
 	const trackEvent = useTldrawAppUiEvents()
 	const { addDialog } = useDialogs()
 	const editor = useEditor()
-	const hasSignedOutShare = useDesignSwitch('signedOutShare')
-	// Its menu's File → Export… stands in for the share icon, which signed out only exports.
-	const hasAndysMainMenu = useDesignSwitch('andysMainMenu')
-	const className = classNames(styles.topRightPanel, useIsUiV3() && styles.topRightPanelV3)
 	// Share and the comments sidebar are mutually exclusive: opening share closes the sidebar.
 	// (The reverse is automatic — clicking the sidebar button dismisses the share popover as an
 	// outside interaction.)
@@ -89,52 +66,32 @@ export function TlaEditorTopRightPanel({
 
 	if (isAnonUser) {
 		return (
-			<div ref={ref} className={className}>
+			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
-				<DesignSwitchesMenu />
-				<SettingsButton />
-				{hasSignedOutShare ? (
-					<TlaFileShareMenu fileId={fileId} context={context} source="anon">
-						<TlaCtaButton
-							canvas
-							data-testid="tla-share-button"
-							onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
-						>
-							<F defaultMessage="Share" />
-						</TlaCtaButton>
-					</TlaFileShareMenu>
-				) : (
-					<>
-						{!hasAndysMainMenu && <SignedOutShareButton fileId={fileId} context={context} />}
-						<TlaCtaButton
-							canvas
-							data-testid="tla-sign-in-button"
-							onClick={() => {
-								trackEvent('sign-up-clicked', {
-									source: 'anon-landing-page',
-									ctaMessage: msg(ctaMessages.signInToShare),
-								})
-								addDialog({ component: TlaSignInDialog })
-							}}
-						>
-							<F {...ctaMessages.signInToShare} />
-						</TlaCtaButton>
-					</>
-				)}
+				<SignedOutShareButton fileId={fileId} context={context} />
+				<TlaCtaButton
+					canvas
+					data-testid="tla-sign-in-button"
+					onClick={() => {
+						trackEvent('sign-up-clicked', {
+							source: 'anon-landing-page',
+							ctaMessage: msg(ctaMessages.signInToShare),
+						})
+						addDialog({ component: TlaSignInDialog })
+					}}
+				>
+					<F {...ctaMessages.signInToShare} />
+				</TlaCtaButton>
 			</div>
 		)
 	}
 
 	return (
-		<div ref={ref} className={className}>
+		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
-			<DesignSwitchesMenu />
 			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
 			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
-			{/* The sidebar has this button on every other route, and v3 hides it only on files. */}
-			{context === 'file' && <NewFileShortcutButton />}
-			<SettingsButton />
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -188,100 +145,6 @@ function CommentsSidebarButton() {
 		>
 			<TlaIcon icon="comment" />
 		</TldrawUiButton>
-	)
-}
-
-/** For the settingsIcon design switch, which also takes Settings out of `TlaSettingsGroup`. */
-function SettingsButton() {
-	const msg = useTranslation()
-	const { addDialog } = useDialogs()
-	const isOn = useDesignSwitch('settingsIcon')
-	const label = msg(settingsMessages.settings)
-
-	if (!isOn) return null
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			className={styles.topRightIconButton}
-			data-testid="tla-settings-button"
-			tooltip={label}
-			title={label}
-			onClick={() => addDialog({ component: () => <TlaSettingsDialog /> })}
-		>
-			<TlaIcon icon="gear" />
-		</TldrawUiButton>
-	)
-}
-
-/** For the newFileShortcut design switch. */
-function NewFileShortcutButton() {
-	const msg = useTranslation()
-	const isOn = useDesignSwitch('newFileShortcut')
-	const handleCreateFile = useHandleSidebarCreateFile()
-	const label = msg(sidebarMessages.create)
-
-	if (!isOn) return null
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			className={styles.topRightIconButton}
-			data-testid="tla-create-file"
-			tooltip={label}
-			title={label}
-			onClick={() => handleCreateFile({ source: 'top-bar' })}
-		>
-			<TlaIcon icon="new-file" />
-		</TldrawUiButton>
-	)
-}
-
-/** The beaker: v3 design switches, wherever the v3 UI shows. See `designSwitches`. */
-function DesignSwitchesMenu() {
-	const isUiV3 = useIsUiV3()
-	// With this switch on, the settings dialog's Labs tab lists the switches instead.
-	const isInSettings = useDesignSwitch('settingsLabsTab')
-	if (!isUiV3 || isInSettings) return null
-
-	return (
-		<TldrawUiDropdownMenuRoot id="design-switches">
-			<TldrawUiMenuContextProvider type="menu" sourceId="menu">
-				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton
-						type="icon"
-						className={styles.topRightIconButton}
-						data-testid="tla-design-switches-button"
-						tooltip="Design switches"
-						title="Design switches"
-					>
-						<TlaIcon icon="beaker" />
-					</TldrawUiButton>
-				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
-					<TldrawUiMenuGroup id="design-switches">
-						{Object.values(designSwitches).map((designSwitch) => (
-							<DesignSwitchItem key={designSwitch.id} designSwitch={designSwitch} />
-						))}
-					</TldrawUiMenuGroup>
-				</TldrawUiDropdownMenuContent>
-			</TldrawUiMenuContextProvider>
-		</TldrawUiDropdownMenuRoot>
-	)
-}
-
-function DesignSwitchItem({ designSwitch }: { designSwitch: DesignSwitch }) {
-	const checked = useValue(designSwitch.value)
-	return (
-		<TldrawUiMenuCheckboxItem
-			id={`design-switch-${designSwitch.id}`}
-			label={designSwitch.label}
-			checked={checked}
-			onSelect={() => {
-				designSwitch.value.set(!checked)
-			}}
-			readonlyOk
-		/>
 	)
 }
 

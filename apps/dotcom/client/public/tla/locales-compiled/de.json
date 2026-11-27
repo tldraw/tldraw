@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Lade Teamkollegen ein"
+      "value": "Teammitglieder einladen"
     }
   ],
   "05b2656486": [
@@ -66,7 +66,7 @@
     },
     {
       "type": 0,
-      "value": " hat dich erwähnt"
+      "value": " hat Sie erwähnt"
     }
   ],
   "05f43078e9": [
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Ratenbegrenzung überschritten, bitte versuchen Sie es später."
+      "value": "Anfragelimit überschritten, bitte versuchen Sie es später erneut."
     }
   ],
   "08bd40c754": [
@@ -106,7 +106,7 @@
     },
     {
       "type": 0,
-      "value": "-Dateien können noch nicht geöffnet werden."
+      "value": "-Dateien können noch nicht geöffnet werden"
     }
   ],
   "0a91f7fa87": [
@@ -169,6 +169,12 @@
       "value": "Datei aufheben"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Dieser Arbeitsbereich hat die maximale Anzahl an Bibliotheken erreicht. Löschen Sie alte Bibliotheken, bevor Sie neue erstellen."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -184,7 +190,7 @@
   "15bf4fead9": [
     {
       "type": 0,
-      "value": "Switch-Arbeitsbereich"
+      "value": "Arbeitsbereich wechseln"
     }
   ],
   "181b90f889": [
@@ -202,7 +208,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Bewegen nach"
+      "value": "Verschieben nach"
     }
   ],
   "1da2e8106b": [
@@ -223,6 +229,12 @@
       "value": "Ein Arbeitsbereich muss mindestens einen Eigentümer haben. Machen Sie zunächst jemand anderen zum Eigentümer."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Meine Sammlung"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -232,7 +244,7 @@
   "23dcace54a": [
     {
       "type": 0,
-      "value": "Sie wurden eingeladen, dem "
+      "value": "Sie wurden eingeladen, "
     },
     {
       "children": [
@@ -253,6 +265,12 @@
     {
       "type": 0,
       "value": "Über tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Diese Bibliothek hat die maximale Anzahl an Elementen erreicht. Löschen Sie alte Elemente, bevor Sie neue hinzufügen."
     }
   ],
   "28b2464e1f": [
@@ -332,7 +350,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Markierung fehlt"
+      "value": "i18n: Fehlende Übersetzungen hervorheben"
     }
   ],
   "324a0f3182": [
@@ -344,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Doppelte Datei"
+      "value": "Datei duplizieren"
     }
   ],
   "335defdafe": [
@@ -386,7 +404,7 @@
   "3bc7d6ea2f": [
     {
       "type": 0,
-      "value": "Mit der E-Mail fortfahren"
+      "value": "Weiter mit E-Mail"
     }
   ],
   "3bd1b98dbd": [
@@ -417,6 +435,12 @@
     {
       "type": 0,
       "value": "Farbthema"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Bibliotheksmenü"
     }
   ],
   "42e53c47c1": [
@@ -478,13 +502,13 @@
   "477df802ca": [
     {
       "type": 0,
-      "value": "Um die Bearbeitung fortzusetzen, kopieren Sie bitte die Datei in Ihren Dateien."
+      "value": "Um die Bearbeitung fortzusetzen, kopieren Sie die Datei bitte in Ihre Dateien."
     }
   ],
   "47f493a590": [
     {
       "type": 0,
-      "value": "Pin-Datei"
+      "value": "Datei anheften"
     }
   ],
   "4970317944": [
@@ -512,7 +536,7 @@
   "4a8165368a": [
     {
       "type": 0,
-      "value": "Link zum veröffentlichten Link kopieren"
+      "value": "Veröffentlichten Link kopieren"
     }
   ],
   "4a95fa0c08": [
@@ -529,6 +553,12 @@
     {
       "type": 0,
       "value": " hat kommentiert"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Diese Datei"
     }
   ],
   "4d0d3ddec9": [
@@ -588,7 +618,7 @@
   "542248f0ba": [
     {
       "type": 0,
-      "value": "Diese Datei ist jetzt schreibgeschützt."
+      "value": "Diese Datei ist jetzt schreibgeschützt"
     }
   ],
   "54286b1d01": [
@@ -706,7 +736,7 @@
   "60a68c29d6": [
     {
       "type": 0,
-      "value": "Melden Sie sich an, um einen Kommentar zu hinterlassen."
+      "value": "Anmelden, um zu kommentieren"
     }
   ],
   "61057a0c84": [
@@ -730,7 +760,7 @@
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "Du"
+      "value": "Sie"
     }
   ],
   "63a6a88c06": [
@@ -802,7 +832,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " weitere Person"
             }
           ]
         },
@@ -813,7 +843,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " weitere Personen"
             }
           ]
         }
@@ -824,13 +854,13 @@
     },
     {
       "type": 0,
-      "value": " reagierten"
+      "value": " haben reagiert"
     }
   ],
   "6832ac5936": [
     {
       "type": 0,
-      "value": "Geben Sie Ihre E-Mail-Adresse ein."
+      "value": "E-Mail-Adresse eingeben"
     }
   ],
   "694f82ed9d": [
@@ -853,7 +883,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Jemand hat reagiert."
+              "value": "Jemand hat reagiert"
             }
           ]
         },
@@ -864,7 +894,7 @@
             },
             {
               "type": 0,
-              "value": " Reaktionen"
+              "value": " Personen haben reagiert"
             }
           ]
         }
@@ -935,7 +965,7 @@
   "747ee44424": [
     {
       "type": 0,
-      "value": "Speichern Sie den Inhalt als .tldr-Datei: Wählen Sie dazu im Menü oben links die Option „Kopie speichern“."
+      "value": "Speichern Sie den Inhalt als .tldr-Datei: Wählen Sie im Menü oben links „Eine Kopie speichern“."
     }
   ],
   "74ff4bad28": [
@@ -995,19 +1025,25 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Diese anonyme tldraw-Multiplayer-Datei ist jetzt schreibgeschützt. Um die Bearbeitung fortzusetzen, melden Sie sich bitte an und kopieren Sie die Datei in Ihren Ordner."
+      "value": "Diese anonyme tldraw-Multiplayer-Datei ist jetzt schreibgeschützt. Um weiterzubearbeiten, melden Sie sich bitte an und kopieren Sie sie in Ihre Dateien."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Noch keine Bibliotheken."
     }
   ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "Habe es"
+      "value": "Verstanden"
     }
   ],
   "797799f35e": [
     {
       "type": 0,
-      "value": "Senden Sie ein Problem auf GitHub"
+      "value": "Problem auf GitHub melden"
     }
   ],
   "797c5be9a7": [
@@ -1037,7 +1073,7 @@
   "7c0747a5df": [
     {
       "type": 0,
-      "value": "Öffne tldraw"
+      "value": "tldraw öffnen"
     }
   ],
   "7c10d4771a": [
@@ -1151,7 +1187,7 @@
   "85a082de1b": [
     {
       "type": 0,
-      "value": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
+      "value": "Bitte laden Sie die Seite neu, um die neueste Version von tldraw zu erhalten."
     }
   ],
   "86c66437fd": [
@@ -1197,7 +1233,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " weitere Person"
             }
           ]
         },
@@ -1208,7 +1244,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " weitere Personen"
             }
           ]
         }
@@ -1219,13 +1255,13 @@
     },
     {
       "type": 0,
-      "value": " reagierten"
+      "value": " haben reagiert"
     }
   ],
   "88bf6ab42c": [
     {
       "type": 0,
-      "value": "Dieser Einladungslink ist abgelaufen."
+      "value": "Dieser Einladungslink ist abgelaufen"
     }
   ],
   "8c2d3d730c": [
@@ -1255,7 +1291,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Rate begrenzt"
+      "value": "Anfragelimit erreicht"
     }
   ],
   "902b0d55fd": [
@@ -1299,7 +1335,7 @@
   "930390d222": [
     {
       "type": 0,
-      "value": "Kopierter Einladungslink"
+      "value": "Einladungslink kopiert"
     }
   ],
   "95aacd4d4a": [
@@ -1340,6 +1376,12 @@
     {
       "type": 0,
       "value": "Nutzungsbedingungen"
+    }
+  ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "MCP-Server ausprobieren"
     }
   ],
   "9914a0ce04": [
@@ -1392,6 +1434,38 @@
       "value": "Sie scheinen offline zu sein. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " Element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " Elemente"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1404,6 +1478,64 @@
       "value": "Diese Datei veröffentlichen"
     }
   ],
+  "9d102330ee": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " und "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "das "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " Element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "die "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " Elemente"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " darin löschen?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1413,13 +1545,13 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Opt-out"
+      "value": "Ablehnen"
     }
   ],
   "a078644c42": [
     {
       "type": 0,
-      "value": "Sie wurden eingeladen, dem "
+      "value": "Sie wurden eingeladen, "
     },
     {
       "children": [
@@ -1471,7 +1603,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Füllung"
+      "value": "Abstand"
     }
   ],
   "a18366b217": [
@@ -1525,7 +1657,7 @@
   "a6cc403d56": [
     {
       "type": 0,
-      "value": "Jeder mit einem Link"
+      "value": "Jeder mit dem Link"
     }
   ],
   "a768caa988": [
@@ -1537,7 +1669,13 @@
   "a8873770ab": [
     {
       "type": 0,
-      "value": "Die Datei wird immer größer."
+      "value": "Die Datei wird immer größer"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Bibliothek löschen"
     }
   ],
   "a9ded1e5ce": [
@@ -1619,7 +1757,7 @@
   "b2326c3a34": [
     {
       "type": 0,
-      "value": "Regenerieren"
+      "value": "Neu generieren"
     }
   ],
   "b2c3c2e30c": [
@@ -1696,16 +1834,12 @@
           "value": [
             {
               "type": 0,
-              "value": ".tldr-Datei wird hochgeladen …"
+              "value": ".tldr-Datei wird hochgeladen…"
             }
           ]
         },
         "other": {
           "value": [
-            {
-              "type": 0,
-              "value": "Hochladen von "
-            },
             {
               "type": 1,
               "value": "uploaded"
@@ -1720,7 +1854,7 @@
             },
             {
               "type": 0,
-              "value": " .tldr-Dateien…"
+              "value": " .tldr-Dateien werden hochgeladen…"
             }
           ]
         }
@@ -1881,7 +2015,7 @@
   "d28d6bbc42": [
     {
       "type": 0,
-      "value": "Datei veröffentlichen"
+      "value": "Veröffentlichung der Datei aufheben"
     }
   ],
   "d3d2e61733": [
@@ -1969,7 +2103,7 @@
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Nur einladen"
+      "value": "Nur auf Einladung"
     }
   ],
   "dbf9b24193": [
@@ -1990,6 +2124,12 @@
       "value": "OK"
     }
   ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Bibliothek konnte nicht geändert werden"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2005,7 +2145,7 @@
   "e404559826": [
     {
       "type": 0,
-      "value": "Servicebedingungen"
+      "value": "Nutzungsbedingungen"
     }
   ],
   "e81c4e4f2b": [
@@ -2118,6 +2258,12 @@
       "value": "Benutzereinstellungen"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· In keiner Datei"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2179,13 +2325,13 @@
   "fa2ead697d": [
     {
       "type": 0,
-      "value": "Datenschutzrichtlinie"
+      "value": "Datenschutzerklärung"
     }
   ],
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Viewer"
+      "value": "Betrachter"
     }
   ],
   "fc9d47046b": [
@@ -2198,6 +2344,12 @@
     {
       "type": 0,
       "value": "Link kopiert"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Öffentliche Bibliotheken"
     }
   ],
   "ff2fefd3c6": [
@@ -2217,7 +2369,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Erstelle ein kostenloses Konto, um deine Dateien zu speichern und mit deinen Teamkollegen zu zeichnen."
+      "value": "Erstellen Sie ein kostenloses Konto, um Ihre Dateien zu speichern und mit Ihrem Team in tldraw zu zeichnen."
     }
   ],
   "ffad261a48": [
@@ -2253,7 +2405,7 @@
     },
     {
       "type": 0,
-      "value": " reagierten"
+      "value": " haben reagiert"
     }
   ],
   "ffcd73e997": [

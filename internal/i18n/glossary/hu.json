@@ -1,0 +1,916 @@
+{
+	"register": "formal (Ön)",
+	"terms": [
+		{
+			"term": "(fine)",
+			"translation": "(finom)"
+		},
+		{
+			"term": "About",
+			"translation": "névjegy"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "Kisegítő lehetőségek"
+		},
+		{
+			"term": "Account",
+			"translation": "Fiók"
+		},
+		{
+			"term": "Actions (menu)",
+			"translation": "Műveletek"
+		},
+		{
+			"term": "Align",
+			"translation": "Igazítás"
+		},
+		{
+			"term": "align (shapes)",
+			"translation": "igazítás",
+			"note": "e.g. Balra igazítás, Felülre igazítás"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Alternatív szöveg"
+		},
+		{
+			"term": "Arc (arrow kind)",
+			"translation": "Ív"
+		},
+		{
+			"term": "Arrange",
+			"translation": "Rendezés"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Nyíl"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Nyíl"
+		},
+		{
+			"term": "Arrow (geo shape)",
+			"translation": "Nyíl"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Nyílhegyek"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Képarány"
+		},
+		{
+			"term": "Auto (input mode)",
+			"translation": "Automatikus",
+			"note": "Not 'Autó' (car)"
+		},
+		{
+			"term": "Background",
+			"translation": "Háttér"
+		},
+		{
+			"term": "backup",
+			"translation": "biztonsági mentés",
+			"note": "verbal noun; fine for the action button"
+		},
+		{
+			"term": "Bold",
+			"translation": "Félkövér"
+		},
+		{
+			"term": "Box (shape)",
+			"translation": "doboz",
+			"note": "as in 'X doboz'"
+		},
+		{
+			"term": "browse",
+			"translation": "böngészés"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Felsorolásos lista"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Mégse"
+		},
+		{
+			"term": "canvas",
+			"translation": "vászon"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Bejelölve",
+			"note": "Not 'Ellenőrizve' (verified)"
+		},
+		{
+			"term": "Close",
+			"translation": "Bezárás"
+		},
+		{
+			"term": "Close (dialog button)",
+			"translation": "Bezárás"
+		},
+		{
+			"term": "Color",
+			"translation": "Szín"
+		},
+		{
+			"term": "Color theme",
+			"translation": "Színtéma"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Parancspaletta"
+		},
+		{
+			"term": "comment",
+			"translation": "hozzászólás",
+			"note": "used across nearly all comment strings"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Megerősítés",
+			"note": "button/tooltip, verbal noun"
+		},
+		{
+			"term": "container (frame/group)",
+			"translation": "konténer"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Helyi menü"
+		},
+		{
+			"term": "cookie",
+			"translation": "süti"
+		},
+		{
+			"term": "cookie policy",
+			"translation": "sütiszabályzat"
+		},
+		{
+			"term": "cookies",
+			"translation": "sütik"
+		},
+		{
+			"term": "copy (action)",
+			"translation": "Másolás"
+		},
+		{
+			"term": "Copy (clipboard action)",
+			"translation": "másolás / másol"
+		},
+		{
+			"term": "Copy (clipboard command)",
+			"translation": "Másolás"
+		},
+		{
+			"term": "Copy (noun, duplicate)",
+			"translation": "másolat"
+		},
+		{
+			"term": "Copy as",
+			"translation": "Másolás mint"
+		},
+		{
+			"term": "Crop",
+			"translation": "kivágás"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Kivágás"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Sötét"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Sötét mód"
+		},
+		{
+			"term": "Dashed (line style)",
+			"translation": "Szaggatott"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "Hibakeresési mód"
+		},
+		{
+			"term": "Delete",
+			"translation": "Törlés"
+		},
+		{
+			"term": "Details",
+			"translation": "Részletek"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Rombusz"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "elosztás",
+			"note": "Verbal-noun form for menu items, e.g. 'Vízszintes elosztás'"
+		},
+		{
+			"term": "Dot (arrowhead)",
+			"translation": "Pont"
+		},
+		{
+			"term": "Dotted (line style)",
+			"translation": "Pontozott"
+		},
+		{
+			"term": "Draw (line style)",
+			"translation": "Rajzolt"
+		},
+		{
+			"term": "Draw (tool)",
+			"translation": "Rajzolás"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplikálás"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "duplikálás"
+		},
+		{
+			"term": "duplicate (verb)",
+			"translation": "duplikálás / duplikálása",
+			"note": "SDK action.duplicate = 'Duplikálás'"
+		},
+		{
+			"term": "Edit",
+			"translation": "Szerkesztés"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Szerkesztés"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Szerkesztő"
+		},
+		{
+			"term": "Elbow (arrow kind)",
+			"translation": "Könyök",
+			"note": "connector sense, as in könyökös összekötő"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Ellipszis"
+		},
+		{
+			"term": "Ellipse (shape)",
+			"translation": "Ellipszis",
+			"note": "distinct from oval 'Ovális'"
+		},
+		{
+			"term": "Ellipse / Oval",
+			"translation": "Ellipszis / Ovális",
+			"note": "keep distinct"
+		},
+		{
+			"term": "email address",
+			"translation": "e-mail-cím"
+		},
+		{
+			"term": "embed",
+			"translation": "beágyazás"
+		},
+		{
+			"term": "Embed (tool)",
+			"translation": "Beágyazás"
+		},
+		{
+			"term": "Enhanced accessibility mode",
+			"translation": "Fokozott akadálymentesítési mód"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "Radír"
+		},
+		{
+			"term": "Error",
+			"translation": "Hiba"
+		},
+		{
+			"term": "Export",
+			"translation": "exportálás"
+		},
+		{
+			"term": "Export (verb, button)",
+			"translation": "exportálás / … exportálása",
+			"note": "e.g. 'Kép exportálása'"
+		},
+		{
+			"term": "Export as",
+			"translation": "Exportálás …-ként"
+		},
+		{
+			"term": "Extra large (size)",
+			"translation": "Extra nagy"
+		},
+		{
+			"term": "feedback",
+			"translation": "visszajelzés"
+		},
+		{
+			"term": "file",
+			"translation": "fájl"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Fájl"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "fájl"
+		},
+		{
+			"term": "File menu (per-file actions)",
+			"translation": "Fájlmenü"
+		},
+		{
+			"term": "file size",
+			"translation": "fájlméret"
+		},
+		{
+			"term": "Files",
+			"translation": "Fájlok"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "Kitöltés"
+		},
+		{
+			"term": "filter (UI control)",
+			"translation": "szűrés",
+			"note": "Verbal-noun form for control labels"
+		},
+		{
+			"term": "Fit to content",
+			"translation": "Tartalomhoz igazítás"
+		},
+		{
+			"term": "flag (debug)",
+			"translation": "jelző"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "tükrözés",
+			"note": "Vízszintes tükrözés / Függőleges tükrözés; short V. / F. tükrözés"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Követés"
+		},
+		{
+			"term": "Font",
+			"translation": "Betűtípus"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "Keret"
+		},
+		{
+			"term": "grid",
+			"translation": "rács"
+		},
+		{
+			"term": "group (action)",
+			"translation": "Csoportosítás"
+		},
+		{
+			"term": "guest user",
+			"translation": "vendégfelhasználó"
+		},
+		{
+			"term": "Hand (tool)",
+			"translation": "Kéz"
+		},
+		{
+			"term": "heading",
+			"translation": "Címsor"
+		},
+		{
+			"term": "Hexagon",
+			"translation": "Hatszög"
+		},
+		{
+			"term": "Highlight (tool)",
+			"translation": "Szövegkiemelő"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Fájl importálása…"
+		},
+		{
+			"term": "Insert",
+			"translation": "Beszúrás"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "meghívó"
+		},
+		{
+			"term": "invite link",
+			"translation": "meghívólink"
+		},
+		{
+			"term": "Italic",
+			"translation": "Dőlt"
+		},
+		{
+			"term": "item",
+			"translation": "elem"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "elem"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "elem"
+		},
+		{
+			"term": "Justify (text alignment)",
+			"translation": "Sorkizárt"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Billentyűparancsok"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Fekvő"
+		},
+		{
+			"term": "Large (size)",
+			"translation": "Nagy"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Könyvtárak",
+			"note": "shape libraries"
+		},
+		{
+			"term": "library",
+			"translation": "könyvtár"
+		},
+		{
+			"term": "library (Libraries feature)",
+			"translation": "könyvtár / könyvtárak"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "könyvtár"
+		},
+		{
+			"term": "library (shape library)",
+			"translation": "könyvtár"
+		},
+		{
+			"term": "Light (color shade)",
+			"translation": "Világos-",
+			"note": "Write as one word: Világoskék, Világoszöld, Világospiros"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Világos"
+		},
+		{
+			"term": "Line (spline)",
+			"translation": "Vonal"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "Vonal"
+		},
+		{
+			"term": "link",
+			"translation": "hivatkozás"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Link"
+		},
+		{
+			"term": "Manage",
+			"translation": "Kezelés"
+		},
+		{
+			"term": "Medium (size)",
+			"translation": "Közepes"
+		},
+		{
+			"term": "member",
+			"translation": "tag"
+		},
+		{
+			"term": "Members",
+			"translation": "Tagok"
+		},
+		{
+			"term": "Minimap",
+			"translation": "Minitérkép"
+		},
+		{
+			"term": "Mixed (various values)",
+			"translation": "Vegyes"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "egér"
+		},
+		{
+			"term": "Move to",
+			"translation": "Áthelyezés ide"
+		},
+		{
+			"term": "Navigation",
+			"translation": "Navigáció"
+		},
+		{
+			"term": "No access",
+			"translation": "Nincs hozzáférés"
+		},
+		{
+			"term": "None",
+			"translation": "Nincs"
+		},
+		{
+			"term": "None (style option)",
+			"translation": "Nincs",
+			"note": "As in fill-style.none"
+		},
+		{
+			"term": "notification",
+			"translation": "értesítés"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Értesítések"
+		},
+		{
+			"term": "numbered list",
+			"translation": "Számozott lista"
+		},
+		{
+			"term": "Octagon",
+			"translation": "Nyolcszög"
+		},
+		{
+			"term": "Older (time grouping)",
+			"translation": "Régebbi"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Átlátszatlanság"
+		},
+		{
+			"term": "options (menu of actions)",
+			"translation": "műveletek",
+			"note": "Use 'beállítások' only for settings"
+		},
+		{
+			"term": "overwrite",
+			"translation": "felülír"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "tulajdonos"
+		},
+		{
+			"term": "page",
+			"translation": "oldal"
+		},
+		{
+			"term": "Pages",
+			"translation": "Oldalak"
+		},
+		{
+			"term": "Paste",
+			"translation": "Beillesztés"
+		},
+		{
+			"term": "Pentagon",
+			"translation": "Ötszög"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "rögzítése"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Álló"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Beállítások"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Adatvédelmi irányelvek"
+		},
+		{
+			"term": "project",
+			"translation": "projekt"
+		},
+		{
+			"term": "Publish",
+			"translation": "Közzététel"
+		},
+		{
+			"term": "published",
+			"translation": "közzétett"
+		},
+		{
+			"term": "read-only",
+			"translation": "írásvédett"
+		},
+		{
+			"term": "Rectangle",
+			"translation": "Téglalap"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Mozgás csökkentése"
+		},
+		{
+			"term": "refresh (page)",
+			"translation": "frissítés"
+		},
+		{
+			"term": "Reload",
+			"translation": "Újratöltés"
+		},
+		{
+			"term": "Remove",
+			"translation": "Eltávolítás"
+		},
+		{
+			"term": "Remove (detach)",
+			"translation": "Eltávolítás"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "eltávolítás",
+			"note": "not törlés (delete)"
+		},
+		{
+			"term": "Rename",
+			"translation": "Átnevezés"
+		},
+		{
+			"term": "Reopen (comment thread)",
+			"translation": "Újranyitás"
+		},
+		{
+			"term": "reset (data)",
+			"translation": "visszaállítás"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "Megoldás"
+		},
+		{
+			"term": "Restore version",
+			"translation": "Verzió visszaállítása"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Rombusz"
+		},
+		{
+			"term": "Save",
+			"translation": "Mentés"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Másolat mentése",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "select",
+			"translation": "kijelölés",
+			"note": "Verbal noun for labels, e.g. 'Alakzat kijelölése'"
+		},
+		{
+			"term": "select (on canvas)",
+			"translation": "kijelöl",
+			"note": "formal address (Ön), e.g. Jelöljön ki"
+		},
+		{
+			"term": "select (shapes)",
+			"translation": "kijelölés"
+		},
+		{
+			"term": "Selection",
+			"translation": "Kijelölés"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Kijelölés"
+		},
+		{
+			"term": "Settings",
+			"translation": "Beállítások"
+		},
+		{
+			"term": "shape",
+			"translation": "alakzat"
+		},
+		{
+			"term": "Share",
+			"translation": "Megosztás"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Megosztás",
+			"note": "Not 'Részesedés' (a financial stake)"
+		},
+		{
+			"term": "Show … (toggle)",
+			"translation": "… megjelenítése"
+		},
+		{
+			"term": "Show details / Hide details",
+			"translation": "Részletek megjelenítése / Részletek elrejtése"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Bejelentkezés"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Kijelentkezés"
+		},
+		{
+			"term": "Size",
+			"translation": "Méret"
+		},
+		{
+			"term": "Small (size)",
+			"translation": "Kicsi"
+		},
+		{
+			"term": "snap",
+			"translation": "igazodás"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Folytonos"
+		},
+		{
+			"term": "Sort by",
+			"translation": "Rendezés"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "Négyzet"
+		},
+		{
+			"term": "status",
+			"translation": "állapot"
+		},
+		{
+			"term": "Stretch",
+			"translation": "nyújtás"
+		},
+		{
+			"term": "Success",
+			"translation": "Siker"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "lap"
+		},
+		{
+			"term": "task item",
+			"translation": "feladatelem"
+		},
+		{
+			"term": "Task list",
+			"translation": "Feladatlista"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "Szolgáltatási feltételek"
+		},
+		{
+			"term": "Terms of use",
+			"translation": "Felhasználási feltételek"
+		},
+		{
+			"term": "Text formatting",
+			"translation": "Szövegformázás"
+		},
+		{
+			"term": "theme",
+			"translation": "téma"
+		},
+		{
+			"term": "thread",
+			"translation": "szál"
+		},
+		{
+			"term": "tldraw + suffix",
+			"translation": "tldraw-t",
+			"note": "put a hyphen before case suffixes on the product name"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "… be- és kikapcsolása"
+		},
+		{
+			"term": "toggle (action)",
+			"translation": "… be- és kikapcsolása"
+		},
+		{
+			"term": "toggle X",
+			"translation": "X be- és kikapcsolása"
+		},
+		{
+			"term": "tool",
+			"translation": "eszköz",
+			"note": "not 'szerszám'"
+		},
+		{
+			"term": "Tools",
+			"translation": "Eszközök"
+		},
+		{
+			"term": "trackpad",
+			"translation": "érintőpad"
+		},
+		{
+			"term": "transparent",
+			"translation": "átlátszó"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapéz"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Háromszög"
+		},
+		{
+			"term": "Undo",
+			"translation": "Visszavonás"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Csoportosítás feloldása"
+		},
+		{
+			"term": "upload",
+			"translation": "feltöltés"
+		},
+		{
+			"term": "upload (noun)",
+			"translation": "feltöltés"
+		},
+		{
+			"term": "vertical (short label abbreviation)",
+			"translation": "F.",
+			"note": "V. = vízszintes (horizontal)"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Nézet"
+		},
+		{
+			"term": "Warning",
+			"translation": "Figyelmeztetés"
+		},
+		{
+			"term": "workspace",
+			"translation": "munkaterület"
+		},
+		{
+			"term": "Zoom",
+			"translation": "Nagyítás"
+		},
+		{
+			"term": "Zoom (noun, zoom level)",
+			"translation": "Nagyítás"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Nagyítás"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Kicsinyítés"
+		}
+	]
+}

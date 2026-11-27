@@ -1,6 +1,6 @@
 {
   "0095a9fa74": {
-    "translation": "לייצא"
+    "translation": "ייצוא"
   },
   "00b177e080": {
     "translation": "קבל את ההזמנה"
@@ -27,7 +27,7 @@
     "translation": "קובץ ללא שם"
   },
   "08331c1710": {
-    "translation": "חרגת ממגבלת התעריף, יש לנסות שוב מאוחר יותר."
+    "translation": "חרגת ממגבלת הבקשות, נסו שוב מאוחר יותר."
   },
   "08bd40c754": {
     "translation": "חשבון"
@@ -42,7 +42,7 @@
     "translation": "קובץ"
   },
   "0b9a4cde72": {
-    "translation": "תפריט קבצים"
+    "translation": "תפריט קובץ"
   },
   "0c4383617a": {
     "translation": "משהו השתבש בטעינת ההזמנה. אנא נסה שוב."
@@ -54,7 +54,7 @@
     "translation": "סמן את כל ההתראות כנקראו"
   },
   "1063e38cb5": {
-    "translation": "להסיר"
+    "translation": "הסרה"
   },
   "10fb1df194": {
     "translation": "העתק לסביבת עבודה אישית"
@@ -65,8 +65,11 @@
   "12a6766ba1": {
     "translation": "ביטול הצמדת קובץ"
   },
+  "13cad4c2e8": {
+    "translation": "סביבת העבודה הזו הגיעה למספר המרבי של ספריות. מחקו ספריות ישנות לפני יצירת ספריות חדשות."
+  },
   "13ddd375ad": {
-    "translation": "ייצא בשם"
+    "translation": "ייצוא בתור"
   },
   "14b03eeeb5": {
     "translation": "אפשרויות התראות"
@@ -90,7 +93,10 @@
     "translation": "היום"
   },
   "1ffd709937": {
-    "translation": "סביבת עבודה חייבת לשמור על לפחות בעלים אחד. תן קודם מישהו אחר להיות בעלים."
+    "translation": "בסביבת עבודה חייב להישאר לפחות בעלים אחד. קודם הפוך מישהו אחר לבעלים."
+  },
+  "20746febc9": {
+    "translation": "האוסף שלי"
   },
   "21f66c9c00": {
     "translation": "שם סביבת העבודה"
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "אודות tldraw"
+  },
+  "26111f65cc": {
+    "translation": "הספרייה הזו הגיעה למספר המרבי של פריטים. מחקו פריטים ישנים לפני הוספת פריטים חדשים."
   },
   "28b2464e1f": {
     "translation": "לא ניתן היה לשלוח משוב"
@@ -114,7 +123,7 @@
     "translation": "ברוכים הבאים לסביבת העבודה שלכם"
   },
   "2a37324bb4": {
-    "translation": "לחפש..."
+    "translation": "חיפוש..."
   },
   "2d3cdcfdd4": {
     "translation": "אנא נסה שוב."
@@ -135,13 +144,13 @@
     "translation": "עליך להיכנס כדי לראות את הקובץ הזה."
   },
   "31418ce4ad": {
-    "translation": "i18n: הדגש חסר"
+    "translation": "i18n: הדגשת חסרים"
   },
   "324a0f3182": {
     "translation": "חזרה ל-tldraw"
   },
   "32811caa8c": {
-    "translation": "קובץ משוכפל"
+    "translation": "שכפול קובץ"
   },
   "335defdafe": {
     "translation": "אנא נסו לרענן את הדף."
@@ -153,7 +162,7 @@
     "translation": "עורך"
   },
   "34e34c43ec": {
-    "translation": "לנהל"
+    "translation": "ניהול"
   },
   "375396d6e5": {
     "translation": "הסר חבר"
@@ -168,7 +177,7 @@
     "translation": "לא ניתן לפרסם את השינויים."
   },
   "3c5e891bff": {
-    "translation": "ננעץ"
+    "translation": "מוצמדים"
   },
   "3d0238bf16": {
     "translation": "קבלו את הכל"
@@ -178,6 +187,9 @@
   },
   "402bf0c47e": {
     "translation": "ערכת צבעים"
+  },
+  "4236087d6b": {
+    "translation": "תפריט ספרייה"
   },
   "42e53c47c1": {
     "translation": "צרו קשר עם הבעלים כדי לבקש גישה."
@@ -204,7 +216,7 @@
     "translation": "כדי להמשיך בעריכה, אנא העתיקו את הקובץ לקבצים שלכם."
   },
   "47f493a590": {
-    "translation": "קובץ הצמדה"
+    "translation": "הצמדת קובץ"
   },
   "4970317944": {
     "translation": "לְהִתְנַגֵד"
@@ -221,20 +233,23 @@
   "4a95fa0c08": {
     "translation": "<name>{author}</name> הגיב"
   },
+  "4c4a28e97a": {
+    "translation": "הקובץ הזה"
+  },
   "4d0d3ddec9": {
     "translation": "אתר זה משתמש בקובצי Cookie כדי שהאפליקציה תפעל ולאסוף נתונים אנליטיים."
   },
   "4d1c8263ba": {
-    "translation": "לטעון מחדש"
+    "translation": "טעינה מחדש"
   },
   "5097d89907": {
-    "translation": "דיאגרמה לא נתמכת, תיצור SVG במקום זאת"
+    "translation": "תרשים לא נתמך, במקומו ייווצר SVG"
   },
   "50db1b7e1e": {
     "translation": "לא ניתן לבטל את פרסום הקובץ."
   },
   "51317dcad5": {
-    "translation": "זהו סביבת העבודה הפרטית שלך. צור סביבת עבודה חדשה כדי להזמין חברי צוות."
+    "translation": "זו סביבת העבודה הפרטית שלך. כדי להזמין חברי צוות, צרו סביבת עבודה חדשה."
   },
   "517bb809d9": {
     "translation": "תפריט עמודים"
@@ -246,7 +261,7 @@
     "translation": "יְצוּא…"
   },
   "53770fd374": {
-    "translation": "לא נקרא"
+    "translation": "לא נקראו"
   },
   "542248f0ba": {
     "translation": "קובץ זה כעת לקריאה בלבד"
@@ -300,7 +315,7 @@
     "translation": "העתקה"
   },
   "608e9d366e": {
-    "translation": "סיימתם את כל העניינים."
+    "translation": "אין התראות חדשות."
   },
   "60a68c29d6": {
     "translation": "היכנס כדי להגיב"
@@ -312,13 +327,13 @@
     "translation": "אחרונים"
   },
   "625fd29749": {
-    "translation": "ישן יותר"
+    "translation": "ישנים יותר"
   },
   "639bae9ac6": {
     "translation": "אתה"
   },
   "63a6a88c06": {
-    "translation": "לרענן"
+    "translation": "רענון"
   },
   "6609dd239e": {
     "translation": "משהו השתבש"
@@ -327,13 +342,13 @@
     "translation": "גרסה חדשה של tldraw זמינה. אנא טען מחדש את הדף כדי להמשיך."
   },
   "67ed6ddb7d": {
-    "translation": "עָרוּך"
+    "translation": "נערכה"
   },
   "681e10aecb": {
     "translation": "קובץ חדש"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ו-{count, plural, one {# other} other {# others}} הגיבו"
+    "translation": "<name>{a}</name>, <name>{b}</name> {count, plural, one {ואדם נוסף} two {ושני אנשים נוספים} other {ו-# אנשים נוספים}} הגיבו"
   },
   "6832ac5936": {
     "translation": "הזן את כתובת הדוא\"ל שלך"
@@ -345,7 +360,7 @@
     "translation": "היכנס כדי לשמור"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, one {מישהו הגיב} two {} many {} other {# אנשים הגיבו}}"
+    "translation": "{count, plural, one {מישהו הגיב} two {שני אנשים הגיבו} other {# אנשים הגיבו}}"
   },
   "6a26f54883": {
     "translation": "עזרה"
@@ -375,7 +390,7 @@
     "translation": "יש לטעון מחדש את הדף"
   },
   "747ee44424": {
-    "translation": "שמרו את התוכן כקובץ .tldr: בחרו 'שמור עותק' בתפריט השמאלי העליון."
+    "translation": "שמרו את התוכן כקובץ .tldr: בחרו ב'שמירת עותק' בתפריט שבפינה השמאלית העליונה."
   },
   "74ff4bad28": {
     "translation": "לא נמצאו קבצים"
@@ -396,7 +411,7 @@
     "translation": "נא לטעון מחדש"
   },
   "764671e008": {
-    "translation": "צ'אט איתנו בדיסקורד"
+    "translation": "דברו איתנו ב-Discord"
   },
   "76ec4e4ed9": {
     "translation": "העתקת קישור לקובץ"
@@ -407,11 +422,14 @@
   "7827371d1a": {
     "translation": "קובץ מרובה משתתפים אנונימי זה של tldraw הוא כעת לקריאה בלבד. כדי להמשיך בעריכה, אנא היכנס והעתק אותו לקבצים שלך."
   },
+  "7897a855d3": {
+    "translation": "עדיין אין ספריות."
+  },
   "78e9815992": {
     "translation": "הבנתי"
   },
   "797799f35e": {
-    "translation": "שלח בעיה ב-GitHub"
+    "translation": "דווחו על בעיה ב-GitHub"
   },
   "797c5be9a7": {
     "translation": "· בפורום הזה עכשיו"
@@ -474,7 +492,7 @@
     "translation": "אתה כבר חבר בסביבת עבודה זו"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> ו-{count, plural, one {# other} other {# others}} הגיבו"
+    "translation": "<name>{author}</name> {count, plural, one {ואדם נוסף} two {ושני אנשים נוספים} other {ו-# אנשים נוספים}} הגיבו"
   },
   "88bf6ab42c": {
     "translation": "פג תוקף קישור ההזמנה הזה"
@@ -492,7 +510,7 @@
     "translation": "אוֹדוֹת"
   },
   "8ff3d0a705": {
-    "translation": "שיעור מוגבל"
+    "translation": "חריגה ממגבלת הבקשות"
   },
   "902b0d55fd": {
     "translation": "שגיאה"
@@ -510,10 +528,10 @@
     "translation": "קישור ההזמנה הועתק"
   },
   "95aacd4d4a": {
-    "translation": "התחברות עם גוגל"
+    "translation": "התחברות עם Google"
   },
   "95d2109dc8": {
-    "translation": "בנה עם ערכת פיתוח התוכנה tldraw"
+    "translation": "בנו עם tldraw SDK"
   },
   "96165d6df5": {
     "translation": "החודש הזה"
@@ -524,8 +542,11 @@
   "985a4b720f": {
     "translation": "תנאי שימוש"
   },
+  "987453f3dd": {
+    "translation": "נסו את שרת ה-MCP"
+  },
   "9914a0ce04": {
-    "translation": "תאורה"
+    "translation": "בהיר"
   },
   "9983381c21": {
     "translation": "נקה חיפוש"
@@ -542,11 +563,17 @@
   "9c228b6834": {
     "translation": "נראה שאתה לא מחובר. בדוק את החיבור שלך ונסה שוב."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {פריט אחד} two {# פריטים} other {# פריטים}}"
+  },
   "9ccb565b86": {
     "translation": "אנו מתקשים להתחבר לשירות האימות שלנו. זה בדרך כלל זמני. אנא נסה לרענן את הדף."
   },
   "9ceb927baa": {
-    "translation": "לפרסם את הקובץ הזה"
+    "translation": "פרסום הקובץ הזה"
+  },
+  "9d102330ee": {
+    "translation": "למחוק את <strong>{name}</strong> ואת {count, plural, one {הפריט האחד שבה} two {שני הפריטים שבה} other {# הפריטים שבה}}?"
   },
   "9e076f5885": {
     "translation": "לא נמצא"
@@ -579,10 +606,10 @@
     "translation": "מדיניות קובצי Cookie"
   },
   "a4bef6414b": {
-    "translation": "הפעל/הפעל את סרגל הצד של התגובות"
+    "translation": "הצג/הסתר את סרגל הצד של התגובות"
   },
   "a4d3b161ce": {
-    "translation": "להגיש"
+    "translation": "שליחה"
   },
   "a52945dbe2": {
     "translation": "לעזוב"
@@ -591,10 +618,13 @@
     "translation": "כל מי שיש לו את הקישור"
   },
   "a768caa988": {
-    "translation": "אנליטיקס"
+    "translation": "אנליטיקה"
   },
   "a8873770ab": {
     "translation": "הקובץ נהיה גדול"
+  },
+  "a8c92ffd87": {
+    "translation": "מחיקת ספרייה"
   },
   "a9ded1e5ce": {
     "translation": "רקע"
@@ -628,7 +658,7 @@
     "translation": "הכול"
   },
   "b2326c3a34": {
-    "translation": "להתחדש"
+    "translation": "יצירה מחדש"
   },
   "b2c3c2e30c": {
     "translation": "הקובץ מלא"
@@ -649,10 +679,10 @@
     "translation": "כניסה"
   },
   "b6f4a2ec63": {
-    "translation": "בעל"
+    "translation": "בעלים"
   },
   "b74dbb40c5": {
-    "translation": "גררו את הקובץ לסרגל הצד בדף זה. או בחרו באפשרות 'ייבא קובץ' מתפריט קובץ בצד שמאל למעלה."
+    "translation": "גררו את הקובץ אל סרגל הצד בדף זה. לחלופין, בחרו באפשרות 'ייבוא קובץ' בתפריט 'קובץ' בפינה השמאלית העליונה."
   },
   "b758336699": {
     "translation": "העתקת קישור"
@@ -733,7 +763,7 @@
     "translation": "יותר מדי בקשות. אנא האט את הקצב."
   },
   "d4bbf74f3e": {
-    "translation": "החלפת סרגל הצד"
+    "translation": "הצג/הסתר את סרגל הצד"
   },
   "d5e92609cf": {
     "translation": "סביבות עבודה"
@@ -742,7 +772,7 @@
     "translation": "לפני שתתחיל, אנא קבל את <tos>תנאי השימוש</tos> ואת <privacy>מדיניות הפרטיות</privacy> שלנו."
   },
   "d721757161": {
-    "translation": "נושא"
+    "translation": "ערכת נושא"
   },
   "d876a9fe1a": {
     "translation": "לנסות שוב"
@@ -757,13 +787,16 @@
     "translation": "הזמנה בלבד"
   },
   "dbf9b24193": {
-    "translation": "עזוב את סביבת העבודה"
+    "translation": "עזיבת סביבת העבודה"
   },
   "dfdb78a4e4": {
-    "translation": "דגלי ניפוי באגים באפליקציות"
+    "translation": "דגלי ניפוי באגים של האפליקציה"
   },
   "e0aa021e21": {
     "translation": "בסדר"
+  },
+  "e1cbe6f097": {
+    "translation": "לא ניתן היה לשנות את הספרייה"
   },
   "e2198d6228": {
     "translation": "העתקת קישור ההזמנה"
@@ -778,13 +811,13 @@
     "translation": "או"
   },
   "ea13ecec38": {
-    "translation": "היסטוריית קבצים"
+    "translation": "היסטוריית הקובץ"
   },
   "ea4788705e": {
     "translation": "ביטול"
   },
   "eb1e2b0542": {
-    "translation": "בקש מבעל סביבת העבודה אחד חדש."
+    "translation": "בקשו מהבעלים של סביבת העבודה קישור חדש."
   },
   "ebfe9ce86e": {
     "translation": "אתמול"
@@ -802,7 +835,7 @@
     "translation": "שכפול"
   },
   "ede55d955f": {
-    "translation": "קרא את <a>מדיניות העוגיות</a> שלנו למידע נוסף."
+    "translation": "למידע נוסף, קראו את <a>מדיניות העוגיות</a> שלנו."
   },
   "edec9387f9": {
     "translation": "תגובה זו נמחקה."
@@ -821,6 +854,9 @@
   },
   "f0e8bff6f9": {
     "translation": "הגדרות משתמש"
+  },
+  "f129f24bec": {
+    "translation": "· לא בשום קובץ"
   },
   "f13001876b": {
     "translation": "תצוגת רשימה"
@@ -852,11 +888,14 @@
   "fed5ec05eb": {
     "translation": "הקישור הועתק"
   },
+  "feebd72b89": {
+    "translation": "ספריות ציבוריות"
+  },
   "ff2fefd3c6": {
     "translation": "האם אתה בטוח שברצונך להסיר את {name} מסביבת העבודה הזו?"
   },
   "ff52811b98": {
-    "translation": "צור חשבון חינמי כדי לשמור את הקבצים שלך ולצייר עם חבריך לקבוצה."
+    "translation": "צרו חשבון חינמי כדי לשמור את הקבצים שלכם וליצור ב-tldraw יחד עם חברי הצוות."
   },
   "ffad261a48": {
     "translation": "שגיאה בקבלת ההזמנה"

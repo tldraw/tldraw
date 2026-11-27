@@ -1,0 +1,610 @@
+{
+	"register": "вы",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Доступность"
+		},
+		{
+			"term": "Account",
+			"translation": "Аккаунт"
+		},
+		{
+			"term": "Align left",
+			"translation": "Выровнять по левому краю"
+		},
+		{
+			"term": "alt text",
+			"translation": "Альтернативный текст"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Стрелка"
+		},
+		{
+			"term": "background",
+			"translation": "Фон"
+		},
+		{
+			"term": "backup",
+			"translation": "резервная копия"
+		},
+		{
+			"term": "backup (noun)",
+			"translation": "резервная копия"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Линия"
+		},
+		{
+			"term": "Bold",
+			"translation": "Жирный"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "Переместить вперед"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "На передний план"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Отмена"
+		},
+		{
+			"term": "canvas",
+			"translation": "холст"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "Отмечено / Не отмечено"
+		},
+		{
+			"term": "Close",
+			"translation": "Закрыть"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "Облако"
+		},
+		{
+			"term": "Color",
+			"translation": "Цвет"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Палитра команд"
+		},
+		{
+			"term": "Comment",
+			"translation": "Комментарий"
+		},
+		{
+			"term": "container",
+			"translation": "контейнер"
+		},
+		{
+			"term": "content (canvas shapes)",
+			"translation": "содержимое"
+		},
+		{
+			"term": "context menu",
+			"translation": "Контекстное меню"
+		},
+		{
+			"term": "Cookie policy",
+			"translation": "Политика использования файлов cookie"
+		},
+		{
+			"term": "cookies",
+			"translation": "файлы cookie"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Копировать"
+		},
+		{
+			"term": "Cubic / Line (spline)",
+			"translation": "Кубический / Прямой"
+		},
+		{
+			"term": "Cut",
+			"translation": "Вырезать"
+		},
+		{
+			"term": "Dark (color scheme)",
+			"translation": "Темная",
+			"note": "Feminine, agrees with тема"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Темный режим"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "Режим отладки"
+		},
+		{
+			"term": "Delete",
+			"translation": "Удалить"
+		},
+		{
+			"term": "Diamond (geo)",
+			"translation": "Ромб"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Ромб",
+			"note": "geo-style.rhombus must use a different term (parallelogram)"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Распределить"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "Распределить"
+		},
+		{
+			"term": "download",
+			"translation": "Скачать",
+			"note": "Загрузить = upload"
+		},
+		{
+			"term": "Draw (line style)",
+			"translation": "Художественный",
+			"note": "Hand-drawn stroke style"
+		},
+		{
+			"term": "drawing",
+			"translation": "рисунок"
+		},
+		{
+			"term": "drawing (tldraw canvas drawing)",
+			"translation": "рисунок",
+			"note": "not чертёж"
+		},
+		{
+			"term": "drawing (tldraw document)",
+			"translation": "рисунок",
+			"note": "Not 'чертёж' (technical drawing)"
+		},
+		{
+			"term": "Dynamic size",
+			"translation": "Динамический размер"
+		},
+		{
+			"term": "edge scrolling",
+			"translation": "Прокрутка по краям"
+		},
+		{
+			"term": "edit",
+			"translation": "Редактировать"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Правка"
+		},
+		{
+			"term": "Elbow (arrow kind)",
+			"translation": "Ломаная"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Эллипс"
+		},
+		{
+			"term": "embed",
+			"translation": "встраивание"
+		},
+		{
+			"term": "Eraser",
+			"translation": "Ластик"
+		},
+		{
+			"term": "Error",
+			"translation": "Ошибка"
+		},
+		{
+			"term": "Export",
+			"translation": "Экспорт"
+		},
+		{
+			"term": "feedback",
+			"translation": "отзыв"
+		},
+		{
+			"term": "file",
+			"translation": "файл"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "Заливка"
+		},
+		{
+			"term": "flatten",
+			"translation": "Растрировать"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "Зеркально отразить"
+		},
+		{
+			"term": "focus mode",
+			"translation": "Режим концентрации"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "следовать"
+		},
+		{
+			"term": "Font",
+			"translation": "Шрифт"
+		},
+		{
+			"term": "Frame",
+			"translation": "Рамка"
+		},
+		{
+			"term": "grid",
+			"translation": "сетка"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Сгруппировать"
+		},
+		{
+			"term": "Heading",
+			"translation": "Заголовок"
+		},
+		{
+			"term": "Help",
+			"translation": "Справка"
+		},
+		{
+			"term": "Import file",
+			"translation": "Импортировать файл…",
+			"note": "ffcd73e997"
+		},
+		{
+			"term": "invite link",
+			"translation": "ссылка-приглашение / ссылка приглашения",
+			"note": "Feminine noun; agreement matters"
+		},
+		{
+			"term": "Italic",
+			"translation": "Курсив"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "элемент"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "элемент"
+		},
+		{
+			"term": "justify (text)",
+			"translation": "По ширине"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "Сочетания клавиш"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Альбомная"
+		},
+		{
+			"term": "Leave (workspace)",
+			"translation": "Покинуть"
+		},
+		{
+			"term": "library",
+			"translation": "библиотека"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "библиотека"
+		},
+		{
+			"term": "Light (color scheme)",
+			"translation": "Светлая"
+		},
+		{
+			"term": "link",
+			"translation": "ссылка"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Ссылка"
+		},
+		{
+			"term": "Member (role)",
+			"translation": "Участник"
+		},
+		{
+			"term": "member (workspace role)",
+			"translation": "Участник"
+		},
+		{
+			"term": "Members",
+			"translation": "Участники"
+		},
+		{
+			"term": "minimap",
+			"translation": "мини-карта"
+		},
+		{
+			"term": "Mono (font)",
+			"translation": "Моноширинный"
+		},
+		{
+			"term": "More (overflow)",
+			"translation": "Ещё"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Мышь"
+		},
+		{
+			"term": "multiplayer (collaborative file)",
+			"translation": "многопользовательский"
+		},
+		{
+			"term": "Name (of a workspace/file)",
+			"translation": "Название",
+			"note": "Имя is for people"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Уведомления"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Непрозрачность"
+		},
+		{
+			"term": "Ordered list",
+			"translation": "Нумерованный список"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "Владелец"
+		},
+		{
+			"term": "page",
+			"translation": "страница"
+		},
+		{
+			"term": "Paste",
+			"translation": "Вставить"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "Закрепить"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Книжная"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Настройки"
+		},
+		{
+			"term": "privacy policy",
+			"translation": "Политика конфиденциальности"
+		},
+		{
+			"term": "project",
+			"translation": "проект"
+		},
+		{
+			"term": "publish",
+			"translation": "опубликовать"
+		},
+		{
+			"term": "register",
+			"translation": "вы",
+			"note": "The catalog uses formal вы"
+		},
+		{
+			"term": "Remove (detach)",
+			"translation": "Убрать",
+			"note": "distinct from Удалить (delete)"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "убрать",
+			"note": "distinct from delete удалить"
+		},
+		{
+			"term": "Rename",
+			"translation": "Переименовать"
+		},
+		{
+			"term": "Rename page",
+			"translation": "Переименовать страницу"
+		},
+		{
+			"term": "reset (data)",
+			"translation": "сбросить / сброс данных",
+			"note": "Not 'сброс настроек' unless settings"
+		},
+		{
+			"term": "Resolved (comment thread)",
+			"translation": "Решено",
+			"note": "verb Решить; not урегулировать"
+		},
+		{
+			"term": "resolved (comment)",
+			"translation": "решённый"
+		},
+		{
+			"term": "resolved (thread)",
+			"translation": "решённый",
+			"note": "not 'исправлен'"
+		},
+		{
+			"term": "Rhombus (geo)",
+			"translation": "Параллелограмм"
+		},
+		{
+			"term": "Sans (font)",
+			"translation": "Без засечек"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Сохранить копию"
+		},
+		{
+			"term": "Select all",
+			"translation": "Выделить всё"
+		},
+		{
+			"term": "Select none",
+			"translation": "Снять выделение"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Выделение"
+		},
+		{
+			"term": "Send backward",
+			"translation": "Переместить назад"
+		},
+		{
+			"term": "Send to back",
+			"translation": "На задний план"
+		},
+		{
+			"term": "Serif (font)",
+			"translation": "С засечками"
+		},
+		{
+			"term": "Settings",
+			"translation": "Настройки"
+		},
+		{
+			"term": "shape",
+			"translation": "фигура"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Выйти"
+		},
+		{
+			"term": "Solid (fill)",
+			"translation": "Сплошная",
+			"note": "agrees with заливка"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Сплошной"
+		},
+		{
+			"term": "sticky note",
+			"translation": "Заметка"
+		},
+		{
+			"term": "System (color scheme)",
+			"translation": "Системная"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "вкладка"
+		},
+		{
+			"term": "Task list",
+			"translation": "Список задач"
+		},
+		{
+			"term": "terms of service",
+			"translation": "Условия использования"
+		},
+		{
+			"term": "Terms of Use",
+			"translation": "Условия использования"
+		},
+		{
+			"term": "theme",
+			"translation": "тема"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "Переключить …"
+		},
+		{
+			"term": "Toggle focus mode",
+			"translation": "Переключить режим концентрации"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "Переключить X"
+		},
+		{
+			"term": "Tools",
+			"translation": "Инструменты"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Трекпад"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Треугольник"
+		},
+		{
+			"term": "Undo",
+			"translation": "Отменить"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Разгруппировать"
+		},
+		{
+			"term": "Unpin",
+			"translation": "Открепить"
+		},
+		{
+			"term": "Untitled",
+			"translation": "Без названия"
+		},
+		{
+			"term": "URL",
+			"translation": "URL-адрес"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Вид"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "Читатель"
+		},
+		{
+			"term": "Visit link",
+			"translation": "Перейти по ссылке"
+		},
+		{
+			"term": "workspace",
+			"translation": "рабочее пространство",
+			"note": "Not 'рабочее место'"
+		},
+		{
+			"term": "Zoom (level)",
+			"translation": "Масштаб"
+		},
+		{
+			"term": "zoom (verb)",
+			"translation": "Масштабировать"
+		},
+		{
+			"term": "Zoom (zoom level noun)",
+			"translation": "Масштаб"
+		}
+	]
+}

@@ -1,0 +1,148 @@
+{
+	"register": "Polite imperative ending in -ండి",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "యాక్సెసిబిలిటీ"
+		},
+		{
+			"term": "as (format)",
+			"translation": "-గా",
+			"note": "Attached without space, e.g. PNGగా"
+		},
+		{
+			"term": "Cancel",
+			"translation": "రద్దు చేయి"
+		},
+		{
+			"term": "Checked",
+			"translation": "ఎంచుకోబడింది"
+		},
+		{
+			"term": "Clear (erase input)",
+			"translation": "క్లియర్ చేయండి"
+		},
+		{
+			"term": "comment",
+			"translation": "వ్యాఖ్య"
+		},
+		{
+			"term": "Copy",
+			"translation": "కాపీ చేయండి"
+		},
+		{
+			"term": "Delete",
+			"translation": "తొలగించు"
+		},
+		{
+			"term": "Edit",
+			"translation": "సవరించు",
+			"note": "Not పరిష్కరించు (resolve)"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "సవరించు"
+		},
+		{
+			"term": "File menu",
+			"translation": "ఫైల్ మెను"
+		},
+		{
+			"term": "Import file…",
+			"translation": "ఫైల్‌ను దిగుమతి చేయి…"
+		},
+		{
+			"term": "insert",
+			"translation": "చొప్పించు"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "ఆహ్వానం"
+		},
+		{
+			"term": "item",
+			"translation": "అంశం"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "అంశం"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "కీబోర్డ్ షార్ట్‌కట్‌లు"
+		},
+		{
+			"term": "library",
+			"translation": "లైబ్రరీ"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "లైట్ / డార్క్"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "గీత"
+		},
+		{
+			"term": "minimap",
+			"translation": "మినీమ్యాప్"
+		},
+		{
+			"term": "mode",
+			"translation": "మోడ్"
+		},
+		{
+			"term": "page",
+			"translation": "పేజీ"
+		},
+		{
+			"term": "paste",
+			"translation": "అతికించు"
+		},
+		{
+			"term": "Preferences",
+			"translation": "ప్రాధాన్యతలు"
+		},
+		{
+			"term": "request",
+			"translation": "అభ్యర్థన"
+		},
+		{
+			"term": "resend",
+			"translation": "మళ్లీ పంపండి"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "కాపీని సేవ్ చేయండి",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "Styles",
+			"translation": "శైలులు"
+		},
+		{
+			"term": "toggle",
+			"translation": "టోగుల్ చేయండి"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "… టోగుల్ చేయండి"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "X‌ను టోగుల్ చేయండి"
+		},
+		{
+			"term": "tools",
+			"translation": "సాధనాలు"
+		},
+		{
+			"term": "Transparent",
+			"translation": "పారదర్శకం"
+		},
+		{
+			"term": "workspace",
+			"translation": "వర్క్‌స్పేస్"
+		}
+	]
+}

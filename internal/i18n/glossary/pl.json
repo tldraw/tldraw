@@ -1,0 +1,595 @@
+{
+	"register": "ty; imperative for buttons; avoid gendered past-tense forms for unknown people",
+	"terms": [
+		{
+			"term": "<author> commented / replied",
+			"translation": "skomentował(a) / odpowiedział(a)",
+			"note": "Use the '(a)' suffix when gender is unknown."
+		},
+		{
+			"term": "Accessibility",
+			"translation": "Dostępność"
+		},
+		{
+			"term": "align",
+			"translation": "wyrównaj"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Tekst alternatywny"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "grot strzałki"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Groty strzałek"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Auto"
+		},
+		{
+			"term": "Bookmark (web link shape)",
+			"translation": "Zakładka"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "Przenieś na wierzch"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Anuluj"
+		},
+		{
+			"term": "chat",
+			"translation": "czat"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "Zaznaczone / Niezaznaczone"
+		},
+		{
+			"term": "Circle (shape)",
+			"translation": "Koło",
+			"note": "Not 'Krąg'"
+		},
+		{
+			"term": "Close",
+			"translation": "Zamknij"
+		},
+		{
+			"term": "color names",
+			"translation": "masculine adjective (Czarny, Niebieski, Jasnoniebieski…)",
+			"note": "agrees with 'kolor'"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta poleceń"
+		},
+		{
+			"term": "comment",
+			"translation": "komentarz",
+			"note": "Plural 'komentarze'; not 'uwagi'"
+		},
+		{
+			"term": "Comments",
+			"translation": "Komentarze"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Potwierdź"
+		},
+		{
+			"term": "Copied … (toast)",
+			"translation": "Skopiowano …",
+			"note": "impersonal past, as in 'Skopiowano link zaproszenia'"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Kopiuj"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "Kopiuj"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "Nie można otworzyć pliku"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Wytnij"
+		},
+		{
+			"term": "Delete",
+			"translation": "Usuń"
+		},
+		{
+			"term": "Delete (permanent)",
+			"translation": "Usuń"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Romb"
+		},
+		{
+			"term": "distribute",
+			"translation": "rozmieść"
+		},
+		{
+			"term": "duplicate",
+			"translation": "duplikuj"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "Duplikuj"
+		},
+		{
+			"term": "Duplicate (verb)",
+			"translation": "Duplikuj"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Edycja"
+		},
+		{
+			"term": "Editor (access role)",
+			"translation": "Edytor"
+		},
+		{
+			"term": "Editor (link role)",
+			"translation": "Edytujący",
+			"note": "Parallel to 'Oglądający'"
+		},
+		{
+			"term": "Ellipse / Oval",
+			"translation": "Elipsa / Owal"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "osadzona treść / osadzenie"
+		},
+		{
+			"term": "enhanced accessibility mode",
+			"translation": "tryb rozszerzonej dostępności"
+		},
+		{
+			"term": "error message",
+			"translation": "komunikat"
+		},
+		{
+			"term": "Export",
+			"translation": "Eksportuj",
+			"note": "Imperfective, matching 'Eksportuj jako PNG'"
+		},
+		{
+			"term": "feedback",
+			"translation": "opinia"
+		},
+		{
+			"term": "file",
+			"translation": "plik"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "plik"
+		},
+		{
+			"term": "Files",
+			"translation": "Pliki"
+		},
+		{
+			"term": "fill (style panel)",
+			"translation": "Wypełnienie"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "śledzić",
+			"note": "not 'obserwować' (social media)"
+		},
+		{
+			"term": "font (style panel)",
+			"translation": "Czcionka",
+			"note": "font-style adjectives are feminine: Bezszeryfowa, Szeryfowa"
+		},
+		{
+			"term": "Forget",
+			"translation": "Zapomnij"
+		},
+		{
+			"term": "Forget (remove from own list)",
+			"translation": "Zapomnij",
+			"note": "distinct from Usuń (delete)"
+		},
+		{
+			"term": "frame (shape/tool)",
+			"translation": "ramka",
+			"note": "tool.frame"
+		},
+		{
+			"term": "Group",
+			"translation": "Grupuj",
+			"note": "Do not reuse for Pack"
+		},
+		{
+			"term": "Highlighter tool",
+			"translation": "Zakreślacz"
+		},
+		{
+			"term": "Home (app start page)",
+			"translation": "Strona główna"
+		},
+		{
+			"term": "horizontally / short",
+			"translation": "poziomo / poz."
+		},
+		{
+			"term": "Insert / place on canvas",
+			"translation": "Wstaw"
+		},
+		{
+			"term": "Insert embed",
+			"translation": "Wstaw osadzony element"
+		},
+		{
+			"term": "Italic",
+			"translation": "Kursywa"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "element"
+		},
+		{
+			"term": "item (library)",
+			"translation": "element",
+			"note": "element/elementy/elementów/elementu"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Skróty klawiaturowe"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Poziomy",
+			"note": "Masculine adjective, like Szeroki/Oryginalny"
+		},
+		{
+			"term": "Leave (workspace)",
+			"translation": "Opuść"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Biblioteki"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteka"
+		},
+		{
+			"term": "line style (dash)",
+			"translation": "Linia …",
+			"note": "options are 'Linia ciągła/przerywana/kropkowana/odręczna'"
+		},
+		{
+			"term": "link (hyperlink)",
+			"translation": "link"
+		},
+		{
+			"term": "Lock / unlock (shapes)",
+			"translation": "Blokuj / Odblokuj"
+		},
+		{
+			"term": "Media",
+			"translation": "Multimedia"
+		},
+		{
+			"term": "Media (images/videos)",
+			"translation": "Multimedia",
+			"note": "Never 'nośnik' or 'głoska'"
+		},
+		{
+			"term": "member",
+			"translation": "Członek"
+		},
+		{
+			"term": "Minimap",
+			"translation": "Minimapa"
+		},
+		{
+			"term": "mouse",
+			"translation": "mysz"
+		},
+		{
+			"term": "Mouse (device)",
+			"translation": "Mysz"
+		},
+		{
+			"term": "multiplayer (file)",
+			"translation": "wspólny",
+			"note": "Not 'wieloosobowy' or 'do gry wieloosobowej'."
+		},
+		{
+			"term": "Opacity",
+			"translation": "Krycie"
+		},
+		{
+			"term": "Owner",
+			"translation": "Właściciel"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "Właściciel"
+		},
+		{
+			"term": "owner (workspace role)",
+			"translation": "Właściciel"
+		},
+		{
+			"term": "padding (export margin)",
+			"translation": "Margines",
+			"note": "'Wypełnienie' is the SDK's fill style"
+		},
+		{
+			"term": "page",
+			"translation": "strona"
+		},
+		{
+			"term": "page (document page)",
+			"translation": "strona"
+		},
+		{
+			"term": "Paste",
+			"translation": "Wklej"
+		},
+		{
+			"term": "Paste at cursor",
+			"translation": "w miejscu kursora",
+			"note": "not 'na kursorze'"
+		},
+		{
+			"term": "pin",
+			"translation": "przypnij / Przypięte"
+		},
+		{
+			"term": "pin / unpin (file)",
+			"translation": "Przypnij / Odepnij"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Pionowy"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferencje"
+		},
+		{
+			"term": "reaction",
+			"translation": "reakcja"
+		},
+		{
+			"term": "Refresh page",
+			"translation": "Odśwież stronę"
+		},
+		{
+			"term": "regenerate (invite link)",
+			"translation": "wygeneruj ponownie"
+		},
+		{
+			"term": "Remove (from file, non-destructive)",
+			"translation": "Odłącz",
+			"note": "Avoid 'Usuń z pliku', which collides with delete"
+		},
+		{
+			"term": "Rename",
+			"translation": "Zmień nazwę"
+		},
+		{
+			"term": "Reset data",
+			"translation": "Zresetuj dane"
+		},
+		{
+			"term": "Resolve",
+			"translation": "Rozwiąż"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Rozwiązany",
+			"note": "masculine, agrees with wątek/komentarz"
+		},
+		{
+			"term": "resolved (comment thread)",
+			"translation": "rozwiązany"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Romboid",
+			"note": "Diamond is 'Romb'"
+		},
+		{
+			"term": "rhombus (geo shape)",
+			"translation": "równoległobok",
+			"note": "diamond is 'romb'"
+		},
+		{
+			"term": "Rhombus (slanted parallelogram shape)",
+			"translation": "Równoległobok",
+			"note": "Must differ from Diamond"
+		},
+		{
+			"term": "Save",
+			"translation": "Zapisz"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Zapisz kopię",
+			"note": "sdk action.save-copy"
+		},
+		{
+			"term": "select (canvas)",
+			"translation": "zaznacz",
+			"note": "tool.select and action.select-all use Zaznacz; not Wybierz"
+		},
+		{
+			"term": "Select (on canvas)",
+			"translation": "Zaznacz / zaznaczenie",
+			"note": "'Wybierz' means choose"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Zaznaczenie",
+			"note": "not 'Wybór'"
+		},
+		{
+			"term": "Send backward",
+			"translation": "Przesuń do tyłu"
+		},
+		{
+			"term": "Send backward / Send to back",
+			"translation": "Przesuń do tyłu / Przesuń na spód"
+		},
+		{
+			"term": "Send to back",
+			"translation": "Przesuń na spód"
+		},
+		{
+			"term": "Settings",
+			"translation": "Ustawienia"
+		},
+		{
+			"term": "shape",
+			"translation": "kształt"
+		},
+		{
+			"term": "Share",
+			"translation": "Udostępnij",
+			"note": "Not 'Podziel się'"
+		},
+		{
+			"term": "share (file)",
+			"translation": "udostępnij"
+		},
+		{
+			"term": "Share (verb)",
+			"translation": "Udostępnij"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Zaloguj się"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Wyloguj się"
+		},
+		{
+			"term": "Snap (alignment)",
+			"translation": "Przyciąganie / przyciągaj"
+		},
+		{
+			"term": "Sort by",
+			"translation": "Sortuj według"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Przekreślenie"
+		},
+		{
+			"term": "Submit",
+			"translation": "Wyślij"
+		},
+		{
+			"term": "Task list",
+			"translation": "Lista zadań"
+		},
+		{
+			"term": "team / teammates",
+			"translation": "zespół / członkowie zespołu",
+			"note": "not 'drużyna'"
+		},
+		{
+			"term": "team members",
+			"translation": "członkowie zespołu"
+		},
+		{
+			"term": "Teammates",
+			"translation": "Członkowie zespołu",
+			"note": "Not 'drużyna'"
+		},
+		{
+			"term": "terms of use",
+			"translation": "warunki korzystania"
+		},
+		{
+			"term": "Theme (colour)",
+			"translation": "Motyw"
+		},
+		{
+			"term": "thread",
+			"translation": "wątek"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "Blokada narzędzia"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Gładzik"
+		},
+		{
+			"term": "Transparent (export background)",
+			"translation": "Przezroczyste",
+			"note": "neuter, agrees with 'tło'"
+		},
+		{
+			"term": "Undo",
+			"translation": "Cofnij"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Rozgrupuj",
+			"note": "pairs with action.group 'Grupuj'"
+		},
+		{
+			"term": "upload",
+			"translation": "prześlij"
+		},
+		{
+			"term": "URL",
+			"translation": "adres URL"
+		},
+		{
+			"term": "vertically / short",
+			"translation": "pionowo / pion."
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Widok"
+		},
+		{
+			"term": "Viewer (link role)",
+			"translation": "Oglądający"
+		},
+		{
+			"term": "Viewer / Editor",
+			"translation": "Przeglądający / Edytujący"
+		},
+		{
+			"term": "workspace",
+			"translation": "obszar roboczy",
+			"note": "not 'przestrzeń robocza' or 'miejsce pracy'"
+		},
+		{
+			"term": "Zoom (level)",
+			"translation": "Powiększenie"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Przybliż"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Oddal"
+		}
+	]
+}

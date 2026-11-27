@@ -54,7 +54,7 @@
     "translation": "ทำเครื่องหมายการแจ้งเตือนทั้งหมดว่าอ่านแล้ว"
   },
   "1063e38cb5": {
-    "translation": "ลบ"
+    "translation": "นำออก"
   },
   "10fb1df194": {
     "translation": "คัดลอกไปยังพื้นที่ทำงานส่วนตัว"
@@ -64,6 +64,9 @@
   },
   "12a6766ba1": {
     "translation": "ปลดหมุดไฟล์"
+  },
+  "13cad4c2e8": {
+    "translation": "พื้นที่ทำงานนี้มีไลบรารีครบจำนวนสูงสุดแล้ว โปรดลบไลบรารีเก่าก่อนสร้างไลบรารีใหม่"
   },
   "13ddd375ad": {
     "translation": "ส่งออกเป็น"
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "พื้นที่ทำงานต้องมีเจ้าของอย่างน้อยหนึ่งคน แต่งตั้งคนอื่นเป็นเจ้าของก่อน"
   },
+  "20746febc9": {
+    "translation": "คลังของฉัน"
+  },
   "21f66c9c00": {
     "translation": "ชื่อพื้นที่ทำงาน"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "เกี่ยวกับ tldraw"
+  },
+  "26111f65cc": {
+    "translation": "ไลบรารีนี้มีรายการครบจำนวนสูงสุดแล้ว โปรดลบรายการเก่าก่อนเพิ่มรายการใหม่"
   },
   "28b2464e1f": {
     "translation": "ไม่สามารถส่งข้อเสนอแนะได้"
@@ -141,7 +150,7 @@
     "translation": "กลับไปที่ tldraw"
   },
   "32811caa8c": {
-    "translation": "ไฟล์ซ้ำ"
+    "translation": "ทำสำเนาไฟล์"
   },
   "335defdafe": {
     "translation": "กรุณาลองรีเฟรชหน้าอีกครั้ง"
@@ -150,7 +159,7 @@
     "translation": "ชื่อไฟล์"
   },
   "344a7f427f": {
-    "translation": "โปรแกรมแก้ไข"
+    "translation": "ผู้แก้ไข"
   },
   "34e34c43ec": {
     "translation": "จัดการ"
@@ -178,6 +187,9 @@
   },
   "402bf0c47e": {
     "translation": "ธีมสี"
+  },
+  "4236087d6b": {
+    "translation": "เมนูไลบรารี"
   },
   "42e53c47c1": {
     "translation": "ติดต่อเจ้าของเพื่อขอสิทธิ์เข้าถึง"
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> แสดงความคิดเห็น"
+  },
+  "4c4a28e97a": {
+    "translation": "ไฟล์นี้"
   },
   "4d0d3ddec9": {
     "translation": "เว็บไซต์นี้ใช้คุกกี้เพื่อทำให้แอปทำงานและรวบรวมข้อมูลวิเคราะห์"
@@ -333,7 +348,7 @@
     "translation": "ไฟล์ใหม่"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> และ {count, plural, one {# other} other {# others}} ตอบสนอง"
+    "translation": "<name>{a}</name>, <name>{b}</name> และอีก {count, plural, other {# คน}} แสดงปฏิกิริยา"
   },
   "6832ac5936": {
     "translation": "กรอกที่อยู่อีเมลของคุณ"
@@ -345,7 +360,7 @@
     "translation": "ลงชื่อเข้าใช้เพื่อบันทึก"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, other {#ปฏิกิริยาของผู้คน}}"
+    "translation": "{count, plural, other {# คนแสดงปฏิกิริยา}}"
   },
   "6a26f54883": {
     "translation": "ช่วยเหลือ"
@@ -399,13 +414,16 @@
     "translation": "พูดคุยกับเราได้ที่ Discord"
   },
   "76ec4e4ed9": {
-    "translation": "คัดลิงก์ไฟล์"
+    "translation": "คัดลอกลิงก์ไฟล์"
   },
   "777f9e90cf": {
     "translation": "คำขอไม่ถูกต้อง"
   },
   "7827371d1a": {
     "translation": "ไฟล์ tldraw แบบผู้เล่นหลายคนแบบไม่ระบุชื่อนี้เป็นแบบอ่านอย่างเดียว หากต้องการแก้ไขต่อ โปรดลงชื่อเข้าใช้และคัดลอกไปยังไฟล์ของคุณ"
+  },
+  "7897a855d3": {
+    "translation": "ยังไม่มีไลบรารี"
   },
   "78e9815992": {
     "translation": "เข้าใจแล้ว"
@@ -474,7 +492,7 @@
     "translation": "คุณเป็นสมาชิกของพื้นที่ทำงานนี้อยู่แล้ว"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> และ {count, plural, one {# other} other {# others}} ตอบสนอง"
+    "translation": "<name>{author}</name> และอีก {count, plural, other {# คน}} แสดงปฏิกิริยา"
   },
   "88bf6ab42c": {
     "translation": "ลิงก์เชิญนี้หมดอายุแล้ว"
@@ -492,7 +510,7 @@
     "translation": "เกี่ยวกับ"
   },
   "8ff3d0a705": {
-    "translation": "ราคาถูกจำกัด"
+    "translation": "เกินขีดจำกัดจำนวนคำขอ"
   },
   "902b0d55fd": {
     "translation": "ข้อผิดพลาด"
@@ -519,13 +537,16 @@
     "translation": "เดือนนี้"
   },
   "9643c97d49": {
-    "translation": "<name>{author}</name> ตอบสนอง"
+    "translation": "<name>{author}</name> แสดงความรู้สึก"
   },
   "985a4b720f": {
     "translation": "เงื่อนไขการใช้งาน"
   },
+  "987453f3dd": {
+    "translation": "ลองใช้เซิร์ฟเวอร์ MCP"
+  },
   "9914a0ce04": {
-    "translation": "แสง"
+    "translation": "สว่าง"
   },
   "9983381c21": {
     "translation": "ล้างการค้นหา"
@@ -542,17 +563,23 @@
   "9c228b6834": {
     "translation": "ดูเหมือนว่าคุณจะออฟไลน์ โปรดตรวจสอบการเชื่อมต่อของคุณแล้วลองใหม่อีกครั้ง"
   },
+  "9c48785253": {
+    "translation": "{count, plural, other {# รายการ}}"
+  },
   "9ccb565b86": {
     "translation": "ขณะนี้เรากำลังประสบปัญหาในการเชื่อมต่อกับบริการตรวจสอบสิทธิ์ของเรา ปัญหานี้มักเกิดขึ้นชั่วคราว โปรดลองรีเฟรชหน้าเว็บ"
   },
   "9ceb927baa": {
     "translation": "เผยแพร่ไฟล์นี้"
   },
+  "9d102330ee": {
+    "translation": "ลบ <strong>{name}</strong> และ {count, plural, other {# รายการ}}ในนั้นหรือไม่"
+  },
   "9e076f5885": {
     "translation": "ไม่พบ"
   },
   "9e93c98d88": {
-    "translation": "ยกเลิกเลือก"
+    "translation": "ปฏิเสธ"
   },
   "a078644c42": {
     "translation": "คุณได้รับเชิญให้เข้าร่วม <strong>{workspaceName}</strong>"
@@ -585,7 +612,7 @@
     "translation": "ส่ง"
   },
   "a52945dbe2": {
-    "translation": "ออกจาก"
+    "translation": "ออกจากพื้นที่ทำงาน"
   },
   "a6cc403d56": {
     "translation": "ใครก็ตามที่มีลิงก์"
@@ -596,6 +623,9 @@
   "a8873770ab": {
     "translation": "ไฟล์มีขนาดใหญ่ขึ้น"
   },
+  "a8c92ffd87": {
+    "translation": "ลบไลบรารี"
+  },
   "a9ded1e5ce": {
     "translation": "พื้นหลัง"
   },
@@ -603,7 +633,7 @@
     "translation": "สร้างพื้นที่ทำงาน"
   },
   "aaec8f7cde": {
-    "translation": "บางคน"
+    "translation": "ใครบางคน"
   },
   "ab0df9ba36": {
     "translation": "ถึงขีดจำกัดไฟล์แล้ว"
@@ -612,11 +642,11 @@
     "translation": "แอป"
   },
   "aeb428554a": {
-    "translation": "ห้องสมุด"
+    "translation": "ไลบรารี"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
-    "translation": "เผยแพร่ล่าสุด <date> </date>"
+    "translation": "เผยแพร่ล่าสุด <date></date>"
   },
   "b028909917": {
     "translation": "ผู้ใช้ที่เป็นแขก"
@@ -754,7 +784,7 @@
     "translation": "เข้าไปที่นี่เพื่อดูเนื้อหา"
   },
   "dbbebf3c03": {
-    "translation": "เชิญเท่านั้น"
+    "translation": "เฉพาะผู้ที่ได้รับเชิญ"
   },
   "dbf9b24193": {
     "translation": "ออกจากพื้นที่ทำงาน"
@@ -764,6 +794,9 @@
   },
   "e0aa021e21": {
     "translation": "ตกลง"
+  },
+  "e1cbe6f097": {
+    "translation": "ไม่สามารถเปลี่ยนไลบรารีได้"
   },
   "e2198d6228": {
     "translation": "คัดลอกลิงก์คำเชิญ"
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "การตั้งค่าผู้ใช้"
   },
+  "f129f24bec": {
+    "translation": "· ไม่อยู่ในไฟล์ใดเลย"
+  },
   "f13001876b": {
     "translation": "มุมมองรายการ"
   },
@@ -850,7 +886,10 @@
     "translation": "คุณแน่ใจหรือไม่ว่าต้องการออกจากพื้นที่ทำงานนี้?"
   },
   "fed5ec05eb": {
-    "translation": "ลิงก์ที่คัดลอก"
+    "translation": "คัดลอกลิงก์แล้ว"
+  },
+  "feebd72b89": {
+    "translation": "ไลบรารีสาธารณะ"
   },
   "ff2fefd3c6": {
     "translation": "คุณแน่ใจหรือไม่ว่าต้องการลบ {name} ออกจากพื้นที่ทำงานนี้?"

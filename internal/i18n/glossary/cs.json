@@ -1,0 +1,459 @@
+{
+	"register": "buttons/menu items in infinitive",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Usnadnění"
+		},
+		{
+			"term": "Accessibility (menu)",
+			"translation": "Usnadnění"
+		},
+		{
+			"term": "Align",
+			"translation": "Zarovnat",
+			"note": "Align only; never use for Distribute"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Alternativní text"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Šipka"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "hrot šipky"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Poměr stran"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Automaticky"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Čára",
+			"note": "Pipe must use a different word"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Odrážky"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Zrušit"
+		},
+		{
+			"term": "canvas",
+			"translation": "plátno"
+		},
+		{
+			"term": "Check box",
+			"translation": "Zaškrtávací políčko"
+		},
+		{
+			"term": "Checked / Unchecked (checkbox state)",
+			"translation": "Zaškrtnuto / Nezaškrtnuto"
+		},
+		{
+			"term": "clipboard",
+			"translation": "schránka"
+		},
+		{
+			"term": "Close (dialog)",
+			"translation": "Zavřít"
+		},
+		{
+			"term": "Color",
+			"translation": "Barva"
+		},
+		{
+			"term": "color names",
+			"translation": "feminine forms (Černá, Bílá, Modrá…)",
+			"note": "agree with 'barva'"
+		},
+		{
+			"term": "command palette",
+			"translation": "paleta příkazů"
+		},
+		{
+			"term": "comment",
+			"translation": "komentář"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Potvrdit"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Kontextová nabídka"
+		},
+		{
+			"term": "Copy",
+			"translation": "Kopírovat",
+			"note": "clipboard verb"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "Kopírovat"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Vyjmout"
+		},
+		{
+			"term": "Dashed",
+			"translation": "Přerušovaná"
+		},
+		{
+			"term": "Delete",
+			"translation": "Smazat"
+		},
+		{
+			"term": "diamond (shape)",
+			"translation": "Kosočtverec"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Rozmístit",
+			"note": "Not 'Zarovnat' (Align)"
+		},
+		{
+			"term": "Dotted",
+			"translation": "Tečkovaná"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplikovat"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "Duplikovat"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Úpravy"
+		},
+		{
+			"term": "Edit link",
+			"translation": "Upravit odkaz"
+		},
+		{
+			"term": "embed",
+			"translation": "vložený obsah"
+		},
+		{
+			"term": "Essential cookies",
+			"translation": "Nezbytné soubory cookie"
+		},
+		{
+			"term": "file",
+			"translation": "soubor"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Soubor",
+			"note": "dotcom 0b27918290"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "Výplň"
+		},
+		{
+			"term": "Flatten",
+			"translation": "Zploštit"
+		},
+		{
+			"term": "Flip",
+			"translation": "Překlopit"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Sledovat"
+		},
+		{
+			"term": "Font",
+			"translation": "Písmo"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Zapomenout"
+		},
+		{
+			"term": "Frame",
+			"translation": "Rámeček"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Seskupit"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importovat soubor…",
+			"note": "dotcom ffcd73e997"
+		},
+		{
+			"term": "invite link",
+			"translation": "odkaz na pozvánku"
+		},
+		{
+			"term": "Italic",
+			"translation": "Kurzíva"
+		},
+		{
+			"term": "item",
+			"translation": "položka"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "položka"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "položka"
+		},
+		{
+			"term": "Justify",
+			"translation": "Do bloku"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Klávesové zkratky"
+		},
+		{
+			"term": "Landscape / Portrait (orientation)",
+			"translation": "Na šířku / Na výšku"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Knihovny"
+		},
+		{
+			"term": "library",
+			"translation": "knihovna"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Světlý",
+			"note": "adjective, not 'Světlo'"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "Světle <color>",
+			"note": "e.g. Světle modrá"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Odkaz"
+		},
+		{
+			"term": "minimap",
+			"translation": "minimapa",
+			"note": "navigation-zone.minimap 'Minimapa'"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Myš"
+		},
+		{
+			"term": "Name (of workspace)",
+			"translation": "Název"
+		},
+		{
+			"term": "notification",
+			"translation": "oznámení"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Oznámení"
+		},
+		{
+			"term": "owner",
+			"translation": "vlastník"
+		},
+		{
+			"term": "page",
+			"translation": "stránka"
+		},
+		{
+			"term": "Paste",
+			"translation": "Vložit"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "připnout"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Předvolby"
+		},
+		{
+			"term": "Preferences (menu)",
+			"translation": "Předvolby"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Zásady ochrany osobních údajů"
+		},
+		{
+			"term": "project (board)",
+			"translation": "projekt"
+		},
+		{
+			"term": "publish",
+			"translation": "zveřejnit / publikovat"
+		},
+		{
+			"term": "Refresh page",
+			"translation": "Obnovit stránku"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "odebrat",
+			"note": "Distinct from delete (smazat)"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "Odebrat",
+			"note": "Keep distinct from Delete (Odstranit/Smazat)"
+		},
+		{
+			"term": "Remove from file",
+			"translation": "Odebrat ze souboru",
+			"note": "Odebrat = remove/detach, Smazat = delete"
+		},
+		{
+			"term": "Rename",
+			"translation": "Přejmenovat"
+		},
+		{
+			"term": "Reset (wipe data)",
+			"translation": "Resetovat",
+			"note": "Not 'Obnovit', which is used for refreshing the page"
+		},
+		{
+			"term": "Resolve",
+			"translation": "Vyřešit"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Vyřešeno"
+		},
+		{
+			"term": "rhombus (parallelogram shape)",
+			"translation": "Rovnoběžník"
+		},
+		{
+			"term": "Rhombus (slanted shape)",
+			"translation": "Rovnoběžník"
+		},
+		{
+			"term": "Rhombus (tldraw slanted shape)",
+			"translation": "Rovnoběžník",
+			"note": "Diamond is 'Kosočtverec'"
+		},
+		{
+			"term": "Save",
+			"translation": "Uložit"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Uložit kopii",
+			"note": "SDK action.save-copy label"
+		},
+		{
+			"term": "shape",
+			"translation": "tvar"
+		},
+		{
+			"term": "Shape (geo)",
+			"translation": "Tvar"
+		},
+		{
+			"term": "Sign in (button)",
+			"translation": "Přihlásit se",
+			"note": "infinitive for controls"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Odhlásit se"
+		},
+		{
+			"term": "Snap",
+			"translation": "přichytit",
+			"note": "alignment snapping"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Plná"
+		},
+		{
+			"term": "Stack",
+			"translation": "Naskládat"
+		},
+		{
+			"term": "Task list",
+			"translation": "Seznam úkolů"
+		},
+		{
+			"term": "teammates",
+			"translation": "členové týmu"
+		},
+		{
+			"term": "thread",
+			"translation": "vlákno"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Přepnout"
+		},
+		{
+			"term": "Toggle (action)",
+			"translation": "Přepnout"
+		},
+		{
+			"term": "Toggle (command label)",
+			"translation": "Přepnout"
+		},
+		{
+			"term": "Tools",
+			"translation": "Nástroje"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Touchpad"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Lichoběžník"
+		},
+		{
+			"term": "Triangle (arrowhead)",
+			"translation": "Trojúhelník"
+		},
+		{
+			"term": "Undo",
+			"translation": "Zpět"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Zrušit seskupení"
+		},
+		{
+			"term": "workspace",
+			"translation": "pracovní prostor"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Přiblížit"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Oddálit"
+		}
+	]
+}

@@ -12,7 +12,7 @@
     "translation": "Har du fortsatt problemer? {GetHelpLink}"
   },
   "04a2dd56d6": {
-    "translation": "Inviter lagkamerater"
+    "translation": "Inviter teammedlemmer"
   },
   "05b2656486": {
     "translation": "<name>{author}</name> nevnte deg"
@@ -27,7 +27,7 @@
     "translation": "Unavngitt fil"
   },
   "08331c1710": {
-    "translation": "Satsgrensen er overskredet. Prøv igjen senere."
+    "translation": "Forespørselsgrensen er overskredet. Prøv igjen senere."
   },
   "08bd40c754": {
     "translation": "Konto"
@@ -54,16 +54,19 @@
     "translation": "Merk alle varsler som lest"
   },
   "1063e38cb5": {
-    "translation": "Fjerne"
+    "translation": "Fjern"
   },
   "10fb1df194": {
     "translation": "Kopier til personlig arbeidsområde"
   },
   "110a4b01be": {
-    "translation": "Utgi"
+    "translation": "Publiser"
   },
   "12a6766ba1": {
     "translation": "Løsne filen"
+  },
+  "13cad4c2e8": {
+    "translation": "Dette arbeidsområdet har nådd maksimalt antall biblioteker. Slett gamle biblioteker før du oppretter nye."
   },
   "13ddd375ad": {
     "translation": "Eksporter som"
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "Et arbeidsområde må ha minst én eier. Gjør først noen andre til eier."
   },
+  "20746febc9": {
+    "translation": "Min samling"
+  },
   "21f66c9c00": {
     "translation": "Navn på arbeidsområde"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "Om tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Dette biblioteket har nådd maksimalt antall elementer. Slett gamle elementer før du legger til nye."
   },
   "28b2464e1f": {
     "translation": "Kunne ikke sende inn tilbakemelding"
@@ -111,7 +120,7 @@
     "translation": "Opplasting mislyktes"
   },
   "2a1167f869": {
-    "translation": "Velkommen til arbeidsplassen din"
+    "translation": "Velkommen til arbeidsområdet ditt"
   },
   "2a37324bb4": {
     "translation": "Søk..."
@@ -135,13 +144,13 @@
     "translation": "Du må logge på for å se denne filen."
   },
   "31418ce4ad": {
-    "translation": "i18n: Utheving mangler"
+    "translation": "i18n: Uthev manglende"
   },
   "324a0f3182": {
     "translation": "Tilbake til tldraw"
   },
   "32811caa8c": {
-    "translation": "Duplikatfil"
+    "translation": "Dupliser fil"
   },
   "335defdafe": {
     "translation": "Prøv å oppdatere siden."
@@ -174,10 +183,13 @@
     "translation": "Godta alle"
   },
   "3e2ae04ff0": {
-    "translation": "Ustøttet Mermaid-diagram"
+    "translation": "Mermaid-diagram som ikke støttes"
   },
   "402bf0c47e": {
     "translation": "Fargetema"
+  },
+  "4236087d6b": {
+    "translation": "Bibliotekmeny"
   },
   "42e53c47c1": {
     "translation": "Kontakt eieren for å be om tilgang."
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> kommenterte"
+  },
+  "4c4a28e97a": {
+    "translation": "Denne filen"
   },
   "4d0d3ddec9": {
     "translation": "Dette nettstedet bruker informasjonskapsler for å få appen til å fungere og for å samle inn analyser."
@@ -279,7 +294,7 @@
     "translation": "Arkiverte filer vil vises her."
   },
   "5a95a425f7": {
-    "translation": "Dele"
+    "translation": "Del"
   },
   "5bec508475": {
     "translation": "Gammel nettleser oppdaget. Oppdater nettleseren din for å bruke denne appen."
@@ -297,7 +312,7 @@
     "translation": "Tilbakemelding sendt"
   },
   "5fb63579fc": {
-    "translation": "Kopiere"
+    "translation": "Kopier"
   },
   "608e9d366e": {
     "translation": "Du er ajour."
@@ -333,7 +348,7 @@
     "translation": "Ny fil"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# other} other {# others}} reagerte"
+    "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# annen} other {# andre}} reagerte"
   },
   "6832ac5936": {
     "translation": "Skriv inn e-postadressen din"
@@ -405,7 +420,10 @@
     "translation": "Ugyldig forespørsel."
   },
   "7827371d1a": {
-    "translation": "Denne anonyme tldraw-flerspillerfilen er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier den til filene dine."
+    "translation": "Denne anonyme tldraw-flerbrukerfilen er nå skrivebeskyttet. Logg inn og kopier den til filene dine for å fortsette å redigere."
+  },
+  "7897a855d3": {
+    "translation": "Ingen biblioteker ennå."
   },
   "78e9815992": {
     "translation": "Forstått"
@@ -432,7 +450,7 @@
     "translation": "Logg inn for å redigere profilinnstillinger"
   },
   "7cb5f8b4a5": {
-    "translation": "Glemme"
+    "translation": "Glem"
   },
   "7d69b3cb4c": {
     "translation": "Arkivert"
@@ -474,7 +492,7 @@
     "translation": "Du er allerede medlem av dette arbeidsområdet"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> og {count, plural, one {# other} other {# others}} reagerte"
+    "translation": "<name>{author}</name> og {count, plural, one {# annen} other {# andre}} reagerte"
   },
   "88bf6ab42c": {
     "translation": "Denne invitasjonslenken er utløpt"
@@ -492,7 +510,7 @@
     "translation": "Om"
   },
   "8ff3d0a705": {
-    "translation": "Begrenset pris"
+    "translation": "For mange forespørsler"
   },
   "902b0d55fd": {
     "translation": "Feil"
@@ -524,6 +542,9 @@
   "985a4b720f": {
     "translation": "Bruksvilkår"
   },
+  "987453f3dd": {
+    "translation": "Prøv MCP-serveren"
+  },
   "9914a0ce04": {
     "translation": "Lys"
   },
@@ -542,11 +563,17 @@
   "9c228b6834": {
     "translation": "Du ser ut til å være frakoblet. Sjekk forbindelsen din og prøv på nytt."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# element} other {# elementer}}"
+  },
   "9ccb565b86": {
     "translation": "Vi har problemer med å koble til autentiseringstjenesten vår. Dette er vanligvis midlertidig. Prøv å oppdatere siden."
   },
   "9ceb927baa": {
     "translation": "Publiser denne filen"
+  },
+  "9d102330ee": {
+    "translation": "Vil du slette <strong>{name}</strong> og dets {count, plural, one {# element} other {# elementer}}?"
   },
   "9e076f5885": {
     "translation": "Ikke funnet"
@@ -558,10 +585,10 @@
     "translation": "Du har blitt invitert til å bli med i <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, one {# ulest} other {# ulest}}"
+    "translation": "{count, plural, one {# ulest} other {# uleste}}"
   },
   "a104439641": {
-    "translation": "Polstring"
+    "translation": "Marg"
   },
   "a18366b217": {
     "translation": "Mørk"
@@ -576,7 +603,7 @@
     "translation": "Varsler"
   },
   "a3debabee7": {
-    "translation": "Cookie policy"
+    "translation": "Retningslinjer for informasjonskapsler"
   },
   "a4bef6414b": {
     "translation": "Slå av/på kommentarsidefeltet"
@@ -585,16 +612,19 @@
     "translation": "Send inn"
   },
   "a52945dbe2": {
-    "translation": "Forlate"
+    "translation": "Forlat"
   },
   "a6cc403d56": {
     "translation": "Alle med linken"
   },
   "a768caa988": {
-    "translation": "Analytics"
+    "translation": "Analyse"
   },
   "a8873770ab": {
     "translation": "Filen blir stor"
+  },
+  "a8c92ffd87": {
+    "translation": "Slett bibliotek"
   },
   "a9ded1e5ce": {
     "translation": "Bakgrunn"
@@ -646,7 +676,7 @@
     "translation": "Aktiver invitasjoner"
   },
   "b6d4223e60": {
-    "translation": "Logg på"
+    "translation": "Logg inn"
   },
   "b6f4a2ec63": {
     "translation": "Eier"
@@ -688,10 +718,10 @@
     "translation": "Kan ikke publisere filen."
   },
   "c4b39a1cc3": {
-    "translation": "Viktige informasjonskapsler"
+    "translation": "Nødvendige informasjonskapsler"
   },
   "c6a00f137b": {
-    "translation": "Invitere"
+    "translation": "Inviter"
   },
   "c6f16003f2": {
     "translation": "Kopier til arbeidsområdet mitt"
@@ -727,13 +757,13 @@
     "translation": "Avpubliser filen"
   },
   "d3d2e61733": {
-    "translation": "Lukke"
+    "translation": "Lukk"
   },
   "d46632fe1f": {
     "translation": "For mange forespørsler. Vennligst sakk ned farten."
   },
   "d4bbf74f3e": {
-    "translation": "Bytt sidefelt"
+    "translation": "Vis/skjul sidefelt"
   },
   "d5e92609cf": {
     "translation": "Arbeidsområder"
@@ -760,10 +790,13 @@
     "translation": "Forlat arbeidsområdet"
   },
   "dfdb78a4e4": {
-    "translation": "Feilsøkingsflagg for apper"
+    "translation": "Feilsøkingsflagg for appen"
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e1cbe6f097": {
+    "translation": "Kunne ikke endre biblioteket"
   },
   "e2198d6228": {
     "translation": "Kopier invitasjonslenken"
@@ -781,7 +814,7 @@
     "translation": "Filhistorikk"
   },
   "ea4788705e": {
-    "translation": "Kansellere"
+    "translation": "Avbryt"
   },
   "eb1e2b0542": {
     "translation": "Be eieren av arbeidsområdet om en ny."
@@ -799,7 +832,7 @@
     "translation": "Ingen filer samsvarer med søket ditt."
   },
   "ed75712b0e": {
-    "translation": "Kopiere"
+    "translation": "Dupliser"
   },
   "ede55d955f": {
     "translation": "Les vår <a>policy for informasjonskapsler</a> for å lære mer."
@@ -821,6 +854,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Brukerinnstillinger"
+  },
+  "f129f24bec": {
+    "translation": "· Ikke i noen fil"
   },
   "f13001876b": {
     "translation": "Listevisning"
@@ -850,7 +886,10 @@
     "translation": "Er du sikker på at du vil forlate dette arbeidsområdet?"
   },
   "fed5ec05eb": {
-    "translation": "Kopiert lenke"
+    "translation": "Lenke kopiert"
+  },
+  "feebd72b89": {
+    "translation": "Offentlige biblioteker"
   },
   "ff2fefd3c6": {
     "translation": "Er du sikker på at du vil fjerne {name} fra dette arbeidsområdet?"
@@ -859,7 +898,7 @@
     "translation": "Opprett en gratis konto for å lagre filene dine og tegne med lagkameratene dine."
   },
   "ffad261a48": {
-    "translation": "Feil ved godtok invitasjonen"
+    "translation": "Feil ved godtakelse av invitasjon"
   },
   "ffba7e098c": {
     "translation": "<name>{a}</name> og <name>{b}</name> reagerte"

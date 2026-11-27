@@ -1,0 +1,56 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Bold",
+			"translation": "ដិត"
+		},
+		{
+			"term": "Delete",
+			"translation": "លុប"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "អ្នកកែសម្រួល",
+			"note": "Person role; not កម្មវិធីនិពន្ធ (editor software)"
+		},
+		{
+			"term": "library",
+			"translation": "បណ្ណាល័យ"
+		},
+		{
+			"term": "light (colour)",
+			"translation": "X + ស្រាល"
+		},
+		{
+			"term": "page",
+			"translation": "ទំព័រ"
+		},
+		{
+			"term": "Publish",
+			"translation": "ផ្សាយ",
+			"note": "Not បោះពុម្ព, which means print"
+		},
+		{
+			"term": "Rectangle",
+			"translation": "ចតុកោណកែង"
+		},
+		{
+			"term": "rhombus",
+			"translation": "ផ្ការំដួល"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "រក្សាទុកច្បាប់ចម្លង",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "Star (shape)",
+			"translation": "ផ្កាយ"
+		},
+		{
+			"term": "toggle (show/hide)",
+			"translation": "បិទបើក"
+		}
+	]
+}

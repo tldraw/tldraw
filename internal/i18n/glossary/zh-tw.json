@@ -1,0 +1,591 @@
+{
+	"register": "您",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "無障礙"
+		},
+		{
+			"term": "add",
+			"translation": "新增"
+		},
+		{
+			"term": "alt text",
+			"translation": "替代文字"
+		},
+		{
+			"term": "Always snap",
+			"translation": "始終貼齊"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "箭頭"
+		},
+		{
+			"term": "Bold",
+			"translation": "粗體"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "前移一層"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "移至頂層"
+		},
+		{
+			"term": "Cancel",
+			"translation": "取消"
+		},
+		{
+			"term": "canvas",
+			"translation": "畫布"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "已勾選 / 未勾選"
+		},
+		{
+			"term": "Clipboard",
+			"translation": "剪貼簿"
+		},
+		{
+			"term": "Close",
+			"translation": "關閉"
+		},
+		{
+			"term": "Command palette",
+			"translation": "命令面板"
+		},
+		{
+			"term": "Comment",
+			"translation": "留言"
+		},
+		{
+			"term": "comments",
+			"translation": "留言"
+		},
+		{
+			"term": "context menu",
+			"translation": "內容選單",
+			"note": "context-menu.title"
+		},
+		{
+			"term": "Copy",
+			"translation": "複製",
+			"note": "clipboard copy (action.copy). Duplicate must use a different term"
+		},
+		{
+			"term": "copy (clipboard action)",
+			"translation": "複製"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "複製",
+			"note": "Duplicate must use a different term"
+		},
+		{
+			"term": "Copy invite link",
+			"translation": "複製邀請連結"
+		},
+		{
+			"term": "cursor (mouse pointer)",
+			"translation": "游標"
+		},
+		{
+			"term": "Cut",
+			"translation": "剪下"
+		},
+		{
+			"term": "Dark (color scheme)",
+			"translation": "深色",
+			"note": "Not 黑暗"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "深色"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "深色模式"
+		},
+		{
+			"term": "dashed",
+			"translation": "虛線"
+		},
+		{
+			"term": "data",
+			"translation": "資料",
+			"note": "Not 數據"
+		},
+		{
+			"term": "debug",
+			"translation": "除錯"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "除錯模式"
+		},
+		{
+			"term": "Default",
+			"translation": "預設"
+		},
+		{
+			"term": "Delete",
+			"translation": "刪除"
+		},
+		{
+			"term": "Diamond (geo)",
+			"translation": "菱形"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "分布"
+		},
+		{
+			"term": "Distribute horizontally",
+			"translation": "水平分布"
+		},
+		{
+			"term": "Draw (font)",
+			"translation": "手繪"
+		},
+		{
+			"term": "Draw (line style)",
+			"translation": "手繪"
+		},
+		{
+			"term": "Duplicate (command)",
+			"translation": "建立副本",
+			"note": "Distinct from 複製 (Copy)"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "編輯"
+		},
+		{
+			"term": "Editor (sharing role)",
+			"translation": "編輯者",
+			"note": "Not 編輯器 (software)"
+		},
+		{
+			"term": "Elbow (arrow kind)",
+			"translation": "折線"
+		},
+		{
+			"term": "embed",
+			"translation": "嵌入"
+		},
+		{
+			"term": "Export",
+			"translation": "匯出"
+		},
+		{
+			"term": "feedback",
+			"translation": "回饋"
+		},
+		{
+			"term": "file",
+			"translation": "檔案"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "檔案"
+		},
+		{
+			"term": "Fill (fill style)",
+			"translation": "填色",
+			"note": "填滿 is Solid"
+		},
+		{
+			"term": "filter (verb)",
+			"translation": "篩選"
+		},
+		{
+			"term": "flag (feature toggle)",
+			"translation": "旗標"
+		},
+		{
+			"term": "focus mode",
+			"translation": "專注模式"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "跟隨",
+			"note": "not 追蹤 or 關注"
+		},
+		{
+			"term": "forget (file)",
+			"translation": "從清單中移除",
+			"note": "Not 刪除"
+		},
+		{
+			"term": "grid",
+			"translation": "網格"
+		},
+		{
+			"term": "group",
+			"translation": "群組"
+		},
+		{
+			"term": "import",
+			"translation": "匯入"
+		},
+		{
+			"term": "Insert",
+			"translation": "插入"
+		},
+		{
+			"term": "invite link",
+			"translation": "邀請連結"
+		},
+		{
+			"term": "Italic",
+			"translation": "斜體"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "項目"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "項目"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "鍵盤快捷鍵"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "橫式"
+		},
+		{
+			"term": "library",
+			"translation": "資源庫",
+			"note": "Not 圖書館"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "資源庫"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "素材庫"
+		},
+		{
+			"term": "Light (color scheme)",
+			"translation": "淺色",
+			"note": "Not 明亮"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "淺色"
+		},
+		{
+			"term": "link",
+			"translation": "連結"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "連結",
+			"note": "Not 關聯"
+		},
+		{
+			"term": "load",
+			"translation": "載入"
+		},
+		{
+			"term": "Menu",
+			"translation": "選單"
+		},
+		{
+			"term": "Middle (alignment)",
+			"translation": "置中"
+		},
+		{
+			"term": "minimap",
+			"translation": "小地圖"
+		},
+		{
+			"term": "Mono (font)",
+			"translation": "等寬"
+		},
+		{
+			"term": "More (overflow)",
+			"translation": "更多"
+		},
+		{
+			"term": "mouse",
+			"translation": "滑鼠"
+		},
+		{
+			"term": "Name (of a workspace/file)",
+			"translation": "名稱"
+		},
+		{
+			"term": "Notifications",
+			"translation": "通知"
+		},
+		{
+			"term": "Opacity",
+			"translation": "不透明度"
+		},
+		{
+			"term": "open",
+			"translation": "開啟"
+		},
+		{
+			"term": "Oval",
+			"translation": "膠囊形"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "擁有者"
+		},
+		{
+			"term": "page",
+			"translation": "頁面"
+		},
+		{
+			"term": "Paste",
+			"translation": "貼上"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "釘選"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "釘選"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "直式"
+		},
+		{
+			"term": "Preferences",
+			"translation": "選項",
+			"note": "current menu.preferences label"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "隱私權政策"
+		},
+		{
+			"term": "project",
+			"translation": "專案"
+		},
+		{
+			"term": "publish",
+			"translation": "發布"
+		},
+		{
+			"term": "reacted (emoji)",
+			"translation": "做出了反應"
+		},
+		{
+			"term": "Redo",
+			"translation": "取消復原"
+		},
+		{
+			"term": "refresh",
+			"translation": "重新整理"
+		},
+		{
+			"term": "refresh (page)",
+			"translation": "重新整理",
+			"note": "Not 刷新 (mainland usage)"
+		},
+		{
+			"term": "refresh (reload page)",
+			"translation": "重新整理",
+			"note": "Not 刷新 (Mainland)"
+		},
+		{
+			"term": "reload",
+			"translation": "重新載入"
+		},
+		{
+			"term": "reload (page)",
+			"translation": "重新載入"
+		},
+		{
+			"term": "remove (a member)",
+			"translation": "移除",
+			"note": "Keep distinct from 刪除 (delete)"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "移除",
+			"note": "distinct from delete 刪除"
+		},
+		{
+			"term": "Rename",
+			"translation": "重新命名"
+		},
+		{
+			"term": "Rename page",
+			"translation": "重新命名頁面"
+		},
+		{
+			"term": "reply",
+			"translation": "回覆"
+		},
+		{
+			"term": "reset",
+			"translation": "重設"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "解決"
+		},
+		{
+			"term": "Rhombus (geo, parallelogram)",
+			"translation": "平行四邊形"
+		},
+		{
+			"term": "Sans (font)",
+			"translation": "無襯線"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "存為副本",
+			"note": "action.save-copy"
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "選取"
+		},
+		{
+			"term": "Select all",
+			"translation": "全選"
+		},
+		{
+			"term": "Send backward",
+			"translation": "後移一層"
+		},
+		{
+			"term": "Send to back",
+			"translation": "移至底層"
+		},
+		{
+			"term": "Serif (font)",
+			"translation": "襯線"
+		},
+		{
+			"term": "Settings",
+			"translation": "設定"
+		},
+		{
+			"term": "shape",
+			"translation": "圖形",
+			"note": "Used throughout the a11y labels"
+		},
+		{
+			"term": "sidebar",
+			"translation": "側邊欄"
+		},
+		{
+			"term": "Sign out",
+			"translation": "登出"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "實線"
+		},
+		{
+			"term": "Stack",
+			"translation": "堆疊"
+		},
+		{
+			"term": "sticky note",
+			"translation": "便利貼"
+		},
+		{
+			"term": "Stop following (viewport)",
+			"translation": "停止跟隨",
+			"note": "Use 跟隨 for following a collaborator's view; 追蹤 reads as a social-media follow"
+		},
+		{
+			"term": "Stretch",
+			"translation": "延展"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "刪除線"
+		},
+		{
+			"term": "Styles (panel)",
+			"translation": "樣式"
+		},
+		{
+			"term": "supported",
+			"translation": "支援",
+			"note": "Not 支持 (Mainland usage)"
+		},
+		{
+			"term": "Task list",
+			"translation": "任務清單"
+		},
+		{
+			"term": "terms of service",
+			"translation": "服務條款"
+		},
+		{
+			"term": "thread",
+			"translation": "討論串"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "工具鎖定"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "觸控板"
+		},
+		{
+			"term": "Transform (shape category)",
+			"translation": "變換"
+		},
+		{
+			"term": "Undo",
+			"translation": "復原"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "取消群組"
+		},
+		{
+			"term": "Untitled",
+			"translation": "無標題"
+		},
+		{
+			"term": "upload",
+			"translation": "上傳"
+		},
+		{
+			"term": "URL",
+			"translation": "網址"
+		},
+		{
+			"term": "user",
+			"translation": "使用者"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "檢視"
+		},
+		{
+			"term": "workspace",
+			"translation": "工作區"
+		},
+		{
+			"term": "zoom",
+			"translation": "縮放"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "縮放"
+		}
+	]
+}

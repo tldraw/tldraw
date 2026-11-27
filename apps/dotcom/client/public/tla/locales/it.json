@@ -33,7 +33,7 @@
     "translation": "Account"
   },
   "093ac7483a": {
-    "translation": "Impossibile aprire i file {extension}"
+    "translation": "Impossibile aprire i file {extension} per ora"
   },
   "0a91f7fa87": {
     "translation": "Questo file ha raggiunto il limite di dimensione e le modifiche potrebbero non essere più salvate. Rimuovi parte del contenuto o crea un nuovo file."
@@ -54,7 +54,7 @@
     "translation": "Contrassegna tutte le notifiche come lette"
   },
   "1063e38cb5": {
-    "translation": "Rimuovere"
+    "translation": "Rimuovi"
   },
   "10fb1df194": {
     "translation": "Copia nella tua area di lavoro personale"
@@ -65,6 +65,9 @@
   "12a6766ba1": {
     "translation": "Sblocca il file"
   },
+  "13cad4c2e8": {
+    "translation": "Questo spazio di lavoro ha raggiunto il numero massimo di librerie. Elimina le vecchie librerie prima di crearne di nuove."
+  },
   "13ddd375ad": {
     "translation": "Esporta come"
   },
@@ -72,7 +75,7 @@
     "translation": "Opzioni di notifica"
   },
   "15bf4fead9": {
-    "translation": "Passa allo spazio di lavoro"
+    "translation": "Cambia spazio di lavoro"
   },
   "181b90f889": {
     "translation": "Crea file"
@@ -81,7 +84,7 @@
     "translation": "Creato da me"
   },
   "1a7222b4e5": {
-    "translation": "Spostarsi su"
+    "translation": "Sposta in"
   },
   "1da2e8106b": {
     "translation": "Si è verificato un errore imprevisto."
@@ -90,7 +93,10 @@
     "translation": "Oggi"
   },
   "1ffd709937": {
-    "translation": "Uno spazio di lavoro deve avere almeno un proprietario. Prima di tutto, assegna il proprietario a qualcun altro."
+    "translation": "Un'area di lavoro deve avere almeno un proprietario. Prima nomina proprietario qualcun altro."
+  },
+  "20746febc9": {
+    "translation": "La mia raccolta"
   },
   "21f66c9c00": {
     "translation": "Nome dell'area di lavoro"
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "Informazioni su tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Questa libreria ha raggiunto il numero massimo di elementi. Elimina i vecchi elementi prima di aggiungerne di nuovi."
   },
   "28b2464e1f": {
     "translation": "Impossibile inviare il feedback"
@@ -114,7 +123,7 @@
     "translation": "Benvenuto nel tuo spazio di lavoro"
   },
   "2a37324bb4": {
-    "translation": "Ricerca..."
+    "translation": "Cerca..."
   },
   "2d3cdcfdd4": {
     "translation": "Per favore, riprova."
@@ -135,13 +144,13 @@
     "translation": "Per vedere questo file devi accedere."
   },
   "31418ce4ad": {
-    "translation": "i18n: evidenziazione mancante"
+    "translation": "i18n: Evidenzia traduzioni mancanti"
   },
   "324a0f3182": {
     "translation": "Torna a tldraw"
   },
   "32811caa8c": {
-    "translation": "File duplicato"
+    "translation": "Duplica file"
   },
   "335defdafe": {
     "translation": "Prova a ricaricare la pagina."
@@ -177,7 +186,10 @@
     "translation": "Diagramma Mermaid non supportato"
   },
   "402bf0c47e": {
-    "translation": "Tema del colore"
+    "translation": "Tema colore"
+  },
+  "4236087d6b": {
+    "translation": "Menu della libreria"
   },
   "42e53c47c1": {
     "translation": "Contatta il proprietario per richiedere l'accesso."
@@ -195,7 +207,7 @@
     "translation": "Grazie per averci aiutato a migliorare tldraw!"
   },
   "4630b65bb2": {
-    "translation": "Spostare il file in"
+    "translation": "Sposta file in"
   },
   "46de2de6bb": {
     "translation": "Accetta i termini di utilizzo"
@@ -204,7 +216,7 @@
     "translation": "Per continuare la modifica, copia il file nei tuoi file."
   },
   "47f493a590": {
-    "translation": "File Pin"
+    "translation": "Fissa file"
   },
   "4970317944": {
     "translation": "Oggetto"
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> ha commentato"
+  },
+  "4c4a28e97a": {
+    "translation": "Questo file"
   },
   "4d0d3ddec9": {
     "translation": "Questo sito utilizza i cookie per far funzionare l'app e per raccogliere dati analitici."
@@ -246,7 +261,7 @@
     "translation": "Esportare…"
   },
   "53770fd374": {
-    "translation": "Non letto"
+    "translation": "Non lette"
   },
   "542248f0ba": {
     "translation": "Questo file è ora di sola lettura"
@@ -315,7 +330,7 @@
     "translation": "Meno recenti"
   },
   "639bae9ac6": {
-    "translation": "Voi"
+    "translation": "tu"
   },
   "63a6a88c06": {
     "translation": "Aggiorna"
@@ -345,7 +360,7 @@
     "translation": "Accedi per salvare"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, one {Qualcuno ha reagito} other {# le persone hanno reagito}}"
+    "translation": "{count, plural, one {Qualcuno ha reagito} other {# persone hanno reagito}}"
   },
   "6a26f54883": {
     "translation": "Aiuto"
@@ -387,7 +402,7 @@
     "translation": "Segna tutto come letto"
   },
   "7573b8110a": {
-    "translation": "Accesso negato"
+    "translation": "Nessun accesso"
   },
   "761e93ede9": {
     "translation": "Gestisci i cookie"
@@ -405,10 +420,13 @@
     "translation": "Richiesta non valida."
   },
   "7827371d1a": {
-    "translation": "Questo file multigiocatore tldraw anonimo è ora di sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
+    "translation": "Questo file collaborativo anonimo di tldraw è ora in sola lettura. Per continuare a modificarlo, accedi e copialo nei tuoi file."
+  },
+  "7897a855d3": {
+    "translation": "Ancora nessuna libreria."
   },
   "78e9815992": {
-    "translation": "Fatto"
+    "translation": "Ho capito"
   },
   "797799f35e": {
     "translation": "Segnala un problema su GitHub"
@@ -444,7 +462,7 @@
     "translation": "Dimentica file"
   },
   "801ab24683": {
-    "translation": "Scaricamento"
+    "translation": "Scarica"
   },
   "8030793ce3": {
     "translation": "Nuovo spazio di lavoro"
@@ -477,7 +495,7 @@
     "translation": "<name>{author}</name> e {count, plural, one {# altro} other {# altri}} hanno reagito"
   },
   "88bf6ab42c": {
-    "translation": "Questo link di invito è scaduto."
+    "translation": "Questo link di invito è scaduto"
   },
   "8c2d3d730c": {
     "translation": "Controlla la tua email per un codice di verifica."
@@ -486,7 +504,7 @@
     "translation": "Casa"
   },
   "8eb2c00e96": {
-    "translation": "Condivisi con te"
+    "translation": "Condiviso con te"
   },
   "8f7f4c1ce7": {
     "translation": "Di"
@@ -524,6 +542,9 @@
   "985a4b720f": {
     "translation": "Termini di utilizzo"
   },
+  "987453f3dd": {
+    "translation": "Prova il server MCP"
+  },
   "9914a0ce04": {
     "translation": "Chiaro"
   },
@@ -542,23 +563,29 @@
   "9c228b6834": {
     "translation": "Sembra che tu sia offline. Verifica la tua connessione e riprova."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# elemento} many {# elementi} other {# elementi}}"
+  },
   "9ccb565b86": {
     "translation": "Stiamo riscontrando problemi di connessione al nostro servizio di autenticazione. Di solito si tratta di un problema temporaneo. Prova ad aggiornare la pagina."
   },
   "9ceb927baa": {
     "translation": "Pubblica questo file"
   },
+  "9d102330ee": {
+    "translation": "Eliminare <strong>{name}</strong> e {count, plural, one {il suo # elemento} many {i suoi # elementi} other {i suoi # elementi}}?"
+  },
   "9e076f5885": {
     "translation": "Non trovato"
   },
   "9e93c98d88": {
-    "translation": "Decidere di uscire"
+    "translation": "Rifiuta"
   },
   "a078644c42": {
     "translation": "Sei stato invitato a unirti a <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, one {# non letto} other {# non letto}}"
+    "translation": "{count, plural, one {# non letta} other {# non lette}}"
   },
   "a104439641": {
     "translation": "Padding"
@@ -596,6 +623,9 @@
   "a8873770ab": {
     "translation": "Il file sta diventando grande"
   },
+  "a8c92ffd87": {
+    "translation": "Elimina libreria"
+  },
   "a9ded1e5ce": {
     "translation": "Sfondo"
   },
@@ -612,7 +642,7 @@
     "translation": "App"
   },
   "aeb428554a": {
-    "translation": "Biblioteche"
+    "translation": "Librerie"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -625,7 +655,7 @@
     "translation": "<name>{author}</name> ha risposto"
   },
   "b1c94ca2fb": {
-    "translation": "Tutto"
+    "translation": "Tutte"
   },
   "b2326c3a34": {
     "translation": "Rigenera"
@@ -667,7 +697,7 @@
     "translation": "{total, plural, one {Caricamento del file .tldr…} other {Caricamento di {uploaded} di {total} file .tldr…}}"
   },
   "bc88b0e89e": {
-    "translation": "Condivisi da {ownerName}"
+    "translation": "Condiviso da {ownerName}"
   },
   "bd8aac2696": {
     "translation": "File corrente"
@@ -757,13 +787,16 @@
     "translation": "Solo su invito"
   },
   "dbf9b24193": {
-    "translation": "Lasciare l'area di lavoro"
+    "translation": "Esci dallo spazio di lavoro"
   },
   "dfdb78a4e4": {
     "translation": "Flag di debug dell'app"
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e1cbe6f097": {
+    "translation": "Impossibile modificare la libreria"
   },
   "e2198d6228": {
     "translation": "Copia il link di invito"
@@ -775,10 +808,10 @@
     "translation": "Termini di servizio"
   },
   "e81c4e4f2b": {
-    "translation": "O"
+    "translation": "o"
   },
   "ea13ecec38": {
-    "translation": "Cronologia dei file"
+    "translation": "Cronologia del file"
   },
   "ea4788705e": {
     "translation": "Annulla"
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "Impostazioni utente"
   },
+  "f129f24bec": {
+    "translation": "· In nessun file"
+  },
   "f13001876b": {
     "translation": "Visualizzazione elenco"
   },
@@ -841,7 +877,7 @@
     "translation": "Per ora, puoi <a>esportarlo come file {extension}</a> per utilizzarlo qui."
   },
   "fa2ead697d": {
-    "translation": "politica sulla riservatezza"
+    "translation": "Informativa sulla privacy"
   },
   "fb15c53f22": {
     "translation": "Visualizzatore"
@@ -851,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Link copiato"
+  },
+  "feebd72b89": {
+    "translation": "Librerie pubbliche"
   },
   "ff2fefd3c6": {
     "translation": "Sei sicuro di voler rimuovere {name} da quest'area di lavoro?"

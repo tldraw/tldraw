@@ -1,0 +1,589 @@
+{
+	"register": "Action labels use noun or plain form (e.g. '図形を移動'), not polite 〜します",
+	"terms": [
+		{
+			"term": "About tldraw",
+			"translation": "tldrawについて"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "アクセシビリティ"
+		},
+		{
+			"term": "Align horizontally (centre)",
+			"translation": "左右中央揃え"
+		},
+		{
+			"term": "Align left",
+			"translation": "左寄せ"
+		},
+		{
+			"term": "Align right",
+			"translation": "右寄せ"
+		},
+		{
+			"term": "Align top",
+			"translation": "上寄せ"
+		},
+		{
+			"term": "Align vertically (centre)",
+			"translation": "上下中央揃え"
+		},
+		{
+			"term": "alt text",
+			"translation": "代替テキスト"
+		},
+		{
+			"term": "Arrow (arrowhead style)",
+			"translation": "矢印"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "矢印"
+		},
+		{
+			"term": "Arrow left (shape)",
+			"translation": "左矢印"
+		},
+		{
+			"term": "Arrowhead end",
+			"translation": "終点"
+		},
+		{
+			"term": "Arrowhead start",
+			"translation": "始点"
+		},
+		{
+			"term": "backup",
+			"translation": "バックアップ"
+		},
+		{
+			"term": "Bold",
+			"translation": "太字"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "ひとつ前に移動"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "最前面に移動"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "箇条書きリスト"
+		},
+		{
+			"term": "Cancel",
+			"translation": "キャンセル"
+		},
+		{
+			"term": "canvas",
+			"translation": "キャンバス"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "チェック済み / 未チェック"
+		},
+		{
+			"term": "Close",
+			"translation": "閉じる"
+		},
+		{
+			"term": "Collaboration",
+			"translation": "コラボレーション"
+		},
+		{
+			"term": "Command palette",
+			"translation": "コマンドパレット"
+		},
+		{
+			"term": "Comment",
+			"translation": "コメント"
+		},
+		{
+			"term": "Confirm",
+			"translation": "確定"
+		},
+		{
+			"term": "Copy",
+			"translation": "コピー",
+			"note": "clipboard"
+		},
+		{
+			"term": "copy (clipboard action)",
+			"translation": "コピー"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "コピー"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "コピー"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "ファイルを開くことができません"
+		},
+		{
+			"term": "Cubic (spline)",
+			"translation": "三次曲線"
+		},
+		{
+			"term": "Cut",
+			"translation": "切り取り"
+		},
+		{
+			"term": "Dark (color scheme)",
+			"translation": "ダーク"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "ダーク"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "ダークモード"
+		},
+		{
+			"term": "Dash (stroke pattern picker)",
+			"translation": "線種"
+		},
+		{
+			"term": "Delete",
+			"translation": "削除"
+		},
+		{
+			"term": "distribute",
+			"translation": "等間隔に配置"
+		},
+		{
+			"term": "Draw (font)",
+			"translation": "手書き"
+		},
+		{
+			"term": "Draw (line style)",
+			"translation": "手描き"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "複製"
+		},
+		{
+			"term": "edge scrolling",
+			"translation": "エッジスクロール"
+		},
+		{
+			"term": "edit",
+			"translation": "編集"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "編集"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "編集者"
+		},
+		{
+			"term": "Editor (sharing role)",
+			"translation": "編集者",
+			"note": "Person role; not エディタ (software)"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "楕円形"
+		},
+		{
+			"term": "Error",
+			"translation": "エラー"
+		},
+		{
+			"term": "export",
+			"translation": "エクスポート"
+		},
+		{
+			"term": "feedback",
+			"translation": "フィードバック"
+		},
+		{
+			"term": "file",
+			"translation": "ファイル"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "塗りつぶし"
+		},
+		{
+			"term": "Font",
+			"translation": "フォント"
+		},
+		{
+			"term": "Forget (file)",
+			"translation": "リストから外す",
+			"note": "Distinct from 削除"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "フレーム"
+		},
+		{
+			"term": "group (verb)",
+			"translation": "グループ化",
+			"note": "Ungroup is グループ解除"
+		},
+		{
+			"term": "Heading (text)",
+			"translation": "見出し"
+		},
+		{
+			"term": "Heart (shape)",
+			"translation": "ハート"
+		},
+		{
+			"term": "Help",
+			"translation": "ヘルプ"
+		},
+		{
+			"term": "Import file",
+			"translation": "ファイルをインポート…",
+			"note": "ffcd73e997"
+		},
+		{
+			"term": "Import file…",
+			"translation": "ファイルをインポート…"
+		},
+		{
+			"term": "Insert embed",
+			"translation": "埋め込みを挿入"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "アイテム"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "キーボードショートカット"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "横向き"
+		},
+		{
+			"term": "leave (a workspace)",
+			"translation": "退出する"
+		},
+		{
+			"term": "Leave (workspace)",
+			"translation": "退出"
+		},
+		{
+			"term": "Libraries",
+			"translation": "ライブラリ",
+			"note": "Reusable-shape collections, not 図書館"
+		},
+		{
+			"term": "library",
+			"translation": "ライブラリ"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "ライブラリ"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "ライブラリ"
+		},
+		{
+			"term": "Light (color scheme)",
+			"translation": "ライト"
+		},
+		{
+			"term": "light <color>",
+			"translation": "薄い + color (薄い青, 薄い緑, 薄い紫)"
+		},
+		{
+			"term": "link",
+			"translation": "リンク"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "リンク"
+		},
+		{
+			"term": "mention (@-tag)",
+			"translation": "メンション"
+		},
+		{
+			"term": "minimap",
+			"translation": "ミニマップ"
+		},
+		{
+			"term": "Mixed (style state)",
+			"translation": "混在"
+		},
+		{
+			"term": "More (overflow)",
+			"translation": "その他"
+		},
+		{
+			"term": "Mouse",
+			"translation": "マウス"
+		},
+		{
+			"term": "No access (permission level)",
+			"translation": "アクセス権なし"
+		},
+		{
+			"term": "Note: (attention marker)",
+			"translation": "注意："
+		},
+		{
+			"term": "Opacity",
+			"translation": "不透明度"
+		},
+		{
+			"term": "Ordered list",
+			"translation": "順序付きリスト"
+		},
+		{
+			"term": "Oval",
+			"translation": "オーバル",
+			"note": "Kept distinct from Ellipse 楕円形"
+		},
+		{
+			"term": "owner (workspace role)",
+			"translation": "オーナー"
+		},
+		{
+			"term": "Padding (export margin)",
+			"translation": "パディング"
+		},
+		{
+			"term": "Page name",
+			"translation": "ページ名"
+		},
+		{
+			"term": "Paste",
+			"translation": "貼り付け"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "ピン留め"
+		},
+		{
+			"term": "Pipe (| glyph arrowhead)",
+			"translation": "パイプ",
+			"note": "Usual Japanese name for the | character"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "縦向き"
+		},
+		{
+			"term": "Preferences",
+			"translation": "設定",
+			"note": "menu.preferences label; references to the menu must use 設定, not 環境設定"
+		},
+		{
+			"term": "Preferences (menu)",
+			"translation": "設定",
+			"note": "menu.preferences"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "プライバシーポリシー"
+		},
+		{
+			"term": "project",
+			"translation": "プロジェクト"
+		},
+		{
+			"term": "publish",
+			"translation": "公開"
+		},
+		{
+			"term": "reaction (emoji)",
+			"translation": "リアクション"
+		},
+		{
+			"term": "Redo",
+			"translation": "やり直し"
+		},
+		{
+			"term": "Refresh (reload page)",
+			"translation": "再読み込み"
+		},
+		{
+			"term": "reload (page)",
+			"translation": "再読み込み"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "取り除く",
+			"note": "distinct from delete 削除"
+		},
+		{
+			"term": "Remove from (detach)",
+			"translation": "外す",
+			"note": "distinct from 削除 (delete)"
+		},
+		{
+			"term": "Rename",
+			"translation": "名前を変更"
+		},
+		{
+			"term": "reply",
+			"translation": "返信"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "解決",
+			"note": "Resolved = 解決済み"
+		},
+		{
+			"term": "Save (button)",
+			"translation": "保存"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "コピーを保存"
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "選択"
+		},
+		{
+			"term": "Send backward",
+			"translation": "ひとつ後ろに移動"
+		},
+		{
+			"term": "Send to back",
+			"translation": "最背面に移動"
+		},
+		{
+			"term": "Settings",
+			"translation": "設定"
+		},
+		{
+			"term": "shape",
+			"translation": "図形"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "共有"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "実線"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "正方形",
+			"note": "not 四角形 (any quadrilateral)"
+		},
+		{
+			"term": "sticky note",
+			"translation": "付箋"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "取り消し線"
+		},
+		{
+			"term": "Styles (panel)",
+			"translation": "スタイル"
+		},
+		{
+			"term": "Submit (send)",
+			"translation": "送信"
+		},
+		{
+			"term": "Task list",
+			"translation": "タスクリスト"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "利用規約"
+		},
+		{
+			"term": "terms of use",
+			"translation": "利用規約"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "…を切り替え"
+		},
+		{
+			"term": "Toggle (command)",
+			"translation": "〜を切り替え"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "Xを切り替え"
+		},
+		{
+			"term": "Tools",
+			"translation": "ツール"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "トラックパッド"
+		},
+		{
+			"term": "Transform (shape category)",
+			"translation": "変形",
+			"note": "変換 means conversion"
+		},
+		{
+			"term": "Transparent (export background)",
+			"translation": "透過"
+		},
+		{
+			"term": "Undo",
+			"translation": "元に戻す"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "グループ解除"
+		},
+		{
+			"term": "unread",
+			"translation": "未読"
+		},
+		{
+			"term": "untitled",
+			"translation": "無題",
+			"note": "Not 無名"
+		},
+		{
+			"term": "Untitled file",
+			"translation": "無題のファイル"
+		},
+		{
+			"term": "upload",
+			"translation": "アップロード"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "表示"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "閲覧者"
+		},
+		{
+			"term": "workspace",
+			"translation": "ワークスペース"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "ズーム"
+		},
+		{
+			"term": "Zoom (tool)",
+			"translation": "ズーム"
+		}
+	]
+}

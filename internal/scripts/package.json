@@ -59,6 +59,7 @@
 		"test-ci": "pnpm exec vitest run --passWithNoTests"
 	},
 	"dependencies": {
+		"@formatjs/icu-messageformat-parser": "^3.5.21",
 		"@lokalise/node-api": "^12.8.0",
 		"@octokit/rest": "^20.1.1",
 		"@tldraw/dotcom-shared": "workspace:*",
