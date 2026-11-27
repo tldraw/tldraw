@@ -25,17 +25,13 @@ To build with an agent starter kit, run this command in your terminal:
 npm create tldraw@latest -- --template agent
 ```
 
-Then create a `.dev.vars` file in the project root with API keys for the model providers you want to use:
+The agent uses Gemini 4 Hydrogen. Add a [Google AI Studio](https://aistudio.google.com/apikey) key to `.dev.vars` in the project root.
 
 ```
-ANTHROPIC_API_KEY=<your key>
-GOOGLE_API_KEY=<your key>
-OPENAI_API_KEY=<your key>
+GOOGLE_API_KEY=your_google_api_key_here
 ```
 
-We recommend Anthropic for best results. Get an API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
-
-To use one [OpenRouter](https://openrouter.ai) key for every model instead, set `OPENROUTER_API_KEY`. The provider keys are then not used.
+To route requests through [OpenRouter](https://openrouter.ai/settings/keys), set `OPENROUTER_API_KEY` in the same file. It takes precedence over `GOOGLE_API_KEY`.
 
 ---
 
@@ -104,7 +100,7 @@ The agent's state is organized into focused managers, each responsible for a sin
 
 ### 7. Integration system: Model flexibility
 
-This starter kit supports multiple AI providers (Anthropic, OpenAI, Google) with consistent interfaces. The system abstracts provider differences, so you can switch models or use different providers for different operations. Adding support for a new provider doesn't require changes to the rest of the system.
+The starter ships with Gemini 4 Hydrogen. To change the model, add its definition to `shared/models.ts` and set `DEFAULT_MODEL_NAME` to its name. The worker includes adapters for Google, Anthropic, OpenAI and OpenRouter.
 
 ## Use the agent programmatically
 
@@ -561,31 +557,6 @@ The starter kit has no usage limits. A public deployment pays for every request 
 To change the default system prompt, edit the sections in `worker/prompt/sections/`. These sections are assembled by `worker/prompt/buildSystemPrompt.ts`.
 
 The system prompt is rebuilt for each step in the agentic loop depending on which actions and parts are available in the agent's current mode. To give the model more detailed instructions for how to use any custom actions or parts you add, edit `worker/prompt/sections/rules-section.ts`.
-
-### Change to a different model
-
-You can set an agent's model by calling `setModelName` on the `modelName` manager.
-
-```tsx
-agent.modelName.setModelName('gemini-3.8-flash')
-```
-
-To override an agent's model, specify a different model name with a request.
-
-```tsx
-agent.prompt({
-	modelName: 'gemini-3.8-flash',
-	message: 'Draw a diagram of a volcano.',
-})
-```
-
-You can conditionally override the model name by overriding the `getModelName()` method on any `PromptPartDefinition`.
-
-```tsx
-override getModelName(part: MyCustomPromptPart) {
-	return part.fastMode ? 'gemini-3.8-flash' : 'claude-sonnet-5'
-}
-```
 
 ### Support a different model
 

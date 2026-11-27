@@ -1,9 +1,6 @@
 import { FormEventHandler, useState } from 'react'
 import { Editor, useValue } from 'tldraw'
 import { AtIcon } from '../../shared/icons/AtIcon'
-import { BrainIcon } from '../../shared/icons/BrainIcon'
-import { ChevronDownIcon } from '../../shared/icons/ChevronDownIcon'
-import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../shared/models'
 import { useAgent } from '../agent/TldrawAgentAppProvider'
 import { ContextItemTag } from './ContextItemTag'
 import { SelectionTag } from './SelectionTag'
@@ -31,7 +28,6 @@ export function ChatInput({
 
 	const selectedShapes = useValue('selectedShapes', () => editor.getSelectedShapes(), [editor])
 	const contextItems = useValue('contextItems', () => agent.context.getItems(), [agent])
-	const modelName = useValue('modelName', () => agent.modelName.getModelName(), [agent])
 
 	return (
 		<div className="chat-input">
@@ -95,24 +91,6 @@ export function ChatInput({
 					}}
 				/>
 				<span className="chat-actions">
-					<div className="chat-actions-left">
-						<div className="chat-model-select">
-							<div className="chat-model-select-label">
-								<BrainIcon /> {modelName}
-							</div>
-							<select
-								value={modelName}
-								onChange={(e) => agent.modelName.setModelName(e.target.value as AgentModelName)}
-							>
-								{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
-									<option key={model.name} value={model.name}>
-										{model.name}
-									</option>
-								))}
-							</select>
-							<ChevronDownIcon />
-						</div>
-					</div>
 					<button className="chat-input-submit" disabled={inputValue === '' && !isGenerating}>
 						{isGenerating && inputValue === '' ? '◼' : '⬆'}
 					</button>

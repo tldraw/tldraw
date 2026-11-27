@@ -218,14 +218,8 @@ body {
 
 .chat-actions {
 	display: flex;
-	gap: 8px;
 	width: 100%;
-	justify-content: space-between;
-}
-
-.chat-actions-left {
-	display: flex;
-	gap: 0px;
+	justify-content: flex-end;
 }
 
 .chat-icon {
@@ -251,20 +245,12 @@ body {
 	font-size: 10px;
 }
 
-.chat-model-select,
 .chat-context-select {
 	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 4px;
 	padding: 0px 8px;
-}
-
-.chat-model-select-label {
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	margin-left: -6px;
 }
 
 .chat-context-select {
@@ -274,13 +260,11 @@ body {
 	height: 18px;
 }
 
-.chat-model-select:hover,
 .chat-context-select:hover {
 	color: var(--tl-color-text);
 	border-color: var(--tl-color-text);
 }
 
-.chat-model-select select,
 .chat-context-select select {
 	opacity: 0;
 	position: absolute;
