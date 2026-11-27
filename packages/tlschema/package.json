@@ -51,7 +51,6 @@
 		"build-types": "tsc --build"
 	},
 	"devDependencies": {
-		"react": "^19.2.1",
 		"vitest": "^5.0.0"
 	},
 	"dependencies": {
@@ -59,10 +58,6 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*"
-	},
-	"peerDependencies": {
-		"react": "^18.2.0 || ^19.2.1",
-		"react-dom": "^18.2.0 || ^19.2.1"
 	},
 	"engines": {
 		"node": ">=22.12.0"
