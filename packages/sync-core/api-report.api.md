@@ -457,6 +457,7 @@ export interface TLPushRequest<R extends UnknownRecord> {
     clientClock: number;
     // (undocumented)
     diff?: NetworkDiff<R>;
+    ops?: NetworkDiff<R>[];
     // (undocumented)
     presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R];
     // (undocumented)
@@ -623,6 +624,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 // @internal
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
     refused?: TLSyncRefusal;
+    refusedFrom?: number;
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
     };
@@ -642,6 +644,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     permissions?: readonly TLPermissionGrant[];
     userId?: null | string;
     objectTypes?: string[];
+    acceptsOps?: boolean;
     access?: TLSessionAccess;
     connectRequestId: string;
     diff: NetworkDiff<R>;

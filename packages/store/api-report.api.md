@@ -432,6 +432,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
+    // @internal
+    listenToOperations(onOperation: (entry: HistoryEntry<R>, operation: number) => void, filters?: Partial<StoreListenerFilters>): () => void;
     loadStoreSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
