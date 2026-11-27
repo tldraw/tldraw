@@ -110,6 +110,8 @@ import { groupingCapability } from '../plugins/builtin/grouping'
 import { imageExportCapability } from '../plugins/builtin/imageExport'
 import { inputsCapability } from '../plugins/builtin/inputs'
 import { overlaysCapability } from '../plugins/builtin/overlays'
+import type { PageController } from '../plugins/builtin/PageController'
+import { pagesCapability } from '../plugins/builtin/pages'
 import { performanceCapability } from '../plugins/builtin/performance'
 import { scribblesCapability } from '../plugins/builtin/scribbles'
 import { selectionCapability } from '../plugins/builtin/selection'
@@ -120,6 +122,8 @@ import { shapeArrangementCapability } from '../plugins/builtin/shapeArrangement'
 import type { ShapeArranger } from '../plugins/builtin/ShapeArranger'
 import type { ShapeDuplicator } from '../plugins/builtin/ShapeDuplicator'
 import type { ShapeGrouper } from '../plugins/builtin/ShapeGrouper'
+import type { ShapeTransformer } from '../plugins/builtin/ShapeTransformer'
+import { shapeTransformsCapability } from '../plugins/builtin/shapeTransforms'
 import { snappingCapability } from '../plugins/builtin/snapping'
 import { spatialIndexCapability } from '../plugins/builtin/spatialIndex'
 import type { StyleController } from '../plugins/builtin/StyleController'
@@ -137,19 +141,12 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { Mat, MatLike } from '../primitives/Mat'
-import {
-	approximately,
-	areAnglesCompatible,
-	pointInPolygon,
-	shortAngleDist,
-} from '../primitives/utils'
+import { pointInPolygon } from '../primitives/utils'
 import { Vec, VecLike } from '../primitives/Vec'
 import { areShapesContentEqual } from '../utils/areShapesContentEqual'
 import { TLDeepLink, TLDeepLinkOptions } from '../utils/deepLinks'
-import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { TLTextOptions, TiptapEditor } from '../utils/richText'
-import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { ReadonlySharedStyleMap, SharedStyle } from '../utils/SharedStylesMap'
 import { AssetUtil } from './assets/AssetUtil'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
@@ -1100,6 +1097,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			_eventDispatcher: p.facade(eventDispatchCapability, (c) => c),
 			_arranger: p.facade(shapeArrangementCapability, (c) => c),
 			_grouper: p.facade(groupingCapability, (c) => c),
+			_transformer: p.facade(shapeTransformsCapability, (c) => c),
+			_pages: p.facade(pagesCapability, (c) => c),
 			_duplicator: p.facade(duplicationCapability, (c) => c),
 			_deepLinks: p.facade(deepLinksCapability, (c) => c),
 			_shapeAnimator: p.facade(shapeAnimationCapability, (c) => c),
@@ -1143,6 +1142,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	readonly _grouper!: ShapeGrouper
+
+	/** @internal */
+	readonly _transformer!: ShapeTransformer
+
+	/** @internal */
+	readonly _pages!: PageController
 
 	/** @internal */
 	readonly _duplicator!: ShapeDuplicator
@@ -3715,12 +3720,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
-		if (this.getIsReadonly()) return this
-
-		const prev = this.getPage(partial.id)
-		if (!prev) return this
-
-		return this.run(() => this.store.update(partial.id, (page) => ({ ...page, ...partial })))
+		this._pages.updatePage(partial)
+		return this
 	}
 
 	/**
@@ -3737,31 +3738,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createPage(page: Partial<TLPage>): this {
-		this.run(() => {
-			if (this.getIsReadonly()) return
-			if (this.getPages().length >= this.options.maxPages) return
-			const pages = this.getPages()
-
-			const name = getIncrementedName(
-				page.name ?? 'Page 1',
-				pages.map((p) => p.name)
-			)
-
-			let index = page.index
-
-			if (!index || pages.some((p) => p.index === index)) {
-				index = getIndexAbove(pages[pages.length - 1].index)
-			}
-
-			const newPage = PageRecordType.create({
-				meta: {},
-				...page,
-				name,
-				index,
-			})
-
-			this.store.put([newPage])
-		})
+		this._pages.createPage(page)
 		return this
 	}
 
@@ -3778,29 +3755,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deletePage(page: TLPageId | TLPage): this {
-		const id = typeof page === 'string' ? page : page.id
-		this.run(
-			() => {
-				if (this.getIsReadonly()) return
-				const pages = this.getPages()
-				if (pages.length === 1) return
-
-				const deletedPage = this.getPage(id)
-				if (!deletedPage) return
-
-				if (id === this.getCurrentPageId()) {
-					const index = pages.findIndex((page) => page.id === id)
-					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPage(next.id)
-				}
-
-				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
-				this.deleteShapes(shapes)
-
-				this.store.remove([deletedPage.id])
-			},
-			{ ignoreShapeLock: true }
-		)
+		this._pages.deletePage(page)
 		return this
 	}
 
@@ -3831,9 +3786,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	renamePage(page: TLPageId | TLPage, name: string) {
-		const id = typeof page === 'string' ? page : page.id
-		if (this.getIsReadonly()) return this
-		this.updatePage({ id, name })
+		this._pages.renamePage(page, name)
 		return this
 	}
 
@@ -5642,52 +5595,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		delta: number,
 		opts?: { center?: VecLike }
 	): this {
-		const ids = toShapeIds(shapes)
-
-		if (ids.length <= 0) return this
-
-		const snapshot = getRotationSnapshot({ editor: this, ids })
-		if (!snapshot) return this
-		applyRotationToSnapshotShapes({
-			delta,
-			snapshot,
-			editor: this,
-			stage: 'one-off',
-			centerOverride: opts?.center,
-		})
-
+		this._transformer.rotateShapesBy(shapes, delta, opts)
 		return this
 	}
 
 	// Gets a shape partial that includes life cycle changes: on translate start, on translate, on translate end
-	private getChangesToTranslateShape(initialShape: TLShape, newShapeCoords: VecLike): TLShape {
-		let workingShape = initialShape
-		const util = this.getShapeUtil(initialShape)
-
-		const afterTranslateStart = util.onTranslateStart?.(workingShape)
-		if (afterTranslateStart) {
-			workingShape = applyPartialToRecordWithProps(workingShape, afterTranslateStart)
-		}
-
-		workingShape = applyPartialToRecordWithProps(workingShape, {
-			id: initialShape.id,
-			type: initialShape.type,
-			x: newShapeCoords.x,
-			y: newShapeCoords.y,
-		})
-
-		const afterTranslate = util.onTranslate?.(initialShape, workingShape)
-		if (afterTranslate) {
-			workingShape = applyPartialToRecordWithProps(workingShape, afterTranslate)
-		}
-
-		const afterTranslateEnd = util.onTranslateEnd?.(initialShape, workingShape)
-		if (afterTranslateEnd) {
-			workingShape = applyPartialToRecordWithProps(workingShape, afterTranslateEnd)
-		}
-
-		return workingShape
-	}
 
 	// Counter-rotates the page-space delta into the parent's space; without that a child of a rotated
 	// frame or group would move along its parent's axes instead of the page's.
@@ -5695,8 +5607,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// on its own; the layout commands should skip shapes whose ancestors are also being laid out
 	/** @internal */
 	getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape {
-		const localDelta = Vec.From(pageDelta).rot(-this.getShapeParentTransform(shape).rotation())
-		return this.getChangesToTranslateShape(shape, localDelta.add(shape))
+		return this._transformer.getChangesToTranslateShapeByPageDelta(shape, pageDelta)
 	}
 
 	/**
@@ -5711,18 +5622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param offset - The offset to apply to the shapes.
 	 */
 	nudgeShapes(shapes: TLShapeId[] | TLShape[], offset: VecLike): this {
-		const ids = toShapeIds(shapes)
-
-		if (ids.length <= 0) return this
-		const changes: TLShapePartial[] = []
-
-		for (const id of ids) {
-			const shape = this.getShape(id)!
-			changes.push(this.getChangesToTranslateShapeByPageDelta(shape, offset))
-		}
-
-		this.updateShapes(changes)
-
+		this._transformer.nudgeShapes(shapes, offset)
 		return this
 	}
 
@@ -6058,8 +5958,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): this {
-		const partial = this.getResizeShapePartial(shape, scale, opts)
-		if (partial) this.updateShapes([partial])
+		this._transformer.resizeShape(shape, scale, opts)
 		return this
 	}
 
@@ -6079,302 +5978,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		scale: VecLike,
 		opts: TLResizeShapeOptions = {}
 	): TLShapePartial | null {
-		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getIsReadonly()) return null
-
-		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
-		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
-
-		const initialShape = opts.initialShape ?? this.getShape(id)
-		if (!initialShape) return null
-
-		const scaleOrigin = opts.scaleOrigin ?? this.getShapePageBounds(id)?.center
-		if (!scaleOrigin) return null
-
-		const pageTransform = opts.initialPageTransform
-			? Mat.Cast(opts.initialPageTransform)
-			: this.getShapePageTransform(id)
-
-		const pageRotation = pageTransform.rotation()
-
-		const scaleAxisRotation = opts.scaleAxisRotation ?? pageRotation
-
-		const initialBounds = opts.initialBounds ?? this.getShapeGeometry(id).bounds
-
-		if (!initialBounds) return null
-
-		const isAspectRatioLocked =
-			opts.isAspectRatioLocked ?? this.getShapeUtil(initialShape).isAspectRatioLocked(initialShape)
-
-		if (!areAnglesCompatible(pageRotation, scaleAxisRotation)) {
-			// shape is awkwardly rotated, keep the aspect ratio locked and adopt the scale factor
-			// from whichever axis is being scaled the least, to avoid the shape getting bigger
-			// than the bounds of the selection
-			// const minScale = Math.min(Math.abs(scale.x), Math.abs(scale.y))
-			this._resizeUnalignedShape(id, scale, {
-				...opts,
-				initialBounds,
-				scaleOrigin,
-				scaleAxisRotation,
-				initialPageTransform: pageTransform,
-				isAspectRatioLocked,
-				initialShape,
-			})
-			return null
-		}
-
-		const util = this.getShapeUtil(initialShape)
-
-		if (isAspectRatioLocked) {
-			if (Math.abs(scale.x) > Math.abs(scale.y)) {
-				scale = new Vec(scale.x, Math.sign(scale.y) * Math.abs(scale.x))
-			} else {
-				scale = new Vec(Math.sign(scale.x) * Math.abs(scale.y), scale.y)
-			}
-		}
-
-		let workingShape: TLShape | null = null
-
-		const initialPagePoint = Mat.applyToPoint(pageTransform, new Vec())
-
-		if (util.onResize && util.canResize(initialShape)) {
-			// get the model changes from the shape util
-			const newPagePoint = this._scalePagePoint(
-				initialPagePoint,
-				scaleOrigin,
-				scale,
-				scaleAxisRotation
-			)
-
-			const newLocalPoint = this.getPointInParentSpace(initialShape.id, newPagePoint)
-
-			// resize the shape's local bounding box
-			const myScale = new Vec(scale.x, scale.y)
-			// the shape is aligned with the rest of the shapes in the selection, but may be
-			// 90deg offset from the main rotation of the selection, in which case
-			// we need to flip the width and height scale factors
-			const areWidthAndHeightAlignedWithCorrectAxis = approximately(
-				(pageRotation - scaleAxisRotation) % Math.PI,
-				0
-			)
-			myScale.x = areWidthAndHeightAlignedWithCorrectAxis ? scale.x : scale.y
-			myScale.y = areWidthAndHeightAlignedWithCorrectAxis ? scale.y : scale.x
-
-			// need to adjust the shape's x and y points in case the parent has moved since start of
-			// resizing, e.g. groups
-			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
-
-			workingShape = initialShape
-			if (!opts.skipStartAndEndCallbacks) {
-				workingShape = applyPartialToRecordWithProps(
-					initialShape,
-					util.onResizeStart?.(initialShape) ?? undefined
-				)
-			}
-
-			const resizedShape = util.onResize(
-				{ ...initialShape, x, y },
-				{
-					newPoint: newLocalPoint,
-					handle: opts.dragHandle ?? 'bottom_right',
-					// don't set isSingle to true for children
-					mode: opts.mode ?? 'scale_shape',
-					scaleX: myScale.x,
-					scaleY: myScale.y,
-					initialBounds,
-					initialShape,
-				}
-			)
-
-			workingShape = applyPartialToRecordWithProps(workingShape, {
-				id,
-				type: initialShape.type as any,
-				x: newLocalPoint.x,
-				y: newLocalPoint.y,
-				...resizedShape,
-			})
-
-			if (!opts.skipStartAndEndCallbacks) {
-				workingShape = applyPartialToRecordWithProps(
-					workingShape,
-					util.onResizeEnd?.(initialShape, workingShape) ?? undefined
-				)
-			}
-
-			if (resizedShape) {
-				return workingShape
-			}
-		}
-
-		// the shape was not resized by its util, so reposition it (rather than resizing it)
-		// based on where its resized center would be
-
-		const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
-		// get the model changes from the shape util
-		const newPageCenter = this._scalePagePoint(
-			initialPageCenter,
-			scaleOrigin,
-			scale,
-			scaleAxisRotation
-		)
-
-		// A parent-space delta added to the shape's initial x/y would double-count the parent's own
-		// move during the same gesture — a repositioned group carries its children with it (#10617).
-		const repositionedPagePoint = Vec.Add(
-			newPageCenter,
-			Vec.Sub(initialPagePoint, initialPageCenter)
-		)
-		const repositionedLocalPoint = this.getPointInParentSpace(
-			initialShape.id,
-			repositionedPagePoint
-		)
-
-		if (workingShape) {
-			// the util's onResize ran but returned no change; keep the working update (which may
-			// include changes from onResizeStart / onResizeEnd) and reposition the shape
-			return {
-				...workingShape,
-				x: repositionedLocalPoint.x,
-				y: repositionedLocalPoint.y,
-			}
-		}
-
-		return {
-			id,
-			type: initialShape.type as any,
-			x: repositionedLocalPoint.x,
-			y: repositionedLocalPoint.y,
-		}
-	}
-
-	/** @internal */
-	private _scalePagePoint(
-		point: VecLike,
-		scaleOrigin: VecLike,
-		scale: VecLike,
-		scaleAxisRotation: number
-	) {
-		const relativePoint = Vec.RotWith(point, scaleOrigin, -scaleAxisRotation).sub(scaleOrigin)
-
-		// calculate the new point position relative to the scale origin
-		const newRelativePagePoint = Vec.MulV(relativePoint, scale)
-
-		// and rotate it back to page coords to get the new page point of the resized shape
-		const destination = Vec.Add(newRelativePagePoint, scaleOrigin).rotWith(
-			scaleOrigin,
-			scaleAxisRotation
-		)
-
-		return destination
-	}
-
-	/** @internal */
-	private _resizeUnalignedShape(
-		id: TLShapeId,
-		scale: VecLike,
-		options: {
-			initialBounds: Box
-			scaleOrigin: VecLike
-			scaleAxisRotation: number
-			initialShape: TLShape
-			isAspectRatioLocked: boolean
-			initialPageTransform: MatLike
-			dragHandle?: TLResizeHandle
-			mode?: TLResizeMode
-			skipStartAndEndCallbacks?: boolean
-		}
-	) {
-		const { type } = options.initialShape
-		// If a shape is not aligned with the scale axis we need to treat it differently to avoid skewing.
-		// Instead of skewing we normalize the scale aspect ratio (i.e. keep the same scale magnitude in both axes)
-		// and then after applying the scale to the shape we also rotate it if required and translate it so that it's center
-		// point ends up in the right place.
-
-		const shapeScale = new Vec(scale.x, scale.y)
-
-		// // make sure we are constraining aspect ratio, and using the smallest scale axis to avoid shapes getting bigger
-		// // than the selection bounding box
-		if (Math.abs(scale.x) > Math.abs(scale.y)) {
-			shapeScale.x = Math.sign(scale.x) * Math.abs(scale.y)
-		} else {
-			shapeScale.y = Math.sign(scale.y) * Math.abs(scale.x)
-		}
-
-		// first we can scale the shape about its center point
-		this.resizeShape(id, shapeScale, {
-			initialShape: options.initialShape,
-			initialBounds: options.initialBounds,
-			isAspectRatioLocked: options.isAspectRatioLocked,
-			initialPageTransform: options.initialPageTransform,
-			dragHandle: options.dragHandle,
-			mode: options.mode,
-			// this is one frame of the same resize, not a new one, so don't fire start/end again
-			skipStartAndEndCallbacks: options.skipStartAndEndCallbacks,
-		})
-
-		// then if the shape is flipped in one axis only, we need to apply an extra rotation
-		// to make sure the shape is mirrored correctly
-		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
-			// Mirroring across an axis at angle `axisRot` maps a page rotation `pageRot` to
-			// `2 * axisRot - pageRot`. For a shape with local rotation `localRot` whose parent had
-			// page rotation `parentRot` when the resize began:
-			// - pageRot = parentRot + localRot
-			// - newPageRot = 2 * axisRot - pageRot
-			// - newPageRot = (parentRot + parentDelta) + newLocalRot
-			// - Therefore: newLocalRot = 2 * axisRot - localRot - 2 * parentRot - parentDelta
-			// `parentDelta` is how far the parent has rotated since the resize began. Nested resizes
-			// commit ancestors before descendants, so an unaligned parent may itself have been
-			// flipped by the time its child gets here; reading the parent's current rotation as if
-			// it were the initial one would then double-count that flip.
-			const parentRotation = this.getShapeParentTransform(id).rotation()
-			// take the shortest arc so the stored rotation doesn't drift by 2π when the parent
-			// hasn't moved and the initial page rotation happens to be wrapped
-			const parentDelta = shortAngleDist(
-				Mat.Cast(options.initialPageTransform).rotation() - options.initialShape.rotation,
-				parentRotation
-			)
-			const initialParentRotation = parentRotation - parentDelta
-			const rotation =
-				2 * options.scaleAxisRotation -
-				options.initialShape.rotation -
-				2 * initialParentRotation -
-				parentDelta
-			this.updateShapes([{ id, type, rotation }])
-		}
-
-		// Next we need to translate the shape so that it's center point ends up in the right place.
-		// To do that we first need to calculate the center point of the shape in the current page space before the scale was applied.
-		const preScaleShapePageCenter = Mat.applyToPoint(
-			options.initialPageTransform,
-			options.initialBounds.center
-		)
-
-		// And now we scale the center point by the original scale factor
-		const postScaleShapePageCenter = this._scalePagePoint(
-			preScaleShapePageCenter,
-			options.scaleOrigin,
-			scale,
-			options.scaleAxisRotation
-		)
-
-		// now calculate how far away the shape is from where it needs to be
-		const pageTransform = this.getShapePageTransform(id)
-		// We need to use the local bounds center transformed to page space, not the axis-aligned
-		// page bounds center. This is because the page bounds are axis-aligned and their center
-		// changes when the rotation changes, but we want to use the same reference point as
-		// preScaleShapePageCenter (which used initialBounds.center transformed by the page transform).
-		const currentLocalBounds = this.getShapeGeometry(id).bounds
-		const currentPageCenter = Mat.applyToPoint(pageTransform, currentLocalBounds.center)
-		const shapePageTransformOrigin = pageTransform.point()
-		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
-
-		// and finally figure out what the shape's new position should be
-		const postScaleShapePagePoint = Vec.Add(shapePageTransformOrigin, pageDelta)
-		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
-
-		this.updateShapes([{ id, type, x, y }])
-
-		return this
+		return this._transformer.getResizeShapePartial(shape, scale, opts)
 	}
 
 	/**

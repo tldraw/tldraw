@@ -12,11 +12,13 @@ import { externalContentPlugin } from './builtin/externalContent'
 import { groupingPlugin } from './builtin/grouping'
 import { inputsPlugin } from './builtin/inputs'
 import { overlaysPlugin } from './builtin/overlays'
+import { pagesPlugin } from './builtin/pages'
 import { performancePlugin } from './builtin/performance'
 import { scribblesPlugin } from './builtin/scribbles'
 import { selectionPlugin } from './builtin/selection'
 import { shapeAnimationPlugin } from './builtin/shapeAnimation'
 import { shapeArrangementPlugin } from './builtin/shapeArrangement'
+import { shapeTransformsPlugin } from './builtin/shapeTransforms'
 import { snappingPlugin } from './builtin/snappingPlugin'
 import { spatialIndexPlugin } from './builtin/spatialIndex'
 import { stylesPlugin } from './builtin/styles'
@@ -53,6 +55,8 @@ export function createCorePlugins(): TLPlugin[] {
 		spatialIndexPlugin,
 		snappingPlugin,
 		shapeArrangementPlugin,
+		shapeTransformsPlugin,
+		pagesPlugin,
 		groupingPlugin,
 		duplicationPlugin,
 		deepLinksPlugin,

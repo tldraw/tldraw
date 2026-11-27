@@ -1729,6 +1729,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly options: TldrawOptions;
     readonly overlays: OverlayManager;
     packShapes(shapes: TLShape[] | TLShapeId[], _gap?: number): this;
+    // @internal (undocumented)
+    readonly _pages: PageController;
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     readonly performance: PerformanceManager;
@@ -1867,6 +1869,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         url: string;
         width: number;
     }>;
+    // @internal (undocumented)
+    readonly _transformer: ShapeTransformer;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
@@ -2873,6 +2877,29 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 }
 
 // @public
+export class PageController {
+    constructor(editor: Editor);
+    // (undocumented)
+    createPage(page: Partial<TLPage>): void;
+    // (undocumented)
+    deletePage(page: TLPage | TLPageId): void;
+    // (undocumented)
+    renamePage(page: TLPage | TLPageId, name: string): void;
+    // (undocumented)
+    updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): void;
+}
+
+// @public (undocumented)
+export const pagesCapability: TLCapability<PageController>;
+
+// @public
+export const pagesPlugin: {
+    readonly id: "pages";
+    readonly provides: readonly [TLCapability<PageController>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
+
+// @public
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
 // @public (undocumented)
@@ -3294,6 +3321,33 @@ export class ShapeGrouper {
         select: boolean;
     }>): void;
 }
+
+// @public
+export class ShapeTransformer {
+    constructor(editor: Editor);
+    // @internal (undocumented)
+    getChangesToTranslateShapeByPageDelta(shape: TLShape, pageDelta: VecLike): TLShape;
+    // @internal (undocumented)
+    getResizeShapePartial(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): null | TLShapePartial;
+    // (undocumented)
+    nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): void;
+    // (undocumented)
+    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): void;
+    // (undocumented)
+    rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number, opts?: {
+        center?: VecLike;
+    }): void;
+}
+
+// @public (undocumented)
+export const shapeTransformsCapability: TLCapability<ShapeTransformer>;
+
+// @public
+export const shapeTransformsPlugin: {
+    readonly id: "shapeTransforms";
+    readonly provides: readonly [TLCapability<ShapeTransformer>];
+    readonly setup: (ctx: TLPluginContext) => void;
+};
 
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLShape = TLShape> {

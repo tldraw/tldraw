@@ -39,6 +39,8 @@ The old members are facades over the plugins. They stay plain fields. When no pl
 | the camera and viewport (`getCamera`, `setCamera`, `zoomIn`, `screenToPage`, `startFollowingUser` and the others)   | `cameraCapability`, from `cameraPlugin`                                                                                |
 | `dispatch` and the event pipeline (panning, pinch, wheel, modifier keys, long press)                                | `eventDispatchCapability`, from `eventDispatchPlugin`                                                                  |
 | `flipShapes`, `stackShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `stretchShapes`, `resizeToBounds`     | `shapeArrangementCapability`, from `shapeArrangementPlugin`                                                            |
+| `resizeShape`, `rotateShapesBy`, `nudgeShapes`                                                                      | `shapeTransformsCapability`, from `shapeTransformsPlugin`                                                              |
+| `createPage`, `updatePage`, `renamePage`, `deletePage`                                                              | `pagesCapability`, from `pagesPlugin`                                                                                  |
 | `groupShapes`, `ungroupShapes`                                                                                      | `groupingCapability`, from `groupingPlugin`                                                                            |
 | `duplicateShapes`, `duplicatePage`                                                                                  | `duplicationCapability`, from `duplicationPlugin`                                                                      |
 | `createDeepLink`, `navigateToDeepLink`, `registerDeepLinkListener`                                                  | `deepLinksCapability`, from `deepLinksPlugin`                                                                          |
@@ -81,7 +83,7 @@ In `tldraw`, each default shape is split this way. For example, `HighlightShapeU
 
 1. Replace `setDefaultEditorPlugins`, for example with an `Editor` subclass in `@tldraw/editor` that defaults to `createDefaultPlugins()`.
 2. Let the `tldraw` shape utils import `@tldraw/core` instead of `@tldraw/editor`, so that a headless app can use them without React.
-3. Lift more of the editor the same way, for example the page operations.
+3. Lift more of the editor the same way.
 
 ## Shapes and tools in `tldraw`
 
@@ -121,6 +123,8 @@ The shape utils still import React for their components, so the shape plugins ar
 | External content (paste, drop, embeds)                          | core plugin                                                | `externalContentPlugin`             |
 | Shared styles and style setters                                 | core plugin                                                | `stylesPlugin`                      |
 | Copy and paste content (duplicate page and move to page use it) | core plugin                                                | `contentTransferPlugin`             |
+| Resizing, rotating and nudging shapes                           | core plugin                                                | `shapeTransformsPlugin`             |
+| Creating, renaming and deleting pages                           | core plugin                                                | `pagesPlugin`                       |
 | Grouping and ungrouping                                         | core plugin                                                | `groupingPlugin`                    |
 | Duplicating shapes and pages                                    | core plugin                                                | `duplicationPlugin`                 |
 | Deep links                                                      | core plugin                                                | `deepLinksPlugin`                   |

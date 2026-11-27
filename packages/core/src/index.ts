@@ -57,6 +57,13 @@ export {
 	shapeArrangementPlugin,
 } from './lib/plugins/builtin/shapeArrangement'
 export { ShapeGrouper } from './lib/plugins/builtin/ShapeGrouper'
+export { ShapeTransformer } from './lib/plugins/builtin/ShapeTransformer'
+export {
+	shapeTransformsCapability,
+	shapeTransformsPlugin,
+} from './lib/plugins/builtin/shapeTransforms'
+export { PageController } from './lib/plugins/builtin/PageController'
+export { pagesCapability, pagesPlugin } from './lib/plugins/builtin/pages'
 export { groupingCapability, groupingPlugin } from './lib/plugins/builtin/grouping'
 export { ShapeDuplicator } from './lib/plugins/builtin/ShapeDuplicator'
 export { duplicationCapability, duplicationPlugin } from './lib/plugins/builtin/duplication'
