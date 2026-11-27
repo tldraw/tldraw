@@ -57,6 +57,7 @@ import {
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
+import { MCP_IMAGE_UPLOAD_ROUTE, uploadMcpImage } from './routes/tla/mcpImages'
 import { mcpServer } from './routes/tla/mcpServer'
 import {
 	MCP_SERVER_CARD_PATH,
@@ -201,6 +202,7 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.put(MCP_IMAGE_UPLOAD_ROUTE, uploadMcpImage)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
