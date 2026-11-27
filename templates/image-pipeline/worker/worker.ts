@@ -30,7 +30,6 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 	// Upload/download generated images to/from R2 bucket
 	.post('/api/images/:imageId', handleImageUpload)
 	.get('/api/images/:imageId', handleImageDownload)
-
 	.all('*', () => new Response('Not found', { status: 404 }))
 
 export default {
