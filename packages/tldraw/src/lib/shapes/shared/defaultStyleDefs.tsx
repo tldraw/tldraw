@@ -212,6 +212,12 @@ function usePattern() {
 		},
 		[editor]
 	)
+	const lightSolid = useValue('lightSolid', () => editor.getCurrentTheme().colors.light.solid, [
+		editor,
+	])
+	const darkSolid = useValue('darkSolid', () => editor.getCurrentTheme().colors.dark.solid, [
+		editor,
+	])
 	const [isReady, setIsReady] = useState(false)
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
 		getDefaultPatterns(maxEffectiveZoom)
@@ -223,10 +229,6 @@ function usePattern() {
 			setIsReady(true)
 			return
 		}
-
-		const definition = editor.getCurrentTheme()
-		const lightSolid = definition.colors.light.solid
-		const darkSolid = definition.colors.dark.solid
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxEffectiveZoom).flatMap<Promise<PatternDef>>((zoom) => [
@@ -258,7 +260,7 @@ function usePattern() {
 				}
 			})
 		}
-	}, [dpr, maxEffectiveZoom, editor])
+	}, [dpr, maxEffectiveZoom, lightSolid, darkSolid])
 
 	const defs = (
 		<>
