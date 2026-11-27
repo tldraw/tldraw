@@ -1,16 +1,20 @@
 import {
 	AtomMap,
 	MigrationFailureReason,
+	RecordsDiff,
 	RecordType,
+	isRecordsDiffEmpty,
 	SerializedSchema,
 	StoreSchema,
 	UnknownRecord,
 } from '@tldraw/store'
+import { TLCheckDiff, TLCheckRejection, TLCheckResult } from '@tldraw/tlschema'
 import {
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
 	getOwnProperty,
+	hasOwnProperty,
 	isEqual,
 	isNativeStructuredClone,
 	objectMapEntriesIterable,
@@ -353,6 +357,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	private readonly checkDiff?: TLCheckDiff<R>
 	private readonly sessionIdleTimeout: number
 
 	/**
@@ -379,6 +384,28 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
+	// Fails closed, like `authorizerFor`: a check that throws rejects the push.
+	private runCheckDiff(
+		session: RoomSession<R, SessionMeta>,
+		diff: RecordsDiff<R>,
+		get: (id: string) => R | undefined
+	): TLCheckRejection | null {
+		let result: TLCheckResult
+		try {
+			result = this.checkDiff!(diff, { sessionId: session.sessionId, userId: session.userId, get })
+		} catch (e) {
+			this.log?.error?.('checkDiff threw; rejecting the push', e)
+			return { reason: 'error' }
+		}
+		if (result === undefined || result === null || result === true) {
+			return null
+		}
+		if (result === false) {
+			return { reason: 'rejected' }
+		}
+		return result
+	}
+
 	constructor(opts: {
 		log?: TLSyncLog
 		schema: StoreSchema<R, any>
@@ -401,6 +428,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+		/** The diff check that each client push must pass. See {@link TLSocketRoomOptions.checkDiff}. */
+		checkDiff?: TLCheckDiff<R>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -409,6 +438,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.authorizeRecord = opts.authorizeRecord
+		this.checkDiff = opts.checkDiff
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -627,6 +657,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			socket: session.socket,
 			cancellationTime: Date.now(),
 			meta: session.meta,
+			userId: session.userId,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
 			requiresLegacyRejection: session.requiresLegacyRejection,
@@ -742,10 +773,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		sessionId: string
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
+		userId?: string | null
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
 	}) {
-		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
+		const { sessionId, socket, meta, userId = null, isReadonly, objectAccess } = opts
 		// a connect racing close() would otherwise create a session nothing ever prunes
 		if (this._isClosed) {
 			socket.close()
@@ -760,6 +792,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			presenceId: existing?.presenceId ?? this.presenceType?.createId() ?? null,
 			sessionStartTime: Date.now(),
 			meta,
+			userId,
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
 			// this gets set later during handleConnectMessage
@@ -780,6 +813,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		sessionId: string
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
+		userId?: string | null
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
 		serializedSchema: SerializedSchema
@@ -792,6 +826,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			sessionId,
 			socket,
 			meta,
+			userId = null,
 			isReadonly,
 			objectAccess,
 			serializedSchema,
@@ -820,6 +855,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			debounceTimer: null,
 			outstandingDataMessages: [],
 			meta,
+			userId,
 			isReadonly,
 			objectAccess: objectAccess ?? 'write',
 			requiresLegacyRejection,
@@ -1159,6 +1195,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				outstandingDataMessages: [],
 				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
+				userId: session.userId,
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
 				requiresLegacyRejection: session.requiresLegacyRejection,
@@ -1269,23 +1306,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		// One change of a push, worked out in full (migrated, authorized, validated) but not yet
-		// written. A push stages all of its document changes before it writes the first one, so
-		// there is a point where the whole push is known and storage is still untouched.
-		type StagedChange =
-			| { type: 'create'; id: string; prev: null; next: R }
-			| { type: 'update'; id: string; prev: R; next: R; diff: ObjectDiff }
-			| { type: 'delete'; id: string; prev: R; next: null }
+		// A push stages all of its document changes, worked out in full (migrated, authorized,
+		// validated), before it writes the first one. So there is a point where the whole push is
+		// known as a diff and storage is still untouched. `patches` keeps the patch op of each
+		// update, so that it is not computed again when the update is written.
+		interface Staged {
+			diff: RecordsDiff<R>
+			patches: Map<string, ObjectDiff>
+		}
+		const createStaged = (): Staged => ({
+			diff: { added: {}, updated: {}, removed: {} } as RecordsDiff<R>,
+			patches: new Map(),
+		})
 
 		const stagePut = (
 			storage: MinimalDocStore<R>,
+			staged: Staged,
 			id: string,
 			_state: R,
 			authorize?: (prev: R | null, next: R) => R | null,
 			// The existing document if the caller already fetched it; `null` for fetched-and-absent,
 			// `undefined` for not fetched. Saves a second SELECT + JSON.parse on the push hot path.
 			prevDoc?: R | null
-		): StagedChange | null => {
+		): void => {
 			const res = session
 				? this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
 				: { type: 'success' as const, value: _state }
@@ -1301,7 +1344,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// so no later migration can clobber stamped fields.
 			if (authorize) {
 				const result = authorize(doc ?? null, state)
-				if (!result) return null // vetoed: skip the op, the client self-corrects
+				if (!result) return // vetoed: skip the op, the client self-corrects
 				if (!doc) state = result // create: store the authorizer's (stamped) record
 			}
 
@@ -1310,26 +1353,31 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// but propagate a diff rather than the entire value
 				const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
 				const diff = diffAndValidateRecord(doc, state, recordType, legacyAppendMode)
-				return diff ? { type: 'update', id, prev: doc, next: state, diff } : null
+				if (diff) {
+					staged.diff.updated[id as R['id']] = [doc, state]
+					staged.patches.set(id, diff)
+				}
+				return
 			}
 			// Otherwise, if we don't already have a document with this id
 			// create the document and propagate the put op
 			const recordType = assertExists(getOwnProperty(this.schema.types, state.typeName))
 			validateRecord(state, recordType)
-			return { type: 'create', id, prev: null, next: state }
+			staged.diff.added[id as R['id']] = state
 		}
 
 		const stagePatch = (
 			storage: MinimalDocStore<R>,
+			staged: Staged,
 			id: string,
 			patch: ObjectDiff,
 			authorize?: (prev: R, next: R) => R | null,
 			// The existing document if the caller already fetched it (see `stagePut`).
 			prevDoc?: R
-		): StagedChange | null => {
+		): void => {
 			// if it was already deleted, there's no need to apply the patch
 			const doc = prevDoc ?? (storage.get(id) as R | undefined)
-			if (!doc) return null
+			if (!doc) return
 
 			const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
 			// If the client's version of the record is older than ours,
@@ -1344,10 +1392,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (downgraded.value === doc) {
 				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
-				if (!diff) return null
+				if (!diff) return
 				// Authorize on the committed candidate — the record that will actually be stored.
-				if (authorize && !authorize(doc, diff[1])) return null
-				return { type: 'update', id, prev: doc, next: diff[1], diff: diff[0] }
+				if (authorize && !authorize(doc, diff[1])) return
+				staged.diff.updated[id as R['id']] = [doc, diff[1]]
+				staged.patches.set(id, diff[0])
+				return
 			}
 			// need to apply the patch to the downgraded version and then upgrade it
 
@@ -1363,40 +1413,37 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			// replace the state with the upgraded version and propagate the patch op
 			const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
-			if (!diff) return null
+			if (!diff) return
 			// Authorize on the committed candidate — the upgraded record, not a raw preview.
-			if (authorize && !authorize(doc, upgraded.value)) return null
-			return { type: 'update', id, prev: doc, next: upgraded.value, diff }
+			if (authorize && !authorize(doc, upgraded.value)) return
+			staged.diff.updated[id as R['id']] = [doc, upgraded.value]
+			staged.patches.set(id, diff)
 		}
 
-		const applyChange = (
+		// Writes in the order of `ids`, which is the order of the push.
+		const applyStaged = (
 			storage: MinimalDocStore<R>,
 			changes: ActualChanges,
-			change: StagedChange
+			staged: Staged,
+			ids: Iterable<string>
 		) => {
-			switch (change.type) {
-				case 'create':
+			const { added, updated, removed } = staged.diff
+			for (const _id of ids) {
+				const id = _id as R['id']
+				// Ids come from the push, so a lookup must not reach Object.prototype (e.g. "constructor").
+				if (hasOwnProperty(added, id)) {
 					// set automatically clears tombstones if they exist
-					storage.set(change.id, change.next)
-					propagateOp(changes, change.id, [RecordOpType.Put, change.next], undefined, undefined)
-					break
-				case 'update':
-					storage.set(change.id, change.next)
-					propagateOp(
-						changes,
-						change.id,
-						[RecordOpType.Patch, change.diff],
-						change.prev,
-						change.next
-					)
-					break
-				case 'delete':
+					storage.set(id, added[id])
+					propagateOp(changes, id, [RecordOpType.Put, added[id]], undefined, undefined)
+				} else if (hasOwnProperty(updated, id)) {
+					const [from, to] = updated[id]
+					storage.set(id, to)
+					propagateOp(changes, id, [RecordOpType.Patch, staged.patches.get(id)!], from, to)
+				} else if (hasOwnProperty(removed, id)) {
 					// delete automatically creates tombstones
-					storage.delete(change.id)
-					propagateOp(changes, change.id, [RecordOpType.Remove], change.prev, undefined)
-					break
-				default:
-					exhaustiveSwitchError(change)
+					storage.delete(id)
+					propagateOp(changes, id, [RecordOpType.Remove], removed[id], undefined)
+				}
 			}
 		}
 
@@ -1408,6 +1455,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				const docChanges: ActualChanges = { diffs: null }
 				const presenceChanges: ActualChanges = { diffs: null }
+				let rejection: TLCheckRejection | null = null
 
 				if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
 					if (!session) throw new Error('session is required for presence pushes')
@@ -1418,18 +1466,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					switch (type) {
 						case RecordOpType.Put: {
 							// Try to put the document. If it fails, stop here.
-							const change = stagePut(this.presenceStore, id, { ...val, id, typeName })
-							if (change) applyChange(this.presenceStore, presenceChanges, change)
+							const staged = createStaged()
+							stagePut(this.presenceStore, staged, id, { ...val, id, typeName })
+							applyStaged(this.presenceStore, presenceChanges, staged, [id])
 							break
 						}
 						case RecordOpType.Patch: {
 							// Try to patch the document. If it fails, stop here.
-							const change = stagePatch(this.presenceStore, id, {
+							const staged = createStaged()
+							stagePatch(this.presenceStore, staged, id, {
 								...val,
 								id: [ValueOpType.Put, id],
 								typeName: [ValueOpType.Put, typeName],
 							})
-							if (change) applyChange(this.presenceStore, presenceChanges, change)
+							applyStaged(this.presenceStore, presenceChanges, staged, [id])
 							break
 						}
 					}
@@ -1449,7 +1499,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (message.diff) {
 					// The push request was for the document scope.
-					const staged: StagedChange[] = []
+					const staged = createStaged()
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
 						switch (op[0]) {
 							case RecordOpType.Put: {
@@ -1517,8 +1567,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									}
 								}
 								// The guard above already fetched this, so don't hit storage again.
-								const change = stagePut(txn, id, record, authorize, prevRecord)
-								if (change) staged.push(change)
+								stagePut(txn, staged, id, record, authorize, prevRecord)
 								break
 							}
 							case RecordOpType.Patch: {
@@ -1551,8 +1600,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
 								// already fetched the record, so pass it through.
-								const change = stagePatch(txn, id, op[1], authorize, doc)
-								if (change) staged.push(change)
+								stagePatch(txn, staged, id, op[1], authorize, doc)
 								break
 							}
 							case RecordOpType.Remove: {
@@ -1579,16 +1627,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									continue
 								}
 
-								staged.push({ type: 'delete', id, prev: doc, next: null })
+								staged.diff.removed[id as R['id']] = doc
 								break
 							}
 						}
 					}
 					// the whole push is staged and nothing has been written
-					for (let i = 0; i < staged.length; i++) applyChange(txn, docChanges, staged[i])
+					if (session && this.checkDiff && !isRecordsDiffEmpty(staged.diff)) {
+						rejection = this.runCheckDiff(
+							session,
+							staged.diff,
+							(id) => txn.get(id) as R | undefined
+						)
+					}
+					if (!rejection) {
+						applyStaged(txn, docChanges, staged, Object.keys(message.diff))
+					}
 				}
 
-				return { docChanges, presenceChanges }
+				return { docChanges, presenceChanges, rejection }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
 		)
@@ -1617,6 +1674,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'discard',
+				...(result.rejection ? { rejection: result.rejection } : {}),
 			}
 		} else if (session) {
 			// if recordsDiff is null but diff is not, then there are no clients that need down migrations

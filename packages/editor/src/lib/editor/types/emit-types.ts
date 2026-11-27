@@ -26,6 +26,7 @@ export interface TLEventMap {
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
 	dispose: []
+	rejected: [{ reason: string; source: 'local' | 'server' }]
 }
 
 /** @public */

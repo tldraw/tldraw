@@ -106,12 +106,22 @@ describe('onBeforeCommit [H15]', () => {
 			[{ added: { [b.id]: b } }],
 		],
 		[
-			'nothing for remote changes, but what side effects write in response',
+			'nothing for remote changes or what side effects write in response',
 			() => {
 				createCWithB()
 				store.mergeRemoteChanges(() => store.put([b]))
 			},
-			[{ added: { [c.id]: c } }],
+			[],
+		],
+		[
+			'user changes made after a remote merge in the same transaction',
+			() =>
+				transact(() => {
+					createCWithB()
+					store.mergeRemoteChanges(() => store.update(a.id, (r) => ({ ...r, title: 'remote' })))
+					store.put([b])
+				}),
+			[{ added: { [b.id]: b, [c.id]: c } }],
 		],
 		[
 			'nothing when the changes cancel out',

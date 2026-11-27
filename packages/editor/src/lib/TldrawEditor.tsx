@@ -1,5 +1,6 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
+	TLCheckDiff,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -416,7 +417,13 @@ function TldrawEditorWithOwnStore(
 		users,
 		migrations,
 		themes,
+		checkDiff,
 	} = props
+
+	// a new identity would make a new store, so the store gets one that never changes
+	const stableCheckDiff: TLCheckDiff = useEvent((...args: Parameters<TLCheckDiff>) =>
+		checkDiff!(...args)
+	)
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
@@ -431,6 +438,7 @@ function TldrawEditorWithOwnStore(
 		users,
 		migrations,
 		themes,
+		checkDiff: checkDiff ? stableCheckDiff : undefined,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />

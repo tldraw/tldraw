@@ -27,12 +27,13 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 
 	connect(
 		socketPair: TestSocketPair<R>,
-		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
+		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess; userId?: string }
 	): void {
 		this.room.handleNewSession({
 			sessionId: socketPair.id,
 			socket: socketPair.roomSocket,
 			meta: undefined,
+			userId: opts?.userId,
 			isReadonly: opts?.isReadonly ?? false,
 			objectAccess: opts?.objectAccess,
 		})
