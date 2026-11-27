@@ -106,6 +106,17 @@ describe('isActionRunnable', () => {
 		expect(isActionRunnable(editor, action({ readonlyOk: true }))).toBe(true)
 	})
 
+	it('blocks while a capability is rejected', () => {
+		editor.registerCapabilityCheck('delete-shapes', () => false)
+		const edit = (e: Editor) => e.checkCapability('edit-shapes')
+		const editAndDelete = (e: Editor) => edit(e) ?? e.checkCapability('delete-shapes')
+		expect(isActionRunnable(editor, action({ checkCapabilities: edit }))).toBe(true)
+		expect(isActionRunnable(editor, action({ checkCapabilities: editAndDelete }))).toBe(false)
+		expect(
+			isActionRunnable(editor, action({ checkCapabilities: () => null, readonlyOk: true }))
+		).toBe(true)
+	})
+
 	it.each(['isAvailable', 'isEnabled'] as const)(
 		'blocks and reports once when %s throws',
 		(predicate) => {
@@ -184,6 +195,32 @@ describe('every action gates itself', () => {
 			await actions()['open-kbd-shortcuts'].onSelect('kbd')
 		})
 		expect(onUiEvent).toHaveBeenCalledWith('open-kbd-shortcuts', { source: 'kbd' })
+	})
+
+	// Without this, a new action that writes would skip the capability checks
+	it('asks capabilities on every default action that is not readonlyOk', async () => {
+		const { actions } = await setup()
+		const undeclared = Object.values(actions())
+			.filter((action) => action.id !== 'custom' && !action.readonlyOk && !action.checkCapabilities)
+			.map((action) => action.id)
+		expect(undeclared).toEqual([])
+	})
+
+	it('keeps the capability check when an override replaces an action', async () => {
+		const { editor, actions, onUiEvent } = await setup(
+			withCustom((_editor, actions) => {
+				actions['delete'] = { ...actions['delete'], onSelect: customOnSelect }
+				return actions
+			})
+		)
+		act(() => {
+			editor.registerCapabilityCheck('delete-shapes', () => false)
+		})
+		const w = watch(editor, onUiEvent)
+		await act(async () => {
+			await actions()['delete'].onSelect('kbd')
+		})
+		w.expectNothingRan('delete')
 	})
 
 	it('blocks every action an override disables', async () => {

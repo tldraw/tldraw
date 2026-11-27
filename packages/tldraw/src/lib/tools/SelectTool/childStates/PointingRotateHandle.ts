@@ -44,7 +44,8 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	private startRotating() {
-		if (this.editor.getIsReadonly()) return
+		if (this.editor.checkCapability('edit-shapes', { shapes: this.editor.getSelectedShapes() }))
+			return
 		this.parent.transition('rotating', this.info)
 	}
 

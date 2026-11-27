@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLCreateShapePartial, TLPointerEventInfo } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -6,6 +6,10 @@ export class Idle extends StateNode {
 	override onPointerDown(info: TLPointerEventInfo) {
 		if (info.accelKey && !info.shiftKey) {
 			this.editor.setCurrentTool('eraser.pointing', { ...info, onInteractionEnd: this.parent.id })
+			return
+		}
+		const shapes = [{ type: this.parent.shapeType }] as TLCreateShapePartial[]
+		if (this.editor.checkCapability('create-shapes', { shapes })) {
 			return
 		}
 

@@ -95,6 +95,7 @@ import { TLAssetStore } from '@tldraw/editor';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
+import { TLCheckRejection } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLClipboardWriteInfo } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
@@ -4720,6 +4721,7 @@ export interface TLUiA11yContextType {
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checkbox?: boolean;
+    checkCapabilities?(editor: Editor): null | TLCheckRejection;
     commandPalette?: {
         group?: string;
     } | boolean;
@@ -5970,6 +5972,7 @@ export interface TLUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLB
 
 // @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
+    checkCapabilities?(editor: Editor): null | TLCheckRejection;
     // (undocumented)
     icon: IconType | TLUiIconJsx;
     // (undocumented)

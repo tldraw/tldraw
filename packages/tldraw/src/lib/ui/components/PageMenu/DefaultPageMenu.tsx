@@ -123,6 +123,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
 
 	const isReadonlyMode = useReadonly()
+	const cannotCreatePage = useValue(
+		'cannot create page',
+		() => editor.checkCapability('create-page'),
+		[editor]
+	)
 
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
@@ -376,31 +381,36 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		editor.timers.requestAnimationFrame(tickAutoScrollDuringDrag)
 	}, [editor, tickAutoScrollDuringDrag])
 
-	const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-		if (e.button !== 0) return
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent<HTMLButtonElement>) => {
+			if (e.button !== 0) return
 
-		const { clientY, currentTarget } = e
-		const { id, index } = currentTarget.dataset
-		if (!id || index === undefined) return
+			const { clientY, currentTarget } = e
+			const { id, index } = currentTarget.dataset
+			if (!id || index === undefined) return
+			const page = editor.getPage(id as TLPageId)
+			if (!page || editor.checkCapability('edit-page', { page })) return
 
-		const startedOnDragHandle = currentTarget.dataset.dragHandle === 'true'
-		if (startedOnDragHandle) {
-			e.preventDefault()
-			e.stopPropagation()
-		}
+			const startedOnDragHandle = currentTarget.dataset.dragHandle === 'true'
+			if (startedOnDragHandle) {
+				e.preventDefault()
+				e.stopPropagation()
+			}
 
-		const mut = rMutables.current
-		setPointerCapture(currentTarget, e)
-		mut.justDragged = false
-		mut.status = 'pointing'
-		mut.id = id as TLPageId
-		mut.startIndex = +index
-		mut.dragIndex = +index
-		mut.startY = clientY
-		mut.lastClientY = clientY
-		mut.startScrollTop = rSortableContainer.current?.scrollTop ?? 0
-		mut.startedOnDragHandle = startedOnDragHandle
-	}, [])
+			const mut = rMutables.current
+			setPointerCapture(currentTarget, e)
+			mut.justDragged = false
+			mut.status = 'pointing'
+			mut.id = id as TLPageId
+			mut.startIndex = +index
+			mut.dragIndex = +index
+			mut.startY = clientY
+			mut.lastClientY = clientY
+			mut.startScrollTop = rSortableContainer.current?.scrollTop ?? 0
+			mut.startedOnDragHandle = startedOnDragHandle
+		},
+		[editor]
+	)
 
 	const handlePointerMove = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
@@ -506,7 +516,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
-			if (isReadonlyMode) return
+			const page = editor.getPage(id)
+			if (!page || editor.checkCapability('edit-page', { page })) return
 			if (shouldUseWindowPrompt) {
 				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
@@ -517,11 +528,11 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			}
 			setEditingPageId(id)
 		},
-		[editor, msg, isReadonlyMode, shouldUseWindowPrompt, trackEvent]
+		[editor, msg, shouldUseWindowPrompt, trackEvent]
 	)
 
 	const handleCreatePageClick = useCallback(() => {
-		if (isReadonlyMode) return
+		if (cannotCreatePage) return
 
 		const newPageId = PageRecordType.createId()
 		const initialName = msg(messages.pageMenuNewPageInitialName)
@@ -543,7 +554,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			startRenamingPage(newPageId, initialName)
 		}
 		trackEvent('new-page', { source: 'page-menu' })
-	}, [editor, msg, isReadonlyMode, shouldUseWindowPrompt, startRenamingPage, trackEvent])
+	}, [editor, msg, cannotCreatePage, shouldUseWindowPrompt, startRenamingPage, trackEvent])
 
 	const changePage = useCallback(
 		(id: TLPageId) => {
@@ -715,7 +726,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						data-testid="page-menu.create"
 						tooltip={createPageButtonLabel}
 						title={createPageButtonLabel}
-						disabled={isReadonlyMode || hasReachedMaxPages}
+						disabled={!!cannotCreatePage || hasReachedMaxPages}
 						onClick={handleCreatePageClick}
 					>
 						<TldrawUiButtonLabel>{createPageButtonLabel}</TldrawUiButtonLabel>

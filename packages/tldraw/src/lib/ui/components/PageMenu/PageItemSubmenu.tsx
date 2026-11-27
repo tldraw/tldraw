@@ -1,4 +1,12 @@
-import { defineMessages, PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
+import {
+	defineMessages,
+	Editor,
+	PageRecordType,
+	TLPageId,
+	track,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -25,6 +33,10 @@ const messages = defineMessages({
 	pageMenuSubmenuRename: { id: 'page-menu.submenu.rename', defaultMessage: 'Rename' },
 	pageMenuSubmenuTitle: { id: 'page-menu.submenu.title', defaultMessage: 'Menu' },
 })
+function getPageShapes(editor: Editor, pageId: string) {
+	return [...editor.getPageShapeIds(pageId as TLPageId)].map((id) => editor.getShape(id)!)
+}
+
 /** @public */
 export interface PageItemSubmenuProps {
 	index: number
@@ -42,6 +54,34 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()
+	// A page's shapes are created and deleted with it
+	const canDuplicatePage = useValue(
+		'can duplicate page',
+		() =>
+			!editor.checkCapability('create-page') &&
+			!editor.checkCapability('create-shapes', { shapes: getPageShapes(editor, item.id) }),
+		[editor, item.id]
+	)
+	const canEditPage = useValue(
+		'can edit page',
+		() => {
+			const page = editor.getPage(item.id as TLPageId)
+			return !!page && !editor.checkCapability('edit-page', { page })
+		},
+		[editor, item.id]
+	)
+	const canDeletePage = useValue(
+		'can delete page',
+		() => {
+			const page = editor.getPage(item.id as TLPageId)
+			return (
+				!!page &&
+				!editor.checkCapability('delete-page', { page }) &&
+				!editor.checkCapability('delete-shapes', { shapes: getPageShapes(editor, item.id) })
+			)
+		},
+		[editor, item.id]
+	)
 
 	const onDuplicate = useCallback(() => {
 		editor.markHistoryStoppingPoint('creating page')
@@ -84,19 +124,21 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="rename"
 								label={messages.pageMenuSubmenuRename.id}
 								onSelect={onRename}
+								disabled={!canEditPage}
 							/>
 						)}
 						<TldrawUiMenuItem
 							id="duplicate"
 							label={messages.pageMenuSubmenuDuplicatePage.id}
 							onSelect={onDuplicate}
-							disabled={listSize >= editor.options.maxPages}
+							disabled={!canDuplicatePage || listSize >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem
 								id="move-up"
 								onSelect={onMoveUp}
 								label={messages.pageMenuSubmenuMoveUp.id}
+								disabled={!canEditPage}
 							/>
 						)}
 						{index < listSize - 1 && (
@@ -104,6 +146,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="move-down"
 								label={messages.pageMenuSubmenuMoveDown.id}
 								onSelect={onMoveDown}
+								disabled={!canEditPage}
 							/>
 						)}
 					</TldrawUiMenuGroup>
@@ -113,6 +156,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="delete"
 								onSelect={onDelete}
 								label={messages.pageMenuSubmenuDelete.id}
+								disabled={!canDeletePage}
 							/>
 						</TldrawUiMenuGroup>
 					)}

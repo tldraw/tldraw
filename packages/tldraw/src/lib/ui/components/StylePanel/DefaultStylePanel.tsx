@@ -31,6 +31,16 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
+	// Styles for the next shape stay enabled: only the selection needs `edit-shapes`.
+	const cannotEditSelection = useValue(
+		'cannot edit selection',
+		() => {
+			const shapes = editor.getSelectedShapes()
+			return shapes.length > 0 && !!editor.checkCapability('edit-shapes', { shapes })
+		},
+		[editor]
+	)
+
 	const defaultStyles = useRelevantStyles()
 	if (styles === undefined) {
 		styles = defaultStyles
@@ -75,9 +85,11 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 				data-ismobile={isMobile}
 				data-enhanced-a11y-mode={enhancedA11yMode}
 			>
-				<StylePanelContextProvider styles={styles}>
-					{children ?? <DefaultStylePanelContent />}
-				</StylePanelContextProvider>
+				<fieldset className="tlui-style-panel__fieldset" disabled={cannotEditSelection}>
+					<StylePanelContextProvider styles={styles}>
+						{children ?? <DefaultStylePanelContent />}
+					</StylePanelContextProvider>
+				</fieldset>
 			</div>
 		)
 	)

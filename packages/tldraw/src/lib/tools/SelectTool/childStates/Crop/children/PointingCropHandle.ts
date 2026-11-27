@@ -44,7 +44,8 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	private startCropping() {
-		if (this.editor.getIsReadonly()) return
+		if (this.editor.checkCapability('edit-shapes', { shapes: this.editor.getSelectedShapes() }))
+			return
 		this.parent.transition('cropping', {
 			...this.info,
 			onInteractionEnd: this.info.onInteractionEnd,

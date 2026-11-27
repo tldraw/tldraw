@@ -73,8 +73,9 @@ export class EditingShape extends StateNode {
 		// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
 		// and if they are, we need to transition to translating instead.
 		if (this.hitLabelOnShapeForPointerUp && this.editor.inputs.getIsDragging()) {
-			if (this.editor.getIsReadonly()) return
-			if (this.hitLabelOnShapeForPointerUp.isLocked) return
+			const shape = this.hitLabelOnShapeForPointerUp
+			if (this.editor.checkCapability('edit-shapes', { shapes: [shape] })) return
+			if (shape.isLocked) return
 
 			this.editor.select(this.hitLabelOnShapeForPointerUp)
 			this.parent.transition('translating', info)
@@ -84,10 +85,9 @@ export class EditingShape extends StateNode {
 
 		// Check if dragging from editing shape with blurred input
 		if (this.didPointerDownOnEditingShape && this.editor.inputs.getIsDragging()) {
-			if (this.editor.getIsReadonly()) return
-
 			const editingShape = this.editor.getEditingShape()
 			if (!editingShape || editingShape.isLocked) return
+			if (this.editor.checkCapability('edit-shapes', { shapes: [editingShape] })) return
 
 			if (!this.isTextInputFocused()) {
 				// Input blurred during drag - exit edit mode and start translating
@@ -214,7 +214,7 @@ export class EditingShape extends StateNode {
 		const util = this.editor.getShapeUtil(hitShape)
 		if (hitShape.isLocked) return
 
-		if (this.editor.getIsReadonly()) {
+		if (this.editor.checkCapability('edit-shapes', { shapes: [hitShape] })) {
 			if (!util.canEditInReadonly(hitShape)) {
 				this.parent.transition('pointing_shape', info)
 				return

@@ -744,6 +744,13 @@ async function copyOrCutSelection(
 	operation: 'copy' | 'cut',
 	source: TLClipboardWriteInfo['source']
 ) {
+	// The native Cmd+X doesn't go through the cut action and its capabilities
+	if (
+		operation === 'cut' &&
+		editor.checkCapability('delete-shapes', { shapes: editor.getSelectedShapes() })
+	) {
+		return false
+	}
 	const didCopy = await handleNativeOrMenuCopy(editor, { operation, source })
 	if (didCopy && operation === 'cut') {
 		editor.markHistoryStoppingPoint('cut')
@@ -902,12 +909,14 @@ export function useNativeClipboardEvents() {
 			if (nativeShiftKey) {
 				const text = e.clipboardData?.getData('text/plain')
 				if (text?.trim()) {
+					preventDefault(e)
+					// Skips putExternalContent, which checks create-shapes
+					if (editor.checkCapability('create-shapes')) return
 					const point = editor.user.getIsPasteAtCursorMode()
 						? editor.inputs.getCurrentPagePoint()
 						: editor.getViewportPageBounds().center
 					editor.markHistoryStoppingPoint('paste')
 					defaultHandleExternalTextContent(editor, { text, point })
-					preventDefault(e)
 					trackEvent('paste', { source: 'kbd' })
 					return
 				}

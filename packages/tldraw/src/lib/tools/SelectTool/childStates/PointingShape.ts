@@ -241,7 +241,9 @@ export class PointingShape extends StateNode {
 	}
 
 	private startTranslating(info: TLPointerEventInfo) {
-		if (this.editor.getIsReadonly()) return
+		const selected = this.editor.getSelectedShapes()
+		const shapes = selected.length ? selected : [this.hitShapeForPointerUp]
+		if (this.editor.checkCapability('edit-shapes', { shapes })) return
 
 		// If we didn't select the shape on enter (e.g. because it has an onClick handler),
 		// and there's no current selection, select it now before transitioning to translating.
