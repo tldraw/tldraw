@@ -10,7 +10,7 @@ import { setupPage } from '../shared-e2e'
 // is `pnpm e2e-mermaid-readability` from `apps/examples`.
 
 // `mermaids.ts` groups its definitions by diagram type, in this order.
-const DIAGRAM_TYPES = ['flowchart', 'state', 'sequence', 'mindmap'] as const
+const DIAGRAM_TYPES = ['flowchart', 'state', 'sequence', 'mindmap', 'class'] as const
 type DiagramType = (typeof DIAGRAM_TYPES)[number]
 
 // `index` is the diagram's position within its group in `mermaids.ts`.

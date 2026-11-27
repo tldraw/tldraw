@@ -86,9 +86,17 @@ function describe(editor: Editor, shape: TLShape) {
 	return shape.type
 }
 
+// A class box draws its own rows of text beside the svg of its outline, not a rich text label.
+const CLASS_SHAPE_TYPE = 'mermaid-class'
+
 function getRenderedLabel(editor: Editor, shape: TLShape) {
-	const element = editor.getContainer().querySelector(`[data-shape-id="${shape.id}"] .tl-rich-text`)
+	const label = shape.type === CLASS_SHAPE_TYPE ? '.tl-html-container > div' : '.tl-rich-text'
+	const element = editor.getContainer().querySelector(`[data-shape-id="${shape.id}"] ${label}`)
 	return element?.getClientRects().length ? element : null
+}
+
+function isBox(shape: TLShape) {
+	return shape.type === 'geo' || shape.type === CLASS_SHAPE_TYPE
 }
 
 function* getTextNodes(root: Node) {
@@ -164,7 +172,7 @@ function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, B
 	const glyphs = new Map([...lines].map(([id, boxes]) => [id, boxes.map(getGlyphBox)]))
 	const outlines = new Map(
 		shapes
-			.filter((shape) => shape.type === 'geo' || shape.type === 'line')
+			.filter((shape) => isBox(shape) || shape.type === 'line')
 			.map((shape) => [shape.id, getPageOutline(editor, shape)])
 	)
 	const lineBounds = shapes
@@ -194,7 +202,7 @@ function findOverlaps(editor: Editor, shapes: TLShape[], lines: Map<TLShapeId, B
 
 		for (const other of shapes) {
 			const outline =
-				(other.type === 'geo' && (other.id === shape.id || !participantBoxes.has(other.id))) ||
+				(isBox(other) && (other.id === shape.id || !participantBoxes.has(other.id))) ||
 				boundIds.includes(other.id)
 					? outlines.get(other.id)
 					: undefined

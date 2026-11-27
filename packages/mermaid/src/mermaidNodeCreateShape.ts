@@ -18,8 +18,14 @@ import {
 import type {
 	MermaidBlueprintNode,
 	MermaidBlueprintNodeRenderSpec,
+	MermaidClassBox,
 	MermaidDiagramKind,
 } from './blueprint'
+import {
+	getMermaidClassShapeSize,
+	MERMAID_CLASS_SHAPE_TYPE,
+	type TLMermaidClassShapeProps,
+} from './classShape'
 import { LAYOUT_SCALE, sanitizeDiagramText } from './utils'
 
 /**
@@ -48,6 +54,15 @@ export function defaultCreateMermaidNodeFromBlueprint(
 ): TLShape {
 	const { editor, node, shapeId, x, y, parentShapeId, render } = args
 	if (render.variant === 'text') return createTextNode(args)
+	if (render.variant === 'shape' && render.type === MERMAID_CLASS_SHAPE_TYPE) {
+		const classBox = node.classBox ?? {
+			annotations: [],
+			name: sanitizeDiagramText(node.label ?? node.id),
+			attributes: [],
+			methods: [],
+		}
+		return createMermaidClassShape(args, classBox, render.props)
+	}
 	const baseProps = {
 		w: node.w,
 		h: node.h,
@@ -116,6 +131,38 @@ function createTextNode({
 		type: 'text',
 		x: x + (align === 'start' ? 0 : align === 'end' ? slack : slack / 2),
 		y: y + (node.h - bounds.h) / 2,
+	})
+	return editor.getShape(shapeId)!
+}
+
+// Sized to its own lines rather than mermaid's box, which was measured in mermaid's font, and
+// centred where mermaid put it so arrows still meet the same side.
+function createMermaidClassShape(
+	{ editor, node, shapeId, x, y, parentShapeId }: MermaidNodeCreateFunctionArgs,
+	classBox: MermaidClassBox,
+	overrides: Record<string, unknown>
+): TLShape {
+	if (!editor.hasShapeUtil(MERMAID_CLASS_SHAPE_TYPE)) {
+		throw new Error(
+			`A render spec asked for a ${MERMAID_CLASS_SHAPE_TYPE} shape, but MermaidClassShapeUtil isn't in the editor's shapeUtils.`
+		)
+	}
+	const props = {
+		...editor.getShapeUtil(MERMAID_CLASS_SHAPE_TYPE).getDefaultProps(),
+		...classBox,
+		color: node.color ?? 'black',
+		...(node.fill && { fill: node.fill }),
+		size: node.size ?? 'm',
+		...overrides,
+	} as TLMermaidClassShapeProps
+	const { w, h } = getMermaidClassShapeSize(editor, props)
+	editor.createShape({
+		id: shapeId,
+		type: MERMAID_CLASS_SHAPE_TYPE,
+		x: x + (node.w - w) / 2,
+		y: y + (node.h - h) / 2,
+		parentId: parentShapeId,
+		props: { ...props, w, h },
 	})
 	return editor.getShape(shapeId)!
 }

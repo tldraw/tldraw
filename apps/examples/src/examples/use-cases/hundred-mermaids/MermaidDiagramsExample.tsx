@@ -1,3 +1,8 @@
+import {
+	MermaidClassShapeUtil,
+	MermaidEndLabelBindingUtil,
+	createMermaidDiagram,
+} from '@tldraw/mermaid'
 import { useCallback } from 'react'
 import {
 	Editor,
@@ -17,6 +22,10 @@ import mermaidDefinitions from './mermaids'
 const GAP = 100
 const PAIR_GAP = 40
 
+// [5]
+const shapeUtils = [MermaidClassShapeUtil]
+const bindingUtils = [MermaidEndLabelBindingUtil]
+
 const components: TLComponents = {
 	TopPanel: TopPanel,
 }
@@ -24,7 +33,7 @@ const components: TLComponents = {
 export default function MermaidDiagramsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw components={components} />
+			<Tldraw components={components} shapeUtils={shapeUtils} bindingUtils={bindingUtils} />
 		</div>
 	)
 }
@@ -68,10 +77,7 @@ function TopPanel() {
 		isGeneratingAtom.set(true)
 
 		// [2]
-		const [{ createMermaidDiagram }, { renderAsync }] = await Promise.all([
-			import('@tldraw/mermaid'),
-			import('pele/lazy'),
-		])
+		const { renderAsync } = await import('pele/lazy')
 
 		editor.deleteShapes([...editor.getCurrentPageShapeIds()])
 
@@ -164,8 +170,9 @@ function TopPanel() {
 
 /*
 [2]
-`@tldraw/mermaid` and pele, which renders the comparison SVGs, are loaded on first click rather
-than on page load.
+pele, which renders the comparison SVGs, is loaded on first click rather than on page load.
+`@tldraw/mermaid` loads pele itself the same way, and is imported up front, since its shape and
+binding utils must be registered when the editor is created.
 
 [3]
 `createMermaidDiagram` parses the Mermaid source and creates native tldraw shapes (geo shapes,
@@ -176,4 +183,9 @@ it created so we can measure it and lay out the next diagram.
 For comparison, the same source is also rendered to an SVG by pele, the layout engine
 `createMermaidDiagram` uses, which is turned into an image asset and placed next to the native
 version at the same height.
+
+[5]
+`MermaidClassShapeUtil` draws classes as UML class boxes, and `MermaidEndLabelBindingUtil`
+keeps multiplicities (`1`, `*`) beside their end of each relation. Without them, classes are
+labelled rectangles and multiplicities go in the arrow's label.
 */

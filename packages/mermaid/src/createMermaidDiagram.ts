@@ -1,6 +1,7 @@
-import type { FlowchartModel, MindmapModel, SequenceModel, StateModel } from 'pele'
+import type { ClassModel, FlowchartModel, MindmapModel, SequenceModel, StateModel } from 'pele'
 import { Editor } from 'tldraw'
 import type { DiagramMermaidBlueprint } from './blueprint'
+import { classToBlueprint, parseClassDiagramLayout } from './classDiagram'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import {
 	createArrowLabelLongestWordMeasurer,
@@ -35,6 +36,12 @@ const SEQUENCE_MESSAGE_MARGIN = 50
 // wider on another platform.
 const STATE_RANK_SPACING = 70
 
+// A relation's multiplicities sit just past each end of its arrow, in tldraw's font, which is
+// larger than pele's, so pele's class ranks (`rankSpacing` 56 by default) leave a short arrow's two
+// multiplicities touching. 80 is the smallest that separates them in the "Hundreds of Mermaid
+// diagrams" example; 100 leaves the label between them room to read as its own.
+const CLASS_RANK_SPACING = 100
+
 /** @public */
 export class MermaidDiagramError extends Error {
 	constructor(
@@ -59,7 +66,7 @@ export interface MermaidDiagramOptions {
 
 /**
  * Parse Mermaid text and create tldraw shapes for supported diagram types (flowchart, state,
- * sequence and mindmap). Other diagram types are rendered to SVG and handed to
+ * sequence, mindmap and class). Other diagram types are rendered to SVG and handed to
  * `onUnsupportedDiagram`, or rejected when it isn't given.
  * Throws {@link MermaidDiagramError} if parsing fails.
  * @public
@@ -124,6 +131,18 @@ export async function createMermaidDiagram(
 						state.classes,
 						createArrowLabelLongestWordMeasurer(editor)
 					)
+				)
+				break
+			}
+			case 'class': {
+				const classModel = model as ClassModel
+				blueprint = await withMountedPeleSvg(
+					text,
+					{
+						...layoutOptions(arrowLabelRoom(classModel.direction)),
+						config: { ...config, class: { rankSpacing: CLASS_RANK_SPACING, ...config?.class } },
+					},
+					(root) => classToBlueprint(parseClassDiagramLayout(root, classModel), classModel)
 				)
 				break
 			}

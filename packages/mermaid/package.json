@@ -58,6 +58,8 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"react": "^19.2.1",
 		"tldraw": "workspace:*",
 		"vitest": "^5.0.0"
 	},
