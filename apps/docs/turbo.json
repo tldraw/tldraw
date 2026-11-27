@@ -9,6 +9,7 @@
 				"@tldraw/commenting#build-api",
 				"@tldraw/driver#build-api",
 				"@tldraw/editor#build-api",
+				"@tldraw/libraries#build-api",
 				"@tldraw/mentions#build-api",
 				"@tldraw/mermaid#build-api",
 				"@tldraw/state#build-api",
