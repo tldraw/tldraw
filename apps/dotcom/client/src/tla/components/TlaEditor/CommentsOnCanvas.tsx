@@ -270,7 +270,9 @@ export function SignInToComment() {
 	const editor = useEditor()
 	// Fallback slots render for every non-composing session; the CTA is only honest for a
 	// signed-out visitor on an editable canvas — signing in unlocks nothing on view-only.
-	const isReadonly = useValue('isReadonly', () => editor.getIsReadonly(), [editor])
+	const isReadonly = useValue('isReadonly', () => editor.checkCapability('comment') !== null, [
+		editor,
+	])
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()

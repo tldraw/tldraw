@@ -1,11 +1,13 @@
-import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { FileCapability, TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	Editor,
+	TLCheckDiff,
 	TLUserStore,
 	UserRecordType,
+	atom,
 	commentSchemaRecords,
 	computed,
 	createUserId,
@@ -29,7 +31,13 @@ import {
 } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 import { answerTabRender } from '../../utils/tabRender'
-import { FileSyncStoreContext, FileLoadContext, FileEditorRefContext } from './fileSyncHostContext'
+import {
+	FileCapabilities,
+	FileCapabilitiesContext,
+	FileEditorRefContext,
+	FileLoadContext,
+	FileSyncStoreContext,
+} from './fileSyncHostContext'
 
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
 export const VIA_LAST_FILE_CACHE = 'viaLastFileCache'
@@ -71,6 +79,51 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
 	const editorRef = useRef<Editor | null>(null)
+	const [capabilities] = useState<FileCapabilities>(() => atom('file capabilities', null))
+
+	// A copy of the room's check (`checkFileDiff`). The room enforces; this saves a round trip for
+	// edits that skip the UI.
+	const checkDiff = useCallback<TLCheckDiff>(
+		(diff, { userId }) => {
+			const granted = capabilities.get()
+			// Otherwise a write before the room says, like slurping a local file, is rolled back and lost.
+			if (!granted) return null
+			const changes = [
+				...Object.values(diff.added).map((r) => ['create', r.typeName, r.id] as const),
+				...Object.values(diff.updated).map(([from]) => ['edit', from.typeName, from.id] as const),
+				...Object.values(diff.removed).map((r) => ['delete', r.typeName, r.id] as const),
+			]
+			for (const [change, typeName, id] of changes) {
+				if (typeName === 'user' && change !== 'delete' && id === `user:${userId}`) continue
+				let capability: FileCapability
+				switch (typeName as string) {
+					case 'comment-thread':
+					case 'comment':
+					case 'comment-reaction':
+						capability = 'comment'
+						break
+					case 'shape':
+					case 'asset':
+						capability = `${change}-shape`
+						break
+					case 'page':
+						capability = `${change}-page`
+						break
+					case 'document':
+						capability = 'edit-page'
+						break
+					case 'binding':
+						capability = 'edit-shape'
+						break
+					default:
+						capability = 'edit-shape'
+				}
+				if (!granted.has(capability)) return { reason: capability }
+			}
+			return null
+		},
+		[capabilities]
+	)
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -94,8 +147,13 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
+		checkDiff,
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
+				if (message.type === 'file_capabilities') {
+					capabilities.set(new Set(message.capabilities))
+					return
+				}
 				if (message.type === 'first_load_server') {
 					fileLoad.setServerTimings(message)
 					return
@@ -106,7 +164,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 				}
 				trackEvent(message.type)
 			},
-			[fileLoad, fileSlug]
+			[fileLoad, fileSlug, capabilities]
 		),
 		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
 		// the editor's mount work, seconds on big boards.
@@ -197,7 +255,9 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	return (
 		<FileLoadContext.Provider value={fileLoad}>
 			<FileEditorRefContext.Provider value={editorRef}>
-				<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+				<FileCapabilitiesContext.Provider value={capabilities}>
+					<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+				</FileCapabilitiesContext.Provider>
 			</FileEditorRefContext.Provider>
 		</FileLoadContext.Provider>
 	)

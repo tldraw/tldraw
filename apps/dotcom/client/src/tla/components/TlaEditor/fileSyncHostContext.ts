@@ -1,6 +1,7 @@
+import { FileCapability } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { RefObject, createContext, useContext } from 'react'
-import { Editor, assertExists } from 'tldraw'
+import { Atom, Editor, assertExists } from 'tldraw'
 import { FileLoad } from '../../../utils/fileLoad'
 
 export type FileSyncStore = ReturnType<typeof useSync>
@@ -26,4 +27,20 @@ export const FileEditorRefContext = createContext<RefObject<Editor | null> | nul
  */
 export function useFileEditorRef() {
 	return assertExists(useContext(FileEditorRefContext), 'TlaFileSyncHost is missing above')
+}
+
+declare module 'tldraw' {
+	interface TLCapabilities {
+		comment: null
+	}
+}
+
+/** Null until the room says; otherwise an editor offers everything before it knows its tier. */
+export type FileCapabilities = Atom<ReadonlySet<FileCapability> | null>
+
+export const FileCapabilitiesContext = createContext<FileCapabilities | null>(null)
+
+/** The capabilities the room sent this session. */
+export function useFileCapabilities(): FileCapabilities {
+	return assertExists(useContext(FileCapabilitiesContext), 'TlaFileSyncHost is missing above')
 }

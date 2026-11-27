@@ -1,4 +1,11 @@
-import { MCP_AGENT_COMMENT_META_KEY, Role, TlaFile, can } from '@tldraw/dotcom-shared'
+import {
+	FileCapability,
+	MCP_AGENT_COMMENT_META_KEY,
+	Role,
+	TlaFile,
+	can,
+} from '@tldraw/dotcom-shared'
+import { RecordsDiff } from '@tldraw/store'
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
@@ -6,6 +13,7 @@ import {
 	TLCommentReaction,
 	TLCommentThread,
 	TLNoteShape,
+	TLCheckResult,
 	TLRecord,
 	TLShape,
 } from '@tldraw/tlschema'
@@ -92,7 +100,7 @@ export const authorizeFileRecord = {
  * (canvas and comments). The one statement of the rule, read by the socket connect and by the MCP
  * server's comment write, so an agent can comment exactly where its user could.
  *
- * Guests get canvas write, and with it comments (see `canComment` in `createCommentAuthorizers`),
+ * Guests get canvas write, and with it comments (see `checkFileDiff`),
  * only on an `edit` link. `sharedLinkType` is a plain string column with legacy values in it, so
  * anything else fails closed.
  */
@@ -103,4 +111,56 @@ export function getFileRoomAccess(
 	if (can(role, 'accessFiles')) return 'write'
 	if (!file.shared) return 'none'
 	return file.sharedLinkType === 'edit' ? 'write' : 'read'
+}
+
+const COMMENT_TYPES: ReadonlySet<string> = new Set([
+	'comment-thread',
+	'comment',
+	'comment-reaction',
+])
+
+/**
+ * The room's diff check: each changed record needs a capability, and the push is rejected with the
+ * first one the session lacks. The client runs its own copy (see `TlaFileSyncHost`).
+ */
+export function checkFileDiff(
+	diff: RecordsDiff<FileRecord>,
+	granted: readonly FileCapability[],
+	userId: string | null
+): TLCheckResult {
+	const changes = [
+		...Object.values(diff.added).map((r) => ['create', r.typeName, r.id] as const),
+		...Object.values(diff.updated).map(([from]) => ['edit', from.typeName, from.id] as const),
+		...Object.values(diff.removed).map((r) => ['delete', r.typeName, r.id] as const),
+	]
+	for (const [change, typeName, id] of changes) {
+		// A person's own name and colour; otherwise a viewer's join is rejected.
+		if (typeName === 'user' && change !== 'delete' && id === `user:${userId}`) continue
+		let capability: FileCapability
+		if (COMMENT_TYPES.has(typeName)) {
+			capability = 'comment'
+		} else {
+			switch (typeName as string) {
+				case 'shape':
+				case 'asset':
+					capability = `${change}-shape`
+					break
+				case 'page':
+					capability = `${change}-page`
+					break
+				case 'document':
+					capability = 'edit-page'
+					break
+				// Otherwise a bound arrow detaches for someone who may edit shapes.
+				case 'binding':
+					capability = 'edit-shape'
+					break
+				// A type added later; otherwise it is open to viewers.
+				default:
+					capability = 'edit-shape'
+			}
+		}
+		if (!granted.includes(capability)) return { reason: capability }
+	}
+	return null
 }

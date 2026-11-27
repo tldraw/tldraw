@@ -1,3 +1,4 @@
+import { getFileCapabilities } from '@tldraw/dotcom-shared'
 import {
 	RecordOpType,
 	TLSocketRoom,
@@ -20,7 +21,7 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, checkFileDiff } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
 
@@ -351,6 +352,54 @@ describe('authorizeFileRecord', () => {
 			expect(authorize({ session: session('real-bob', true), type: 'update', prev, next })).toBe(
 				next
 			)
+		})
+	})
+})
+
+describe('checkFileDiff', () => {
+	const record = (typeName: string) => ({ id: `${typeName}:a`, typeName }) as any
+	const diff = (part: 'added' | 'updated' | 'removed', typeName: string) => {
+		const r = record(typeName)
+		return {
+			added: {},
+			updated: {},
+			removed: {},
+			[part]: { [r.id]: part === 'updated' ? [r, r] : r },
+		} as any
+	}
+	const read = getFileCapabilities('read')
+	const write = getFileCapabilities('write')
+
+	it('allows a write session everything', () => {
+		for (const typeName of ['shape', 'asset', 'page', 'document', 'binding', 'comment', 'other']) {
+			expect(checkFileDiff(diff('added', typeName), write, 'a')).toBe(null)
+		}
+	})
+
+	it('rejects a read session with the capability it lacks', () => {
+		expect(checkFileDiff(diff('added', 'shape'), read, 'a')).toEqual({ reason: 'create-shape' })
+		expect(checkFileDiff(diff('updated', 'asset'), read, 'a')).toEqual({ reason: 'edit-shape' })
+		expect(checkFileDiff(diff('removed', 'page'), read, 'a')).toEqual({ reason: 'delete-page' })
+		expect(checkFileDiff(diff('updated', 'document'), read, 'a')).toEqual({ reason: 'edit-page' })
+		expect(checkFileDiff(diff('added', 'binding'), read, 'a')).toEqual({ reason: 'edit-shape' })
+		expect(checkFileDiff(diff('added', 'comment-reaction'), read, 'a')).toEqual({
+			reason: 'comment',
+		})
+		expect(checkFileDiff(diff('added', 'other'), read, 'a')).toEqual({ reason: 'edit-shape' })
+	})
+
+	it("lets a read session write its own user record, and no one else's", () => {
+		expect(checkFileDiff(diff('added', 'user'), read, 'a')).toBe(null)
+		expect(checkFileDiff(diff('updated', 'user'), read, 'a')).toBe(null)
+		expect(checkFileDiff(diff('removed', 'user'), read, 'a')).toEqual({ reason: 'edit-shape' })
+		expect(checkFileDiff(diff('updated', 'user'), read, 'b')).toEqual({ reason: 'edit-shape' })
+		expect(checkFileDiff(diff('added', 'user'), read, null)).toEqual({ reason: 'edit-shape' })
+	})
+
+	it('judges comments apart from the canvas', () => {
+		expect(checkFileDiff(diff('added', 'comment'), ['comment'], 'a')).toBe(null)
+		expect(checkFileDiff(diff('added', 'shape'), ['comment'], 'a')).toEqual({
+			reason: 'create-shape',
 		})
 	})
 })
