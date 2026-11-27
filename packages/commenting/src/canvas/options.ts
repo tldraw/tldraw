@@ -358,8 +358,11 @@ export function getCanModifyComment(
 	currentUserId: string | null | undefined,
 	modification: CommentModification
 ): boolean {
-	const capability = modification.action === 'edit-comment' ? 'edit-comment' : 'delete-comment'
-	if (editor.checkCapability(capability)) return false
+	if (modification.action === 'delete-thread') {
+		if (editor.checkCapability('delete-comment')) return false
+	} else if (editor.checkCapability(modification.action, { comment: modification.comment })) {
+		return false
+	}
 	const { canModifyComment } = getCommentingOptions(editor)
 	const ctx: CommentModificationContext = {
 		editor,

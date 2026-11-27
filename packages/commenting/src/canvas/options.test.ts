@@ -257,6 +257,19 @@ describe('getCanModifyComment', () => {
 		expect(getCanModifyComment(noDelete, 'alice', { action: 'delete-thread', thread })).toBe(false)
 	})
 
+	it('passes the comment to the capability check', () => {
+		const comment = makeComment('alice')
+		const { editor } = stubEditor(defaultCommentingOptions)
+		const checkCapability = vi.fn(() => null)
+		Object.assign(editor, { checkCapability })
+		getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })
+		getCanModifyComment(editor, 'alice', { action: 'delete-comment', comment })
+		expect(checkCapability.mock.calls).toEqual([
+			['edit-comment', { comment }],
+			['delete-comment', { comment }],
+		])
+	})
+
 	it('lets a callback narrow the default', () => {
 		const { editor } = stubEditor({ ...defaultCommentingOptions, canModifyComment: () => false })
 		const comment = makeComment('alice')

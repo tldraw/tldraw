@@ -1,11 +1,19 @@
-import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	GeoShapeGeoStyle,
+	StateNode,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+} from '@tldraw/editor'
 import { startEditingShape } from '../../../tools/SelectTool/selectHelpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
+		const geo = this.editor.getStyleForNextShape(GeoShapeGeoStyle)
+		if (
+			this.editor.checkCapability('create-shapes', { shapes: [{ type: 'geo', props: { geo } }] })
+		) {
 			return
 		}
 		this.parent.transition('pointing', info)

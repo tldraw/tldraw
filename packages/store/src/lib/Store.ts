@@ -652,7 +652,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// Before `add`: a write an interceptor makes is kept at a later version, and dropping
 		// after it would lose that write.
 		if (this.uncommitted.length > 0) this.dropUncommittedFrom(version)
-		if (this.commitListeners.size > 0 && !this.isMergingRemoteChanges) {
+		if (
+			this.commitListeners.size > 0 &&
+			!this.isMergingRemoteChanges &&
+			!this.isSettlingRemoteChanges
+		) {
 			this.keepForCommit(changes, version)
 		}
 		this.historyAccumulator.add(
@@ -681,7 +685,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * is one outermost transaction: an `editor.run`, or a store write made outside one. The
 	 * listener gets all of the operation's user changes, with what its side effects changed,
 	 * before any effect, `listen` listener or sync has seen them. Remote changes are left out,
-	 * and so is an operation that rolls back or whose changes cancel out. What a listener
+	 * and so is what side effects change in response to them, and so is an operation that rolls
+	 * back or whose changes cancel out. What a listener
 	 * changes is part of the same operation, and listeners are called again with it.
 	 *
 	 * A listener can still be called for an operation that does not commit, when something that
@@ -1197,6 +1202,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	private isMergingRemoteChanges = false
+	// While the side effects of a remote merge run. Their writes are 'user' changes (sync sends
+	// them), but a commit listener must not see them: a rollback would also undo the remote
+	// changes, which the client would then never get again.
+	private isSettlingRemoteChanges = false
 
 	/**
 	 * Merge changes from a remote source. Changes made within the provided function
@@ -1474,6 +1483,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				const result = fn()
 				this.isMergingRemoteChanges = false
 
+				this.isSettlingRemoteChanges = isMergingRemoteChanges
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
 
 				return result
@@ -1482,6 +1492,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
 				this.isMergingRemoteChanges = false
+				this.isSettlingRemoteChanges = false
 			}
 		})
 	}

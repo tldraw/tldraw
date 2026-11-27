@@ -14,6 +14,7 @@ import {
 	assertExists,
 	exhaustiveSwitchError,
 	getOwnProperty,
+	hasOwnProperty,
 	isEqual,
 	isNativeStructuredClone,
 	objectMapEntriesIterable,
@@ -1429,15 +1430,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const { added, updated, removed } = staged.diff
 			for (const _id of ids) {
 				const id = _id as R['id']
-				if (added[id]) {
+				// Ids come from the push, so a lookup must not reach Object.prototype (e.g. "constructor").
+				if (hasOwnProperty(added, id)) {
 					// set automatically clears tombstones if they exist
 					storage.set(id, added[id])
 					propagateOp(changes, id, [RecordOpType.Put, added[id]], undefined, undefined)
-				} else if (updated[id]) {
+				} else if (hasOwnProperty(updated, id)) {
 					const [from, to] = updated[id]
 					storage.set(id, to)
 					propagateOp(changes, id, [RecordOpType.Patch, staged.patches.get(id)!], from, to)
-				} else if (removed[id]) {
+				} else if (hasOwnProperty(removed, id)) {
 					// delete automatically creates tombstones
 					storage.delete(id)
 					propagateOp(changes, id, [RecordOpType.Remove], removed[id], undefined)
