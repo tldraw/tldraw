@@ -1,0 +1,118 @@
+{
+	"register": "polite আপনি; controls use -উন/-করুন",
+	"terms": [
+		{
+			"term": "(fine) rotation step",
+			"translation": "সূক্ষ্ম"
+		},
+		{
+			"term": "Account",
+			"translation": "অ্যাকাউন্ট"
+		},
+		{
+			"term": "box (shape)",
+			"translation": "বক্স",
+			"note": "Matches চেক বক্স"
+		},
+		{
+			"term": "Cancel",
+			"translation": "বাতিল করুন"
+		},
+		{
+			"term": "comment",
+			"translation": "মন্তব্য"
+		},
+		{
+			"term": "content",
+			"translation": "কন্টেন্ট"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "ডার্ক মোড"
+		},
+		{
+			"term": "Delete",
+			"translation": "মুছুন"
+		},
+		{
+			"term": "embed",
+			"translation": "এম্বেড",
+			"note": "Used by action.insert-embed"
+		},
+		{
+			"term": "Export",
+			"translation": "রপ্তানি"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "ফাইল"
+		},
+		{
+			"term": "Forget (remove file from own list)",
+			"translation": "ভুলে যান"
+		},
+		{
+			"term": "heading",
+			"translation": "শিরোনাম"
+		},
+		{
+			"term": "image",
+			"translation": "ছবি",
+			"note": "Not 'ভাবমূর্তি' (reputation)"
+		},
+		{
+			"term": "Import file…",
+			"translation": "ফাইল আমদానি করুন…"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "আইটেম"
+		},
+		{
+			"term": "library",
+			"translation": "লাইব্রেরি"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "হালকা / গাঢ়"
+		},
+		{
+			"term": "numbered list",
+			"translation": "সংখ্যাযুক্ত তালিকা"
+		},
+		{
+			"term": "paste",
+			"translation": "পেস্ট করুন"
+		},
+		{
+			"term": "pentagon",
+			"translation": "পঞ্চভুজ"
+		},
+		{
+			"term": "PNG/SVG",
+			"translation": "PNG/SVG",
+			"note": "Keep format names in Latin script, not transliterated"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "একটি কপি সংরক্ষণ করুন",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "Select none",
+			"translation": "নির্বাচন বাতিল করুন"
+		},
+		{
+			"term": "shape",
+			"translation": "আকৃতি"
+		},
+		{
+			"term": "Tools",
+			"translation": "সরঞ্জাম"
+		},
+		{
+			"term": "workspace",
+			"translation": "কর্মক্ষেত্র"
+		}
+	]
+}

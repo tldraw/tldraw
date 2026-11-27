@@ -1,0 +1,181 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Arrow",
+			"translation": "Palaso"
+		},
+		{
+			"term": "Arrow (geo shape prefix)",
+			"translation": "Arrow",
+			"note": "Arrow down/up/left/right shapes"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Kanselahin"
+		},
+		{
+			"term": "Comment",
+			"translation": "Komento"
+		},
+		{
+			"term": "Continue (button)",
+			"translation": "Magpatuloy"
+		},
+		{
+			"term": "copied",
+			"translation": "nakopya"
+		},
+		{
+			"term": "Crop",
+			"translation": "I-crop"
+		},
+		{
+			"term": "Delete",
+			"translation": "Burahin"
+		},
+		{
+			"term": "Diamond",
+			"translation": "Brilyante"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Ipamahagi"
+		},
+		{
+			"term": "Dot",
+			"translation": "Tuldok"
+		},
+		{
+			"term": "embed",
+			"translation": "embed"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "Pambura"
+		},
+		{
+			"term": "Export as",
+			"translation": "I-export bilang"
+		},
+		{
+			"term": "file",
+			"translation": "file"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "I-group",
+			"note": "matches the I-flip/I-stack pattern"
+		},
+		{
+			"term": "Help (noun label)",
+			"translation": "Tulong"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Mag-import ng file…"
+		},
+		{
+			"term": "invitation",
+			"translation": "imbitasyon"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "item"
+		},
+		{
+			"term": "library",
+			"translation": "library",
+			"note": "loanword kept"
+		},
+		{
+			"term": "library (Libraries feature)",
+			"translation": "library / mga library"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Maliwanag"
+		},
+		{
+			"term": "move (a file) to",
+			"translation": "Ilipat sa",
+			"note": "Transitive; 'Lumipat' means the user moves or switches"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "may-ari"
+		},
+		{
+			"term": "page",
+			"translation": "pahina"
+		},
+		{
+			"term": "pentagon",
+			"translation": "Pentagono"
+		},
+		{
+			"term": "Pinned",
+			"translation": "Naka-pin"
+		},
+		{
+			"term": "plural 'one' branch",
+			"translation": "must include #",
+			"note": "Filipino 'one' covers 1, 2, 3, 5, 7, 8, 10…"
+		},
+		{
+			"term": "project",
+			"translation": "proyekto"
+		},
+		{
+			"term": "Reload",
+			"translation": "I-reload"
+		},
+		{
+			"term": "Rename",
+			"translation": "Palitan ang pangalan"
+		},
+		{
+			"term": "reply",
+			"translation": "tugon"
+		},
+		{
+			"term": "rotate (a11y shortcut rows)",
+			"translation": "Paikutin"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Mag-save ng kopya",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "sharing",
+			"translation": "pagbabahagi"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Mag-sign in"
+		},
+		{
+			"term": "Square",
+			"translation": "Parisukat"
+		},
+		{
+			"term": "square (shape)",
+			"translation": "Parisukat"
+		},
+		{
+			"term": "stack trace",
+			"translation": "stack trace",
+			"note": "Keep the programming term in English"
+		},
+		{
+			"term": "triangle",
+			"translation": "Tatsulok"
+		},
+		{
+			"term": "workspace",
+			"translation": "workspace",
+			"note": "Loanword; plural 'Mga workspace'. Not 'lugar ng trabaho'"
+		}
+	]
+}

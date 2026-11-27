@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Had kadar melebihi, cuba lagi kemudian."
+      "value": "Had kadar dilampaui, sila cuba lagi nanti."
     }
   ],
   "08bd40c754": [
@@ -102,15 +102,11 @@
   "093ac7483a": [
     {
       "type": 0,
-      "value": "Tidak dapat membuka fail "
+      "value": "Belum boleh membuka fail "
     },
     {
       "type": 1,
       "value": "extension"
-    },
-    {
-      "type": 0,
-      "value": " lagi"
     }
   ],
   "0a91f7fa87": [
@@ -128,7 +124,7 @@
   "0b9a4cde72": [
     {
       "type": 0,
-      "value": "menu fail"
+      "value": "Menu fail"
     }
   ],
   "0c4383617a": [
@@ -171,6 +167,12 @@
     {
       "type": 0,
       "value": "Nyahsemat fail"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Ruang kerja ini telah mencapai bilangan maksimum pustaka. Padam pustaka lama sebelum mencipta yang baharu."
     }
   ],
   "13ddd375ad": [
@@ -227,6 +229,12 @@
       "value": "Ruang kerja mesti mempunyai sekurang-kurangnya seorang pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Koleksi saya"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -257,6 +265,12 @@
     {
       "type": 0,
       "value": "Mengenai tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Pustaka ini telah mencapai bilangan maksimum item. Padamkan item lama sebelum menambah item baharu."
     }
   ],
   "28b2464e1f": [
@@ -336,7 +350,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Serlahkan Hilang"
+      "value": "i18n: Serlahkan yang Tiada"
     }
   ],
   "324a0f3182": [
@@ -348,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Fail pendua"
+      "value": "Pendua fail"
     }
   ],
   "335defdafe": [
@@ -423,6 +437,12 @@
       "value": "Tema warna"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menu pustaka"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -438,7 +458,7 @@
   "44db318ee5": [
     {
       "type": 0,
-      "value": "Dapatkan bantuan tentang Discord"
+      "value": "Dapatkan bantuan di Discord"
     }
   ],
   "454aad3b3c": [
@@ -533,6 +553,12 @@
     {
       "type": 0,
       "value": " telah mengulas"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Fail ini"
     }
   ],
   "4d0d3ddec9": [
@@ -698,7 +724,7 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "salin"
+      "value": "Salin"
     }
   ],
   "608e9d366e": [
@@ -728,13 +754,13 @@
   "625fd29749": [
     {
       "type": 0,
-      "value": "Lebih tua"
+      "value": "Lebih lama"
     }
   ],
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "awak"
+      "value": "anda"
     }
   ],
   "63a6a88c06": [
@@ -746,7 +772,7 @@
   "6609dd239e": [
     {
       "type": 0,
-      "value": "Sesuatu telah berlaku"
+      "value": "Ada sesuatu yang tidak kena"
     }
   ],
   "6637a98151": [
@@ -862,7 +888,7 @@
   "6a26f54883": [
     {
       "type": 0,
-      "value": "Tolong"
+      "value": "Bantuan"
     }
   ],
   "6b71e0ebcb": [
@@ -896,7 +922,7 @@
   "70a6facb9d": [
     {
       "type": 0,
-      "value": "minggu ini"
+      "value": "Minggu ini"
     }
   ],
   "71a29b007b": [
@@ -983,10 +1009,16 @@
       "value": "Fail berbilang pemain tldraw tanpa nama ini kini dibaca sahaja. Untuk meneruskan pengeditan, sila log masuk dan salin ke fail anda."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Belum ada pustaka."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "faham"
+      "value": "Faham"
     }
   ],
   "797799f35e": [
@@ -1034,7 +1066,7 @@
   "7cb5f8b4a5": [
     {
       "type": 0,
-      "value": "lupa"
+      "value": "Lupakan"
     }
   ],
   "7d69b3cb4c": [
@@ -1235,7 +1267,7 @@
   "902b0d55fd": [
     {
       "type": 0,
-      "value": "ralat"
+      "value": "Ralat"
     }
   ],
   "904a830405": [
@@ -1273,7 +1305,7 @@
   "930390d222": [
     {
       "type": 0,
-      "value": "Pautan jemputan yang disalin"
+      "value": "Pautan jemputan disalin"
     }
   ],
   "95aacd4d4a": [
@@ -1291,7 +1323,7 @@
   "96165d6df5": [
     {
       "type": 0,
-      "value": "bulan ini"
+      "value": "Bulan ini"
     }
   ],
   "9643c97d49": [
@@ -1316,10 +1348,16 @@
       "value": "Syarat Penggunaan"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Cuba pelayan MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
-      "value": "Cahaya"
+      "value": "Cerah"
     }
   ],
   "9983381c21": [
@@ -1366,6 +1404,27 @@
       "value": "Anda nampaknya berada di luar talian. Semak sambungan anda dan cuba lagi."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1376,6 +1435,49 @@
     {
       "type": 0,
       "value": "Terbitkan fail ini"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Padam "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " di dalamnya?"
     }
   ],
   "9e076f5885": [
@@ -1503,6 +1605,12 @@
       "value": "Fail semakin besar"
     }
   ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Padam pustaka"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1582,7 +1690,7 @@
   "b2326c3a34": [
     {
       "type": 0,
-      "value": "Menjana semula"
+      "value": "Jana semula"
     }
   ],
   "b2c3c2e30c": [
@@ -1827,7 +1935,7 @@
   "d3d2e61733": [
     {
       "type": 0,
-      "value": "tutup"
+      "value": "Tutup"
     }
   ],
   "d46632fe1f": [
@@ -1909,7 +2017,7 @@
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Jemput sahaja"
+      "value": "Jemputan sahaja"
     }
   ],
   "dbf9b24193": [
@@ -1928,6 +2036,12 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Tidak dapat mengubah pustaka"
     }
   ],
   "e2198d6228": [
@@ -2058,6 +2172,12 @@
       "value": "Tetapan pengguna"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Tiada dalam mana-mana fail"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2085,7 +2205,7 @@
   "f4f70727dc": [
     {
       "type": 0,
-      "value": "tetapan"
+      "value": "Tetapan"
     }
   ],
   "f5ddc8d9c1": [
@@ -2133,7 +2253,13 @@
   "fed5ec05eb": [
     {
       "type": 0,
-      "value": "pautan disalin"
+      "value": "Pautan disalin"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Pustaka awam"
     }
   ],
   "ff2fefd3c6": [
@@ -2153,7 +2279,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Cipta akaun percuma untuk menyimpan fail anda dan tldraw bersama rakan sepasukan anda."
+      "value": "Cipta akaun percuma untuk menyimpan fail anda dan melukis dalam tldraw bersama rakan sepasukan anda."
     }
   ],
   "ffad261a48": [

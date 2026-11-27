@@ -39,7 +39,7 @@
     "translation": "Naabot na ng file na ito ang limitasyon sa laki nito at maaaring hindi na ma-save ang mga pagbabago. Mag-alis ng ilang content o magsimula ng bagong file."
   },
   "0b27918290": {
-    "translation": "file"
+    "translation": "File"
   },
   "0b9a4cde72": {
     "translation": "Menu ng file"
@@ -65,6 +65,9 @@
   "12a6766ba1": {
     "translation": "I-unpin ang file"
   },
+  "13cad4c2e8": {
+    "translation": "Naabot na ng workspace na ito ang maximum na bilang ng mga library. Magtanggal ng mga lumang library bago gumawa ng bago."
+  },
   "13ddd375ad": {
     "translation": "I-export bilang"
   },
@@ -81,7 +84,7 @@
     "translation": "Nilikha ko"
   },
   "1a7222b4e5": {
-    "translation": "Lumipat sa"
+    "translation": "Ilipat sa"
   },
   "1da2e8106b": {
     "translation": "May naganap na hindi inaasahang error."
@@ -92,14 +95,20 @@
   "1ffd709937": {
     "translation": "Dapat mayroong kahit isang may-ari sa isang workspace. Gawin munang may-ari ang ibang tao."
   },
+  "20746febc9": {
+    "translation": "Aking koleksyon"
+  },
   "21f66c9c00": {
-    "translation": "Pangalan ng lugar ng trabaho"
+    "translation": "Pangalan ng workspace"
   },
   "23dcace54a": {
     "translation": "Inaanyayahan kang sumali sa <strong>{workspaceName}</strong>. Gumawa ng libreng account para magpatuloy."
   },
   "250ddea65c": {
     "translation": "Tungkol sa tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Naabot na ng library na ito ang pinakamaraming bilang ng item. Magtanggal ng mga lumang item bago magdagdag ng mga bago."
   },
   "28b2464e1f": {
     "translation": "Hindi makapagsumite ng feedback"
@@ -135,13 +144,13 @@
     "translation": "Kailangan mong mag-sign in upang tingnan ang file na ito."
   },
   "31418ce4ad": {
-    "translation": "i18n: Nawawala ang Highlight"
+    "translation": "i18n: I-highlight ang Nawawala"
   },
   "324a0f3182": {
     "translation": "Bumalik sa tldraw"
   },
   "32811caa8c": {
-    "translation": "Duplikadong file"
+    "translation": "I-duplicate ang file"
   },
   "335defdafe": {
     "translation": "Pakisubukang i-refresh ang page."
@@ -179,6 +188,9 @@
   "402bf0c47e": {
     "translation": "Tema ng kulay"
   },
+  "4236087d6b": {
+    "translation": "Menu ng library"
+  },
   "42e53c47c1": {
     "translation": "Makipag-ugnayan sa may-ari para humiling ng access."
   },
@@ -204,7 +216,7 @@
     "translation": "Upang magpatuloy sa pag-edit, mangyaring kopyahin ang file sa iyong mga file."
   },
   "47f493a590": {
-    "translation": "Pin file"
+    "translation": "I-pin ang file"
   },
   "4970317944": {
     "translation": "Bagay"
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "Nagkomento si <name>{author}</name>"
+  },
+  "4c4a28e97a": {
+    "translation": "Ang file na ito"
   },
   "4d0d3ddec9": {
     "translation": "Gumagamit ang site na ito ng cookies para gumana ang app at para mangolekta ng analytics."
@@ -285,7 +300,7 @@
     "translation": "Nakita ang lumang browser. Mangyaring i-update ang iyong browser upang magamit ang app na ito."
   },
   "5bff3c9c88": {
-    "translation": "Ang aking lugar ng trabaho"
+    "translation": "Aking workspace"
   },
   "5d04a002ea": {
     "translation": "Hindi makakonekta"
@@ -312,7 +327,7 @@
     "translation": "Mga Kamakailan"
   },
   "625fd29749": {
-    "translation": "Mas matanda"
+    "translation": "Mas luma"
   },
   "639bae9ac6": {
     "translation": "ikaw"
@@ -333,7 +348,7 @@
     "translation": "Bagong file"
   },
   "68240daa8f": {
-    "translation": "Nag-react sina <name>{a}</name>, <name>{b}</name> at {count, plural, one {# other} other {# others}}"
+    "translation": "<name>{a}</name>, <name>{b}</name> at {count, plural, one {# iba pa} other {# iba pa}} ang nag-react"
   },
   "6832ac5936": {
     "translation": "Ilagay ang iyong email address"
@@ -345,7 +360,7 @@
     "translation": "Mag-sign in para i-save"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, zero {} one {May nag-react} two {} few {} many {} other {# tao ang nag-react}}"
+    "translation": "{count, plural, one {# tao ang nag-react} other {# tao ang nag-react}}"
   },
   "6a26f54883": {
     "translation": "Tulong"
@@ -375,7 +390,7 @@
     "translation": "Paki-reload ang page"
   },
   "747ee44424": {
-    "translation": "I-save ang nilalaman bilang isang .tldr file: piliin ang 'I-save ang isang kopya' sa kaliwang menu sa itaas."
+    "translation": "I-save ang content bilang .tldr file: piliin ang 'Mag-save ng kopya' sa menu sa kaliwang itaas."
   },
   "74ff4bad28": {
     "translation": "Walang nakitang mga file"
@@ -406,6 +421,9 @@
   },
   "7827371d1a": {
     "translation": "Read-only na ngayon ang hindi kilalang tldraw multiplayer file na ito. Upang magpatuloy sa pag-edit, mangyaring mag-sign in at kopyahin ito sa iyong mga file."
+  },
+  "7897a855d3": {
+    "translation": "Wala pang mga library."
   },
   "78e9815992": {
     "translation": "Nakuha ko"
@@ -474,7 +492,7 @@
     "translation": "Miyembro ka na ng workspace na ito"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> at {count, plural, one {# other} other {# others}} ay nag-react"
+    "translation": "<name>{author}</name> at {count, plural, one {# iba pa} other {# iba pa}} ang nag-react"
   },
   "88bf6ab42c": {
     "translation": "Nag-expire na ang link ng imbitasyon na ito"
@@ -524,8 +542,11 @@
   "985a4b720f": {
     "translation": "Mga Tuntunin sa Paggamit"
   },
+  "987453f3dd": {
+    "translation": "Subukan ang MCP server"
+  },
   "9914a0ce04": {
-    "translation": "Liwanag"
+    "translation": "Maliwanag"
   },
   "9983381c21": {
     "translation": "I-clear ang paghahanap"
@@ -542,11 +563,17 @@
   "9c228b6834": {
     "translation": "Mukhang offline ka. Suriin ang iyong koneksyon at subukang muli."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# item} other {# item}}"
+  },
   "9ccb565b86": {
     "translation": "Nagkakaproblema kami sa pagkonekta sa aming serbisyo ng pagpapatotoo. Karaniwan itong pansamantala lamang. Pakisubukang i-refresh ang pahina."
   },
   "9ceb927baa": {
     "translation": "I-publish ang file na ito"
+  },
+  "9d102330ee": {
+    "translation": "Burahin ang <strong>{name}</strong> at ang {count, plural, one {# item} other {# item}} nito?"
   },
   "9e076f5885": {
     "translation": "Hindi nahanap"
@@ -558,7 +585,7 @@
     "translation": "Inaanyayahan kang sumali sa <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, zero {# hindi pa nababasa} one {# hindi pa nababasa} two {# hindi pa nababasa} few {# hindi pa nababasa} many {# hindi pa nababasa} other {# hindi pa nababasa}}"
+    "translation": "{count, plural, one {# hindi pa nababasa} other {# hindi pa nababasa}}"
   },
   "a104439641": {
     "translation": "Padding"
@@ -596,6 +623,9 @@
   "a8873770ab": {
     "translation": "Lumalaki ang file"
   },
+  "a8c92ffd87": {
+    "translation": "Burahin ang library"
+  },
   "a9ded1e5ce": {
     "translation": "Background"
   },
@@ -603,7 +633,7 @@
     "translation": "Gumawa ng workspace"
   },
   "aaec8f7cde": {
-    "translation": "May isang tao"
+    "translation": "Isang tao"
   },
   "ab0df9ba36": {
     "translation": "Naabot na ang limitasyon ng file"
@@ -612,14 +642,14 @@
     "translation": "Aplikasyon"
   },
   "aeb428554a": {
-    "translation": "Mga Aklatan"
+    "translation": "Mga library"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Huling na-publish <date></date>"
   },
   "b028909917": {
-    "translation": "Guest user"
+    "translation": "Bisita"
   },
   "b03400e2db": {
     "translation": "Sumagot si <name>{author}</name>"
@@ -652,7 +682,7 @@
     "translation": "May-ari"
   },
   "b74dbb40c5": {
-    "translation": "I-drag ang file papunta sa sidebar sa pahinang ito. O piliin ang opsyong 'I-import ang file' mula sa menu na File sa kaliwang itaas."
+    "translation": "I-drag ang file sa sidebar sa page na ito. O piliin ang 'Mag-import ng file' mula sa File menu sa kaliwang itaas."
   },
   "b758336699": {
     "translation": "Kopyahin ang link"
@@ -664,7 +694,7 @@
     "translation": "Hindi pinagana ang mga imbitasyon"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, zero {Ina-upload ang {uploaded} sa {total} na .tldr file…} one {Ina-upload ang .tldr file…} two {Ina-upload ang {uploaded} sa {total} na .tldr file…} few {Ina-upload ang {uploaded} sa {total} na .tldr file…} many {Ina-upload ang {uploaded} sa {total} na .tldr file…} other {Ina-upload ang {uploaded} sa {total} na .tldr file…}}"
+    "translation": "{total, plural, one {Ina-upload ang {uploaded} sa {total} na .tldr file…} other {Ina-upload ang {uploaded} sa {total} na .tldr file…}}"
   },
   "bc88b0e89e": {
     "translation": "Ibinahagi ni {ownerName}"
@@ -736,7 +766,7 @@
     "translation": "I-toggle ang sidebar"
   },
   "d5e92609cf": {
-    "translation": "Mga lugar ng trabaho"
+    "translation": "Mga workspace"
   },
   "d638a3344b": {
     "translation": "Bago ka magsimula, mangyaring tanggapin ang aming <tos>mga tuntunin ng paggamit</tos> at <privacy>patakaran sa privacy</privacy>."
@@ -764,6 +794,9 @@
   },
   "e0aa021e21": {
     "translation": "Sige"
+  },
+  "e1cbe6f097": {
+    "translation": "Hindi mabago ang library"
   },
   "e2198d6228": {
     "translation": "Kopyahin ang link ng imbitasyon"
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "Mga setting ng user"
   },
+  "f129f24bec": {
+    "translation": "· Wala sa anumang file"
+  },
   "f13001876b": {
     "translation": "Tingnan ang listahan"
   },
@@ -851,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Kinopya ang link"
+  },
+  "feebd72b89": {
+    "translation": "Mga pampublikong library"
   },
   "ff2fefd3c6": {
     "translation": "Sigurado ka bang gusto mong alisin ang {name} mula sa workspace na ito?"

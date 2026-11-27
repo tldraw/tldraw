@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Inviter lagkamerater"
+      "value": "Inviter teammedlemmer"
     }
   ],
   "05b2656486": [
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Satsgrensen er overskredet. Prøv igjen senere."
+      "value": "Forespørselsgrensen er overskredet. Prøv igjen senere."
     }
   ],
   "08bd40c754": [
@@ -152,7 +152,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Fjerne"
+      "value": "Fjern"
     }
   ],
   "10fb1df194": [
@@ -164,13 +164,19 @@
   "110a4b01be": [
     {
       "type": 0,
-      "value": "Utgi"
+      "value": "Publiser"
     }
   ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Løsne filen"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Dette arbeidsområdet har nådd maksimalt antall biblioteker. Slett gamle biblioteker før du oppretter nye."
     }
   ],
   "13ddd375ad": [
@@ -227,6 +233,12 @@
       "value": "Et arbeidsområde må ha minst én eier. Gjør først noen andre til eier."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Min samling"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -259,6 +271,12 @@
       "value": "Om tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Dette biblioteket har nådd maksimalt antall elementer. Slett gamle elementer før du legger til nye."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -284,7 +302,7 @@
   "2a1167f869": [
     {
       "type": 0,
-      "value": "Velkommen til arbeidsplassen din"
+      "value": "Velkommen til arbeidsområdet ditt"
     }
   ],
   "2a37324bb4": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Utheving mangler"
+      "value": "i18n: Uthev manglende"
     }
   ],
   "324a0f3182": [
@@ -348,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Duplikatfil"
+      "value": "Dupliser fil"
     }
   ],
   "335defdafe": [
@@ -414,13 +432,19 @@
   "3e2ae04ff0": [
     {
       "type": 0,
-      "value": "Ustøttet Mermaid-diagram"
+      "value": "Mermaid-diagram som ikke støttes"
     }
   ],
   "402bf0c47e": [
     {
       "type": 0,
       "value": "Fargetema"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Bibliotekmeny"
     }
   ],
   "42e53c47c1": [
@@ -533,6 +557,12 @@
     {
       "type": 0,
       "value": " kommenterte"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Denne filen"
     }
   ],
   "4d0d3ddec9": [
@@ -662,7 +692,7 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Dele"
+      "value": "Del"
     }
   ],
   "5bec508475": [
@@ -698,7 +728,7 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Kopiere"
+      "value": "Kopier"
     }
   ],
   "608e9d366e": [
@@ -806,7 +836,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " annen"
             }
           ]
         },
@@ -817,7 +847,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andre"
             }
           ]
         }
@@ -999,7 +1029,13 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Denne anonyme tldraw-flerspillerfilen er nå skrivebeskyttet. For å fortsette redigeringen, vennligst logg inn og kopier den til filene dine."
+      "value": "Denne anonyme tldraw-flerbrukerfilen er nå skrivebeskyttet. Logg inn og kopier den til filene dine for å fortsette å redigere."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Ingen biblioteker ennå."
     }
   ],
   "78e9815992": [
@@ -1053,7 +1089,7 @@
   "7cb5f8b4a5": [
     {
       "type": 0,
-      "value": "Glemme"
+      "value": "Glem"
     }
   ],
   "7d69b3cb4c": [
@@ -1201,7 +1237,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " annen"
             }
           ]
         },
@@ -1212,7 +1248,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andre"
             }
           ]
         }
@@ -1259,7 +1295,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Begrenset pris"
+      "value": "For mange forespørsler"
     }
   ],
   "902b0d55fd": [
@@ -1346,6 +1382,12 @@
       "value": "Bruksvilkår"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Prøv MCP-serveren"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1396,6 +1438,38 @@
       "value": "Du ser ut til å være frakoblet. Sjekk forbindelsen din og prøv på nytt."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementer"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1406,6 +1480,60 @@
     {
       "type": 0,
       "value": "Publiser denne filen"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Vil du slette "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " og dets "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementer"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1462,7 +1590,7 @@
             },
             {
               "type": 0,
-              "value": " ulest"
+              "value": " uleste"
             }
           ]
         }
@@ -1475,7 +1603,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Polstring"
+      "value": "Marg"
     }
   ],
   "a18366b217": [
@@ -1505,7 +1633,7 @@
   "a3debabee7": [
     {
       "type": 0,
-      "value": "Cookie policy"
+      "value": "Retningslinjer for informasjonskapsler"
     }
   ],
   "a4bef6414b": [
@@ -1523,7 +1651,7 @@
   "a52945dbe2": [
     {
       "type": 0,
-      "value": "Forlate"
+      "value": "Forlat"
     }
   ],
   "a6cc403d56": [
@@ -1535,13 +1663,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "Analytics"
+      "value": "Analyse"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Filen blir stor"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Slett bibliotek"
     }
   ],
   "a9ded1e5ce": [
@@ -1659,7 +1793,7 @@
   "b6d4223e60": [
     {
       "type": 0,
-      "value": "Logg på"
+      "value": "Logg inn"
     }
   ],
   "b6f4a2ec63": [
@@ -1817,13 +1951,13 @@
   "c4b39a1cc3": [
     {
       "type": 0,
-      "value": "Viktige informasjonskapsler"
+      "value": "Nødvendige informasjonskapsler"
     }
   ],
   "c6a00f137b": [
     {
       "type": 0,
-      "value": "Invitere"
+      "value": "Inviter"
     }
   ],
   "c6f16003f2": [
@@ -1895,7 +2029,7 @@
   "d3d2e61733": [
     {
       "type": 0,
-      "value": "Lukke"
+      "value": "Lukk"
     }
   ],
   "d46632fe1f": [
@@ -1907,7 +2041,7 @@
   "d4bbf74f3e": [
     {
       "type": 0,
-      "value": "Bytt sidefelt"
+      "value": "Vis/skjul sidefelt"
     }
   ],
   "d5e92609cf": [
@@ -1989,13 +2123,19 @@
   "dfdb78a4e4": [
     {
       "type": 0,
-      "value": "Feilsøkingsflagg for apper"
+      "value": "Feilsøkingsflagg for appen"
     }
   ],
   "e0aa021e21": [
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Kunne ikke endre biblioteket"
     }
   ],
   "e2198d6228": [
@@ -2031,7 +2171,7 @@
   "ea4788705e": [
     {
       "type": 0,
-      "value": "Kansellere"
+      "value": "Avbryt"
     }
   ],
   "eb1e2b0542": [
@@ -2067,7 +2207,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Kopiere"
+      "value": "Dupliser"
     }
   ],
   "ede55d955f": [
@@ -2124,6 +2264,12 @@
     {
       "type": 0,
       "value": "Brukerinnstillinger"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Ikke i noen fil"
     }
   ],
   "f13001876b": [
@@ -2205,7 +2351,13 @@
   "fed5ec05eb": [
     {
       "type": 0,
-      "value": "Kopiert lenke"
+      "value": "Lenke kopiert"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Offentlige biblioteker"
     }
   ],
   "ff2fefd3c6": [
@@ -2231,7 +2383,7 @@
   "ffad261a48": [
     {
       "type": 0,
-      "value": "Feil ved godtok invitasjonen"
+      "value": "Feil ved godtakelse av invitasjon"
     }
   ],
   "ffba7e098c": [
