@@ -1,4 +1,5 @@
 import type { SequenceModel } from 'pele'
+import { defaultMermaidNodeRenderSpec } from './defaultMermaidNodeRenderSpec'
 import type { MeasureLabelSize } from './mermaidNodeCreateShape'
 import { parsePeleDiagram } from './peleDiagram'
 import {
@@ -260,6 +261,27 @@ describe('pele sequence renderer', () => {
 		const separator = lines.find((line) => line.id === 'fragment-0-sep-1')!
 		expect(separator.y).toBeGreaterThan(alt.y)
 		expect(separator.y).toBeLessThan(alt.y + alt.h)
+	})
+
+	it("draws a section's title as text, inset where a box's label sat", async () => {
+		const text = `sequenceDiagram
+  alt ok
+    A->>B: yes
+  else nope
+    B->>A: no
+  end`
+		const padding = 8
+		const measureLabel: MeasureLabelSize = (label) => ({
+			w: label.length * 7 + padding * 2,
+			h: 20 + padding * 2,
+		})
+		const { nodes } = await toBlueprint(text, measureLabel)
+		const frame = nodes.find((node) => node.id === 'fragment-0')!
+		const section = nodes.find((node) => node.id === 'fragment-0-section-1')!
+
+		expect(defaultMermaidNodeRenderSpec('sequence', section.kind)).toEqual({ variant: 'text' })
+		expect(section.x - frame.x).toBe(5 + padding)
+		expect(section.x + section.w).toBe(frame.x + frame.w - 5)
 	})
 
 	it('reads a row for every message and note, and a frame for every fragment', async () => {

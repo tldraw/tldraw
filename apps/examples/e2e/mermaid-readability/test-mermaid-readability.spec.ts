@@ -48,21 +48,6 @@ const KNOWN_PROBLEMS: KnownProblem[] = [
 		].map((label) => overlap('sequence', 24, label, 'rectangle with no text')),
 	},
 	{
-		reason: 'A note in an `option` section is drawn over the section title',
-		findings: [
-			overlap('sequence', 24, 'Stop flow before inventory mutation', '[Payment failed]'),
-			overlap('sequence', 24, '[Payment failed]', 'Stop flow before inventory mutation'),
-		],
-	},
-	{
-		reason:
-			"A section title's box is taller than its text, so a frame nested right under it starts inside the box",
-		findings: [
-			overlap('sequence', 22, 'opt [New device detected]', '[Optional alert]'),
-			overlap('sequence', 22, '[Optional alert]', 'opt [New device detected]'),
-		],
-	},
-	{
 		// Not a conversion bug: inside a composite state, pele (like Mermaid) ignores a `<<fork>>` or
 		// `<<join>>` declared after the state is first used and draws a plain named state. The
 		// conversion draws the bar the source asks for.

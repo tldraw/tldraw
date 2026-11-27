@@ -969,16 +969,19 @@ export function sequenceToBlueprint(
 					size: 's',
 				})
 
+				// Drawn as text (see `defaultMermaidNodeRenderSpec`), inset by a box label's padding so
+				// it lines up as it did in a box. An empty label measures as just that padding, twice.
+				const labelPadding = measureLabelWidth('', 's') / 2
 				nodes.push({
 					id: `fragment-${fragmentIndex}-section-${s}`,
 					kind: 'sequence_fragment_section',
-					x: leftX + FRAGMENT_SECTION_LABEL_PADDING,
+					x: leftX + FRAGMENT_SECTION_LABEL_PADDING + labelPadding,
 					y: sepY + FRAGMENT_SECTION_LABEL_PADDING,
-					w: fragW - FRAGMENT_SECTION_LABEL_PADDING * 2,
+					w: fragW - FRAGMENT_SECTION_LABEL_PADDING * 2 - labelPadding,
 					h: FRAGMENT_SECTION_LABEL_HEIGHT,
 					fill: 'none',
 					dash: 'dashed',
-					color: 'light-blue',
+					color: 'black',
 					size: 's',
 					align: 'start',
 					verticalAlign: 'start',
