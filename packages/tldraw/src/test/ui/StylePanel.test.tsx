@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
-import { createShapeId, DefaultColorStyle, Editor, TLArrowShape } from '@tldraw/editor'
+import { createShapeId, DefaultColorStyle, Editor, TLArrowShape, tlmenus } from '@tldraw/editor'
 import { Tldraw } from '../../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
 
@@ -73,5 +73,43 @@ describe('StylePanel', () => {
 
 		expect(editor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
 		expect(editor.getSelectedShapeIds()).toEqual([id])
+	})
+
+	// The pickers used to keep their own open state, which outlived the menu registry entry
+	it.each([
+		['geo', 'style.geo', 'style.geo.ellipse'],
+		['arrowhead', 'style.arrowheadEnd', 'style.arrowheadEnd.none'],
+	])('closes the %s dropdown when open menus are cleared', async (_, triggerId, itemId) => {
+		const id = createShapeId()
+		act(() => {
+			if (triggerId === 'style.geo') {
+				editor.createShapes([{ id, type: 'geo', x: 100, y: 100 }])
+			} else {
+				editor.createShapes<TLArrowShape>([
+					{
+						id,
+						type: 'arrow',
+						x: 100,
+						y: 100,
+						props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+					},
+				])
+			}
+			editor.select(id)
+		})
+
+		fireEvent.click(await screen.findByTestId(triggerId))
+		await screen.findByTestId(itemId)
+		expect(editor.menus.hasAnyOpenMenus()).toBe(true)
+
+		act(() => {
+			editor.menus.clearOpenMenus()
+		})
+
+		await waitFor(() => {
+			expect(screen.queryByTestId(itemId)).toBeNull()
+		})
+		expect(editor.menus.hasAnyOpenMenus()).toBe(false)
+		expect(tlmenus.getOpenMenus()).toEqual([])
 	})
 })

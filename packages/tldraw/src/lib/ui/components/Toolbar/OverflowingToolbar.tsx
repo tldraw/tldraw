@@ -71,7 +71,6 @@ export function OverflowingToolbar({
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 	const rButtons = useRef<HTMLElement[]>([])
-	const [isOpen, setIsOpen] = useState(false)
 
 	const mainToolsRef = useRef<HTMLDivElement>(null)
 
@@ -311,7 +310,7 @@ export function OverflowingToolbar({
 			</Layout>
 			{shouldShowOverflow && (
 				<IsInOverflowContext.Provider value={true}>
-					<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+					<TldrawUiPopover id={popoverId}>
 						<TldrawUiPopoverTrigger>
 							<TldrawUiToolbarButton
 								title={msg(messages.toolPanelMore)}
@@ -337,7 +336,6 @@ export function OverflowingToolbar({
 								id={`${id}_more`}
 								onClick={() => {
 									tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-									setIsOpen(false)
 								}}
 							>
 								<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
