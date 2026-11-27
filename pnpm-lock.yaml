@@ -1432,6 +1432,9 @@ importers:
       '@tldraw/commenting':
         specifier: workspace:*
         version: link:../commenting
+      '@tldraw/libraries':
+        specifier: workspace:*
+        version: link:../libraries
       '@tldraw/utils':
         specifier: workspace:*
         version: link:../utils
