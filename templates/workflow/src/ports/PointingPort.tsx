@@ -1,9 +1,10 @@
 import { createShapeId, StateNode, TLPointerEventInfo, TLShapeId } from 'tldraw'
 import { onCanvasComponentPickerState } from '../components/OnCanvasComponentPicker.tsx'
+import { createOrUpdateConnectionBinding } from '../connection/ConnectionBindingUtil'
 import {
-	createOrUpdateConnectionBinding,
-	getConnectionBindings,
-} from '../connection/ConnectionBindingUtil'
+	createNodeAtConnectionEnd,
+	deleteConnectionIfIncomplete,
+} from '../connection/ConnectionShapeUtil'
 import { getNextConnectionIndex } from '../connection/keepConnectionsAtBottom'
 import {
 	DEFAULT_NODE_SPACING_PX,
@@ -11,7 +12,7 @@ import {
 	NODE_ROW_HEADER_GAP_PX,
 	NODE_ROW_HEIGHT_PX,
 } from '../constants.tsx'
-import { getNodePortConnections, getNodePorts } from '../nodes/nodePorts'
+import { getNodePortConnections } from '../nodes/nodePorts'
 import { PortId } from '../ports/Port'
 
 // Information about which port is being pointed at
@@ -32,67 +33,70 @@ export class PointingPort extends StateNode {
 		this.info = info
 	}
 
+	private getExistingConnection() {
+		const { shapeId, portId } = this.info!
+		return getNodePortConnections(this.editor, shapeId).find((c) => c.ownPortId === portId)
+	}
+
 	override onPointerMove(info: TLPointerEventInfo): void {
 		// isDragging is true if the user has moved the pointer sufficiently. below this threshold,
 		// we treat the pointer as a click.
-		if (this.editor.inputs.getIsDragging()) {
-			const allowsMultipleConnections = this.info?.terminal === 'start'
-			const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
-				(c) => c.ownPortId === this.info!.portId
-			)
+		if (!this.editor.inputs.getIsDragging()) return
 
-			// If we can't have multiple connections and one already exists, move the existing
-			// connection by transitioning to dragging the existing connection's handle.
-			if (!allowsMultipleConnections && hasExistingConnection) {
-				this.parent.transition('dragging_handle', {
-					...info,
-					target: 'handle',
-					shape: this.editor.getShape(hasExistingConnection.connectionId)!,
-					handle: this.editor
-						.getShapeHandles(hasExistingConnection.connectionId)!
-						.find((h) => h.id === this.info!.terminal),
-				})
-				return
-			}
+		const { shapeId, portId, terminal: connectingTerminal } = this.info!
+		const existingConnection = this.getExistingConnection()
 
-			// Otherwise, create a new connection, and start dragging that connection's handle instead.
-			const creatingMarkId = this.editor.markHistoryStoppingPoint()
-			const connectionShapeId = createShapeId()
-			const connectingTerminal = this.info!.terminal
-			const draggingTerminal = connectingTerminal === 'start' ? 'end' : 'start'
-
-			this.editor.createShape({
-				type: 'connection',
-				id: connectionShapeId,
-				x: this.editor.inputs.getCurrentPagePoint().x,
-				y: this.editor.inputs.getCurrentPagePoint().y,
-				index: getNextConnectionIndex(this.editor),
-				props: {
-					start: { x: 0, y: 0 },
-					end: { x: 0, y: 0 },
-				},
-			})
-
-			// bind one end of the connection to the port the user pointer-down'd on.
-			createOrUpdateConnectionBinding(this.editor, connectionShapeId, this.info!.shapeId, {
-				portId: this.info!.portId,
-				terminal: connectingTerminal,
-			})
-
-			// transition to dragging the other end of the connection:
-			const handle = this.editor
-				.getShapeHandles(connectionShapeId)
-				?.find((h) => h.id === draggingTerminal)
-
+		// If we can't have multiple connections and one already exists, move the existing
+		// connection by transitioning to dragging the existing connection's handle.
+		if (connectingTerminal === 'end' && existingConnection) {
 			this.parent.transition('dragging_handle', {
 				...info,
 				target: 'handle',
-				shape: this.editor.getShape(connectionShapeId)!,
-				handle: handle!,
-				creatingMarkId,
-				isCreating: true,
+				shape: this.editor.getShape(existingConnection.connectionId)!,
+				handle: this.editor
+					.getShapeHandles(existingConnection.connectionId)!
+					.find((h) => h.id === connectingTerminal),
 			})
+			return
 		}
+
+		// Otherwise, create a new connection, and start dragging that connection's handle instead.
+		const creatingMarkId = this.editor.markHistoryStoppingPoint()
+		const connectionShapeId = createShapeId()
+		const draggingTerminal = connectingTerminal === 'start' ? 'end' : 'start'
+		const { x, y } = this.editor.inputs.getCurrentPagePoint()
+
+		this.editor.createShape({
+			type: 'connection',
+			id: connectionShapeId,
+			x,
+			y,
+			index: getNextConnectionIndex(this.editor),
+			props: {
+				start: { x: 0, y: 0 },
+				end: { x: 0, y: 0 },
+			},
+		})
+
+		// bind one end of the connection to the port the user pointer-down'd on.
+		createOrUpdateConnectionBinding(this.editor, connectionShapeId, shapeId, {
+			portId,
+			terminal: connectingTerminal,
+		})
+
+		// transition to dragging the other end of the connection:
+		const handle = this.editor
+			.getShapeHandles(connectionShapeId)
+			?.find((h) => h.id === draggingTerminal)
+
+		this.parent.transition('dragging_handle', {
+			...info,
+			target: 'handle',
+			shape: this.editor.getShape(connectionShapeId)!,
+			handle: handle!,
+			creatingMarkId,
+			isCreating: true,
+		})
 	}
 
 	override onPointerUp(info: TLPointerEventInfo): void {
@@ -109,13 +113,11 @@ export class PointingPort extends StateNode {
 		if (this.info?.terminal !== 'start') return
 
 		// Don't create new connections if one already exists
-		const hasExistingConnection = getNodePortConnections(this.editor, this.info!.shapeId).find(
-			(c) => c.ownPortId === this.info!.portId
-		)
-		if (hasExistingConnection) return
+		if (this.getExistingConnection()) return
 
 		// Get the bounds of the source node
-		const bounds = this.editor.getShapePageBounds(this.info!.shapeId)
+		const { shapeId, portId } = this.info
+		const bounds = this.editor.getShapePageBounds(shapeId)
 		if (!bounds) return
 
 		// Calculate position for new node to the right of the source node
@@ -135,8 +137,8 @@ export class PointingPort extends StateNode {
 		})
 
 		// Bind the connection to the source port
-		createOrUpdateConnectionBinding(this.editor, connectionShapeId, this.info!.shapeId, {
-			portId: this.info!.portId,
+		createOrUpdateConnectionBinding(this.editor, connectionShapeId, shapeId, {
+			portId,
 			terminal: 'start',
 		})
 
@@ -159,46 +161,10 @@ export class PointingPort extends StateNode {
 			location: 'end',
 			onPick: (nodeType, terminalInPageSpace) => {
 				// Create the new node at the specified position
-				const newNodeId = createShapeId()
-				this.editor.createShape({
-					type: 'node',
-					id: newNodeId,
-					x: terminalInPageSpace.x,
-					y: terminalInPageSpace.y,
-					props: {
-						node: nodeType,
-					},
-				})
-				this.editor.select(newNodeId)
-
-				// Position the node so its input port aligns with the connection end
-				const ports = getNodePorts(this.editor, newNodeId)
-				const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
-				if (firstInputPort) {
-					this.editor.updateShape({
-						id: newNodeId,
-						type: 'node',
-						x: terminalInPageSpace.x - firstInputPort.x,
-						y: terminalInPageSpace.y - firstInputPort.y,
-					})
-
-					// Connect the new node to the connection
-					createOrUpdateConnectionBinding(this.editor, connectionShapeId, newNodeId, {
-						portId: firstInputPort.id,
-						terminal: 'end',
-					})
-				}
+				createNodeAtConnectionEnd(this.editor, connectionShapeId, nodeType, terminalInPageSpace)
 			},
-			onClose: () => {
-				// If the connection isn't fully connected, delete it
-				const connection = this.editor.getShape(connectionShapeId)
-				if (!connection || !this.editor.isShapeOfType(connection, 'connection')) return
-
-				const bindings = getConnectionBindings(this.editor, connection)
-				if (!bindings.start || !bindings.end) {
-					this.editor.deleteShapes([connection.id])
-				}
-			},
+			// If the connection isn't fully connected, delete it
+			onClose: () => deleteConnectionIfIncomplete(this.editor, connectionShapeId),
 		})
 	}
 }

@@ -55,7 +55,7 @@ export function Port({ shapeId, portId }: { shapeId: TLShapeId; portId: PortId }
 	const isEligible = useValue(
 		'isEligible',
 		() => {
-			const { eligiblePorts: eligiblePorts } = portState.get(editor)
+			const { eligiblePorts } = portState.get(editor)
 			if (!eligiblePorts) return false
 			if (eligiblePorts.terminal !== port.terminal) return false
 			if (eligiblePorts.excludeNodes?.has(shapeId)) return false
