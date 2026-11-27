@@ -8,7 +8,7 @@ import {
 	Store,
 	UnknownRecord,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, noop } from '@tldraw/utils'
+import { exhaustiveSwitchError, isEqual, noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
 
 const HistoryRecorderState = {
@@ -73,6 +73,34 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.push({ type: 'diff', diff }),
 			redos,
 		}))
+	}
+
+	/**
+	 * Takes changes that the server rejected out of undo and redo, otherwise undo replays a step
+	 * that never happened. `changes` is the rejected change as the user made it.
+	 *
+	 * @internal
+	 */
+	removeRejectedChanges(changes: RecordsDiff<R>) {
+		this.flushPendingDiff()
+		const { undos, redos } = this.stacks.get()
+		if (undos.length === 0 && redos.length === 0) return
+
+		const ids = [
+			...Object.keys(changes.added),
+			...Object.keys(changes.updated),
+			...Object.keys(changes.removed),
+		]
+
+		// Marks stay, otherwise a running interaction cannot bail to its mark.
+		const undoEntries = stackToArray(undos).slice()
+		const redoEntries = stackToArray(redos).slice()
+		for (const id of ids) {
+			removeRejectedSteps(undoEntries, id, changes)
+			for (let i = redoEntries.length - 1; i >= 0; i--) setStepStates(redoEntries, i, id, null)
+		}
+
+		this.stacks.set({ undos: arrayToStack(undoEntries), redos: arrayToStack(redoEntries) })
 	}
 
 	getNumUndos() {
@@ -416,6 +444,91 @@ class StackItem<T> {
 
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
+	}
+}
+
+/** Entries are newest first, like the stacks. */
+function arrayToStack<T>(entries: T[]): Stack<T> {
+	let result = stack<T>()
+	for (let i = entries.length - 1; i >= 0; i--) result = result.push(entries[i])
+	return result
+}
+
+/** A record before and after one history step, or null if the step did not touch it. */
+function getStepStates<R extends UnknownRecord>(
+	diff: RecordsDiff<R>,
+	id: string
+): [R | undefined, R | undefined] | null {
+	if (id in diff.added) return [undefined, diff.added[id as R['id']]]
+	if (id in diff.updated) return diff.updated[id as R['id']]
+	if (id in diff.removed) return [diff.removed[id as R['id']], undefined]
+	return null
+}
+
+/** Replaces a record's states in one step, or removes them with `null`. An emptied step is removed. */
+function setStepStates<R extends UnknownRecord>(
+	entries: TLHistoryEntry<R>[],
+	index: number,
+	id: string,
+	states: [R | undefined, R | undefined] | null
+) {
+	const entry = entries[index]
+	if (entry.type !== 'diff' || !getStepStates(entry.diff, id)) return
+
+	const omit = <T>(map: Record<string, T>) =>
+		Object.fromEntries(Object.entries(map).filter(([key]) => key !== id))
+	const diff = {
+		added: omit(entry.diff.added),
+		updated: omit(entry.diff.updated),
+		removed: omit(entry.diff.removed),
+	} as RecordsDiff<R>
+
+	const [before, after] = states ?? []
+	const key = id as R['id']
+	if (before && after) {
+		if (!isEqual(before, after)) diff.updated[key] = [before, after]
+	} else if (after) {
+		diff.added[key] = after
+	} else if (before) {
+		diff.removed[key] = before
+	}
+
+	if (isRecordsDiffEmpty(diff)) entries.splice(index, 1)
+	else entries[index] = { type: 'diff', diff }
+}
+
+/**
+ * Takes one rejected record out of the undo entries (newest first). The steps that led from the
+ * server's version to the user's are removed. When they do not start at the server's version, only
+ * the newest one is cut back to it, otherwise steps that the server accepted would go too.
+ */
+function removeRejectedSteps<R extends UnknownRecord>(
+	entries: TLHistoryEntry<R>[],
+	id: string,
+	rejected: RecordsDiff<R>
+) {
+	const states = getStepStates(rejected, id)
+	if (!states) return
+	const [server, user] = states
+
+	const chain: number[] = []
+	let current = user
+	for (let i = 0; i < entries.length && !isEqual(current, server); i++) {
+		const entry = entries[i]
+		const step = entry.type === 'diff' ? getStepStates(entry.diff, id) : null
+		if (!step) continue
+		// the record changed without us
+		if (!isEqual(step[1], current)) break
+		chain.push(i)
+		current = step[0]
+	}
+	if (chain.length === 0) return
+
+	if (isEqual(current, server)) {
+		for (const index of chain.reverse()) setStepStates(entries, index, id, null)
+	} else {
+		const newest = entries[chain[0]] as Extract<TLHistoryEntry<R>, { type: 'diff' }>
+		setStepStates(entries, chain[0], id, [getStepStates(newest.diff, id)![0], server])
 	}
 }
 

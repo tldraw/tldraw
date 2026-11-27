@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLRecordAuthorizers, TLRoomCanWrite, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -151,6 +151,21 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
+	 * Judges the document changes of each client push, with the document before and after it. It
+	 * returns the changes it rejects; an empty list allows the push. One rejection discards the
+	 * whole push, and the client gets each rejection with its reason. Server-initiated writes do
+	 * not go through it.
+	 *
+	 * @example
+	 * ```ts
+	 * const room = new TLSocketRoom<TLRecord, { role: 'viewer' | 'editor' }>({
+	 * 	canWrite: (changes, { session }) =>
+	 * 		session.meta.role === 'editor' ? [] : rejectAll(changes, 'view-only'),
+	 * })
+	 * ```
+	 */
+	canWrite?: TLRoomCanWrite<R, SessionMeta>
+	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
@@ -281,6 +296,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			canWrite: opts.canWrite,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
