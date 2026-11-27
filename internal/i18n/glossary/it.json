@@ -1,0 +1,354 @@
+{
+	"register": "Imperative for commands",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Accessibilità"
+		},
+		{
+			"term": "Align left",
+			"translation": "Allinea a sinistra"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Freccia"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "punta di freccia",
+			"note": "feminine"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Punte di freccia"
+		},
+		{
+			"term": "background",
+			"translation": "Sfondo"
+		},
+		{
+			"term": "Bold",
+			"translation": "Grassetto"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "Porta avanti"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "Porta in primo piano"
+		},
+		{
+			"term": "camera (viewport)",
+			"translation": "visuale",
+			"note": "'camera' means room in Italian"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Annulla"
+		},
+		{
+			"term": "Cancel (dialog button)",
+			"translation": "Annulla",
+			"note": "Not 'Cancellare' (delete)"
+		},
+		{
+			"term": "Clipboard",
+			"translation": "appunti"
+		},
+		{
+			"term": "Close",
+			"translation": "Chiudi",
+			"note": "Verb; not 'Vicino'"
+		},
+		{
+			"term": "Color",
+			"translation": "Colore"
+		},
+		{
+			"term": "command palette",
+			"translation": "Riquadro comandi"
+		},
+		{
+			"term": "comment",
+			"translation": "commento"
+		},
+		{
+			"term": "container",
+			"translation": "contenitore"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Copia"
+		},
+		{
+			"term": "Cut",
+			"translation": "Taglia"
+		},
+		{
+			"term": "dashed",
+			"translation": "Tratteggiato"
+		},
+		{
+			"term": "Default",
+			"translation": "Predefinito"
+		},
+		{
+			"term": "Delete",
+			"translation": "Elimina"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Rombo"
+		},
+		{
+			"term": "Download",
+			"translation": "Scarica"
+		},
+		{
+			"term": "Download (action)",
+			"translation": "Scarica"
+		},
+		{
+			"term": "Draw (line style)",
+			"translation": "Matita",
+			"note": "Hand-drawn stroke style"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplica"
+		},
+		{
+			"term": "edit",
+			"translation": "Modifica"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Modifica"
+		},
+		{
+			"term": "embed",
+			"translation": "oggetto incorporato"
+		},
+		{
+			"term": "Error",
+			"translation": "Errore"
+		},
+		{
+			"term": "Export",
+			"translation": "Esporta"
+		},
+		{
+			"term": "file",
+			"translation": "file"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "Riempimento"
+		},
+		{
+			"term": "Flatten (to image)",
+			"translation": "Unico livello",
+			"note": "Established Italian graphics-software command"
+		},
+		{
+			"term": "focus mode",
+			"translation": "Modalità concentrazione"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Segui"
+		},
+		{
+			"term": "grid",
+			"translation": "griglia"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Raggruppa"
+		},
+		{
+			"term": "Hand (tool)",
+			"translation": "Panoramica"
+		},
+		{
+			"term": "Highlight (tool)",
+			"translation": "Evidenziatore",
+			"note": "Highlighter-marker tool, noun"
+		},
+		{
+			"term": "Italic",
+			"translation": "Corsivo"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "elemento"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "elemento"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "Scorciatoie da tastiera"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Orizzontale"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Librerie",
+			"note": "Software asset libraries, not Biblioteche"
+		},
+		{
+			"term": "library",
+			"translation": "libreria",
+			"note": "Collection of shapes; not 'biblioteca'"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "libreria"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "libreria"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Collegamento"
+		},
+		{
+			"term": "Members",
+			"translation": "Membri"
+		},
+		{
+			"term": "minimap",
+			"translation": "minimappa"
+		},
+		{
+			"term": "Mixed (various values)",
+			"translation": "Misto"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opacità"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "Proprietario"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Compatta"
+		},
+		{
+			"term": "Paste",
+			"translation": "Incolla"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Verticale"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferenze"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Informativa sulla privacy"
+		},
+		{
+			"term": "publish",
+			"translation": "pubblica"
+		},
+		{
+			"term": "Redo",
+			"translation": "Ripristina"
+		},
+		{
+			"term": "Rename",
+			"translation": "Rinomina"
+		},
+		{
+			"term": "reply (noun)",
+			"translation": "risposta"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Salva una copia"
+		},
+		{
+			"term": "search (prompt)",
+			"translation": "Cerca..."
+		},
+		{
+			"term": "See more / See less",
+			"translation": "Mostra altro / Mostra meno"
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "Selezione"
+		},
+		{
+			"term": "Select on wrap",
+			"translation": "Circonda per selezionare"
+		},
+		{
+			"term": "Send backward",
+			"translation": "Porta indietro"
+		},
+		{
+			"term": "Send to back",
+			"translation": "Porta in secondo piano"
+		},
+		{
+			"term": "Settings",
+			"translation": "Impostazioni"
+		},
+		{
+			"term": "shape",
+			"translation": "forma"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Barrato"
+		},
+		{
+			"term": "Text formatting",
+			"translation": "Formattazione testo"
+		},
+		{
+			"term": "tools",
+			"translation": "Strumenti"
+		},
+		{
+			"term": "Undo",
+			"translation": "Annulla"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Separa"
+		},
+		{
+			"term": "Untitled",
+			"translation": "Senza titolo"
+		},
+		{
+			"term": "upload",
+			"translation": "caricamento"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Visualizza"
+		},
+		{
+			"term": "workspace",
+			"translation": "area di lavoro"
+		},
+		{
+			"term": "zoom (noun, zoom level)",
+			"translation": "Zoom"
+		}
+	]
+}

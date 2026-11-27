@@ -1,0 +1,154 @@
+{
+	"register": "आप; polite imperative (करें) for controls",
+	"terms": [
+		{
+			"term": "Cancel",
+			"translation": "रद्द करें"
+		},
+		{
+			"term": "color",
+			"translation": "रंग"
+		},
+		{
+			"term": "Comment",
+			"translation": "टिप्पणी"
+		},
+		{
+			"term": "Copy",
+			"translation": "कॉपी करें"
+		},
+		{
+			"term": "Delete",
+			"translation": "डिलीट करें"
+		},
+		{
+			"term": "Download",
+			"translation": "डाउनलोड करें"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "डुप्लिकेट करें"
+		},
+		{
+			"term": "Edit",
+			"translation": "एडिट करें"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "संपादन"
+		},
+		{
+			"term": "Email address",
+			"translation": "ईमेल पता"
+		},
+		{
+			"term": "export",
+			"translation": "एक्सपोर्ट",
+			"note": "Loanword used throughout the locale"
+		},
+		{
+			"term": "file",
+			"translation": "फ़ाइल"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "भराव"
+		},
+		{
+			"term": "group (verb)",
+			"translation": "ग्रुप करें",
+			"note": "Pairs with ungroup 'अनग्रुप करें'"
+		},
+		{
+			"term": "horizontal (in actions)",
+			"translation": "आड़ा"
+		},
+		{
+			"term": "Horizontally",
+			"translation": "आड़ा"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "आइटम"
+		},
+		{
+			"term": "keyboard",
+			"translation": "कीबोर्ड"
+		},
+		{
+			"term": "Libraries",
+			"translation": "लाइब्रेरी",
+			"note": "Not पुस्तकालय"
+		},
+		{
+			"term": "library",
+			"translation": "लाइब्रेरी"
+		},
+		{
+			"term": "Light (color tint)",
+			"translation": "हल्का",
+			"note": "Use this spelling for all light-* colors."
+		},
+		{
+			"term": "Members",
+			"translation": "सदस्य"
+		},
+		{
+			"term": "Page",
+			"translation": "पृष्ठ"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "पिन करें"
+		},
+		{
+			"term": "privacy",
+			"translation": "गोपनीयता"
+		},
+		{
+			"term": "rectangle",
+			"translation": "आयत"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "हटाएँ"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "कॉपी सेव करें",
+			"note": "action.save-copy"
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "चयन"
+		},
+		{
+			"term": "tools",
+			"translation": "टूल्स"
+		},
+		{
+			"term": "trapezoid",
+			"translation": "समलंब"
+		},
+		{
+			"term": "user",
+			"translation": "उपयोगकर्ता"
+		},
+		{
+			"term": "vertical (in actions)",
+			"translation": "लंबवत"
+		},
+		{
+			"term": "Vertically",
+			"translation": "लंबवत"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "दृश्य"
+		},
+		{
+			"term": "workspace",
+			"translation": "कार्यक्षेत्र"
+		}
+	]
+}

@@ -148,7 +148,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Xóa"
+      "value": "Loại bỏ"
     }
   ],
   "10fb1df194": [
@@ -167,6 +167,12 @@
     {
       "type": 0,
       "value": "Bỏ ghim tệp"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Không gian làm việc này đã đạt số thư viện tối đa. Hãy xóa các thư viện cũ trước khi tạo thư viện mới."
     }
   ],
   "13ddd375ad": [
@@ -220,7 +226,13 @@
   "1ffd709937": [
     {
       "type": 0,
-      "value": "Không gian làm việc phải có ít nhất một người sở hữu. Hãy để người khác làm chủ sở hữu trước."
+      "value": "Không gian làm việc phải có ít nhất một người sở hữu. Hãy chỉ định người khác làm người sở hữu trước."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Kho của tôi"
     }
   ],
   "21f66c9c00": [
@@ -253,6 +265,12 @@
     {
       "type": 0,
       "value": "Giới thiệu về tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Thư viện này đã đạt số mục tối đa. Hãy xóa các mục cũ trước khi thêm mục mới."
     }
   ],
   "28b2464e1f": [
@@ -344,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Tệp trùng lặp"
+      "value": "Nhân bản tệp"
     }
   ],
   "335defdafe": [
@@ -362,7 +380,7 @@
   "344a7f427f": [
     {
       "type": 0,
-      "value": "Biên tập viên"
+      "value": "Người chỉnh sửa"
     }
   ],
   "34e34c43ec": [
@@ -417,6 +435,12 @@
     {
       "type": 0,
       "value": "Chủ đề màu sắc"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menu thư viện"
     }
   ],
   "42e53c47c1": [
@@ -478,13 +502,13 @@
   "477df802ca": [
     {
       "type": 0,
-      "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào thư mục của bạn."
+      "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào các tệp của bạn."
     }
   ],
   "47f493a590": [
     {
       "type": 0,
-      "value": "Tệp ghim"
+      "value": "Ghim tệp"
     }
   ],
   "4970317944": [
@@ -529,6 +553,12 @@
     {
       "type": 0,
       "value": " đã bình luận"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Tệp này"
     }
   ],
   "4d0d3ddec9": [
@@ -845,7 +875,7 @@
             },
             {
               "type": 0,
-              "value": " mọi người đã phản ứng"
+              "value": " người đã bày tỏ cảm xúc"
             }
           ]
         }
@@ -976,7 +1006,13 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Tệp tldraw nhiều người chơi ẩn danh này hiện ở chế độ chỉ đọc. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép vào tệp của bạn."
+      "value": "Tệp nhiều người dùng tldraw ẩn danh này hiện chỉ có thể xem. Để tiếp tục chỉnh sửa, vui lòng đăng nhập và sao chép tệp vào các tệp của bạn."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Chưa có thư viện nào."
     }
   ],
   "78e9815992": [
@@ -1171,17 +1207,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1189,7 +1214,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " người khác"
             }
           ]
         }
@@ -1200,7 +1225,7 @@
     },
     {
       "type": 0,
-      "value": " đã phản ứng"
+      "value": " đã bày tỏ cảm xúc"
     }
   ],
   "88bf6ab42c": [
@@ -1323,6 +1348,12 @@
       "value": "Điều khoản sử dụng"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Dùng thử máy chủ MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1373,6 +1404,27 @@
       "value": "Có vẻ như bạn đang ngoại tuyến. Hãy kiểm tra kết nối của mình và thử lại."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " mục"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1383,6 +1435,49 @@
     {
       "type": 0,
       "value": "Xuất bản tệp này"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Xóa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " và "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " mục"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " trong đó?"
     }
   ],
   "9e076f5885": [
@@ -1477,13 +1572,13 @@
   "a4bef6414b": [
     {
       "type": 0,
-      "value": "Ẩn/bật thanh bên bình luận"
+      "value": "Bật/tắt thanh bên bình luận"
     }
   ],
   "a4d3b161ce": [
     {
       "type": 0,
-      "value": "Nộp"
+      "value": "Gửi"
     }
   ],
   "a52945dbe2": [
@@ -1510,10 +1605,16 @@
       "value": "Tệp đang trở nên lớn hơn"
     }
   ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Xóa thư viện"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
-      "value": "Cơ sở"
+      "value": "Nền"
     }
   ],
   "aac449eef6": [
@@ -1637,7 +1738,7 @@
   "b74dbb40c5": [
     {
       "type": 0,
-      "value": "Kéo tệp vào thanh bên trên trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu Tệp ở góc trên bên trái."
+      "value": "Kéo tệp vào thanh bên trên trang này. Hoặc chọn tùy chọn \"Nhập tập tin\" trong menu \"Tệp\" ở góc trên bên trái."
     }
   ],
   "b758336699": [
@@ -1655,7 +1756,7 @@
   "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Chức năng mời đã bị vô hiệu hóa."
+      "value": "Lời mời đã bị tắt"
     }
   ],
   "bbbcefd7ce": [
@@ -1920,7 +2021,7 @@
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Chỉ mời"
+      "value": "Chỉ dành cho người được mời"
     }
   ],
   "dbf9b24193": [
@@ -1939,6 +2040,12 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Không thể thay đổi thư viện"
     }
   ],
   "e2198d6228": [
@@ -2069,6 +2176,12 @@
       "value": "Cài đặt người dùng"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Không có trong tệp nào"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2145,6 +2258,12 @@
     {
       "type": 0,
       "value": "Đã sao chép liên kết"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Thư viện công khai"
     }
   ],
   "ff2fefd3c6": [

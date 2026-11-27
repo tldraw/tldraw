@@ -1,0 +1,367 @@
+{
+	"register": "siz in body text; plain imperative for buttons",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Erişilebilirlik"
+		},
+		{
+			"term": "Always snap",
+			"translation": "Her zaman tuttur"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Ok"
+		},
+		{
+			"term": "Arrowhead end",
+			"translation": "Bitiş"
+		},
+		{
+			"term": "Arrowhead start",
+			"translation": "Başlangıç"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Ok uçları"
+		},
+		{
+			"term": "Bold",
+			"translation": "Kalın"
+		},
+		{
+			"term": "Bookmark (link card)",
+			"translation": "Yer imi"
+		},
+		{
+			"term": "Cancel",
+			"translation": "İptal"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "İptal"
+		},
+		{
+			"term": "Close",
+			"translation": "Kapat"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Komut paleti"
+		},
+		{
+			"term": "comment",
+			"translation": "yorum"
+		},
+		{
+			"term": "container (frame/group)",
+			"translation": "kapsayıcı"
+		},
+		{
+			"term": "cookies",
+			"translation": "çerezler"
+		},
+		{
+			"term": "copy (clipboard action)",
+			"translation": "kopyalama"
+		},
+		{
+			"term": "current (open now)",
+			"translation": "geçerli",
+			"note": "Avoid 'mevcut' (existing)"
+		},
+		{
+			"term": "Cut",
+			"translation": "Kes"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Koyu"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Karanlık mod"
+		},
+		{
+			"term": "Default",
+			"translation": "Varsayılan"
+		},
+		{
+			"term": "Delete",
+			"translation": "Sil"
+		},
+		{
+			"term": "Download",
+			"translation": "İndir"
+		},
+		{
+			"term": "Download (action)",
+			"translation": "İndir"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Çoğalt"
+		},
+		{
+			"term": "edit",
+			"translation": "düzenle"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Düzenle"
+		},
+		{
+			"term": "embed",
+			"translation": "yerleştirme"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "Yerleştirme"
+		},
+		{
+			"term": "Export",
+			"translation": "Dışa aktar"
+		},
+		{
+			"term": "feedback",
+			"translation": "geri bildirim"
+		},
+		{
+			"term": "file",
+			"translation": "dosya"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "Dolgu"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "çevir",
+			"note": "döndür means rotate"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Takip et"
+		},
+		{
+			"term": "Font",
+			"translation": "Yazı Tipi"
+		},
+		{
+			"term": "Heading",
+			"translation": "Başlık"
+		},
+		{
+			"term": "Help",
+			"translation": "Yardım"
+		},
+		{
+			"term": "Import file",
+			"translation": "Dosyayı içe aktar…",
+			"note": "ffcd73e997"
+		},
+		{
+			"term": "invite",
+			"translation": "davet",
+			"note": "Not 'davetiye'"
+		},
+		{
+			"term": "Invite (invitation to join)",
+			"translation": "Davet",
+			"note": "Not 'davetiye' (invitation card)"
+		},
+		{
+			"term": "Italic",
+			"translation": "İtalik"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "öğe"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "öğe"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "Klavye kısayolları"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Yatay"
+		},
+		{
+			"term": "library",
+			"translation": "kitaplık"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "kitaplık"
+		},
+		{
+			"term": "Lined fill",
+			"translation": "Çizgili dolgu"
+		},
+		{
+			"term": "link",
+			"translation": "bağlantı"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Bağlantı"
+		},
+		{
+			"term": "lock / unlock",
+			"translation": "kilitle / kilidi aç"
+		},
+		{
+			"term": "minimap",
+			"translation": "mini harita"
+		},
+		{
+			"term": "Mixed (various values)",
+			"translation": "Karışık"
+		},
+		{
+			"term": "mouse",
+			"translation": "fare"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Bildirimler"
+		},
+		{
+			"term": "Offline",
+			"translation": "Çevrimdışı"
+		},
+		{
+			"term": "OK",
+			"translation": "Tamam",
+			"note": "Not all caps"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opaklık"
+		},
+		{
+			"term": "Owner",
+			"translation": "Sahip"
+		},
+		{
+			"term": "Owner (workspace role)",
+			"translation": "Sahip",
+			"note": "Not 'Mal sahibi' (property owner)"
+		},
+		{
+			"term": "Paste",
+			"translation": "Yapıştır"
+		},
+		{
+			"term": "Pattern (fill)",
+			"translation": "Desen"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Dikey"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Tercihler"
+		},
+		{
+			"term": "publish",
+			"translation": "yayınla"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Eşkenar dörtgen"
+		},
+		{
+			"term": "Rhombus (geo shape)",
+			"translation": "Eşkenar dörtgen",
+			"note": "Distinct from Diamond = Karo"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Bir kopyasını kaydet"
+		},
+		{
+			"term": "search (prompt)",
+			"translation": "Ara..."
+		},
+		{
+			"term": "Select on wrap",
+			"translation": "Çevrelediğinde seç"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Seçim"
+		},
+		{
+			"term": "Settings",
+			"translation": "Ayarlar"
+		},
+		{
+			"term": "shape",
+			"translation": "şekil",
+			"note": "Stays singular after a number"
+		},
+		{
+			"term": "sidebar",
+			"translation": "kenar çubuğu"
+		},
+		{
+			"term": "Stack",
+			"translation": "istifle"
+		},
+		{
+			"term": "stretch",
+			"translation": "esnet"
+		},
+		{
+			"term": "tldraw",
+			"translation": "tldraw",
+			"note": "Always lowercase, including with suffixes: tldraw'ı"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "… aç/kapat"
+		},
+		{
+			"term": "toggle X",
+			"translation": "X aç/kapat"
+		},
+		{
+			"term": "Tools",
+			"translation": "Araçlar"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "İzleme dörtgeni"
+		},
+		{
+			"term": "trapezoid",
+			"translation": "Yamuk"
+		},
+		{
+			"term": "Undo",
+			"translation": "Geri Al"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Görünüm"
+		},
+		{
+			"term": "workspace",
+			"translation": "çalışma alanı"
+		},
+		{
+			"term": "zoom (noun)",
+			"translation": "yakınlaştırma"
+		},
+		{
+			"term": "zoom out",
+			"translation": "Uzaklaştır"
+		}
+	]
+}

@@ -1,0 +1,356 @@
+{
+	"register": "você",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Acessibilidade"
+		},
+		{
+			"term": "Actions",
+			"translation": "Ações"
+		},
+		{
+			"term": "Align left",
+			"translation": "Alinhar à esquerda"
+		},
+		{
+			"term": "All (notifications)",
+			"translation": "Todas"
+		},
+		{
+			"term": "Arrange",
+			"translation": "Organizar"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Seta"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "ponta de flecha",
+			"note": "feminine"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Pontas de flecha"
+		},
+		{
+			"term": "background",
+			"translation": "Fundo"
+		},
+		{
+			"term": "Bold",
+			"translation": "Negrito"
+		},
+		{
+			"term": "Bookmark (link card)",
+			"translation": "Marcador",
+			"note": "matches action.convert-to-bookmark"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "Avançar"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Lista com marcadores"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Cancelar"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta de comandos"
+		},
+		{
+			"term": "comment",
+			"translation": "comentário"
+		},
+		{
+			"term": "container",
+			"translation": "contêiner"
+		},
+		{
+			"term": "Copy",
+			"translation": "Copiar"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Copiar"
+		},
+		{
+			"term": "Cut",
+			"translation": "Cortar"
+		},
+		{
+			"term": "Dash (stroke style)",
+			"translation": "Traço"
+		},
+		{
+			"term": "Default",
+			"translation": "Padrão"
+		},
+		{
+			"term": "Delete",
+			"translation": "Excluir"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Losango"
+		},
+		{
+			"term": "dotted",
+			"translation": "Pontilhado"
+		},
+		{
+			"term": "Download",
+			"translation": "Baixar"
+		},
+		{
+			"term": "Download (action)",
+			"translation": "Baixar"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplicar"
+		},
+		{
+			"term": "embed",
+			"translation": "incorporação"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "incorporação"
+		},
+		{
+			"term": "export",
+			"translation": "exportação"
+		},
+		{
+			"term": "file",
+			"translation": "arquivo"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "Preenchimento"
+		},
+		{
+			"term": "Flatten (to image)",
+			"translation": "Achatar"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Seguir"
+		},
+		{
+			"term": "Font",
+			"translation": "Fonte"
+		},
+		{
+			"term": "grid",
+			"translation": "grade"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Agrupar"
+		},
+		{
+			"term": "hide",
+			"translation": "Ocultar"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importar arquivo…"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "item"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "item"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "atalhos de teclado",
+			"note": "sentence case"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Orientação horizontal"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteca"
+		},
+		{
+			"term": "Menu",
+			"translation": "Menu",
+			"note": "not 'Guia' (tab)"
+		},
+		{
+			"term": "minimap",
+			"translation": "minimapa"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Mouse"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "mouse"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Compactar"
+		},
+		{
+			"term": "page",
+			"translation": "página"
+		},
+		{
+			"term": "Paste",
+			"translation": "Colar"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Orientação vertical"
+		},
+		{
+			"term": "privacy policy",
+			"translation": "Política de privacidade"
+		},
+		{
+			"term": "project",
+			"translation": "projeto"
+		},
+		{
+			"term": "publish",
+			"translation": "publicar"
+		},
+		{
+			"term": "Rename",
+			"translation": "Renomear"
+		},
+		{
+			"term": "reply (noun)",
+			"translation": "resposta"
+		},
+		{
+			"term": "Save (button)",
+			"translation": "Salvar"
+		},
+		{
+			"term": "save (to library)",
+			"translation": "salvar"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Salvar uma cópia"
+		},
+		{
+			"term": "See more / See less",
+			"translation": "Ver mais / Ver menos"
+		},
+		{
+			"term": "Select all",
+			"translation": "Selecionar tudo"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Seleção"
+		},
+		{
+			"term": "Send backward",
+			"translation": "Recuar",
+			"note": "one step; pairs with Avançar"
+		},
+		{
+			"term": "Send to back",
+			"translation": "Enviar para trás",
+			"note": "all the way; pairs with Trazer para Frente"
+		},
+		{
+			"term": "Settings",
+			"translation": "Configurações"
+		},
+		{
+			"term": "shape",
+			"translation": "forma"
+		},
+		{
+			"term": "Share",
+			"translation": "Compartilhar"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Compartilhar"
+		},
+		{
+			"term": "Shared with you",
+			"translation": "Compartilhado com você"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Fazer login"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Contínuo"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Tachado"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "aba"
+		},
+		{
+			"term": "Task list",
+			"translation": "Lista de tarefas"
+		},
+		{
+			"term": "Toggle (command)",
+			"translation": "Alternar",
+			"note": "long-form toggle commands"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "Alternar X"
+		},
+		{
+			"term": "Tools",
+			"translation": "Ferramentas"
+		},
+		{
+			"term": "trackpad",
+			"translation": "touchpad"
+		},
+		{
+			"term": "trapezoid",
+			"translation": "Trapézio"
+		},
+		{
+			"term": "Undo",
+			"translation": "Desfazer"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Desagrupar"
+		},
+		{
+			"term": "Unpin",
+			"translation": "Desafixar"
+		},
+		{
+			"term": "workspace",
+			"translation": "espaço de trabalho"
+		},
+		{
+			"term": "zoom out",
+			"translation": "Diminuir zoom"
+		}
+	]
+}

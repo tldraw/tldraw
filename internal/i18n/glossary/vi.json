@@ -1,0 +1,250 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Trợ năng"
+		},
+		{
+			"term": "background",
+			"translation": "Nền"
+		},
+		{
+			"term": "Checked / Unchecked",
+			"translation": "Đã đánh dấu / Chưa đánh dấu"
+		},
+		{
+			"term": "Collaboration",
+			"translation": "Cộng tác"
+		},
+		{
+			"term": "comment",
+			"translation": "bình luận"
+		},
+		{
+			"term": "Delete",
+			"translation": "Xóa"
+		},
+		{
+			"term": "Diamond",
+			"translation": "Hình thoi"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Hình thoi"
+		},
+		{
+			"term": "edit",
+			"translation": "Chỉnh sửa"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Người chỉnh sửa"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Hình Elip"
+		},
+		{
+			"term": "embed",
+			"translation": "nhúng"
+		},
+		{
+			"term": "Export",
+			"translation": "Xuất"
+		},
+		{
+			"term": "feedback",
+			"translation": "phản hồi"
+		},
+		{
+			"term": "file",
+			"translation": "tệp"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Theo dõi"
+		},
+		{
+			"term": "grid",
+			"translation": "lưới"
+		},
+		{
+			"term": "Help",
+			"translation": "Trợ giúp"
+		},
+		{
+			"term": "Highlight (marker)",
+			"translation": "Tô sáng"
+		},
+		{
+			"term": "Import file",
+			"translation": "Nhập tập tin…",
+			"note": "ffcd73e997; current label"
+		},
+		{
+			"term": "Item (library entry)",
+			"translation": "mục"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "mục"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Ngang"
+		},
+		{
+			"term": "library",
+			"translation": "thư viện"
+		},
+		{
+			"term": "library (collection of reusable shapes)",
+			"translation": "thư viện"
+		},
+		{
+			"term": "Light (color tint)",
+			"translation": "nhạt",
+			"note": "Means a pale shade, e.g. Đỏ nhạt. Don't use 'tươi', which means bright/vivid."
+		},
+		{
+			"term": "light <color>",
+			"translation": "<color> nhạt"
+		},
+		{
+			"term": "minimap",
+			"translation": "bản đồ nhỏ"
+		},
+		{
+			"term": "move (reorder)",
+			"translation": "Di chuyển",
+			"note": "not 'Đi' (go)"
+		},
+		{
+			"term": "Move up/down (reorder)",
+			"translation": "Di chuyển lên/xuống"
+		},
+		{
+			"term": "Note: (attention marker)",
+			"translation": "Lưu ý:"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Thông báo"
+		},
+		{
+			"term": "Oval",
+			"translation": "Hình bầu dục"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "Người sở hữu"
+		},
+		{
+			"term": "Padding (export margin)",
+			"translation": "Lề trong"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Dọc"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Cài đặt"
+		},
+		{
+			"term": "project",
+			"translation": "dự án"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Hình bình hành"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Lưu bản sao"
+		},
+		{
+			"term": "Settings",
+			"translation": "Cài đặt"
+		},
+		{
+			"term": "Snap",
+			"translation": "khớp"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Nét liền",
+			"note": "Pairs with Nét đứt"
+		},
+		{
+			"term": "stack",
+			"translation": "Xếp"
+		},
+		{
+			"term": "Stretch",
+			"translation": "Căng",
+			"note": "Don't use Căng for Stack"
+		},
+		{
+			"term": "Theme",
+			"translation": "Chủ đề"
+		},
+		{
+			"term": "thread",
+			"translation": "chủ đề"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "Bật/tắt …"
+		},
+		{
+			"term": "Toggle (command)",
+			"translation": "Bật/tắt"
+		},
+		{
+			"term": "Undo",
+			"translation": "Hoàn tác"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Bỏ nhóm"
+		},
+		{
+			"term": "Unpin",
+			"translation": "Bỏ ghim"
+		},
+		{
+			"term": "upload",
+			"translation": "tải lên"
+		},
+		{
+			"term": "URL",
+			"translation": "đường dẫn"
+		},
+		{
+			"term": "Viewer (role)",
+			"translation": "Người xem"
+		},
+		{
+			"term": "workspace",
+			"translation": "không gian làm việc"
+		},
+		{
+			"term": "Zoom",
+			"translation": "Thu phóng"
+		},
+		{
+			"term": "zoom (neutral)",
+			"translation": "Thu phóng"
+		},
+		{
+			"term": "Zoom (zoom level noun)",
+			"translation": "Thu phóng"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Phóng to"
+		}
+	]
+}

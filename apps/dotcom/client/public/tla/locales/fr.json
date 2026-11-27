@@ -54,7 +54,7 @@
     "translation": "Marquer toutes les notifications comme lues"
   },
   "1063e38cb5": {
-    "translation": "Supprimer"
+    "translation": "Retirer"
   },
   "10fb1df194": {
     "translation": "Copier dans l'espace de travail personnel"
@@ -64,6 +64,9 @@
   },
   "12a6766ba1": {
     "translation": "Détacher le fichier"
+  },
+  "13cad4c2e8": {
+    "translation": "Cet espace de travail a atteint le nombre maximal de bibliothèques. Supprimez d’anciennes bibliothèques avant d’en créer de nouvelles."
   },
   "13ddd375ad": {
     "translation": "Exporter en tant que"
@@ -81,7 +84,7 @@
     "translation": "Créé par moi"
   },
   "1a7222b4e5": {
-    "translation": "Passer à"
+    "translation": "Déplacer vers"
   },
   "1da2e8106b": {
     "translation": "Une erreur inattendue s'est produite."
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "Un espace de travail doit avoir au moins un propriétaire. Commencez par désigner quelqu'un d'autre comme propriétaire."
   },
+  "20746febc9": {
+    "translation": "Ma réserve"
+  },
   "21f66c9c00": {
     "translation": "Nom de l'espace de travail"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "À propos de tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Cette bibliothèque a atteint le nombre maximal d’éléments. Supprimez d’anciens éléments avant d’en ajouter de nouveaux."
   },
   "28b2464e1f": {
     "translation": "Impossible de soumettre les commentaires"
@@ -114,13 +123,13 @@
     "translation": "Bienvenue dans votre espace de travail"
   },
   "2a37324bb4": {
-    "translation": "Recherche..."
+    "translation": "Rechercher..."
   },
   "2d3cdcfdd4": {
     "translation": "Veuillez réessayer."
   },
   "2de510be71": {
-    "translation": "La régénération remplace le lien d'invitation actuel par un nouveau. Toute personne utilisant l'ancien lien aura besoin du nouveau pour s'inscrire."
+    "translation": "La régénération remplace le lien d’invitation actuel par un nouveau. Toute personne utilisant l’ancien lien aura besoin du nouveau pour rejoindre l’espace."
   },
   "2e2b3c700b": {
     "translation": "Inclure le lien vers le fichier actuel"
@@ -135,13 +144,13 @@
     "translation": "Vous devez vous connecter pour consulter ce fichier."
   },
   "31418ce4ad": {
-    "translation": "i18n : surlignement manquant"
+    "translation": "i18n : surligner les traductions manquantes"
   },
   "324a0f3182": {
     "translation": "Retour à tldraw"
   },
   "32811caa8c": {
-    "translation": "Fichier dupliqué"
+    "translation": "Dupliquer le fichier"
   },
   "335defdafe": {
     "translation": "Veuillez essayer de recharger la page."
@@ -156,7 +165,7 @@
     "translation": "Gérer"
   },
   "375396d6e5": {
-    "translation": "Supprimer un membre"
+    "translation": "Retirer le membre"
   },
   "398f51738e": {
     "translation": "Connectez-vous pour accepter cette invitation."
@@ -178,6 +187,9 @@
   },
   "402bf0c47e": {
     "translation": "Thème de couleurs"
+  },
+  "4236087d6b": {
+    "translation": "Menu de la bibliothèque"
   },
   "42e53c47c1": {
     "translation": "Contactez le propriétaire pour demander l'accès."
@@ -221,6 +233,9 @@
   "4a95fa0c08": {
     "translation": "<name>{author}</name> a commenté"
   },
+  "4c4a28e97a": {
+    "translation": "Ce fichier"
+  },
   "4d0d3ddec9": {
     "translation": "Ce site utilise des cookies pour faire fonctionner l'application et collecter des analyses."
   },
@@ -246,7 +261,7 @@
     "translation": "Exporter…"
   },
   "53770fd374": {
-    "translation": "Non lu"
+    "translation": "Non lues"
   },
   "542248f0ba": {
     "translation": "Ce fichier est désormais en lecture seule"
@@ -315,7 +330,7 @@
     "translation": "Plus ancien"
   },
   "639bae9ac6": {
-    "translation": "toi"
+    "translation": "vous"
   },
   "63a6a88c06": {
     "translation": "Rafraîchir"
@@ -333,7 +348,7 @@
     "translation": "Nouveau fichier"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> et {count, plural, one {# other} other {# others}} ont réagi"
+    "translation": "<name>{a}</name>, <name>{b}</name> et {count, plural, one {# autre} other {# autres}} ont réagi"
   },
   "6832ac5936": {
     "translation": "Saisissez votre adresse e-mail"
@@ -345,7 +360,7 @@
     "translation": "Connectez-vous pour enregistrer"
   },
   "69ce6a28fb": {
-    "translation": "{count, plural, one {Quelqu'un a réagi} other {# réactions des gens}}"
+    "translation": "{count, plural, one {Quelqu’un a réagi} other {# personnes ont réagi}}"
   },
   "6a26f54883": {
     "translation": "Aide"
@@ -405,7 +420,10 @@
     "translation": "Demande invalide."
   },
   "7827371d1a": {
-    "translation": "Ce fichier tldraw multijoueur anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
+    "translation": "Ce fichier collaboratif tldraw anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
+  },
+  "7897a855d3": {
+    "translation": "Aucune bibliothèque pour le moment."
   },
   "78e9815992": {
     "translation": "J'ai compris"
@@ -474,10 +492,10 @@
     "translation": "Vous êtes déjà membre de cet espace de travail"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> et {count, plural, one {# other} other {# others}} ont réagi"
+    "translation": "<name>{author}</name> et {count, plural, one {# autre} other {# autres}} ont réagi"
   },
   "88bf6ab42c": {
-    "translation": "Ce lien d'invitation a expiré."
+    "translation": "Ce lien d’invitation a expiré"
   },
   "8c2d3d730c": {
     "translation": "Consultez votre boîte mail pour obtenir un code de vérification."
@@ -524,6 +542,9 @@
   "985a4b720f": {
     "translation": "Conditions d'utilisation"
   },
+  "987453f3dd": {
+    "translation": "Essayer le serveur MCP"
+  },
   "9914a0ce04": {
     "translation": "Clair"
   },
@@ -542,23 +563,29 @@
   "9c228b6834": {
     "translation": "Vous semblez être hors ligne. Vérifiez votre connexion et réessayez."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# élément} many {# éléments} other {# éléments}}"
+  },
   "9ccb565b86": {
     "translation": "Nous rencontrons des difficultés pour nous connecter à notre service d'authentification. Ce problème est généralement temporaire. Veuillez actualiser la page."
   },
   "9ceb927baa": {
     "translation": "Publier ce fichier"
   },
+  "9d102330ee": {
+    "translation": "Supprimer <strong>{name}</strong> et {count, plural, one {son # élément} many {ses # éléments} other {ses # éléments}} ?"
+  },
   "9e076f5885": {
     "translation": "Introuvable"
   },
   "9e93c98d88": {
-    "translation": "Se désengager"
+    "translation": "Refuser"
   },
   "a078644c42": {
     "translation": "Vous avez été invité à rejoindre <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, one {# non lu} other {# non lu}}"
+    "translation": "{count, plural, one {# non lue} other {# non lues}}"
   },
   "a104439641": {
     "translation": "Marge intérieure"
@@ -594,7 +621,10 @@
     "translation": "Analytique"
   },
   "a8873770ab": {
-    "translation": "Le fichier devient volumineux."
+    "translation": "Le fichier devient volumineux"
+  },
+  "a8c92ffd87": {
+    "translation": "Supprimer la bibliothèque"
   },
   "a9ded1e5ce": {
     "translation": "Arrière-plan"
@@ -606,7 +636,7 @@
     "translation": "Quelqu'un"
   },
   "ab0df9ba36": {
-    "translation": "Limite de fichier atteinte"
+    "translation": "Limite de fichiers atteinte"
   },
   "ac863f346e": {
     "translation": "Application"
@@ -616,7 +646,7 @@
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
-    "translation": "Publié pour la dernière fois il y a <date></date>"
+    "translation": "Dernière publication <date></date>"
   },
   "b028909917": {
     "translation": "Utilisateur invité"
@@ -625,7 +655,7 @@
     "translation": "<name>{author}</name> a répondu"
   },
   "b1c94ca2fb": {
-    "translation": "Tous"
+    "translation": "Toutes"
   },
   "b2326c3a34": {
     "translation": "Régénérer"
@@ -760,10 +790,13 @@
     "translation": "Quitter l'espace de travail"
   },
   "dfdb78a4e4": {
-    "translation": "indicateurs de débogage de l'application"
+    "translation": "Indicateurs de débogage de l’app"
   },
   "e0aa021e21": {
     "translation": "D'accord"
+  },
+  "e1cbe6f097": {
+    "translation": "Impossible de modifier la bibliothèque"
   },
   "e2198d6228": {
     "translation": "Copier le lien d'invitation"
@@ -778,7 +811,7 @@
     "translation": "ou"
   },
   "ea13ecec38": {
-    "translation": "Historique des fichiers"
+    "translation": "Historique du fichier"
   },
   "ea4788705e": {
     "translation": "Annuler"
@@ -811,7 +844,7 @@
     "translation": "Membres"
   },
   "ef7de3f485": {
-    "translation": "choisi"
+    "translation": "sélectionné"
   },
   "f07e75296c": {
     "translation": "Partagé avec moi"
@@ -821,6 +854,9 @@
   },
   "f0e8bff6f9": {
     "translation": "Paramètres utilisateur"
+  },
+  "f129f24bec": {
+    "translation": "· Dans aucun fichier"
   },
   "f13001876b": {
     "translation": "Vue liste"
@@ -841,10 +877,10 @@
     "translation": "Pour le moment, vous pouvez <a>exporter en tant que fichier {extension}</a> pour l'utiliser ici."
   },
   "fa2ead697d": {
-    "translation": "politique de confidentialité"
+    "translation": "Politique de confidentialité"
   },
   "fb15c53f22": {
-    "translation": "Visionneuse"
+    "translation": "Lecteur"
   },
   "fc9d47046b": {
     "translation": "Êtes-vous sûr de vouloir quitter cet espace de travail ?"
@@ -852,8 +888,11 @@
   "fed5ec05eb": {
     "translation": "Lien copié"
   },
+  "feebd72b89": {
+    "translation": "Bibliothèques publiques"
+  },
   "ff2fefd3c6": {
-    "translation": "Êtes-vous sûr de vouloir supprimer {name} de cet espace de travail ?"
+    "translation": "Voulez-vous vraiment retirer {name} de cet espace de travail ?"
   },
   "ff52811b98": {
     "translation": "Créez un compte gratuit pour sauvegarder vos fichiers et dessiner avec vos coéquipiers."
