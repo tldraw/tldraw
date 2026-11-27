@@ -1,7 +1,7 @@
 ---
 title: Libraries
 created_at: 11/25/2026
-updated_at: 11/25/2026
+updated_at: 11/27/2026
 keywords:
   - library
   - libraries
@@ -17,21 +17,21 @@ status: published
 date: 11/25/2026
 ---
 
-In tldraw, a library is a named list of items, and each item is a saved copy of some shapes. People save shapes from the canvas into a library, then place copies of them on any canvas that shows that library.
+In tldraw, a library is a named list of items, and each item is a saved copy of some shapes. People save shapes from the canvas into a library, then place copies of them on any canvas that shows that library. Your app can also provide libraries of its own, such as starter shapes bundled as a [pack](#Packs) or a shared library served from your backend through a [source](#Library-sources).
 
-The `@tldraw/libraries` package works at two levels. `LibrariesPanel` is a panel you render in front of the canvas: it lists the libraries, saves the selection, and places items by click or drag. Everything it reads and writes goes through a `LibrarySource`, an interface you can implement for any backend. The panel's pieces and hooks are exported too, so you can replace any of them or lay out your own UI.
+The `@tldraw/libraries` package works at two levels. [LibrariesPanel](?) is a panel you render in front of the canvas: it lists the libraries, saves the selection, and places items by click or drag. Everything it reads and writes goes through a [LibrarySource](?), an interface you can implement for any backend. The panel's pieces and hooks are exported too, so you can replace any of them or lay out your own UI.
 
 Libraries are a licensed feature. They run in development without a key. In production they need a tldraw license that includes libraries, or one that includes collaboration.
 
 ## Setup
 
-Install the package alongside `tldraw`:
+Install the libraries package alongside `tldraw`:
 
 ```bash
 npm install @tldraw/libraries
 ```
 
-There are three pieces: a source that holds the libraries, the panel and its button, and the "Add to library" item in the context menu.
+You need one source, which holds the libraries, and the UI that reads it. The UI is four components, each in a tldraw [component slot](/sdk-features/ui-components#Component-slots): the panel, a button that opens it, the **Add to library** item in the context menu, and a group in the [command palette](/sdk-features/ui-components#Command-palette).
 
 ```tsx
 import {
@@ -95,7 +95,7 @@ Mount the panel through the `InFrontOfTheCanvas` component slot, and import `lib
 
 `LibrariesQuickActions` replaces the `QuickActions` slot with tldraw's quick actions plus a button that opens and closes the panel. To keep the button but choose the quick actions yourself, put `LibrariesToolbarButton` inside your own `DefaultQuickActions`. To put the toggle somewhere else entirely, render `LibrariesPanelButton`.
 
-The panel shows while the `librariesPanelOpen` editor atom is set. `toggleLibrariesPanel(editor)` flips it. The atom is scoped per editor, so two editors on one page each have their own panel.
+The panel shows while the `librariesPanelOpen` [editor atom](/sdk-features/signals#Atoms) is set. `toggleLibrariesPanel(editor)` flips it. The atom is scoped per editor, so two editors on one page each have their own panel.
 
 <Callout type="warning">
 	Without a license key that includes libraries, `LibrariesPanel`, `LibrariesPanelButton`, the
@@ -104,7 +104,7 @@ The panel shows while the `librariesPanelOpen` editor atom is set. `toggleLibrar
 	up as missing UI after you deploy. See [License key](/sdk-features/license-key).
 </Callout>
 
-The license gates the UI, not the data. A document that holds libraries loads, migrates and saves without a key. To gate UI of your own the same way, read `useLibrariesEnabled()`.
+The license gates the UI, not the data. A document that holds libraries loads, migrates and saves without a key. To gate UI of your own the same way, read [useLibrariesEnabled](?).
 
 ## Saving and placing items
 
@@ -123,7 +123,7 @@ const components: TLComponents = {
 
 `AddToLibraryMenuItem` and `CommandPaletteLibrariesGroup` take the same prop. A `PrepareItemContent` is any `(content, editor) => TLContent` function. It runs while the shapes are still on the page, so it can measure them, and it doesn't change the shapes on the page.
 
-Placing works like pasting.
+Placing works like [pasting](/sdk-features/clipboard#Placing-content).
 
 | Input                       | Result                                                                                                                                            |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -132,13 +132,13 @@ Placing works like pasting.
 | Right-click or long-press   | Opens the item's menu: insert, details, rename, move, copy, and delete, as the source allows.                                                     |
 | Pick an item in the palette | Each library with named items is an **Insert from** submenu. Typing a query lists matching items directly. Picking one places it as a click does. |
 
-A placed item lands inside the deepest shape at that point that accepts it, such as a frame. A drag starts once the pointer leaves the panel and has moved past the editor's `uiDragDistanceSquared` option (`uiCoarseDragDistanceSquared` for touch and pen).
+A placed item lands inside the deepest shape at that point that accepts it, such as a frame. A drag starts once the pointer leaves the panel and has moved past the editor's [`uiDragDistanceSquared`](/sdk-features/options#Drag-detection) option (`uiCoarseDragDistanceSquared` for touch and pen).
 
-On a phone, below the breakpoint where tldraw's toolbar switches to its mobile layout, the panel is a sheet along the bottom of the screen. Tapping an item places it and closes the sheet. Items aren't dragged out there.
+On a phone, below the breakpoint where tldraw's toolbar switches to its mobile layout, the panel is a sheet along the bottom of the screen. Tapping an item places it and closes the sheet. Items can't be dragged out of the sheet.
 
 ### Saving and placing from code
 
-`saveShapesToLibrary` saves shapes the way the + tile does, with a thumbnail rendered in light and dark mode. `placeLibraryItem` places an item the way a click does.
+[saveShapesToLibrary](?) saves shapes the way the + tile does, with a thumbnail rendered in light and dark mode. [placeLibraryItem](?) places an item the way a click does.
 
 ```tsx
 import { placeLibraryItem, saveShapesToLibrary } from '@tldraw/libraries'
@@ -150,7 +150,7 @@ const item = await saveShapesToLibrary(editor, source, libraryId, editor.getSele
 await placeLibraryItem(editor, source, item.id, { point: { x: 400, y: 300 }, select: false })
 ```
 
-Both reject with the source's error when the write or the load fails. Without `point`, the item lands in the middle of the viewport.
+Both reject with the source's error when the write or the load fails. `placeLibraryItem` also rejects with `LibraryNotFoundError` when the source doesn't list the item. Without `point`, the item lands in the middle of the viewport.
 
 To change how the panel places items, pass a `LibraryItemPlacer` as `placeItem`. It receives the item, its content, the drop point and whether it was clicked or dragged, and returns the ids of the root shapes it placed. Call `defaultPlaceLibraryItem` to keep the usual placing and adjust the result:
 
@@ -169,7 +169,15 @@ const components: TLComponents = {
 }
 ```
 
-The undo stopping point is made before the placer runs, so a placement undoes in one step. A drag hands the placed shapes to the select tool, which moves them until the pointer is released. Anything that should happen on drop, like snapping to a grid, belongs in the shape util's `onTranslateEnd`.
+The panel makes an [undo stopping point](/sdk-features/history#Marks-and-stopping-points) before the placer runs, so a placement undoes in one step. A drag hands the placed shapes to the select tool, which moves them until the pointer is released. Anything that should happen on drop, like snapping to a grid, belongs in the shape util's [`onTranslateEnd`](/sdk-features/shapes#Lifecycle-hooks).
+
+## Searching
+
+The panel has a search field at the top. A query matches names, ignoring case. A library whose name contains it shows with all its items, and any other library shows only the items whose names contain it. Libraries with neither are left out. Escape or the ✕ clears the query.
+
+Search covers the libraries the document shows. The command palette group searches the same names: while the palette has a query, it lists the best matching items, and picking one places it as clicking its tile does.
+
+When a source fetches items separately through `loadItems`, the panel loads every library's items to search them. To search fewer, implement `mayHaveItemsMatching(libraryId, query)`. It answers without the items, for example from a list of item names the source already has, and the panel loads and searches only libraries whose name matches or for which it returns `true`. The `query` it receives is trimmed and lowercased.
 
 ## Library sources
 
@@ -183,7 +191,7 @@ The libraries UI only talks to the `LibrarySource` interface. The package ships 
 
 ### InMemoryLibrarySource
 
-`InMemoryLibrarySource` holds its libraries in a tldraw store, which validates them. Pass `initial` to start with data. It checks the data up front and throws on duplicate ids, an item without content, a library inside a missing parent, and similar mistakes.
+[InMemoryLibrarySource](?) holds its libraries in a [tldraw store](/sdk-features/store), which validates them. Pass `initial` to start with data. It checks the data up front and throws on duplicate ids, an item without content, a library inside a missing parent, and similar mistakes.
 
 ```tsx
 import {
@@ -195,6 +203,9 @@ import {
 
 const library = LibraryRecordType.create({ name: 'Wireframes' })
 const button = LibraryItemRecordType.create({ libraryId: library.id, name: 'Button' })
+// The button's shapes, copied from the current page
+const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())!
+const buttonContent: TLLibraryItemContent = { formatVersion: 1, content }
 
 const source = new InMemoryLibrarySource({
 	initial: {
@@ -207,13 +218,13 @@ const source = new InMemoryLibrarySource({
 })
 ```
 
-`can` decides what the user may do, and defaults to allowing everything. See [Permissions](#permissions). The source turns thumbnail blobs into object URLs. Call `dispose()` when you throw the source away to release them.
+`can` decides what the user may do, and defaults to allowing everything. See [Permissions](#Permissions). The source turns thumbnail blobs into object URLs. Call `dispose()` when you throw the source away to release them.
 
 ### Writing your own source
 
 To keep libraries in your own backend, implement `LibrarySource`. The required members are a stable `id`, the reads `getLibraries`, `getItems` and `getItemContent`, the permission check `can`, and the writes `createLibrary`, `renameLibrary`, `deleteLibrary`, `addItem`, `updateItem` and `deleteItem`. Everything else is optional, and the UI hides what a source leaves out.
 
-The getters are reactive. The panel reads them inside `useValue`, so a source that keeps its listing in an [atom](/reference/state/atom) updates the UI whenever the atom changes. Writes are async, since most sources save to a server. A write resolves once its result is listed in the getters.
+The getters are reactive. The panel reads them inside `useValue`, so a source that keeps its listing in an [atom](?) updates the UI whenever the atom changes. Writes are async, since most sources save to a server. A write resolves once its result is listed in the getters.
 
 This source saves to `localStorage`:
 
@@ -278,6 +289,7 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async renameLibrary(libraryId: TLLibraryId, name: string) {
+		this.assertLibraryExists(libraryId)
 		this.write((s) => ({
 			...s,
 			libraries: s.libraries.map((l) => (l.id === libraryId ? { ...l, name } : l)),
@@ -285,6 +297,7 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async deleteLibrary(libraryId: TLLibraryId) {
+		this.assertLibraryExists(libraryId)
 		this.write((s) => {
 			const contents = { ...s.contents }
 			for (const item of s.items) if (item.libraryId === libraryId) delete contents[item.id]
@@ -297,6 +310,7 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
+		this.assertLibraryExists(libraryId)
 		const thumbnail = newItem.thumbnail && (await toDataUrls(newItem.thumbnail))
 		const item = LibraryItemRecordType.create({
 			libraryId,
@@ -315,6 +329,7 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async updateItem(itemId: TLLibraryItemId, { name, meta }: TLLibraryItemPartial) {
+		this.assertItemExists(itemId)
 		this.write((s) => ({
 			...s,
 			items: s.items.map((item) =>
@@ -330,10 +345,21 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async deleteItem(itemId: TLLibraryItemId) {
+		this.assertItemExists(itemId)
 		this.write((s) => {
 			const { [itemId]: _deleted, ...contents } = s.contents
 			return { ...s, items: s.items.filter((item) => item.id !== itemId), contents }
 		})
+	}
+
+	private assertLibraryExists(libraryId: TLLibraryId) {
+		const exists = this.saved.get().libraries.some((l) => l.id === libraryId)
+		if (!exists) throw new LibraryNotFoundError(libraryId)
+	}
+
+	private assertItemExists(itemId: TLLibraryItemId) {
+		const exists = this.saved.get().items.some((item) => item.id === itemId)
+		if (!exists) throw new LibraryNotFoundError(itemId)
 	}
 
 	private write(change: (saved: Saved) => Saved) {
@@ -367,9 +393,9 @@ The optional members add capabilities:
 | `addItems`                                                                                          | Saving several items in one write. Without it, they're added one at a time through `addItem`. |
 | `moveItem`                                                                                          | **Move to** in the item menu.                                                                 |
 | `copyLibrary`                                                                                       | Copying a library server-side. Without it, `copyLibrary` loads and re-adds every item.        |
-| `getLibraryOwners`, `getDefaultOwnerId`, `getNewLibraryOwnerIds`                                    | Owners. See [Owners](#owners).                                                                |
-| `getLibraryPlacement`, `getAvailableLibraries`, `addLibraryToDocument`, `removeLibraryFromDocument` | Libraries shown per document. See [Libraries in documents](#libraries-in-documents).          |
-| `resolveThumbnail`                                                                                  | Thumbnail URLs sized for their tile. See [Thumbnails](#thumbnails).                           |
+| `getLibraryOwners`, `getDefaultOwnerId`, `getNewLibraryOwnerIds`                                    | Owners. See [Owners](#Owners).                                                                |
+| `getLibraryPlacement`, `getAvailableLibraries`, `addLibraryToDocument`, `removeLibraryFromDocument` | Libraries shown per document. See [Libraries in documents](#Libraries-in-documents).          |
+| `resolveThumbnail`                                                                                  | Thumbnail URLs sized for their tile. See [Thumbnails](#Thumbnails).                           |
 | `getItemDetails`                                                                                    | A creator name and description in an item's details.                                          |
 | `loadItems`, `isLoadingItems`                                                                       | Items fetched per library, when the panel is about to show them.                              |
 | `getItemCount`, `getPreviewItems`, `mayHaveItemsMatching`                                           | Counts, previews and search hints for libraries whose items aren't fetched yet.               |
@@ -378,9 +404,9 @@ The [custom library source example](/examples/collaboration/libraries-local-stor
 
 ## Board libraries
 
-`BoardLibrarySource` keeps libraries in the editor's own document, as records next to its shapes. They're saved, synced and copied wherever the document goes, so a document carries the libraries it uses.
+[BoardLibrarySource](?) keeps libraries in the editor's own document, as records next to its shapes. They're saved, synced and copied wherever the document goes, so a document carries the libraries it uses.
 
-The library record types aren't in the default schema. Register `librarySchemaRecords` on the store, then give the source the editor:
+The library record types aren't in the default schema. [Register `librarySchemaRecords` on the store](/sdk-features/store#Custom-record-types), then give the source the editor:
 
 ```tsx
 import { BoardLibrarySource, LibrariesPanel, LibrariesQuickActions } from '@tldraw/libraries'
@@ -428,9 +454,9 @@ export default function App() {
 
 The source throws when it's created if the store doesn't register the three library record types: `library`, `library-item` and `library-item-content`.
 
-An item's content is a record of its own, so listing a library never reads shapes. Its assets are the document's ordinary asset records: an item saved from the board shares the assets its shapes already use. Thumbnails are image assets too, uploaded through the editor's asset store the way a pasted image is. The item is listed straight away and shows a local preview while its thumbnail uploads. If the upload fails, the item is removed again and the failure is reported through the `toasts` option.
+An item's content is a record of its own, so listing a library never reads shapes. Its assets are the document's ordinary asset records: an item saved from the board shares the assets its shapes already use. Thumbnails are image assets too, uploaded through [the editor's asset store](/sdk-features/assets) the way a pasted image is. The item is listed immediately and shows a local preview while its thumbnail uploads. If the upload fails, the item is removed again. The failure shows in a toast when the source has both the `toasts` and `msg` options, and is only logged otherwise.
 
-Board library writes don't go on the undo stack. Saving to a library isn't an edit to the canvas. While the editor is read-only, `can` refuses everything. The board doesn't track owners, so `createLibrary` with an `ownerId` throws `LibraryNotFoundError`.
+Board library writes don't go on the [undo stack](/sdk-features/history). Saving to a library isn't an edit to the canvas. While the editor is [read-only](/sdk-features/readonly), `can` refuses everything. The board doesn't track owners, so `createLibrary` with an `ownerId` throws `LibraryNotFoundError`.
 
 With the `documentLibrary` option, the document gets one library of its own instead of any number. It's listed under the name you pass, which should be translated for the current user, and it can't be renamed or deleted. It's written into the document on the first save to it. Set `hideUntilSaved` to list it only once it exists, for example for a viewer who can't save to it.
 
@@ -438,15 +464,15 @@ With the `documentLibrary` option, the document gets one library of its own inst
 new BoardLibrarySource(editor, { documentLibrary: { name: 'This file' } })
 ```
 
-To sync board libraries, register the same records on both ends of the connection, as you would for comments. Pass `records: librarySchemaRecords` to `useSync` on the client, and `createTLSchema({ records: librarySchemaRecords })` on the server. See [Collaboration](/sdk-features/collaboration).
+To sync board libraries, register the same records on both ends of the connection, as you would for [comments](/sdk-features/commenting#Syncing-comments). Pass `records: librarySchemaRecords` to `useSync` on the client, and `createTLSchema({ records: librarySchemaRecords })` on the server. See [Collaboration](/sdk-features/collaboration).
 
 ## Owners, placements and permissions
 
 ### Owners
 
-An owner is something a library can belong to, such as a user, a team or a workspace. A library names its owner in `ownerId`. What an owner is stays up to the source. A source that tracks owners lists them, in the order the UI should show them, with `getLibraryOwners()`. Each `TLLibraryOwner` has an `id`, a `name` and an optional `icon`.
+An owner is something a library can belong to, such as a user, a team or a workspace. A library names its owner in `ownerId`. The source decides what an owner is. A source that tracks owners lists them, in the order the UI should show them, with `getLibraryOwners()`. Each `TLLibraryOwner` has an `id`, a `name` and an optional `icon`.
 
-`CompositeLibrarySource` builds one source from several, each under an owner. Each read and write goes to the part that holds the library or item, and a new library goes to the part of the owner it names.
+[CompositeLibrarySource](?) builds one source from several, each under an owner. Each read and write goes to the part that holds the library or item, and a new library goes to the part of the owner it names.
 
 ```tsx
 import { BoardIcon, CompositeLibrarySource, InMemoryLibrarySource } from '@tldraw/libraries'
@@ -489,7 +515,7 @@ Some apps keep libraries outside documents, in workspaces, and let each document
 
 With placements, the panel lists the user's default first, then a "This file" section that starts with the document's own library. Without them, it lists libraries in the order the source gives.
 
-`getLibraries` returns only the libraries the document shows. `getAvailableLibraries` returns the rest the user could add, and `getItems` answers for those too, so they can be browsed before they're added. With `addLibraryToDocument`, the panel's ⋯ menu offers **Add library** and its footer offers **Browse more libraries**, which open a dialog listing the available libraries. With `removeLibraryFromDocument`, an `'added'` library's menu offers **Remove from this file**. That leaves the library itself where it's kept, ready to add again. The panel doesn't offer to delete an `'added'` or `'default'` library from its menu.
+`getLibraries` returns only the libraries the document shows. `getAvailableLibraries` returns the rest the user could add, and `getItems` answers for those too, so they can be browsed before they're added. With both `getAvailableLibraries` and `addLibraryToDocument`, or with the panel's `getBrowseGroups` prop, the panel's ⋯ menu offers **Add library** and its footer offers **Add libraries**. Both open the **Browse libraries** dialog, which lists the libraries to add. The command palette offers the same dialog as **Browse more libraries**. With `removeLibraryFromDocument`, an `'added'` library's menu offers **Remove from file**. That leaves the library itself where it's kept, ready to add again. The panel doesn't offer to delete an `'added'` or `'default'` library from its menu.
 
 `BoardLibrarySource` answers `'housed'` for its libraries, or `'document'` for its `documentLibrary`. `InMemoryLibrarySource` takes a `shownInDocument` option, a list of top-level library ids and their placements. Libraries left out of it are available to add. The [libraries in documents example](/examples/collaboration/libraries-documents) builds a source for this from a shared workspace source.
 
@@ -515,7 +541,7 @@ The UI hides each control the source refuses: the + tile without `'addItem'`, re
 
 ## Nesting
 
-A library can sit inside another. It names its parent in `parentId`, and sources list libraries flat. `getLibraryTree(libraries)` arranges a flat list into trees of `TLLibraryTreeNode`, each with its `library`, `depth` and `children`. The panel shows nested libraries indented under their parent.
+A library can sit inside another. It names its parent in `parentId`, and sources list libraries flat. [getLibraryTree](?) arranges a flat list into trees of `TLLibraryTreeNode`, each with its `library`, `depth` and `children`. The panel shows nested libraries indented under their parent.
 
 ```ts
 const parent = await source.createLibrary('Icons')
@@ -542,21 +568,22 @@ if (content) {
 
 `formatVersion` is `1`. Anything an item needs beyond its shapes will arrive as a new format version, so the way items are listed and stored doesn't change.
 
-`parseLibraryItemContent(value)` validates content you load from outside, such as from a server or a file. It checks the envelope only. The shapes, bindings and assets inside it are migrated and validated against the editor's schema when the item is placed. If the content was written by a newer version of tldraw than the one running, it throws `LibraryItemContentTooNewError`. `BoardLibrarySource` also throws it from `getItemContent` when the shapes can't be migrated down, or use a shape or binding type the editor has no util for. Placing such an item shows a toast asking the user to reload.
+`parseLibraryItemContent(value)` validates content you load from outside, such as from a server or a file. It checks the envelope only. The shapes, bindings and assets inside it are [migrated](/sdk-features/persistence#Migrations) and validated against the editor's schema when the item is placed. If the content was written by a newer version of tldraw than the one running, it throws `LibraryItemContentTooNewError`. `BoardLibrarySource` also throws it from `getItemContent` when the shapes can't be migrated down, or use a shape or binding type the editor has no util for. Placing such an item shows a toast asking the user to reload.
 
 An item's `version` is always `1`. Items aren't replaced: to change one, delete it and add it again. Every item carries a `meta` object the UI never reads, for your own fields.
 
 ## Thumbnails
 
-A thumbnail is one image for every color mode, or a light and a dark one. The `TLLibraryThumbnail<Src>` type covers both, where `Src` is whatever names the image: a `Blob` when adding an item, and a URL on a listed one.
+A thumbnail is one image for every [color mode](/sdk-features/themes#Color-mode), or a light and a dark one. The `TLLibraryThumbnail<Src>` type covers both, where `Src` is whatever names the image: a `Blob` when adding an item, and a URL on a listed one.
 
 `saveShapesToLibrary` renders a light and a dark PNG of the shapes, 512 pixels on the longest side. A single frame is rendered with its border and name. A source stores the images however it likes and lists URLs to them. `getThumbnailForColorMode(thumbnail, colorMode)` picks the image to show, and `mapThumbnail(thumbnail, convert)` converts each image while keeping the single-or-pair shape:
 
 ```ts
-import { mapThumbnail } from '@tldraw/libraries'
+import { mapThumbnail, TLNewLibraryItem } from '@tldraw/libraries'
 
-const urls =
-	newItem.thumbnail && mapThumbnail(newItem.thumbnail, (blob) => URL.createObjectURL(blob))
+function toObjectUrls(newItem: TLNewLibraryItem) {
+	return newItem.thumbnail && mapThumbnail(newItem.thumbnail, (blob) => URL.createObjectURL(blob))
+}
 ```
 
 Leave `thumbnail` out and the tile shows a placeholder.
@@ -581,7 +608,7 @@ function resolveThumbnail(
 }
 ```
 
-It's called for every item on show, and again when the item or the context changes, so answer quickly. It can return a promise. A source that creates `blob:` URLs here owns them, and should keep one per item and size and revoke them when it's thrown away.
+It's called for every item on screen, and again when the item or the context changes, so answer quickly. It can return a promise. A source that creates `blob:` URLs here owns them, and should keep one per item and size and revoke them when it's thrown away.
 
 ## Custom components
 
@@ -591,7 +618,7 @@ Every piece of the panel is a slot. Pass them through the `components` prop. Lea
 | ---------------------- | ------------------------------------------------------------------------- |
 | `LibrariesPanelHeader` | The panel's title and ⋯ menu.                                             |
 | `NoLibraries`          | What shows when there are no libraries.                                   |
-| `LibrarySectionHeader` | A library's header: its name, which folds it shut, and its menu.          |
+| `LibrarySectionHeader` | A library's header: its name, which collapses it, and its menu.           |
 | `LibraryMenu`          | A library's ⋯ menu.                                                       |
 | `EmptyLibrary`         | What shows in a library with no items, when items can't be added to it.   |
 | `ItemTile`             | An item's tile.                                                           |
@@ -668,7 +695,7 @@ The panel's own ⋯ menu takes extra items through `menuItems`, without replacin
 />
 ```
 
-A `LibrarySectionHeader` override that shows a rename must end it, as the default's input does, or the panel stays in renaming. Render the default `LibrarySectionHeader` while `isRenaming` is true to keep its input.
+A `LibrarySectionHeader` override that shows a rename input must end the rename with `onRenameComplete` or `onRenameCancel`, as the default input does. Otherwise the panel stays in rename mode. Render the default `LibrarySectionHeader` while `isRenaming` is true to keep its input.
 
 ### Sizing the panel
 
@@ -678,7 +705,7 @@ The panel's size and position follow CSS variables, set on the panel or any elem
 | ----------------------------------- | ----------------------------------------------------------- |
 | `--tlui-libraries-panel-inset-top`  | `48px`, below the main menu.                                |
 | `--tlui-libraries-panel-inset-side` | `8px`.                                                      |
-| `--tlui-libraries-panel-max-height` | The canvas's height less the insets, at most `720px`.       |
+| `--tlui-libraries-panel-max-height` | The canvas's height minus the insets, at most `720px`.      |
 | `--tlui-libraries-columns`          | `3` tiles to a row.                                         |
 | `--tlui-libraries-tile-width`       | `96px`. Override it with a rule on `.tlui-libraries-panel`. |
 
@@ -695,7 +722,7 @@ The panel is built from hooks that are exported on their own, so you can lay lib
 | `useLibraryThumbnailUrls`   | Each item's thumbnail URL, sized for a `width` or a measured `container`.       |
 | `useLibraryItemDrag`        | A function that returns the props that place an item on click or drag.          |
 | `useLibraryCan`             | Whether the source allows an action.                                            |
-| `useLibraryCollapsed`       | Whether a library is folded shut, and a setter. Shared with the panel.          |
+| `useLibraryCollapsed`       | Whether a library is collapsed, and a setter. Shared with the panel.            |
 | `useSaveSelectionToLibrary` | Functions that save the selection to a library, or to a new one.                |
 | `useLibraryActions`         | A library's rename, delete, remove and copy actions, as the source allows them. |
 | `useLibraryItemActions`     | An item's rename, move, copy and delete actions.                                |
@@ -743,15 +770,15 @@ function Tray({ source }: { source: LibrarySource }) {
 }
 ```
 
-The hooks aren't license-gated, so gate a layout of your own with `useLibrariesEnabled`, as `Tray` does. `useLibrariesComponents()` returns the slots from the nearest `LibrariesComponentsProvider`, with the defaults filled in, for a layout that should honour the same overrides as the panel. The presentational pieces are exported too: `ItemGrid`, `ItemTile`, `ItemMenu`, `LibraryMenu`, `LibraryMenuItem`, `RenameInput` and `BoardIcon`.
+The hooks aren't license-gated, so gate a layout of your own with `useLibrariesEnabled`, as `Tray` does. `useLibrariesComponents()` returns the slots from the nearest `LibrariesComponentsProvider`, with the defaults filled in, for a layout that should honor the same overrides as the panel. The presentational pieces are exported too: `ItemGrid`, `ItemTile`, `ItemMenu`, `LibraryMenu`, `LibraryMenuItem`, `RenameInput` and `BoardIcon`.
 
-The libraries UI reports `toggle-libraries-panel`, `place-library-item`, `open-browse-libraries` and `library-error` through tldraw's `onUiEvent`. Writes to a library aren't reported there. A host sees those through its source.
+The libraries UI reports `toggle-libraries-panel`, `place-library-item`, `open-browse-libraries` and `library-error` through tldraw's [`onUiEvent`](/sdk-features/ui-components#UI-events). Writes to a library aren't reported there. A host sees those through its source.
 
 ## Packs
 
 A pack is a set of items shipped as data, such as starter shapes bundled with your app. A `LibraryPack` has a stable `id`, a `name`, a `version` and its `items`, each with its own `id`, `content`, and an optional `name`, `thumbnail` and `meta`. A pack's thumbnails are URLs, such as bundled assets or data URLs.
 
-`parseLibraryPack(value)` validates a pack loaded as data, including each item's content. `copyPack(source, pack)` copies it into a source as an ordinary library, which the user can then change like any other:
+[parseLibraryPack](?) validates a pack loaded as data, including each item's content. [copyPack](?) copies it into a source as an ordinary library, which the user can then change like any other:
 
 ```ts
 import { copyPack, parseLibraryPack } from '@tldraw/libraries'
@@ -764,7 +791,7 @@ The copy takes the pack's name, numbered if the source already has a library by 
 
 `addPackToDocument(source, packId, loadPack)` shows a pack in the document without making duplicate copies. It reuses a copy the document already shows, then one the user has available to add, and only calls `loadPack` to make a new copy when there's neither.
 
-To offer packs in the **Browse libraries** dialog, pass `getBrowseGroups` to the panel. Each `LibraryBrowseGroup` is a labelled list of entries, listed after the libraries the source has available to add. With `getBrowseGroups`, the dialog is offered even by a source that doesn't add libraries to documents.
+To offer packs in the **Browse libraries** dialog, pass `getBrowseGroups` to the panel. Each `LibraryBrowseGroup` is a labeled list of entries, listed after the libraries the source has available to add. With `getBrowseGroups`, the dialog is offered even by a source that doesn't add libraries to documents.
 
 ```tsx
 import {
@@ -799,10 +826,11 @@ function PacksPanel() {
 }
 ```
 
-`getBrowseGroups` is called reactively, so it can read the source's getters. While a source with placements shows nothing under "This file", the panel offers the first few entries that haven't been added. `CommandPaletteLibrariesGroup` takes the same prop.
+`getBrowseGroups` is called reactively, so it can read the source's getters. While "This file" holds no library besides the document's own, the panel offers up to three entries that aren't added yet and can be added. With the document's own library present, they show as suggestions below it. A source without placements has no "This file", so it gets no offers. `CommandPaletteLibrariesGroup` takes the same prop.
 
 ## Related articles
 
+- [Libraries](/docs/libraries) — A shorter introduction to the feature
 - [License key](/sdk-features/license-key) — Enabling licensed features in production
 - [Collaboration](/sdk-features/collaboration) — Presence, sync hooks, and custom sync
 - [Persistence](/sdk-features/persistence) — Saving and loading documents, including their records

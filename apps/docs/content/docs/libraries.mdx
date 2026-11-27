@@ -1,0 +1,128 @@
+---
+title: Libraries
+status: published
+author: jsscclr
+date: 11/27/2026
+order: 7
+keywords:
+  - library
+  - libraries
+  - reusable shapes
+  - components
+  - packs
+  - panel
+  - collaboration
+---
+
+In tldraw, a library is a named list of items, and each item is a saved copy of some shapes. People save shapes from the canvas into a library, then place copies of them on any canvas that shows that library. Your app can provide libraries of its own too, such as starter shapes it ships with or a shared set served from your backend.
+
+The `@tldraw/libraries` package works at two levels. `LibrariesPanel` is a panel you render in front of the canvas, and it handles the whole flow. Everything it reads and writes goes through a `LibrarySource`, so the same UI works over any backend.
+
+Libraries are a licensed feature. They run in development without a key. In production they need [a tldraw license](/sdk-features/license-key) that includes libraries, or one that includes collaboration.
+
+## Quick start
+
+Two pieces: a source that holds the libraries, and the panel with a button that opens it.
+
+```tsx
+import { InMemoryLibrarySource, LibrariesPanel, LibrariesQuickActions } from '@tldraw/libraries'
+import { TLComponents, Tldraw } from 'tldraw'
+import '@tldraw/libraries/libraries.css'
+import 'tldraw/tldraw.css'
+
+// In production, a tldraw license key that includes libraries. Not needed in development.
+const YOUR_LICENSE_KEY = undefined
+
+const source = new InMemoryLibrarySource()
+
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => <LibrariesPanel source={source} />,
+	QuickActions: LibrariesQuickActions,
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw licenseKey={YOUR_LICENSE_KEY} components={components} />
+		</div>
+	)
+}
+```
+
+Open the panel from the quick actions. A new `InMemoryLibrarySource` has no libraries, so pick **Create library** from the panel's ⋯ menu. Then select some shapes and click the library's + tile to save them. Click an item to place a copy in the middle of the viewport, or drag it out onto the canvas.
+
+`InMemoryLibrarySource` keeps libraries in memory, so they're gone on reload. It's the place to start, and a reference for writing your own source. See [Setup](/sdk-features/libraries#Setup) for the context menu and command palette pieces.
+
+## Items are copies
+
+An item holds its shapes [as they'd be copied](/sdk-features/libraries#Saving-and-placing-from-code), with their bindings and assets, plus a thumbnail when it's saved with the panel or `saveShapesToLibrary`. Placing an item works like pasting: the shapes it adds are ordinary shapes with new ids, and changing them later doesn't change the item, or any other copies placed from it.
+
+```tsx
+import { placeLibraryItem, saveShapesToLibrary } from '@tldraw/libraries'
+
+const item = await saveShapesToLibrary(editor, source, libraryId, editor.getSelectedShapeIds(), {
+	name: 'Card',
+})
+
+await placeLibraryItem(editor, source, item.id, { point: { x: 400, y: 300 }, select: false })
+```
+
+An item's shapes don't change once it's saved. Its name and `meta` can be updated, but to change its shapes, delete it and save them again.
+
+## Sources
+
+A source decides where libraries live and who may change them. The package ships three:
+
+| Source                   | Keeps libraries                                                              |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| `InMemoryLibrarySource`  | In memory. For tests, prototypes, and read-only sets.                        |
+| `BoardLibrarySource`     | In the document, as records next to its shapes.                              |
+| `CompositeLibrarySource` | Nowhere itself. It combines several sources, each optionally under an owner. |
+
+To keep libraries in your own backend, implement `LibrarySource`. Its reads are reactive getters, read through tldraw's [signals](/sdk-features/signals), so the panel updates when your data does. See [Writing your own source](/sdk-features/libraries#Writing-your-own-source).
+
+## Libraries you provide
+
+A pack is a set of items shipped as data, such as starter shapes. `copyPack` copies it into a source as an ordinary library.
+
+A shared read-only set comes from a source whose `can` refuses every change, such as an `InMemoryLibrarySource` with `can: () => false`. Its items can be placed but not changed.
+
+`CompositeLibrarySource` lists both next to people's own libraries. See [Packs](/sdk-features/libraries#Packs) and [Owners](/sdk-features/libraries#Owners).
+
+## What you get
+
+The panel covers the whole flow out of the box:
+
+| Feature                                     | Description                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------ |
+| Saving                                      | The + tile, and **Add to library** in the context menu.                  |
+| Placing                                     | Click to place in the middle of the viewport, or drag onto the canvas.   |
+| [Search](/sdk-features/libraries#Searching) | Matches library and item names, across every library the document shows. |
+| Managing                                    | Create, rename, delete, copy and move, as far as the source allows.      |
+| [Nesting](/sdk-features/libraries#Nesting)  | Libraries inside libraries, shown indented under their parent.           |
+| Command palette                             | Open the panel, save the selection, and place items by name.             |
+| Phones                                      | A sheet along the bottom of the screen, where tapping an item places it. |
+
+The panel's main pieces are component slots you can replace, and the hooks behind them are exported for a layout of your own. See [Custom components](/sdk-features/libraries#Custom-components).
+
+## Permissions
+
+A source's `can(action, target)` decides what the user may do, and the UI hides each control it refuses: the + tile, rename and delete, **Create library**, and so on. Placing has no permission. Anything a source lists can be placed, so to keep a library from someone, don't list it to them.
+
+`can` is a UI-level control and nothing more. A source that writes to a server should have the server check each write too. See [Permissions](/sdk-features/libraries#Permissions).
+
+## Syncing
+
+`BoardLibrarySource` keeps libraries in the document, so they save and sync wherever the document does. Its record types aren't in the default schema, so register `librarySchemaRecords` on the store with `createTLStore({ schema: createTLSchema({ records: librarySchemaRecords }) })`. Pass `records: librarySchemaRecords` to `useSync` on the client, and the same map to `createTLSchema` on your sync server. See [Collaboration](/docs/collaboration) and [Board libraries](/sdk-features/libraries#Board-libraries).
+
+Libraries kept outside documents, such as in a workspace, sync however your backend does. The source answers which of them a document shows, and the panel offers to add the rest. See [Libraries in documents](/sdk-features/libraries#Libraries-in-documents).
+
+## Related
+
+- [Libraries](/sdk-features/libraries) — The full guide: sources, owners, permissions, packs and components
+- [Collaboration](/docs/collaboration) — Adding multiplayer to your project
+- [Commenting](/docs/commenting) — Comment threads pinned to the canvas
+- [tldraw sync](/docs/sync) — Running a sync server
+- [Libraries example](/examples/collaboration/libraries) — The panel, "Add to library", and the command palette group
+- [Board libraries](/examples/collaboration/libraries-board) — Keeping libraries in the document itself
+- [Library owners](/examples/collaboration/libraries-owners) — Combining sources under owners with `CompositeLibrarySource`
