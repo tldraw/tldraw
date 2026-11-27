@@ -28,6 +28,13 @@ function arrowLabelRoom(direction: string | undefined) {
 // smallest that clears every such row in the "Hundreds of Mermaid diagrams" example.
 const SEQUENCE_MESSAGE_MARGIN = 50
 
+// tldraw squeezes an arrow's label to the arrow's width less 64px whenever the arrow is wider than
+// tall, breaking longer words, and pele's state ranks (`rankSpacing` 44 by default) leave a
+// diagonal arrow between close states wider than tall. 64 is the smallest that keeps every label
+// in the "Hundreds of Mermaid diagrams" example whole; 70 leaves room for text measuring a pixel
+// wider on another platform.
+const STATE_RANK_SPACING = 70
+
 /** @public */
 export class MermaidDiagramError extends Error {
 	constructor(
@@ -105,17 +112,18 @@ export async function createMermaidDiagram(
 			}
 			case 'state': {
 				const state = model as StateModel
-				blueprint = await withMountedPeleSvg(
-					text,
-					layoutOptions(arrowLabelRoom(state.direction)),
-					(root) =>
-						stateToBlueprint(
-							parseStateDiagramLayout(root),
-							state.states,
-							state.relations,
-							state.classes,
-							createArrowLabelLongestWordMeasurer(editor)
-						)
+				const stateOptions = {
+					...layoutOptions(arrowLabelRoom(state.direction)),
+					config: { ...config, state: { rankSpacing: STATE_RANK_SPACING, ...config?.state } },
+				}
+				blueprint = await withMountedPeleSvg(text, stateOptions, (root) =>
+					stateToBlueprint(
+						parseStateDiagramLayout(root),
+						state.states,
+						state.relations,
+						state.classes,
+						createArrowLabelLongestWordMeasurer(editor)
+					)
 				)
 				break
 			}

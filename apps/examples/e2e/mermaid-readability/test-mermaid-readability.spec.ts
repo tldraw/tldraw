@@ -20,10 +20,6 @@ function overlap(diagram: DiagramType, index: number, label: string, over: strin
 	return { diagram, index, check: 'overlap', label, over }
 }
 
-function midWordBreak(diagram: DiagramType, index: number, label: string, word: string): Finding {
-	return { diagram, index, check: 'mid-word break', label, word }
-}
-
 function missingText(diagram: DiagramType, index: number, text: string): Finding {
 	return { diagram, index, check: 'missing text', text }
 }
@@ -38,13 +34,6 @@ interface KnownProblem {
 // text metrics differ by a pixel elsewhere, so a local run on macOS can disagree on an entry that
 // is a pixel from colliding.
 const KNOWN_PROBLEMS: KnownProblem[] = [
-	{
-		// tldraw squeezes an arrow's label to the arrow's width less a margin whenever the arrow is
-		// wider than it is tall. Self-loops bend deep enough to avoid it; an arrow between two close
-		// states can't.
-		reason: 'A label on a short, wide arrow wraps mid-word',
-		findings: [midWordBreak('state', 15, 'reply received', 'receiv/ed')],
-	},
 	{
 		reason:
 			'Frame titles are drawn at the top left of the frame, where an activation bar runs through them',
