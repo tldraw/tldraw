@@ -15,6 +15,7 @@ import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
 import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-section-header'
 import { useLongPress } from './long-press'
+import { useHasBeenNearView } from './near-view'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
 import { useItemOrdering } from './use-item-ordering'
@@ -71,9 +72,10 @@ export function LibrarySection({
 		activeLibraryId.set(editor, null)
 	}, [editor, isActive, libraryId])
 
+	const nearView = useHasBeenNearView(element)
 	useEffect(() => {
-		if (!collapsed && source.loadItems) source.loadItems(libraryId)
-	}, [source, libraryId, collapsed])
+		if (!collapsed && nearView && source.loadItems) source.loadItems(libraryId)
+	}, [source, libraryId, collapsed, nearView])
 
 	const { ordering, reversed } = useItemOrdering(source)
 	const menuId = `libraries-library-menu-${libraryId}`
