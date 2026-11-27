@@ -1,0 +1,143 @@
+{
+	"register": "polite imperative (-வும்) for controls",
+	"terms": [
+		{
+			"term": "align",
+			"translation": "சீரமை"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "அம்புக்குறி"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "தானியங்கி"
+		},
+		{
+			"term": "Cancel",
+			"translation": "ரத்துசெய்"
+		},
+		{
+			"term": "Clear (empty a field)",
+			"translation": "அழி",
+			"note": "Not தெளிவுபடுத்து (clarify)"
+		},
+		{
+			"term": "comment",
+			"translation": "கருத்து"
+		},
+		{
+			"term": "Comment (noun)",
+			"translation": "கருத்து"
+		},
+		{
+			"term": "Continue (button)",
+			"translation": "தொடரவும்"
+		},
+		{
+			"term": "Delete",
+			"translation": "நீக்கு"
+		},
+		{
+			"term": "embed",
+			"translation": "உட்பொதிவு"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "அழிப்பான்"
+		},
+		{
+			"term": "file",
+			"translation": "கோப்பு"
+		},
+		{
+			"term": "filter (verb)",
+			"translation": "வடிகட்டு"
+		},
+		{
+			"term": "Focus (keyboard)",
+			"translation": "ஃபோகஸ்"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "சட்டகம்"
+		},
+		{
+			"term": "grid",
+			"translation": "கட்டம்"
+		},
+		{
+			"term": "item",
+			"translation": "உருப்படி"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "உருப்படி"
+		},
+		{
+			"term": "library",
+			"translation": "நூலகம்"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "கோடு"
+		},
+		{
+			"term": "link",
+			"translation": "இணைப்பு"
+		},
+		{
+			"term": "minimap",
+			"translation": "மினிமேப்"
+		},
+		{
+			"term": "mode",
+			"translation": "பயன்முறை"
+		},
+		{
+			"term": "Octagon",
+			"translation": "எண்கோணம்"
+		},
+		{
+			"term": "page",
+			"translation": "பக்கம்"
+		},
+		{
+			"term": "paste",
+			"translation": "ஒட்டவும்"
+		},
+		{
+			"term": "Rectangle",
+			"translation": "செவ்வகம்"
+		},
+		{
+			"term": "rhombus",
+			"translation": "ரோம்பஸ்"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "ஒரு நகலை சேமிக்கவும்",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "shape",
+			"translation": "வடிவம்"
+		},
+		{
+			"term": "sign in",
+			"translation": "உள்நுழை"
+		},
+		{
+			"term": "Toggle",
+			"translation": "நிலைமாற்று"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "X-ஐ நிலைமாற்று"
+		},
+		{
+			"term": "workspace",
+			"translation": "பணிவெளி"
+		}
+	]
+}

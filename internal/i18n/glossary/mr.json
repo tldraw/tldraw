@@ -1,0 +1,109 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Bold",
+			"translation": "ठळक"
+		},
+		{
+			"term": "comment",
+			"translation": "टिप्पणी"
+		},
+		{
+			"term": "cookie policy",
+			"translation": "कुकी धोरण",
+			"note": "neuter: आमचे कुकी धोरण"
+		},
+		{
+			"term": "Crop",
+			"translation": "क्रॉप करा"
+		},
+		{
+			"term": "Delete",
+			"translation": "हटवा"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "संपादन"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "खोडरबर"
+		},
+		{
+			"term": "Error",
+			"translation": "त्रुटी"
+		},
+		{
+			"term": "export",
+			"translation": "एक्सपोर्ट"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "फ्रेम"
+		},
+		{
+			"term": "item",
+			"translation": "आयटम"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "आयटम"
+		},
+		{
+			"term": "library",
+			"translation": "लायब्ररी"
+		},
+		{
+			"term": "link",
+			"translation": "लिंक"
+		},
+		{
+			"term": "minimap",
+			"translation": "मिनिमॅप"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "माउस",
+			"note": "not उंदीर (animal)"
+		},
+		{
+			"term": "Orange (color)",
+			"translation": "नारंगी",
+			"note": "Not संत्रा, which is the fruit"
+		},
+		{
+			"term": "page",
+			"translation": "पृष्ठ"
+		},
+		{
+			"term": "Rename",
+			"translation": "नाव बदला"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "समभुज चौकोन"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "एक प्रत जतन करा",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "Select none",
+			"translation": "निवड रद्द करा"
+		},
+		{
+			"term": "shape",
+			"translation": "आकार"
+		},
+		{
+			"term": "vertical",
+			"translation": "अनुलंब"
+		},
+		{
+			"term": "workspace",
+			"translation": "वर्कस्पेस"
+		}
+	]
+}

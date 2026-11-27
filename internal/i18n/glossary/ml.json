@@ -1,0 +1,61 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "align",
+			"translation": "വിന്യസിക്കുക"
+		},
+		{
+			"term": "canvas",
+			"translation": "ക്യാൻവാസ്"
+		},
+		{
+			"term": "comment",
+			"translation": "കമന്റ്",
+			"note": "Used in pin-label and stack-label"
+		},
+		{
+			"term": "Delete",
+			"translation": "ഇല്ലാതാക്കുക"
+		},
+		{
+			"term": "Download",
+			"translation": "ഡൗൺലോഡ് ചെയ്യുക",
+			"note": "'ഇറക്കുമതി' means import"
+		},
+		{
+			"term": "Export",
+			"translation": "കയറ്റുമതി"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "ഇനം"
+		},
+		{
+			"term": "library",
+			"translation": "ലൈബ്രറി"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "ലൈറ്റ് / ഡാർക്ക്"
+		},
+		{
+			"term": "Octagon",
+			"translation": "അഷ്ടഭുജം"
+		},
+		{
+			"term": "Rectangle",
+			"translation": "ദീർഘചതുരം"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "ഒരു പകർപ്പ് സംരക്ഷിക്കുക",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "tldraw",
+			"translation": "tldraw",
+			"note": "Brand; keep in Latin script, do not transliterate"
+		}
+	]
+}

@@ -1,0 +1,75 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Cancel",
+			"translation": "ਰੱਦ ਕਰੋ"
+		},
+		{
+			"term": "comment",
+			"translation": "ਟਿੱਪਣੀ"
+		},
+		{
+			"term": "Delete",
+			"translation": "ਮਿਟਾਓ"
+		},
+		{
+			"term": "embed",
+			"translation": "ਏਮਬੇਡ"
+		},
+		{
+			"term": "Export",
+			"translation": "ਨਿਰਯਾਤ ਕਰੋ"
+		},
+		{
+			"term": "file",
+			"translation": "ਫਾਈਲ"
+		},
+		{
+			"term": "fill (noun)",
+			"translation": "ਭਰਾਈ"
+		},
+		{
+			"term": "item",
+			"translation": "ਆਈਟਮ"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "ਹਲਕਾ / ਗੂੜ੍ਹਾ"
+		},
+		{
+			"term": "Orange (color)",
+			"translation": "ਸੰਤਰੀ",
+			"note": "Not ਸੰਤਰਾ, which is the fruit"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "ਮਾਲਕ"
+		},
+		{
+			"term": "page",
+			"translation": "ਪੰਨਾ"
+		},
+		{
+			"term": "pentagon",
+			"translation": "ਪੰਜਭੁਜ"
+		},
+		{
+			"term": "privacy policy",
+			"translation": "ਗੋਪਨੀਯਤਾ ਨੀਤੀ"
+		},
+		{
+			"term": "rhombus",
+			"translation": "ਰੋਮਬਸ"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "ਇੱਕ ਕਾਪੀ ਸੁਰੱਖਿਅਤ ਕਰੋ",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "workspace",
+			"translation": "ਵਰਕਸਪੇਸ"
+		}
+	]
+}

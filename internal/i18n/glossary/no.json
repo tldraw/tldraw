@@ -1,0 +1,920 @@
+{
+	"register": "imperative for buttons",
+	"terms": [
+		{
+			"term": "(fine) rotation step",
+			"translation": "(fin)"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "Tilgjengelighet"
+		},
+		{
+			"term": "Accessibility (menu)",
+			"translation": "Tilgjengelighet"
+		},
+		{
+			"term": "Actions (menu)",
+			"translation": "Handlinger"
+		},
+		{
+			"term": "align",
+			"translation": "juster"
+		},
+		{
+			"term": "Align (text)",
+			"translation": "Justering"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Alternativ tekst"
+		},
+		{
+			"term": "Arc (arrow kind)",
+			"translation": "Bue"
+		},
+		{
+			"term": "Arrange",
+			"translation": "Ordne"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Pil"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Pil"
+		},
+		{
+			"term": "Arrow (geo shape)",
+			"translation": "Pil"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "pilspiss"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Pilspisser"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Sideforhold"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Automatisk"
+		},
+		{
+			"term": "Auto (input mode)",
+			"translation": "Automatisk",
+			"note": "Not 'Bil' (car)"
+		},
+		{
+			"term": "Background",
+			"translation": "Bakgrunn"
+		},
+		{
+			"term": "backup (noun)",
+			"translation": "sikkerhetskopi"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Strek"
+		},
+		{
+			"term": "Bold",
+			"translation": "Fet"
+		},
+		{
+			"term": "browse",
+			"translation": "bla gjennom"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Punktliste"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Avbryt"
+		},
+		{
+			"term": "canvas",
+			"translation": "lerret"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Avkrysset"
+		},
+		{
+			"term": "Clear search",
+			"translation": "Tøm søk"
+		},
+		{
+			"term": "clockwise / counterclockwise",
+			"translation": "med klokken / mot klokken"
+		},
+		{
+			"term": "Close",
+			"translation": "Lukk"
+		},
+		{
+			"term": "Close (button)",
+			"translation": "Lukk",
+			"note": "Imperative, not the infinitive 'Lukke'"
+		},
+		{
+			"term": "Close (dialog button)",
+			"translation": "Lukk"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "Sky"
+		},
+		{
+			"term": "Color",
+			"translation": "Farge"
+		},
+		{
+			"term": "Color theme",
+			"translation": "Fargetema"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Kommandopalett"
+		},
+		{
+			"term": "Comment",
+			"translation": "Kommentar"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Bekreft"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Bekreft",
+			"note": "imperative, not infinitive"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Hurtigmeny"
+		},
+		{
+			"term": "Continue",
+			"translation": "Fortsett"
+		},
+		{
+			"term": "cookie",
+			"translation": "informasjonskapsel"
+		},
+		{
+			"term": "cookie policy",
+			"translation": "policy for informasjonskapsler"
+		},
+		{
+			"term": "cookies",
+			"translation": "informasjonskapsler"
+		},
+		{
+			"term": "copy (action)",
+			"translation": "Kopier",
+			"note": "imperative for menu items"
+		},
+		{
+			"term": "Copy (clipboard command)",
+			"translation": "Kopier"
+		},
+		{
+			"term": "Create",
+			"translation": "Opprett"
+		},
+		{
+			"term": "Crop",
+			"translation": "Beskjær"
+		},
+		{
+			"term": "Cubic (spline)",
+			"translation": "Kubisk"
+		},
+		{
+			"term": "cursor",
+			"translation": "markør"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Klipp ut"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Mørk"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Mørk modus"
+		},
+		{
+			"term": "Dashed (line style)",
+			"translation": "Stiplet"
+		},
+		{
+			"term": "debug mode",
+			"translation": "feilsøkingsmodus"
+		},
+		{
+			"term": "Delete",
+			"translation": "Slett"
+		},
+		{
+			"term": "Details",
+			"translation": "Detaljer"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Rombe"
+		},
+		{
+			"term": "disabled",
+			"translation": "deaktivert"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Fordel"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "Fordel"
+		},
+		{
+			"term": "Dot (arrowhead)",
+			"translation": "Prikk"
+		},
+		{
+			"term": "Dotted",
+			"translation": "Prikket"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Dupliser"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "Dupliser"
+		},
+		{
+			"term": "duplicate (verb)",
+			"translation": "Dupliser"
+		},
+		{
+			"term": "Edit",
+			"translation": "Rediger"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Rediger"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Redaktør"
+		},
+		{
+			"term": "embed",
+			"translation": "innebygging"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "innebygging"
+		},
+		{
+			"term": "Embed (tool)",
+			"translation": "Innebygging"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "Viskelær"
+		},
+		{
+			"term": "Error",
+			"translation": "Feil"
+		},
+		{
+			"term": "Export (noun/tab)",
+			"translation": "Eksport"
+		},
+		{
+			"term": "Export (verb, button)",
+			"translation": "Eksporter"
+		},
+		{
+			"term": "Export as",
+			"translation": "Eksporter som"
+		},
+		{
+			"term": "Extra large (size)",
+			"translation": "Ekstra stor"
+		},
+		{
+			"term": "feedback",
+			"translation": "tilbakemelding"
+		},
+		{
+			"term": "file",
+			"translation": "fil"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "fil"
+		},
+		{
+			"term": "Files",
+			"translation": "Filer"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "Fyll"
+		},
+		{
+			"term": "Fit to content",
+			"translation": "Tilpass til innhold"
+		},
+		{
+			"term": "focus mode",
+			"translation": "fokusmodus"
+		},
+		{
+			"term": "Follow",
+			"translation": "Følg"
+		},
+		{
+			"term": "Following you (viewport)",
+			"translation": "Følger deg"
+		},
+		{
+			"term": "Forget (remove file from own list)",
+			"translation": "Glem"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "Ramme"
+		},
+		{
+			"term": "Got it",
+			"translation": "Forstått"
+		},
+		{
+			"term": "grid",
+			"translation": "rutenett"
+		},
+		{
+			"term": "group (verb)",
+			"translation": "Grupper"
+		},
+		{
+			"term": "guest user",
+			"translation": "gjestebruker"
+		},
+		{
+			"term": "Heading",
+			"translation": "Overskrift"
+		},
+		{
+			"term": "Help (noun label)",
+			"translation": "Hjelp"
+		},
+		{
+			"term": "Hexagon",
+			"translation": "Sekskant"
+		},
+		{
+			"term": "Highlight (tool)",
+			"translation": "Merkepenn"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importer fil…"
+		},
+		{
+			"term": "Insert",
+			"translation": "Sett inn"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "invitasjon"
+		},
+		{
+			"term": "invite link",
+			"translation": "invitasjonslenke"
+		},
+		{
+			"term": "Italic",
+			"translation": "Kursiv"
+		},
+		{
+			"term": "item",
+			"translation": "element"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "element"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "element"
+		},
+		{
+			"term": "Justify (text alignment)",
+			"translation": "Blokkjustert"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Tastatursnarveier",
+			"note": "matches help-menu.keyboard-shortcuts"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Liggende"
+		},
+		{
+			"term": "Large (size)",
+			"translation": "Stor"
+		},
+		{
+			"term": "Later (not now)",
+			"translation": "Senere"
+		},
+		{
+			"term": "Learn more",
+			"translation": "Finn ut mer"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Biblioteker",
+			"note": "shape libraries"
+		},
+		{
+			"term": "library",
+			"translation": "bibliotek",
+			"note": "definite plural bibliotekene"
+		},
+		{
+			"term": "library (Libraries feature)",
+			"translation": "bibliotek / biblioteker"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "bibliotek"
+		},
+		{
+			"term": "Light (color shade)",
+			"translation": "Lyse-",
+			"note": "Write it as a compound: Lyseblå, Lysegrønn, Lyserød, Lysefiolett"
+		},
+		{
+			"term": "light (colour)",
+			"translation": "Lyse- (compound)",
+			"note": "Lyseblå, Lysegrønn, Lyserød, Lysefiolett"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Lys"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "Linje"
+		},
+		{
+			"term": "link",
+			"translation": "lenke"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Lenke"
+		},
+		{
+			"term": "Manage",
+			"translation": "Administrer"
+		},
+		{
+			"term": "member",
+			"translation": "medlem"
+		},
+		{
+			"term": "Menu",
+			"translation": "Meny"
+		},
+		{
+			"term": "Minimap",
+			"translation": "Minikart"
+		},
+		{
+			"term": "Mixed (various values)",
+			"translation": "Blandet"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "mus"
+		},
+		{
+			"term": "Move to",
+			"translation": "Flytt til"
+		},
+		{
+			"term": "Move to page",
+			"translation": "Flytt til side"
+		},
+		{
+			"term": "No access",
+			"translation": "Ingen tilgang"
+		},
+		{
+			"term": "Note (sticky note tool)",
+			"translation": "Lapp"
+		},
+		{
+			"term": "Note: (attention marker)",
+			"translation": "Merk:"
+		},
+		{
+			"term": "notification",
+			"translation": "varsel",
+			"note": "'varslingspanelet' for notifications panel"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Varsler"
+		},
+		{
+			"term": "numbered list",
+			"translation": "Nummerert liste"
+		},
+		{
+			"term": "Offline",
+			"translation": "Frakoblet"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opasitet"
+		},
+		{
+			"term": "overwrite",
+			"translation": "overskrive"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "eier"
+		},
+		{
+			"term": "page",
+			"translation": "side"
+		},
+		{
+			"term": "Pages",
+			"translation": "Sider"
+		},
+		{
+			"term": "paste",
+			"translation": "lim inn"
+		},
+		{
+			"term": "percent",
+			"translation": "10 %",
+			"note": "space before %"
+		},
+		{
+			"term": "percent format",
+			"translation": "25 %",
+			"note": "space (non-breaking) before %"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "Fest"
+		},
+		{
+			"term": "Pinned",
+			"translation": "Festet"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Stående"
+		},
+		{
+			"term": "Position",
+			"translation": "Posisjon"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferanser",
+			"note": "matches menu.preferences"
+		},
+		{
+			"term": "Preferences (menu)",
+			"translation": "Preferanser"
+		},
+		{
+			"term": "preview",
+			"translation": "forhåndsvisning"
+		},
+		{
+			"term": "Print…",
+			"translation": "Skriv ut…"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Personvernerklæring"
+		},
+		{
+			"term": "project",
+			"translation": "prosjekt"
+		},
+		{
+			"term": "publish",
+			"translation": "publisere"
+		},
+		{
+			"term": "read-only",
+			"translation": "skrivebeskyttet"
+		},
+		{
+			"term": "Rectangle",
+			"translation": "Rektangel"
+		},
+		{
+			"term": "Redo",
+			"translation": "Gjør om"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Reduser bevegelse"
+		},
+		{
+			"term": "refresh (page)",
+			"translation": "oppdater"
+		},
+		{
+			"term": "reload",
+			"translation": "last inn på nytt"
+		},
+		{
+			"term": "Remove",
+			"translation": "Fjern"
+		},
+		{
+			"term": "Remove (detach)",
+			"translation": "Fjern"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "fjern",
+			"note": "not slett (delete)"
+		},
+		{
+			"term": "Rename",
+			"translation": "Gi nytt navn"
+		},
+		{
+			"term": "request",
+			"translation": "forespørsel",
+			"note": "As in 'Ugyldig forespørsel.'"
+		},
+		{
+			"term": "reset (data)",
+			"translation": "tilbakestill"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "Løs"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Løst"
+		},
+		{
+			"term": "resolved (comment)",
+			"translation": "løst"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Rombe"
+		},
+		{
+			"term": "Save",
+			"translation": "Lagre"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Lagre en kopi",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "select",
+			"translation": "velg"
+		},
+		{
+			"term": "selected (state)",
+			"translation": "valgt"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "Utvalg"
+		},
+		{
+			"term": "Send (button)",
+			"translation": "Send",
+			"note": "Use the imperative for buttons, not the infinitive 'Sende'"
+		},
+		{
+			"term": "Send backward",
+			"translation": "Send bakover"
+		},
+		{
+			"term": "Settings",
+			"translation": "Innstillinger"
+		},
+		{
+			"term": "shape",
+			"translation": "form",
+			"note": "Flytt form, Velg neste form"
+		},
+		{
+			"term": "shape (plural)",
+			"translation": "figurer"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Del",
+			"note": "Imperative, not the infinitive 'Dele'"
+		},
+		{
+			"term": "Show details / Hide details",
+			"translation": "Vis detaljer / Skjul detaljer"
+		},
+		{
+			"term": "sidebar",
+			"translation": "sidefelt"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Logg inn",
+			"note": "Used in 'Logg inn med Google' and 'Logg inn for å dele'"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Logg ut"
+		},
+		{
+			"term": "Small (size)",
+			"translation": "Liten"
+		},
+		{
+			"term": "solid (fill)",
+			"translation": "Heldekkende"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Heltrukket"
+		},
+		{
+			"term": "Sort by",
+			"translation": "Sorter etter"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "Kvadrat"
+		},
+		{
+			"term": "Stack horizontally",
+			"translation": "Stable horisontalt"
+		},
+		{
+			"term": "Stack vertically",
+			"translation": "Stable vertikalt"
+		},
+		{
+			"term": "Stretch",
+			"translation": "Strekk"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Gjennomstreking"
+		},
+		{
+			"term": "Styles",
+			"translation": "Stiler"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "fane"
+		},
+		{
+			"term": "task item",
+			"translation": "oppgaveelement"
+		},
+		{
+			"term": "Task list",
+			"translation": "Oppgaveliste"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "Vilkår for bruk"
+		},
+		{
+			"term": "Terms of Use",
+			"translation": "Bruksvilkår"
+		},
+		{
+			"term": "theme",
+			"translation": "tema"
+		},
+		{
+			"term": "thread",
+			"translation": "tråd"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Slå av/på"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "Slå av/på …"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "Slå X av/på",
+			"note": "Toggle commands; not 'Bytt' or 'Veksle'"
+		},
+		{
+			"term": "tool",
+			"translation": "verktøy"
+		},
+		{
+			"term": "Tools",
+			"translation": "Verktøy"
+		},
+		{
+			"term": "Top / Middle / Bottom (vertical align)",
+			"translation": "Topp / Midten / Bunn"
+		},
+		{
+			"term": "trackpad",
+			"translation": "styreflate"
+		},
+		{
+			"term": "transparent",
+			"translation": "gjennomsiktig"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapes"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Trekant"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Ikke avkrysset"
+		},
+		{
+			"term": "Undo",
+			"translation": "Angre"
+		},
+		{
+			"term": "Unpin",
+			"translation": "Løsne",
+			"note": "Pin = keep at top of list"
+		},
+		{
+			"term": "upload (noun)",
+			"translation": "opplasting"
+		},
+		{
+			"term": "verification code",
+			"translation": "bekreftelseskode"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Vis"
+		},
+		{
+			"term": "Warning",
+			"translation": "Advarsel"
+		},
+		{
+			"term": "workspace",
+			"translation": "arbeidsområde",
+			"note": "not 'arbeidsplass'"
+		},
+		{
+			"term": "Zoom (noun, zoom level)",
+			"translation": "Zoom"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Zoom inn"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Zoom ut"
+		}
+	]
+}

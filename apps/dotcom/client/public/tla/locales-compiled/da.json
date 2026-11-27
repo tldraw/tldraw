@@ -2,7 +2,7 @@
   "0095a9fa74": [
     {
       "type": 0,
-      "value": "Eksportere"
+      "value": "Eksport"
     }
   ],
   "00b177e080": [
@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Inviter holdkammerater"
+      "value": "Inviter teammedlemmer"
     }
   ],
   "05b2656486": [
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Satsgrænsen er overskredet. Prøv igen senere."
+      "value": "Grænsen for antal anmodninger er overskredet. Prøv igen senere."
     }
   ],
   "08bd40c754": [
@@ -102,7 +102,7 @@
   "093ac7483a": [
     {
       "type": 0,
-      "value": "Kan ikke åbne "
+      "value": "Kan endnu ikke åbne "
     },
     {
       "type": 1,
@@ -110,7 +110,7 @@
     },
     {
       "type": 0,
-      "value": " filer endnu"
+      "value": "-filer"
     }
   ],
   "0a91f7fa87": [
@@ -128,7 +128,7 @@
   "0b9a4cde72": [
     {
       "type": 0,
-      "value": "Fil menu"
+      "value": "Filmenu"
     }
   ],
   "0c4383617a": [
@@ -152,7 +152,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Fjerne"
+      "value": "Fjern"
     }
   ],
   "10fb1df194": [
@@ -164,13 +164,19 @@
   "110a4b01be": [
     {
       "type": 0,
-      "value": "Offentliggøre"
+      "value": "Udgiv"
     }
   ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Frigør fil"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Dette arbejdsområde har nået det maksimale antal biblioteker. Slet gamle biblioteker, før du opretter nye."
     }
   ],
   "13ddd375ad": [
@@ -227,6 +233,12 @@
       "value": "Et arbejdsområde skal have mindst én ejer. Gør først en anden til ejer."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Min samling"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -259,6 +271,12 @@
       "value": "Om tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Dette bibliotek har nået det maksimale antal elementer. Slet gamle elementer, før du tilføjer nye."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -284,13 +302,13 @@
   "2a1167f869": [
     {
       "type": 0,
-      "value": "Velkommen til din arbejdsplads"
+      "value": "Velkommen til dit arbejdsområde"
     }
   ],
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Søge..."
+      "value": "Søg..."
     }
   ],
   "2d3cdcfdd4": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Fremhæv mangler"
+      "value": "i18n: Fremhæv manglende"
     }
   ],
   "324a0f3182": [
@@ -348,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Duplikatfil"
+      "value": "Dupliker fil"
     }
   ],
   "335defdafe": [
@@ -372,7 +390,7 @@
   "34e34c43ec": [
     {
       "type": 0,
-      "value": "Styre"
+      "value": "Administrer"
     }
   ],
   "375396d6e5": [
@@ -423,6 +441,12 @@
       "value": "Farvetema"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Biblioteksmenu"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -438,7 +462,7 @@
   "44db318ee5": [
     {
       "type": 0,
-      "value": "Få hjælp til Discord"
+      "value": "Få hjælp på Discord"
     }
   ],
   "454aad3b3c": [
@@ -535,6 +559,12 @@
       "value": " kommenterede"
     }
   ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Denne fil"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -556,7 +586,7 @@
   "50db1b7e1e": [
     {
       "type": 0,
-      "value": "Filen kunne ikke fjernes."
+      "value": "Kunne ikke fjerne offentliggørelsen af filen."
     }
   ],
   "51317dcad5": [
@@ -662,7 +692,7 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Dele"
+      "value": "Del"
     }
   ],
   "5bec508475": [
@@ -698,7 +728,7 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Kopi"
+      "value": "Kopiér"
     }
   ],
   "608e9d366e": [
@@ -806,7 +836,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " anden"
             }
           ]
         },
@@ -817,7 +847,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andre"
             }
           ]
         }
@@ -1002,6 +1032,12 @@
       "value": "Denne anonyme tldraw multiplayer-fil er nu skrivebeskyttet. For at fortsætte med at redigere, skal du logge ind og kopiere den til dine filer."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Ingen biblioteker endnu."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1053,7 +1089,7 @@
   "7cb5f8b4a5": [
     {
       "type": 0,
-      "value": "Glemme"
+      "value": "Glem"
     }
   ],
   "7d69b3cb4c": [
@@ -1083,7 +1119,7 @@
   "8030793ce3": [
     {
       "type": 0,
-      "value": "Ny arbejdsplads"
+      "value": "Nyt arbejdsområde"
     }
   ],
   "815e116a2e": [
@@ -1201,7 +1237,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " anden"
             }
           ]
         },
@@ -1212,7 +1248,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andre"
             }
           ]
         }
@@ -1259,7 +1295,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Sats begrænset"
+      "value": "For mange anmodninger"
     }
   ],
   "902b0d55fd": [
@@ -1303,7 +1339,7 @@
   "930390d222": [
     {
       "type": 0,
-      "value": "Kopieret invitationslink"
+      "value": "Invitationslink kopieret"
     }
   ],
   "95aacd4d4a": [
@@ -1344,6 +1380,12 @@
     {
       "type": 0,
       "value": "Brugsbetingelser"
+    }
+  ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Prøv MCP-serveren"
     }
   ],
   "9914a0ce04": [
@@ -1396,6 +1438,38 @@
       "value": "Du ser ud til at være offline. Tjek din forbindelse, og prøv igen."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementer"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1406,6 +1480,60 @@
     {
       "type": 0,
       "value": "Udgiv denne fil"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Vil du slette "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " og dets "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elementer"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1462,7 +1590,7 @@
             },
             {
               "type": 0,
-              "value": " ulæst"
+              "value": " ulæste"
             }
           ]
         }
@@ -1475,7 +1603,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Polstring"
+      "value": "Margen"
     }
   ],
   "a18366b217": [
@@ -1505,7 +1633,7 @@
   "a3debabee7": [
     {
       "type": 0,
-      "value": "Cookie politik"
+      "value": "Cookiepolitik"
     }
   ],
   "a4bef6414b": [
@@ -1523,7 +1651,7 @@
   "a52945dbe2": [
     {
       "type": 0,
-      "value": "Forlade"
+      "value": "Forlad"
     }
   ],
   "a6cc403d56": [
@@ -1535,13 +1663,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "Analytics"
+      "value": "Analyse"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Filen bliver stor"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Slet bibliotek"
     }
   ],
   "a9ded1e5ce": [
@@ -1671,7 +1805,7 @@
   "b74dbb40c5": [
     {
       "type": 0,
-      "value": "Træk filen ind i sidebjælken på denne side. Eller vælg 'Importer fil' i menuen Filer øverst til venstre."
+      "value": "Træk filen ind i sidepanelet på denne side. Eller vælg 'Importér fil' i menuen Fil øverst til venstre."
     }
   ],
   "b758336699": [
@@ -1700,7 +1834,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Uploader .tldr-fil..."
+              "value": "Uploader .tldr-fil…"
             }
           ]
         },
@@ -1724,7 +1858,7 @@
             },
             {
               "type": 0,
-              "value": " .tldr-filer..."
+              "value": " .tldr-filer…"
             }
           ]
         }
@@ -1775,30 +1909,22 @@
         "one": {
           "value": [
             {
-              "type": 0,
-              "value": "Tilføjet "
-            },
-            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " .tldr-fil."
+              "value": " .tldr-fil er tilføjet."
             }
           ]
         },
         "other": {
           "value": [
             {
-              "type": 0,
-              "value": "Tilføjet "
-            },
-            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " .tldr-filer."
+              "value": " .tldr-filer er tilføjet."
             }
           ]
         }
@@ -1817,13 +1943,13 @@
   "c4b39a1cc3": [
     {
       "type": 0,
-      "value": "Vigtige cookies"
+      "value": "Nødvendige cookies"
     }
   ],
   "c6a00f137b": [
     {
       "type": 0,
-      "value": "Invitere"
+      "value": "Invitér"
     }
   ],
   "c6f16003f2": [
@@ -1895,7 +2021,7 @@
   "d3d2e61733": [
     {
       "type": 0,
-      "value": "Tæt"
+      "value": "Luk"
     }
   ],
   "d46632fe1f": [
@@ -1971,7 +2097,7 @@
   "d9100f3e10": [
     {
       "type": 0,
-      "value": "Gå her for at se indholdet"
+      "value": "Gå hertil for at se indholdet"
     }
   ],
   "dbbebf3c03": [
@@ -1995,7 +2121,13 @@
   "e0aa021e21": [
     {
       "type": 0,
-      "value": "Okay"
+      "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Kunne ikke ændre biblioteket"
     }
   ],
   "e2198d6228": [
@@ -2031,7 +2163,7 @@
   "ea4788705e": [
     {
       "type": 0,
-      "value": "Ophæve"
+      "value": "Annuller"
     }
   ],
   "eb1e2b0542": [
@@ -2055,7 +2187,7 @@
   "ec611e9a08": [
     {
       "type": 0,
-      "value": "Konto menu"
+      "value": "Kontomenu"
     }
   ],
   "ed6241a422": [
@@ -2067,7 +2199,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Duplikere"
+      "value": "Duplikér"
     }
   ],
   "ede55d955f": [
@@ -2105,7 +2237,7 @@
   "ef7de3f485": [
     {
       "type": 0,
-      "value": "udvalgte"
+      "value": "valgt"
     }
   ],
   "f07e75296c": [
@@ -2124,6 +2256,12 @@
     {
       "type": 0,
       "value": "Brugerindstillinger"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Ikke i nogen fil"
     }
   ],
   "f13001876b": [
@@ -2205,7 +2343,13 @@
   "fed5ec05eb": [
     {
       "type": 0,
-      "value": "Kopieret link"
+      "value": "Link kopieret"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Offentlige biblioteker"
     }
   ],
   "ff2fefd3c6": [
@@ -2225,7 +2369,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Opret en gratis konto for at gemme dine filer og tldraw med dine holdkammerater."
+      "value": "Opret en gratis konto for at gemme dine filer og tegne i tldraw sammen med dine teammedlemmer."
     }
   ],
   "ffad261a48": [
