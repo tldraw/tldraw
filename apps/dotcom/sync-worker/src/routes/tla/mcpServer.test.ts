@@ -475,6 +475,8 @@ describe('MCP server', () => {
 			'read_page_comments',
 			'write_comment',
 			'send_feedback',
+			'create_image_upload',
+			'add_image',
 		])
 	})
 })
@@ -1353,28 +1355,6 @@ describe('write_comment', () => {
 })
 
 describe('image tools', () => {
-	const ON = { MCP_IMAGE_TOOLS_ENABLED: 'true' }
-
-	// Unset is off, so a deployment nobody configured (production, today) offers neither tool and
-	// answers a call to one as it would any name it has never heard of.
-	it('are served only where the deployment turns them on', async () => {
-		const listed = async (env: Environment) =>
-			(await resultOf(await mcpServer(makeRpcRequest('tools/list'), env))).tools.map(
-				(tool: any) => tool.name
-			)
-		expect(await listed(makeEnv())).not.toContain('add_image')
-		expect((await listed(makeEnv(ON))).slice(-2)).toEqual(['create_image_upload', 'add_image'])
-
-		const refused = await rpcError(
-			await mcpServer(
-				makeToolCall('add_image', { boardId: 'b', url: 'https://x.test/a.png' }),
-				makeEnv()
-			)
-		)
-		expect(refused.message).toBe('Unknown tool: add_image')
-		expect(addImageForUser).not.toHaveBeenCalled()
-	})
-
 	it('returns the upload ticket with how to use it', async () => {
 		vi.mocked(createImageUpload).mockResolvedValue({
 			ok: true,
@@ -1390,7 +1370,7 @@ describe('image tools', () => {
 		const result = await callTool(
 			'create_image_upload',
 			{ boardId: 'board_abc', mimeType: 'image/png', name: 'shot.png' },
-			makeEnv(ON),
+			makeEnv(),
 			'user_abc'
 		)
 		expect(vi.mocked(createImageUpload).mock.calls[0].slice(2)).toEqual([
@@ -1416,7 +1396,7 @@ describe('image tools', () => {
 		const result = await callTool(
 			'add_image',
 			{ boardId: 'board_abc', uploadId: 'abc-shot-png', x: 10, y: 20 },
-			makeEnv(ON),
+			makeEnv(),
 			'user_abc'
 		)
 		expect(vi.mocked(addImageForUser).mock.calls[0].slice(1)).toEqual([
@@ -1448,7 +1428,7 @@ describe('image tools', () => {
 			reason: 'upload_not_found',
 			uploadId: 'nope',
 		})
-		const result = await callTool('add_image', { boardId: 'b', uploadId: 'nope' }, makeEnv(ON))
+		const result = await callTool('add_image', { boardId: 'b', uploadId: 'nope' }, makeEnv())
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('No uploaded image for uploadId "nope"')
 	})

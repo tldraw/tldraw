@@ -1960,14 +1960,10 @@ describe('getAddImageRefusalMessage', () => {
 })
 
 describe('image tool definitions', () => {
-	// A deployment without the upload route configured must not offer a model tools it will refuse.
-	it('are listed only where the deployment serves them', () => {
-		const names = (imageToolsEnabled: boolean) =>
-			getToolDefinitions(true, imageToolsEnabled).map((tool) => tool.name)
-		expect(names(false)).not.toContain('create_image_upload')
-		expect(names(false)).not.toContain('add_image')
-		expect(names(true).slice(-2)).toEqual(['create_image_upload', 'add_image'])
-		expect(getMcpServerInstructions(true, false)).not.toContain('add_image')
-		expect(getMcpServerInstructions(false, true)).toContain('add_image')
+	it('are listed, and named in the instructions with or without name matching', () => {
+		const names = getToolDefinitions(true).map((tool) => tool.name)
+		expect(names.slice(-2)).toEqual(['create_image_upload', 'add_image'])
+		expect(getMcpServerInstructions(true)).toContain('add_image')
+		expect(getMcpServerInstructions(false)).toContain('add_image')
 	})
 })

@@ -67,9 +67,9 @@ export const MCP_SERVER_INFO = {
  * matches. That is the same failure the tool definition already guards against, arriving one step
  * earlier — see `getSearchBoardsToolDefinition`.
  */
-export function getMcpServerInstructions(nameMatchingEnabled: boolean, imageToolsEnabled = false) {
+export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 	const instructions = nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
-	return imageToolsEnabled ? `${instructions} ${IMAGE_INSTRUCTIONS}` : instructions
+	return `${instructions} ${IMAGE_INSTRUCTIONS}`
 }
 
 const IMAGE_INSTRUCTIONS =
@@ -2293,9 +2293,8 @@ export function getAddImageResult(added: {
  * @param nameMatchingEnabled - Whether this deployment will match on board names. When it will not,
  *   `search_boards` advertises no `query` argument and says so, rather than offering a search that
  *   would be refused. Read from the environment by the route; this layer stays free of it.
- * @param imageToolsEnabled - Whether this deployment serves create_image_upload and add_image.
  */
-export function getToolDefinitions(nameMatchingEnabled: boolean, imageToolsEnabled = false) {
+export function getToolDefinitions(nameMatchingEnabled: boolean) {
 	return [
 		getSearchBoardsToolDefinition(nameMatchingEnabled),
 		getListWorkspacesToolDefinition(),
@@ -2311,9 +2310,8 @@ export function getToolDefinitions(nameMatchingEnabled: boolean, imageToolsEnabl
 		getReadPageCommentsToolDefinition(),
 		getWriteCommentToolDefinition(),
 		getSendFeedbackToolDefinition(),
-		...(imageToolsEnabled
-			? [getCreateImageUploadToolDefinition(), getAddImageToolDefinition()]
-			: []),
+		getCreateImageUploadToolDefinition(),
+		getAddImageToolDefinition(),
 	]
 }
 

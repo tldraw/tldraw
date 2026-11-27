@@ -265,12 +265,6 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 	return word === undefined || word === 'true'
 }
 
-// Off unless a deployment asks for it, the other way round from name matching: these tools write to
-// boards and to the uploads bucket, so a deployment that forgot the var serves neither.
-export function isMcpImageToolsEnabled(env: Environment) {
-	return envFlagWord(env.MCP_IMAGE_TOOLS_ENABLED) === 'true'
-}
-
 // --- MCP protocol telemetry ---
 
 // Known MCP client families, matched as case-insensitive substrings against the User-Agent header
@@ -476,8 +470,6 @@ const TOOL_HANDLERS = new Map<
 	[ADD_IMAGE_TOOL_NAME, callAddImageTool],
 ])
 
-const IMAGE_TOOL_NAMES = new Set<string>([CREATE_IMAGE_UPLOAD_TOOL_NAME, ADD_IMAGE_TOOL_NAME])
-
 export async function mcpServer(
 	request: IRequest,
 	env: Environment,
@@ -516,10 +508,7 @@ export async function mcpServer(
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
 			capabilities: { tools: {} },
 			serverInfo: MCP_SERVER_INFO,
-			instructions: getMcpServerInstructions(
-				isMcpSearchNameMatchingEnabled(env),
-				isMcpImageToolsEnabled(env)
-			),
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 		})
 	}
 
@@ -537,10 +526,7 @@ export async function mcpServer(
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
 			capabilities: { tools: {} },
-			instructions: getMcpServerInstructions(
-				isMcpSearchNameMatchingEnabled(env),
-				isMcpImageToolsEnabled(env)
-			),
+			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
 			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
@@ -569,10 +555,7 @@ export async function mcpServer(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: getToolDefinitions(
-							isMcpSearchNameMatchingEnabled(env),
-							isMcpImageToolsEnabled(env)
-						),
+						tools: getToolDefinitions(isMcpSearchNameMatchingEnabled(env)),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -582,10 +565,7 @@ export async function mcpServer(
 			)
 		case 'tools/call': {
 			const toolName = rpcRequest.params?.name ?? ''
-			const toolHandler =
-				IMAGE_TOOL_NAMES.has(toolName) && !isMcpImageToolsEnabled(env)
-					? undefined
-					: TOOL_HANDLERS.get(toolName)
+			const toolHandler = TOOL_HANDLERS.get(toolName)
 			if (!toolHandler) {
 				// The requested name is caller-controlled and unbounded, so telemetry records a bounded
 				// value while the JSON-RPC error still tells the caller which name was unknown.
