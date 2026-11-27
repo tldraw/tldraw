@@ -799,6 +799,10 @@
   ],
   "68240daa8f": [
     {
+      "type": 0,
+      "value": "تفاعل "
+    },
+    {
       "children": [
         {
           "type": 1,
@@ -810,7 +814,7 @@
     },
     {
       "type": 0,
-      "value": ", "
+      "value": " و"
     },
     {
       "children": [
@@ -824,19 +828,38 @@
     },
     {
       "type": 0,
-      "value": " و "
+      "value": " و"
     },
     {
       "offset": 0,
       "options": {
-        "one": {
+        "few": {
           "value": [
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " أشخاص آخرون"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " شخصًا آخر"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "شخص آخر"
             }
           ]
         },
@@ -847,7 +870,26 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " شخص آخر"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 0,
+              "value": "شخصان آخران"
+            }
+          ]
+        },
+        "zero": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " شخص آخر"
             }
           ]
         }
@@ -855,10 +897,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reacted"
     }
   ],
   "6832ac5936": [
@@ -1271,6 +1309,10 @@
   ],
   "887479cb61": [
     {
+      "type": 0,
+      "value": "تفاعل "
+    },
+    {
       "children": [
         {
           "type": 1,
@@ -1282,19 +1324,38 @@
     },
     {
       "type": 0,
-      "value": " و "
+      "value": " و"
     },
     {
       "offset": 0,
       "options": {
-        "one": {
+        "few": {
           "value": [
             {
               "type": 7
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " أشخاص آخرون"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " شخصًا آخر"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "شخص آخر"
             }
           ]
         },
@@ -1305,7 +1366,26 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " شخص آخر"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 0,
+              "value": "شخصان آخران"
+            }
+          ]
+        },
+        "zero": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " شخص آخر"
             }
           ]
         }
@@ -1313,10 +1393,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " تفاعلوا"
     }
   ],
   "88bf6ab42c": [

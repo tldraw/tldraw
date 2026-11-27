@@ -100,9 +100,17 @@ function mergeGlossaries(root, glossary) {
  * out. Unresolved, low-confidence and invalid entries change no text, and are left pending in the
  * ledger (approval withdrawn if they had one), so the next run picks them up.
  *
+ * `acceptLow` ('none', 'missing' or 'all') writes low-confidence text that passes validation but
+ * doesn't record it, so the entry stays unverified: for a missing translation (shown in English
+ * otherwise) or a known-broken one, an unsure fix beats what ships. Low-confidence retains change
+ * nothing and stay held back.
+ *
  * `validate` defaults to the repo's `pnpm i18n-validate --entries`.
  */
-export function apply(root, dispositions, { validate = validateWithRepo } = {}) {
+export function apply(root, dispositions, { validate = validateWithRepo, acceptLow = 'none' } = {}) {
+	if (!['none', 'missing', 'all'].includes(acceptLow)) {
+		throw new Error(`acceptLow must be none, missing or all: ${acceptLow}`)
+	}
 	const entries = dispositions?.entries
 	if (!Array.isArray(entries)) throw new Error('Expected { entries: [...] }')
 	const supported = read(resolve(root, 'assets/translations/languages.json')).map((l) => l.locale)
@@ -125,9 +133,14 @@ export function apply(root, dispositions, { validate = validateWithRepo } = {}) 
 		}
 	}
 
+	const writesLow = (e) =>
+		e.confidence === 'low' &&
+		e.text !== undefined &&
+		(acceptLow === 'all' || (acceptLow === 'missing' && current.get(idOf(e)).reason === 'missing'))
+	const usable = (e) => e.decision !== 'unresolved' && (e.confidence === 'high' || writesLow(e))
 	// Retained text is checked too: a reviewer can keep a translation that is already broken.
 	const proposed = entries
-		.filter((e) => e.decision !== 'unresolved' && e.confidence === 'high')
+		.filter(usable)
 		.map(({ project, locale, key, text }) => ({
 			project,
 			locale,
@@ -151,10 +164,11 @@ export function apply(root, dispositions, { validate = validateWithRepo } = {}) 
 
 	let applied = 0
 	let retained = 0
+	let writtenUnverified = 0
 	for (const entry of entries) {
 		const existing = current.get(idOf(entry))
 		const errors = invalid[problemId(entry)]
-		if (entry.decision === 'unresolved' || entry.confidence === 'low' || errors) {
+		if (!usable(entry) || errors) {
 			unresolved.push({
 				...entry,
 				...(errors ? { reason: `Fails validation: ${errors.join('; ')}` } : {}),
@@ -182,7 +196,8 @@ export function apply(root, dispositions, { validate = validateWithRepo } = {}) 
 			})
 		}
 		applied++
-		accepted.push(entry)
+		if (writesLow(entry)) writtenUnverified++
+		else accepted.push(entry)
 	}
 
 	for (const { project, locale, data } of catalogs.values()) {
@@ -220,18 +235,20 @@ export function apply(root, dispositions, { validate = validateWithRepo } = {}) 
 	}
 	mergeGlossaries(root, dispositions.glossary)
 
-	return { applied, retained, unresolved }
+	return { applied, retained, writtenUnverified, unresolved }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-	const [file, flag, unresolvedPath, ...rest] = process.argv.slice(2)
+	const args = process.argv.slice(2)
+	const acceptLow = args.includes('--accept-low') ? 'all' : 'none'
+	const [file, flag, unresolvedPath, ...rest] = args.filter((arg) => arg !== '--accept-low')
 	try {
 		if (!file || rest.length || (flag && (flag !== '--unresolved' || !unresolvedPath))) {
 			throw new Error(
-				'Usage: node skills/translate/scripts/apply.mjs <dispositions.json> [--unresolved <out.json>]'
+				'Usage: node skills/translate/scripts/apply.mjs <dispositions.json> [--unresolved <out.json>] [--accept-low]'
 			)
 		}
-		const result = apply(process.cwd(), read(resolve(file)))
+		const result = apply(process.cwd(), read(resolve(file)), { acceptLow })
 		if (unresolvedPath) {
 			writeFileSync(resolve(unresolvedPath), JSON.stringify(result.unresolved, null, 2) + '\n')
 		}
@@ -239,6 +256,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
 			JSON.stringify({
 				applied: result.applied,
 				retained: result.retained,
+				writtenUnverified: result.writtenUnverified,
 				unresolved: result.unresolved.length,
 			})
 		)

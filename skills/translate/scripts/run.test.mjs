@@ -34,7 +34,7 @@ process.stdin.on('data', (d) => (stdin += d)).on('end', () => {
 	} else {
 		output = { entries: each((m, locale, l) => m.key === 'paste' && locale === 'pl'
 			? { project: m.project, locale, key: m.key, decision: 'revise', text: 'Wklej', confidence: 'high', reason: 'Imperative' }
-			: { project: m.project, locale, key: m.key, decision: 'accept', confidence: 'high' }) }
+			: { project: m.project, locale, key: m.key, decision: 'accept', confidence: m.project === 'dotcom' && locale === 'pl' ? 'low' : 'high' }) }
 	}
 	process.stdout.write(JSON.stringify({ is_error: false, total_cost_usd: 0.01, structured_output: output }))
 })
@@ -73,7 +73,7 @@ test('run triages, generates blind, reviews and applies, holding back low confid
 	t.after(() => delete process.env.CLAUDE_BIN)
 
 	const summary = await run(root, {
-		mode: 'incremental',
+		mode: 'full-review',
 		locales: ['es', 'pl'],
 		budget: 1,
 		out,
@@ -93,9 +93,11 @@ test('run triages, generates blind, reviews and applies, holding back low confid
 		cut: 'Cut-pl',
 		paste: 'Wklej',
 	})
+	// Missing, so written although the reviewer was unsure; it stays unverified.
 	assert.deepEqual(read('apps/dotcom/client/public/tla/locales/pl.json'), {
 		abc: { translation: 'Open-pl' },
 	})
+	assert.equal(plan(root, ['pl']).entries.find((e) => e.key === 'abc').reason, 'unverified')
 	assert.deepEqual(read('internal/i18n/glossary/es.json'), {
 		register: '',
 		terms: [{ term: 'Copy', translation: 'Copiar' }],
@@ -105,12 +107,21 @@ test('run triages, generates blind, reviews and applies, holding back low confid
 		{
 			pending: summary.pending,
 			applied: summary.applied,
+			writtenUnverified: summary.writtenUnverified,
 			retained: summary.retained,
 			unresolved: summary.unresolved,
 			undecided: summary.undecided,
 			spent: summary.budget.spent,
 		},
-		{ pending: 8, applied: 5, retained: 2, unresolved: 1, undecided: 0, spent: 0.04 }
+		{
+			pending: 8,
+			applied: 5,
+			writtenUnverified: 1,
+			retained: 2,
+			unresolved: 1,
+			undecided: 0,
+			spent: 0.04,
+		}
 	)
 	assert.equal(plan(root, ['pl']).entries.find((e) => e.key === 'copy').reason, 'unverified')
 	assert.match(readFileSync(join(out, 'summary.md'), 'utf8'), /sdk:pl:copy/)
@@ -124,7 +135,7 @@ test('run stops starting calls once the budget is spent and leaves the rest pend
 	t.after(() => delete process.env.CLAUDE_BIN)
 
 	const summary = await run(root, {
-		mode: 'incremental',
+		mode: 'full-review',
 		locales: ['es', 'pl'],
 		budget: 0.065,
 		out,
@@ -149,7 +160,7 @@ test('run records what it spent even when apply fails', async (t) => {
 
 	await assert.rejects(
 		run(root, {
-			mode: 'incremental',
+			mode: 'full-review',
 			locales: ['es', 'pl'],
 			budget: 1,
 			out,
@@ -161,4 +172,28 @@ test('run records what it spent even when apply fails', async (t) => {
 		/validator crashed/
 	)
 	assert.equal(JSON.parse(readFileSync(join(out, 'summary.json'), 'utf8')).budget.spent, 0.04)
+})
+
+test('incremental runs skip unverified entries and take only missing and changed ones', async (t) => {
+	const root = fixture(t)
+	const out = join(root, '..', `${root.split('/').pop()}-out`)
+	t.after(() => rmSync(out, { recursive: true, force: true }))
+	process.env.CLAUDE_BIN = join(root, 'bin/claude')
+	t.after(() => delete process.env.CLAUDE_BIN)
+
+	const summary = await run(root, {
+		mode: 'incremental',
+		locales: ['es', 'pl'],
+		budget: 1,
+		out,
+		log: () => {},
+		validate: () => ({}),
+	})
+	// es copy/cut, pl copy and dotcom es abc are unverified; the rest are missing.
+	assert.equal(summary.pending, 4)
+	assert.deepEqual(JSON.parse(readFileSync(join(root, 'assets/translations/es.json'), 'utf8')), {
+		copy: 'Copiar',
+		cut: 'Cortar',
+		paste: 'Paste-es',
+	})
 })

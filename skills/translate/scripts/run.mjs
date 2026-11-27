@@ -354,9 +354,14 @@ export async function run(
 	mkdirSync(out, { recursive: true })
 	const budget = new Budget(budgetUsd)
 	const state = statePlan(root, locales, { includeCurrent: mode === 'full-review' })
+	// Every unverified entry has had a full review that held it back (low confidence). Incremental
+	// runs leave them out, or each weekly run would pay to review the same ~7,000 again and could
+	// run out of budget before reaching new strings.
+	const pending =
+		mode === 'incremental' ? state.entries.filter((e) => e.reason !== 'unverified') : state.entries
 	// --limit keeps the first n messages, for a cheap trial run.
-	const keep = maxMessages ? new Set([...new Set(state.entries.map(messageId))].slice(0, maxMessages)) : null
-	const work = keep ? state.entries.filter((e) => keep.has(messageId(e))) : state.entries
+	const keep = maxMessages ? new Set([...new Set(pending.map(messageId))].slice(0, maxMessages)) : null
+	const work = keep ? pending.filter((e) => keep.has(messageId(e))) : pending
 	const summary = { mode, locales: locales ?? 'all', pending: work.length, counts: state.counts }
 	const spentSoFar = () => `$${budget.spent.toFixed(2)} spent so far`
 	if (!work.length) {
@@ -481,13 +486,15 @@ export async function run(
 	writeFileSync(join(out, 'summary.json'), JSON.stringify({ ...summary, budget: costs() }, null, 2) + '\n')
 	const result = { entries: dispositions, glossary: glossaryUpdates }
 	writeFileSync(join(out, 'dispositions.json'), JSON.stringify(result, null, 2) + '\n')
-	const applied = apply(root, result, validate ? { validate } : undefined)
+	// A missing translation shows in English, so unsure text beats none; it stays unverified.
+	const applied = apply(root, result, { acceptLow: 'missing', ...(validate ? { validate } : {}) })
 	writeFileSync(join(out, 'unresolved.json'), JSON.stringify(applied.unresolved, null, 2) + '\n')
 
 	const decided = new Set(dispositions.map(idOf))
 	Object.assign(summary, {
 		applied: applied.applied,
 		retained: applied.retained,
+		writtenUnverified: applied.writtenUnverified,
 		unresolved: applied.unresolved.length,
 		// Entries with no decision at all: a failed call or the budget ran out. They stay pending.
 		undecided: work.filter((e) => !decided.has(idOf(e))).length,
@@ -515,7 +522,7 @@ function summaryMarkdown(summary, unresolved) {
 	const lines = [
 		`Mode: ${summary.mode}. Locales: ${Array.isArray(summary.locales) ? summary.locales.join(', ') : summary.locales}.`,
 		'',
-		`${summary.pending} entries: ${summary.applied} written, ${summary.retained} kept as they were, ${summary.unresolved} held back, ${summary.undecided} not reached.`,
+		`${summary.pending} entries: ${summary.applied} written (${summary.writtenUnverified} of them missing translations filled at low confidence, left unverified), ${summary.retained} kept as they were, ${summary.unresolved} held back, ${summary.undecided} not reached.`,
 		'',
 		`Cost: $${summary.budget.spent} of a $${summary.budget.limit} budget (${Object.entries(summary.budget.byPhase)
 			.map(([phase, usd]) => `${phase} $${usd.toFixed(2)}`)

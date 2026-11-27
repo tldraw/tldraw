@@ -401,6 +401,7 @@
 	"libraries.library-menu.delete": "Xóa",
 	"libraries.library-menu.remove-from-document": "Gỡ khỏi tệp",
 	"libraries.library-menu.rename": "Đổi tên",
+	"libraries.library-menu.reverse": "Thứ tự đảo ngược",
 	"libraries.library-menu.sort": "Sắp xếp theo",
 	"libraries.library-menu.title": "Tùy chọn thư viện",
 	"libraries.move-error.title": "Không thể di chuyển mục",

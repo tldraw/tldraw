@@ -169,6 +169,12 @@
       "value": "Furaha faylka"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Goobtan shaqada waxay gaartay tirada ugu badan ee maktabadaha. Tirtir maktabadaha duugga ah kahor intaadan abuurin kuwo cusub."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -223,6 +229,12 @@
       "value": "Goobta shaqadu waa inay ugu yaraan hal milkiile haysataa. Marka hore qof kale ka dhig mulkiile."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Kaydkayga"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -253,6 +265,12 @@
     {
       "type": 0,
       "value": "Ku saabsan tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Maktabaddan waxay gaartay tirada ugu badan ee walxaha. Tirtir walxaha duugga ah kahor intaadan ku darin kuwo cusub."
     }
   ],
   "28b2464e1f": [
@@ -419,6 +437,12 @@
       "value": "Mawduuca midabka"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Liiska maktabadda"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -529,6 +553,12 @@
     {
       "type": 0,
       "value": " ayaa faallo ka bixiyay"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Faylkan"
     }
   ],
   "4d0d3ddec9": [
@@ -694,7 +724,7 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Nuqul"
+      "value": "Koobi"
     }
   ],
   "608e9d366e": [
@@ -996,6 +1026,12 @@
     {
       "type": 0,
       "value": "Faylka ciyaartoy badan oo tldraw aan la garanayn hadda waa akhrin-kaliya. Si aad u sii waddo tafatirka, fadlan soo gal oo koobi ka geli faylashaada."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Weli maktabado ma jiraan."
     }
   ],
   "78e9815992": [
@@ -1342,6 +1378,12 @@
       "value": "Shuruudaha Isticmaalka"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Tijaabi server-ka MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1392,6 +1434,38 @@
       "value": "Waxaad u muuqataa inaad offline tahay. Hubi xiriirkaaga oo isku day mar kale."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " shay"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " shay"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1402,6 +1476,60 @@
     {
       "type": 0,
       "value": "Daabac faylkan"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Ma tirtiraa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " iyo "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " shay"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " shay"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ku jira?"
     }
   ],
   "9e076f5885": [
@@ -1538,6 +1666,12 @@
     {
       "type": 0,
       "value": "Faylku wuu weynaaday"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Tirtir maktabadda"
     }
   ],
   "a9ded1e5ce": [
@@ -1994,6 +2128,12 @@
       "value": "Hagaag"
     }
   ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Maktabadda lama beddeli karin"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2118,6 +2258,12 @@
       "value": "Dejinta isticmaalaha"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Kuma jirto wax fayl ah"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2194,6 +2340,12 @@
     {
       "type": 0,
       "value": "Xiriirinta la guuriyay"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Maktabadaha dadweynaha"
     }
   ],
   "ff2fefd3c6": [
