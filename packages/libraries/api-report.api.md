@@ -17,7 +17,6 @@ import { ReactNode } from 'react';
 import { RecordType } from 'tldraw';
 import { RefObject } from 'react';
 import type { SVGProps } from 'react';
-import { T } from '@tldraw/validate';
 import type { TLContent } from '@tldraw/editor';
 import { TLContent as TLContent_2 } from 'tldraw';
 import { TLI18nMessage } from 'tldraw';
@@ -197,9 +196,6 @@ export function copyLibrary(source: LibrarySource, libraryId: TLLibraryId, owner
 
 // @public
 export function copyPack(source: LibrarySource, pack: LibraryPack, options?: TLNewLibraryOptions): Promise<TLLibrary>;
-
-// @internal
-export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1;
 
 // @public
 export function defaultPlaceLibraryItem(editor: Editor, { content, point, select }: TLLibraryItemPlacement): TLShapeId[];
@@ -540,9 +536,6 @@ export interface LibraryItemsOptions {
     reversed?: boolean;
 }
 
-// @internal (undocumented)
-export const libraryItemValidator: T.Validator<TLLibraryItem>;
-
 // @public
 export function LibraryMenu({ id, trigger, onCreate: create, onRename: rename, onDelete: remove, onAddToDocument: addToDocument, onRemoveFromDocument: removeFromDocument, sort, copy: copyTo, children, }: LibraryMenuProps): JSX.Element | null;
 
@@ -723,9 +716,6 @@ export type LibraryThumbnailUrlsOptions = {
     container?: never;
     width: number;
 };
-
-// @internal
-export const libraryThumbnailValidator: T.Validator<TLLibraryThumbnail>;
 
 // @public
 export function mapThumbnail<A, B>(thumbnail: TLLibraryThumbnail<A>, convert: (src: A) => B): TLLibraryThumbnail<B>;

@@ -139,9 +139,6 @@ export {
 export {
 	LibraryItemContentTooNewError,
 	LibraryItemRecordType,
-	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
-	libraryItemValidator,
-	libraryThumbnailValidator,
 	getThumbnailForColorMode,
 	mapThumbnail,
 	parseLibraryItemContent,
