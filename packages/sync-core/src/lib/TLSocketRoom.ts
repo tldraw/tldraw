@@ -101,6 +101,34 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	// how long to wait for a client to communicate before disconnecting them
 	clientTimeout?: number
 	log?: TLSyncLog
+	/**
+	 * Called once a session completes the connect handshake, right after the room has sent the
+	 * session its connect reply. From here on the session can receive messages, so this is the
+	 * place to send it per-session state the server already knows, such as its permissions:
+	 * a {@link TLSocketRoom.sendCustomMessage} call made inside this callback is delivered, and
+	 * arrives after the connect reply.
+	 *
+	 * Fires once per successful connect request. A client that reconnects sends a new connect
+	 * request, so the callback fires again for each reconnect, including under the same session
+	 * id. It does not fire when the connect request is rejected (for example, on a protocol or
+	 * schema mismatch), nor for sessions restored with {@link TLSocketRoom.handleSocketResume},
+	 * which skip the handshake. Errors thrown by the callback are logged and do not affect the
+	 * session.
+	 *
+	 * @example
+	 * ```ts
+	 * const room = new TLSocketRoom<TLRecord, { role: string }>({
+	 *   onSessionConnected: (room, { sessionId, meta }) => {
+	 *     room.sendCustomMessage(sessionId, { type: 'role', role: meta.role })
+	 *   },
+	 * })
+	 * ```
+	 */
+	// eslint-disable-next-line tldraw/method-signature-style
+	onSessionConnected?: (
+		room: TLSocketRoom<R, SessionMeta>,
+		args: { sessionId: string; meta: SessionMeta }
+	) => void
 	// a callback that is called when a client is disconnected
 	// eslint-disable-next-line tldraw/method-signature-style
 	onSessionRemoved?: (
@@ -242,6 +270,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - schema - Store schema defining record types and validation
 	 *   - clientTimeout - Milliseconds to wait before disconnecting inactive clients
 	 *   - log - Optional logger for warnings and errors
+	 *   - onSessionConnected - Called when a client session completes the connect handshake
 	 *   - onSessionRemoved - Called when a client session is removed
 	 *   - onBeforeSendMessage - Called before sending messages to clients
 	 *   - onAfterReceiveMessage - Called after receiving messages from clients
@@ -287,6 +316,15 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			clientTimeout: opts.clientTimeout,
 		})
 		this.storage = storage
+		this.room.events.on('session_connected', (args) => {
+			if (!this.opts.onSessionConnected) return
+			// the room emits this mid-handshake, where a throw would reject the session
+			try {
+				this.opts.onSessionConnected(this, { sessionId: args.sessionId, meta: args.meta })
+			} catch (e) {
+				this.log?.error?.('onSessionConnected threw', e)
+			}
+		})
 		this.room.events.on('session_removed', (args) => {
 			this.clearSnapshotTimer(args.sessionId)
 			this.sessions.delete(args.sessionId)

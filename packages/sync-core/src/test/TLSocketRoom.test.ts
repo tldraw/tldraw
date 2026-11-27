@@ -1082,6 +1082,137 @@ describe('28. TLSocketRoom (SR)', () => {
 		})
 	})
 
+	describe('onSessionConnected', () => {
+		function sentTypes(socket: WebSocketMinimal) {
+			return vi.mocked(socket.send).mock.calls.map(([msg]) => JSON.parse(msg as string).type)
+		}
+
+		function sendConnect(
+			room: TLSocketRoom<any, any>,
+			sessionId: string,
+			opts: { lastServerClock?: number; protocolVersion?: number } = {}
+		) {
+			room.handleSocketMessage(
+				sessionId,
+				JSON.stringify({
+					type: 'connect',
+					connectRequestId: `connect-${sessionId}`,
+					lastServerClock: opts.lastServerClock ?? 0,
+					protocolVersion: opts.protocolVersion ?? getTlsyncProtocolVersion(),
+					schema: createTLSchema().serialize(),
+				})
+			)
+		}
+
+		it('[SR16] fires once after the connect reply with the session id and meta', () => {
+			const meta: TestSessionMeta = { userId: 'user-1', userName: 'Alice' }
+			const socket = createMockSocket()
+			const onSessionConnected = vi.fn((room: TLSocketRoom<any, TestSessionMeta>) => {
+				// the connect reply has already gone out, and the session reports as connected
+				expect(sentTypes(socket)).toEqual(['connect'])
+				expect(room.getSessions()[0].isConnected).toBe(true)
+			})
+			const room = new TLSocketRoom<any, TestSessionMeta>({ onSessionConnected })
+
+			room.handleSocketConnect({ sessionId: 's1', socket, meta })
+			expect(onSessionConnected).not.toHaveBeenCalled()
+
+			sendConnect(room, 's1')
+			expect(onSessionConnected).toHaveBeenCalledTimes(1)
+			expect(onSessionConnected).toHaveBeenCalledWith(room, { sessionId: 's1', meta })
+
+			// later messages don't fire it again
+			room.handleSocketMessage('s1', JSON.stringify({ type: 'ping' }))
+			expect(onSessionConnected).toHaveBeenCalledTimes(1)
+		})
+
+		it('[SR16] delivers a custom message sent from the callback after the connect reply', () => {
+			const room = new TLSocketRoom<any, TestSessionMeta>({
+				onSessionConnected: (room, { sessionId, meta }) => {
+					room.sendCustomMessage(sessionId, { role: 'editor', userId: meta.userId })
+				},
+			})
+			const socket = createMockSocket()
+			room.handleSocketConnect({
+				sessionId: 's1',
+				socket,
+				meta: { userId: 'user-1', userName: 'Alice' },
+			})
+			sendConnect(room, 's1')
+
+			expect(sentTypes(socket)).toEqual(['connect', 'custom'])
+			expect(vi.mocked(socket.send).mock.lastCall).toEqual([
+				JSON.stringify({ type: 'custom', data: { role: 'editor', userId: 'user-1' } }),
+			])
+		})
+
+		it('[SR16] does not fire when the connect request is rejected', () => {
+			const onSessionConnected = vi.fn()
+			const room = new TLSocketRoom({ onSessionConnected })
+			const socket = createMockSocket()
+			room.handleSocketConnect({ sessionId: 's1', socket })
+
+			sendConnect(room, 's1', { protocolVersion: getTlsyncProtocolVersion() + 1 })
+
+			expect(socket.close).toHaveBeenCalledWith(
+				TLSyncErrorCloseEventCode,
+				TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+			)
+			expect(onSessionConnected).not.toHaveBeenCalled()
+		})
+
+		it('[SR16] fires again for each reconnect', () => {
+			const onSessionConnected = vi.fn()
+			const room = new TLSocketRoom({ onSessionConnected })
+
+			const socket1 = createMockSocket()
+			connectSession(room, 's1', socket1)
+			expect(onSessionConnected).toHaveBeenCalledTimes(1)
+
+			// the client reconnects under the same session id on a new socket, resuming from its clock
+			const socket2 = createMockSocket()
+			room.handleSocketConnect({ sessionId: 's1', socket: socket2 })
+			sendConnect(room, 's1', { lastServerClock: room.getCurrentDocumentClock() })
+
+			expect(onSessionConnected).toHaveBeenCalledTimes(2)
+			expect(onSessionConnected).toHaveBeenLastCalledWith(room, {
+				sessionId: 's1',
+				meta: undefined,
+			})
+			expect(sentTypes(socket2)).toEqual(['connect'])
+		})
+
+		it('[SR16] does not fire for resumed sessions', () => {
+			const onSessionConnected = vi.fn()
+			const room = new TLSocketRoom({})
+			connectSession(room, 's1', createMockSocket())
+			const snapshot = room.getSessionSnapshot('s1')!
+
+			const room2 = new TLSocketRoom({ onSessionConnected })
+			room2.handleSocketResume({ sessionId: 's1', socket: createMockSocket(), snapshot })
+
+			expect(onSessionConnected).not.toHaveBeenCalled()
+		})
+
+		it('[SR16] logs an error thrown by the callback and keeps the session connected', async () => {
+			const error = new Error('boom')
+			const log = { warn: vi.fn(), error: vi.fn() }
+			const room = new TLSocketRoom({
+				log,
+				onSessionConnected: () => {
+					throw error
+				},
+			})
+			const socket = createMockSocket()
+			connectSession(room, 's1', socket)
+			await flushAsync()
+
+			expect(log.error).toHaveBeenCalledWith('onSessionConnected threw', error)
+			expect(socket.close).not.toHaveBeenCalled()
+			expect(room.getSessions()).toMatchObject([{ sessionId: 's1', isConnected: true }])
+		})
+	})
+
 	describe('onSessionSnapshot', () => {
 		it('[SR12] calls onSessionSnapshot after debounce on message receipt', () => {
 			vi.useFakeTimers()

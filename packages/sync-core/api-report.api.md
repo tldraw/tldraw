@@ -577,6 +577,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     onDataChange?(): void;
     // @internal (undocumented)
     onPresenceChange?(): void;
+    onSessionConnected?: (room: TLSocketRoom<R, SessionMeta>, args: {
+        meta: SessionMeta;
+        sessionId: string;
+    }) => void;
     // (undocumented)
     onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
         meta: SessionMeta;
@@ -734,6 +738,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly events: Emitter<    {
     room_became_empty(): void;
+    session_connected(args: {
+    meta: SessionMeta;
+    sessionId: string;
+    }): void;
     session_removed(args: {
     meta: SessionMeta;
     sessionId: string;
