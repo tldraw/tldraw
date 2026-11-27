@@ -1,0 +1,891 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 80,
+				"y": 13360,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "list-detail-screen",
+						"pack": "wireframing",
+						"name": "List / detail screen",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Screen templates",
+						"tags": ["List / detail screen", "list-detail-screen", "Screen templates"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-list-detail-screen",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "b1v1RU",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-browser",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 960,
+					"h": 610,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 1,
+				"y": 37,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-toolbar",
+				"type": "line",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 958,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a2adz",
+				"typeName": "shape"
+			},
+			{
+				"x": 17,
+				"y": 16,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-dot0",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 4,
+					"h": 4,
+					"geo": "ellipse",
+					"dash": "none",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "fill",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a3LY2",
+				"typeName": "shape"
+			},
+			{
+				"x": 30,
+				"y": 16,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-dot1",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 4,
+					"h": 4,
+					"geo": "ellipse",
+					"dash": "none",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "fill",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a47jQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 43,
+				"y": 16,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-dot2",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 4,
+					"h": 4,
+					"geo": "ellipse",
+					"dash": "none",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "fill",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "a5C6M",
+				"typeName": "shape"
+			},
+			{
+				"x": 28,
+				"y": 59,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-brand",
+				"type": "text",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"color": "black",
+					"size": "m",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Projects"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a6m5r",
+				"typeName": "shape"
+			},
+			{
+				"x": 232,
+				"y": 50,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-search",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 290,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "grey",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Search projects"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a7V7M",
+				"typeName": "shape"
+			},
+			{
+				"x": 757,
+				"y": 50,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-add",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 176,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "New project"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a8S7r",
+				"typeName": "shape"
+			},
+			{
+				"x": 1,
+				"y": 118,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-header",
+				"type": "line",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 958,
+							"y": 0
+						}
+					},
+					"scale": 1
+				},
+				"index": "a9uGv",
+				"typeName": "shape"
+			},
+			{
+				"x": 293,
+				"y": 118,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-split",
+				"type": "line",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"dash": "draw",
+					"size": "s",
+					"color": "grey",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 491
+						}
+					},
+					"scale": 1
+				},
+				"index": "aAKzk",
+				"typeName": "shape"
+			},
+			{
+				"x": 17,
+				"y": 139,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-row0",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 258,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Project Alpha"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aBEt2",
+				"typeName": "shape"
+			},
+			{
+				"x": 17,
+				"y": 204,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-row1",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 258,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "grey",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Project Beta"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aCevr",
+				"typeName": "shape"
+			},
+			{
+				"x": 17,
+				"y": 269,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-row2",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 258,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "grey",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Project Gamma"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aDyrf",
+				"typeName": "shape"
+			},
+			{
+				"x": 17,
+				"y": 334,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-row3",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 258,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "grey",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Archive"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aENxr",
+				"typeName": "shape"
+			},
+			{
+				"x": 327,
+				"y": 145,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-title",
+				"type": "text",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"color": "black",
+					"size": "l",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Project Alpha"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aFJnQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 329,
+				"y": 207,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-description",
+				"type": "text",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"color": "grey",
+					"size": "s",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "A short project description"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aGROQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 329,
+				"y": 258,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-image",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 302,
+					"h": 193,
+					"geo": "x-box",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "grey",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"index": "aH2R6",
+				"typeName": "shape"
+			},
+			{
+				"x": 670,
+				"y": 260,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-status",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 242,
+					"h": 98,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Status"
+									}
+								]
+							},
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "In progress"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aI3Uu",
+				"typeName": "shape"
+			},
+			{
+				"x": 670,
+				"y": 377,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-owner",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 242,
+					"h": 74,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "none",
+					"size": "s",
+					"font": "draw",
+					"align": "start",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Owner: Team"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aJo2f",
+				"typeName": "shape"
+			},
+			{
+				"x": 757,
+				"y": 510,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-list-detail-screen-edit",
+				"type": "geo",
+				"parentId": "shape:full-catalog-list-detail-screen",
+				"props": {
+					"w": 176,
+					"h": 60,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "blue",
+					"labelColor": "black",
+					"fill": "solid",
+					"size": "s",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "Edit project"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "aK5Xv",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-list-detail-screen"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

@@ -1,0 +1,884 @@
+{
+	"register": "formal; verbal nouns for controls",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Προσβασιμότητα"
+		},
+		{
+			"term": "account",
+			"translation": "λογαριασμός"
+		},
+		{
+			"term": "Actions (menu)",
+			"translation": "Ενέργειες"
+		},
+		{
+			"term": "Align (shapes)",
+			"translation": "Ευθυγράμμιση",
+			"note": "not Στοίχιση"
+		},
+		{
+			"term": "Align (text)",
+			"translation": "Στοίχιση"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Εναλλακτικό κείμενο"
+		},
+		{
+			"term": "Arc (arrow kind)",
+			"translation": "Τόξο"
+		},
+		{
+			"term": "Arrange",
+			"translation": "Τακτοποίηση"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Βέλος"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Βέλος"
+		},
+		{
+			"term": "Arrow (geo shape)",
+			"translation": "Βέλος"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "αιχμή (βέλους)",
+			"note": "Feminine; arrowhead option adjectives agree: Αντεστραμμένη, Καμία"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Αιχμές βελών"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Αναλογία διαστάσεων"
+		},
+		{
+			"term": "Auto (automatic option)",
+			"translation": "Αυτόματο"
+		},
+		{
+			"term": "Auto (input mode)",
+			"translation": "Αυτόματο"
+		},
+		{
+			"term": "Background",
+			"translation": "Φόντο"
+		},
+		{
+			"term": "Bold",
+			"translation": "Έντονα"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "Μεταφορά σε πρώτο πλάνο"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Ακύρωση"
+		},
+		{
+			"term": "canvas",
+			"translation": "καμβάς"
+		},
+		{
+			"term": "Clear",
+			"translation": "Εκκαθάριση"
+		},
+		{
+			"term": "clockwise / counterclockwise",
+			"translation": "δεξιόστροφα / αριστερόστροφα"
+		},
+		{
+			"term": "Close",
+			"translation": "Κλείσιμο"
+		},
+		{
+			"term": "Close (button)",
+			"translation": "Κλείσιμο",
+			"note": "Not Κοντά ('near')"
+		},
+		{
+			"term": "Close (dialog button)",
+			"translation": "Κλείσιμο"
+		},
+		{
+			"term": "Code (inline code formatting)",
+			"translation": "Κώδικας"
+		},
+		{
+			"term": "Color",
+			"translation": "Χρώμα"
+		},
+		{
+			"term": "color name (standalone)",
+			"translation": "neuter form agreeing with 'χρώμα'",
+			"note": "e.g. Μαύρο, Λευκό, Κόκκινο"
+		},
+		{
+			"term": "color names",
+			"translation": "neuter form (Μαύρο, Κόκκινο, Πορτοκαλί, Βιολετί)",
+			"note": "agree with χρώμα"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Παλέτα εντολών"
+		},
+		{
+			"term": "Comment",
+			"translation": "Σχόλιο"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Επιβεβαίωση"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Μενού περιβάλλοντος"
+		},
+		{
+			"term": "Continue",
+			"translation": "Συνέχεια"
+		},
+		{
+			"term": "cookie",
+			"translation": "cookie",
+			"note": "kept as Latin loanword"
+		},
+		{
+			"term": "cookies",
+			"translation": "cookies"
+		},
+		{
+			"term": "Copy",
+			"translation": "Αντιγραφή"
+		},
+		{
+			"term": "copy (action)",
+			"translation": "Αντιγραφή"
+		},
+		{
+			"term": "Copy (clipboard command)",
+			"translation": "Αντιγραφή",
+			"note": "Verbal noun; not 'Αντίγραφο' (a copy)"
+		},
+		{
+			"term": "Copy as",
+			"translation": "Αντιγραφή ως"
+		},
+		{
+			"term": "Create",
+			"translation": "Δημιουργία"
+		},
+		{
+			"term": "Create (button)",
+			"translation": "Δημιουργία"
+		},
+		{
+			"term": "Crop",
+			"translation": "Περικοπή"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Αποκοπή"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Σκοτεινή λειτουργία"
+		},
+		{
+			"term": "Dashed (line style)",
+			"translation": "Διακεκομμένη"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "Λειτουργία εντοπισμού σφαλμάτων"
+		},
+		{
+			"term": "Delete",
+			"translation": "Διαγραφή"
+		},
+		{
+			"term": "Details",
+			"translation": "Λεπτομέρειες"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Ρόμβος"
+		},
+		{
+			"term": "Distribute (layout)",
+			"translation": "κατανομή",
+			"note": "not διανομή"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "κατανομή",
+			"note": "Noun form for menu items"
+		},
+		{
+			"term": "Draw (tool)",
+			"translation": "Σχεδίαση",
+			"note": "Freehand pen tool; never Ισοπαλία (a tied game)"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Δημιουργία διπλοτύπου",
+			"note": "Keep distinct from Αντιγραφή (Copy)"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "Αναπαραγωγή"
+		},
+		{
+			"term": "Edit",
+			"translation": "Επεξεργασία"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Επεξεργασία"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Συντάκτης"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Έλλειψη"
+		},
+		{
+			"term": "Ellipse (shape)",
+			"translation": "Έλλειψη"
+		},
+		{
+			"term": "embed",
+			"translation": "ενσωμάτωση"
+		},
+		{
+			"term": "Embed (tool)",
+			"translation": "Ενσωμάτωση"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "Γόμα"
+		},
+		{
+			"term": "Error",
+			"translation": "Σφάλμα"
+		},
+		{
+			"term": "Export",
+			"translation": "Εξαγωγή"
+		},
+		{
+			"term": "Export (action)",
+			"translation": "Εξαγωγή"
+		},
+		{
+			"term": "Export as",
+			"translation": "Εξαγωγή ως"
+		},
+		{
+			"term": "Extra large (size)",
+			"translation": "Πολύ μεγάλο"
+		},
+		{
+			"term": "file",
+			"translation": "αρχείο"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Αρχείο"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "αρχείο"
+		},
+		{
+			"term": "Files",
+			"translation": "Αρχεία"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "Γέμισμα"
+		},
+		{
+			"term": "Flip",
+			"translation": "αναστροφή"
+		},
+		{
+			"term": "focus mode",
+			"translation": "λειτουργία εστίασης"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "ακολουθώ",
+			"note": "Formal: Ακολουθείτε / Σας ακολουθεί; avoid παρακολουθώ (monitor)"
+		},
+		{
+			"term": "Font",
+			"translation": "Γραμματοσειρά"
+		},
+		{
+			"term": "Forget (remove file from own list)",
+			"translation": "Ξεχάστε",
+			"note": "Matches 'Ξεχάστε το αρχείο'"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "Πλαίσιο"
+		},
+		{
+			"term": "grid",
+			"translation": "πλέγμα"
+		},
+		{
+			"term": "group (action)",
+			"translation": "Ομαδοποίηση",
+			"note": "Ungroup is 'Κατάργηση ομαδοποίησης'"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Ομαδοποίηση"
+		},
+		{
+			"term": "heading",
+			"translation": "Επικεφαλίδα"
+		},
+		{
+			"term": "Help (noun label)",
+			"translation": "Βοήθεια"
+		},
+		{
+			"term": "Hexagon",
+			"translation": "Εξάγωνο"
+		},
+		{
+			"term": "image",
+			"translation": "Εικόνα",
+			"note": "Not the archaic 'Εικών'"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Εισαγωγή αρχείου…"
+		},
+		{
+			"term": "Insert",
+			"translation": "Εισαγωγή"
+		},
+		{
+			"term": "invitation",
+			"translation": "πρόσκληση"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "πρόσκληση"
+		},
+		{
+			"term": "invite link",
+			"translation": "σύνδεσμος πρόσκλησης"
+		},
+		{
+			"term": "issue (GitHub)",
+			"translation": "ζήτημα"
+		},
+		{
+			"term": "Italic",
+			"translation": "Πλάγια γραφή"
+		},
+		{
+			"term": "item",
+			"translation": "στοιχείο"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "στοιχείο"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "στοιχείο"
+		},
+		{
+			"term": "Justify (text alignment)",
+			"translation": "Πλήρης στοίχιση"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Συντομεύσεις πληκτρολογίου"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Οριζόντιο"
+		},
+		{
+			"term": "Large (size)",
+			"translation": "Μεγάλο",
+			"note": "neuter; keep size scale neuter"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Βιβλιοθήκες",
+			"note": "shape libraries"
+		},
+		{
+			"term": "library",
+			"translation": "βιβλιοθήκη"
+		},
+		{
+			"term": "library (Libraries feature)",
+			"translation": "βιβλιοθήκη / βιβλιοθήκες"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "βιβλιοθήκη"
+		},
+		{
+			"term": "library (shape library)",
+			"translation": "βιβλιοθήκη",
+			"note": "feminine"
+		},
+		{
+			"term": "Light (color shade)",
+			"translation": "Ανοιχτό",
+			"note": "Color names in the neuter: Πράσινο, Κόκκινο. Write 'Γκρι' with no accent"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Φωτεινό"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "Φωτεινό / Σκούρο"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "Γραμμή"
+		},
+		{
+			"term": "link",
+			"translation": "σύνδεσμος"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Σύνδεσμος"
+		},
+		{
+			"term": "Manage",
+			"translation": "Διαχείριση"
+		},
+		{
+			"term": "Media",
+			"translation": "Πολυμέσα"
+		},
+		{
+			"term": "Media (images/videos)",
+			"translation": "Πολυμέσα",
+			"note": "not 'Μέσα ενημέρωσης' (news media)"
+		},
+		{
+			"term": "member",
+			"translation": "μέλος"
+		},
+		{
+			"term": "Members",
+			"translation": "Μέλη"
+		},
+		{
+			"term": "Menu",
+			"translation": "Μενού"
+		},
+		{
+			"term": "Minimap",
+			"translation": "Μίνι χάρτης"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "ποντίκι"
+		},
+		{
+			"term": "Move to page",
+			"translation": "Μετακίνηση στη σελίδα"
+		},
+		{
+			"term": "Navigation",
+			"translation": "Πλοήγηση"
+		},
+		{
+			"term": "Note (sticky note tool)",
+			"translation": "Σημείωμα"
+		},
+		{
+			"term": "notification",
+			"translation": "ειδοποίηση"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Ειδοποιήσεις"
+		},
+		{
+			"term": "numbered list",
+			"translation": "Αριθμημένη λίστα"
+		},
+		{
+			"term": "Octagon",
+			"translation": "Οκτάγωνο"
+		},
+		{
+			"term": "Offline",
+			"translation": "Εκτός σύνδεσης"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Αδιαφάνεια"
+		},
+		{
+			"term": "Orange (color)",
+			"translation": "Πορτοκαλί",
+			"note": "Not Πορτοκάλι, which is the fruit"
+		},
+		{
+			"term": "Oval",
+			"translation": "Οβάλ"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "κάτοχος"
+		},
+		{
+			"term": "page",
+			"translation": "σελίδα"
+		},
+		{
+			"term": "Pages",
+			"translation": "Σελίδες"
+		},
+		{
+			"term": "panel",
+			"translation": "πίνακας"
+		},
+		{
+			"term": "Paste",
+			"translation": "Επικόλληση"
+		},
+		{
+			"term": "Pattern (fill)",
+			"translation": "Μοτίβο"
+		},
+		{
+			"term": "Pentagon",
+			"translation": "Πεντάγωνο"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "Καρφίτσωμα"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Κατακόρυφο"
+		},
+		{
+			"term": "Position",
+			"translation": "Θέση"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Προτιμήσεις"
+		},
+		{
+			"term": "preview",
+			"translation": "προεπισκόπηση"
+		},
+		{
+			"term": "Print…",
+			"translation": "Εκτύπωση…"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Πολιτική Απορρήτου"
+		},
+		{
+			"term": "project",
+			"translation": "έργο",
+			"note": "current board/document"
+		},
+		{
+			"term": "publish",
+			"translation": "δημοσίευση"
+		},
+		{
+			"term": "read-only",
+			"translation": "μόνο για ανάγνωση"
+		},
+		{
+			"term": "Redo",
+			"translation": "Επανάληψη"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Μείωση κίνησης"
+		},
+		{
+			"term": "refresh (page)",
+			"translation": "ανανέωση"
+		},
+		{
+			"term": "Remove",
+			"translation": "Αφαίρεση"
+		},
+		{
+			"term": "Remove (detach)",
+			"translation": "Κατάργηση",
+			"note": "distinct from Διαγραφή (delete)"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "κατάργηση",
+			"note": "not διαγραφή (delete)"
+		},
+		{
+			"term": "Rename",
+			"translation": "Μετονομασία"
+		},
+		{
+			"term": "Reply (noun)",
+			"translation": "απάντηση"
+		},
+		{
+			"term": "reset",
+			"translation": "επαναφορά"
+		},
+		{
+			"term": "Resolve (comment thread)",
+			"translation": "Επίλυση"
+		},
+		{
+			"term": "Restore version",
+			"translation": "Επαναφορά έκδοσης"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Ρόμβος"
+		},
+		{
+			"term": "rotate (row label)",
+			"translation": "Περιστροφή"
+		},
+		{
+			"term": "rotate counterclockwise / clockwise",
+			"translation": "αριστερόστροφα / δεξιόστροφα"
+		},
+		{
+			"term": "Save",
+			"translation": "Αποθήκευση"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Αποθηκεύστε ένα αντίγραφο",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "Search",
+			"translation": "Αναζήτηση"
+		},
+		{
+			"term": "Search…",
+			"translation": "Αναζήτηση…"
+		},
+		{
+			"term": "Select (tool)",
+			"translation": "Επιλογή"
+		},
+		{
+			"term": "Select none",
+			"translation": "Αποεπιλογή όλων"
+		},
+		{
+			"term": "Selection",
+			"translation": "Επιλογή"
+		},
+		{
+			"term": "Send to back",
+			"translation": "Μεταφορά στο φόντο"
+		},
+		{
+			"term": "Settings",
+			"translation": "Ρυθμίσεις"
+		},
+		{
+			"term": "shape",
+			"translation": "σχήμα"
+		},
+		{
+			"term": "Share",
+			"translation": "Κοινοποίηση"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Κοινοποίηση",
+			"note": "Not 'Μερίδιο' (a portion or stake)"
+		},
+		{
+			"term": "sharing",
+			"translation": "κοινή χρήση"
+		},
+		{
+			"term": "Show (toggle)",
+			"translation": "Εμφάνιση",
+			"note": "Use the verbal noun for controls"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Σύνδεση"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Αποσύνδεση"
+		},
+		{
+			"term": "Size",
+			"translation": "Μέγεθος"
+		},
+		{
+			"term": "Small (size)",
+			"translation": "Μικρό"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Συνεχής",
+			"note": "Feminine, like Διακεκομμένη"
+		},
+		{
+			"term": "Sort by",
+			"translation": "Ταξινόμηση κατά"
+		},
+		{
+			"term": "Square",
+			"translation": "Τετράγωνο"
+		},
+		{
+			"term": "square (shape)",
+			"translation": "Τετράγωνο",
+			"note": "Not Πλατεία (town square)"
+		},
+		{
+			"term": "Stack (arrange)",
+			"translation": "Στοίβαξη",
+			"note": "Noun form for menu items"
+		},
+		{
+			"term": "status",
+			"translation": "κατάσταση"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "καρτέλα"
+		},
+		{
+			"term": "Task list",
+			"translation": "Λίστα εργασιών"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "Όροι παροχής υπηρεσιών"
+		},
+		{
+			"term": "Terms of Use",
+			"translation": "Όροι Χρήσης"
+		},
+		{
+			"term": "Text",
+			"translation": "Κείμενο",
+			"note": "text tool"
+		},
+		{
+			"term": "thread",
+			"translation": "νήμα"
+		},
+		{
+			"term": "tick (checkbox)",
+			"translation": "Τσεκάρισμα"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Εναλλαγή"
+		},
+		{
+			"term": "toggle (action prefix)",
+			"translation": "Εναλλαγή"
+		},
+		{
+			"term": "Tools",
+			"translation": "Εργαλεία"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Τραπέζιο"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Τρίγωνο"
+		},
+		{
+			"term": "Undo",
+			"translation": "Αναίρεση"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Κατάργηση ομαδοποίησης"
+		},
+		{
+			"term": "Unpin",
+			"translation": "Ξεκαρφίτσωμα"
+		},
+		{
+			"term": "unpublish",
+			"translation": "κατάργηση δημοσίευσης"
+		},
+		{
+			"term": "upload",
+			"translation": "μεταφόρτωση"
+		},
+		{
+			"term": "upload (noun)",
+			"translation": "μεταφόρτωση"
+		},
+		{
+			"term": "Vertical align",
+			"translation": "Κάθετη ευθυγράμμιση"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Προβολή"
+		},
+		{
+			"term": "Warning",
+			"translation": "Προειδοποίηση"
+		},
+		{
+			"term": "White (color)",
+			"translation": "Λευκό"
+		},
+		{
+			"term": "workspace",
+			"translation": "χώρος εργασίας"
+		},
+		{
+			"term": "Zoom",
+			"translation": "Ζουμ"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Μεγέθυνση"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Σμίκρυνση"
+		}
+	]
+}

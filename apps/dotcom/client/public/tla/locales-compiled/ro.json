@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Limita ratei a fost depășită, încercați din nou mai târziu."
+      "value": "Limita de solicitări a fost depășită, încearcă din nou mai târziu."
     }
   ],
   "08bd40c754": [
@@ -118,13 +118,13 @@
   "0b27918290": [
     {
       "type": 0,
-      "value": "Fişier"
+      "value": "Fișier"
     }
   ],
   "0b9a4cde72": [
     {
       "type": 0,
-      "value": "meniul Fișier"
+      "value": "Meniul fișierului"
     }
   ],
   "0c4383617a": [
@@ -148,7 +148,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Elimina"
+      "value": "Eliminați"
     }
   ],
   "10fb1df194": [
@@ -160,13 +160,19 @@
   "110a4b01be": [
     {
       "type": 0,
-      "value": "Publica"
+      "value": "Publică"
     }
   ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Anulează fixarea fișierului"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Acest spațiu de lucru a atins numărul maxim de biblioteci. Șterge bibliotecile vechi înainte de a crea altele noi."
     }
   ],
   "13ddd375ad": [
@@ -202,7 +208,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Mută ​​la"
+      "value": "Mută în"
     }
   ],
   "1da2e8106b": [
@@ -223,6 +229,12 @@
       "value": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar. Mai întâi, setează pe altcineva drept proprietar."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Colecția mea"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -232,7 +244,7 @@
   "23dcace54a": [
     {
       "type": 0,
-      "value": "Ai fost invitat să te alături la "
+      "value": "Ați primit o invitație să vă alăturați spațiului de lucru "
     },
     {
       "children": [
@@ -246,13 +258,19 @@
     },
     {
       "type": 0,
-      "value": ". Creează un cont gratuit pentru a continua."
+      "value": ". Creați un cont gratuit pentru a continua."
     }
   ],
   "250ddea65c": [
     {
       "type": 0,
       "value": "Despre tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Această bibliotecă a atins numărul maxim de elemente. Șterge elementele vechi înainte de a adăuga altele noi."
     }
   ],
   "28b2464e1f": [
@@ -264,7 +282,7 @@
   "2944edaa8d": [
     {
       "type": 0,
-      "value": "În numele "
+      "value": "În numele lui "
     },
     {
       "type": 1,
@@ -332,7 +350,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Evidențiați Lipsă"
+      "value": "i18n: Evidențiază elementele lipsă"
     }
   ],
   "324a0f3182": [
@@ -344,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Fișier duplicat"
+      "value": "Duplică fișierul"
     }
   ],
   "335defdafe": [
@@ -419,6 +437,12 @@
       "value": "Temă de culoare"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Meniul bibliotecii"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -440,7 +464,7 @@
   "454aad3b3c": [
     {
       "type": 0,
-      "value": "Sigur vrei să ștergi "
+      "value": "Sigur doriți să ștergeți "
     },
     {
       "children": [
@@ -466,7 +490,7 @@
   "4630b65bb2": [
     {
       "type": 0,
-      "value": "Mută ​​fișierul în"
+      "value": "Mutați fișierul în"
     }
   ],
   "46de2de6bb": [
@@ -484,7 +508,7 @@
   "47f493a590": [
     {
       "type": 0,
-      "value": "Fișier fixat"
+      "value": "Fixează fișierul"
     }
   ],
   "4970317944": [
@@ -529,6 +553,12 @@
     {
       "type": 0,
       "value": " a comentat"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Acest fișier"
     }
   ],
   "4d0d3ddec9": [
@@ -582,7 +612,7 @@
   "53770fd374": [
     {
       "type": 0,
-      "value": "Necitit"
+      "value": "Necitite"
     }
   ],
   "542248f0ba": [
@@ -606,7 +636,7 @@
   "554a05155c": [
     {
       "type": 0,
-      "value": "Mai ai probleme? "
+      "value": "Mai aveți probleme? "
     },
     {
       "children": [
@@ -694,13 +724,13 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Copie"
+      "value": "Copiază"
     }
   ],
   "608e9d366e": [
     {
       "type": 0,
-      "value": "Ești la zi."
+      "value": "Sunteți la zi."
     }
   ],
   "60a68c29d6": [
@@ -724,7 +754,7 @@
   "625fd29749": [
     {
       "type": 0,
-      "value": "Mai în vârstă"
+      "value": "Mai vechi"
     }
   ],
   "639bae9ac6": [
@@ -736,7 +766,7 @@
   "63a6a88c06": [
     {
       "type": 0,
-      "value": "Reîmprospăta"
+      "value": "Reîmprospătează"
     }
   ],
   "6609dd239e": [
@@ -795,6 +825,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " alte persoane"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -802,7 +843,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " altă persoană"
             }
           ]
         },
@@ -813,7 +854,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " de alte persoane"
             }
           ]
         }
@@ -830,7 +871,7 @@
   "6832ac5936": [
     {
       "type": 0,
-      "value": "Introdu adresa ta de e-mail"
+      "value": "Introduceți adresa de e-mail"
     }
   ],
   "694f82ed9d": [
@@ -851,6 +892,13 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " persoane au reacționat"
+            }
           ]
         },
         "one": {
@@ -868,7 +916,7 @@
             },
             {
               "type": 0,
-              "value": " persoane au reacționat"
+              "value": " de persoane au reacționat"
             }
           ]
         }
@@ -921,7 +969,7 @@
   "71a29b007b": [
     {
       "type": 0,
-      "value": "Ai o eroare, o problemă sau o idee pentru tldraw? Anunță-ne!"
+      "value": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne!"
     }
   ],
   "73ab799383": [
@@ -939,7 +987,7 @@
   "747ee44424": [
     {
       "type": 0,
-      "value": "Salvați conținutul ca fișier .tldr: selectați „Salvați o copie” în meniul din stânga sus."
+      "value": "Salvați conținutul ca fișier .tldr: selectați „Salvează o copie” din meniul din stânga sus."
     }
   ],
   "74ff4bad28": [
@@ -957,7 +1005,7 @@
   "7542d62aac": [
     {
       "type": 0,
-      "value": "Marchează toate ca citite"
+      "value": "Marcați toate ca citite"
     }
   ],
   "7573b8110a": [
@@ -1002,10 +1050,16 @@
       "value": "Acest fișier multiplayer anonim tldraw este acum doar pentru citire. Pentru a continua editarea, vă rugăm să vă conectați și să îl copiați în fișierele dvs."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Încă nu există biblioteci."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "Am înţeles"
+      "value": "Am înțeles"
     }
   ],
   "797799f35e": [
@@ -1053,7 +1107,7 @@
   "7cb5f8b4a5": [
     {
       "type": 0,
-      "value": "Uita"
+      "value": "Uitați"
     }
   ],
   "7d69b3cb4c": [
@@ -1194,6 +1248,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " alte persoane"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1201,7 +1266,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " altă persoană"
             }
           ]
         },
@@ -1212,7 +1277,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " de alte persoane"
             }
           ]
         }
@@ -1247,7 +1312,7 @@
   "8eb2c00e96": [
     {
       "type": 0,
-      "value": "Împărtășită cu tine"
+      "value": "Distribuit cu dvs."
     }
   ],
   "8f7f4c1ce7": [
@@ -1259,7 +1324,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Tarif limitat"
+      "value": "Limită de solicitări depășită"
     }
   ],
   "902b0d55fd": [
@@ -1346,16 +1411,22 @@
       "value": "Termeni de utilizare"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Încercați serverul MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
-      "value": "Aprinde"
+      "value": "Luminos"
     }
   ],
   "9983381c21": [
     {
       "type": 0,
-      "value": "Șterge căutarea"
+      "value": "Ștergeți căutarea"
     }
   ],
   "9ac3b80777": [
@@ -1396,6 +1467,49 @@
       "value": "Se pare că ești offline. Verifică conexiunea și încearcă din nou."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemente"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " de elemente"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1408,6 +1522,71 @@
       "value": "Publicați acest fișier"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Ștergeți "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " și "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " elemente"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " element"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " de elemente"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " din ea?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1417,13 +1596,13 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "A renunța"
+      "value": "Refuză"
     }
   ],
   "a078644c42": [
     {
       "type": 0,
-      "value": "Ai fost invitat(ă) să te alături la "
+      "value": "Ați primit o invitație să vă alăturați spațiului de lucru "
     },
     {
       "children": [
@@ -1486,13 +1665,13 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Captuseala"
+      "value": "Margine"
     }
   ],
   "a18366b217": [
     {
       "type": 0,
-      "value": "Întuneric"
+      "value": "Întunecat"
     }
   ],
   "a1c915578c": [
@@ -1522,7 +1701,7 @@
   "a4bef6414b": [
     {
       "type": 0,
-      "value": "Comutare bara laterală de comentarii"
+      "value": "Comutați bara laterală a comentariilor"
     }
   ],
   "a4d3b161ce": [
@@ -1546,13 +1725,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "Analytics"
+      "value": "Analiză"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Fișierul devine mare"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Șterge biblioteca"
     }
   ],
   "a9ded1e5ce": [
@@ -1634,7 +1819,7 @@
   "b2326c3a34": [
     {
       "type": 0,
-      "value": "Regenera"
+      "value": "Regenerează"
     }
   ],
   "b2c3c2e30c": [
@@ -1873,7 +2058,7 @@
   "c6a00f137b": [
     {
       "type": 0,
-      "value": "Invita"
+      "value": "Invită"
     }
   ],
   "c6f16003f2": [
@@ -1885,7 +2070,7 @@
   "c87aacf567": [
     {
       "type": 0,
-      "value": "Sign out"
+      "value": "Deconectare"
     }
   ],
   "c8a59e7135": [
@@ -1945,7 +2130,7 @@
   "d3d2e61733": [
     {
       "type": 0,
-      "value": "Aproape"
+      "value": "Închide"
     }
   ],
   "d46632fe1f": [
@@ -2009,7 +2194,7 @@
   "d876a9fe1a": [
     {
       "type": 0,
-      "value": "Încearcă din nou"
+      "value": "Încercați din nou"
     }
   ],
   "d88ad2dc74": [
@@ -2021,7 +2206,7 @@
   "d9100f3e10": [
     {
       "type": 0,
-      "value": "Intră aici pentru a vedea conținutul"
+      "value": "Mergeți aici pentru a vedea conținutul"
     }
   ],
   "dbbebf3c03": [
@@ -2046,6 +2231,12 @@
     {
       "type": 0,
       "value": "Bine"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Nu s-a putut modifica biblioteca"
     }
   ],
   "e2198d6228": [
@@ -2075,13 +2266,13 @@
   "ea13ecec38": [
     {
       "type": 0,
-      "value": "Istoricul fișierelor"
+      "value": "Istoricul fișierului"
     }
   ],
   "ea4788705e": [
     {
       "type": 0,
-      "value": "Anula"
+      "value": "Anulați"
     }
   ],
   "eb1e2b0542": [
@@ -2105,7 +2296,7 @@
   "ec611e9a08": [
     {
       "type": 0,
-      "value": "meniul cont"
+      "value": "Meniul contului"
     }
   ],
   "ed6241a422": [
@@ -2117,7 +2308,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Duplicat"
+      "value": "Duplică"
     }
   ],
   "ede55d955f": [
@@ -2176,6 +2367,12 @@
       "value": "Setări utilizator"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Nu e în niciun fișier"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2191,7 +2388,7 @@
   "f2a6c498fb": [
     {
       "type": 0,
-      "value": "Şterge"
+      "value": "Ștergeți"
     }
   ],
   "f408fa5fbd": [
@@ -2252,6 +2449,12 @@
     {
       "type": 0,
       "value": "Link copiat"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Biblioteci publice"
     }
   ],
   "ff2fefd3c6": [

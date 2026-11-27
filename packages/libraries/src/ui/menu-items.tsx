@@ -1,7 +1,6 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { createContext, type PointerEvent, type ReactNode, type RefObject, useContext } from 'react'
 import {
-	defineMessages,
 	preventDefault,
 	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuGroup,
@@ -9,14 +8,7 @@ import {
 	TldrawUiDropdownMenuSub,
 	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
-	TldrawUiIcon,
-	useTranslation,
 } from 'tldraw'
-import type { TLLibraryOwner } from '../lib/LibrarySource'
-
-const messages = defineMessages({
-	other: { id: 'libraries.tabs.other', defaultMessage: 'Other' },
-})
 
 const InContextMenuContext = createContext(false)
 
@@ -57,6 +49,8 @@ function keepFocusWhile(holdFocus: boolean) {
 export interface MenuItemProps {
 	buttonRef?: RefObject<HTMLButtonElement | null>
 	label: string
+	/** Muted text after the label, such as who a library belongs to. */
+	detail?: string
 	danger?: boolean
 	noClose?: boolean
 	/** Stops the menu moving focus to the item on hover, which would blur and commit a rename. */
@@ -72,6 +66,7 @@ export interface MenuItemProps {
 export function MenuItem({
 	buttonRef,
 	label,
+	detail,
 	danger,
 	noClose,
 	holdFocus = false,
@@ -93,6 +88,7 @@ export function MenuItem({
 				onPointerLeave={keepFocus}
 			>
 				<span>{label}</span>
+				{detail && <span className="tlui-libraries-menu__item-detail">{detail}</span>}
 			</button>
 		</MenuItemRoot>
 	)
@@ -138,7 +134,7 @@ export function MenuSubmenu({
 			>
 				<TldrawUiDropdownMenuSubTrigger label={label} />
 			</div>
-			<TldrawUiDropdownMenuSubContent alignOffset={-4} sideOffset={0}>
+			<TldrawUiDropdownMenuSubContent alignOffset={-2} sideOffset={0}>
 				<TldrawUiDropdownMenuGroup className="tlui-libraries-menu__submenu">
 					{children}
 				</TldrawUiDropdownMenuGroup>
@@ -151,17 +147,11 @@ export function MenuSubmenu({
 export interface LibraryMenuTarget {
 	id: string
 	name: string
-	/**
-	 * Who the library belongs to. Targets spanning two or more owners are listed under their
-	 * owners' names.
-	 */
-	owner?: TLLibraryOwner
+	/** Muted text after the name, such as its owner's name where the name alone is ambiguous. */
+	detail?: string
 }
 
-/**
- * Menu items for libraries to send something to, in the order given. Targets spanning two or more
- * owners are listed under each owner's name, and icon if it has one.
- */
+/** Menu items for libraries to send something to, in the order given. */
 export function MenuTargetItems({
 	targets,
 	onSelect,
@@ -169,28 +159,12 @@ export function MenuTargetItems({
 	targets: LibraryMenuTarget[]
 	onSelect(libraryId: string): void
 }) {
-	const msg = useTranslation()
-	const groups: { owner?: TLLibraryOwner; targets: LibraryMenuTarget[] }[] = []
-	for (const target of targets) {
-		const last = groups[groups.length - 1]
-		if (last && last.owner?.id === target.owner?.id) last.targets.push(target)
-		else groups.push({ owner: target.owner, targets: [target] })
-	}
-	const items = (list: LibraryMenuTarget[]) =>
-		list.map((target) => (
-			<MenuItem key={target.id} label={target.name} onClick={() => onSelect(target.id)} />
-		))
-	if (groups.length < 2) return items(targets)
-	return groups.map(({ owner, targets: list }) => {
-		const label = owner ? owner.name : msg(messages.other)
-		return (
-			<div key={owner?.id ?? ''} role="group" aria-label={label}>
-				<div className="tlui-libraries-menu-heading" role="presentation">
-					{owner?.icon && <TldrawUiIcon icon={owner.icon} label="" small />}
-					<span>{label}</span>
-				</div>
-				{items(list)}
-			</div>
-		)
-	})
+	return targets.map((target) => (
+		<MenuItem
+			key={target.id}
+			label={target.name}
+			detail={target.detail}
+			onClick={() => onSelect(target.id)}
+		/>
+	))
 }

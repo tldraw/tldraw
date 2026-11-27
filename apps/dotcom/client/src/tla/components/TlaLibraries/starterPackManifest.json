@@ -1,0 +1,570 @@
+[
+	{
+		"id": "wireframing",
+		"name": "Wireframing",
+		"version": 6,
+		"itemCount": 35,
+		"itemNames": [
+			"Primary button",
+			"Secondary button",
+			"Icon button",
+			"Disabled button",
+			"Destructive action",
+			"Link",
+			"Text area",
+			"Text input",
+			"Search input",
+			"Select",
+			"Input / error",
+			"Input / disabled",
+			"Input / focus",
+			"Checkbox / off",
+			"Checkbox / on",
+			"Radio / off",
+			"Radio / on",
+			"Toggle / off",
+			"Toggle / on",
+			"Slider",
+			"Sidebar",
+			"Navigation bar",
+			"Tabs",
+			"Breadcrumbs",
+			"Content card",
+			"Image placeholder",
+			"Avatar",
+			"Simple table",
+			"List row",
+			"Phone frame",
+			"Modal",
+			"Browser window",
+			"Panel",
+			"Login screen",
+			"List / detail screen"
+		],
+		"previews": [
+			{
+				"id": "button",
+				"thumbnail": {
+					"light": "thumbnails/button-light.webp",
+					"dark": "thumbnails/button-dark.webp"
+				}
+			},
+			{
+				"id": "secondary-button",
+				"thumbnail": {
+					"light": "thumbnails/secondary-button-light.webp",
+					"dark": "thumbnails/secondary-button-dark.webp"
+				}
+			},
+			{
+				"id": "icon-button",
+				"thumbnail": {
+					"light": "thumbnails/icon-button-light.webp",
+					"dark": "thumbnails/icon-button-dark.webp"
+				}
+			},
+			{
+				"id": "disabled-button",
+				"thumbnail": {
+					"light": "thumbnails/disabled-button-light.webp",
+					"dark": "thumbnails/disabled-button-dark.webp"
+				}
+			},
+			{
+				"id": "danger-button",
+				"thumbnail": {
+					"light": "thumbnails/danger-button-light.webp",
+					"dark": "thumbnails/danger-button-dark.webp"
+				}
+			},
+			{
+				"id": "link",
+				"thumbnail": {
+					"light": "thumbnails/link-light.webp",
+					"dark": "thumbnails/link-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "architecture",
+		"name": "Software architecture",
+		"version": 1,
+		"itemCount": 64,
+		"itemNames": [
+			"Mobile client",
+			"Users",
+			"Browser / web client",
+			"User",
+			"Desktop client",
+			"Terminal / CLI",
+			"Server",
+			"Worker",
+			"Function",
+			"Service",
+			"Pod",
+			"Virtual machine",
+			"Scheduled job",
+			"Container",
+			"Relational database",
+			"Document database",
+			"Key–value store",
+			"Column database",
+			"File",
+			"Graph database",
+			"Cache",
+			"Object store",
+			"Data warehouse",
+			"Backup",
+			"Search index",
+			"Archive / cold storage",
+			"Event bus",
+			"Load balancer",
+			"API gateway",
+			"Message queue",
+			"CDN",
+			"Pub/sub topic",
+			"Event stream",
+			"Data pipeline",
+			"Email service",
+			"Router",
+			"DNS",
+			"Reverse proxy",
+			"Switch",
+			"Identity / auth",
+			"Secrets / keys",
+			"Firewall",
+			"VPN",
+			"Logs",
+			"Traces",
+			"Alert",
+			"Metrics",
+			"Code repository",
+			"Artifact registry",
+			"Health check",
+			"CI / CD",
+			"Replicas",
+			"Rate limiter",
+			"Shards",
+			"Circuit breaker",
+			"Subnet",
+			"Cluster",
+			"Network",
+			"Cloud",
+			"VPC / private network",
+			"Region",
+			"Availability zone",
+			"External system",
+			"Software system"
+		],
+		"previews": [
+			{
+				"id": "mobile-client",
+				"thumbnail": {
+					"light": "thumbnails/mobile-client-light.webp",
+					"dark": "thumbnails/mobile-client-dark.webp"
+				}
+			},
+			{
+				"id": "users",
+				"thumbnail": {
+					"light": "thumbnails/users-light.webp",
+					"dark": "thumbnails/users-dark.webp"
+				}
+			},
+			{
+				"id": "browser",
+				"thumbnail": {
+					"light": "thumbnails/browser-light.webp",
+					"dark": "thumbnails/browser-dark.webp"
+				}
+			},
+			{
+				"id": "user",
+				"thumbnail": {
+					"light": "thumbnails/user-light.webp",
+					"dark": "thumbnails/user-dark.webp"
+				}
+			},
+			{
+				"id": "desktop-client",
+				"thumbnail": {
+					"light": "thumbnails/desktop-client-light.webp",
+					"dark": "thumbnails/desktop-client-dark.webp"
+				}
+			},
+			{
+				"id": "terminal",
+				"thumbnail": {
+					"light": "thumbnails/terminal-light.webp",
+					"dark": "thumbnails/terminal-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "math",
+		"name": "Math",
+		"version": 1,
+		"itemCount": 62,
+		"itemNames": [
+			"Plus",
+			"Minus",
+			"Multiply",
+			"Divide",
+			"Equals",
+			"Not equal",
+			"Approximately",
+			"Plus / minus",
+			"Less than",
+			"Greater than",
+			"Less / equal",
+			"Greater / equal",
+			"Fraction",
+			"Nth root",
+			"Parentheses",
+			"Square root",
+			"Subscript",
+			"Power",
+			"Braces",
+			"Square brackets",
+			"Absolute value",
+			"Integral",
+			"Double integral",
+			"Triple integral",
+			"Contour integral",
+			"Summation",
+			"Derivative",
+			"Partial derivative",
+			"Product",
+			"Limit",
+			"Nabla",
+			"Beta",
+			"x",
+			"y",
+			"z",
+			"Theta",
+			"Alpha",
+			"Pi",
+			"Infinity",
+			"Mu",
+			"Lambda",
+			"Sigma",
+			"Omega",
+			"Not a member",
+			"Subset / equal",
+			"Union",
+			"Intersection",
+			"Member of",
+			"Subset",
+			"Empty set",
+			"Not",
+			"And",
+			"Or",
+			"Implies",
+			"If and only if",
+			"Coordinate axes",
+			"Matrix 2 × 2",
+			"Column vector",
+			"Number line",
+			"Series",
+			"Definite integral",
+			"Quadratic"
+		],
+		"previews": [
+			{
+				"id": "plus",
+				"thumbnail": {
+					"light": "thumbnails/plus-light.webp",
+					"dark": "thumbnails/plus-dark.webp"
+				}
+			},
+			{
+				"id": "minus",
+				"thumbnail": {
+					"light": "thumbnails/minus-light.webp",
+					"dark": "thumbnails/minus-dark.webp"
+				}
+			},
+			{
+				"id": "times",
+				"thumbnail": {
+					"light": "thumbnails/times-light.webp",
+					"dark": "thumbnails/times-dark.webp"
+				}
+			},
+			{
+				"id": "divide",
+				"thumbnail": {
+					"light": "thumbnails/divide-light.webp",
+					"dark": "thumbnails/divide-dark.webp"
+				}
+			},
+			{
+				"id": "equals",
+				"thumbnail": {
+					"light": "thumbnails/equals-light.webp",
+					"dark": "thumbnails/equals-dark.webp"
+				}
+			},
+			{
+				"id": "not-equals",
+				"thumbnail": {
+					"light": "thumbnails/not-equals-light.webp",
+					"dark": "thumbnails/not-equals-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "diagramming",
+		"name": "Diagramming",
+		"version": 3,
+		"itemCount": 6,
+		"itemNames": [
+			"Process",
+			"Decision",
+			"Start or end",
+			"Arrow",
+			"Note",
+			"Step to decision"
+		],
+		"previews": [
+			{
+				"id": "process",
+				"thumbnail": {
+					"light": "thumbnails/process-light.webp",
+					"dark": "thumbnails/process-dark.webp"
+				}
+			},
+			{
+				"id": "decision",
+				"thumbnail": {
+					"light": "thumbnails/decision-light.webp",
+					"dark": "thumbnails/decision-dark.webp"
+				}
+			},
+			{
+				"id": "terminal",
+				"thumbnail": {
+					"light": "thumbnails/terminal-light.webp",
+					"dark": "thumbnails/terminal-dark.webp"
+				}
+			},
+			{
+				"id": "arrow",
+				"thumbnail": {
+					"light": "thumbnails/arrow-light.webp",
+					"dark": "thumbnails/arrow-dark.webp"
+				}
+			},
+			{
+				"id": "note",
+				"thumbnail": {
+					"light": "thumbnails/note-light.webp",
+					"dark": "thumbnails/note-dark.webp"
+				}
+			},
+			{
+				"id": "step",
+				"thumbnail": {
+					"light": "thumbnails/step-light.webp",
+					"dark": "thumbnails/step-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "floor-plan",
+		"name": "Floor plan",
+		"version": 3,
+		"itemCount": 16,
+		"itemNames": [
+			"Sofa",
+			"Armchair",
+			"Double bed",
+			"Single bed",
+			"Dining table",
+			"Round table",
+			"Desk with chair",
+			"Bathtub",
+			"Toilet",
+			"Vanity",
+			"Kitchen counter",
+			"Door",
+			"Window",
+			"Stairs",
+			"Potted plant",
+			"Rug"
+		],
+		"previews": [
+			{
+				"id": "sofa",
+				"thumbnail": {
+					"light": "thumbnails/sofa-light.webp",
+					"dark": "thumbnails/sofa-dark.webp"
+				}
+			},
+			{
+				"id": "armchair",
+				"thumbnail": {
+					"light": "thumbnails/armchair-light.webp",
+					"dark": "thumbnails/armchair-dark.webp"
+				}
+			},
+			{
+				"id": "double-bed",
+				"thumbnail": {
+					"light": "thumbnails/double-bed-light.webp",
+					"dark": "thumbnails/double-bed-dark.webp"
+				}
+			},
+			{
+				"id": "single-bed",
+				"thumbnail": {
+					"light": "thumbnails/single-bed-light.webp",
+					"dark": "thumbnails/single-bed-dark.webp"
+				}
+			},
+			{
+				"id": "dining-table",
+				"thumbnail": {
+					"light": "thumbnails/dining-table-light.webp",
+					"dark": "thumbnails/dining-table-dark.webp"
+				}
+			},
+			{
+				"id": "round-table",
+				"thumbnail": {
+					"light": "thumbnails/round-table-light.webp",
+					"dark": "thumbnails/round-table-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "tldraw-characters",
+		"name": "tldraw characters",
+		"version": 1,
+		"itemCount": 6,
+		"itemNames": [
+			"Penta",
+			"Cloudy",
+			"Cloudy 2",
+			"Cloudy 3",
+			"Arrow",
+			"Diamond"
+		],
+		"previews": [
+			{
+				"id": "penta",
+				"thumbnail": {
+					"light": "thumbnails/penta-light.webp",
+					"dark": "thumbnails/penta-dark.webp"
+				}
+			},
+			{
+				"id": "cloudy",
+				"thumbnail": {
+					"light": "thumbnails/cloudy-light.webp",
+					"dark": "thumbnails/cloudy-dark.webp"
+				}
+			},
+			{
+				"id": "cloudy-2",
+				"thumbnail": {
+					"light": "thumbnails/cloudy-2-light.webp",
+					"dark": "thumbnails/cloudy-2-dark.webp"
+				}
+			},
+			{
+				"id": "cloudy-3",
+				"thumbnail": {
+					"light": "thumbnails/cloudy-3-light.webp",
+					"dark": "thumbnails/cloudy-3-dark.webp"
+				}
+			},
+			{
+				"id": "arrow",
+				"thumbnail": {
+					"light": "thumbnails/arrow-light.webp",
+					"dark": "thumbnails/arrow-dark.webp"
+				}
+			},
+			{
+				"id": "diamond",
+				"thumbnail": {
+					"light": "thumbnails/diamond-light.webp",
+					"dark": "thumbnails/diamond-dark.webp"
+				}
+			}
+		]
+	},
+	{
+		"id": "doodles",
+		"name": "Doodles",
+		"version": 1,
+		"itemCount": 15,
+		"itemNames": [
+			"Waving person",
+			"Fairy",
+			"Skateboarder",
+			"Car with passengers",
+			"Bunny",
+			"Driver",
+			"Dog",
+			"Happy dog",
+			"Builder in hi-vis",
+			"Builder in stripes",
+			"Bean",
+			"Standing person",
+			"Builder with sign",
+			"Dancing blob",
+			"Cheering blob"
+		],
+		"previews": [
+			{
+				"id": "waving-person",
+				"thumbnail": {
+					"light": "thumbnails/waving-person-light.webp",
+					"dark": "thumbnails/waving-person-dark.webp"
+				}
+			},
+			{
+				"id": "fairy",
+				"thumbnail": {
+					"light": "thumbnails/fairy-light.webp",
+					"dark": "thumbnails/fairy-dark.webp"
+				}
+			},
+			{
+				"id": "skateboarder",
+				"thumbnail": {
+					"light": "thumbnails/skateboarder-light.webp",
+					"dark": "thumbnails/skateboarder-dark.webp"
+				}
+			},
+			{
+				"id": "car-with-passengers",
+				"thumbnail": {
+					"light": "thumbnails/car-with-passengers-light.webp",
+					"dark": "thumbnails/car-with-passengers-dark.webp"
+				}
+			},
+			{
+				"id": "bunny",
+				"thumbnail": {
+					"light": "thumbnails/bunny-light.webp",
+					"dark": "thumbnails/bunny-dark.webp"
+				}
+			},
+			{
+				"id": "driver",
+				"thumbnail": {
+					"light": "thumbnails/driver-light.webp",
+					"dark": "thumbnails/driver-dark.webp"
+				}
+			}
+		]
+	}
+]

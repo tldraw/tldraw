@@ -36,6 +36,7 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
+import { addImageForUser, createImageUpload } from './mcpImages'
 import {
 	getMcpAgentClient,
 	normalizeMcpClient,
@@ -112,6 +113,10 @@ vi.mock('./pageComments', () => ({
 	writeCommentForUser: vi.fn(),
 	readMentionableUsers: vi.fn(async () => []),
 }))
+
+// The upload route, the fetch and the room write are covered in mcpImages.test.ts and
+// mcpImage.test.ts; these tests are about the dispatch around them.
+vi.mock('./mcpImages', () => ({ addImageForUser: vi.fn(), createImageUpload: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -470,6 +475,8 @@ describe('MCP server', () => {
 			'read_page_comments',
 			'write_comment',
 			'send_feedback',
+			'create_image_upload',
+			'add_image',
 		])
 	})
 })
@@ -528,15 +535,15 @@ describe('authentication', () => {
 		expect(hasReadAccessToFile).not.toHaveBeenCalled()
 	})
 
-	// The one number that matters most during a flag-gated rollout, and nothing recorded it: the
-	// per-call event is written by the tools/call dispatcher, which a refused request never reaches.
+	// The per-call event is written by the tools/call dispatcher, which a refused request never
+	// reaches, so the refusal needs its own.
 	it('records the refusal with its reason', async () => {
-		refuseAuth('not_allowlisted')
+		refuseAuth('invalid_token')
 		const env = makeEnv()
 
 		await mcpServer(makeRpcRequest('tools/list'), env)
 
-		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
+		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['invalid_token'])
 		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'route')).toEqual(['mcp'])
 		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
 	})
@@ -1347,6 +1354,86 @@ describe('write_comment', () => {
 	})
 })
 
+describe('image tools', () => {
+	it('returns the upload ticket with how to use it', async () => {
+		vi.mocked(createImageUpload).mockResolvedValue({
+			ok: true,
+			ticket: {
+				uploadId: 'abc-shot-png',
+				uploadUrl: 'https://app.example/api/app/mcp/uploads/abc-shot-png?token=t',
+				method: 'PUT',
+				headers: { 'Content-Type': 'image/png' },
+				maxBytes: 10,
+				expiresAt: '2026-01-01T00:10:00.000Z',
+			},
+		})
+		const result = await callTool(
+			'create_image_upload',
+			{ boardId: 'board_abc', mimeType: 'image/png', name: 'shot.png' },
+			makeEnv(),
+			'user_abc'
+		)
+		expect(vi.mocked(createImageUpload).mock.calls[0].slice(2)).toEqual([
+			'user_abc',
+			{ boardId: 'board_abc', mimeType: 'image/png', name: 'shot.png' },
+		])
+		const ticket = JSON.parse(result.content[0].text)
+		expect(ticket).toMatchObject({ uploadId: 'abc-shot-png', method: 'PUT' })
+		expect(ticket.note).toContain('curl -T')
+	})
+
+	it('returns where the image landed, with a link to the board', async () => {
+		vi.mocked(addImageForUser).mockResolvedValue({
+			ok: true,
+			shapeId: 'shape:x',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			x: 10,
+			y: 20,
+			w: 800,
+			h: 600,
+		})
+		const result = await callTool(
+			'add_image',
+			{ boardId: 'board_abc', uploadId: 'abc-shot-png', x: 10, y: 20 },
+			makeEnv(),
+			'user_abc'
+		)
+		expect(vi.mocked(addImageForUser).mock.calls[0].slice(1)).toEqual([
+			'user_abc',
+			{
+				boardId: 'board_abc',
+				source: { kind: 'upload', uploadId: 'abc-shot-png' },
+				pageId: null,
+				position: { x: 10, y: 20 },
+				w: null,
+				altText: null,
+			},
+		])
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			shapeId: 'shape:x',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			x: 10,
+			y: 20,
+			w: 800,
+			h: 600,
+			url: 'https://render.example/f/board_abc',
+		})
+	})
+
+	it('tells the model what went wrong when the image is refused', async () => {
+		vi.mocked(addImageForUser).mockResolvedValue({
+			ok: false,
+			reason: 'upload_not_found',
+			uploadId: 'nope',
+		})
+		const result = await callTool('add_image', { boardId: 'b', uploadId: 'nope' }, makeEnv())
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('No uploaded image for uploadId "nope"')
+	})
+})
+
 describe('send_feedback', () => {
 	const WEBHOOK = 'https://discord.example/api/webhooks/1/token'
 
@@ -2152,7 +2239,7 @@ describe('apply_ops', () => {
 
 		const result = await callTool(
 			'apply_ops',
-			{ boardId: 'abc', ops: OPS, runId: 'run-1' },
+			{ boardId: 'abc', ops: OPS, runId: 'run-1', batchKey: 'key-1' },
 			makeEnv({ tab }),
 			'user_tab'
 		)
@@ -2160,7 +2247,7 @@ describe('apply_ops', () => {
 		expect(tab).toHaveBeenCalledWith('user_tab', {
 			mode: 'apply_ops',
 			ops: OPS,
-			attribution: { userId: 'user_tab', runId: 'run-1' },
+			attribution: { userId: 'user_tab', runId: 'run-1', batchKey: 'key-1' },
 		})
 		expect(JSON.parse(result.content[0].text)).toEqual({
 			pageId: 'page:a',
@@ -2210,6 +2297,10 @@ describe('apply_ops', () => {
 		[{ status: 'declined', reason: 'read_only' }, 'tab_read_only', false],
 		[{ status: 'declined', reason: 'tab_hidden' }, 'tab_tab_hidden', false],
 		[{ status: 'declined', reason: 'apply_failed' }, 'tab_apply_failed', true],
+		[{ status: 'declined', reason: 'unconfirmed' }, 'tab_unconfirmed', true],
+		[{ status: 'declined', reason: 'already_applied' }, 'tab_already_applied', false],
+		[{ status: 'declined', reason: 'batch_unresolved' }, 'tab_batch_unresolved', false],
+		[{ status: 'declined', reason: 'batch_key_reused' }, 'tab_batch_key_reused', false],
 		[{ status: 'work_timeout' }, 'tab_work_timeout', true],
 	])('answers %j as %s', async (outcome, reason, mayHaveApplied) => {
 		const env = makeEnv({ tab: tabAnswering(outcome) })
@@ -2310,6 +2401,7 @@ describe('apply_ops', () => {
 		],
 		['a batch too large to send', { boardId: 'abc', ops: ['x'.repeat(2_000_000)] }, 'too large'],
 		['a bad runId', { boardId: 'abc', ops: OPS, runId: 7 }, 'runId'],
+		['a bad batchKey', { boardId: 'abc', ops: OPS, batchKey: '' }, 'batchKey'],
 	])('refuses %s without reaching a tab', async (_name, args, phrase) => {
 		const tab = openTab()
 

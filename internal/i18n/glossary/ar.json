@@ -1,0 +1,186 @@
+{
+	"register": "",
+	"terms": [
+		{
+			"term": "Bring forward",
+			"translation": "إحضار إلى الأمام"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "إحضار إلى المقدمة"
+		},
+		{
+			"term": "Cancel",
+			"translation": "إلغاء"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "إلغاء"
+		},
+		{
+			"term": "canvas",
+			"translation": "اللوحة",
+			"note": "drawing area; not القماش (fabric)"
+		},
+		{
+			"term": "Close",
+			"translation": "إغلاق",
+			"note": "Verbal noun for controls"
+		},
+		{
+			"term": "Command palette",
+			"translation": "لوحة الأوامر"
+		},
+		{
+			"term": "comment",
+			"translation": "تعليق"
+		},
+		{
+			"term": "container",
+			"translation": "حاوية"
+		},
+		{
+			"term": "copy (clipboard)",
+			"translation": "نسخ"
+		},
+		{
+			"term": "delete",
+			"translation": "حذف"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "قطع ناقص"
+		},
+		{
+			"term": "Ellipse (shape)",
+			"translation": "قطع ناقص"
+		},
+		{
+			"term": "embed",
+			"translation": "تضمين"
+		},
+		{
+			"term": "Export",
+			"translation": "تصدير"
+		},
+		{
+			"term": "file",
+			"translation": "ملف"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "الملف",
+			"note": "0b27918290"
+		},
+		{
+			"term": "filter (verb)",
+			"translation": "تصفية"
+		},
+		{
+			"term": "group (verb)",
+			"translation": "تجميع",
+			"note": "Ungroup is فك التجميع"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "عنصر"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "أفقي"
+		},
+		{
+			"term": "Leave (workspace)",
+			"translation": "مغادرة"
+		},
+		{
+			"term": "library",
+			"translation": "مكتبة"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "رابط"
+		},
+		{
+			"term": "minimap",
+			"translation": "خريطة مصغرة"
+		},
+		{
+			"term": "More (overflow)",
+			"translation": "المزيد"
+		},
+		{
+			"term": "Oval",
+			"translation": "بيضاوي"
+		},
+		{
+			"term": "Oval (shape)",
+			"translation": "بيضاوي"
+		},
+		{
+			"term": "Paste",
+			"translation": "لصق"
+		},
+		{
+			"term": "PNG / SVG (format-only submenu labels)",
+			"translation": "PNG / SVG",
+			"note": "Leave the format name on its own"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "عمودي"
+		},
+		{
+			"term": "Publish",
+			"translation": "نشر"
+		},
+		{
+			"term": "Rhombus (geo shape)",
+			"translation": "معيَّن",
+			"note": "Distinct from Diamond = شكل الماسة"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "حفظ نسخة"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "التحديد"
+		},
+		{
+			"term": "shape",
+			"translation": "شكل"
+		},
+		{
+			"term": "Share",
+			"translation": "مشاركة"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "مشاركة",
+			"note": "No definite article on action buttons"
+		},
+		{
+			"term": "theme (colour theme)",
+			"translation": "السمة",
+			"note": "Not الموضوع (topic)"
+		},
+		{
+			"term": "thread",
+			"translation": "السلسلة"
+		},
+		{
+			"term": "unlock",
+			"translation": "إلغاء القفل"
+		},
+		{
+			"term": "upload",
+			"translation": "رفع",
+			"note": "تحميل reads as download"
+		},
+		{
+			"term": "workspace",
+			"translation": "مساحة العمل"
+		}
+	]
+}

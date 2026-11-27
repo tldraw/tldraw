@@ -21,7 +21,7 @@ import {
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
-	type FeatureFlagValue,
+	getBatchKeyMetaEntry,
 	type McpAgentClient,
 	type Role,
 	type RoomOpenMode,
@@ -49,8 +49,6 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	commentSchemaRecords,
-	createTLSchema,
 	defaultShapeSchemas,
 	isCommentId,
 	isCommentReactionId,
@@ -92,9 +90,11 @@ import {
 	upsertCommentThreadRows,
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
+import { fileSyncSchema } from './fileSchema'
 import { Logger } from './Logger'
 import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
 import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
+import { StoredImage, planMcpImage } from './mcpImage'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -112,7 +112,12 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { CommentTarget, CommentWriteRefusal, getBoardUsers } from './routes/tla/boardTools'
+import {
+	AddImageRefusal,
+	CommentTarget,
+	CommentWriteRefusal,
+	getBoardUsers,
+} from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -125,11 +130,18 @@ import {
 } from './snapshotUtils'
 import {
 	TAB_RENDER_ROOM_TIMEOUT_MS,
+	BATCH_CLAIM_PREFIX,
+	BatchClaim,
 	TabRenderBroker,
 	TabRenderResponse,
 	TabRenderSocket,
 	TabRenderStats,
+	ClaimedBatchPlan,
+	batchClaimAfter,
+	batchClaimStorageKey,
+	isExpiredBatchClaim,
 	keepDeliverableTabRenderSessions,
+	planClaimedBatch,
 	pickTabRenderSessions,
 	pickTabRenderTargets,
 } from './tabRenderBroker'
@@ -164,7 +176,6 @@ import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { requireHistoryAccess } from './utils/tla/requireHistoryAccess'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
-import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
 	deleteAllVersions,
 	loadChainIndexForVersion,
@@ -276,12 +287,6 @@ async function canAccessTestProductionFile(
 
 const MB = 1024 * 1024
 
-// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
-// through the room; comments are persisted to Postgres rather than the main document blob (see
-// drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
-// client (see useSync in the dotcom client) or the schemas won't match.
-const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
-
 // Record types served through the room's object-store lane rather than the document lane.
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
@@ -337,8 +342,6 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		if (!this._storage) {
 			this.setBootStage('storage-load:sqlite-init')
-			// Kicked off here so the KV read resolves alongside the room load instead of after it.
-			this.versionChainRollout()
 			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
 				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
@@ -351,18 +354,12 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
-					this.setBootStage('storage-load:kv-rollout')
 					// The next persist diffs against this rather than cutting a keyframe every time the
 					// durable object wakes. It is usually what R2 holds, but not always: a previous
 					// incarnation can die with edits SQLite has and R2 does not. That is safe because the
 					// seed is never trusted as the chain head — decideVersionWrite checks it against the
-					// head the chain recorded and cuts a keyframe when they differ. Gated on the mode: this
-					// is a second decoded copy of the board pinned for the DO's lifetime, not worth paying
-					// for where chains are off.
-					const rollout = await this.versionChainRollout()
-					if (resolveVersionChainMode(rollout, getR2KeyForRoom(this.documentInfo)) !== 'off') {
-						this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
-					}
+					// head the chain recorded and cuts a keyframe when they differ.
+					this._lastPersistedSnapshot = storage.getSnapshot?.() ?? null
 					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
 					// blip during the last-out drain). Retries are otherwise onChange-driven
 					// (triggerPersist), so a reopened room where users only view would never drain.
@@ -859,14 +856,6 @@ export class TLFileDurableObject extends DurableObject {
 	// The open segment's deltas. Null means "not known here yet" — after an eviction they are
 	// refetched from the segment object in R2, which is the durable copy.
 	_pendingDeltas: PendingDelta[] | null = null
-	_versionChainRollout: Promise<FeatureFlagValue> | null = null
-
-	// One KV read per incarnation, by design: the rollout is config, not room state, and a KV flip
-	// landing as objects wake is the contract (see loadVersionChainRollout).
-	private versionChainRollout(): Promise<FeatureFlagValue> {
-		this._versionChainRollout ??= loadVersionChainRollout(this.env)
-		return this._versionChainRollout
-	}
 
 	private async getVersionChain(): Promise<ChainState | null> {
 		if (!this._versionChainLoaded) {
@@ -2387,8 +2376,6 @@ export class TLFileDurableObject extends DurableObject {
 			await this.setRoomStorageUsedPercentage(roomSizeMB)
 		}
 
-		const mode = resolveVersionChainMode(await this.versionChainRollout(), key)
-
 		// A chain failure that outlasted its retries is a metric, not a failed persist: the outer retry
 		// would re-upload the rooms object 100 times and raise persistence_bad. This persist records no
 		// version, but the chain is untouched and the next persist's delta carries its changes; only
@@ -2396,22 +2383,18 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			// Per attempt, not per persist: the retry loop re-reads the snapshot, so a retry may carry
 			// newer content that deserves its own version.
-			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString(), mode === 'off')
+			await this._writeVersionChainEntry(snapshot, key, new Date().toISOString())
 		} catch (error) {
 			this.logEvent({ type: 'version_chain_error' })
 			this.reportError(error)
 		}
 	}
 
-	/**
-	 * Writes this snapshot into the chain under `iso`: as a delta where the chain allows one, or
-	 * always as a keyframe when `keyframesOnly` (the `off` mode).
-	 */
+	/** Writes this snapshot into the chain under `iso`, as a delta where the chain allows one. */
 	private async _writeVersionChainEntry(
 		snapshot: RoomSnapshot,
 		key: string,
-		iso: string,
-		keyframesOnly: boolean
+		iso: string
 	): Promise<void> {
 		let chain = await this.getVersionChain()
 		// A persist retried after the chain already took this exact version must not write it again
@@ -2420,8 +2403,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (chain && isChainHead(chain, snapshot)) return
 		let pending: PendingDelta[] = []
 		let noChainReason: 'segment-lost' | undefined
-		// A keyframe discards the open segment, so there is nothing to rehydrate.
-		if (chain && !keyframesOnly) {
+		if (chain) {
 			const rehydrated = await this.getPendingDeltas(chain)
 			// The chain said a segment was open but R2 no longer has it. Appending would rewrite the
 			// segment without the deltas its metadata still promises, so start a fresh chain instead.
@@ -2452,7 +2434,6 @@ export class TLFileDurableObject extends DurableObject {
 						previousHeadHash: this._lastPersistedHeadHash ?? undefined,
 						next: snapshot,
 						now: Date.now(),
-						keyframesOnly,
 					})
 				),
 			VERSION_CHAIN_R2_RETRY
@@ -2461,10 +2442,8 @@ export class TLFileDurableObject extends DurableObject {
 		this._pendingDeltas = result.pending
 		await this.storage.put(VERSION_CHAIN_STORAGE_KEY, result.chain)
 		const previous = this._lastPersistedSnapshot
-		// Only a delta needs the diff base; in `off` mode it would pin a decoded copy of the board
-		// for nothing, as the wake seed gate says.
-		this._lastPersistedSnapshot = keyframesOnly ? null : snapshot
-		this._lastPersistedHeadHash = keyframesOnly ? null : result.chain.headHash
+		this._lastPersistedSnapshot = snapshot
+		this._lastPersistedHeadHash = result.chain.headHash
 		this.logEvent({
 			type: 'version_chain_write',
 			bytes: result.bytes,
@@ -3571,15 +3550,51 @@ export class TLFileDurableObject extends DurableObject {
 		request: TabRenderRequest,
 		jobIds: string[]
 	): Promise<TabRenderResponse> {
+		const batchKey = request.mode === 'apply_ops' ? request.attribution.batchKey : undefined
+		if (!batchKey) return this.runTabRender(userId, request, jobIds)
+		// Calls with one key run one at a time, from reading the claim to writing what came of it.
+		// Otherwise a call acting on a claim it read before an await could send the batch to a tab
+		// after another call had freed the claim and sent it to a second tab. In memory is enough: the
+		// object can't hibernate while a call waits here.
+		const lockKey = batchClaimStorageKey(userId, batchKey)
+		const previous = this.batchKeyLocks.get(lockKey) ?? Promise.resolve()
+		const run = previous.catch(() => {}).then(() => this.runTabRender(userId, request, jobIds))
+		this.batchKeyLocks.set(lockKey, run)
+		try {
+			return await run
+		} finally {
+			if (this.batchKeyLocks.get(lockKey) === run) this.batchKeyLocks.delete(lockKey)
+		}
+	}
+
+	private batchKeyLocks = new Map<string, Promise<TabRenderResponse>>()
+
+	private async runTabRender(
+		userId: string,
+		request: TabRenderRequest,
+		jobIds: string[]
+	): Promise<TabRenderResponse> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
 		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
 			return { status: 'declined', reason: 'read_only' }
 		}
+		// Ahead of looking for a tab too: a resend is answered from the claim, open tab or not.
+		const keyed = request.mode === 'apply_ops' ? await this.getKeyedBatch(userId, request) : null
+		let claimant: string | null = null
+		if (keyed?.claim) {
+			const plan = await this.planClaimedBatch(keyed.claim, keyed)
+			if (plan.kind === 'answer') return plan.outcome
+			if (plan.kind === 'ask_claimant') claimant = plan.sessionId
+			else await this.ctx.storage.delete(keyed.storageKey)
+		}
 
 		const isWrite = request.mode === 'apply_ops'
 		const sockets = this.getTabRenderSockets()
 		const now = Date.now()
+		if (claimant && !pickTabRenderSessions(sockets, userId, now).includes(claimant)) {
+			return { status: 'declined', reason: 'batch_unresolved' }
+		}
 		if (pickTabRenderSessions(sockets, userId, now).length === 0) {
 			return this.noTabOutcome(userId, now)
 		}
@@ -3616,16 +3631,31 @@ export class TLFileDurableObject extends DurableObject {
 				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
 			}
 		})
+		if (claimant && !deliverable.includes(claimant)) {
+			return { status: 'declined', reason: 'batch_unresolved', stats }
+		}
 		if (deliverable.length === 0) return { ...this.noTabOutcome(userId, now), stats }
 
 		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
 		// presence, says which one they're in.
-		const targets = pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
-			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
-			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
-		}).slice(0, jobIds.length)
+		const targets = claimant
+			? [claimant]
+			: pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
+					const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
+					return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
+				}).slice(0, jobIds.length)
 
 		stats.tabs = targets.length
+		let claim: BatchClaim | undefined = claimant ? keyed?.claim : undefined
+		if (keyed && !claimant) {
+			claim = {
+				opsHash: keyed.opsHash,
+				sessionId: targets[0],
+				metaEntry: keyed.landedEntry,
+				at: Date.now(),
+			}
+			await this.ctx.storage.put(keyed.storageKey, claim)
+		}
 		const sentAt = Date.now()
 		const outcome = await this.tabRenders.dispatch(
 			targets,
@@ -3642,7 +3672,66 @@ export class TLFileDurableObject extends DurableObject {
 			},
 			() => (stats.ackMs = Date.now() - sentAt)
 		)
+		if (keyed && claim) {
+			const kept = batchClaimAfter(claim, outcome, { resend: !!claimant, now: Date.now() })
+			if (kept) await this.ctx.storage.put(keyed.storageKey, kept)
+			else await this.ctx.storage.delete(keyed.storageKey)
+		}
 		return { ...outcome, stats }
+	}
+
+	/** A batch's key, its stored claim if it has one, and what identifies its ops. */
+	private async getKeyedBatch(
+		userId: string,
+		request: Extract<TabRenderRequest, { mode: 'apply_ops' }>
+	) {
+		const { batchKey } = request.attribution
+		if (!batchKey) return null
+		const storageKey = batchClaimStorageKey(userId, batchKey)
+		const digest = await crypto.subtle.digest(
+			'SHA-256',
+			new TextEncoder().encode(JSON.stringify([request.ops, request.page ?? null]))
+		)
+		const opsHash = btoa(String.fromCharCode(...new Uint8Array(digest)))
+		await this.pruneBatchClaims()
+		const claim = await this.ctx.storage.get<BatchClaim>(storageKey)
+		return { storageKey, opsHash, claim, landedEntry: getBatchKeyMetaEntry(userId, batchKey) }
+	}
+
+	private async planClaimedBatch(
+		claim: BatchClaim,
+		{
+			storageKey,
+			opsHash,
+			landedEntry,
+		}: { storageKey: string; opsHash: string; landedEntry: string }
+	): Promise<ClaimedBatchPlan> {
+		// Only an unresolved claim for the same ops needs the document.
+		const unresolved = claim.resolvedAt === undefined && claim.opsHash === opsHash
+		const room = unresolved ? await this.getRoomForTabRender() : null
+		if (unresolved && !room) return { kind: 'answer', outcome: { status: 'room_timeout' } }
+		const document = room?.getRecord(TLDOCUMENT_ID) as TLDocument | undefined
+		const landed = !!document && Object.hasOwn(document.meta, landedEntry)
+		const now = Date.now()
+		if (unresolved && landed) await this.ctx.storage.put(storageKey, { ...claim, resolvedAt: now })
+		return planClaimedBatch(claim, opsHash, landed, now)
+	}
+
+	private async pruneBatchClaims() {
+		const now = Date.now()
+		const claims = await this.ctx.storage.list<BatchClaim>({ prefix: BATCH_CLAIM_PREFIX })
+		const expired = [...claims].filter(([, claim]) => isExpiredBatchClaim(claim, now))
+		if (!expired.length) return
+		await this.ctx.storage.delete(expired.map(([key]) => key))
+		// The object, not the tabs, clears the keys from the document: a tab can replay an old batch
+		// long after it was made, and its key must still be there when the object looks for it.
+		const storage = await this.getStorage()
+		storage.transaction((txn) => {
+			const document = txn.get(TLDOCUMENT_ID) as TLDocument
+			const meta = { ...document.meta }
+			for (const [, claim] of expired) delete meta[claim.metaEntry]
+			txn.set(TLDOCUMENT_ID, { ...document, meta })
+		})
 	}
 
 	/**
@@ -3668,20 +3757,6 @@ export class TLFileDurableObject extends DurableObject {
 				return { userId: meta.userId, presence: presenceId ? presences[presenceId] : undefined }
 			})
 		return { status: 'ok', ...getBoardUsers(sessions) }
-	}
-
-	/**
-	 * The signed-in users with a socket open on this board, for the gallery's presence dots. Read off
-	 * the socket attachments rather than the room, so asking a board nobody is on never loads it.
-	 */
-	async getConnectedUserIds(): Promise<string[]> {
-		if (!this._documentInfo || this._documentInfo.deleted) return []
-		const userIds = new Set<string>()
-		for (const ws of this.ctx.getWebSockets()) {
-			const userId = this.getSocketAttachment(ws)?.meta.userId
-			if (userId) userIds.add(userId)
-		}
-		return [...userIds]
 	}
 
 	async hasTabRenderJob(jobId: string): Promise<boolean> {
@@ -3822,6 +3897,98 @@ export class TLFileDurableObject extends DurableObject {
 				)
 				.toArray().length > 0
 		return { ...written, queued }
+	}
+
+	/**
+	 * Puts a stored image on a page, for the MCP server's add_image. A storage write like
+	 * writeMcpComment's, so it works with nobody on the board, and tabs that are on it see the image
+	 * arrive.
+	 */
+	async writeMcpImage({
+		fileId,
+		userId,
+		image,
+		pageId,
+		position,
+		w,
+		altText,
+	}: {
+		fileId: string
+		userId: string
+		image: StoredImage
+		pageId: string | null
+		position: { x: number; y: number } | null
+		w: number | null
+		altText: string | null
+	}): Promise<
+		| {
+				ok: true
+				shapeId: string
+				pageId: string
+				pageName: string
+				x: number
+				y: number
+				w: number
+				h: number
+		  }
+		| ({ ok: false } & AddImageRefusal)
+	> {
+		if (this._documentInfo) {
+			const info = this._documentInfo
+			if (info.deleted || !info.isApp || info.slug !== fileId) {
+				return { ok: false, reason: 'not_found' }
+			}
+		}
+
+		const fileWithRole = this._documentInfo
+			? await this.getAppFileRecordWithRole(userId)
+			: await getFileRecordWithRole(this.db, fileId, userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) return { ok: false, reason: 'not_found' }
+		const { file, role } = fileWithRole
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
+			return { ok: false, reason: 'not_found' }
+		}
+		const access = getFileRoomAccess(file, role)
+		if (access === 'none') return { ok: false, reason: 'not_found' }
+		if (access === 'read') return { ok: false, reason: 'image_forbidden' }
+
+		// As appFileRecordCreated does for an object that has never been opened.
+		if (!this._documentInfo) {
+			this._fileRecordCache = file
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
+		}
+
+		let storage: TLSyncStorage<TLRecord>
+		try {
+			// See writeMcpComment: connected tabs only hear of a write a running room broadcasts.
+			if (this.state.getWebSockets().length > 0) await this.getRoom()
+			storage = await this.getStorage()
+		} catch (error) {
+			if (error instanceof RoomNotFoundError) return { ok: false, reason: 'board_empty' }
+			throw error
+		}
+
+		const planned = storage.transaction((txn) => {
+			const plan = planMcpImage({
+				records: txn.values(),
+				fileId: file.id,
+				userId,
+				image,
+				pageId,
+				position,
+				w,
+				altText,
+				now: Date.now(),
+			})
+			if (plan.ok) {
+				for (const record of plan.records) txn.set(record.id, record as TLRecord)
+			}
+			return plan
+		}).result
+		if (!planned.ok) return planned
+
+		const { records: _records, ...written } = planned
+		return written
 	}
 
 	// Created on first use: most boards never see an agent.

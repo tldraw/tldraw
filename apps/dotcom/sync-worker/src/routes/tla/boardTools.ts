@@ -68,8 +68,12 @@ export const MCP_SERVER_INFO = {
  * earlier — see `getSearchBoardsToolDefinition`.
  */
 export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
-	return nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+	const instructions = nameMatchingEnabled ? SEARCHING_INSTRUCTIONS : LISTING_INSTRUCTIONS
+	return `${instructions} ${IMAGE_INSTRUCTIONS}`
 }
+
+const IMAGE_INSTRUCTIONS =
+	'add_image puts an image on a board, whether or not the board is open: one from the web by its url, or a local file you first upload from a shell to the URL create_image_upload gives you.'
 
 const SEARCHING_INSTRUCTIONS =
 	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. send_feedback sends a bug report or other feedback about this server to the tldraw team. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
@@ -91,6 +95,10 @@ export const BOARD_USERS_TOOL_NAME = 'get_board_users'
 export const READ_PAGE_COMMENTS_TOOL_NAME = 'read_page_comments'
 export const WRITE_COMMENT_TOOL_NAME = 'write_comment'
 export const SEND_FEEDBACK_TOOL_NAME = 'send_feedback'
+// Not in TOOL_NAMES: these two are served only where a deployment turns them on, and a harness
+// serving fixtures has no upload route behind them.
+export const CREATE_IMAGE_UPLOAD_TOOL_NAME = 'create_image_upload'
+export const ADD_IMAGE_TOOL_NAME = 'add_image'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
@@ -551,9 +559,10 @@ export function parseApplyOpsInput(input: unknown): {
 	ops: unknown[]
 	page: PageSelector | null
 	runId: string | null
+	batchKey: string | null
 } {
 	const value = requireArgumentsObject(input)
-	const { ops, runId } = value
+	const { ops, runId, batchKey } = value
 	if (!Array.isArray(ops) || ops.length === 0) {
 		throw new Error('ops must be a non-empty array of canvas ops')
 	}
@@ -568,12 +577,24 @@ export function parseApplyOpsInput(input: unknown): {
 			throw new Error(`runId must be a string of at most ${APPLY_OPS_MAX_RUN_ID_LENGTH} characters`)
 		}
 	}
+	if (batchKey !== undefined && batchKey !== null) {
+		if (
+			typeof batchKey !== 'string' ||
+			!batchKey ||
+			batchKey.length > APPLY_OPS_MAX_RUN_ID_LENGTH
+		) {
+			throw new Error(
+				`batchKey must be a string of at most ${APPLY_OPS_MAX_RUN_ID_LENGTH} characters`
+			)
+		}
+	}
 	return {
 		boardId: parseBoardId(value.boardId),
 		ops,
 		// A model that fills in every field sends null, which means the same as leaving it out.
 		page: value.page === undefined || value.page === null ? null : parsePageSelector(value.page),
 		runId: runId ?? null,
+		batchKey: batchKey ?? null,
 	}
 }
 
@@ -1555,6 +1576,8 @@ interface PageTransform {
 	x: number
 	y: number
 	rotation: number
+	/** The parent of the outermost shape reached, which is the page when the given shapes are whole. */
+	pageId: string
 }
 
 function applyPageTransform(transform: PageTransform, point: VecModel): VecModel {
@@ -1571,7 +1594,7 @@ function applyPageTransform(transform: PageTransform, point: VecModel): VecModel
  * them: a shape's local transform is its x, y and rotation, applied inside its parent's. That needs
  * no editor, so it works for every shape whether or not it was measured.
  */
-function getPageTransformResolver(shapes: TLShape[]) {
+export function getPageTransformResolver(shapes: TLShape[]) {
 	const byId = new Map<string, TLShape>(shapes.map((shape) => [shape.id, shape]))
 	const resolved = new Map<string, PageTransform>()
 	const resolve = (shape: TLShape, depth: number): PageTransform => {
@@ -1584,8 +1607,9 @@ function getPageTransformResolver(shapes: TLShape[]) {
 			? {
 					...applyPageTransform(parentTransform, shape),
 					rotation: parentTransform.rotation + shape.rotation,
+					pageId: parentTransform.pageId,
 				}
-			: { x: shape.x, y: shape.y, rotation: shape.rotation }
+			: { x: shape.x, y: shape.y, rotation: shape.rotation, pageId: shape.parentId }
 		resolved.set(shape.id, transform)
 		return transform
 	}
@@ -2079,6 +2103,190 @@ export function getWrittenCommentResult({
 	return toolJsonResult(queued ? { ...written, queued, note: COMMENT_QUEUED_NOTE } : written)
 }
 
+// --- Images -------------------------------------------------------------------------------------
+//
+// Two steps, because a model cannot put a file's bytes in a tool argument: create_image_upload
+// hands back a short-lived URL the agent's shell uploads to, and add_image places the result. An
+// image already on the web skips the first step and goes to add_image as a url.
+
+export const IMAGE_UPLOAD_MIME_TYPES = [
+	'image/png',
+	'image/jpeg',
+	'image/gif',
+	'image/webp',
+] as const
+export type ImageUploadMimeType = (typeof IMAGE_UPLOAD_MIME_TYPES)[number]
+export const IMAGE_UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+export const IMAGE_UPLOAD_TTL_MS = 10 * 60 * 1000
+export const IMAGE_NAME_MAX_LENGTH = 200
+export const IMAGE_URL_MAX_LENGTH = 2048
+export const IMAGE_MAX_WIDTH = 4000
+// The width an image gets when the caller names none and its natural width is larger.
+export const IMAGE_DEFAULT_MAX_WIDTH = 1000
+
+export function parseCreateImageUploadInput(input: unknown): {
+	boardId: string
+	mimeType: ImageUploadMimeType
+	/** The file's name, shown on tldraw.com as the image's name. Null when the caller gave none. */
+	name: string | null
+} {
+	const value = requireArgumentsObject(input)
+	const boardId = parseBoardId(value.boardId)
+	const { mimeType } = value
+	if (!IMAGE_UPLOAD_MIME_TYPES.includes(mimeType as ImageUploadMimeType)) {
+		throw new Error(`mimeType must be one of ${IMAGE_UPLOAD_MIME_TYPES.join(', ')}`)
+	}
+	const name = optionalString(value.name, 'name')
+	if (name !== null && name.length > IMAGE_NAME_MAX_LENGTH) {
+		throw new Error(`name must be at most ${IMAGE_NAME_MAX_LENGTH} characters`)
+	}
+	return { boardId, mimeType: mimeType as ImageUploadMimeType, name }
+}
+
+export interface ImageUploadTicket {
+	/** What add_image takes. Opaque to the caller. */
+	uploadId: string
+	/** Carries its own authorization: the agent's shell holds no token for this server. */
+	uploadUrl: string
+	method: 'PUT'
+	headers: { 'Content-Type': ImageUploadMimeType }
+	maxBytes: number
+	/** ISO 8601. */
+	expiresAt: string
+}
+
+export function getCreateImageUploadResult(ticket: ImageUploadTicket): ToolResult {
+	return toolJsonResult({
+		...ticket,
+		note: `Upload the file with: curl -T <path> -H "Content-Type: ${ticket.headers['Content-Type']}" "<uploadUrl>". Then pass uploadId to ${ADD_IMAGE_TOOL_NAME}.`,
+	})
+}
+
+export type ImageSource = { kind: 'upload'; uploadId: string } | { kind: 'url'; url: string }
+
+/**
+ * One source, never a guess between two, as with write_comment's target. x and y travel together:
+ * with neither, the image goes beside the page's existing content, since a caller working on a board
+ * nobody has open cannot call get_page_info to find a free spot.
+ */
+export function parseAddImageInput(input: unknown): {
+	boardId: string
+	source: ImageSource
+	/** Null for the board's first page. */
+	pageId: string | null
+	position: { x: number; y: number } | null
+	/** Null for the image's natural width, up to IMAGE_DEFAULT_MAX_WIDTH. */
+	w: number | null
+	altText: string | null
+} {
+	const value = requireArgumentsObject(input)
+	const boardId = parseBoardId(value.boardId)
+
+	const uploadId = optionalString(value.uploadId, 'uploadId')
+	const url = optionalString(value.url, 'url')
+	if ((uploadId === null) === (url === null)) {
+		throw new Error(
+			uploadId === null
+				? `Say which image: uploadId from ${CREATE_IMAGE_UPLOAD_TOOL_NAME} for a file you uploaded, or url for an image on the web.`
+				: 'Pass only one of uploadId or url.'
+		)
+	}
+	let source: ImageSource
+	if (uploadId !== null) {
+		source = { kind: 'upload', uploadId }
+	} else {
+		if (url!.length > IMAGE_URL_MAX_LENGTH || !URL.canParse(url!)) {
+			throw new Error('url must be a valid https URL')
+		}
+		if (new URL(url!).protocol !== 'https:') throw new Error('url must be an https URL')
+		source = { kind: 'url', url: url! }
+	}
+
+	// An id rather than an ordinal, as for write_comment at a point: this resolves against the live
+	// room, which can be ahead of the snapshot get_board_info reads.
+	const { page } = value
+	if (page != null && (typeof page !== 'string' || !page.startsWith('page:'))) {
+		throw new Error('page must be a page id (the "page:…" string) from get_board_info')
+	}
+
+	const { x, y } = value
+	let position: { x: number; y: number } | null = null
+	if (x != null || y != null) {
+		if (
+			typeof x !== 'number' ||
+			typeof y !== 'number' ||
+			!Number.isFinite(x) ||
+			!Number.isFinite(y)
+		) {
+			throw new Error('x and y must both be numbers: the image’s top-left corner on the page')
+		}
+		position = { x, y }
+	}
+
+	const { w } = value
+	if (
+		w != null &&
+		(typeof w !== 'number' || !Number.isFinite(w) || w <= 0 || w > IMAGE_MAX_WIDTH)
+	) {
+		throw new Error(`w must be a number above 0 and at most ${IMAGE_MAX_WIDTH}`)
+	}
+
+	return {
+		boardId,
+		source,
+		pageId: (page as string | undefined) ?? null,
+		position,
+		w: (w as number | undefined) ?? null,
+		altText: optionalString(value.altText, 'altText'),
+	}
+}
+
+export type AddImageRefusal =
+	| { reason: 'not_found' }
+	| { reason: 'board_empty' }
+	| { reason: 'image_forbidden' }
+	| { reason: 'page_not_found'; pageId: string }
+	| { reason: 'upload_not_found'; uploadId: string }
+	| { reason: 'image_fetch_failed'; url: string }
+	| { reason: 'image_unsupported' }
+	| { reason: 'image_too_large' }
+
+export function getAddImageRefusalMessage(refusal: AddImageRefusal): string {
+	switch (refusal.reason) {
+		case 'not_found':
+			return BOARD_NOT_FOUND_MESSAGE
+		case 'board_empty':
+			return BOARD_EMPTY_MESSAGE
+		case 'image_forbidden':
+			return 'This board is shared with you by a view-only link, so you cannot add to it. Its owner can share an edit link, or add you to the workspace that owns it.'
+		case 'page_not_found':
+			return `No page with id "${refusal.pageId}" on this board. Page ids come from get_board_info.`
+		case 'upload_not_found':
+			// One message for never uploaded, expired and made for another board: the id is something
+			// the caller types, so telling those apart would say which ids exist.
+			return `No uploaded image for uploadId "${refusal.uploadId}" on this board. Upload the file to the uploadUrl from ${CREATE_IMAGE_UPLOAD_TOOL_NAME} first; an upload URL lasts ${IMAGE_UPLOAD_TTL_MS / 60_000} minutes.`
+		case 'image_fetch_failed':
+			return `Could not fetch an image from "${refusal.url}". It has to be publicly reachable over https without signing in.`
+		case 'image_unsupported':
+			return `That is not an image this board can take. Supported types: ${IMAGE_UPLOAD_MIME_TYPES.join(', ')}.`
+		case 'image_too_large':
+			return `That image is over the ${IMAGE_UPLOAD_MAX_BYTES / (1024 * 1024)} MB limit.`
+	}
+}
+
+export function getAddImageResult(added: {
+	shapeId: string
+	pageId: string
+	pageName: string
+	x: number
+	y: number
+	w: number
+	h: number
+	url: string
+}): ToolResult {
+	return toolJsonResult(added)
+}
+
 // --- Tool definitions ---------------------------------------------------------------------------
 
 /**
@@ -2102,6 +2310,8 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 		getReadPageCommentsToolDefinition(),
 		getWriteCommentToolDefinition(),
 		getSendFeedbackToolDefinition(),
+		getCreateImageUploadToolDefinition(),
+		getAddImageToolDefinition(),
 	]
 }
 
@@ -2460,6 +2670,11 @@ Put a card's words in the box's own text, not in labels laid over it. Keep shape
 					description:
 						'Any string. Reuse it across calls so {created} refs reach shapes made in earlier calls.',
 				},
+				batchKey: {
+					type: 'string',
+					description:
+						'A new string for each batch, such as a UUID. A batch with a key runs at most once. If a call says the ops may or may not have applied, send the same call again with the same batchKey: you get the first result, or are told it has not landed yet.',
+				},
 			},
 			required: ['boardId', 'ops'],
 		},
@@ -2551,6 +2766,98 @@ function getWriteCommentToolDefinition() {
 			readOnlyHint: false,
 			idempotentHint: false,
 			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+function getCreateImageUploadToolDefinition() {
+	return {
+		name: CREATE_IMAGE_UPLOAD_TOOL_NAME,
+		title: 'Create tldraw image upload',
+		description: `Get a one-time URL to upload a local image file to, as the first step of putting it on a board. Upload the file from a shell with: curl -T <path> -H "Content-Type: <mimeType>" "<uploadUrl>". Then pass the uploadId to ${ADD_IMAGE_TOOL_NAME} to place it. The URL lasts ${IMAGE_UPLOAD_TTL_MS / 60_000} minutes and takes one file of up to ${IMAGE_UPLOAD_MAX_BYTES / (1024 * 1024)} MB. Needs a client that can run shell commands; for an image already on the web, skip this and pass its url to ${ADD_IMAGE_TOOL_NAME}.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: {
+					...FILE_BOARD_ID_PROPERTY,
+					description: 'The id of the board the image is for.',
+				},
+				mimeType: {
+					type: 'string',
+					enum: IMAGE_UPLOAD_MIME_TYPES,
+					description: 'The type of the file you will upload.',
+				},
+				name: {
+					type: 'string',
+					maxLength: IMAGE_NAME_MAX_LENGTH,
+					description: 'The file’s name, for example "login-screen.png".',
+				},
+			},
+			required: ['boardId', 'mimeType'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: false,
+			destructiveHint: false,
+		},
+	}
+}
+
+function getAddImageToolDefinition() {
+	return {
+		name: ADD_IMAGE_TOOL_NAME,
+		title: 'Add image to tldraw board',
+		description: `Put an image on a board, from a file you uploaded (uploadId, from ${CREATE_IMAGE_UPLOAD_TOOL_NAME}) or from the web (url). Works whether or not the board is open in a browser tab. Give x and y to place it, or leave them out and it goes beside whatever is already on the page. The result has the new shape’s id, position and size. Calling again with the same uploadId returns the image already placed rather than adding a second.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: {
+					...FILE_BOARD_ID_PROPERTY,
+					description: 'The id of the board to add the image to.',
+				},
+				uploadId: {
+					type: 'string',
+					description: `The uploadId from ${CREATE_IMAGE_UPLOAD_TOOL_NAME}, after uploading the file to its uploadUrl.`,
+				},
+				url: {
+					type: 'string',
+					maxLength: IMAGE_URL_MAX_LENGTH,
+					description:
+						'An https URL of a publicly reachable image. It is copied to tldraw, so the board does not depend on the URL staying up.',
+				},
+				page: {
+					type: 'string',
+					description: 'The page id from get_board_info. Defaults to the first page.',
+				},
+				x: {
+					type: 'number',
+					description: 'The page x coordinate of the image’s top-left corner, with y.',
+				},
+				y: {
+					type: 'number',
+					description: 'The page y coordinate of the image’s top-left corner, with x.',
+				},
+				w: {
+					type: 'number',
+					exclusiveMinimum: 0,
+					maximum: IMAGE_MAX_WIDTH,
+					description: `The image’s width on the page; its height follows. Defaults to its natural width, up to ${IMAGE_DEFAULT_MAX_WIDTH}.`,
+				},
+				altText: {
+					type: 'string',
+					description: 'A description of the image for people who cannot see it.',
+				},
+			},
+			required: ['boardId'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			idempotentHint: false,
+			openWorldHint: true,
 			destructiveHint: false,
 		},
 	}

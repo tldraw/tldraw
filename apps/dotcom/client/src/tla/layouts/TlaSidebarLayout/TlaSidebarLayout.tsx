@@ -21,12 +21,9 @@ const MAX_SIDEBAR_WIDTH = 500
 
 export function TlaSidebarLayout({
 	isEmbed,
-	hideSidebar,
 	children,
 }: {
 	isEmbed?: boolean
-	/** Drop the sidebar chrome but keep the tree shape, so toggling it never remounts `children`. */
-	hideSidebar?: boolean
 	children: ReactNode
 	collapsible?: boolean
 }) {
@@ -173,23 +170,21 @@ export function TlaSidebarLayout({
 		<div
 			ref={rLayoutContainer}
 			className={styles.layout}
-			data-sidebar={!isEmbed && !hideSidebar && isSidebarOpen}
-			data-sidebarmobile={!isEmbed && !hideSidebar && isSidebarOpenMobile}
+			data-sidebar={!isEmbed && isSidebarOpen}
+			data-sidebarmobile={!isEmbed && isSidebarOpenMobile}
 			data-testid="tla-sidebar-layout"
 		>
 			{isEmbed ? (
 				children
 			) : (
 				<>
-					{app && !hideSidebar && <TlaSidebar />}
+					{app && <TlaSidebar />}
 					{children}
-					{!hideSidebar && (
-						<div className={styles.toggleContainer}>
-							<TlaSidebarToggle />
-							<TlaSidebarToggleMobile />
-						</div>
-					)}
-					{!hideSidebar && isSidebarOpen && !isWorkspaceSwitcherOpen && (
+					<div className={styles.toggleContainer}>
+						<TlaSidebarToggle />
+						<TlaSidebarToggleMobile />
+					</div>
+					{isSidebarOpen && !isWorkspaceSwitcherOpen && (
 						<div
 							className={styles.resizeHandle}
 							onPointerDown={handlePointerDown}

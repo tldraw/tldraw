@@ -508,7 +508,6 @@ describe('handleOgImageRenderMessage', () => {
 
 	describe('pushing the records into the render page', () => {
 		const board = { kind: 'published', slug: 'board' } as const
-		beforeEach(() => resetFeatureFlagCacheForTests())
 		// Run as the page would, so a script that evaluates differently from JSON.parse fails here.
 		function runPushedScript(script: string) {
 			const window: Record<string, unknown> = {}
@@ -530,7 +529,6 @@ describe('handleOgImageRenderMessage', () => {
 			)
 			return makeEnv({
 				THUMBNAILS: makeFakeThumbnailsBucket(),
-				THUMBNAIL_RENDER_PUSH: 'true',
 				...overrides,
 			})
 		}
@@ -581,73 +579,10 @@ describe('handleOgImageRenderMessage', () => {
 			expect(Object.getPrototypeOf(page.meta)).toBe(Object.prototype)
 		})
 
-		it('leaves the page to fetch when push is off', async () => {
-			const env = arrange({ THUMBNAIL_RENDER_PUSH: undefined })
-
-			await handleOgImageRenderMessage(env, makeMessage(board))
-
-			expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-		})
-
-		describe('the thumbnail_render_push rollout, where the deployment does not force push', () => {
-			const bucket = hashToPercentage('published/board', 'thumbnail_render_push')
-
-			function arrangeRollout(flag: object) {
-				return arrange({
-					THUMBNAIL_RENDER_PUSH: undefined,
-					FEATURE_FLAGS: {
-						get: async (key: string) =>
-							key === 'thumbnail_render_push' ? JSON.stringify(flag) : null,
-					},
-				})
-			}
-
-			it('pushes a board whose bucket is inside the percentage', async () => {
-				const env = arrangeRollout({ enabled: true, percentage: bucket + 1 })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(requestsOf(env).map((request) => request.push)).toEqual(['1'])
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
-			})
-
-			it('leaves a board whose bucket is outside the percentage to fetch', async () => {
-				const env = arrangeRollout({ enabled: true, percentage: bucket })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-			})
-
-			it('fetches for every board when the flag is disabled, whatever the percentage', async () => {
-				const env = arrangeRollout({ enabled: false, percentage: 100 })
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-			})
-
-			it('fetches when the flag cannot be read', async () => {
-				const env = arrange({
-					THUMBNAIL_RENDER_PUSH: undefined,
-					FEATURE_FLAGS: {
-						get: async () => {
-							throw new Error('KV is down')
-						},
-					},
-				})
-				vi.spyOn(console, 'error').mockImplementation(() => {})
-
-				await handleOgImageRenderMessage(env, makeMessage(board))
-
-				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
-			})
-		})
-
 		describe('the thumbnail_render_worker rollout', () => {
 			const bucket = hashToPercentage('published/board', 'thumbnail_render_worker')
+
+			beforeEach(() => resetFeatureFlagCacheForTests())
 
 			function arrangeRollout(flag: object | null) {
 				const screenshot = vi.fn(async () => ({ ok: true, png: new Uint8Array([1, 2, 3]) }))
@@ -1438,8 +1373,8 @@ describe('handleOgImageRenderMessage', () => {
 			expect.objectContaining({
 				outcome: 'browser_timeout',
 				durationMs: THUMBNAIL_RENDER_TIMEOUT_MS,
-				// The page never fetched its snapshot, so the browser, not the page, is where this died.
-				page: 'unreached',
+				// Pushed, so the page never fetches: with no stamp, nothing says where this died.
+				page: 'unknown',
 				browserMsUsed: 0,
 			}),
 		])
@@ -1595,8 +1530,8 @@ describe('handleOgImageRenderMessage', () => {
 				mode: 'screenshot',
 				outcome: 'browser_failed',
 				reason: 'crawler',
-				// The fake browser never fetches the snapshot, so the page never called home.
-				page: 'unreached',
+				// Pushed, so the page never fetches: with no stamp, nothing says where this died.
+				page: 'unknown',
 				durationMs: expect.any(Number),
 				browserMsUsed: 0,
 				content: [

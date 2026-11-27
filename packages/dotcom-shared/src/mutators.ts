@@ -3,11 +3,19 @@ import {
 	assert,
 	getIndexBelow,
 	IndexKey,
+	type JsonObject,
 	sortByIndex,
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants'
+import {
+	MAX_LIBRARY_META_LENGTH,
+	MAX_LIBRARY_NAME_LENGTH,
+	MAX_NUMBER_OF_LIBRARIES,
+	MAX_NUMBER_OF_LIBRARY_ITEMS,
+	MAX_NUMBER_OF_WORKSPACES,
+	MAX_WORKSPACE_NAME_LENGTH,
+} from './constants'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -22,7 +30,7 @@ import {
 	TlaUser,
 	TlaUserPartial,
 } from './tlaSchema'
-import { ZErrorCode } from './types'
+import { FeatureFlagKey, ZErrorCode } from './types'
 
 /** Query builder for mutators - uses Zero's createBuilder API */
 const zql = createBuilder(schema)
@@ -184,7 +192,148 @@ export const USER_PREFERENCE_KEYS = Object.keys(
 	USER_PREFERENCE_VALIDATORS
 ) as readonly TlaUserPreferenceKey[]
 
-export function createMutators(userId: string) {
+/** A library or item name as stored: trimmed, clamped like a workspace name, never blank. */
+export function libraryName(name: string) {
+	assert(typeof name === 'string', ZErrorCode.bad_request)
+	const clamped = name.trim().slice(0, MAX_LIBRARY_NAME_LENGTH)
+	assert(clamped.length > 0, ZErrorCode.bad_request)
+	return clamped
+}
+
+function assertValidLibraryMeta(meta: JsonObject) {
+	assert(meta && typeof meta === 'object' && !Array.isArray(meta), ZErrorCode.bad_request)
+	assert(JSON.stringify(meta).length <= MAX_LIBRARY_META_LENGTH, ZErrorCode.bad_request)
+}
+
+/**
+ * Resolve a library the user may change: their role in its owning workspace must grant
+ * `manageLibraries`. Any member can, the same as seeing it in the libraries query.
+ */
+async function assertCanManageLibrary(tx: Tx, userId: string, libraryId: string) {
+	assert(libraryId, ZErrorCode.bad_request)
+	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+	assert(library, ZErrorCode.bad_request)
+	const role = await getRole(tx, userId, library.owningGroupId)
+	assert(can(role, 'manageLibraries'), ZErrorCode.forbidden)
+	return library
+}
+
+async function assertCanManageLibraryItem(tx: Tx, userId: string, itemId: string) {
+	assert(itemId, ZErrorCode.bad_request)
+	const item = await tx.run(zql.library_item.where('id', '=', itemId).one())
+	assert(item, ZErrorCode.bad_request)
+	await assertCanManageLibrary(tx, userId, item.libraryId)
+	return item
+}
+
+/**
+ * Counts the rows of `table` whose `column` is `id`, for a cap. Locks the row they belong to first,
+ * as the sync worker's library routes do, so concurrent adds into it count one at a time; NO KEY so
+ * inserts whose foreign keys reference it aren't blocked. Counted in SQL rather than by reading
+ * every row.
+ */
+async function countUnderLock(
+	tx: Extract<Tx, { location: 'server' }>,
+	lockTable: 'group' | 'library',
+	table: 'library' | 'library_item',
+	column: 'owningGroupId' | 'libraryId',
+	id: string
+) {
+	await tx.dbTransaction.query(`select 1 from "${lockTable}" where "id" = $1 for no key update`, [
+		id,
+	])
+	const [row] = Array.from(
+		await tx.dbTransaction.query(`select count(*) from "${table}" where "${column}" = $1`, [id])
+	) as { count: number | string }[]
+	return Number(row?.count ?? 0)
+}
+
+/** Refuses another library in a workspace that has {@link MAX_NUMBER_OF_LIBRARIES}. */
+async function assertWorkspaceHasRoomForLibrary(tx: Tx, owningGroupId: string) {
+	const count =
+		tx.location === 'server'
+			? await countUnderLock(tx, 'group', 'library', 'owningGroupId', owningGroupId)
+			: (await tx.run(zql.library.where('owningGroupId', '=', owningGroupId))).length
+	assert(count < MAX_NUMBER_OF_LIBRARIES, ZErrorCode.max_libraries_reached)
+}
+
+/** Refuses another item in a library that has {@link MAX_NUMBER_OF_LIBRARY_ITEMS}. */
+async function assertLibraryHasRoomForItem(tx: Tx, libraryId: string) {
+	const count =
+		tx.location === 'server'
+			? await countUnderLock(tx, 'library', 'library_item', 'libraryId', libraryId)
+			: (await tx.run(zql.library_item.where('libraryId', '=', libraryId))).length
+	assert(count < MAX_NUMBER_OF_LIBRARY_ITEMS, ZErrorCode.max_library_items_reached)
+}
+
+/**
+ * Deletes a library. Its items go with it: the foreign key cascades in Postgres, deleting their
+ * library_item_object rows, which queues their objects' deletion, but a client's local store has
+ * no cascade.
+ */
+async function deleteLibrary(tx: Tx, id: string) {
+	if (tx.location !== 'server') {
+		const items = await tx.run(zql.library_item.where('libraryId', '=', id))
+		for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+		const added = await tx.run(zql.file_library.where('libraryId', '=', id))
+		for (const { fileId } of added) {
+			await tx.mutate.file_library.delete({ fileId, libraryId: id })
+		}
+	}
+	await tx.mutate.library.delete({ id })
+}
+
+/**
+ * Whether the user may delete the library and deleting it loses nothing: it has no items, or it's
+ * a starter pack's copy nobody has changed (its `meta` still has the pack's `packId`) and no file
+ * shows it any more. On the server the library's row is locked first: an item or a file link added
+ * concurrently either commits before the check, which then sees it, or waits for the delete and
+ * fails its foreign key. Without the lock the delete's cascade would take a row committed after
+ * the check.
+ */
+async function canDeleteDisposableLibrary(tx: Tx, userId: string, libraryId: string) {
+	if (tx.location === 'server') {
+		await tx.dbTransaction.query(`select 1 from "library" where "id" = $1 for update`, [libraryId])
+	}
+	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+	if (!library || library.isDefault) return false
+	if (!can(await getRole(tx, userId, library.owningGroupId), 'manageLibraries')) return false
+	if (!(await tx.run(zql.library_item.where('libraryId', '=', libraryId).one()))) return true
+	if (library.meta.packId === undefined) return false
+	return !(await tx.run(zql.file_library.where('libraryId', '=', libraryId).one()))
+}
+
+/**
+ * Makes a starter pack's copy an ordinary library once it's changed, by dropping the `packId` its
+ * `meta` records: the pack then offers a fresh copy, and removing this one from its last file keeps
+ * it.
+ */
+async function clearPackId(tx: Tx, libraryId: string) {
+	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+	if (!library || library.meta.packId === undefined) return
+	const { packId: _packId, ...meta } = library.meta
+	await tx.mutate.library.update({ id: libraryId, meta })
+}
+
+/**
+ * Refuses on the server unless the `libraries` flag is on for the user. The client skips it: its UI
+ * is behind the same flag.
+ */
+async function assertLibrariesEnabled(tx: Tx, options: MutatorOptions) {
+	if (tx.location !== 'server') return
+	const { isFeatureEnabled } = options
+	assert(isFeatureEnabled && (await isFeatureEnabled('libraries')), ZErrorCode.forbidden)
+}
+
+export interface MutatorOptions {
+	/**
+	 * Whether a feature flag is on for the user, for mutators the server gates on one. Server only;
+	 * without it every such flag reads as off there.
+	 */
+	isFeatureEnabled?(flag: FeatureFlagKey): Promise<boolean>
+}
+
+export function createMutators(userId: string, options: MutatorOptions = {}) {
 	const mutators = {
 		user: {
 			update: async (tx: Tx, user: TlaUserPartial) => {
@@ -247,6 +396,169 @@ export function createMutators(userId: string) {
 				if (!exists) return
 
 				await tx.mutate.file_state.upsert(fileState)
+			},
+		},
+
+		library: {
+			/**
+			 * Creates an empty library in a workspace the user is a member of. Items are added by
+			 * the sync worker, which stores their content first.
+			 */
+			create: async (
+				tx: Tx,
+				{
+					id,
+					name,
+					owningGroupId,
+					meta = {},
+				}: { id: string; name: string; owningGroupId: string; meta?: JsonObject }
+			) => {
+				await assertLibrariesEnabled(tx, options)
+				assertValidId(id)
+				assertValidLibraryMeta(meta)
+				const role = await getRole(tx, userId, owningGroupId)
+				assert(can(role, 'manageLibraries'), ZErrorCode.forbidden)
+				// The server's insert ignores a conflicting id, which would report success for nothing.
+				const existing = await tx.run(zql.library.where('id', '=', id).one())
+				assert(!existing, ZErrorCode.bad_request)
+				await assertWorkspaceHasRoomForLibrary(tx, owningGroupId)
+				const now = Date.now()
+				await tx.mutate.library.insert({
+					id,
+					name: libraryName(name),
+					owningGroupId,
+					createdBy: userId,
+					createdAt: now,
+					updatedAt: now,
+					meta,
+					isDefault: false,
+					fileCount: 0,
+					itemCount: 0,
+				})
+			},
+			/**
+			 * Creates the user's default library, in their home workspace, unless they have one.
+			 * Refuses an id that names another library.
+			 */
+			ensureDefault: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const current = await tx.run(
+					zql.library.where('owningGroupId', '=', userId).where('isDefault', '=', true).one()
+				)
+				if (current) return
+				assertValidId(id)
+				const existing = await tx.run(zql.library.where('id', '=', id).one())
+				assert(!existing, ZErrorCode.bad_request)
+				const now = Date.now()
+				await tx.mutate.library.insert({
+					id,
+					name: libraryName(name),
+					owningGroupId: userId,
+					createdBy: userId,
+					createdAt: now,
+					updatedAt: now,
+					meta: {},
+					isDefault: true,
+					fileCount: 0,
+					itemCount: 0,
+				})
+			},
+			/** Renames a library. The user's default library keeps its name. */
+			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const library = await assertCanManageLibrary(tx, userId, id)
+				assert(!library.isDefault, ZErrorCode.forbidden)
+				await tx.mutate.library.update({ id, name: libraryName(name), updatedAt: Date.now() })
+				await clearPackId(tx, id)
+			},
+			/** Deletes a library with its items. The user's default library is never deleted. */
+			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const library = await assertCanManageLibrary(tx, userId, id)
+				assert(!library.isDefault, ZErrorCode.forbidden)
+				await deleteLibrary(tx, id)
+			},
+		},
+
+		library_item: {
+			/** Changes an item's name or meta. Meta is merged key by key, as the editor merges a shape's. */
+			update: async (
+				tx: Tx,
+				{ id, name, meta }: { id: string; name?: string; meta?: JsonObject }
+			) => {
+				await assertLibrariesEnabled(tx, options)
+				const item = await assertCanManageLibraryItem(tx, userId, id)
+				if (meta !== undefined) assertValidLibraryMeta(meta)
+				const merged = meta === undefined ? undefined : { ...item.meta, ...meta }
+				if (merged) assertValidLibraryMeta(merged)
+				await tx.mutate.library_item.update({
+					id,
+					...(name === undefined ? {} : { name: libraryName(name) }),
+					...(merged === undefined ? {} : { meta: merged }),
+					updatedAt: Date.now(),
+				})
+				await clearPackId(tx, item.libraryId)
+			},
+			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const { libraryId } = await assertCanManageLibraryItem(tx, userId, id)
+				await tx.mutate.library_item.delete({ id })
+				await clearPackId(tx, libraryId)
+			},
+			/** Moves an item to another library, which may belong to another workspace. */
+			move: async (tx: Tx, { id, libraryId }: { id: string; libraryId: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const { libraryId: fromLibraryId } = await assertCanManageLibraryItem(tx, userId, id)
+				if (fromLibraryId === libraryId) return
+				await assertCanManageLibrary(tx, userId, libraryId)
+				await assertLibraryHasRoomForItem(tx, libraryId)
+				await tx.mutate.library_item.update({ id, libraryId, updatedAt: Date.now() })
+				await clearPackId(tx, fromLibraryId)
+				await clearPackId(tx, libraryId)
+			},
+		},
+
+		file_library: {
+			/** Adds a library the user can see to a file they can edit. */
+			add: async (tx: Tx, { fileId, libraryId }: { fileId: string; libraryId: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
+				await assertUserCanUpdateFile(tx, userId, file!)
+				assert(libraryId, ZErrorCode.bad_request)
+				const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+				assert(library, ZErrorCode.bad_request)
+				assert(isRole(await getRole(tx, userId, library.owningGroupId)), ZErrorCode.forbidden)
+				const existing = await tx.run(
+					zql.file_library.where('fileId', '=', fileId).where('libraryId', '=', libraryId).one()
+				)
+				if (existing) return
+				await tx.mutate.file_library.insert({
+					fileId,
+					libraryId,
+					addedBy: userId,
+					addedAt: Date.now(),
+				})
+			},
+			/**
+			 * Removes a library from a file. With `deleteIfDisposable`, also deletes the library if
+			 * that loses nothing and the user may delete it (see canDeleteDisposableLibrary); otherwise
+			 * only the link goes.
+			 */
+			remove: async (
+				tx: Tx,
+				{
+					fileId,
+					libraryId,
+					deleteIfDisposable = false,
+				}: { fileId: string; libraryId: string; deleteIfDisposable?: boolean }
+			) => {
+				await assertLibrariesEnabled(tx, options)
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
+				await assertUserCanUpdateFile(tx, userId, file!)
+				await tx.mutate.file_library.delete({ fileId, libraryId })
+				if (deleteIfDisposable && (await canDeleteDisposableLibrary(tx, userId, libraryId))) {
+					await deleteLibrary(tx, libraryId)
+				}
 			},
 		},
 
@@ -669,6 +981,11 @@ export function createMutators(userId: string) {
 			for (const file of files) {
 				await tx.mutate.file.update({ id: file.id, isDeleted: true })
 			}
+
+			// Delete its libraries whether or not the libraries flag is on: nothing restores a
+			// deleted workspace, so nothing would remove them, or their items' objects, later.
+			const libraries = await tx.run(zql.library.where('owningGroupId', '=', id))
+			for (const library of libraries) await deleteLibrary(tx, library.id)
 
 			await tx.mutate.group.update({ id: id, isDeleted: true })
 			if (tx.location !== 'server') {

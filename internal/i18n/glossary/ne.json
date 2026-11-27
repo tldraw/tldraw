@@ -1,0 +1,114 @@
+{
+	"register": "Polite तपाईं; actions use …गर्नुहोस्",
+	"terms": [
+		{
+			"term": "align",
+			"translation": "पङ्क्तिबद्ध गर्नुहोस्"
+		},
+		{
+			"term": "Collaboration",
+			"translation": "सहकार्य"
+		},
+		{
+			"term": "comment",
+			"translation": "टिप्पणी"
+		},
+		{
+			"term": "Comment (noun)",
+			"translation": "टिप्पणी",
+			"note": "Not 'टिप्पणी गर्नुहोस्' (verb) and not 'प्रतिक्रिया' (reaction)"
+		},
+		{
+			"term": "comments",
+			"translation": "टिप्पणीहरू"
+		},
+		{
+			"term": "copy",
+			"translation": "प्रतिलिपि गर्नुहोस्"
+		},
+		{
+			"term": "Delete",
+			"translation": "मेटाउनुहोस्"
+		},
+		{
+			"term": "diagram",
+			"translation": "रेखाचित्र"
+		},
+		{
+			"term": "Duplicate (verb)",
+			"translation": "अनुलिपि गर्नुहोस्"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "पछ्याउनुहोस्"
+		},
+		{
+			"term": "grey",
+			"translation": "खरानी"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "वस्तु"
+		},
+		{
+			"term": "library",
+			"translation": "लाइब्रेरी"
+		},
+		{
+			"term": "link",
+			"translation": "लिङ्क"
+		},
+		{
+			"term": "menu",
+			"translation": "मेनु"
+		},
+		{
+			"term": "mouse (device)",
+			"translation": "माउस"
+		},
+		{
+			"term": "Opacity",
+			"translation": "अपारदर्शिता"
+		},
+		{
+			"term": "owner",
+			"translation": "मालिक"
+		},
+		{
+			"term": "page",
+			"translation": "पृष्ठ"
+		},
+		{
+			"term": "privacy policy",
+			"translation": "गोपनीयता नीति"
+		},
+		{
+			"term": "rhombus",
+			"translation": "रोम्बस"
+		},
+		{
+			"term": "shape",
+			"translation": "आकार"
+		},
+		{
+			"term": "Text",
+			"translation": "पाठ"
+		},
+		{
+			"term": "Theme",
+			"translation": "थिम"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "थिम"
+		},
+		{
+			"term": "thread",
+			"translation": "थ्रेड"
+		},
+		{
+			"term": "workspace",
+			"translation": "कार्यस्थान"
+		}
+	]
+}

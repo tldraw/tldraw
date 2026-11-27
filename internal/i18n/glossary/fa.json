@@ -1,0 +1,680 @@
+{
+	"register": "formal (شما)",
+	"terms": [
+		{
+			"term": ".tldr",
+			"translation": ".tldr",
+			"note": "Keep the extension exactly '.tldr'; do not move the dot"
+		},
+		{
+			"term": "(fine)",
+			"translation": "(دقیق)"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "دسترسی‌پذیری"
+		},
+		{
+			"term": "Align",
+			"translation": "تراز"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "متن جایگزین"
+		},
+		{
+			"term": "Arc (arrow kind)",
+			"translation": "قوس"
+		},
+		{
+			"term": "Arrow",
+			"translation": "پیکان"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "پیکان"
+		},
+		{
+			"term": "Arrow (geo shape)",
+			"translation": "پیکان"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "نسبت ابعاد"
+		},
+		{
+			"term": "Authentication",
+			"translation": "احراز هویت"
+		},
+		{
+			"term": "Auto (automatic option)",
+			"translation": "خودکار"
+		},
+		{
+			"term": "back up (action)",
+			"translation": "پشتیبان‌گیری"
+		},
+		{
+			"term": "backup (noun)",
+			"translation": "نسخه پشتیبان"
+		},
+		{
+			"term": "Bold",
+			"translation": "پررنگ"
+		},
+		{
+			"term": "bookmark",
+			"translation": "نشانک"
+		},
+		{
+			"term": "bookmark (link card shape)",
+			"translation": "نشانک",
+			"note": "not نشانه‌گذاری"
+		},
+		{
+			"term": "Cancel",
+			"translation": "لغو"
+		},
+		{
+			"term": "canvas",
+			"translation": "بوم"
+		},
+		{
+			"term": "clockwise",
+			"translation": "در جهت عقربه‌های ساعت"
+		},
+		{
+			"term": "Close",
+			"translation": "بستن"
+		},
+		{
+			"term": "Color",
+			"translation": "رنگ"
+		},
+		{
+			"term": "comment",
+			"translation": "نظر"
+		},
+		{
+			"term": "Confirm",
+			"translation": "تأیید"
+		},
+		{
+			"term": "context menu",
+			"translation": "منوی زمینه"
+		},
+		{
+			"term": "Continue",
+			"translation": "ادامه"
+		},
+		{
+			"term": "cookie",
+			"translation": "کوکی"
+		},
+		{
+			"term": "cookies",
+			"translation": "کوکی‌ها"
+		},
+		{
+			"term": "copy (clipboard)",
+			"translation": "رونوشت"
+		},
+		{
+			"term": "Crop",
+			"translation": "برش"
+		},
+		{
+			"term": "Cubic (spline)",
+			"translation": "مکعبی"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "تاریک"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "حالت تاریک"
+		},
+		{
+			"term": "Dashed (line style)",
+			"translation": "خط‌چین"
+		},
+		{
+			"term": "Debug mode",
+			"translation": "حالت عیب‌یابی"
+		},
+		{
+			"term": "Default",
+			"translation": "پیش‌فرض"
+		},
+		{
+			"term": "Delete",
+			"translation": "حذف"
+		},
+		{
+			"term": "Details",
+			"translation": "جزئیات"
+		},
+		{
+			"term": "Diamond",
+			"translation": "الماس"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "لوزی"
+		},
+		{
+			"term": "Distribute (layout)",
+			"translation": "توزیع"
+		},
+		{
+			"term": "Dot (arrowhead)",
+			"translation": "نقطه"
+		},
+		{
+			"term": "Dotted (line style)",
+			"translation": "نقطه‌چین"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "تکثیر"
+		},
+		{
+			"term": "duplicate (verb)",
+			"translation": "تکثیر",
+			"note": "SDK action.duplicate = 'تکثیرکردن'"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "ویرایش"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "ویرایشگر"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "بیضی"
+		},
+		{
+			"term": "Ellipse (shape)",
+			"translation": "بیضی",
+			"note": "distinct from oval 'تخم‌مرغی'"
+		},
+		{
+			"term": "embed",
+			"translation": "جاسازی"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "جاسازی"
+		},
+		{
+			"term": "Eraser (tool)",
+			"translation": "پاک‌کن"
+		},
+		{
+			"term": "Error",
+			"translation": "خطا"
+		},
+		{
+			"term": "Export",
+			"translation": "برون‌ریزی",
+			"note": "Used in action.export-as-*, context-menu.export-as and toast.error.export-fail"
+		},
+		{
+			"term": "Export as",
+			"translation": "برون‌ریزی به‌عنوان",
+			"note": "Matches action.export-as-png/svg"
+		},
+		{
+			"term": "Extra large (size)",
+			"translation": "خیلی بزرگ"
+		},
+		{
+			"term": "feedback",
+			"translation": "بازخورد"
+		},
+		{
+			"term": "file",
+			"translation": "پرونده"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "فایل"
+		},
+		{
+			"term": "Files",
+			"translation": "فایل‌ها"
+		},
+		{
+			"term": "focus mode",
+			"translation": "حالت تمرکز"
+		},
+		{
+			"term": "follow (viewport)",
+			"translation": "دنبال کردن"
+		},
+		{
+			"term": "Forget (remove file from own list)",
+			"translation": "فراموش کردن",
+			"note": "Dialog title uses 'فایل را فراموش کنید'"
+		},
+		{
+			"term": "Frame (tool)",
+			"translation": "قاب"
+		},
+		{
+			"term": "grid",
+			"translation": "شبکه"
+		},
+		{
+			"term": "guest user",
+			"translation": "کاربر مهمان"
+		},
+		{
+			"term": "heading",
+			"translation": "سرعنوان"
+		},
+		{
+			"term": "image",
+			"translation": "تصویر"
+		},
+		{
+			"term": "Import file…",
+			"translation": "وارد کردن فایل…"
+		},
+		{
+			"term": "insert",
+			"translation": "درج"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "دعوت"
+		},
+		{
+			"term": "invite link",
+			"translation": "لینک دعوت"
+		},
+		{
+			"term": "item",
+			"translation": "مورد"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "مورد"
+		},
+		{
+			"term": "Justify (text alignment)",
+			"translation": "تراز دوطرفه"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "میان‌برهای صفحه‌کلید"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "افقی"
+		},
+		{
+			"term": "Large (size)",
+			"translation": "بزرگ"
+		},
+		{
+			"term": "library",
+			"translation": "کتابخانه"
+		},
+		{
+			"term": "library (Libraries feature)",
+			"translation": "کتابخانه / کتابخانه‌ها"
+		},
+		{
+			"term": "library (shape collection)",
+			"translation": "کتابخانه"
+		},
+		{
+			"term": "Light (color shade)",
+			"translation": "روشن",
+			"note": "Put it after the color: آبی روشن"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "روشن"
+		},
+		{
+			"term": "Line (spline)",
+			"translation": "خط"
+		},
+		{
+			"term": "Line (tool)",
+			"translation": "خط"
+		},
+		{
+			"term": "link",
+			"translation": "لینک",
+			"note": "matches 'Copy link' b758336699"
+		},
+		{
+			"term": "Manage",
+			"translation": "مدیریت"
+		},
+		{
+			"term": "Medium (size)",
+			"translation": "متوسط"
+		},
+		{
+			"term": "member",
+			"translation": "عضو"
+		},
+		{
+			"term": "Members",
+			"translation": "اعضا"
+		},
+		{
+			"term": "Menu",
+			"translation": "فهرست"
+		},
+		{
+			"term": "minimap",
+			"translation": "مینی‌مپ"
+		},
+		{
+			"term": "Mono (font style)",
+			"translation": "تک‌فاصله"
+		},
+		{
+			"term": "mouse (pointing device)",
+			"translation": "ماوس",
+			"note": "not موش (animal)"
+		},
+		{
+			"term": "move (a file)",
+			"translation": "انتقال",
+			"note": "Not حرکت, which means physical motion"
+		},
+		{
+			"term": "Move to",
+			"translation": "انتقال به"
+		},
+		{
+			"term": "multiplayer",
+			"translation": "چند نفره",
+			"note": "shared collaborative file, not gaming"
+		},
+		{
+			"term": "Navigation",
+			"translation": "ناوبری"
+		},
+		{
+			"term": "Note (sticky note tool)",
+			"translation": "یادداشت"
+		},
+		{
+			"term": "notification",
+			"translation": "اعلان"
+		},
+		{
+			"term": "Notifications",
+			"translation": "اعلان‌ها"
+		},
+		{
+			"term": "numbered list",
+			"translation": "فهرست شماره‌دار"
+		},
+		{
+			"term": "Octagon",
+			"translation": "هشت‌ضلعی"
+		},
+		{
+			"term": "Offline",
+			"translation": "آفلاین"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "مالک"
+		},
+		{
+			"term": "page",
+			"translation": "برگه",
+			"note": "Page menu and context menu use برگه"
+		},
+		{
+			"term": "panel",
+			"translation": "پنل"
+		},
+		{
+			"term": "paste",
+			"translation": "جای‌گذاری"
+		},
+		{
+			"term": "Pentagon",
+			"translation": "پنج‌ضلعی"
+		},
+		{
+			"term": "percent format",
+			"translation": "۲۵٪",
+			"note": "Persian digits with ٪"
+		},
+		{
+			"term": "Pinned",
+			"translation": "پین شده"
+		},
+		{
+			"term": "pointer/cursor",
+			"translation": "نشانگر"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "عمودی"
+		},
+		{
+			"term": "Preferences",
+			"translation": "ترجیحات"
+		},
+		{
+			"term": "Preferences (menu)",
+			"translation": "ترجیحات"
+		},
+		{
+			"term": "Privacy policy",
+			"translation": "سیاست حفظ حریم خصوصی"
+		},
+		{
+			"term": "project",
+			"translation": "پروژه"
+		},
+		{
+			"term": "read-only",
+			"translation": "فقط خواندنی"
+		},
+		{
+			"term": "refresh",
+			"translation": "تازه‌سازی / تازه کنید"
+		},
+		{
+			"term": "refresh (page)",
+			"translation": "تازه کردن",
+			"note": "Not به‌روزرسانی, which means a software update"
+		},
+		{
+			"term": "Reload",
+			"translation": "بارگذاری مجدد"
+		},
+		{
+			"term": "reload (page)",
+			"translation": "بارگذاری مجدد",
+			"note": "not بارگیری (download)"
+		},
+		{
+			"term": "remove (from file, not delete)",
+			"translation": "برداشتن"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "برداشتن",
+			"note": "not حذف (delete)"
+		},
+		{
+			"term": "Rename",
+			"translation": "تغییر نام"
+		},
+		{
+			"term": "reset",
+			"translation": "بازنشانی"
+		},
+		{
+			"term": "reset (data)",
+			"translation": "بازنشانی"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "لوزی",
+			"note": "Diamond is الماس; keep the two distinct"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "ذخیره یک رونوشت",
+			"note": "SDK action.save-copy menu label"
+		},
+		{
+			"term": "Select all / Select none",
+			"translation": "انتخاب همه / لغو انتخاب همه"
+		},
+		{
+			"term": "settings",
+			"translation": "تنظیمات"
+		},
+		{
+			"term": "shape",
+			"translation": "شکل"
+		},
+		{
+			"term": "sidebar",
+			"translation": "نوار کناری"
+		},
+		{
+			"term": "Sign in",
+			"translation": "وارد شوید"
+		},
+		{
+			"term": "Small (size)",
+			"translation": "کوچک"
+		},
+		{
+			"term": "snap",
+			"translation": "چسبانکی"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "پیوسته"
+		},
+		{
+			"term": "Sort by",
+			"translation": "مرتب‌سازی بر اساس"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "مربع"
+		},
+		{
+			"term": "status",
+			"translation": "وضعیت"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "زبانه"
+		},
+		{
+			"term": "Task list",
+			"translation": "فهرست وظایف"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "شرایط خدمات"
+		},
+		{
+			"term": "Text formatting",
+			"translation": "قالب‌بندی متن"
+		},
+		{
+			"term": "theme (colour theme)",
+			"translation": "پوسته",
+			"note": "Not 'موضوع' (topic)"
+		},
+		{
+			"term": "toggle",
+			"translation": "تغییر وضعیت"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "تغییر وضعیت …",
+			"note": "Locale-wide toggle pattern"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "تغییر وضعیت X"
+		},
+		{
+			"term": "tool",
+			"translation": "ابزار"
+		},
+		{
+			"term": "Tools",
+			"translation": "ابزارها"
+		},
+		{
+			"term": "Top / Middle / Bottom (vertical align)",
+			"translation": "بالا / وسط / پایین"
+		},
+		{
+			"term": "transparent",
+			"translation": "شفاف"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "ذوزنقه"
+		},
+		{
+			"term": "Undo",
+			"translation": "واگردانی"
+		},
+		{
+			"term": "URL",
+			"translation": "نشانی اینترنتی"
+		},
+		{
+			"term": "Vertical align",
+			"translation": "تراز عمودی"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "نمایش"
+		},
+		{
+			"term": "Warning",
+			"translation": "هشدار"
+		},
+		{
+			"term": "workspace",
+			"translation": "فضای کاری"
+		},
+		{
+			"term": "Zoom",
+			"translation": "بزرگ‌نمایی"
+		},
+		{
+			"term": "Zoom (noun, zoom level)",
+			"translation": "بزرگ‌نمایی"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "بزرگ‌نمایی",
+			"note": "keep ZWNJ"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "کوچک‌نمایی",
+			"note": "keep ZWNJ"
+		}
+	]
+}

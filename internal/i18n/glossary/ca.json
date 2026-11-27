@@ -1,0 +1,496 @@
+{
+	"register": "Controls use the 2nd-person singular imperative (Tanca, Duplica). Body messages mostly use vós (Llegiu, Seguiu).",
+	"terms": [
+		{
+			"term": "About …",
+			"translation": "Quant a …"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "Accessibilitat",
+			"note": "menu.accessibility"
+		},
+		{
+			"term": "account",
+			"translation": "compte"
+		},
+		{
+			"term": "alignment",
+			"translation": "alineació"
+		},
+		{
+			"term": "Alt text",
+			"translation": "Text alternatiu"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Fletxa"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Fletxa"
+		},
+		{
+			"term": "Arrow (geo shape)",
+			"translation": "Fletxa"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "punta de fletxa",
+			"note": "feminine; adjectives agree"
+		},
+		{
+			"term": "Arrowheads",
+			"translation": "Puntes de fletxa"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Relació d'aspecte"
+		},
+		{
+			"term": "Auto (automatic)",
+			"translation": "Automàtic"
+		},
+		{
+			"term": "backup",
+			"translation": "còpia de seguretat"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Barra"
+		},
+		{
+			"term": "Bold",
+			"translation": "Negreta"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Cancel·la"
+		},
+		{
+			"term": "canvas",
+			"translation": "llenç",
+			"note": "drawing area"
+		},
+		{
+			"term": "Checked",
+			"translation": "Marcat",
+			"note": "pairs with 'Sense marcar'"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Marcat",
+			"note": "Not 'Comprovat' (verified)"
+		},
+		{
+			"term": "clipboard",
+			"translation": "porta-retalls"
+		},
+		{
+			"term": "Close (button)",
+			"translation": "Tanca"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta d'ordres"
+		},
+		{
+			"term": "Comment",
+			"translation": "comentari"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Confirma"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Menú contextual"
+		},
+		{
+			"term": "cookie",
+			"translation": "galeta"
+		},
+		{
+			"term": "Cookie policy",
+			"translation": "Política de cookies"
+		},
+		{
+			"term": "cookies",
+			"translation": "galetes",
+			"note": "cookie dialog f09b16bc5f"
+		},
+		{
+			"term": "Copy (action)",
+			"translation": "Copia"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Copiar"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "No s'ha pogut obrir el fitxer"
+		},
+		{
+			"term": "counterclockwise / clockwise",
+			"translation": "en sentit antihorari / horari"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Retallar"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Fosc"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "Mode fosc"
+		},
+		{
+			"term": "debug flags",
+			"translation": "indicadors de depuració",
+			"note": "not 'banderes'"
+		},
+		{
+			"term": "Delete",
+			"translation": "Suprimeix"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Diamant"
+		},
+		{
+			"term": "Dotted (line style)",
+			"translation": "Puntejat"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplicar"
+		},
+		{
+			"term": "Duplicate (verb, command)",
+			"translation": "Duplica"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "El·lipse"
+		},
+		{
+			"term": "Embed (noun)",
+			"translation": "Incrustació"
+		},
+		{
+			"term": "Export (verb)",
+			"translation": "Exporta"
+		},
+		{
+			"term": "file",
+			"translation": "fitxer"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Fitxer"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "fitxer"
+		},
+		{
+			"term": "fill (style noun)",
+			"translation": "emplenat"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "Emplenat"
+		},
+		{
+			"term": "Flip (mirror)",
+			"translation": "Invertir",
+			"note": "not Girar, which is rotate"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Oblida",
+			"note": "distinct from Suprimeix"
+		},
+		{
+			"term": "Frame",
+			"translation": "Marc"
+		},
+		{
+			"term": "Grid",
+			"translation": "quadrícula"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Agrupar"
+		},
+		{
+			"term": "Import file",
+			"translation": "Importa el fitxer…"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importa el fitxer…",
+			"note": "Actual menu label ffcd73e997"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "invitació"
+		},
+		{
+			"term": "Italic",
+			"translation": "Cursiva"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "element"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "element"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Dreceres de teclat"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Horitzontal"
+		},
+		{
+			"term": "Language",
+			"translation": "Llengua"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Biblioteques"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteca"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Clar"
+		},
+		{
+			"term": "link",
+			"translation": "enllaç"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Enllaç"
+		},
+		{
+			"term": "minimap",
+			"translation": "minimapa"
+		},
+		{
+			"term": "mouse",
+			"translation": "ratolí"
+		},
+		{
+			"term": "move up / move down",
+			"translation": "moure amunt / moure avall",
+			"note": "avoid pujar/baixar, which mean upload/download"
+		},
+		{
+			"term": "notification",
+			"translation": "notificació",
+			"note": "feminine; agree filter labels like All = Totes"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Notificacions"
+		},
+		{
+			"term": "Offline",
+			"translation": "Fora de línia"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opacitat"
+		},
+		{
+			"term": "Oval",
+			"translation": "Oval"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Compactar"
+		},
+		{
+			"term": "page",
+			"translation": "pàgina"
+		},
+		{
+			"term": "Paste",
+			"translation": "Enganxar"
+		},
+		{
+			"term": "Pin / Unpin",
+			"translation": "Fixa / Deixa de fixar"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Vertical"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferències",
+			"note": "menu.preferences"
+		},
+		{
+			"term": "Redo",
+			"translation": "Refer"
+		},
+		{
+			"term": "refresh (reload page)",
+			"translation": "actualitzar"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "treure",
+			"note": "Different from delete (esborrar/suprimir)"
+		},
+		{
+			"term": "remove from file",
+			"translation": "elimina del fitxer"
+		},
+		{
+			"term": "Rename",
+			"translation": "Canvia el nom",
+			"note": "matches action.rename"
+		},
+		{
+			"term": "Reopen",
+			"translation": "Reobrir"
+		},
+		{
+			"term": "request (HTTP)",
+			"translation": "sol·licitud"
+		},
+		{
+			"term": "reset (clear stored data)",
+			"translation": "restablir",
+			"note": "Not 'reiniciar' (restart)"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Rombe"
+		},
+		{
+			"term": "rhombus / diamond (shape)",
+			"translation": "rombe"
+		},
+		{
+			"term": "Rotate",
+			"translation": "Girar",
+			"note": "reserved for rotate; do not use for flip"
+		},
+		{
+			"term": "Save",
+			"translation": "Desa"
+		},
+		{
+			"term": "Save (button)",
+			"translation": "Desa"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Desar una còpia",
+			"note": "action.save-copy label"
+		},
+		{
+			"term": "shape",
+			"translation": "forma"
+		},
+		{
+			"term": "Show",
+			"translation": "Mostra"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Inicia sessió"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Tanca la sessió"
+		},
+		{
+			"term": "Size",
+			"translation": "Mida"
+		},
+		{
+			"term": "Start (alignment)",
+			"translation": "Inici"
+		},
+		{
+			"term": "Styles",
+			"translation": "Estils"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "pestanya"
+		},
+		{
+			"term": "Task list",
+			"translation": "Llista de tasques"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "tema"
+		},
+		{
+			"term": "thread",
+			"translation": "fil"
+		},
+		{
+			"term": "tool lock",
+			"translation": "bloqueig d'eines"
+		},
+		{
+			"term": "Tools",
+			"translation": "Eines"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapezi"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Sense marcar"
+		},
+		{
+			"term": "Undo",
+			"translation": "Desfer"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Desagrupar"
+		},
+		{
+			"term": "Unlock all",
+			"translation": "Desbloqueja-ho tot"
+		},
+		{
+			"term": "upload",
+			"translation": "penjar",
+			"note": "5d26ae7550"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Vista"
+		},
+		{
+			"term": "workspace",
+			"translation": "espai de treball"
+		},
+		{
+			"term": "zoom in / zoom out",
+			"translation": "Amplia / Redueix"
+		}
+	]
+}

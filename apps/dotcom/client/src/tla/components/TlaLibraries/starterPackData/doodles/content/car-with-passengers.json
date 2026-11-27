@@ -1,0 +1,616 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 4,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 14,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 7,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 15,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 6,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1,
+				"com.tldraw.library": 1,
+				"com.tldraw.library-item": 1,
+				"com.tldraw.library-item-content": 1
+			}
+		},
+		"shapes": [
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:car-with-passengers",
+				"type": "group",
+				"parentId": "page:page",
+				"index": "aG3Um",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 43.29333420919761,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:RWx8-XJRUkqdrLMjraU0d",
+				"type": "geo",
+				"props": {
+					"w": 142.17207260236864,
+					"h": 22.326157914133777,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 72.59957668100287,
+				"y": 22.115594409498044,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:ckpKbFFT6Etsv123prVLH",
+				"type": "geo",
+				"props": {
+					"w": 22.34375,
+					"h": 21.177739799699566,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a2Qsf",
+				"typeName": "shape"
+			},
+			{
+				"x": 27.91737139871657,
+				"y": 22.115594409498044,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:XoPEO23AkuH1fmi-U5X3m",
+				"type": "geo",
+				"props": {
+					"w": 22.34375,
+					"h": 21.177739799699566,
+					"geo": "rectangle",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a3QB2",
+				"typeName": "shape"
+			},
+			{
+				"x": 11.7154600366066,
+				"y": 50.93808987651005,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:aADV1Yj2xxhdFktZdHyid",
+				"type": "geo",
+				"props": {
+					"w": 28.025133313190423,
+					"h": 28.025133313190423,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a4bdU",
+				"typeName": "shape"
+			},
+			{
+				"x": 104.28020668487261,
+				"y": 50.93808987651005,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:7xg1YvfCJebxxvcsTSTH6",
+				"type": "geo",
+				"props": {
+					"w": 28.025133313190423,
+					"h": 28.025133313190423,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a5OF2",
+				"typeName": "shape"
+			},
+			{
+				"x": 70.67210450034145,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:W9_Q6oVVXCg_vUJNzCRiq",
+				"type": "geo",
+				"props": {
+					"w": 28.025133313190423,
+					"h": 28.025133313190423,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a6Nnb",
+				"typeName": "shape"
+			},
+			{
+				"x": 25.989899218055143,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:8qylyo36avGnDi_XkCZRV",
+				"type": "geo",
+				"props": {
+					"w": 28.025133313190423,
+					"h": 28.025133313190423,
+					"geo": "ellipse",
+					"dash": "draw",
+					"growY": 0,
+					"url": "",
+					"scale": 1,
+					"flipX": false,
+					"flipY": false,
+					"color": "black",
+					"labelColor": "black",
+					"fill": "semi",
+					"size": "m",
+					"font": "draw",
+					"align": "middle",
+					"verticalAlign": "middle",
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph"
+							}
+						]
+					}
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a7iLI",
+				"typeName": "shape"
+			},
+			{
+				"x": 78.70954411261482,
+				"y": 11.470838742185606,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:rDSudWUM_BLN0t7d7wEN5",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a8e1I",
+				"typeName": "shape"
+			},
+			{
+				"x": 137.39647855001203,
+				"y": 57.45641316626461,
+				"rotation": 4.71238898038469,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:rz7LQs24tVs8oZxThjde3",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1.0389625768754092,
+					"scaleY": 1.0389625768754092
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "a9dVI",
+				"typeName": "shape"
+			},
+			{
+				"x": 34.02733883032852,
+				"y": 11.470838742185606,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:06NlRpoLav_I3xTYl2cDs",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aA8fb",
+				"typeName": "shape"
+			},
+			{
+				"x": 91.22497103425849,
+				"y": 9.458120865246656,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:YzdBcWZzfzjFqMXIRUsn3",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aBBRQ",
+				"typeName": "shape"
+			},
+			{
+				"x": 135.30533999806357,
+				"y": 49.379143968643575,
+				"rotation": 4.71238898038469,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:KJ87fCuXaRv7FXT8CAPfc",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1.0389625768754092,
+					"scaleY": 1.0389625768754092
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aCChr",
+				"typeName": "shape"
+			},
+			{
+				"x": 46.54276575197218,
+				"y": 9.458120865246656,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:ExquYkNXwu8BvVi7DCk1r",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aDwFf",
+				"typeName": "shape"
+			},
+			{
+				"x": 113.35048866729448,
+				"y": 39.26305314230308,
+				"rotation": 3.141592653589793,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:dM6iSWXYHtDeCd4_SSCBF",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/AAAfIQAAAABmKgAAAABnLgAAAAAKLwAAAAAeMQAAAAAWMgAAAADAMQAAricIMwAAwi34NAAAri98NAAAHjEANAAAUjTsNQAAIDWQNgAAeDTwNAAAvDYYNgAAPDYYNgAAIDUQMQAAuDbQMQAAwDUgMQAA0DTALQAAsDcAJwAAYDYAAAAAwDMAAAAAkDVArAAAwDWAsgAAkDbItAAA4DYQtgAAQDcQtwAA4DU4tgAA8DU4twAAMDc8uAAAwDNItQAAAC9osgAAgDAAtAAAwDHNtAAAgDH2tAAAAC97tAAAgC0AtAAAAC64sgAAACsosAAAACporgAAACTArQAAAABwqgAAAACgpwAAACZAoQAAACAgpQAAAAAgqQAA"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aEaDb",
+				"typeName": "shape"
+			},
+			{
+				"x": 81.56409673645612,
+				"y": 16.67254334875861,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:QfNLSMVPdNYM2eA-UOsjy",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/AAAfIQAAAABmKgAAAABnLgAAAAAKLwAAAAAeMQAAAAAWMgAAAADAMQAAricIMwAAwi34NAAAri98NAAAHjEANAAAUjTsNQAAIDWQNgAAeDTwNAAAvDYYNgAAPDYYNgAAIDUQMQAAuDbQMQAAwDUgMQAA0DTALQAAsDcAJwAAYDYAAAAAwDMAAAAAkDVArAAAwDWAsgAAkDbItAAA4DYQtgAAQDcQtwAA4DU4tgAA8DU4twAAMDc8uAAAwDNItQAAAC9osgAAgDAAtAAAwDHNtAAAgDH2tAAAAC97tAAAgC0AtAAAAC64sgAAACsosAAAACporgAAACTArQAAAABwqgAAAACgpwAAACZAoQAAACAgpQAAAAAgqQAA"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aFNKM",
+				"typeName": "shape"
+			},
+			{
+				"x": 36.88189145416982,
+				"y": 16.67254334875861,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:ekCGXAE-3hIb66AH71jLN",
+				"type": "draw",
+				"props": {
+					"segments": [
+						{
+							"type": "free",
+							"path": "AAAAAAAAAAAAAAA/AAAfIQAAAABmKgAAAABnLgAAAAAKLwAAAAAeMQAAAAAWMgAAAADAMQAAricIMwAAwi34NAAAri98NAAAHjEANAAAUjTsNQAAIDWQNgAAeDTwNAAAvDYYNgAAPDYYNgAAIDUQMQAAuDbQMQAAwDUgMQAA0DTALQAAsDcAJwAAYDYAAAAAwDMAAAAAkDVArAAAwDWAsgAAkDbItAAA4DYQtgAAQDcQtwAA4DU4tgAA8DU4twAAMDc8uAAAwDNItQAAAC9osgAAgDAAtAAAwDHNtAAAgDH2tAAAAC97tAAAgC0AtAAAAC64sgAAACsosAAAACporgAAACTArQAAAABwqgAAAACgpwAAACZAoQAAACAgpQAAAAAgqQAA"
+						}
+					],
+					"color": "black",
+					"fill": "semi",
+					"dash": "draw",
+					"size": "s",
+					"isComplete": true,
+					"isClosed": false,
+					"isPen": false,
+					"scale": 1,
+					"scaleX": 1,
+					"scaleY": 1
+				},
+				"parentId": "shape:car-with-passengers",
+				"index": "aGXTn",
+				"typeName": "shape"
+			}
+		],
+		"rootShapeIds": ["shape:car-with-passengers"],
+		"bindings": [],
+		"assets": [],
+		"users": []
+	}
+}

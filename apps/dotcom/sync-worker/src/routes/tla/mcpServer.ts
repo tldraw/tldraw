@@ -36,6 +36,13 @@ import {
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
 	SEND_FEEDBACK_TOOL_NAME,
+	ADD_IMAGE_TOOL_NAME,
+	CREATE_IMAGE_UPLOAD_TOOL_NAME,
+	getAddImageRefusalMessage,
+	getAddImageResult,
+	getCreateImageUploadResult,
+	parseAddImageInput,
+	parseCreateImageUploadInput,
 	ToolResult,
 	USER_STATE_TOOL_NAME,
 	WRITE_COMMENT_TOOL_NAME,
@@ -80,6 +87,7 @@ import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { feedbackErrorContext, isMcpFeedbackConfigured, sendMcpFeedback } from './mcpFeedback'
+import { addImageForUser, createImageUpload } from './mcpImages'
 import {
 	PUBLISHED_BOARD_FAILURE,
 	TabRenderContext,
@@ -458,6 +466,8 @@ const TOOL_HANDLERS = new Map<
 	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
 	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
 	[SEND_FEEDBACK_TOOL_NAME, callSendFeedbackTool],
+	[CREATE_IMAGE_UPLOAD_TOOL_NAME, callCreateImageUploadTool],
+	[ADD_IMAGE_TOOL_NAME, callAddImageTool],
 ])
 
 export async function mcpServer(
@@ -999,6 +1009,74 @@ async function callWriteCommentTool(
 			extras: { boardId: input.boardId, target: input.target.kind },
 			summary: 'Could not post the comment',
 			recordAs: () => 'comment_write_error',
+		})
+	}
+}
+
+async function callCreateImageUploadTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseCreateImageUploadInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const created = await createImageUpload(env, request as IRequest, userId, input)
+		if (!created.ok) return toolError(getAddImageRefusalMessage(created), created.reason)
+		return getCreateImageUploadResult(created.ticket)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_image',
+			extras: { boardId: input.boardId, mimeType: input.mimeType },
+			summary: 'Could not create the image upload',
+			recordAs: () => 'image_upload_error',
+		})
+	}
+}
+
+async function callAddImageTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseAddImageInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// The budget every tool that goes through the board's durable object shares.
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const added = await addImageForUser(env, userId, input)
+		if (!added.ok) return toolError(getAddImageRefusalMessage(added), added.reason)
+		const { ok: _ok, ...placed } = added
+		return getAddImageResult({
+			...placed,
+			url: `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_image',
+			// The url is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId, source: input.source.kind },
+			summary: 'Could not add the image',
+			recordAs: () => 'image_write_error',
 		})
 	}
 }
@@ -1553,7 +1631,11 @@ async function callApplyOpsTool(
 			{
 				ops: input.ops,
 				page: input.page ?? undefined,
-				attribution: { userId, runId: input.runId ?? undefined },
+				attribution: {
+					userId,
+					runId: input.runId ?? undefined,
+					batchKey: input.batchKey ?? undefined,
+				},
 			},
 			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)

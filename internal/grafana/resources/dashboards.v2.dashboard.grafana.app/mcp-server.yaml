@@ -25,8 +25,8 @@ spec:
   cursorSync: Crosshair
   description: The authenticated MCP server on the sync worker at POST /app/mcp, which serves
     the board tools for any tldraw.com board the signed-in caller can see. Every request needs
-    an OAuth access token from the tldraw Clerk instance and a user the mcp_server_access
-    flag names; refusals are on the mcp_server_auth_refusal event. Protocol traffic comes
+    an OAuth access token from the tldraw Clerk instance; refusals are on the
+    mcp_server_auth_refusal event. Protocol traffic comes
     from the mcp_server_tool_call and mcp_server_initialize events, and the client variable
     filters the tool call panels to the codex plugin's proxied calls or to direct clients.
     The tools that read, capture or edit a page work through the caller's open browser tab,

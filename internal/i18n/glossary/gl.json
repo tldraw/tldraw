@@ -1,0 +1,435 @@
+{
+	"register": "Action labels use the infinitive. The user is addressed as tú.",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Accesibilidade",
+			"note": "menu.accessibility"
+		},
+		{
+			"term": "account",
+			"translation": "conta"
+		},
+		{
+			"term": "Align (setting)",
+			"translation": "Aliñamento"
+		},
+		{
+			"term": "alignment",
+			"translation": "aliñación"
+		},
+		{
+			"term": "Alt text",
+			"translation": "Texto alternativo"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Frecha"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Frecha"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Relación de aspecto"
+		},
+		{
+			"term": "backup",
+			"translation": "copia de seguridade"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Barra"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Lista con viñetas"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Cancelar"
+		},
+		{
+			"term": "canvas",
+			"translation": "lenzo",
+			"note": "drawing area"
+		},
+		{
+			"term": "Checked",
+			"translation": "Marcado"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Marcado",
+			"note": "Not 'Comprobado'"
+		},
+		{
+			"term": "clipboard",
+			"translation": "portapapeis"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta de comandos"
+		},
+		{
+			"term": "Comment",
+			"translation": "comentario"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Confirmar",
+			"note": "gl uses infinitive for controls"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Menú contextual"
+		},
+		{
+			"term": "cookies",
+			"translation": "cookies"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Copiar"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "Non se puido abrir o arquivo"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Cortar"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Escuro"
+		},
+		{
+			"term": "delete",
+			"translation": "Eliminar"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Distribuír"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplicar"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Editar"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "contido incrustado"
+		},
+		{
+			"term": "Eraser",
+			"translation": "Borrador"
+		},
+		{
+			"term": "Export",
+			"translation": "Exportar"
+		},
+		{
+			"term": "file",
+			"translation": "ficheiro"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Ficheiro",
+			"note": "Catalog label 0b27918290 is currently the Portuguese 'Arquivo' and needs fixing"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "ficheiro"
+		},
+		{
+			"term": "Fill",
+			"translation": "Recheo"
+		},
+		{
+			"term": "fill (noun)",
+			"translation": "recheo"
+		},
+		{
+			"term": "Flip",
+			"translation": "Voltear"
+		},
+		{
+			"term": "focus mode",
+			"translation": "modo concentración"
+		},
+		{
+			"term": "Forget",
+			"translation": "Esquecer"
+		},
+		{
+			"term": "Frame",
+			"translation": "Marco"
+		},
+		{
+			"term": "grid",
+			"translation": "cuadrícula"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Agrupar"
+		},
+		{
+			"term": "Import file",
+			"translation": "Importar ficheiro…"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importar ficheiro…"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "invitación"
+		},
+		{
+			"term": "Italic",
+			"translation": "Cursiva"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "elemento"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "elemento"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Atallos de teclado"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Horizontal"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Bibliotecas"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteca"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Claro"
+		},
+		{
+			"term": "link",
+			"translation": "ligazón"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Ligazón"
+		},
+		{
+			"term": "Minimap",
+			"translation": "Minimapa"
+		},
+		{
+			"term": "mouse",
+			"translation": "rato"
+		},
+		{
+			"term": "notification",
+			"translation": "notificación",
+			"note": "feminine; All = Todas"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Notificacións"
+		},
+		{
+			"term": "Offline",
+			"translation": "Sen conexión"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opacidade"
+		},
+		{
+			"term": "owner",
+			"translation": "propietario"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Compactar"
+		},
+		{
+			"term": "page",
+			"translation": "páxina"
+		},
+		{
+			"term": "Paste",
+			"translation": "Pegar"
+		},
+		{
+			"term": "Pin / Unpin",
+			"translation": "Fixar / Desfixar"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Vertical"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferencias",
+			"note": "menu.preferences"
+		},
+		{
+			"term": "project",
+			"translation": "proxecto"
+		},
+		{
+			"term": "Redo",
+			"translation": "Refacer"
+		},
+		{
+			"term": "remove",
+			"translation": "Quitar"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "quitar",
+			"note": "Different from delete (eliminar/borrar)"
+		},
+		{
+			"term": "Remove frame",
+			"translation": "Eliminar marco",
+			"note": "distinct from Delete 'Borrar'"
+		},
+		{
+			"term": "rename",
+			"translation": "renomear"
+		},
+		{
+			"term": "Resolve (thread)",
+			"translation": "Resolver"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Rombo"
+		},
+		{
+			"term": "Save",
+			"translation": "Gardar"
+		},
+		{
+			"term": "Save (button)",
+			"translation": "Gardar"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Gardar unha copia",
+			"note": "action.save-copy label"
+		},
+		{
+			"term": "select",
+			"translation": "seleccionar",
+			"note": "not Portuguese 'selecionar'"
+		},
+		{
+			"term": "shape",
+			"translation": "forma"
+		},
+		{
+			"term": "Show",
+			"translation": "Mostrar"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Pechar sesión"
+		},
+		{
+			"term": "Size values",
+			"translation": "Pequeno/Mediano/Grande/Extra grande"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Tachado"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "lapela"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "tema"
+		},
+		{
+			"term": "thread",
+			"translation": "fío"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Alternar"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "Alternar …"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "Activar/desactivar X",
+			"note": "Galician actions use the infinitive"
+		},
+		{
+			"term": "Toggle X (action)",
+			"translation": "Alternar X",
+			"note": "Long forms keep the verb; don't collapse them to the menu label"
+		},
+		{
+			"term": "tool lock",
+			"translation": "bloqueo de ferramentas"
+		},
+		{
+			"term": "Tools",
+			"translation": "Ferramentas"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapecio"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Sen marcar"
+		},
+		{
+			"term": "Undo",
+			"translation": "Desfacer"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Desagrupar"
+		},
+		{
+			"term": "upload",
+			"translation": "cargar",
+			"note": "5d26ae7550, 299cb00a7a"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Ver"
+		},
+		{
+			"term": "workspace",
+			"translation": "espazo de traballo"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Achegar"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Afastar"
+		}
+	]
+}

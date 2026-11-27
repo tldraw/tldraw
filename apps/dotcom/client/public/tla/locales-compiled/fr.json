@@ -152,7 +152,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Supprimer"
+      "value": "Retirer"
     }
   ],
   "10fb1df194": [
@@ -171,6 +171,12 @@
     {
       "type": 0,
       "value": "Détacher le fichier"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Cet espace de travail a atteint le nombre maximal de bibliothèques. Supprimez d’anciennes bibliothèques avant d’en créer de nouvelles."
     }
   ],
   "13ddd375ad": [
@@ -206,7 +212,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Passer à"
+      "value": "Déplacer vers"
     }
   ],
   "1da2e8106b": [
@@ -225,6 +231,12 @@
     {
       "type": 0,
       "value": "Un espace de travail doit avoir au moins un propriétaire. Commencez par désigner quelqu'un d'autre comme propriétaire."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Ma réserve"
     }
   ],
   "21f66c9c00": [
@@ -259,6 +271,12 @@
       "value": "À propos de tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Cette bibliothèque a atteint le nombre maximal d’éléments. Supprimez d’anciens éléments avant d’en ajouter de nouveaux."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -290,7 +308,7 @@
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Recherche..."
+      "value": "Rechercher..."
     }
   ],
   "2d3cdcfdd4": [
@@ -302,7 +320,7 @@
   "2de510be71": [
     {
       "type": 0,
-      "value": "La régénération remplace le lien d'invitation actuel par un nouveau. Toute personne utilisant l'ancien lien aura besoin du nouveau pour s'inscrire."
+      "value": "La régénération remplace le lien d’invitation actuel par un nouveau. Toute personne utilisant l’ancien lien aura besoin du nouveau pour rejoindre l’espace."
     }
   ],
   "2e2b3c700b": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n : surlignement manquant"
+      "value": "i18n : surligner les traductions manquantes"
     }
   ],
   "324a0f3182": [
@@ -348,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Fichier dupliqué"
+      "value": "Dupliquer le fichier"
     }
   ],
   "335defdafe": [
@@ -378,7 +396,7 @@
   "375396d6e5": [
     {
       "type": 0,
-      "value": "Supprimer un membre"
+      "value": "Retirer le membre"
     }
   ],
   "398f51738e": [
@@ -421,6 +439,12 @@
     {
       "type": 0,
       "value": "Thème de couleurs"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menu de la bibliothèque"
     }
   ],
   "42e53c47c1": [
@@ -535,6 +559,12 @@
       "value": " a commenté"
     }
   ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Ce fichier"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -586,7 +616,7 @@
   "53770fd374": [
     {
       "type": 0,
-      "value": "Non lu"
+      "value": "Non lues"
     }
   ],
   "542248f0ba": [
@@ -734,7 +764,7 @@
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "toi"
+      "value": "vous"
     }
   ],
   "63a6a88c06": [
@@ -806,7 +836,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " autre"
             }
           ]
         },
@@ -817,7 +847,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " autres"
             }
           ]
         }
@@ -857,7 +887,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Quelqu'un a réagi"
+              "value": "Quelqu’un a réagi"
             }
           ]
         },
@@ -868,7 +898,7 @@
             },
             {
               "type": 0,
-              "value": " réactions des gens"
+              "value": " personnes ont réagi"
             }
           ]
         }
@@ -999,7 +1029,13 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Ce fichier tldraw multijoueur anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
+      "value": "Ce fichier collaboratif tldraw anonyme est désormais en lecture seule. Pour continuer à le modifier, veuillez vous connecter et le copier dans vos fichiers."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Aucune bibliothèque pour le moment."
     }
   ],
   "78e9815992": [
@@ -1201,7 +1237,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " autre"
             }
           ]
         },
@@ -1212,7 +1248,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " autres"
             }
           ]
         }
@@ -1229,7 +1265,7 @@
   "88bf6ab42c": [
     {
       "type": 0,
-      "value": "Ce lien d'invitation a expiré."
+      "value": "Ce lien d’invitation a expiré"
     }
   ],
   "8c2d3d730c": [
@@ -1346,6 +1382,12 @@
       "value": "Conditions d'utilisation"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Essayer le serveur MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1396,6 +1438,49 @@
       "value": "Vous semblez être hors ligne. Vérifiez votre connexion et réessayez."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " éléments"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " élément"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " éléments"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1408,6 +1493,83 @@
       "value": "Publier ce fichier"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Supprimer "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " et "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "ses "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " éléments"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "son "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " élément"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "ses "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " éléments"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1417,7 +1579,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Se désengager"
+      "value": "Refuser"
     }
   ],
   "a078644c42": [
@@ -1451,7 +1613,7 @@
             },
             {
               "type": 0,
-              "value": " non lu"
+              "value": " non lue"
             }
           ]
         },
@@ -1462,7 +1624,7 @@
             },
             {
               "type": 0,
-              "value": " non lu"
+              "value": " non lues"
             }
           ]
         }
@@ -1541,7 +1703,13 @@
   "a8873770ab": [
     {
       "type": 0,
-      "value": "Le fichier devient volumineux."
+      "value": "Le fichier devient volumineux"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Supprimer la bibliothèque"
     }
   ],
   "a9ded1e5ce": [
@@ -1565,7 +1733,7 @@
   "ab0df9ba36": [
     {
       "type": 0,
-      "value": "Limite de fichier atteinte"
+      "value": "Limite de fichiers atteinte"
     }
   ],
   "ac863f346e": [
@@ -1583,7 +1751,7 @@
   "af3dc88931": [
     {
       "type": 0,
-      "value": "Publié pour la dernière fois il y a "
+      "value": "Dernière publication "
     },
     {
       "children": [
@@ -1617,7 +1785,7 @@
   "b1c94ca2fb": [
     {
       "type": 0,
-      "value": "Tous"
+      "value": "Toutes"
     }
   ],
   "b2326c3a34": [
@@ -1981,13 +2149,19 @@
   "dfdb78a4e4": [
     {
       "type": 0,
-      "value": "indicateurs de débogage de l'application"
+      "value": "Indicateurs de débogage de l’app"
     }
   ],
   "e0aa021e21": [
     {
       "type": 0,
       "value": "D'accord"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Impossible de modifier la bibliothèque"
     }
   ],
   "e2198d6228": [
@@ -2017,7 +2191,7 @@
   "ea13ecec38": [
     {
       "type": 0,
-      "value": "Historique des fichiers"
+      "value": "Historique du fichier"
     }
   ],
   "ea4788705e": [
@@ -2097,7 +2271,7 @@
   "ef7de3f485": [
     {
       "type": 0,
-      "value": "choisi"
+      "value": "sélectionné"
     }
   ],
   "f07e75296c": [
@@ -2116,6 +2290,12 @@
     {
       "type": 0,
       "value": "Paramètres utilisateur"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Dans aucun fichier"
     }
   ],
   "f13001876b": [
@@ -2175,13 +2355,13 @@
   "fa2ead697d": [
     {
       "type": 0,
-      "value": "politique de confidentialité"
+      "value": "Politique de confidentialité"
     }
   ],
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Visionneuse"
+      "value": "Lecteur"
     }
   ],
   "fc9d47046b": [
@@ -2196,10 +2376,16 @@
       "value": "Lien copié"
     }
   ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Bibliothèques publiques"
+    }
+  ],
   "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Êtes-vous sûr de vouloir supprimer "
+      "value": "Voulez-vous vraiment retirer "
     },
     {
       "type": 1,
@@ -2207,7 +2393,7 @@
     },
     {
       "type": 0,
-      "value": " de cet espace de travail ?"
+      "value": " de cet espace de travail ?"
     }
   ],
   "ff52811b98": [

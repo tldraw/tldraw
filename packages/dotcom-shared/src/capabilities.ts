@@ -8,6 +8,7 @@ export const capabilities = [
 	'addFiles', // move a file into the workspace
 	'removeFiles', // remove a file from the workspace
 	'manageWorkspace', // manage the workspace: its invite link, members' roles, name, and deletion (owners)
+	'manageLibraries', // create, rename, move and delete the workspace's libraries and their items (any member)
 ] as const
 
 export type Capability = (typeof capabilities)[number]

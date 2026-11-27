@@ -2,7 +2,7 @@
   "0095a9fa74": [
     {
       "type": 0,
-      "value": "Viedä"
+      "value": "Vienti"
     }
   ],
   "00b177e080": [
@@ -78,7 +78,7 @@
   "06b9281e39": [
     {
       "type": 0,
-      "value": "Auto"
+      "value": "Automaattinen"
     }
   ],
   "07dbd11b21": [
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Hintarajoitus ylitetty, yritä myöhemmin uudelleen."
+      "value": "Pyyntöraja ylitetty, yritä myöhemmin uudelleen."
     }
   ],
   "08bd40c754": [
@@ -128,7 +128,7 @@
   "0b9a4cde72": [
     {
       "type": 0,
-      "value": "Tiedosto-valikko"
+      "value": "Tiedoston valikko"
     }
   ],
   "0c4383617a": [
@@ -152,7 +152,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Poistaa"
+      "value": "Poista työtilasta"
     }
   ],
   "10fb1df194": [
@@ -164,7 +164,7 @@
   "110a4b01be": [
     {
       "type": 0,
-      "value": "Julkaista"
+      "value": "Julkaise"
     }
   ],
   "12a6766ba1": [
@@ -173,10 +173,16 @@
       "value": "Irrota tiedosto"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Tämä työtila on saavuttanut kirjastojen enimmäismäärän. Poista vanhoja kirjastoja ennen uusien luomista."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
-      "value": "Vie nimellä"
+      "value": "Vie muodossa"
     }
   ],
   "14b03eeeb5": [
@@ -227,6 +233,12 @@
       "value": "Työtilalla on oltava vähintään yksi omistaja. Tee ensin omistajaksi joku muu."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Oma kokoelma"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -257,6 +269,12 @@
     {
       "type": 0,
       "value": "Tietoja tldraw'sta"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Tämä kirjasto on saavuttanut kohteiden enimmäismäärän. Poista vanhoja kohteita ennen uusien lisäämistä."
     }
   ],
   "28b2464e1f": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Korosta puuttuu"
+      "value": "i18n: Korosta puuttuvat"
     }
   ],
   "324a0f3182": [
@@ -348,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Kopiotiedosto"
+      "value": "Monista tiedosto"
     }
   ],
   "335defdafe": [
@@ -366,7 +384,7 @@
   "344a7f427f": [
     {
       "type": 0,
-      "value": "Toimittaja"
+      "value": "Muokkaaja"
     }
   ],
   "34e34c43ec": [
@@ -421,6 +439,12 @@
     {
       "type": 0,
       "value": "Väriteema"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Kirjaston valikko"
     }
   ],
   "42e53c47c1": [
@@ -535,6 +559,12 @@
       "value": " kommentoi"
     }
   ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Tämä tiedosto"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -568,7 +598,7 @@
   "517bb809d9": [
     {
       "type": 0,
-      "value": "Sivuvalikko"
+      "value": "Sivujen valikko"
     }
   ],
   "517f5f3544": [
@@ -586,7 +616,7 @@
   "53770fd374": [
     {
       "type": 0,
-      "value": "Lukematon"
+      "value": "Lukemattomat"
     }
   ],
   "542248f0ba": [
@@ -662,7 +692,7 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Jakaa"
+      "value": "Jaa"
     }
   ],
   "5bec508475": [
@@ -698,7 +728,7 @@
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Kopioida"
+      "value": "Kopioi"
     }
   ],
   "608e9d366e": [
@@ -728,7 +758,7 @@
   "625fd29749": [
     {
       "type": 0,
-      "value": "Vanhempi"
+      "value": "Vanhemmat"
     }
   ],
   "639bae9ac6": [
@@ -806,7 +836,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " muu"
             }
           ]
         },
@@ -817,7 +847,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " muuta"
             }
           ]
         }
@@ -881,7 +911,7 @@
   "6a26f54883": [
     {
       "type": 0,
-      "value": "Auttaa"
+      "value": "Ohje"
     }
   ],
   "6b71e0ebcb": [
@@ -945,7 +975,7 @@
   "74ff4bad28": [
     {
       "type": 0,
-      "value": "Ei tiedostoja löytynyt"
+      "value": "Tiedostoja ei löytynyt"
     }
   ],
   "752b79f137": [
@@ -1002,6 +1032,12 @@
       "value": "Tämä anonyymi tldraw-moninpelitiedosto on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Kirjastoja ei ole vielä."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -1053,7 +1089,7 @@
   "7cb5f8b4a5": [
     {
       "type": 0,
-      "value": "Unohtaa"
+      "value": "Unohda"
     }
   ],
   "7d69b3cb4c": [
@@ -1201,7 +1237,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " muu"
             }
           ]
         },
@@ -1212,7 +1248,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " muuta"
             }
           ]
         }
@@ -1259,7 +1295,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Hinta rajoitettu"
+      "value": "Pyyntöraja ylitetty"
     }
   ],
   "902b0d55fd": [
@@ -1346,10 +1382,16 @@
       "value": "Käyttöehdot"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Kokeile MCP-palvelinta"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
-      "value": "Kevyt"
+      "value": "Vaalea"
     }
   ],
   "9983381c21": [
@@ -1396,6 +1438,38 @@
       "value": "Vaikuttaa siltä, että olet offline-tilassa. Tarkista yhteytesi ja yritä uudelleen."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " kohde"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " kohdetta"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1406,6 +1480,68 @@
     {
       "type": 0,
       "value": "Julkaise tämä tiedosto"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Poistetaanko "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " ja "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "sen "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " kohde"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "sen "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " kohdetta"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1462,7 +1598,7 @@
             },
             {
               "type": 0,
-              "value": " lukematon"
+              "value": " lukematonta"
             }
           ]
         }
@@ -1475,7 +1611,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Pehmuste"
+      "value": "Reunus"
     }
   ],
   "a18366b217": [
@@ -1535,13 +1671,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "Analytics"
+      "value": "Analytiikka"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Tiedosto kasvaa suureksi"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Poista kirjasto"
     }
   ],
   "a9ded1e5ce": [
@@ -1623,7 +1765,7 @@
   "b2326c3a34": [
     {
       "type": 0,
-      "value": "Uudelleenluo"
+      "value": "Luo uudelleen"
     }
   ],
   "b2c3c2e30c": [
@@ -1841,7 +1983,7 @@
   "c8a59e7135": [
     {
       "type": 0,
-      "value": "Hylkää"
+      "value": "Sulje"
     }
   ],
   "cb5feb1b73": [
@@ -1895,7 +2037,7 @@
   "d3d2e61733": [
     {
       "type": 0,
-      "value": "Lähellä"
+      "value": "Sulje"
     }
   ],
   "d46632fe1f": [
@@ -1907,7 +2049,7 @@
   "d4bbf74f3e": [
     {
       "type": 0,
-      "value": "Vaihda sivupalkki"
+      "value": "Näytä/piilota sivupalkki"
     }
   ],
   "d5e92609cf": [
@@ -1977,7 +2119,7 @@
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Vain kutsu"
+      "value": "Vain kutsutuille"
     }
   ],
   "dbf9b24193": [
@@ -1996,6 +2138,12 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Kirjastoa ei voitu muuttaa"
     }
   ],
   "e2198d6228": [
@@ -2031,7 +2179,7 @@
   "ea4788705e": [
     {
       "type": 0,
-      "value": "Peruuttaa"
+      "value": "Peruuta"
     }
   ],
   "eb1e2b0542": [
@@ -2055,7 +2203,7 @@
   "ec611e9a08": [
     {
       "type": 0,
-      "value": "Tili-valikko"
+      "value": "Tilivalikko"
     }
   ],
   "ed6241a422": [
@@ -2067,7 +2215,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Kopioi"
+      "value": "Monista"
     }
   ],
   "ede55d955f": [
@@ -2126,6 +2274,12 @@
       "value": "Käyttäjäasetukset"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Ei missään tiedostossa"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2141,7 +2295,7 @@
   "f2a6c498fb": [
     {
       "type": 0,
-      "value": "Poistaa"
+      "value": "Poista"
     }
   ],
   "f408fa5fbd": [
@@ -2202,6 +2356,12 @@
     {
       "type": 0,
       "value": "Linkki kopioitu"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Julkiset kirjastot"
     }
   ],
   "ff2fefd3c6": [

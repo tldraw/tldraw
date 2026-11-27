@@ -5,7 +5,8 @@ set -e
 
 # This notifies the user if the pnpm-lock.yaml file has changed.
 CHANGED=$(git diff HEAD@{1} --stat -- ./pnpm-lock.yaml | wc -l)
-if (( CHANGED > 0 )); then
+# POSIX test: husky runs hooks with sh (see post-checkout).
+if [ "$CHANGED" -gt 0 ]; then
     echo
     echo "🚨 🚨 🚨 pnpm-lock.yaml has changed! 🚨 🚨 🚨 "
     echo "run 'pnpm install' to get the latest!"

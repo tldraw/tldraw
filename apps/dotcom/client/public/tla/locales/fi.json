@@ -1,6 +1,6 @@
 {
   "0095a9fa74": {
-    "translation": "Viedä"
+    "translation": "Vienti"
   },
   "00b177e080": {
     "translation": "Hyväksy kutsu"
@@ -21,13 +21,13 @@
     "translation": "Olet saavuttanut työtilojen enimmäismäärän. Sinun on poistettava vanhat työtilat ennen uusien luomista."
   },
   "06b9281e39": {
-    "translation": "Auto"
+    "translation": "Automaattinen"
   },
   "07dbd11b21": {
     "translation": "Nimetön tiedosto"
   },
   "08331c1710": {
-    "translation": "Hintarajoitus ylitetty, yritä myöhemmin uudelleen."
+    "translation": "Pyyntöraja ylitetty, yritä myöhemmin uudelleen."
   },
   "08bd40c754": {
     "translation": "Tili"
@@ -42,7 +42,7 @@
     "translation": "Tiedosto"
   },
   "0b9a4cde72": {
-    "translation": "Tiedosto-valikko"
+    "translation": "Tiedoston valikko"
   },
   "0c4383617a": {
     "translation": "Kutsun lataamisessa tapahtui virhe. Yritä uudelleen."
@@ -54,19 +54,22 @@
     "translation": "Merkitse kaikki ilmoitukset luetuiksi"
   },
   "1063e38cb5": {
-    "translation": "Poistaa"
+    "translation": "Poista työtilasta"
   },
   "10fb1df194": {
     "translation": "Kopioi henkilökohtaiseen työtilaan"
   },
   "110a4b01be": {
-    "translation": "Julkaista"
+    "translation": "Julkaise"
   },
   "12a6766ba1": {
     "translation": "Irrota tiedosto"
   },
+  "13cad4c2e8": {
+    "translation": "Tämä työtila on saavuttanut kirjastojen enimmäismäärän. Poista vanhoja kirjastoja ennen uusien luomista."
+  },
   "13ddd375ad": {
-    "translation": "Vie nimellä"
+    "translation": "Vie muodossa"
   },
   "14b03eeeb5": {
     "translation": "Ilmoitusasetukset"
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "Työtilalla on oltava vähintään yksi omistaja. Tee ensin omistajaksi joku muu."
   },
+  "20746febc9": {
+    "translation": "Oma kokoelma"
+  },
   "21f66c9c00": {
     "translation": "Työtilan nimi"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "Tietoja tldraw'sta"
+  },
+  "26111f65cc": {
+    "translation": "Tämä kirjasto on saavuttanut kohteiden enimmäismäärän. Poista vanhoja kohteita ennen uusien lisäämistä."
   },
   "28b2464e1f": {
     "translation": "Palautteen lähettäminen epäonnistui"
@@ -135,13 +144,13 @@
     "translation": "Sinun on kirjauduttava sisään nähdäksesi tämän tiedoston."
   },
   "31418ce4ad": {
-    "translation": "i18n: Korosta puuttuu"
+    "translation": "i18n: Korosta puuttuvat"
   },
   "324a0f3182": {
     "translation": "Takaisin tldrawiin"
   },
   "32811caa8c": {
-    "translation": "Kopiotiedosto"
+    "translation": "Monista tiedosto"
   },
   "335defdafe": {
     "translation": "Yritä päivittää sivu."
@@ -150,7 +159,7 @@
     "translation": "Tiedoston nimi"
   },
   "344a7f427f": {
-    "translation": "Toimittaja"
+    "translation": "Muokkaaja"
   },
   "34e34c43ec": {
     "translation": "Hallitse"
@@ -178,6 +187,9 @@
   },
   "402bf0c47e": {
     "translation": "Väriteema"
+  },
+  "4236087d6b": {
+    "translation": "Kirjaston valikko"
   },
   "42e53c47c1": {
     "translation": "Pyydä käyttöoikeutta ottamalla yhteyttä omistajaan."
@@ -221,6 +233,9 @@
   "4a95fa0c08": {
     "translation": "<name>{author}</name> kommentoi"
   },
+  "4c4a28e97a": {
+    "translation": "Tämä tiedosto"
+  },
   "4d0d3ddec9": {
     "translation": "Tämä sivusto käyttää evästeitä sovelluksen toiminnan varmistamiseksi ja analytiikkatietojen keräämiseksi."
   },
@@ -237,7 +252,7 @@
     "translation": "Tämä on yksityinen työtilasi. Luo uusi työtila kutsuaksesi tiimikavereita."
   },
   "517bb809d9": {
-    "translation": "Sivuvalikko"
+    "translation": "Sivujen valikko"
   },
   "517f5f3544": {
     "translation": "Ei tiedostoja täällä vielä."
@@ -246,7 +261,7 @@
     "translation": "Viedä…"
   },
   "53770fd374": {
-    "translation": "Lukematon"
+    "translation": "Lukemattomat"
   },
   "542248f0ba": {
     "translation": "Tämä tiedosto on nyt vain luku -tilassa"
@@ -279,7 +294,7 @@
     "translation": "Arkistoidut tiedostot näkyvät täällä."
   },
   "5a95a425f7": {
-    "translation": "Jakaa"
+    "translation": "Jaa"
   },
   "5bec508475": {
     "translation": "Vanha selain havaittu. Päivitä selaimesi käyttääksesi tätä sovellusta."
@@ -297,7 +312,7 @@
     "translation": "Palaute lähetetty"
   },
   "5fb63579fc": {
-    "translation": "Kopioida"
+    "translation": "Kopioi"
   },
   "608e9d366e": {
     "translation": "Olet ajan tasalla."
@@ -312,7 +327,7 @@
     "translation": "Viimeaikaiset"
   },
   "625fd29749": {
-    "translation": "Vanhempi"
+    "translation": "Vanhemmat"
   },
   "639bae9ac6": {
     "translation": "sinä"
@@ -333,7 +348,7 @@
     "translation": "Uusi tiedosto"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ja {count, plural, one {# other} other {# others}} reagoivat"
+    "translation": "<name>{a}</name>, <name>{b}</name> ja {count, plural, one {# muu} other {# muuta}} reagoivat"
   },
   "6832ac5936": {
     "translation": "Anna sähköpostiosoitteesi"
@@ -348,7 +363,7 @@
     "translation": "{count, plural, one {Joku reagoi} other {# ihmistä reagoi}}"
   },
   "6a26f54883": {
-    "translation": "Auttaa"
+    "translation": "Ohje"
   },
   "6b71e0ebcb": {
     "translation": "/ {name}"
@@ -378,7 +393,7 @@
     "translation": "Tallenna sisältö .tldr-tiedostona: valitse vasemman yläkulman valikosta 'Tallenna kopio'."
   },
   "74ff4bad28": {
-    "translation": "Ei tiedostoja löytynyt"
+    "translation": "Tiedostoja ei löytynyt"
   },
   "752b79f137": {
     "translation": "Olet saavuttanut tiedostojen enimmäismäärän. Sinun on poistettava vanhat tiedostot ennen uusien luomista."
@@ -407,6 +422,9 @@
   "7827371d1a": {
     "translation": "Tämä anonyymi tldraw-moninpelitiedosto on nyt vain luku -tilassa. Jatkaaksesi muokkaamista, kirjaudu sisään ja kopioi se tiedostoihisi."
   },
+  "7897a855d3": {
+    "translation": "Kirjastoja ei ole vielä."
+  },
   "78e9815992": {
     "translation": "Selvä"
   },
@@ -432,7 +450,7 @@
     "translation": "Kirjaudu sisään muokataksesi profiiliasetuksia"
   },
   "7cb5f8b4a5": {
-    "translation": "Unohtaa"
+    "translation": "Unohda"
   },
   "7d69b3cb4c": {
     "translation": "Arkistoitu"
@@ -474,7 +492,7 @@
     "translation": "Olet jo tämän työtilan jäsen"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> ja {count, plural, one {# other} other {# others}} reagoivat"
+    "translation": "<name>{author}</name> ja {count, plural, one {# muu} other {# muuta}} reagoivat"
   },
   "88bf6ab42c": {
     "translation": "Tämä kutsulinkki on vanhentunut"
@@ -492,7 +510,7 @@
     "translation": "Noin"
   },
   "8ff3d0a705": {
-    "translation": "Hinta rajoitettu"
+    "translation": "Pyyntöraja ylitetty"
   },
   "902b0d55fd": {
     "translation": "Virhe"
@@ -524,8 +542,11 @@
   "985a4b720f": {
     "translation": "Käyttöehdot"
   },
+  "987453f3dd": {
+    "translation": "Kokeile MCP-palvelinta"
+  },
   "9914a0ce04": {
-    "translation": "Kevyt"
+    "translation": "Vaalea"
   },
   "9983381c21": {
     "translation": "Tyhjennä haku"
@@ -542,11 +563,17 @@
   "9c228b6834": {
     "translation": "Vaikuttaa siltä, että olet offline-tilassa. Tarkista yhteytesi ja yritä uudelleen."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# kohde} other {# kohdetta}}"
+  },
   "9ccb565b86": {
     "translation": "Meillä on ongelmia yhteyden muodostamisessa todennuspalveluumme. Tämä on yleensä väliaikaista. Yritä päivittää sivu."
   },
   "9ceb927baa": {
     "translation": "Julkaise tämä tiedosto"
+  },
+  "9d102330ee": {
+    "translation": "Poistetaanko <strong>{name}</strong> ja {count, plural, one {sen # kohde} other {sen # kohdetta}}?"
   },
   "9e076f5885": {
     "translation": "Ei löytynyt"
@@ -558,10 +585,10 @@
     "translation": "Sinut on kutsuttu liittymään työtilaan <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, one {# lukematon} other {# lukematon}}"
+    "translation": "{count, plural, one {# lukematon} other {# lukematonta}}"
   },
   "a104439641": {
-    "translation": "Pehmuste"
+    "translation": "Reunus"
   },
   "a18366b217": {
     "translation": "Tumma"
@@ -591,10 +618,13 @@
     "translation": "Kaikki, joilla on linkki"
   },
   "a768caa988": {
-    "translation": "Analytics"
+    "translation": "Analytiikka"
   },
   "a8873770ab": {
     "translation": "Tiedosto kasvaa suureksi"
+  },
+  "a8c92ffd87": {
+    "translation": "Poista kirjasto"
   },
   "a9ded1e5ce": {
     "translation": "Tausta"
@@ -628,7 +658,7 @@
     "translation": "Kaikki"
   },
   "b2326c3a34": {
-    "translation": "Uudelleenluo"
+    "translation": "Luo uudelleen"
   },
   "b2c3c2e30c": {
     "translation": "Tiedosto on täynnä"
@@ -700,7 +730,7 @@
     "translation": "Kirjaudu ulos"
   },
   "c8a59e7135": {
-    "translation": "Hylkää"
+    "translation": "Sulje"
   },
   "cb5feb1b73": {
     "translation": "Väri"
@@ -727,13 +757,13 @@
     "translation": "Peruuta tiedoston julkaisu"
   },
   "d3d2e61733": {
-    "translation": "Lähellä"
+    "translation": "Sulje"
   },
   "d46632fe1f": {
     "translation": "Liikaa pyyntöjä. Hiljennä tahtia."
   },
   "d4bbf74f3e": {
-    "translation": "Vaihda sivupalkki"
+    "translation": "Näytä/piilota sivupalkki"
   },
   "d5e92609cf": {
     "translation": "Työtilat"
@@ -754,7 +784,7 @@
     "translation": "Siirry tänne nähdäksesi sisällön"
   },
   "dbbebf3c03": {
-    "translation": "Vain kutsu"
+    "translation": "Vain kutsutuille"
   },
   "dbf9b24193": {
     "translation": "Poistu työtilasta"
@@ -764,6 +794,9 @@
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e1cbe6f097": {
+    "translation": "Kirjastoa ei voitu muuttaa"
   },
   "e2198d6228": {
     "translation": "Kopioi kutsulinkki"
@@ -781,7 +814,7 @@
     "translation": "Tiedostohistoria"
   },
   "ea4788705e": {
-    "translation": "Peruuttaa"
+    "translation": "Peruuta"
   },
   "eb1e2b0542": {
     "translation": "Pyydä työtilan omistajalta uusi."
@@ -793,13 +826,13 @@
     "translation": "Tämä tiedosto on saavuttanut aktiivisten yhteiskäyttäjien enimmäismäärän."
   },
   "ec611e9a08": {
-    "translation": "Tili-valikko"
+    "translation": "Tilivalikko"
   },
   "ed6241a422": {
     "translation": "Hakuasi vastaavia tiedostoja ei löytynyt."
   },
   "ed75712b0e": {
-    "translation": "Kopioi"
+    "translation": "Monista"
   },
   "ede55d955f": {
     "translation": "Lue lisää <a>evästekäytännöstämme</a>."
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "Käyttäjäasetukset"
   },
+  "f129f24bec": {
+    "translation": "· Ei missään tiedostossa"
+  },
   "f13001876b": {
     "translation": "Listanäkymä"
   },
@@ -829,7 +865,7 @@
     "translation": "Käytämme näitä evästeitä tiedostojesi ja asetuksiesi tallentamiseen."
   },
   "f2a6c498fb": {
-    "translation": "Poistaa"
+    "translation": "Poista"
   },
   "f408fa5fbd": {
     "translation": "Tämä kutsulinkki on virheellinen tai vanhentunut."
@@ -851,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Linkki kopioitu"
+  },
+  "feebd72b89": {
+    "translation": "Julkiset kirjastot"
   },
   "ff2fefd3c6": {
     "translation": "Haluatko varmasti poistaa {name}:n tästä työtilasta?"

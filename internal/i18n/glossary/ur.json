@@ -1,0 +1,207 @@
+{
+	"register": "Polite imperative ending in کریں for controls; no full stop on short labels",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "رسائی"
+		},
+		{
+			"term": "align",
+			"translation": "سیدھ کریں"
+		},
+		{
+			"term": "comment",
+			"translation": "تبصرہ",
+			"note": "For 'unread', never use ان پڑھ (it means illiterate)"
+		},
+		{
+			"term": "Copy",
+			"translation": "کاپی کریں"
+		},
+		{
+			"term": "Crop",
+			"translation": "تراشیں"
+		},
+		{
+			"term": "Delete",
+			"translation": "حذف کریں"
+		},
+		{
+			"term": "Error",
+			"translation": "خرابی"
+		},
+		{
+			"term": "Export",
+			"translation": "برآمد کریں",
+			"note": "No trailing ۔ on menu labels; keep PNG/SVG in Latin script"
+		},
+		{
+			"term": "Export (tab)",
+			"translation": "برآمد"
+		},
+		{
+			"term": "Files",
+			"translation": "فائلیں"
+		},
+		{
+			"term": "Flip",
+			"translation": "پلٹائیں"
+		},
+		{
+			"term": "Focus (keyboard)",
+			"translation": "فوکس"
+		},
+		{
+			"term": "follow (collaborator)",
+			"translation": "پیروی",
+			"note": "Avoid فالو, which suggests social media"
+		},
+		{
+			"term": "Forget (remove file from own list)",
+			"translation": "بھول جائیں"
+		},
+		{
+			"term": "Import file",
+			"translation": "فائل درآمد کریں"
+		},
+		{
+			"term": "invite link",
+			"translation": "دعوتی لنک"
+		},
+		{
+			"term": "item",
+			"translation": "آئٹم"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "آئٹم"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "کی بورڈ شارٹ کٹس"
+		},
+		{
+			"term": "library",
+			"translation": "لائبریری"
+		},
+		{
+			"term": "library (Libraries feature)",
+			"translation": "لائبریری / لائبریریاں"
+		},
+		{
+			"term": "Light / Dark (theme)",
+			"translation": "روشن / تاریک"
+		},
+		{
+			"term": "member",
+			"translation": "ممبر",
+			"note": "Plural ممبران"
+		},
+		{
+			"term": "Orange",
+			"translation": "نارنجی"
+		},
+		{
+			"term": "Orange (color)",
+			"translation": "نارنجی",
+			"note": "Not کینو, which is a fruit"
+		},
+		{
+			"term": "owner (role)",
+			"translation": "مالک"
+		},
+		{
+			"term": "page",
+			"translation": "صفحہ"
+		},
+		{
+			"term": "Paste",
+			"translation": "چسپاں کریں"
+		},
+		{
+			"term": "pen (mode)",
+			"translation": "قلم",
+			"note": "avoid پین, which is used for camera pan"
+		},
+		{
+			"term": "pentagon",
+			"translation": "مخمس"
+		},
+		{
+			"term": "please",
+			"translation": "براہ کرم"
+		},
+		{
+			"term": "Preferences",
+			"translation": "ترجیحات"
+		},
+		{
+			"term": "reacted",
+			"translation": "ردعمل ظاہر کیا"
+		},
+		{
+			"term": "Rectangle",
+			"translation": "مستطیل"
+		},
+		{
+			"term": "regenerate",
+			"translation": "دوبارہ تخلیق کریں"
+		},
+		{
+			"term": "Reload",
+			"translation": "دوبارہ لوڈ کریں"
+		},
+		{
+			"term": "resolved",
+			"translation": "حل شدہ"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "معین"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "ایک کاپی محفوظ کریں",
+			"note": "SDK action.save-copy menu label (catalog has a stray trailing ۔)"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "شیئر کریں",
+			"note": "No trailing ۔ on labels"
+		},
+		{
+			"term": "short labels",
+			"translation": "no trailing ۔",
+			"note": "machine artifact"
+		},
+		{
+			"term": "sidebar",
+			"translation": "سائیڈ بار"
+		},
+		{
+			"term": "sign in",
+			"translation": "سائن ان کریں"
+		},
+		{
+			"term": "terms of use",
+			"translation": "استعمال کی شرائط"
+		},
+		{
+			"term": "toggle",
+			"translation": "ٹوگل کریں"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "… ٹوگل کریں",
+			"note": "No trailing ۔ on short labels"
+		},
+		{
+			"term": "Unlock",
+			"translation": "غیر مقفل کریں"
+		},
+		{
+			"term": "workspace",
+			"translation": "ورک اسپیس"
+		}
+	]
+}

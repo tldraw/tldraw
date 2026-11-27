@@ -211,8 +211,23 @@ export interface TabRenderApplyOpsRequest {
 	ops: unknown[]
 	/** Which page the agent means. Absent means whichever page the tab is on. */
 	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
-	attribution: { userId: string; runId?: string }
+	/**
+	 * `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }`
+	 * refs to this batch. `batchKey` is the agent's name for the batch: the file object runs a keyed
+	 * batch at most once, and the tab records the key at `getBatchKeyMetaEntry` in the same commit.
+	 */
+	attribution: { userId: string; runId?: string; batchKey?: string }
+}
+
+const BATCH_KEY_META_PREFIX = 'agentBatchKey:'
+
+/**
+ * The `document.meta` entry a tab writes with a keyed batch, which tells the file object the batch
+ * reached the server. Per user, since agents pick their own keys; JSON, so a ':' in either part can't
+ * make two pairs collide.
+ */
+export function getBatchKeyMetaEntry(userId: string, batchKey: string) {
+	return BATCH_KEY_META_PREFIX + JSON.stringify([userId, batchKey])
 }
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
@@ -260,6 +275,21 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'tab_hidden',
 	/** Something threw while a batch was applying, so some of it may have landed. */
 	'apply_failed',
+	/**
+	 * The batch applied in the tab but the server didn't confirm it: it timed out, the connection
+	 * dropped, or the server discarded it. A push isn't cancelled, so after a timeout or a drop it may
+	 * still land.
+	 */
+	'unconfirmed',
+	/** A resend of a keyed batch the server has, so nothing was done. */
+	'already_applied',
+	/**
+	 * From the file object: a resend of a keyed batch whose only attempt isn't on the server yet. Its
+	 * tab may still push it, so it isn't run again.
+	 */
+	'batch_unresolved',
+	/** From the file object: a batch key already used for different ops. */
+	'batch_key_reused',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
@@ -348,7 +378,9 @@ export const ZErrorCode = stringEnum(
 	'bad_request',
 	'rate_limit_exceeded',
 	'max_workspaces_reached',
-	'max_files_reached'
+	'max_files_reached',
+	'max_libraries_reached',
+	'max_library_items_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
@@ -376,18 +408,6 @@ export interface SubmitFeedbackRequestBody {
 }
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
-
-/** Caps the durable objects one gallery poll wakes. */
-export const MAX_BOARD_PRESENCE_FILE_IDS = 60
-
-export interface BoardPresenceRequestBody {
-	fileIds: string[]
-}
-
-export interface BoardPresenceResponseBody {
-	/** The signed-in users connected to each board, by file id. Boards with nobody on them are absent. */
-	presence: Record<string, string[]>
-}
 
 export const CONNECT_STEPS = [
 	'route',
@@ -425,12 +445,9 @@ export type TLCustomServerEvent =
 export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
-	'mcp_server_access',
-	'version_chain',
 	'libraries',
-	'thumbnail_render_push',
-	'mcp_render_push',
 	'thumbnail_render_worker',
+	'libraries_anonymous',
 	'headless_shadow',
 	'ui_v3',
 	'mcp_hidden_tab',
@@ -470,8 +487,7 @@ export interface PercentageFeatureFlag {
 export interface AllowlistFeatureFlag {
 	type: 'allowlist'
 	// No master toggle, unlike the other two. An empty list already admits nobody, so a separate
-	// "off" would only be a second way to say the same thing — and on `mcp_server_access` it could
-	// not even say it, since the staff bypass in `canUseMcpServer` does not consult this flag.
+	// "off" would only be a second way to say the same thing.
 	/** The users the flag is on for. Anyone not named here evaluates false. */
 	users: AllowlistEntry[]
 	/**

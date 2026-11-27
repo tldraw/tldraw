@@ -171,7 +171,7 @@
     "translation": "ខ្ទាស់"
   },
   "3d0238bf16": {
-    "translation": "ទទួលយកទាំងអស់។"
+    "translation": "ទទួលយកទាំងអស់"
   },
   "3e2ae04ff0": {
     "translation": "ដ្យាក្រាម Mermaid ដែលមិនគាំទ្រ"
@@ -336,7 +336,7 @@
     "translation": "<name>{a}</name>, <name>{b}</name> និង {count, plural, one {# other} other {# others}} បានប្រតិកម្ម"
   },
   "6832ac5936": {
-    "translation": "បញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក។"
+    "translation": "បញ្ចូលអាសយដ្ឋានអ៊ីមែលរបស់អ្នក"
   },
   "694f82ed9d": {
     "translation": "លុប​កន្លែងធ្វើការ"
@@ -363,7 +363,7 @@
     "translation": "ផ្ទាំងក្រណាត់"
   },
   "70a6facb9d": {
-    "translation": "សប្តាហ៍នេះ។"
+    "translation": "សប្ដាហ៍នេះ"
   },
   "71a29b007b": {
     "translation": "មានកំហុស បញ្ហា ឬគំនិតសម្រាប់ tldraw? ឲ្យ​យើង​ដឹង!"
@@ -408,7 +408,7 @@
     "translation": "ឯកសារអ្នកលេងច្រើន tldraw អនាមិកនេះឥឡូវបានតែអានប៉ុណ្ណោះ។ ដើម្បីបន្តកែសម្រួល សូមចូល ហើយចម្លងវាទៅក្នុងឯកសាររបស់អ្នក។"
   },
   "78e9815992": {
-    "translation": "យល់ហើយ។"
+    "translation": "យល់ហើយ"
   },
   "797799f35e": {
     "translation": "ដាក់ស្នើបញ្ហានៅលើ GitHub"
@@ -516,7 +516,7 @@
     "translation": "បង្កើតជាមួយ tldraw SDK"
   },
   "96165d6df5": {
-    "translation": "ខែនេះ។"
+    "translation": "ខែនេះ"
   },
   "9643c97d49": {
     "translation": "<name>{author}</name> បាន​ប្រតិកម្ម"
@@ -709,7 +709,7 @@
     "translation": "ប្រវត្តិរូប"
   },
   "cceaefbc20": {
-    "translation": "ចែករំលែកឯកសារនេះ។"
+    "translation": "ចែករំលែកឯកសារនេះ"
   },
   "cd15a75c26": {
     "translation": "SVG"

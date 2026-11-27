@@ -202,19 +202,6 @@ describe('getBoardThumbnail', () => {
 			)
 		})
 
-		// Signing in again can't help a user the flag doesn't name, so it isn't a 401.
-		it('answers 403 for a valid OAuth token outside the access flag', async () => {
-			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: false, reason: 'not_allowlisted' })
-
-			const response = await getBoardThumbnail(
-				makeRequest('file-ok', { authorization: `Bearer ${OAUTH_TOKEN}` }),
-				makeScreenshotTestEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
-			)
-
-			expect(response.status).toBe(403)
-			expect(resolveSharedBoardForUser).not.toHaveBeenCalled()
-		})
-
 		it('resolves against the OAuth token’s user', async () => {
 			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: true, userId: 'user-2', clientId: null })
 			const bucket = makeFakeThumbnailsBucket()

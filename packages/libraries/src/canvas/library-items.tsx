@@ -1,48 +1,37 @@
-import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
-import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
-import { copyItem } from '../lib/copyLibrary'
+import { type ButtonHTMLAttributes, useCallback, useMemo } from 'react'
+import {
+	defineMessages,
+	useDialogs,
+	useEditor,
+	useTranslation,
+	useValue,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemId,
+	type VecModel,
+} from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '../lib/schema'
+import type { TLLibraryItem } from '../lib/schema'
+import { getContextMenuHandlers, openContextMenu } from '../ui/context-menu'
 import { ItemGrid, ItemGridTile } from '../ui/item-grid'
 import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
 import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
-import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
-import { type ItemOrdering, sortItems } from './item-order'
+import { ItemDetailsDialog } from './item-details-dialog'
+import type { TLLibraryItemOrdering } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
-import { toMenuTargets, useLibraryGrouping } from './library-groups'
+import { useLongPress, withHandlers } from './long-press'
 import type { PrepareItemContent } from './save-shapes'
-import { activeLibraryId, librariesPanelOpen } from './state'
-import { useSaveSelection } from './use-save-selection'
-import { useThumbnailUrls } from './use-thumbnail-urls'
+import { useLibraryCan } from './use-library-can'
+import { useLibraryItemActions } from './use-library-item-actions'
+import { useLibraryItems } from './use-library-items'
+import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
+import { useSaveSelectionToLibrary } from './use-save-selection-to-library'
 
 const messages = defineMessages({
+	noResults: { id: 'libraries.search.no-results', defaultMessage: 'No items found' },
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
-	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
-	deleteItemBody: {
-		id: 'libraries.delete-item-dialog.body',
-		defaultMessage: 'Delete “{name}” from “{library}”?',
-	},
-	deleteUnnamedItemBody: {
-		id: 'libraries.delete-unnamed-item-dialog.body',
-		defaultMessage: 'Delete this item from “{library}”?',
-	},
-	renameErrorTitle: {
-		id: 'libraries.rename-error.title',
-		defaultMessage: "Couldn't rename item",
-	},
-	deleteErrorTitle: {
-		id: 'libraries.delete-error.title',
-		defaultMessage: "Couldn't delete item",
-	},
-	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
-	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
-	movedOpen: { id: 'libraries.moved.open', defaultMessage: 'Open' },
-	moveErrorTitle: { id: 'libraries.move-error.title', defaultMessage: "Couldn't move item" },
-	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
-	copiedDescription: { id: 'libraries.copied.description', defaultMessage: 'Copied to {name}.' },
-	copyErrorTitle: { id: 'libraries.copy-error.title', defaultMessage: "Couldn't copy item" },
 })
 
 export interface LibraryItemsProps {
@@ -51,8 +40,11 @@ export interface LibraryItemsProps {
 	/** Where the tiles are measured for their thumbnail size. */
 	container: HTMLElement | null
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
-	ordering: ItemOrdering
+	placeItem(itemId: TLLibraryItemId): void
+	ordering: TLLibraryItemOrdering
 	reversed: boolean
+	/** Shows only the items it accepts, without the tile for adding the selection, as search does. */
+	itemFilter?(item: TLLibraryItem): boolean
 	prepareItemContent?: PrepareItemContent
 }
 
@@ -61,13 +53,14 @@ export function LibraryItems({
 	library,
 	container,
 	getItemProps,
+	placeItem,
 	ordering,
 	reversed,
+	itemFilter,
 	prepareItemContent,
 }: LibraryItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const overrides = useLibrariesComponentOverrides()
 	const {
@@ -77,214 +70,104 @@ export function LibraryItems({
 		AddSelectionTile = DefaultAddSelectionTile,
 	} = overrides
 	const libraryId = library.id
-	const items = useValue(
-		'library items',
-		() => sortItems(source.getItems(libraryId), ordering, reversed),
-		[source, libraryId, ordering, reversed]
+	const listed = useLibraryItems(source, libraryId, { ordering, reversed })
+	const items = useMemo(
+		() => (itemFilter ? listed.filter(itemFilter) : listed),
+		[listed, itemFilter]
 	)
-	const thumbnailUrls = useThumbnailUrls(source, items, container)
-	const canRename = useValue('can rename items', () => source.can('renameItem', libraryId), [
+	const thumbnailUrls = useLibraryThumbnailUrls(source, items, { container })
+	const canAdd = useLibraryCan(source, 'addItem', libraryId) && !itemFilter
+	const canDelete = useLibraryCan(source, 'deleteItem', libraryId)
+	const { move, copy, requestDelete, moveTargets, copyTargets } = useLibraryItemActions(
 		source,
-		libraryId,
-	])
-	const canAdd = useValue('can add items', () => source.can('addItem', libraryId), [
-		source,
-		libraryId,
-	])
-	const canDelete = useValue('can delete items', () => source.can('deleteItem', libraryId), [
-		source,
-		libraryId,
-	])
-	const grouping = useLibraryGrouping(source)
-	const copyTargets = useValue(
-		'copy targets',
-		() =>
-			toMenuTargets(
-				source.getLibraries().filter((c) => c.id !== libraryId && source.can('addItem', c.id)),
-				grouping
-			),
-		[source, libraryId, grouping]
+		libraryId
 	)
-	// Items may move only where they may be copied, and only when they may leave this library.
-	const moveTargets = useValue(
-		'move targets',
-		() => (source.moveItem && source.can('deleteItem', libraryId) ? copyTargets : []),
-		[source, libraryId, copyTargets]
-	)
-	// An override can add entries of its own, so it has a menu whatever the source allows.
-	const hasItemMenu =
-		ItemMenu !== null &&
-		(overrides.ItemMenu !== undefined ||
-			canRename ||
-			canDelete ||
-			moveTargets.length > 0 ||
-			copyTargets.length > 0)
+	// Every item has Details, so it has a menu whatever the source allows.
+	const hasItemMenu = ItemMenu !== null
+	const getPressProps = useLongPress(true)
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const props = getItemProps(itemId)
 			if (!hasItemMenu) return props
-			return {
-				...props,
-				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
-					e.preventDefault()
-					const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
-					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
-					// releasing the button selects whichever item it lands on.
-					if (e.buttons === 0) openMenu()
-					else window.addEventListener('pointerup', openMenu, { once: true })
-				},
-			}
-		},
-		[getItemProps, hasItemMenu, editor]
-	)
-	const showChangeError = useCallback(
-		(title: string) => {
-			addToast({ title, severity: 'error' })
-		},
-		[addToast]
-	)
-	const moveItem = useCallback(
-		(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => {
-			if (!source.moveItem) return
-			const target = moveTargets.find((c) => c.id === toLibraryId)
-			source.moveItem(itemId, toLibraryId).then(
-				() => {
-					addToast({
-						title: msg(messages.movedTitle),
-						description: target ? msg(messages.movedDescription, { name: target.name }) : undefined,
-						actions: [
-							{
-								label: msg(messages.movedOpen),
-								type: 'primary',
-								onClick: () => {
-									activeLibraryId.set(editor, toLibraryId)
-									librariesPanelOpen.set(editor, true)
-								},
-							},
-						],
-					})
-				},
-				() => showChangeError(msg(messages.moveErrorTitle))
+			const open = (opener?: HTMLElement, point?: VecModel) =>
+				openContextMenu(editor, getItemMenuId(itemId), { opener, point })
+			const contextMenu = getContextMenuHandlers(open)
+			return withHandlers(
+				{ ...props, onContextMenu: contextMenu.onContextMenu },
+				{ ...getPressProps(() => open()), onKeyDown: contextMenu.onKeyDown }
 			)
 		},
-		[editor, source, moveTargets, addToast, msg, showChangeError]
+		[getItemProps, hasItemMenu, editor, getPressProps]
 	)
-	const copyToLibrary = useCallback(
-		(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) => {
-			const item = items.find((i) => i.id === itemId)
-			if (!item) return
-			const target = copyTargets.find((c) => c.id === toLibraryId)
-			copyItem(source, item, source, toLibraryId).then(
-				() => {
-					addToast({
-						title: msg(messages.copiedTitle),
-						description: target
-							? msg(messages.copiedDescription, { name: target.name })
-							: undefined,
-						actions: [
-							{
-								label: msg(messages.movedOpen),
-								type: 'primary',
-								onClick: () => {
-									activeLibraryId.set(editor, toLibraryId)
-									librariesPanelOpen.set(editor, true)
-								},
-							},
-						],
-					})
-				},
-				() => showChangeError(msg(messages.copyErrorTitle))
-			)
-		},
-		[editor, source, items, copyTargets, addToast, msg, showChangeError]
-	)
-	const renameItem = useCallback(
-		(itemId: TLLibraryItemId, name: string) => {
-			const item = items.find((i) => i.id === itemId)
-			const trimmed = name.trim()
-			// Names are never blank, so clearing the input keeps the old name rather than removing it.
-			if (!item || trimmed === '' || trimmed === item.name) return
-			source
-				.renameItem(itemId, trimmed)
-				.catch(() => showChangeError(msg(messages.renameErrorTitle)))
-		},
-		[items, source, showChangeError, msg]
-	)
-
-	const { saveSelection } = useSaveSelection(source, prepareItemContent)
+	const { saveSelection } = useSaveSelectionToLibrary(source, prepareItemContent)
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
 
+	const loading = useValue(
+		'library items loading',
+		() => !!source.isLoadingItems && source.isLoadingItems(libraryId),
+		[source, libraryId]
+	)
+
 	if (items.length === 0 && !canAdd) {
+		if (loading) return null
+		if (itemFilter) return <p className="tlui-libraries-panel__empty">{msg(messages.noResults)}</p>
 		return EmptyLibrary && <EmptyLibrary library={library} />
 	}
 
+	const addSelectionTile = canAdd && AddSelectionTile && (
+		<AddSelectionTile
+			library={library}
+			hasSelection={hasSelection}
+			onAddSelection={() => saveSelection(libraryId)}
+		/>
+	)
+
 	return (
-		<ItemGrid>
-			{ItemTile &&
-				items.map((item) => (
-					<ItemGridTile key={item.id}>
-						<ItemTile
-							item={item}
-							name={item.name}
-							accessibleLabel={item.name ?? msg(messages.unnamedItem)}
-							thumbnailUrl={thumbnailUrls[item.id] ?? undefined}
-							buttonProps={getTileProps(item.id)}
-							menu={
-								ItemMenu && (
-									<ItemMenu
-										item={item}
-										id={item.id}
-										name={item.name}
-										onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
-										moveTargets={moveTargets}
-										onMove={(toLibraryId) => moveItem(item.id, toLibraryId as TLLibraryId)}
-										copyTargets={copyTargets}
-										onCopy={(toLibraryId) => copyToLibrary(item.id, toLibraryId as TLLibraryId)}
-										onDelete={
-											canDelete
-												? () =>
-														addDialog({
-															component: ({ onClose }) => (
-																<ConfirmDeleteDialog
-																	title={msg(messages.deleteItemTitle)}
-																	body={
-																		item.name
-																			? msg(messages.deleteItemBody, {
-																					name: item.name,
-																					library: library.name,
-																				})
-																			: msg(messages.deleteUnnamedItemBody, {
-																					library: library.name,
-																				})
-																	}
-																	onClose={onClose}
-																	onConfirm={() =>
-																		source
-																			.deleteItem(item.id)
-																			.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
-																	}
-																/>
-															),
-														})
-												: undefined
-										}
-									/>
-								)
-							}
-						/>
-					</ItemGridTile>
-				))}
-			{canAdd && AddSelectionTile && (
-				<ItemGridTile>
-					<AddSelectionTile
-						library={library}
-						hasSelection={hasSelection}
-						onAddSelection={() => saveSelection(libraryId)}
-					/>
-				</ItemGridTile>
-			)}
-		</ItemGrid>
+		<>
+			<ItemGrid>
+				{ItemTile &&
+					items.map((item) => (
+						<ItemGridTile key={item.id}>
+							<ItemTile
+								item={item}
+								name={item.name}
+								accessibleLabel={item.name ?? msg(messages.unnamedItem)}
+								thumbnailUrl={thumbnailUrls[item.id]}
+								buttonProps={getTileProps(item.id)}
+								menu={
+									ItemMenu && (
+										<ItemMenu
+											item={item}
+											id={item.id}
+											trigger="none"
+											onInsert={() => placeItem(item.id)}
+											onShowDetails={() =>
+												addDialog({
+													component: ({ onClose }) => (
+														<ItemDetailsDialog
+															source={source}
+															item={item}
+															library={library}
+															onClose={onClose}
+														/>
+													),
+												})
+											}
+											moveTargets={moveTargets}
+											onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
+											copyTargets={copyTargets}
+											onCopy={(toLibraryId) => copy(item.id, toLibraryId as TLLibraryId)}
+											onDelete={canDelete ? () => requestDelete(item.id) : undefined}
+										/>
+									)
+								}
+							/>
+						</ItemGridTile>
+					))}
+				{addSelectionTile && <ItemGridTile>{addSelectionTile}</ItemGridTile>}
+			</ItemGrid>
+		</>
 	)
 }

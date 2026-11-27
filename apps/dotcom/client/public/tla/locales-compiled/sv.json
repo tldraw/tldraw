@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Bjud in lagkamrater"
+      "value": "Bjud in teammedlemmar"
     }
   ],
   "05b2656486": [
@@ -102,7 +102,7 @@
   "093ac7483a": [
     {
       "type": 0,
-      "value": "Kan inte öppna filerna "
+      "value": "Det går inte att öppna "
     },
     {
       "type": 1,
@@ -110,7 +110,7 @@
     },
     {
       "type": 0,
-      "value": " ännu"
+      "value": "-filer ännu"
     }
   ],
   "0a91f7fa87": [
@@ -128,7 +128,7 @@
   "0b9a4cde72": [
     {
       "type": 0,
-      "value": "Arkivmenyn"
+      "value": "Filmeny"
     }
   ],
   "0c4383617a": [
@@ -171,6 +171,12 @@
     {
       "type": 0,
       "value": "Lossa filen"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Den här arbetsytan har nått maximalt antal bibliotek. Ta bort gamla bibliotek innan du skapar nya."
     }
   ],
   "13ddd375ad": [
@@ -227,6 +233,12 @@
       "value": "En arbetsyta måste ha minst en ägare. Gör först någon annan till ägare."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Min samling"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -259,6 +271,12 @@
       "value": "Om tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Det här biblioteket har nått maximalt antal objekt. Ta bort gamla objekt innan du lägger till nya."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -284,13 +302,13 @@
   "2a1167f869": [
     {
       "type": 0,
-      "value": "Välkommen till din arbetsplats"
+      "value": "Välkommen till din arbetsyta"
     }
   ],
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Söka..."
+      "value": "Sök..."
     }
   ],
   "2d3cdcfdd4": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Markering saknas"
+      "value": "i18n: Markera saknade"
     }
   ],
   "324a0f3182": [
@@ -366,7 +384,7 @@
   "344a7f427f": [
     {
       "type": 0,
-      "value": "Redigeringsverktyg"
+      "value": "Redigerare"
     }
   ],
   "34e34c43ec": [
@@ -402,7 +420,7 @@
   "3c5e891bff": [
     {
       "type": 0,
-      "value": "Fastnålad"
+      "value": "Fästa"
     }
   ],
   "3d0238bf16": [
@@ -414,13 +432,19 @@
   "3e2ae04ff0": [
     {
       "type": 0,
-      "value": "Ostödd Mermaid-diagram"
+      "value": "Mermaid-diagrammet stöds inte"
     }
   ],
   "402bf0c47e": [
     {
       "type": 0,
       "value": "Färgtema"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Biblioteksmeny"
     }
   ],
   "42e53c47c1": [
@@ -438,7 +462,7 @@
   "44db318ee5": [
     {
       "type": 0,
-      "value": "Få hjälp med Discord"
+      "value": "Få hjälp på Discord"
     }
   ],
   "454aad3b3c": [
@@ -535,6 +559,12 @@
       "value": " kommenterade"
     }
   ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Den här filen"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -562,13 +592,13 @@
   "51317dcad5": [
     {
       "type": 0,
-      "value": "Detta är din privata arbetsyta. Skapa en ny arbetsyta för att bjuda in lagkamrater."
+      "value": "Det här är din privata arbetsyta. Skapa en ny arbetsyta för att bjuda in teammedlemmar."
     }
   ],
   "517bb809d9": [
     {
       "type": 0,
-      "value": "Sidmenyn"
+      "value": "Sidmeny"
     }
   ],
   "517f5f3544": [
@@ -586,7 +616,7 @@
   "53770fd374": [
     {
       "type": 0,
-      "value": "Oläst"
+      "value": "Olästa"
     }
   ],
   "542248f0ba": [
@@ -806,7 +836,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " annan"
             }
           ]
         },
@@ -817,7 +847,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andra"
             }
           ]
         }
@@ -1002,16 +1032,22 @@
       "value": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Inga bibliotek ännu."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "Förstod"
+      "value": "Uppfattat"
     }
   ],
   "797799f35e": [
     {
       "type": 0,
-      "value": "Skicka ett problem på GitHub"
+      "value": "Skicka in ett ärende på GitHub"
     }
   ],
   "797c5be9a7": [
@@ -1201,7 +1237,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " annan"
             }
           ]
         },
@@ -1212,7 +1248,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andra"
             }
           ]
         }
@@ -1259,7 +1295,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Begränsad hastighet"
+      "value": "För många förfrågningar"
     }
   ],
   "902b0d55fd": [
@@ -1346,6 +1382,12 @@
       "value": "Användarvillkor"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Testa MCP-servern"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
@@ -1396,6 +1438,38 @@
       "value": "Du verkar vara offline. Kontrollera din anslutning och försök igen."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " objekt"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " objekt"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1406,6 +1480,68 @@
     {
       "type": 0,
       "value": "Publicera den här filen"
+    }
+  ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Ta bort "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " och "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "dess "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " objekt"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "dess "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " objekt"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "9e076f5885": [
@@ -1462,7 +1598,7 @@
             },
             {
               "type": 0,
-              "value": " oläst"
+              "value": " olästa"
             }
           ]
         }
@@ -1511,13 +1647,13 @@
   "a4bef6414b": [
     {
       "type": 0,
-      "value": "Visa/visa kommentarsfältet"
+      "value": "Visa/dölj sidofältet med kommentarer"
     }
   ],
   "a4d3b161ce": [
     {
       "type": 0,
-      "value": "Överlämna"
+      "value": "Skicka"
     }
   ],
   "a52945dbe2": [
@@ -1535,13 +1671,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "Analytics"
+      "value": "Analys"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Filen blir stor"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Ta bort bibliotek"
     }
   ],
   "a9ded1e5ce": [
@@ -1671,7 +1813,7 @@
   "b74dbb40c5": [
     {
       "type": 0,
-      "value": "Dra filen till sidofältet på den här sidan. Eller välj alternativet \"Importera fil\" från Arkiv-menyn längst upp till vänster."
+      "value": "Dra filen till sidofältet på den här sidan. Eller välj alternativet \"Importera fil\" i Fil-menyn uppe till vänster."
     }
   ],
   "b758336699": [
@@ -1700,7 +1842,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Laddar upp .tldr-fil..."
+              "value": "Laddar upp .tldr-fil…"
             }
           ]
         },
@@ -1724,7 +1866,7 @@
             },
             {
               "type": 0,
-              "value": " .tldr-filer..."
+              "value": " .tldr-filer…"
             }
           ]
         }
@@ -1817,7 +1959,7 @@
   "c4b39a1cc3": [
     {
       "type": 0,
-      "value": "Viktiga cookies"
+      "value": "Nödvändiga cookies"
     }
   ],
   "c6a00f137b": [
@@ -1907,7 +2049,7 @@
   "d4bbf74f3e": [
     {
       "type": 0,
-      "value": "Aktivera sidofältet"
+      "value": "Visa/dölj sidofält"
     }
   ],
   "d5e92609cf": [
@@ -1977,7 +2119,7 @@
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Endast inbjudan"
+      "value": "Endast inbjudna"
     }
   ],
   "dbf9b24193": [
@@ -1996,6 +2138,12 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Det gick inte att ändra biblioteket"
     }
   ],
   "e2198d6228": [
@@ -2126,6 +2274,12 @@
       "value": "Användarinställningar"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Inte i någon fil"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2193,7 +2347,7 @@
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Visningsverktyg"
+      "value": "Läsare"
     }
   ],
   "fc9d47046b": [
@@ -2206,6 +2360,12 @@
     {
       "type": 0,
       "value": "Länk kopierad"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Offentliga bibliotek"
     }
   ],
   "ff2fefd3c6": [
@@ -2225,7 +2385,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Skapa ett gratis konto för att spara dina filer och rita med dina lagkamrater med tldraw."
+      "value": "Skapa ett gratis konto för att spara dina filer och rita i tldraw med ditt team."
     }
   ],
   "ffad261a48": [

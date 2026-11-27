@@ -1,0 +1,447 @@
+{
+	"register": "formal (dvs., -ți imperatives) for actions and body text",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Accesibilitate",
+			"note": "menu.accessibility"
+		},
+		{
+			"term": "account",
+			"translation": "cont"
+		},
+		{
+			"term": "Align (setting)",
+			"translation": "Aliniere"
+		},
+		{
+			"term": "alignment",
+			"translation": "aliniere"
+		},
+		{
+			"term": "Alt text",
+			"translation": "Text alternativ"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Săgeată"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Săgeată"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Raport de aspect"
+		},
+		{
+			"term": "backup",
+			"translation": "copie de siguranță"
+		},
+		{
+			"term": "Bar (arrowhead)",
+			"translation": "Bară"
+		},
+		{
+			"term": "Bold",
+			"translation": "Aldin"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Anulează"
+		},
+		{
+			"term": "canvas",
+			"translation": "pânză",
+			"note": "drawing area"
+		},
+		{
+			"term": "Checked",
+			"translation": "Bifat"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Bifat",
+			"note": "Not 'Verificat'"
+		},
+		{
+			"term": "Close",
+			"translation": "Închide"
+		},
+		{
+			"term": "Cloud (shape)",
+			"translation": "Nor"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta de comenzi",
+			"note": "matches action.open-command-palette"
+		},
+		{
+			"term": "Comment",
+			"translation": "comentariu"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Meniu contextual"
+		},
+		{
+			"term": "cookie",
+			"translation": "cookie-uri (pl.)"
+		},
+		{
+			"term": "Cookie policy",
+			"translation": "Politica de cookie-uri"
+		},
+		{
+			"term": "cookies",
+			"translation": "cookie-uri"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Copiază"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "Nu s-a putut deschide fișierul"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Decupează"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Întunecat"
+		},
+		{
+			"term": "Dashed (line style)",
+			"translation": "Întreruptă"
+		},
+		{
+			"term": "Delete",
+			"translation": "Ștergeți",
+			"note": "comma-below Ș"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Distribuie"
+		},
+		{
+			"term": "duplicate",
+			"translation": "duplică"
+		},
+		{
+			"term": "Duplicate (verb)",
+			"translation": "Duplică"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Elipsă"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "încorporare"
+		},
+		{
+			"term": "Eraser",
+			"translation": "Radieră"
+		},
+		{
+			"term": "Export",
+			"translation": "Exportă"
+		},
+		{
+			"term": "file",
+			"translation": "fișier"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "fișier"
+		},
+		{
+			"term": "fill (noun)",
+			"translation": "umplere"
+		},
+		{
+			"term": "fill (style noun)",
+			"translation": "umplere"
+		},
+		{
+			"term": "focus mode",
+			"translation": "mod focalizare"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Uitați"
+		},
+		{
+			"term": "Frame",
+			"translation": "Cadru"
+		},
+		{
+			"term": "Grid",
+			"translation": "grilă"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importați fișierul…"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "invitație"
+		},
+		{
+			"term": "Italic",
+			"translation": "Cursiv"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "element"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "element"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "comenzi rapide de la tastatură"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Peisaj"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Biblioteci"
+		},
+		{
+			"term": "library",
+			"translation": "bibliotecă / biblioteci"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Luminos"
+		},
+		{
+			"term": "link",
+			"translation": "link"
+		},
+		{
+			"term": "link (Edit link dialog)",
+			"translation": "legătură"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "link",
+			"note": "Matches 'Eliminați linkul'/'Vizitați linkul'"
+		},
+		{
+			"term": "Menu",
+			"translation": "Meniu"
+		},
+		{
+			"term": "Middle (alignment)",
+			"translation": "Mijloc"
+		},
+		{
+			"term": "minimap",
+			"translation": "minihartă"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Notificări"
+		},
+		{
+			"term": "Offline",
+			"translation": "Deconectat"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opacitate"
+		},
+		{
+			"term": "Oval",
+			"translation": "Oval"
+		},
+		{
+			"term": "owner",
+			"translation": "proprietar"
+		},
+		{
+			"term": "Pack (arrange)",
+			"translation": "Compactează"
+		},
+		{
+			"term": "page",
+			"translation": "pagină"
+		},
+		{
+			"term": "Paste",
+			"translation": "Lipește / lipi"
+		},
+		{
+			"term": "pointer",
+			"translation": "indicator"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Portret"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferințe",
+			"note": "menu.preferences"
+		},
+		{
+			"term": "privacy policy",
+			"translation": "politica de confidențialitate"
+		},
+		{
+			"term": "Redo",
+			"translation": "Refă"
+		},
+		{
+			"term": "refresh (reload page)",
+			"translation": "reîmprospăta",
+			"note": "Not 'actualizare' (update)"
+		},
+		{
+			"term": "remove",
+			"translation": "Elimină"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "elimina",
+			"note": "Different from delete (șterge)"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "Eliminați"
+		},
+		{
+			"term": "Rename",
+			"translation": "Redenumiți"
+		},
+		{
+			"term": "Reopen",
+			"translation": "Redeschide"
+		},
+		{
+			"term": "request (HTTP)",
+			"translation": "solicitare"
+		},
+		{
+			"term": "Resolve (thread)",
+			"translation": "Rezolvă"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Romb"
+		},
+		{
+			"term": "rhombus / diamond (shape)",
+			"translation": "romb"
+		},
+		{
+			"term": "Save",
+			"translation": "Salvează"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Salvează o copie",
+			"note": "action.save-copy label"
+		},
+		{
+			"term": "Save a copy (menu label)",
+			"translation": "Salvează o copie"
+		},
+		{
+			"term": "shape",
+			"translation": "formă"
+		},
+		{
+			"term": "share",
+			"translation": "partaja"
+		},
+		{
+			"term": "Show",
+			"translation": "Afișează"
+		},
+		{
+			"term": "sign in",
+			"translation": "conectare / conectați-vă"
+		},
+		{
+			"term": "Sign in / Sign out",
+			"translation": "Conectare / Deconectare"
+		},
+		{
+			"term": "Styles",
+			"translation": "Stiluri"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "filă"
+		},
+		{
+			"term": "Theme",
+			"translation": "Temă"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "temă"
+		},
+		{
+			"term": "thread",
+			"translation": "fir de discuție"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Comută"
+		},
+		{
+			"term": "Toggle X (action)",
+			"translation": "Comută X"
+		},
+		{
+			"term": "tool lock",
+			"translation": "blocarea uneltei"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapez"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Nebifat"
+		},
+		{
+			"term": "Undo",
+			"translation": "Anulează"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Vizualizare"
+		},
+		{
+			"term": "workspace",
+			"translation": "spațiu de lucru"
+		},
+		{
+			"term": "wrap (enclose selection)",
+			"translation": "încadrare"
+		},
+		{
+			"term": "Zoom (noun)",
+			"translation": "Zoom"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Mărește"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Micșorează"
+		}
+	]
+}

@@ -1,0 +1,176 @@
+{
+	"formatVersion": 1,
+	"content": {
+		"shapes": [
+			{
+				"x": 437.3333333333333,
+				"y": 6064.5,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {
+					"libraryItem": {
+						"id": "absolute-value",
+						"pack": "math",
+						"name": "Absolute value",
+						"version": "1.2-native-study",
+						"source": "tldraw built-in shapes",
+						"variant": "catalog",
+						"category": "Algebra scaffolds",
+						"tags": ["Absolute value", "absolute-value", "Algebra scaffolds"],
+						"editable": true
+					}
+				},
+				"id": "shape:full-catalog-absolute-value",
+				"type": "group",
+				"parentId": "page:full-native-libraries",
+				"index": "av5BE",
+				"props": {},
+				"typeName": "shape"
+			},
+			{
+				"x": 0,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-absolute-value-left",
+				"type": "line",
+				"parentId": "shape:full-catalog-absolute-value",
+				"props": {
+					"dash": "draw",
+					"size": "l",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 81
+						}
+					},
+					"scale": 1
+				},
+				"index": "a1",
+				"typeName": "shape"
+			},
+			{
+				"x": 20,
+				"y": 11,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-absolute-value-value",
+				"type": "text",
+				"parentId": "shape:full-catalog-absolute-value",
+				"props": {
+					"color": "black",
+					"size": "xl",
+					"w": 8,
+					"font": "draw",
+					"textAlign": "start",
+					"autoSize": true,
+					"scale": 1,
+					"richText": {
+						"type": "doc",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"type": "text",
+										"text": "x"
+									}
+								]
+							}
+						]
+					}
+				},
+				"index": "a2bWb",
+				"typeName": "shape"
+			},
+			{
+				"x": 72,
+				"y": 0,
+				"rotation": 0,
+				"isLocked": false,
+				"opacity": 1,
+				"meta": {},
+				"id": "shape:full-catalog-absolute-value-right",
+				"type": "line",
+				"parentId": "shape:full-catalog-absolute-value",
+				"props": {
+					"dash": "draw",
+					"size": "l",
+					"color": "black",
+					"spline": "line",
+					"points": {
+						"a1": {
+							"id": "a1",
+							"index": "a1",
+							"x": 0,
+							"y": 0
+						},
+						"a2": {
+							"id": "a2",
+							"index": "a2",
+							"x": 0,
+							"y": 81
+						}
+					},
+					"scale": 1
+				},
+				"index": "a3roj",
+				"typeName": "shape"
+			}
+		],
+		"bindings": [],
+		"rootShapeIds": ["shape:full-catalog-absolute-value"],
+		"assets": [],
+		"schema": {
+			"schemaVersion": 2,
+			"sequences": {
+				"com.tldraw.store": 5,
+				"com.tldraw.asset": 1,
+				"com.tldraw.camera": 1,
+				"com.tldraw.document": 2,
+				"com.tldraw.instance": 26,
+				"com.tldraw.instance_page_state": 5,
+				"com.tldraw.page": 1,
+				"com.tldraw.instance_presence": 6,
+				"com.tldraw.pointer": 1,
+				"com.tldraw.shape": 4,
+				"com.tldraw.user": 1,
+				"com.tldraw.asset.image": 6,
+				"com.tldraw.asset.video": 5,
+				"com.tldraw.asset.bookmark": 2,
+				"com.tldraw.shape.arrow": 8,
+				"com.tldraw.shape.bookmark": 2,
+				"com.tldraw.shape.draw": 5,
+				"com.tldraw.shape.embed": 4,
+				"com.tldraw.shape.frame": 1,
+				"com.tldraw.shape.geo": 12,
+				"com.tldraw.shape.group": 0,
+				"com.tldraw.shape.highlight": 4,
+				"com.tldraw.shape.image": 5,
+				"com.tldraw.shape.line": 5,
+				"com.tldraw.shape.note": 13,
+				"com.tldraw.shape.text": 4,
+				"com.tldraw.shape.video": 4,
+				"com.tldraw.binding.arrow": 1,
+				"com.tldraw.comment-thread": 3,
+				"com.tldraw.comment": 1,
+				"com.tldraw.comment-reaction": 1
+			}
+		}
+	}
+}

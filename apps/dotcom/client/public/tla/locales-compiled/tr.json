@@ -30,7 +30,7 @@
     },
     {
       "type": 0,
-      "value": " adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
+      "value": " dosyaları için destek üzerinde çalışıyoruz."
     }
   ],
   "043973ec1f": [
@@ -62,7 +62,7 @@
     },
     {
       "type": 0,
-      "value": " sizden bahsetti."
+      "value": " sizden bahsetti"
     }
   ],
   "05f43078e9": [
@@ -97,16 +97,12 @@
   ],
   "093ac7483a": [
     {
-      "type": 0,
-      "value": "Henüz "
-    },
-    {
       "type": 1,
       "value": "extension"
     },
     {
       "type": 0,
-      "value": " dosyaları açılamıyor."
+      "value": " dosyaları henüz açılamıyor"
     }
   ],
   "0a91f7fa87": [
@@ -148,7 +144,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Kaldırmak"
+      "value": "Çıkar"
     }
   ],
   "10fb1df194": [
@@ -166,7 +162,13 @@
   "12a6766ba1": [
     {
       "type": 0,
-      "value": "Dosyayı sabitle"
+      "value": "Dosyanın sabitlemesini kaldır"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Bu çalışma alanı en yüksek kitaplık sayısına ulaştı. Yenilerini oluşturmadan önce eski kitaplıkları silin."
     }
   ],
   "13ddd375ad": [
@@ -202,7 +204,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Taşın"
+      "value": "Taşı"
     }
   ],
   "1da2e8106b": [
@@ -221,6 +223,12 @@
     {
       "type": 0,
       "value": "Bir çalışma alanının en az bir sahibi olmalıdır. Önce başka birini sahip yapın."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Koleksiyonum"
     }
   ],
   "21f66c9c00": [
@@ -242,7 +250,7 @@
     },
     {
       "type": 0,
-      "value": "'e katılmaya davet edildiniz. Devam etmek için ücretsiz bir hesap oluşturun."
+      "value": " çalışma alanına katılmaya davet edildiniz. Devam etmek için ücretsiz bir hesap oluşturun."
     }
   ],
   "250ddea65c": [
@@ -251,10 +259,16 @@
       "value": "tldraw hakkında"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Bu kitaplık en yüksek öğe sayısına ulaştı. Yenilerini eklemeden önce eski öğeleri silin."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
-      "value": "Geri bildirim gönderilemedi."
+      "value": "Geri bildirim gönderilemedi"
     }
   ],
   "2944edaa8d": [
@@ -276,13 +290,13 @@
   "2a1167f869": [
     {
       "type": 0,
-      "value": "Çalışma alanınıza hoş geldiniz."
+      "value": "Çalışma alanınıza hoş geldiniz"
     }
   ],
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Aramak..."
+      "value": "Ara..."
     }
   ],
   "2d3cdcfdd4": [
@@ -328,7 +342,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Vurgu Eksik"
+      "value": "i18n: Eksik çevirileri vurgula"
     }
   ],
   "324a0f3182": [
@@ -340,7 +354,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Dosya kopyası"
+      "value": "Dosyayı çoğalt"
     }
   ],
   "335defdafe": [
@@ -394,7 +408,7 @@
   "3c5e891bff": [
     {
       "type": 0,
-      "value": "Sabitlendi"
+      "value": "Sabitlenenler"
     }
   ],
   "3d0238bf16": [
@@ -413,6 +427,12 @@
     {
       "type": 0,
       "value": "Renk teması"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Kütüphane menüsü"
     }
   ],
   "42e53c47c1": [
@@ -452,7 +472,7 @@
   "46137245cd": [
     {
       "type": 0,
-      "value": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
+      "value": "tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
     }
   ],
   "4630b65bb2": [
@@ -476,7 +496,7 @@
   "47f493a590": [
     {
       "type": 0,
-      "value": "Pin dosyası"
+      "value": "Dosyayı sabitle"
     }
   ],
   "4970317944": [
@@ -521,6 +541,12 @@
     {
       "type": 0,
       "value": " yorum yaptı"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Bu dosya"
     }
   ],
   "4d0d3ddec9": [
@@ -632,7 +658,7 @@
   "5677e381d2": [
     {
       "type": 0,
-      "value": "Tldraw'ı daha iyi hale getirmek için analiz çerezleri kullanıyoruz."
+      "value": "tldraw'ı daha iyi hale getirmek için analiz çerezleri kullanıyoruz."
     }
   ],
   "56c34c6410": [
@@ -668,7 +694,7 @@
   "5d04a002ea": [
     {
       "type": 0,
-      "value": "Bağlantı kurulamadı."
+      "value": "Bağlanılamıyor"
     }
   ],
   "5d26ae7550": [
@@ -722,7 +748,7 @@
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "Sen"
+      "value": "siz"
     }
   ],
   "63a6a88c06": [
@@ -794,7 +820,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " kişi daha"
             }
           ]
         },
@@ -805,7 +831,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " kişi daha"
             }
           ]
         }
@@ -845,7 +871,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Birisi tepki gösterdi."
+              "value": "Biri tepki verdi"
             }
           ]
         },
@@ -856,7 +882,7 @@
             },
             {
               "type": 0,
-              "value": " insanlar tepki verdi"
+              "value": " kişi tepki verdi"
             }
           ]
         }
@@ -933,7 +959,7 @@
   "74ff4bad28": [
     {
       "type": 0,
-      "value": "Dosya bulunamadı."
+      "value": "Dosya bulunamadı"
     }
   ],
   "752b79f137": [
@@ -987,7 +1013,13 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Bu anonim tldraw çok oyunculu dosyası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyayı dosyalarınıza kopyalayın."
+      "value": "Bu anonim çok kullanıcılı tldraw dosyası artık salt okunur. Düzenlemeye devam etmek için lütfen oturum açın ve dosyayı kendi dosyalarınıza kopyalayın."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Henüz kütüphane yok."
     }
   ],
   "78e9815992": [
@@ -1029,7 +1061,7 @@
   "7c0747a5df": [
     {
       "type": 0,
-      "value": "tldraw'ı açın"
+      "value": "tldraw'ı aç"
     }
   ],
   "7c10d4771a": [
@@ -1065,7 +1097,7 @@
   "801ab24683": [
     {
       "type": 0,
-      "value": "İndirmek"
+      "value": "İndir"
     }
   ],
   "8030793ce3": [
@@ -1185,7 +1217,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " kişi daha"
             }
           ]
         },
@@ -1196,7 +1228,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " kişi daha"
             }
           ]
         }
@@ -1213,7 +1245,7 @@
   "88bf6ab42c": [
     {
       "type": 0,
-      "value": "Bu davet bağlantısının süresi doldu."
+      "value": "Bu davet bağlantısının süresi doldu"
     }
   ],
   "8c2d3d730c": [
@@ -1283,7 +1315,7 @@
   "930390d222": [
     {
       "type": 0,
-      "value": "Davet bağlantısı kopyalandı."
+      "value": "Davet bağlantısı kopyalandı"
     }
   ],
   "95aacd4d4a": [
@@ -1324,6 +1356,12 @@
     {
       "type": 0,
       "value": "Kullanım Şartları"
+    }
+  ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "MCP sunucusunu deneyin"
     }
   ],
   "9914a0ce04": [
@@ -1376,6 +1414,38 @@
       "value": "Çevrimdışı görünüyorsunuz. Bağlantınızı kontrol edin ve tekrar deneyin."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " öğe"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " öğe"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1388,6 +1458,56 @@
       "value": "Bu dosyayı yayınla"
     }
   ],
+  "9d102330ee": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " ve içindeki "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " öğe"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " öğe"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " silinsin mi?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1397,7 +1517,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Vazgeçmek"
+      "value": "Reddet"
     }
   ],
   "a078644c42": [
@@ -1413,7 +1533,7 @@
     },
     {
       "type": 0,
-      "value": "'e katılmaya davet edildiniz."
+      "value": " çalışma alanına katılmaya davet edildiniz."
     }
   ],
   "a0a19d5145": [
@@ -1451,7 +1571,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Doldurma"
+      "value": "Kenar boşluğu"
     }
   ],
   "a18366b217": [
@@ -1493,13 +1613,13 @@
   "a4d3b161ce": [
     {
       "type": 0,
-      "value": "Göndermek"
+      "value": "Gönder"
     }
   ],
   "a52945dbe2": [
     {
       "type": 0,
-      "value": "Ayrılmak"
+      "value": "Ayrıl"
     }
   ],
   "a6cc403d56": [
@@ -1520,6 +1640,12 @@
       "value": "Dosya büyüyor"
     }
   ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Kitaplığı sil"
+    }
+  ],
   "a9ded1e5ce": [
     {
       "type": 0,
@@ -1529,7 +1655,7 @@
   "aac449eef6": [
     {
       "type": 0,
-      "value": "Çalışma alanı oluşturun"
+      "value": "Çalışma alanı oluştur"
     }
   ],
   "aaec8f7cde": [
@@ -1611,7 +1737,7 @@
   "b3205c1e45": [
     {
       "type": 0,
-      "value": "Bildirim panelini açın"
+      "value": "Bildirim panelini aç"
     }
   ],
   "b357b524e7": [
@@ -1629,7 +1755,7 @@
   "b48becc771": [
     {
       "type": 0,
-      "value": "Davetiyeleri etkinleştirin"
+      "value": "Davetleri etkinleştir"
     }
   ],
   "b6d4223e60": [
@@ -1641,13 +1767,13 @@
   "b6f4a2ec63": [
     {
       "type": 0,
-      "value": "Mal sahibi"
+      "value": "Sahip"
     }
   ],
   "b74dbb40c5": [
     {
       "type": 0,
-      "value": "Dosyayı bu sayfanın kenar çubuğuna sürükleyin. Veya sol üst köşedeki Dosya menüsünden 'Dosya içe aktar' seçeneğini seçin."
+      "value": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya sol üstteki Dosya menüsünden \"Dosyayı içe aktar\" seçeneğini seçin."
     }
   ],
   "b758336699": [
@@ -1665,7 +1791,7 @@
   "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Davetiyeler devre dışı bırakıldı."
+      "value": "Davetler devre dışı"
     }
   ],
   "bbbcefd7ce": [
@@ -1719,7 +1845,7 @@
   "bd8aac2696": [
     {
       "type": 0,
-      "value": "Mevcut dosya"
+      "value": "Geçerli dosya"
     }
   ],
   "bf9c7b5670": [
@@ -1762,7 +1888,7 @@
             },
             {
               "type": 0,
-              "value": " .tldr dosyaları eklendi."
+              "value": " .tldr dosyası eklendi."
             }
           ]
         }
@@ -1947,7 +2073,7 @@
   "dbf9b24193": [
     {
       "type": 0,
-      "value": "Çalışma alanından ayrılın"
+      "value": "Çalışma alanından ayrıl"
     }
   ],
   "dfdb78a4e4": [
@@ -1959,7 +2085,13 @@
   "e0aa021e21": [
     {
       "type": 0,
-      "value": "TAMAM"
+      "value": "Tamam"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Kitaplık değiştirilemedi"
     }
   ],
   "e2198d6228": [
@@ -2090,6 +2222,12 @@
       "value": "Kullanıcı ayarları"
     }
   ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Hiçbir dosyada yok"
+    }
+  ],
   "f13001876b": [
     {
       "type": 0,
@@ -2168,6 +2306,12 @@
       "value": "Bağlantı kopyalandı"
     }
   ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Herkese açık kitaplıklar"
+    }
+  ],
   "ff2fefd3c6": [
     {
       "type": 1,
@@ -2175,7 +2319,7 @@
     },
     {
       "type": 0,
-      "value": " öğesini bu çalışma alanından kaldırmak istediğinizden emin misiniz?"
+      "value": " kişisini bu çalışma alanından çıkarmak istediğinizden emin misiniz?"
     }
   ],
   "ff52811b98": [

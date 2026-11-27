@@ -1,6 +1,6 @@
 {
   "0095a9fa74": {
-    "translation": "Export"
+    "translation": "Exportálás"
   },
   "00b177e080": {
     "translation": "Meghívás elfogadása"
@@ -15,25 +15,25 @@
     "translation": "Csapattársak meghívása"
   },
   "05b2656486": {
-    "translation": "<name>{author}</name> megemlített téged"
+    "translation": "<name>{author}</name> megemlítette Önt"
   },
   "05f43078e9": {
     "translation": "Elérte a munkaterületek maximális számát. Új munkaterületek létrehozása előtt törölnie kell a régieket."
   },
   "06b9281e39": {
-    "translation": "Auto"
+    "translation": "Automatikus"
   },
   "07dbd11b21": {
     "translation": "Névtelen fájl"
   },
   "08331c1710": {
-    "translation": "Túllépte a díjkorlátot, próbálkozzon újra később."
+    "translation": "Túllépte a kérések korlátját, kérjük, próbálja újra később."
   },
   "08bd40c754": {
     "translation": "Fiók"
   },
   "093ac7483a": {
-    "translation": "Még nem sikerült megnyitni a(z) {extension} fájlokat."
+    "translation": "A(z) {extension} fájlok megnyitása még nem támogatott"
   },
   "0a91f7fa87": {
     "translation": "Ez a fájl elérte a méretkorlátját, és előfordulhat, hogy a módosítások már nem menthetők. Távolítson el néhány tartalmat, vagy hozzon létre egy új fájlt."
@@ -42,10 +42,10 @@
     "translation": "Fájl"
   },
   "0b9a4cde72": {
-    "translation": "Fájl menü"
+    "translation": "Fájlmenü"
   },
   "0c4383617a": {
-    "translation": "Hiba történt a meghívó betöltése során. Kérjük, próbáld újra."
+    "translation": "Hiba történt a meghívó betöltésekor. Kérjük, próbálja újra."
   },
   "0d1f2bb523": {
     "translation": "Visszajelzés küldése"
@@ -64,6 +64,9 @@
   },
   "12a6766ba1": {
     "translation": "Fájl rögzítésének feloldása"
+  },
+  "13cad4c2e8": {
+    "translation": "Ez a munkaterület elérte a könyvtárak maximális számát. Új könyvtárak létrehozása előtt törölje a régieket."
   },
   "13ddd375ad": {
     "translation": "Exportálás másként"
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "Egy munkaterületnek legalább egy tulajdonossal kell rendelkeznie. Először tegyél valaki mást tulajdonossá."
   },
+  "20746febc9": {
+    "translation": "Saját gyűjtemény"
+  },
   "21f66c9c00": {
     "translation": "Munkaterület neve"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "A tldraw-ról"
+  },
+  "26111f65cc": {
+    "translation": "Ez a könyvtár elérte az elemek maximális számát. Új elemek hozzáadása előtt törölje a régieket."
   },
   "28b2464e1f": {
     "translation": "Nem sikerült elküldeni a visszajelzést"
@@ -120,7 +129,7 @@
     "translation": "Kérjük, próbálja újra."
   },
   "2de510be71": {
-    "translation": "Az újragenerálás a jelenlegi meghívólinket egy újra cseréli. Bárki, aki a régi linket használja, az újra lesz szüksége a csatlakozáshoz."
+    "translation": "Az újragenerálás lecseréli a jelenlegi meghívólinket egy újra. Aki a régi linket használja, annak az új linkre lesz szüksége a csatlakozáshoz."
   },
   "2e2b3c700b": {
     "translation": "Hivatkozás hozzáadása az aktuális fájlra"
@@ -135,13 +144,13 @@
     "translation": "A fájl megtekintéséhez be kell jelentkeznie."
   },
   "31418ce4ad": {
-    "translation": "i18n: Hiányzó kiemelés"
+    "translation": "i18n: Hiányzók kiemelése"
   },
   "324a0f3182": {
     "translation": "Vissza a tldraw-hoz"
   },
   "32811caa8c": {
-    "translation": "Másodpéldány fájl"
+    "translation": "Fájl duplikálása"
   },
   "335defdafe": {
     "translation": "Kérjük, próbálja meg frissíteni az oldalt."
@@ -162,7 +171,7 @@
     "translation": "Jelentkezz be a meghívás elfogadásához."
   },
   "3bc7d6ea2f": {
-    "translation": "Folytatás e-mailben"
+    "translation": "Folytatás e-maillel"
   },
   "3bd1b98dbd": {
     "translation": "Nem sikerült közzétenni a változtatásokat."
@@ -178,6 +187,9 @@
   },
   "402bf0c47e": {
     "translation": "Színtéma"
+  },
+  "4236087d6b": {
+    "translation": "Könyvtár menü"
   },
   "42e53c47c1": {
     "translation": "Hozzáférés kéréséhez forduljon a tulajdonoshoz."
@@ -201,7 +213,7 @@
     "translation": "Felhasználási feltételek elfogadása"
   },
   "477df802ca": {
-    "translation": "A szerkesztés folytatásához másolja a fájlt a Fájlok mappába."
+    "translation": "A szerkesztés folytatásához másolja a fájlt a saját fájljai közé."
   },
   "47f493a590": {
     "translation": "Fájl rögzítése"
@@ -221,6 +233,9 @@
   "4a95fa0c08": {
     "translation": "<name>{author}</name> hozzászólt"
   },
+  "4c4a28e97a": {
+    "translation": "Ez a fájl"
+  },
   "4d0d3ddec9": {
     "translation": "Ez az oldal sütiket használ az alkalmazás működéséhez és elemzések gyűjtéséhez."
   },
@@ -237,7 +252,7 @@
     "translation": "Ez a te privát munkaterületed. Hozz létre egy új munkaterületet csapattársak meghívásához."
   },
   "517bb809d9": {
-    "translation": "Oldal menü"
+    "translation": "Oldalak menüje"
   },
   "517f5f3544": {
     "translation": "Még nincsenek itt fájlok."
@@ -279,7 +294,7 @@
     "translation": "Az archivált fájlok itt jelennek meg."
   },
   "5a95a425f7": {
-    "translation": "Részesedés"
+    "translation": "Megosztás"
   },
   "5bec508475": {
     "translation": "Régi böngésző észlelve. Kérjük, frissítse böngészőjét az alkalmazás használatához."
@@ -297,10 +312,10 @@
     "translation": "Visszajelzés elküldve"
   },
   "5fb63579fc": {
-    "translation": "Másolat"
+    "translation": "Másolás"
   },
   "608e9d366e": {
-    "translation": "Mindent elolvastál."
+    "translation": "Nincs új értesítés."
   },
   "60a68c29d6": {
     "translation": "Jelentkezzen be a hozzászóláshoz"
@@ -315,7 +330,7 @@
     "translation": "Régebbi"
   },
   "639bae9ac6": {
-    "translation": "te"
+    "translation": "Ön"
   },
   "63a6a88c06": {
     "translation": "Frissítés"
@@ -333,10 +348,10 @@
     "translation": "Új fájl"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> és {count, plural, one {# other} other {# others}} reagált"
+    "translation": "<name>{a}</name>, <name>{b}</name> és {count, plural, one {# másik személy} other {# másik személy}} reagált"
   },
   "6832ac5936": {
-    "translation": "Add meg az e-mail címed"
+    "translation": "Adja meg az e-mail-címét"
   },
   "694f82ed9d": {
     "translation": "Munkaterület törlése"
@@ -399,13 +414,16 @@
     "translation": "Csevegés velünk a Discordon"
   },
   "76ec4e4ed9": {
-    "translation": "Fájl link másolása"
+    "translation": "Fájllink másolása"
   },
   "777f9e90cf": {
     "translation": "Érvénytelen kérés."
   },
   "7827371d1a": {
-    "translation": "Ez a névtelen tldraw többjátékos fájl mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja át a fájljai közé."
+    "translation": "Ez a névtelen, közös tldraw-fájl mostantól csak olvasható. A szerkesztés folytatásához jelentkezzen be, és másolja a saját fájljai közé."
+  },
+  "7897a855d3": {
+    "translation": "Még nincsenek könyvtárak."
   },
   "78e9815992": {
     "translation": "Értem"
@@ -432,7 +450,7 @@
     "translation": "Jelentkezzen be a profilbeállítások szerkesztéséhez"
   },
   "7cb5f8b4a5": {
-    "translation": "Felejtsd el"
+    "translation": "Elfelejtés"
   },
   "7d69b3cb4c": {
     "translation": "Archivált"
@@ -441,7 +459,7 @@
     "translation": "Módosítások közzététele"
   },
   "7fcdcc6455": {
-    "translation": "Felejtsd el a fájlt"
+    "translation": "Fájl eltávolítása a listáról"
   },
   "801ab24683": {
     "translation": "Letöltés"
@@ -450,7 +468,7 @@
     "translation": "Új munkaterület"
   },
   "815e116a2e": {
-    "translation": "Van hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk! Töltsd ki ezt az űrlapot, és szükség esetén e-mailben felvesszük veled a kapcsolatot. <discord>cseveghetsz velünk a Discordon</discord> vagy <github>beküldhetsz egy problémát a GitHubon</github>."
+    "translation": "Hibát talált, problémája vagy ötlete van a tldraw-val kapcsolatban? Tudassa velünk! Töltse ki ezt az űrlapot, és szükség esetén e-mailben felvesszük Önnel a kapcsolatot. Emellett <discord>cseveghet velünk a Discordon</discord>, vagy <github>bejelenthet egy problémát a GitHubon</github>."
   },
   "81666c6e4a": {
     "translation": "Biztosan el szeretnéd felejteni a(z) <strong>{fileName}</strong> fájlt?"
@@ -474,25 +492,25 @@
     "translation": "Már tagja vagy ennek a munkaterületnek"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> és {count, plural, one {# other} other {# others}} reagált"
+    "translation": "<name>{author}</name> és {count, plural, one {# másik személy} other {# másik személy}} reagált"
   },
   "88bf6ab42c": {
     "translation": "Ez a meghívólink lejárt"
   },
   "8c2d3d730c": {
-    "translation": "Ellenőrizd az e-mailjeidet, hogy érkezett-e egy ellenőrző kód."
+    "translation": "Nézze meg az e-mailjeit: elküldtük az ellenőrző kódot."
   },
   "8cf04a9734": {
     "translation": "Otthon"
   },
   "8eb2c00e96": {
-    "translation": "Megosztva veled"
+    "translation": "Megosztva Önnel"
   },
   "8f7f4c1ce7": {
     "translation": "Körülbelül"
   },
   "8ff3d0a705": {
-    "translation": "Ára korlátozott"
+    "translation": "Túl sok kérés"
   },
   "902b0d55fd": {
     "translation": "Hiba"
@@ -513,7 +531,7 @@
     "translation": "Bejelentkezés Google-fiókkal"
   },
   "95d2109dc8": {
-    "translation": "Fordítás a tldraw SDK-val"
+    "translation": "Építsen a tldraw SDK-val"
   },
   "96165d6df5": {
     "translation": "Ebben a hónapban"
@@ -524,8 +542,11 @@
   "985a4b720f": {
     "translation": "Felhasználási feltételek"
   },
+  "987453f3dd": {
+    "translation": "Próbálja ki az MCP-szervert"
+  },
   "9914a0ce04": {
-    "translation": "Fény"
+    "translation": "Világos"
   },
   "9983381c21": {
     "translation": "Keresés törlése"
@@ -542,17 +563,23 @@
   "9c228b6834": {
     "translation": "Úgy tűnik, offline állapotban vagy. Ellenőrizd a kapcsolatodat, és próbáld újra."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# elem} other {# elem}}"
+  },
   "9ccb565b86": {
     "translation": "Problémát tapasztalunk a hitelesítési szolgáltatásunkhoz való csatlakozás során. Ez általában átmeneti probléma. Kérjük, próbálja meg frissíteni az oldalt."
   },
   "9ceb927baa": {
-    "translation": "Tegye közzé ezt a fájlt"
+    "translation": "Fájl közzététele"
+  },
+  "9d102330ee": {
+    "translation": "Törli a(z) <strong>{name}</strong> könyvtárat és annak {count, plural, one {# elemét} other {# elemét}}?"
   },
   "9e076f5885": {
     "translation": "Nem található"
   },
   "9e93c98d88": {
-    "translation": "Leiratkozás"
+    "translation": "Elutasítás"
   },
   "a078644c42": {
     "translation": "Meghívtak a(z) <strong>{workspaceName}</strong> munkaterületre."
@@ -561,7 +588,7 @@
     "translation": "{count, plural, one {# olvasatlan} other {# olvasatlan}}"
   },
   "a104439641": {
-    "translation": "Párnázás"
+    "translation": "Margó"
   },
   "a18366b217": {
     "translation": "Sötét"
@@ -582,19 +609,22 @@
     "translation": "Hozzászólások oldalsávjának be- és kikapcsolása"
   },
   "a4d3b161ce": {
-    "translation": "Beküld"
+    "translation": "Elküldés"
   },
   "a52945dbe2": {
-    "translation": "Elhagyás"
+    "translation": "Kilépés"
   },
   "a6cc403d56": {
-    "translation": "Bárki, akinek van linkje"
+    "translation": "A link birtokában bárki"
   },
   "a768caa988": {
     "translation": "Analitika"
   },
   "a8873770ab": {
     "translation": "A fájl mérete növekszik"
+  },
+  "a8c92ffd87": {
+    "translation": "Könyvtár törlése"
   },
   "a9ded1e5ce": {
     "translation": "Háttér"
@@ -637,7 +667,7 @@
     "translation": "Értesítési panel megnyitása"
   },
   "b357b524e7": {
-    "translation": "E-mail cím"
+    "translation": "E-mail-cím"
   },
   "b3d7c37eb8": {
     "translation": "Rácsnézet"
@@ -646,7 +676,7 @@
     "translation": "Meghívók engedélyezése"
   },
   "b6d4223e60": {
-    "translation": "Jelentkezzen be"
+    "translation": "Bejelentkezés"
   },
   "b6f4a2ec63": {
     "translation": "Tulajdonos"
@@ -691,13 +721,13 @@
     "translation": "Alapvető sütik"
   },
   "c6a00f137b": {
-    "translation": "Meghív"
+    "translation": "Meghívás"
   },
   "c6f16003f2": {
     "translation": "Másolás a munkaterületemre"
   },
   "c87aacf567": {
-    "translation": "Jelentkezzen ki"
+    "translation": "Kijelentkezés"
   },
   "c8a59e7135": {
     "translation": "Elvetés"
@@ -709,7 +739,7 @@
     "translation": "Profil"
   },
   "cceaefbc20": {
-    "translation": "Ossza meg ezt a fájlt"
+    "translation": "Fájl megosztása"
   },
   "cd15a75c26": {
     "translation": "SVG"
@@ -727,13 +757,13 @@
     "translation": "Fájl közzétételének visszavonása"
   },
   "d3d2e61733": {
-    "translation": "Közeli"
+    "translation": "Bezárás"
   },
   "d46632fe1f": {
-    "translation": "Túl sok kérés. Kérlek, lassíts."
+    "translation": "Túl sok kérés. Kérjük, lassítson."
   },
   "d4bbf74f3e": {
-    "translation": "Oldalsáv váltása"
+    "translation": "Oldalsáv megjelenítése/elrejtése"
   },
   "d5e92609cf": {
     "translation": "Munkaterületek"
@@ -745,7 +775,7 @@
     "translation": "Téma"
   },
   "d876a9fe1a": {
-    "translation": "Próbáld újra"
+    "translation": "Próbálja újra"
   },
   "d88ad2dc74": {
     "translation": "Elfogadom és folytatom"
@@ -763,7 +793,10 @@
     "translation": "Alkalmazás hibakeresési jelzők"
   },
   "e0aa021e21": {
-    "translation": "RENDBEN"
+    "translation": "OK"
+  },
+  "e1cbe6f097": {
+    "translation": "Nem sikerült módosítani a könyvtárat"
   },
   "e2198d6228": {
     "translation": "Meghívólink másolása"
@@ -793,16 +826,16 @@
     "translation": "Ez a fájl elérte az aktív együttműködők maximális számát."
   },
   "ec611e9a08": {
-    "translation": "Fiók menü"
+    "translation": "Fiókmenü"
   },
   "ed6241a422": {
     "translation": "Nincsenek a keresésnek megfelelő fájlok."
   },
   "ed75712b0e": {
-    "translation": "Másolat"
+    "translation": "Duplikálás"
   },
   "ede55d955f": {
-    "translation": "További információért olvassa el <a>süti szabályzatunkat</a>."
+    "translation": "További információért olvassa el a <a>sütiszabályzatunkat</a>."
   },
   "edec9387f9": {
     "translation": "Ezt a hozzászólást törölték."
@@ -822,14 +855,17 @@
   "f0e8bff6f9": {
     "translation": "Felhasználói beállítások"
   },
+  "f129f24bec": {
+    "translation": "· Egy fájlban sincs"
+  },
   "f13001876b": {
     "translation": "Lista nézet"
   },
   "f2569594b2": {
-    "translation": "Ezeket a sütiket a fájljaid és beállításaidat mentjük."
+    "translation": "Ezeket a sütiket a fájljai és beállításai mentésére használjuk."
   },
   "f2a6c498fb": {
-    "translation": "Töröl"
+    "translation": "Törlés"
   },
   "f408fa5fbd": {
     "translation": "Ez a meghívólink érvénytelen vagy lejárt."
@@ -838,7 +874,7 @@
     "translation": "Beállítások"
   },
   "f5ddc8d9c1": {
-    "translation": "Egyelőre <a>{extension} fájlként exportálhatod</a>, hogy itt használhasd."
+    "translation": "Egyelőre <a>exportálhatja {extension} fájlként</a>, hogy itt használhassa."
   },
   "fa2ead697d": {
     "translation": "Adatvédelmi irányelvek"
@@ -851,6 +887,9 @@
   },
   "fed5ec05eb": {
     "translation": "Link másolva"
+  },
+  "feebd72b89": {
+    "translation": "Nyilvános könyvtárak"
   },
   "ff2fefd3c6": {
     "translation": "Biztosan eltávolítja a(z) {name} felhasználót erről a munkaterületről?"

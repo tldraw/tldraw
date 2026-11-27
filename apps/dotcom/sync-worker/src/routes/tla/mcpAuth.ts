@@ -264,16 +264,11 @@ export type McpAuthResult =
 	| { ok: false; response: Response; reason: McpAuthRefusal }
 
 /**
- * Authenticates and authorizes one MCP request: a valid bearer token minted for this resource, for a
- * user the `mcp_server_access` flag names.
+ * Authenticates one MCP request: a valid bearer token minted for this resource.
  *
  * There is no anonymous path. This endpoint used to serve any caller that named a public board, and
  * requiring a token retires that deliberately — per-IP rate limits and unattributable Browser Run
  * spend were the cost of it.
- *
- * The two refusals are kept distinct because they mean different things to a client: `401` says
- * "authenticate, here is where", which a client can act on; `403` says "you did authenticate and you
- * still may not", which it cannot, and retrying the flow would loop.
  */
 export async function authenticateMcpRequest(
 	request: IRequest,
@@ -308,24 +303,6 @@ export async function authenticateMcpRequest(
 			// No `error` parameter: nothing was presented, so there is nothing to call invalid, and a
 			// bare challenge is what tells a first-contact client to go and authenticate.
 			return { ok: false, reason: 'no_token', response: mcpUnauthorized(request, env) }
-		case 'not_allowlisted':
-			// Deliberately not a 404. The endpoint's existence is already public — it is in the discovery
-			// metadata this same server serves — so hiding it here would cost a legible error and conceal
-			// nothing.
-			//
-			// And deliberately not a 401: `403` says "you did authenticate and you still may not", which
-			// a client cannot act on, where retrying the sign-in flow would loop.
-			return {
-				ok: false,
-				reason: 'not_allowlisted',
-				response: Response.json(
-					{
-						error: 'forbidden',
-						error_description: 'This account does not have access to the tldraw MCP server yet.',
-					},
-					{ status: 403 }
-				),
-			}
 		default:
 			// The reason a token failed is not the caller's business — an expired token and one minted
 			// for somebody else's resource answer the same thing — but a client does need to know it
