@@ -162,6 +162,47 @@ describe('a headless editor', () => {
 		expect(editor.getCurrentPageId()).toBe(firstPage)
 	})
 
+	it('resizes, rotates, nudges and translates shapes without React or the DOM', () => {
+		const editor = headlessEditor()
+		const a = createShapeId('a')
+		editor.createShape<CardShape>({ id: a, type: CARD, x: 0, y: 0, props: { text: 'a' } })
+
+		editor.nudgeShapes([a], { x: 10, y: 5 })
+		expect(editor.getShape(a)).toMatchObject({ x: 10, y: 5 })
+
+		const shape = editor.getShape<CardShape>(a)!
+		expect(editor.getChangesToTranslateShapeByPageDelta(shape, { x: 20, y: 30 })).toMatchObject({
+			x: 30,
+			y: 35,
+		})
+
+		editor.rotateShapesBy([a], Math.PI / 2)
+		expect(editor.getShape(a)!.rotation).toBeCloseTo(Math.PI / 2)
+		editor.rotateShapesBy([a], -Math.PI / 2)
+
+		expect(editor.getResizeShapePartial(a, { x: 2, y: 3 })).toMatchObject({ id: a, type: CARD })
+		editor.resizeShape(a, { x: 2, y: 3 })
+	})
+
+	it('creates, renames, updates and deletes pages without React or the DOM', () => {
+		const editor = headlessEditor()
+		const first = editor.getCurrentPageId()
+		const second = PageRecordType.createId('second')
+
+		editor.createPage({ id: second, name: 'Page 1' })
+		expect(editor.getPage(second)?.name).toBe('Page 2')
+
+		editor.renamePage(second, 'Notes')
+		expect(editor.getPage(second)?.name).toBe('Notes')
+		editor.updatePage({ id: second, meta: { pinned: true } })
+		expect(editor.getPage(second)?.meta).toEqual({ pinned: true })
+
+		editor.setCurrentPage(second)
+		editor.deletePage(second)
+		expect(editor.getPage(second)).toBeUndefined()
+		expect(editor.getCurrentPageId()).toBe(first)
+	})
+
 	it('uses a replacement core plugin', () => {
 		const lockedCameraPlugin = definePlugin({
 			id: 'lockedCamera',
@@ -215,6 +256,8 @@ describe('a headless editor', () => {
 		['grouping', (editor: Editor) => editor.groupShapes([])],
 		['duplication', (editor: Editor) => editor.duplicateShapes([])],
 		['deepLinks', (editor: Editor) => editor.createDeepLink({ url: 'https://tldraw.com' })],
+		['shapeTransforms', (editor: Editor) => editor.nudgeShapes([], { x: 1, y: 0 })],
+		['pages', (editor: Editor) => editor.createPage({ name: 'Page 2' })],
 	] as const)(
 		'creates, edits, deletes and undoes without %s, and names it when used',
 		(id, use) => {
