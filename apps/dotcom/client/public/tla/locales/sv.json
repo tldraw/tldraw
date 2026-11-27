@@ -12,7 +12,7 @@
     "translation": "Har du fortfarande problem? {GetHelpLink}"
   },
   "04a2dd56d6": {
-    "translation": "Bjud in lagkamrater"
+    "translation": "Bjud in teammedlemmar"
   },
   "05b2656486": {
     "translation": "<name>{author}</name> nämnde dig"
@@ -33,7 +33,7 @@
     "translation": "Konto"
   },
   "093ac7483a": {
-    "translation": "Kan inte öppna filerna {extension} ännu"
+    "translation": "Det går inte att öppna {extension}-filer ännu"
   },
   "0a91f7fa87": {
     "translation": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
@@ -42,7 +42,7 @@
     "translation": "Fil"
   },
   "0b9a4cde72": {
-    "translation": "Arkivmenyn"
+    "translation": "Filmeny"
   },
   "0c4383617a": {
     "translation": "Något gick fel när inbjudan skulle laddas. Försök igen."
@@ -64,6 +64,9 @@
   },
   "12a6766ba1": {
     "translation": "Lossa filen"
+  },
+  "13cad4c2e8": {
+    "translation": "Den här arbetsytan har nått maximalt antal bibliotek. Ta bort gamla bibliotek innan du skapar nya."
   },
   "13ddd375ad": {
     "translation": "Exportera som"
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "En arbetsyta måste ha minst en ägare. Gör först någon annan till ägare."
   },
+  "20746febc9": {
+    "translation": "Min samling"
+  },
   "21f66c9c00": {
     "translation": "Arbetsytans namn"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "Om tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Det här biblioteket har nått maximalt antal objekt. Ta bort gamla objekt innan du lägger till nya."
   },
   "28b2464e1f": {
     "translation": "Kunde inte skicka feedback"
@@ -111,10 +120,10 @@
     "translation": "Uppladdningen misslyckades"
   },
   "2a1167f869": {
-    "translation": "Välkommen till din arbetsplats"
+    "translation": "Välkommen till din arbetsyta"
   },
   "2a37324bb4": {
-    "translation": "Söka..."
+    "translation": "Sök..."
   },
   "2d3cdcfdd4": {
     "translation": "Försök igen."
@@ -135,7 +144,7 @@
     "translation": "Du måste logga in för att se den här filen."
   },
   "31418ce4ad": {
-    "translation": "i18n: Markering saknas"
+    "translation": "i18n: Markera saknade"
   },
   "324a0f3182": {
     "translation": "Tillbaka till tldraw"
@@ -150,7 +159,7 @@
     "translation": "Filnamn"
   },
   "344a7f427f": {
-    "translation": "Redigeringsverktyg"
+    "translation": "Redigerare"
   },
   "34e34c43ec": {
     "translation": "Hantera"
@@ -168,16 +177,19 @@
     "translation": "Det gick inte att publicera ändringarna."
   },
   "3c5e891bff": {
-    "translation": "Fastnålad"
+    "translation": "Fästa"
   },
   "3d0238bf16": {
     "translation": "Acceptera alla"
   },
   "3e2ae04ff0": {
-    "translation": "Ostödd Mermaid-diagram"
+    "translation": "Mermaid-diagrammet stöds inte"
   },
   "402bf0c47e": {
     "translation": "Färgtema"
+  },
+  "4236087d6b": {
+    "translation": "Biblioteksmeny"
   },
   "42e53c47c1": {
     "translation": "Kontakta ägaren för att begära åtkomst."
@@ -186,7 +198,7 @@
     "translation": "Åtgärder…"
   },
   "44db318ee5": {
-    "translation": "Få hjälp med Discord"
+    "translation": "Få hjälp på Discord"
   },
   "454aad3b3c": {
     "translation": "Är du säker på att du vill ta bort <strong>{fileName}</strong>?"
@@ -221,6 +233,9 @@
   "4a95fa0c08": {
     "translation": "<name>{author}</name> kommenterade"
   },
+  "4c4a28e97a": {
+    "translation": "Den här filen"
+  },
   "4d0d3ddec9": {
     "translation": "Den här webbplatsen använder cookies för att appen ska fungera och för att samla in analyser."
   },
@@ -234,10 +249,10 @@
     "translation": "Det gick inte att avpublicera filen."
   },
   "51317dcad5": {
-    "translation": "Detta är din privata arbetsyta. Skapa en ny arbetsyta för att bjuda in lagkamrater."
+    "translation": "Det här är din privata arbetsyta. Skapa en ny arbetsyta för att bjuda in teammedlemmar."
   },
   "517bb809d9": {
-    "translation": "Sidmenyn"
+    "translation": "Sidmeny"
   },
   "517f5f3544": {
     "translation": "Inga filer här ännu."
@@ -246,7 +261,7 @@
     "translation": "Exportera…"
   },
   "53770fd374": {
-    "translation": "Oläst"
+    "translation": "Olästa"
   },
   "542248f0ba": {
     "translation": "Den här filen är nu skrivskyddad"
@@ -333,7 +348,7 @@
     "translation": "Ny fil"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> och {count, plural, one {# other} other {# others}} reagerade"
+    "translation": "<name>{a}</name>, <name>{b}</name> och {count, plural, one {# annan} other {# andra}} reagerade"
   },
   "6832ac5936": {
     "translation": "Ange din e-postadress"
@@ -407,11 +422,14 @@
   "7827371d1a": {
     "translation": "Denna anonyma tldraw-multiplayerfil är nu skrivskyddad. För att fortsätta redigera, vänligen logga in och kopiera den till dina filer."
   },
+  "7897a855d3": {
+    "translation": "Inga bibliotek ännu."
+  },
   "78e9815992": {
-    "translation": "Förstod"
+    "translation": "Uppfattat"
   },
   "797799f35e": {
-    "translation": "Skicka ett problem på GitHub"
+    "translation": "Skicka in ett ärende på GitHub"
   },
   "797c5be9a7": {
     "translation": "· På den här tavlan nu"
@@ -474,7 +492,7 @@
     "translation": "Du är redan medlem i den här arbetsytan"
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> och {count, plural, one {# other} other {# others}} reagerade"
+    "translation": "<name>{author}</name> och {count, plural, one {# annan} other {# andra}} reagerade"
   },
   "88bf6ab42c": {
     "translation": "Den här inbjudningslänken har gått ut"
@@ -492,7 +510,7 @@
     "translation": "Om"
   },
   "8ff3d0a705": {
-    "translation": "Begränsad hastighet"
+    "translation": "För många förfrågningar"
   },
   "902b0d55fd": {
     "translation": "Fel"
@@ -524,6 +542,9 @@
   "985a4b720f": {
     "translation": "Användarvillkor"
   },
+  "987453f3dd": {
+    "translation": "Testa MCP-servern"
+  },
   "9914a0ce04": {
     "translation": "Ljus"
   },
@@ -542,11 +563,17 @@
   "9c228b6834": {
     "translation": "Du verkar vara offline. Kontrollera din anslutning och försök igen."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# objekt} other {# objekt}}"
+  },
   "9ccb565b86": {
     "translation": "Vi har problem med att ansluta till vår autentiseringstjänst. Detta är vanligtvis tillfälligt. Försök att uppdatera sidan."
   },
   "9ceb927baa": {
     "translation": "Publicera den här filen"
+  },
+  "9d102330ee": {
+    "translation": "Ta bort <strong>{name}</strong> och {count, plural, one {dess # objekt} other {dess # objekt}}?"
   },
   "9e076f5885": {
     "translation": "Hittades inte"
@@ -558,7 +585,7 @@
     "translation": "Du har blivit inbjuden att gå med i <strong>{workspaceName}</strong>."
   },
   "a0a19d5145": {
-    "translation": "{count, plural, one {# oläst} other {# oläst}}"
+    "translation": "{count, plural, one {# oläst} other {# olästa}}"
   },
   "a104439641": {
     "translation": "Utfyllnad"
@@ -579,10 +606,10 @@
     "translation": "Cookiepolicy"
   },
   "a4bef6414b": {
-    "translation": "Visa/visa kommentarsfältet"
+    "translation": "Visa/dölj sidofältet med kommentarer"
   },
   "a4d3b161ce": {
-    "translation": "Överlämna"
+    "translation": "Skicka"
   },
   "a52945dbe2": {
     "translation": "Lämna"
@@ -591,10 +618,13 @@
     "translation": "Alla som har länken"
   },
   "a768caa988": {
-    "translation": "Analytics"
+    "translation": "Analys"
   },
   "a8873770ab": {
     "translation": "Filen blir stor"
+  },
+  "a8c92ffd87": {
+    "translation": "Ta bort bibliotek"
   },
   "a9ded1e5ce": {
     "translation": "Bakgrund"
@@ -652,7 +682,7 @@
     "translation": "Ägare"
   },
   "b74dbb40c5": {
-    "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet \"Importera fil\" från Arkiv-menyn längst upp till vänster."
+    "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet \"Importera fil\" i Fil-menyn uppe till vänster."
   },
   "b758336699": {
     "translation": "Kopiera länk"
@@ -664,7 +694,7 @@
     "translation": "Inbjudningar är inaktiverade"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Laddar upp .tldr-fil...} other {Laddar upp {uploaded} av {total} .tldr-filer...}}"
+    "translation": "{total, plural, one {Laddar upp .tldr-fil…} other {Laddar upp {uploaded} av {total} .tldr-filer…}}"
   },
   "bc88b0e89e": {
     "translation": "Delas av {ownerName}"
@@ -688,7 +718,7 @@
     "translation": "Det gick inte att publicera filen."
   },
   "c4b39a1cc3": {
-    "translation": "Viktiga cookies"
+    "translation": "Nödvändiga cookies"
   },
   "c6a00f137b": {
     "translation": "Bjud in"
@@ -733,7 +763,7 @@
     "translation": "För många förfrågningar. Var vänlig och sakta ner."
   },
   "d4bbf74f3e": {
-    "translation": "Aktivera sidofältet"
+    "translation": "Visa/dölj sidofält"
   },
   "d5e92609cf": {
     "translation": "Arbetsytor"
@@ -754,7 +784,7 @@
     "translation": "Gå hit för att se innehållet"
   },
   "dbbebf3c03": {
-    "translation": "Endast inbjudan"
+    "translation": "Endast inbjudna"
   },
   "dbf9b24193": {
     "translation": "Lämna arbetsytan"
@@ -764,6 +794,9 @@
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e1cbe6f097": {
+    "translation": "Det gick inte att ändra biblioteket"
   },
   "e2198d6228": {
     "translation": "Kopiera inbjudningslänken"
@@ -822,6 +855,9 @@
   "f0e8bff6f9": {
     "translation": "Användarinställningar"
   },
+  "f129f24bec": {
+    "translation": "· Inte i någon fil"
+  },
   "f13001876b": {
     "translation": "Listvy"
   },
@@ -844,7 +880,7 @@
     "translation": "Integritetspolicy"
   },
   "fb15c53f22": {
-    "translation": "Visningsverktyg"
+    "translation": "Läsare"
   },
   "fc9d47046b": {
     "translation": "Är du säker på att du vill lämna den här arbetsytan?"
@@ -852,11 +888,14 @@
   "fed5ec05eb": {
     "translation": "Länk kopierad"
   },
+  "feebd72b89": {
+    "translation": "Offentliga bibliotek"
+  },
   "ff2fefd3c6": {
     "translation": "Är du säker på att du vill ta bort {name} från den här arbetsytan?"
   },
   "ff52811b98": {
-    "translation": "Skapa ett gratis konto för att spara dina filer och rita med dina lagkamrater med tldraw."
+    "translation": "Skapa ett gratis konto för att spara dina filer och rita i tldraw med ditt team."
   },
   "ffad261a48": {
     "translation": "Fel vid godkännande av inbjudan"

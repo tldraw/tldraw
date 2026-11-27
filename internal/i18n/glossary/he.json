@@ -1,0 +1,432 @@
+{
+	"register": "gender-neutral (verbal nouns, את/ה, ־/ת)",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "נגישות"
+		},
+		{
+			"term": "Actions",
+			"translation": "פעולות"
+		},
+		{
+			"term": "Align",
+			"translation": "יישור"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "טקסט חלופי"
+		},
+		{
+			"term": "Arrow",
+			"translation": "חץ"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "יחס גובה-רוחב"
+		},
+		{
+			"term": "Bold",
+			"translation": "מודגש"
+		},
+		{
+			"term": "Bring forward",
+			"translation": "הזזה קדימה"
+		},
+		{
+			"term": "Bring to front",
+			"translation": "הזזה לחזית"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "רשימת תבליטים"
+		},
+		{
+			"term": "buttons/actions",
+			"translation": "verbal noun (e.g. העתקה, שיתוף)"
+		},
+		{
+			"term": "Cancel",
+			"translation": "ביטול"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "ביטול"
+		},
+		{
+			"term": "Check box (shape)",
+			"translation": "תיבת סימון"
+		},
+		{
+			"term": "Clipboard",
+			"translation": "לוח הגזירים"
+		},
+		{
+			"term": "Close (dialog)",
+			"translation": "סגירה"
+		},
+		{
+			"term": "Color",
+			"translation": "צבע"
+		},
+		{
+			"term": "command palette",
+			"translation": "לוח פקודות"
+		},
+		{
+			"term": "comment",
+			"translation": "תגובה",
+			"note": "Used throughout the comment UI; keep title and thread headings consistent"
+		},
+		{
+			"term": "Comment / Comments",
+			"translation": "תגובה / תגובות"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "אישור"
+		},
+		{
+			"term": "Copied!",
+			"translation": "הועתק!"
+		},
+		{
+			"term": "Copy",
+			"translation": "העתק"
+		},
+		{
+			"term": "Dark mode",
+			"translation": "מצב כהה"
+		},
+		{
+			"term": "Dashed",
+			"translation": "מקווקו"
+		},
+		{
+			"term": "Delete",
+			"translation": "מחיקה"
+		},
+		{
+			"term": "Delete (button)",
+			"translation": "מחיקה"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "מעוין"
+		},
+		{
+			"term": "Discord/Google",
+			"translation": "Discord/Google",
+			"note": "Brands in Latin script"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "פיזור"
+		},
+		{
+			"term": "Dotted",
+			"translation": "מנוקד"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "שכפול"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "שכפול",
+			"note": "Buttons use verbal nouns"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "עורך"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "אליפסה"
+		},
+		{
+			"term": "embed",
+			"translation": "הטמעה"
+		},
+		{
+			"term": "Embed (noun)",
+			"translation": "הטמעה"
+		},
+		{
+			"term": "export",
+			"translation": "ייצוא"
+		},
+		{
+			"term": "file",
+			"translation": "קובץ"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "קובץ",
+			"note": "dotcom 0b27918290"
+		},
+		{
+			"term": "Fill (style)",
+			"translation": "מילוי"
+		},
+		{
+			"term": "Flip",
+			"translation": "היפוך"
+		},
+		{
+			"term": "Font",
+			"translation": "גופן"
+		},
+		{
+			"term": "Google",
+			"translation": "Google",
+			"note": "brand, keep Latin script"
+		},
+		{
+			"term": "horizontal",
+			"translation": "אופקי"
+		},
+		{
+			"term": "Import file…",
+			"translation": "ייבוא קובץ…",
+			"note": "dotcom ffcd73e997"
+		},
+		{
+			"term": "Italic",
+			"translation": "נטוי"
+		},
+		{
+			"term": "item",
+			"translation": "פריט"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "פריט"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "פריט"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "קיצורי מקלדת"
+		},
+		{
+			"term": "Landscape / Portrait (orientation)",
+			"translation": "לרוחב / לאורך"
+		},
+		{
+			"term": "Libraries",
+			"translation": "ספריות"
+		},
+		{
+			"term": "library",
+			"translation": "ספרייה"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "<color> בהיר"
+		},
+		{
+			"term": "Link",
+			"translation": "קישור"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "קישור"
+		},
+		{
+			"term": "Media",
+			"translation": "מדיה"
+		},
+		{
+			"term": "Media (images/videos)",
+			"translation": "מדיה"
+		},
+		{
+			"term": "minimap",
+			"translation": "מינימפה"
+		},
+		{
+			"term": "Mouse",
+			"translation": "עכבר"
+		},
+		{
+			"term": "notification",
+			"translation": "התראה"
+		},
+		{
+			"term": "Notifications",
+			"translation": "התראות"
+		},
+		{
+			"term": "Opacity",
+			"translation": "אטימות"
+		},
+		{
+			"term": "Oval",
+			"translation": "סגלגל"
+		},
+		{
+			"term": "Owner",
+			"translation": "בעלים"
+		},
+		{
+			"term": "Owner (role)",
+			"translation": "בעלים"
+		},
+		{
+			"term": "Padding",
+			"translation": "ריווח פנימי"
+		},
+		{
+			"term": "page",
+			"translation": "דף",
+			"note": "Pages heading 'דפים', 'יצירת דף חדש'"
+		},
+		{
+			"term": "Page (page menu)",
+			"translation": "דף / דפים"
+		},
+		{
+			"term": "panel",
+			"translation": "חלונית"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "הצמד"
+		},
+		{
+			"term": "Pin file",
+			"translation": "הצמדת קובץ"
+		},
+		{
+			"term": "Preferences",
+			"translation": "העדפות"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "מדיניות פרטיות"
+		},
+		{
+			"term": "project (board)",
+			"translation": "פרויקט"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "הפחתת תנועה"
+		},
+		{
+			"term": "Remove",
+			"translation": "הסרה",
+			"note": "Keep distinct from מחיקה (delete)"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "הסרה"
+		},
+		{
+			"term": "Rename",
+			"translation": "שינוי שם"
+		},
+		{
+			"term": "reply (noun)",
+			"translation": "תשובה / תשובות"
+		},
+		{
+			"term": "Reset data",
+			"translation": "איפוס נתונים"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "מעוין",
+			"note": "Diamond is 'יהלום'"
+		},
+		{
+			"term": "Rhombus (shape)",
+			"translation": "מקבילית"
+		},
+		{
+			"term": "Save",
+			"translation": "שמירה"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "שמירת עותק",
+			"note": "SDK action.save-copy"
+		},
+		{
+			"term": "Shape",
+			"translation": "צורה"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "ריבוע"
+		},
+		{
+			"term": "Task list",
+			"translation": "רשימת משימות"
+		},
+		{
+			"term": "Theme",
+			"translation": "ערכת נושא"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "ערכת נושא"
+		},
+		{
+			"term": "Toggle (action)",
+			"translation": "הפעלה/כיבוי"
+		},
+		{
+			"term": "Toggle (command label)",
+			"translation": "הפעלה/כיבוי"
+		},
+		{
+			"term": "toggle (command)",
+			"translation": "הפעלה/כיבוי"
+		},
+		{
+			"term": "Toggle X",
+			"translation": "הפעלה/כיבוי X"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "משטח עקיבה"
+		},
+		{
+			"term": "Transparent",
+			"translation": "שקוף"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "לא מסומן"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "ביטול קיבוץ"
+		},
+		{
+			"term": "Upload failed",
+			"translation": "ההעלאה נכשלה"
+		},
+		{
+			"term": "vertical",
+			"translation": "אנכי"
+		},
+		{
+			"term": "View",
+			"translation": "תצוגה"
+		},
+		{
+			"term": "Viewer",
+			"translation": "צופה",
+			"note": "read-only access role"
+		},
+		{
+			"term": "workspace",
+			"translation": "סביבת עבודה"
+		}
+	]
+}

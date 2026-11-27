@@ -8,7 +8,7 @@
   "00b177e080": [
     {
       "type": 0,
-      "value": "Accepteer de uitnodiging"
+      "value": "Uitnodiging accepteren"
     }
   ],
   "029f235f01": [
@@ -66,7 +66,7 @@
     },
     {
       "type": 0,
-      "value": " noemde je"
+      "value": " heeft je vermeld"
     }
   ],
   "05f43078e9": [
@@ -90,27 +90,23 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Tarieflimiet overschreden, probeer het later opnieuw."
+      "value": "Te veel verzoeken, probeer het later opnieuw."
     }
   ],
   "08bd40c754": [
     {
       "type": 0,
-      "value": "Rekening"
+      "value": "Account"
     }
   ],
   "093ac7483a": [
-    {
-      "type": 0,
-      "value": "Kan "
-    },
     {
       "type": 1,
       "value": "extension"
     },
     {
       "type": 0,
-      "value": " bestanden nog niet openen."
+      "value": "-bestanden kunnen nog niet worden geopend"
     }
   ],
   "0a91f7fa87": [
@@ -173,6 +169,12 @@
       "value": "Bestand losmaken"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Deze werkruimte heeft het maximale aantal bibliotheken bereikt. Verwijder oude bibliotheken voordat je nieuwe maakt."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -227,6 +229,12 @@
       "value": "Een werkruimte moet minimaal één eigenaar hebben. Wijs eerst iemand anders aan als eigenaar."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Mijn verzameling"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -257,6 +265,12 @@
     {
       "type": 0,
       "value": "Over tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Deze bibliotheek heeft het maximale aantal items bereikt. Verwijder oude items voordat je nieuwe toevoegt."
     }
   ],
   "28b2464e1f": [
@@ -290,13 +304,13 @@
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Zoekopdracht..."
+      "value": "Zoeken..."
     }
   ],
   "2d3cdcfdd4": [
     {
       "type": 0,
-      "value": "Probeer het alstublieft opnieuw."
+      "value": "Probeer het opnieuw."
     }
   ],
   "2de510be71": [
@@ -330,13 +344,13 @@
   "31246941ad": [
     {
       "type": 0,
-      "value": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
+      "value": "Je moet inloggen om dit bestand te bekijken."
     }
   ],
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Markering ontbreekt"
+      "value": "i18n: Ontbrekende markeren"
     }
   ],
   "324a0f3182": [
@@ -348,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Dubbel bestand"
+      "value": "Bestand dupliceren"
     }
   ],
   "335defdafe": [
@@ -423,6 +437,12 @@
       "value": "Kleurenthema"
     }
   ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Bibliotheekmenu"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -470,7 +490,7 @@
   "4630b65bb2": [
     {
       "type": 0,
-      "value": "Verplaats het bestand naar"
+      "value": "Bestand verplaatsen naar"
     }
   ],
   "46de2de6bb": [
@@ -488,7 +508,7 @@
   "47f493a590": [
     {
       "type": 0,
-      "value": "Pinbestand"
+      "value": "Bestand vastmaken"
     }
   ],
   "4970317944": [
@@ -533,6 +553,12 @@
     {
       "type": 0,
       "value": " reageerde"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Dit bestand"
     }
   ],
   "4d0d3ddec9": [
@@ -604,7 +630,7 @@
   "550b25cc0c": [
     {
       "type": 0,
-      "value": "Uw lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
+      "value": "Je lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
     }
   ],
   "554a05155c": [
@@ -662,19 +688,19 @@
   "5a95a425f7": [
     {
       "type": 0,
-      "value": "Deel"
+      "value": "Delen"
     }
   ],
   "5bec508475": [
     {
       "type": 0,
-      "value": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+      "value": "Verouderde browser gedetecteerd. Werk je browser bij om deze app te gebruiken."
     }
   ],
   "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Mijn werkplek"
+      "value": "Mijn werkruimte"
     }
   ],
   "5d04a002ea": [
@@ -734,7 +760,7 @@
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "Jij"
+      "value": "jij"
     }
   ],
   "63a6a88c06": [
@@ -806,7 +832,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " andere"
             }
           ]
         },
@@ -817,7 +843,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " anderen"
             }
           ]
         }
@@ -828,7 +854,7 @@
     },
     {
       "type": 0,
-      "value": " reageerden"
+      "value": " hebben gereageerd"
     }
   ],
   "6832ac5936": [
@@ -939,7 +965,7 @@
   "747ee44424": [
     {
       "type": 0,
-      "value": "Sla de inhoud op als een .tldr-bestand: selecteer 'Een kopie opslaan' in het menu linksboven."
+      "value": "Sla de inhoud op als .tldr-bestand: kies 'Bewaar een kopie' in het menu linksboven."
     }
   ],
   "74ff4bad28": [
@@ -999,13 +1025,19 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je het naar je bestanden."
+      "value": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Meld je aan en kopieer het naar je bestanden om verder te bewerken."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Nog geen bibliotheken."
     }
   ],
   "78e9815992": [
     {
       "type": 0,
-      "value": "Ik heb het"
+      "value": "Begrepen"
     }
   ],
   "797799f35e": [
@@ -1083,7 +1115,7 @@
   "8030793ce3": [
     {
       "type": 0,
-      "value": "Nieuwe werkplek"
+      "value": "Nieuwe werkruimte"
     }
   ],
   "815e116a2e": [
@@ -1201,7 +1233,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " andere"
             }
           ]
         },
@@ -1212,7 +1244,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " anderen"
             }
           ]
         }
@@ -1223,7 +1255,7 @@
     },
     {
       "type": 0,
-      "value": " reageerden"
+      "value": " hebben gereageerd"
     }
   ],
   "88bf6ab42c": [
@@ -1235,7 +1267,7 @@
   "8c2d3d730c": [
     {
       "type": 0,
-      "value": "Controleer uw e-mail voor een verificatiecode."
+      "value": "Check je e-mail voor de verificatiecode."
     }
   ],
   "8cf04a9734": [
@@ -1303,7 +1335,7 @@
   "930390d222": [
     {
       "type": 0,
-      "value": "Kopieer de uitnodigingslink"
+      "value": "Uitnodigingslink gekopieerd"
     }
   ],
   "95aacd4d4a": [
@@ -1344,6 +1376,12 @@
     {
       "type": 0,
       "value": "Gebruiksvoorwaarden"
+    }
+  ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Probeer de MCP-server"
     }
   ],
   "9914a0ce04": [
@@ -1396,6 +1434,38 @@
       "value": "Je lijkt offline te zijn. Controleer je internetverbinding en probeer het opnieuw."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1408,6 +1478,56 @@
       "value": "Publiceer dit bestand"
     }
   ],
+  "9d102330ee": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " en "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " verwijderen?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1417,7 +1537,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Afmelden"
+      "value": "Weigeren"
     }
   ],
   "a078644c42": [
@@ -1511,7 +1631,7 @@
   "a4bef6414b": [
     {
       "type": 0,
-      "value": "Reacties zijbalk weergeven/verbergen"
+      "value": "Zijbalk met opmerkingen tonen/verbergen"
     }
   ],
   "a4d3b161ce": [
@@ -1542,6 +1662,12 @@
     {
       "type": 0,
       "value": "Het bestand wordt groot"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Bibliotheek verwijderen"
     }
   ],
   "a9ded1e5ce": [
@@ -1623,7 +1749,7 @@
   "b2326c3a34": [
     {
       "type": 0,
-      "value": "Regenereren"
+      "value": "Opnieuw genereren"
     }
   ],
   "b2c3c2e30c": [
@@ -1747,7 +1873,7 @@
   "bd8aac2696": [
     {
       "type": 0,
-      "value": "Huidig ​​bestand"
+      "value": "Huidig bestand"
     }
   ],
   "bf9c7b5670": [
@@ -1881,7 +2007,7 @@
   "d28d6bbc42": [
     {
       "type": 0,
-      "value": "Bestand verwijderen"
+      "value": "Publicatie van bestand ongedaan maken"
     }
   ],
   "d3d2e61733": [
@@ -1899,7 +2025,7 @@
   "d4bbf74f3e": [
     {
       "type": 0,
-      "value": "Schakel zijbalk in"
+      "value": "Zijbalk tonen/verbergen"
     }
   ],
   "d5e92609cf": [
@@ -1911,7 +2037,7 @@
   "d638a3344b": [
     {
       "type": 0,
-      "value": "Voordat u begint, accepteert u onze "
+      "value": "Accepteer voordat je begint onze "
     },
     {
       "children": [
@@ -1990,6 +2116,12 @@
       "value": "OK"
     }
   ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Bibliotheek wijzigen mislukt"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2029,7 +2161,7 @@
   "eb1e2b0542": [
     {
       "type": 0,
-      "value": "Vraag de eigenaar van de werkplek om een nieuwe."
+      "value": "Vraag de eigenaar van de werkruimte om een nieuwe uitnodigingslink."
     }
   ],
   "ebfe9ce86e": [
@@ -2041,7 +2173,7 @@
   "ec59b960ea": [
     {
       "type": 0,
-      "value": "Dit bestand heeft het maximale aantal actieve medewerkers bereikt."
+      "value": "Dit bestand heeft het maximale aantal actieve bijdragers bereikt."
     }
   ],
   "ec611e9a08": [
@@ -2059,7 +2191,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Duplicaat"
+      "value": "Dupliceren"
     }
   ],
   "ede55d955f": [
@@ -2097,7 +2229,7 @@
   "ef7de3f485": [
     {
       "type": 0,
-      "value": "gekozen"
+      "value": "geselecteerd"
     }
   ],
   "f07e75296c": [
@@ -2109,13 +2241,19 @@
   "f09b16bc5f": [
     {
       "type": 0,
-      "value": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren."
+      "value": "We gebruiken cookies om je ingelogd te houden, je bestanden te synchroniseren en analysegegevens te verzamelen om tldraw te verbeteren."
     }
   ],
   "f0e8bff6f9": [
     {
       "type": 0,
       "value": "Gebruikersinstellingen"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· In geen enkel bestand"
     }
   ],
   "f13001876b": [
@@ -2127,7 +2265,7 @@
   "f2569594b2": [
     {
       "type": 0,
-      "value": "Wij gebruiken deze cookies om uw bestanden en instellingen op te slaan."
+      "value": "We gebruiken deze cookies om je bestanden en instellingen op te slaan."
     }
   ],
   "f2a6c498fb": [
@@ -2157,7 +2295,7 @@
       "children": [
         {
           "type": 0,
-          "value": "exporteren als een "
+          "value": "exporteren als "
         },
         {
           "type": 1,
@@ -2165,7 +2303,7 @@
         },
         {
           "type": 0,
-          "value": " bestand"
+          "value": "-bestand"
         }
       ],
       "type": 8,
@@ -2185,7 +2323,7 @@
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Kijker"
+      "value": "Lezer"
     }
   ],
   "fc9d47046b": [
@@ -2197,7 +2335,13 @@
   "fed5ec05eb": [
     {
       "type": 0,
-      "value": "Gekopieerde link"
+      "value": "Link gekopieerd"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Openbare bibliotheken"
     }
   ],
   "ff2fefd3c6": [
@@ -2217,7 +2361,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten te tekenen (tldraw)."
+      "value": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten in tldraw te tekenen."
     }
   ],
   "ffad261a48": [

@@ -1,0 +1,530 @@
+{
+	"register": "du",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Tillgänglighet"
+		},
+		{
+			"term": "Align",
+			"translation": "Justera"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Alternativ text"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Pil"
+		},
+		{
+			"term": "Arrow <direction> (geo shape)",
+			"translation": "Pil upp / Pil ner / Pil vänster / Pil höger"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "pilspets"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Bildförhållande"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Auto"
+		},
+		{
+			"term": "Bold",
+			"translation": "Fet"
+		},
+		{
+			"term": "bookmark",
+			"translation": "bokmärke"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Punktlista"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Avbryt"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "Avbryt"
+		},
+		{
+			"term": "Cancel (dialog button)",
+			"translation": "Avbryt",
+			"note": "Not 'Avboka', which means cancelling a booking"
+		},
+		{
+			"term": "Check box (shape)",
+			"translation": "Kryssruta"
+		},
+		{
+			"term": "clipboard",
+			"translation": "urklipp"
+		},
+		{
+			"term": "clockwise",
+			"translation": "medurs"
+		},
+		{
+			"term": "Clockwise / counterclockwise",
+			"translation": "medurs / moturs"
+		},
+		{
+			"term": "Close (dialog)",
+			"translation": "Stäng"
+		},
+		{
+			"term": "Color",
+			"translation": "Färg"
+		},
+		{
+			"term": "command palette",
+			"translation": "kommandopalett"
+		},
+		{
+			"term": "comment",
+			"translation": "kommentar"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Bekräfta"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Snabbmeny"
+		},
+		{
+			"term": "Copy",
+			"translation": "Kopiera"
+		},
+		{
+			"term": "Copy (clipboard action)",
+			"translation": "kopiera / kopieringen",
+			"note": "Not 'kopian' (the duplicate)"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "Kopiera"
+		},
+		{
+			"term": "counterclockwise",
+			"translation": "moturs"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Klipp ut"
+		},
+		{
+			"term": "Dashed",
+			"translation": "Streckad"
+		},
+		{
+			"term": "Delete",
+			"translation": "Ta bort"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Romb"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Fördela"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "Fördela",
+			"note": "Not 'Dela ut' (hand out)"
+		},
+		{
+			"term": "Dotted",
+			"translation": "Prickad"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplicera"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Redigera"
+		},
+		{
+			"term": "Edit link",
+			"translation": "Redigera länk"
+		},
+		{
+			"term": "Editor (role)",
+			"translation": "Redigerare",
+			"note": "Person role, not a tool"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Ellips"
+		},
+		{
+			"term": "embed",
+			"translation": "inbäddning"
+		},
+		{
+			"term": "Embed (noun)",
+			"translation": "Inbäddning"
+		},
+		{
+			"term": "Essential cookies",
+			"translation": "Nödvändiga cookies"
+		},
+		{
+			"term": "Export",
+			"translation": "Exportera"
+		},
+		{
+			"term": "file",
+			"translation": "fil"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Fil"
+		},
+		{
+			"term": "Fill (style, noun)",
+			"translation": "Fyllning",
+			"note": "Not imperative 'Fyll'"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "fyllning",
+			"note": "en-word; 'Ingen' agrees"
+		},
+		{
+			"term": "Flatten",
+			"translation": "Platta till"
+		},
+		{
+			"term": "Focus mode",
+			"translation": "Fokuseringsläge"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Följ"
+		},
+		{
+			"term": "Font",
+			"translation": "Typsnitt"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Glöm"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Gruppera"
+		},
+		{
+			"term": "Heading",
+			"translation": "Rubrik"
+		},
+		{
+			"term": "Image tools",
+			"translation": "Bildverktyg"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Importera fil…",
+			"note": "dotcom ffcd73e997"
+		},
+		{
+			"term": "invite link",
+			"translation": "inbjudningslänk"
+		},
+		{
+			"term": "Italic",
+			"translation": "Kursiv"
+		},
+		{
+			"term": "item",
+			"translation": "objekt"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "objekt"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "objekt"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Tangentbordsgenvägar"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Liggande"
+		},
+		{
+			"term": "Landscape / Portrait (orientation)",
+			"translation": "Liggande / Stående"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Bibliotek"
+		},
+		{
+			"term": "library",
+			"translation": "bibliotek"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Ljus"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "Ljus<color>"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Länk"
+		},
+		{
+			"term": "minimap",
+			"translation": "minikarta"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Mus"
+		},
+		{
+			"term": "Move up/down",
+			"translation": "Flytta upp/ner"
+		},
+		{
+			"term": "notification",
+			"translation": "avisering"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Aviseringar"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Opacitet"
+		},
+		{
+			"term": "owner",
+			"translation": "ägare"
+		},
+		{
+			"term": "Padding",
+			"translation": "Utfyllnad",
+			"note": "export margin"
+		},
+		{
+			"term": "page",
+			"translation": "sida",
+			"note": "plural sidor"
+		},
+		{
+			"term": "Paste",
+			"translation": "Klistra in"
+		},
+		{
+			"term": "pattern (fill)",
+			"translation": "mönster"
+		},
+		{
+			"term": "Pin",
+			"translation": "Fäst"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "fäst",
+			"note": "Pinned group heading: 'Fästa'"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Stående"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Inställningar"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Integritetspolicy"
+		},
+		{
+			"term": "read-only",
+			"translation": "skrivskyddad"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Minska rörelse"
+		},
+		{
+			"term": "remove",
+			"translation": "ta bort"
+		},
+		{
+			"term": "Rename",
+			"translation": "Byt namn"
+		},
+		{
+			"term": "Reset data",
+			"translation": "Återställ data"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Löst"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Romb",
+			"note": "Diamond is 'Diamant'"
+		},
+		{
+			"term": "Rhombus (shape)",
+			"translation": "Parallellogram"
+		},
+		{
+			"term": "Save",
+			"translation": "Spara"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Spara en kopia",
+			"note": "SDK action.save-copy label"
+		},
+		{
+			"term": "Search… (placeholder)",
+			"translation": "Sök…"
+		},
+		{
+			"term": "selection (selected objects)",
+			"translation": "markering"
+		},
+		{
+			"term": "Selection (selected shapes)",
+			"translation": "markering"
+		},
+		{
+			"term": "shape",
+			"translation": "form"
+		},
+		{
+			"term": "Share",
+			"translation": "Dela"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Logga in"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Logga ut"
+		},
+		{
+			"term": "Size",
+			"translation": "Storlek"
+		},
+		{
+			"term": "snap",
+			"translation": "fäst"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Heldragen"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Genomstruken"
+		},
+		{
+			"term": "teammates",
+			"translation": "teammedlemmar"
+		},
+		{
+			"term": "Terms of service",
+			"translation": "Användarvillkor"
+		},
+		{
+			"term": "the file (current document)",
+			"translation": "filen"
+		},
+		{
+			"term": "Toggle …",
+			"translation": "Växla …"
+		},
+		{
+			"term": "Toggle (command label)",
+			"translation": "Växla"
+		},
+		{
+			"term": "toggle (command)",
+			"translation": "växla"
+		},
+		{
+			"term": "Toggle (on/off action)",
+			"translation": "Växla",
+			"note": "'Aktivera' only for actions that only turn something on"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "Verktygslås"
+		},
+		{
+			"term": "Tools",
+			"translation": "Verktyg"
+		},
+		{
+			"term": "Top / Bottom (vertical align)",
+			"translation": "Längst upp / Längst ner"
+		},
+		{
+			"term": "Trackpad",
+			"translation": "Styrplatta"
+		},
+		{
+			"term": "Transparent",
+			"translation": "Genomskinlig"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapets"
+		},
+		{
+			"term": "Undo",
+			"translation": "Ångra"
+		},
+		{
+			"term": "Undo/Redo: Redo",
+			"translation": "Gör om"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Avgruppera"
+		},
+		{
+			"term": "Upload",
+			"translation": "Uppladdning"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "Läsare"
+		},
+		{
+			"term": "workspace",
+			"translation": "arbetsyta"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Zooma in"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Zooma ut"
+		}
+	]
+}

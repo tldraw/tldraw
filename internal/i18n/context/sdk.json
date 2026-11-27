@@ -670,15 +670,16 @@
 	},
 	"action.enhanced-a11y-mode.menu": {
 		"sourceHash": "838408d8dba81b4fd6e38a6ffa7db4c42cffea8ec6672470fc13d183fcfbc95f",
-		"role": "label",
-		"meaning": "Checkbox label in the Accessibility preferences menu (and dotcom's settings dialog) for the enhanced accessibility mode setting; the checkmark shows whether it is on.",
+		"role": "action",
+		"meaning": "Checkbox-style menu item in the Accessibility submenu of the help/preferences menu. Toggles enhanced accessibility mode, which turns on extra screen-reader support and announcements in the editor. It is the short menu label; the longer command-palette label is 'Toggle enhanced accessibility mode'.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"packages/tldraw/src/lib/ui/components/AccessibilityMenu.tsx",
 			"packages/tldraw/src/lib/ui/components/menu-items.tsx",
 			"packages/tldraw/src/lib/ui/context/actions.tsx"
 		],
 		"constraints": [
-			"Setting name, not a command; no verb"
+			"Menu item beside 'Reduce motion' and 'Enable keyboard shortcuts'; keep concise",
+			"Names a mode and is not a command to the user"
 		]
 	},
 	"action.exit-pen-mode": {
@@ -945,13 +946,13 @@
 	"action.open-kbd-shortcuts": {
 		"sourceHash": "fc18926f9bd9eebdd560ec625bdbe60bbc3bf8cb93cc8596dc075315cdfbe191",
 		"role": "action",
-		"meaning": "Menu item and settings link that opens the dialog listing all keyboard shortcuts. The label is the dialog's name.",
+		"meaning": "Action that opens the dialog listing the editor's keyboard shortcuts. 'Shortcuts' means key combinations, not shortcut links. It is the action label shown in menus and the command palette. The help menu has its own item with the same English text, 'help-menu.keyboard-shortcuts'.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"packages/tldraw/src/lib/ui/components/HelpMenu/DefaultHelpMenuContent.tsx",
 			"packages/tldraw/src/lib/ui/context/actions.tsx"
 		],
 		"constraints": [
-			"Also a link in the tldraw.com settings dialog"
+			"Menu/command label; keep short"
 		]
 	},
 	"action.pack": {
@@ -4309,6 +4310,17 @@
 		"placeholders": {
 			"count": "Number of items in the library, 0 or more"
 		}
+	},
+	"libraries.browse.load-error.title": {
+		"sourceHash": "577c6ba298997db6919f2d471da0a2a635f11ec06aa1a0fe1c11e106b984168e",
+		"role": "error",
+		"meaning": "Title of an error message shown in the 'Browse libraries' dialog when the items of a library cannot be loaded for viewing, for example when the library's items fail to fetch. 'Items' are the saved shapes or templates stored in a library, not generic things.",
+		"callSites": [
+			"packages/libraries/src/canvas/browse-libraries-dialog.tsx"
+		],
+		"constraints": [
+			"Short error title; the contraction 'Couldn't' means a failure that already happened"
+		]
 	},
 	"libraries.browse.more": {
 		"sourceHash": "8d70261535dc47ffa4edd3152ec78f619e9637add406dc44b6c327c553f862b4",

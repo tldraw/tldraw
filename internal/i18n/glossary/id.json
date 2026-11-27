@@ -1,0 +1,465 @@
+{
+	"register": "Anda",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Aksesibilitas"
+		},
+		{
+			"term": "Align",
+			"translation": "Rata",
+			"note": "Align only; never use for Distribute"
+		},
+		{
+			"term": "Align left/right/top",
+			"translation": "Rata kiri/kanan/atas"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Teks alternatif"
+		},
+		{
+			"term": "Arrange (menu)",
+			"translation": "Susun",
+			"note": "Reserved for the Arrange submenu; don't reuse it for Pack"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Rasio aspek"
+		},
+		{
+			"term": "Auto (input device)",
+			"translation": "Otomatis"
+		},
+		{
+			"term": "Bold",
+			"translation": "Tebal"
+		},
+		{
+			"term": "Bookmark",
+			"translation": "Bookmark"
+		},
+		{
+			"term": "Browse",
+			"translation": "Jelajahi"
+		},
+		{
+			"term": "Bulleted list",
+			"translation": "Daftar poin"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Batal"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "Batal"
+		},
+		{
+			"term": "canvas",
+			"translation": "kanvas"
+		},
+		{
+			"term": "Check box (shape)",
+			"translation": "Kotak centang"
+		},
+		{
+			"term": "clipboard",
+			"translation": "papan klip"
+		},
+		{
+			"term": "Close",
+			"translation": "Tutup"
+		},
+		{
+			"term": "Close (dialog)",
+			"translation": "Tutup"
+		},
+		{
+			"term": "Color",
+			"translation": "Warna"
+		},
+		{
+			"term": "comment",
+			"translation": "komentar"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Konfirmasi"
+		},
+		{
+			"term": "Copy",
+			"translation": "Salin"
+		},
+		{
+			"term": "Copy (clipboard action)",
+			"translation": "menyalin / penyalinan"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Salin"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "Salin"
+		},
+		{
+			"term": "Crop image",
+			"translation": "Pangkas gambar"
+		},
+		{
+			"term": "Dark (theme)",
+			"translation": "Gelap"
+		},
+		{
+			"term": "Dashed",
+			"translation": "Garis putus-putus"
+		},
+		{
+			"term": "Default (sort order)",
+			"translation": "Bawaan"
+		},
+		{
+			"term": "Delete",
+			"translation": "Hapus"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Belah ketupat"
+		},
+		{
+			"term": "Distribute",
+			"translation": "Distribusikan",
+			"note": "Not 'Rata' (Align)"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Duplikat",
+			"note": "Matches the SDK's action.duplicate"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Elips"
+		},
+		{
+			"term": "embed",
+			"translation": "sematan"
+		},
+		{
+			"term": "Embed (noun)",
+			"translation": "Sematan"
+		},
+		{
+			"term": "Export",
+			"translation": "Ekspor"
+		},
+		{
+			"term": "file",
+			"translation": "file",
+			"note": "Majority term in the id dotcom locale (menu File, Buat file, Hapus file); 'berkas' is legacy"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "file"
+		},
+		{
+			"term": "Fill",
+			"translation": "Isi"
+		},
+		{
+			"term": "Flip",
+			"translation": "Balik"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Ikuti"
+		},
+		{
+			"term": "Forget",
+			"translation": "Lupakan",
+			"note": "Remove from own list; distinct from Hapus"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Lupakan",
+			"note": "Not 'Abaikan' (ignore) or 'Hapus' (delete)"
+		},
+		{
+			"term": "frame",
+			"translation": "bingkai"
+		},
+		{
+			"term": "Heart (shape)",
+			"translation": "Hati"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Impor berkas…",
+			"note": "dotcom ffcd73e997"
+		},
+		{
+			"term": "invite link",
+			"translation": "tautan undangan"
+		},
+		{
+			"term": "Italic",
+			"translation": "Miring"
+		},
+		{
+			"term": "item",
+			"translation": "item"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "item"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "item"
+		},
+		{
+			"term": "Justify",
+			"translation": "Rata kanan-kiri"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Pintasan papan tik"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Lanskap"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Pustaka"
+		},
+		{
+			"term": "library",
+			"translation": "pustaka"
+		},
+		{
+			"term": "Light (theme)",
+			"translation": "Terang"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "<color> muda"
+		},
+		{
+			"term": "Link",
+			"translation": "Tautan"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Tautan"
+		},
+		{
+			"term": "minimap",
+			"translation": "peta mini"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Mouse"
+		},
+		{
+			"term": "Note (sticky note)",
+			"translation": "Catatan"
+		},
+		{
+			"term": "notification",
+			"translation": "notifikasi"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Pemberitahuan"
+		},
+		{
+			"term": "OK",
+			"translation": "OK"
+		},
+		{
+			"term": "overwrite",
+			"translation": "timpa"
+		},
+		{
+			"term": "owner",
+			"translation": "pemilik"
+		},
+		{
+			"term": "page",
+			"translation": "halaman"
+		},
+		{
+			"term": "Paste",
+			"translation": "Tempel"
+		},
+		{
+			"term": "Pin",
+			"translation": "Sematkan"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "sematkan"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Potret"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Preferensi"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Kebijakan Privasi"
+		},
+		{
+			"term": "project (board)",
+			"translation": "proyek"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Kurangi gerakan"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "keluarkan",
+			"note": "Distinct from delete (hapus)"
+		},
+		{
+			"term": "Remove (member)",
+			"translation": "Keluarkan",
+			"note": "Distinct from Hapus (Delete)"
+		},
+		{
+			"term": "Remove frame",
+			"translation": "Lepas bingkai",
+			"note": "'Hapus' is Delete"
+		},
+		{
+			"term": "Remove from file",
+			"translation": "Keluarkan dari file",
+			"note": "Avoid 'Hapus', which means Delete"
+		},
+		{
+			"term": "Rename",
+			"translation": "Ganti nama"
+		},
+		{
+			"term": "Reply (placeholder/action)",
+			"translation": "Balas"
+		},
+		{
+			"term": "Reset",
+			"translation": "Atur ulang"
+		},
+		{
+			"term": "Resolve",
+			"translation": "Selesaikan"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Belah ketupat",
+			"note": "Diamond is 'Berlian'"
+		},
+		{
+			"term": "Rhombus (shape)",
+			"translation": "Jajar genjang"
+		},
+		{
+			"term": "Save",
+			"translation": "Simpan",
+			"note": "Buttons use base/imperative form, not me- forms"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Simpan salinan",
+			"note": "SDK action.save-copy label"
+		},
+		{
+			"term": "Send (button)",
+			"translation": "Kirim"
+		},
+		{
+			"term": "Shape",
+			"translation": "Bentuk"
+		},
+		{
+			"term": "Share",
+			"translation": "Bagikan"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Masuk"
+		},
+		{
+			"term": "Size",
+			"translation": "Ukuran"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "Persegi"
+		},
+		{
+			"term": "Task list",
+			"translation": "Daftar tugas"
+		},
+		{
+			"term": "thread",
+			"translation": "utas"
+		},
+		{
+			"term": "Toggle",
+			"translation": "Alihkan"
+		},
+		{
+			"term": "Toggle (action)",
+			"translation": "Alihkan"
+		},
+		{
+			"term": "Toggle (command label)",
+			"translation": "Alihkan"
+		},
+		{
+			"term": "Tool lock",
+			"translation": "Kunci alat"
+		},
+		{
+			"term": "Transparent",
+			"translation": "Transparan"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Segitiga"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Tidak dicentang"
+		},
+		{
+			"term": "Undo",
+			"translation": "Urungkan",
+			"note": "'Batalkan' is Cancel"
+		},
+		{
+			"term": "Vertical align",
+			"translation": "Perataan vertikal"
+		},
+		{
+			"term": "workspace",
+			"translation": "ruang kerja"
+		},
+		{
+			"term": "X box (shape)",
+			"translation": "Kotak X"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Perbesar"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Perkecil"
+		}
+	]
+}
