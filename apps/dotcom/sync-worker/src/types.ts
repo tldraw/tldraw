@@ -133,8 +133,8 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
-	// RPC to the private render worker (apps/dotcom/render-worker), reached only here — it has no
-	// public routes. It owns the render page, the Browser Run calls, the deadline, result parsing,
+	// RPC to the private render worker (apps/dotcom/render-worker), reached only here — over HTTP it
+	// serves nothing but its static render page. It owns the render page, the Browser Run calls, the deadline, result parsing,
 	// and the browser_run_session ledger; this worker keeps auth, snapshot selection, rate limits,
 	// caching and the request-level telemetry. Undefined where the binding is absent (tests, and any
 	// environment not yet wired to it). Typed as the RPC interface rather than Cloudflare's

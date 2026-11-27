@@ -4,13 +4,23 @@ main = "src/worker.ts"
 compatibility_date = "2026-03-24"
 compatibility_flags = ["nodejs_compat"]
 
+# The page is this worker's whole public surface, reached through the app-host routes below. It has
+# to be on a tldraw host: the SDK licenses the editor by hostname, and an unlicensed one blanks
+# itself five seconds after it mounts. Rendering is reached only through sync-worker's RENDER_WORKER
+# service binding (the RenderWorker entrypoint); any other HTTP request gets a 404 (see the worker's
+# fetch handler).
+workers_dev = false
+
 [dev]
 port = 8790
 
-# This worker has NO routes and no custom domain, deliberately: it is reached only through
-# sync-worker's RENDER_WORKER service binding (the RenderWorker entrypoint). A direct HTTP request
-# gets a 404 (see the worker's fetch handler). That is the "no public routes" property — the render
-# page, the Browser Run calls, and the token-free push all live behind the binding.
+# The render page, built from the client's thumbnail-render entry (page.vite.config.ts) and served by
+# this worker as static assets, so the page and the worker that drives it deploy as one.
+[build]
+command = "pnpm build-page"
+
+[assets]
+directory = "./.page"
 
 #################### Environment names ####################
 
@@ -22,8 +32,9 @@ name = "dev-tldraw-render-worker"
 # endpoint instead of the BROWSER binding — exactly as sync-worker does. Deployed environments leave
 # this unset and use the BROWSER binding.
 LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
-# The origin serving the render page. Mirrors sync-worker's MCP_SCREENSHOT_RENDER_ORIGIN; the
-# worker-owned render page is a later step, so for now this points at the client.
+# The origin serving the render page. In dev that is the client's dev server, which is where the
+# local screenshot service above captures from whatever this says. Deployed environments point at
+# the app host, where the routes below hand the page's paths to this worker.
 RENDER_PAGE_ORIGIN = "http://localhost:3000"
 
 # preview has no hard-coded name; the deploy script generates it at build time (as for sync-worker).
@@ -34,11 +45,20 @@ name = "staging-tldraw-render-worker"
 [env.staging.vars]
 RENDER_PAGE_ORIGIN = "https://staging.tldraw.com"
 
+# One pattern covers the page and its assets, which the page build puts under /__thumbnail-render/.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/__thumbnail-render*"
+
 [env.production]
 name = "tldraw-render-worker"
 
 [env.production.vars]
 RENDER_PAGE_ORIGIN = "https://www.tldraw.com"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/__thumbnail-render*"
 
 #################### Browser Rendering (Quick Actions) ####################
 # Named environments do not inherit the top-level binding, so it is repeated per environment.

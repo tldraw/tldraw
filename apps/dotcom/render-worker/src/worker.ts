@@ -15,13 +15,10 @@ import { readMeasureResult, runRenderSession } from './render'
 import { Environment } from './types'
 
 /**
- * The private render worker. Reached only through the RENDER_WORKER service binding — no routes, so
- * direct HTTP gets a 404 (see `fetch` below). Everything it needs arrives in the RPC payload; it
- * never fetches a snapshot, holds a token, or sees a board slug.
- *
- * NOTE (core move, copy step): the render core was copied here from sync-worker's thumbnailRender.ts.
- * sync-worker's own copy and its call sites are left in place and still live — nothing is switched to
- * call this worker yet. The switchover (and the removal of the old path) is a later step.
+ * The private render worker. Rendering is reached only through the RENDER_WORKER service binding;
+ * over HTTP it serves the static render page and answers everything else with a 404 (see `fetch`
+ * below). Everything it needs arrives in the RPC payload; it never fetches a snapshot, holds a token,
+ * or sees a board slug.
  */
 export class RenderWorker extends WorkerEntrypoint<Environment> implements RenderWorkerRpc {
 	async screenshot(request: ScreenshotRequest): Promise<ScreenshotResult> {
@@ -102,8 +99,9 @@ export class RenderWorker extends WorkerEntrypoint<Environment> implements Rende
 		}
 	}
 
-	// No public surface. A service-binding RPC worker needs no fetch handler, but an explicit 404
-	// documents the intent and makes a stray direct request fail cleanly rather than ambiguously.
+	// The render page is served as static assets, ahead of this handler; nothing else is public. A
+	// service-binding RPC worker needs no fetch handler, but an explicit 404 makes a stray direct
+	// request fail cleanly rather than ambiguously.
 	override async fetch(): Promise<Response> {
 		return new Response('Not found', { status: 404 })
 	}

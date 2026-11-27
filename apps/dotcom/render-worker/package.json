@@ -10,6 +10,7 @@
 	"main": "src/api.ts",
 	"scripts": {
 		"dev": "pnpm exec tsx ../../../internal/scripts/workers/dev.ts --inspector-port 9340",
+		"build-page": "pnpm exec vite build --config page.vite.config.ts",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
@@ -22,6 +23,8 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260302.0",
+		"@vitejs/plugin-react": "^6.0.1",
+		"vite": "^8.0.16",
 		"vitest": "^5.0.0",
 		"wrangler": "^4.148.0"
 	}
