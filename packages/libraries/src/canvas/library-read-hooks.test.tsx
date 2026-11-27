@@ -1,4 +1,4 @@
-import { act } from 'react'
+import { act, useState } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import {
 	atom,
@@ -6,6 +6,7 @@ import {
 	defaultBindingUtils,
 	defaultShapeUtils,
 	Editor,
+	AssetUrlsProvider,
 	EditorContext,
 	LibraryRecordType,
 	setInLocalStorage,
@@ -21,6 +22,18 @@ import { useLibraryCollapsed } from './use-library-collapsed'
 import { useLibraryItemOrder } from './use-library-item-order'
 import { useLibraryItems } from './use-library-items'
 import { useLibraryThumbnailUrls } from './use-library-thumbnail-urls'
+
+const assetUrls = {
+	fonts: { tldraw_draw: 'https://fonts.example/draw.woff2' },
+	icons: {},
+	embedIcons: {},
+	translations: {},
+} as any
+
+const renderItemPreview = vi.hoisted(() =>
+	vi.fn(async (..._args: unknown[]): Promise<Blob | null> => null)
+)
+vi.mock('./render-item-preview', () => ({ renderItemPreview }))
 
 const library = LibraryRecordType.create({ name: 'Shapes' })
 const content: TLLibraryItemContent = {
@@ -85,9 +98,13 @@ function renderHook<T>(useHook: () => T) {
 	}
 	act(() => {
 		root.render(
-			<EditorContext.Provider value={editor}>
-				<Probe />
-			</EditorContext.Provider>
+			<AssetUrlsProvider assetUrls={assetUrls}>
+				<AssetUrlsProvider assetUrls={assetUrls}>
+					<EditorContext.Provider value={editor}>
+						<Probe />
+					</EditorContext.Provider>
+				</AssetUrlsProvider>
+			</AssetUrlsProvider>
 		)
 	})
 	return () => result.current as T
@@ -166,6 +183,101 @@ describe('useLibraryThumbnailUrls', () => {
 		expect(urls()).toEqual({ [withThumb.id]: 'https://x/light.png', [without.id]: undefined })
 		act(() => editor.user.updateUserPreferences({ colorScheme: 'dark' }))
 		expect(urls()[withThumb.id]).toBe('https://x/dark.png')
+	})
+
+	it('renders a preview for an item without a thumbnail, and only for that item', async () => {
+		renderItemPreview.mockResolvedValue(new Blob(['png']))
+		URL.createObjectURL = vi.fn(() => 'blob:preview')
+		const withThumb = makeItem('Box', 1, { thumbnail: 'https://x/box.png' })
+		const without = makeItem('Bare', 2)
+		const source = makeSource([withThumb, without])
+		const urls = renderHook(() => useLibraryThumbnailUrls(source, [withThumb, without]))
+		await vi.waitFor(async () => {
+			await act(async () => {})
+			expect(urls()[without.id]).toBe('blob:preview')
+		})
+		expect(urls()[withThumb.id]).toBe('https://x/box.png')
+		expect(renderItemPreview).toHaveBeenCalledTimes(1)
+		expect(renderItemPreview).toHaveBeenCalledWith(editor, content.content, {
+			darkMode: editor.getColorMode() === 'dark',
+			themeId: editor.getCurrentThemeId(),
+			fontAssetUrls: assetUrls.fonts,
+		})
+		renderItemPreview.mockResolvedValue(null)
+	})
+
+	it('stops rendering previews once nobody is showing them', async () => {
+		renderItemPreview.mockClear()
+		renderItemPreview.mockImplementation(
+			() => new Promise((resolve) => setTimeout(() => resolve(null), 20))
+		)
+		const items = [makeItem('A', 1), makeItem('B', 2), makeItem('C', 3), makeItem('D', 4)]
+		const source = makeSource(items)
+		renderHook(() => useLibraryThumbnailUrls(source, items))
+		act(() => root.unmount())
+		await new Promise((resolve) => setTimeout(resolve, 200))
+		expect(renderItemPreview.mock.calls.length).toBeLessThanOrEqual(1)
+		renderItemPreview.mockImplementation(async () => null)
+		root = createRoot(container)
+	})
+
+	it("drops one source's previews when the hook switches to another source", async () => {
+		let next = 0
+		URL.createObjectURL = vi.fn(() => `blob:${++next}`)
+		renderItemPreview.mockClear()
+		renderItemPreview.mockResolvedValueOnce(new Blob(['a'])).mockResolvedValue(null)
+		const item = makeItem('Bare', 1)
+		const sourceA = makeSource([item])
+		const sourceB = makeSource([item])
+		let result: Record<string, string | undefined> = {}
+		let setSource!: (source: LibrarySource) => void
+		function Probe() {
+			const [source, set] = useState<LibrarySource>(sourceA)
+			setSource = set
+			result = useLibraryThumbnailUrls(source, [item])
+			return null
+		}
+		act(() => {
+			root.render(
+				<AssetUrlsProvider assetUrls={assetUrls}>
+					<EditorContext.Provider value={editor}>
+						<Probe />
+					</EditorContext.Provider>
+				</AssetUrlsProvider>
+			)
+		})
+		await vi.waitFor(async () => {
+			await act(async () => {})
+			expect(result[item.id]).toBe('blob:1')
+		})
+		act(() => setSource(sourceB))
+		await vi.waitFor(() => expect(renderItemPreview).toHaveBeenCalledTimes(2))
+		await act(async () => {})
+		expect(result[item.id]).toBeUndefined()
+		renderItemPreview.mockReset()
+		renderItemPreview.mockResolvedValue(null)
+	})
+
+	it("renders previews again when the active theme's definition changes under the same id", async () => {
+		renderItemPreview.mockClear()
+		renderItemPreview.mockResolvedValue(new Blob(['png']))
+		URL.createObjectURL = vi.fn(() => 'blob:preview')
+		const item = makeItem('Bare', 1)
+		const source = makeSource([item])
+		renderHook(() => useLibraryThumbnailUrls(source, [item]))
+		await vi.waitFor(() => expect(renderItemPreview).toHaveBeenCalledTimes(1))
+		const id = editor.getCurrentThemeId()
+		act(() =>
+			editor.updateThemes((themes) => ({
+				...themes,
+				[id]: { ...themes[id]!, fontSize: 99 } as any,
+			}))
+		)
+		await vi.waitFor(async () => {
+			await act(async () => {})
+			expect(renderItemPreview).toHaveBeenCalledTimes(2)
+		})
+		renderItemPreview.mockResolvedValue(null)
 	})
 
 	function makeResolvingSource() {

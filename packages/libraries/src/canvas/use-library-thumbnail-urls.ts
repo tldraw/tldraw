@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useEditor, useValue, type TLLibraryItemId } from 'tldraw'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useAssetUrls, useEditor, useValue, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource, TLLibraryThumbnailContext } from '../lib/LibrarySource'
 import { getThumbnailForColorMode, type TLLibraryItem } from '../lib/schema'
 import {
@@ -8,6 +8,7 @@ import {
 	getThumbnailContext,
 	stepThumbnailWidth,
 } from '../lib/thumbnail-context'
+import { fontAssetUrlsKey, getItemPreviewUrl } from './item-previews'
 
 interface ThumbnailRequest {
 	source: LibrarySource
@@ -26,8 +27,12 @@ export type LibraryThumbnailUrlsOptions =
 	| { container: HTMLElement | null; width?: never }
 
 /**
- * Each item's thumbnail URL, or undefined for none or while it resolves. Without a
+ * Each item's thumbnail URL, or undefined while it resolves or renders. Without a
  * {@link LibrarySource.resolveThumbnail}, the item's own `thumbnail` for the editor's colour mode.
+ * An item without a thumbnail gets its content rendered as one, a `blob:` URL kept for as long as
+ * the editor, and undefined if its content can't be loaded or has nothing to draw.
+ *
+ * Use it inside `<Tldraw>`: the rendered previews embed fonts from its asset URLs.
  *
  * With one, the source is asked for a URL sized for the tiles, whose width comes from `options`
  * and is rounded up to a power of two. Without a width, or before the container has a tile to
@@ -115,13 +120,61 @@ export function useLibraryThumbnailUrls(
 		[resolved]
 	)
 
-	if (source.resolveThumbnail) return resolvedUrls
+	const withoutThumbnail = items.filter((item) =>
+		source.resolveThumbnail ? resolved[item.id] === null : !item.thumbnail
+	)
+	const previews = useItemPreviewUrls(source, withoutThumbnail, colorMode)
+
 	return Object.fromEntries(
 		items.map((item) => [
 			item.id,
-			item.thumbnail ? getThumbnailForColorMode(item.thumbnail, colorMode) : undefined,
+			(source.resolveThumbnail
+				? resolvedUrls[item.id]
+				: item.thumbnail && getThumbnailForColorMode(item.thumbnail, colorMode)) ??
+				previews[item.id],
 		])
 	)
+}
+
+function useItemPreviewUrls(
+	source: LibrarySource,
+	items: TLLibraryItem[],
+	colorMode: 'light' | 'dark'
+) {
+	const editor = useEditor()
+	// Kept with their source: another source's item can share an id.
+	const [previews, setPreviews] = useState<{ source: LibrarySource; urls: Record<string, string> }>(
+		() => ({ source, urls: {} })
+	)
+	const latestItems = useRef(items)
+	latestItems.current = items
+	const itemIds = items.map((item) => item.id).join(' ')
+	const theme = useValue('preview theme', () => editor.getCurrentTheme(), [editor])
+	const fontAssetUrls = useAssetUrls().fonts
+	const latestFontAssetUrls = useRef(fontAssetUrls)
+	latestFontAssetUrls.current = fontAssetUrls
+	const fonts = fontAssetUrlsKey(fontAssetUrls)
+	useEffect(() => {
+		const controller = new AbortController()
+		const { signal } = controller
+		const darkMode = colorMode === 'dark'
+		for (const item of latestItems.current) {
+			getItemPreviewUrl(editor, source, item, {
+				darkMode,
+				theme,
+				fontAssetUrls: latestFontAssetUrls.current,
+				signal,
+			}).then((url) => {
+				if (signal.aborted || !url) return
+				setPreviews((previous) => {
+					const urls = previous.source === source ? previous.urls : {}
+					return urls[item.id] === url ? previous : { source, urls: { ...urls, [item.id]: url } }
+				})
+			})
+		}
+		return () => controller.abort()
+	}, [editor, source, itemIds, colorMode, theme, fonts])
+	return previews.source === source ? previews.urls : {}
 }
 
 function useTileWidth(container: HTMLElement | null, enabled: boolean) {
