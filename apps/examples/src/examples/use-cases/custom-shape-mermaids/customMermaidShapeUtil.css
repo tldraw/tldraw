@@ -10,7 +10,6 @@
 	justify-content: center;
 	align-items: center;
 	gap: 6px;
-	overflow: hidden;
 }
 
 .flowchart-util-shape--pending {
@@ -35,8 +34,10 @@
 
 .flowchart-util-shape__step-badge {
 	position: absolute;
-	top: 4px;
-	right: 4px;
+	/* Straddles the top edge so it stays clear of the label in a compact box */
+	top: 0;
+	right: 8px;
+	transform: translateY(-50%);
 	z-index: 2;
 	font-size: 10px;
 	font-weight: 600;
@@ -54,6 +55,7 @@
 	align-self: stretch;
 	min-height: 0;
 	width: 100%;
+	overflow: hidden;
 }
 
 .flowchart-util-shape__retry {

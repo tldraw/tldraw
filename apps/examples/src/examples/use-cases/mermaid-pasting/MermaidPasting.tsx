@@ -130,6 +130,6 @@ so we prefer that when it looks like a diagram.
 
 [3]
 `createMermaidDiagram` creates native shapes for flowcharts, state diagrams, sequence
-diagrams, and mind maps. For other diagram types it calls `onUnsupportedDiagram` with
-Mermaid's SVG, which we drop onto the canvas as an image via `putExternalContent`.
+diagrams, and mind maps. For other diagram types it calls `onUnsupportedDiagram` with the
+diagram rendered as SVG, which we drop onto the canvas as an image via `putExternalContent`.
 */

@@ -78,7 +78,7 @@ const KIND_TO_GEO: Record<MermaidDiagramKind, (kind: string) => TLGeoShapeGeoSty
 }
 
 /**
- * Default built-in mapping from {@link MermaidDiagramKind} + semantic `kind` to a geo {@link MermaidBlueprintNodeRenderSpec}.
+ * Default built-in mapping from {@link MermaidDiagramKind} + semantic `kind` to a {@link MermaidBlueprintNodeRenderSpec}: a geo shape, or bare text for a mindmap node with no shape and for a sequence section title.
  * Used when `mapNodeToRenderSpec` is omitted from `renderBlueprint` options, or when the mapper returns `undefined`.
  * @public
  */
@@ -86,6 +86,15 @@ export function defaultMermaidNodeRenderSpec(
 	diagramKind: MermaidDiagramKind,
 	kind: string
 ): MermaidBlueprintNodeRenderSpec {
+	// A mindmap node written without brackets has no shape: the layout draws it as text alone, so a
+	// box around it would overlap its tightly stacked siblings. A sequence section's title is text in
+	// the layout too, which puts a nested frame or note just below it, inside where a box would end.
+	if (
+		(diagramKind === 'mindmap' && Number(kind) === MERMAID_MINDMAP_NODE_TYPE.DEFAULT) ||
+		(diagramKind === 'sequence' && kind === 'sequence_fragment_section')
+	) {
+		return { variant: 'text' }
+	}
 	return { variant: 'geo', geo: KIND_TO_GEO[diagramKind]?.(kind) ?? 'rectangle' }
 }
 
