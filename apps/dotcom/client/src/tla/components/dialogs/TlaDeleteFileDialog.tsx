@@ -13,6 +13,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 
@@ -29,6 +30,7 @@ export function TlaDeleteFileDialog({
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const auth = useAuth()
+	const currentFileId = useCurrentFileId()
 
 	const isOwner = useHasFileAdminRights(fileId)
 	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
@@ -42,6 +44,11 @@ export function TlaDeleteFileDialog({
 			return
 		}
 		trackEvent('delete-file', { source: 'file-menu' })
+
+		if (fileId !== currentFileId) {
+			onClose()
+			return
+		}
 
 		// Stay in the workspace the file was deleted from: go to its most recent remaining
 		// file, or — if that was its last file — create a fresh blank file in it, the same
