@@ -51,7 +51,6 @@
 		"build-types": "tsc --build"
 	},
 	"devDependencies": {
-		"react": "^19.2.1",
 		"vitest": "^5.0.0"
 	},
 	"dependencies": {
