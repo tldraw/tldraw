@@ -193,7 +193,7 @@ import {
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
-import { TLCapability } from './types/capability-types'
+import { TLCapabilities, TLCapability } from './types/capability-types'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
@@ -1029,7 +1029,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private readonly _capabilityChecks = atom(
 		'capability checks',
-		new Map<TLCapability, (() => TLCheckResult)[]>()
+		new Map<TLCapability, ((data?: any) => TLCheckResult)[]>()
 	)
 
 	/**
@@ -1040,21 +1040,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerCapabilityCheck('create-shape', () => {
-	 *   if (!myPages.has(editor.getCurrentPageId())) {
-	 *     return { reason: 'This page is read only' }
+	 * editor.registerCapabilityCheck('delete-shapes', (data) => {
+	 *   const shapes = data?.shapes ?? editor.getSelectedShapes()
+	 *   if (shapes.some((shape) => shape.meta.owner !== myUserId)) {
+	 *     return { reason: 'You can only delete your own shapes' }
 	 *   }
 	 * })
 	 * ```
 	 *
 	 * @param capability - The capability to check.
-	 * @param handler - Returns nothing, `null` or `true` to allow, and `false` or a rejection to
-	 * reject.
+	 * @param handler - Gets the data the caller passed, if any. Returns nothing, `null` or `true` to
+	 * allow, and `false` or a rejection to reject.
 	 * @returns A function that removes the check.
 	 *
 	 * @public
 	 */
-	registerCapabilityCheck(capability: TLCapability, handler: () => TLCheckResult): () => void {
+	registerCapabilityCheck<C extends TLCapability>(
+		capability: C,
+		handler: (data?: TLCapabilities[C]) => TLCheckResult
+	): () => void {
 		this._capabilityChecks.update((checks) => {
 			const next = new Map(checks)
 			next.set(capability, [...(checks.get(capability) ?? []), handler])
@@ -1078,17 +1082,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Ask the checks registered for a capability. A readonly editor rejects every capability. A
 	 * capability with no registered check is allowed. Reactive.
 	 *
+	 * @example
+	 * ```ts
+	 * const rejection = editor.checkCapability('create-shapes', {
+	 *   shapes: [{ type: 'geo', props: { geo: 'rectangle' } }],
+	 * })
+	 * ```
+	 *
 	 * @param capability - The capability to check.
+	 * @param data - What the action works on. Leave it out when it isn't known yet.
 	 * @returns `null` if allowed, or the rejection.
 	 *
 	 * @public
 	 */
-	checkCapability(capability: TLCapability): TLCheckRejection | null {
+	checkCapability<C extends TLCapability>(
+		capability: C,
+		data?: TLCapabilities[C]
+	): TLCheckRejection | null {
 		if (this.getIsReadonly()) {
 			return { reason: 'readonly' }
 		}
 		for (const handler of this._capabilityChecks.get().get(capability) ?? EMPTY_ARRAY) {
-			const rejection = runCheck(handler)
+			const rejection = runCheck(() => handler(data))
 			if (rejection) {
 				return rejection
 			}

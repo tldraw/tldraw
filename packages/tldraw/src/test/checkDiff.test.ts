@@ -138,36 +138,57 @@ describe('checkDiff in the editor', () => {
 describe('capability checks', () => {
 	it('allows a capability with no check', () => {
 		const editor = new TestEditor()
-		expect(editor.checkCapability('create-shape')).toBeNull()
+		expect(editor.checkCapability('create-shapes')).toBeNull()
 	})
 
 	it('asks the registered checks, and the first rejection wins', () => {
 		const editor = new TestEditor()
-		const removeA = editor.registerCapabilityCheck('delete-shape', () => true)
-		const removeB = editor.registerCapabilityCheck('delete-shape', () => ({ reason: 'b' }))
-		editor.registerCapabilityCheck('delete-shape', () => ({ reason: 'c' }))
-		expect(editor.checkCapability('delete-shape')).toEqual({ reason: 'b' })
-		expect(editor.checkCapability('edit-shape')).toBeNull()
+		const removeA = editor.registerCapabilityCheck('delete-shapes', () => true)
+		const removeB = editor.registerCapabilityCheck('delete-shapes', () => ({ reason: 'b' }))
+		editor.registerCapabilityCheck('delete-shapes', () => ({ reason: 'c' }))
+		expect(editor.checkCapability('delete-shapes')).toEqual({ reason: 'b' })
+		expect(editor.checkCapability('edit-shapes')).toBeNull()
 
 		removeB()
-		expect(editor.checkCapability('delete-shape')).toEqual({ reason: 'c' })
+		expect(editor.checkCapability('delete-shapes')).toEqual({ reason: 'c' })
 		removeA()
+	})
+
+	it('passes the data to the checks, which also run without it', () => {
+		const editor = new TestEditor()
+		const seen: unknown[] = []
+		editor.registerCapabilityCheck('create-shapes', (data) => {
+			seen.push(data)
+			if (data?.shapes.some((shape) => shape.type === 'arrow')) {
+				return { reason: 'no arrows' }
+			}
+		})
+		expect(editor.checkCapability('create-shapes', { shapes: [{ type: 'geo' }] })).toBeNull()
+		expect(editor.checkCapability('create-shapes', { shapes: [{ type: 'arrow' }] })).toEqual({
+			reason: 'no arrows',
+		})
+		expect(editor.checkCapability('create-shapes')).toBeNull()
+		expect(seen).toEqual([
+			{ shapes: [{ type: 'geo' }] },
+			{ shapes: [{ type: 'arrow' }] },
+			undefined,
+		])
 	})
 
 	it('rejects every capability in a readonly editor', () => {
 		const editor = new TestEditor()
 		editor.updateInstanceState({ isReadonly: true })
-		expect(editor.checkCapability('create-shape')).toEqual({ reason: 'readonly' })
+		expect(editor.checkCapability('create-shapes')).toEqual({ reason: 'readonly' })
 	})
 
 	it('is reactive', () => {
 		const editor = new TestEditor()
 		let latest: string | null = null
 		const stop = react('capability', () => {
-			latest = editor.checkCapability('edit-shape')?.reason ?? null
+			latest = editor.checkCapability('edit-shapes')?.reason ?? null
 		})
 
-		const remove = editor.registerCapabilityCheck('edit-shape', () => {
+		const remove = editor.registerCapabilityCheck('edit-shapes', () => {
 			if (editor.getSelectedShapeIds().length > 1) {
 				return { reason: 'one at a time' }
 			}
