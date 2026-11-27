@@ -110,6 +110,68 @@ describe('class diagrams', () => {
 		expect(editor.getShapePageBounds(loop)!.h).toBeLessThan(node.h + Math.max(node.w, node.h))
 	})
 
+	it('draws notes, joining one written for a class to it with a dotted line', async () => {
+		const editor = await paste(`classDiagram
+    note "Domain model"
+    class Duck
+    note for Duck "can fly<br>can swim"`)
+
+		const notes = shapesOfType(editor, 'geo')
+		expect(notes.map((note) => [text(editor, note), note.props])).toEqual([
+			['Domain model', expect.objectContaining({ fill: 'solid', color: 'yellow' })],
+			['can fly\ncan swim', expect.objectContaining({ fill: 'solid', color: 'yellow' })],
+		])
+		const lines = (shapesOfType(editor, 'arrow') as TLArrowShape[]).map((arrow) => {
+			const { start, end } = getArrowBindings(editor, arrow)
+			const { arrowheadStart, arrowheadEnd, dash } = arrow.props
+			return [
+				start && text(editor, editor.getShape(start.toId)!),
+				nameOf(editor, end?.toId),
+				arrowheadStart,
+				arrowheadEnd,
+				dash,
+			]
+		})
+		expect(lines).toEqual([['can fly\ncan swim', 'Duck', 'none', 'none', 'dotted']])
+	})
+
+	it('draws a lollipop interface as its name on a line ending in an open circle', async () => {
+		const editor = await paste(`classDiagram
+    class Duck
+    Swimmable ()-- Duck`)
+
+		const [arrow] = shapesOfType(editor, 'arrow') as TLArrowShape[]
+		const { start, end } = getArrowBindings(editor, arrow)
+		const name = editor.getShape(start!.toId)!
+		expect([name.type, text(editor, name), nameOf(editor, end?.toId)]).toEqual([
+			'text',
+			'Swimmable',
+			'Duck',
+		])
+		expect(arrow.props).toMatchObject({ arrowheadStart: 'dot', arrowheadEnd: 'none', fill: 'none' })
+	})
+
+	it('colours classes from classDef and style, as flowcharts do', async () => {
+		const source = `classDiagram
+    class Order
+    class Payment
+    class Refund
+    classDef money fill:#f96,stroke:#c60
+    class Payment:::money
+    style Refund fill:#9cf`
+
+		const editor = await paste(source)
+		const colours = (name: string) => {
+			const { fill, color } = classNamed(editor, name).props
+			return { fill, color }
+		}
+		expect([colours('Order'), colours('Payment'), colours('Refund')]).toEqual([
+			{ fill: 'semi', color: 'black' },
+			{ fill: 'solid', color: 'orange' },
+			{ fill: 'solid', color: 'blue' },
+		])
+	})
+
 	describe('multiplicities', () => {
 		const source = `classDiagram
     namespace Shop {

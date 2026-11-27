@@ -17,7 +17,7 @@ import type { TLArrowShapeArrowheadStyle } from 'tldraw';
 import { TLBinding } from 'tldraw';
 import { TLDefaultColorStyle } from 'tldraw';
 import type { TLDefaultDashStyle } from 'tldraw';
-import type { TLDefaultFillStyle } from 'tldraw';
+import { TLDefaultFillStyle } from 'tldraw';
 import { TLDefaultFontStyle } from 'tldraw';
 import type { TLDefaultHorizontalAlignStyle } from 'tldraw';
 import { TLDefaultSizeStyle } from 'tldraw';
@@ -310,6 +310,7 @@ export type TLMermaidClassShape = TLShape<typeof MERMAID_CLASS_SHAPE_TYPE>;
 export interface TLMermaidClassShapeProps extends MermaidClassBox {
     // (undocumented)
     color: TLDefaultColorStyle;
+    fill: TLDefaultFillStyle;
     // (undocumented)
     font: TLDefaultFontStyle;
     // (undocumented)

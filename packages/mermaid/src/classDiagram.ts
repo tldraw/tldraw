@@ -7,6 +7,7 @@ import type {
 	MermaidClassBox,
 	MermaidClassMember,
 } from './blueprint'
+import { buildClassDefColorMap, parseNodeInlineColor, toNodeColorProps } from './colors'
 import { parsePeleLayout } from './peleDiagram'
 import {
 	claimEdge,
@@ -32,6 +33,8 @@ const AGGREGATION = 0
 const EXTENSION = 1
 const COMPOSITION = 2
 const DEPENDENCY = 3
+// `Swimmable ()-- Duck`: a lollipop interface, the end at the interface's name.
+const LOLLIPOP = 4
 
 const DOTTED_LINE = 1
 
@@ -44,6 +47,8 @@ function mapRelationTypeToArrowhead(type: number | string): TLArrowShapeArrowhea
 			return 'triangle'
 		case DEPENDENCY:
 			return 'arrow'
+		case LOLLIPOP:
+			return 'dot'
 		default:
 			return 'none'
 	}
@@ -51,16 +56,19 @@ function mapRelationTypeToArrowhead(type: number | string): TLArrowShapeArrowhea
 
 /** Parse pele's class diagram SVG for use by {@link classToBlueprint}. */
 export function parseClassDiagramLayout(root: Element, model: ClassModel): ParsedDiagramLayout {
-	// pele names the nth relation's path `id_<id1>_<id2>_<n>`, counting from 1.
-	const relationsByPathId = new Map(
-		model.relations.map((relation, i) => [`id_${relation.id1}_${relation.id2}_${i + 1}`, relation])
-	)
-	return parsePeleLayout(root, {
-		edgeEnds(id) {
-			const relation = relationsByPathId.get(id)
-			return relation && { start: relation.id1, end: relation.id2 }
-		},
+	// pele names the nth relation's path `id_<id1>_<id2>_<n>`, counting from 1, and the line from a
+	// note to its class `edgeNote<n>` after the note's index.
+	const ends = new Map<string, { start: string; end: string }>()
+	model.relations.forEach((relation, i) => {
+		ends.set(`id_${relation.id1}_${relation.id2}_${i + 1}`, {
+			start: relation.id1,
+			end: relation.id2,
+		})
 	})
+	for (const note of model.notes.values()) {
+		if (note.class) ends.set(`edgeNote${note.index}`, { start: note.id, end: note.class })
+	}
+	return parsePeleLayout(root, { edgeEnds: (id) => ends.get(id) })
 }
 
 function toClassMember(member: ClassMember): MermaidClassMember {
@@ -120,7 +128,10 @@ function makeRoomForNamespaceLabels(nodes: MermaidBlueprintNode[]) {
 /** Convert a parsed class diagram into a tldraw blueprint of nodes and edges. */
 export function classToBlueprint(
 	layout: ParsedDiagramLayout,
-	model: Pick<ClassModel, 'classes' | 'relations' | 'namespaces'>
+	model: Pick<
+		ClassModel,
+		'classes' | 'relations' | 'namespaces' | 'notes' | 'interfaces' | 'styleClasses'
+	>
 ): DiagramMermaidBlueprint {
 	const { nodes: svgNodes, clusters, edges: svgEdges } = layout
 	const nodes: MermaidBlueprintNode[] = []
@@ -159,6 +170,18 @@ export function classToBlueprint(
 		})
 	}
 
+	// pele keeps a class diagram's `classDef` as one comma-joined declaration, where a flowchart's
+	// is split into one per property. Commas inside `rgb(…)` stay put.
+	const classDefs = new Map(
+		[...model.styleClasses].map(([id, { styles }]) => [
+			id,
+			{ styles: styles.flatMap((style) => style.split(/,(?![^(]*\))/)) },
+		])
+	)
+	const colorsByClass = buildClassDefColorMap(
+		classDefs,
+		[...model.classes].map(([id, classNode]) => [id, { classes: classNode.cssClasses.split(' ') }])
+	)
 	for (const [id, classNode] of model.classes) {
 		const svgNode = svgNodes.get(id)
 		if (!svgNode) continue
@@ -175,9 +198,49 @@ export function classToBlueprint(
 			parentId: drawn(classNode.parent),
 			label: getClassLabel(classBox),
 			classBox,
+			...toNodeColorProps(colorsByClass.get(id) ?? parseNodeInlineColor(classNode.styles)),
 			align: hasMembers ? 'start' : 'middle',
 			verticalAlign: hasMembers ? 'start' : 'middle',
 			size: 'm',
+		})
+	}
+
+	for (const note of model.notes.values()) {
+		const svgNode = svgNodes.get(note.id)
+		if (!svgNode) continue
+		nodes.push({
+			id: note.id,
+			kind: 'note',
+			x: svgNode.center.x - svgNode.width / 2,
+			y: svgNode.center.y - svgNode.height / 2,
+			w: svgNode.width,
+			h: svgNode.height,
+			parentId: drawn(note.parent),
+			// The layout's lines, which keep the note's `<br>` breaks.
+			label: svgNode.lines?.join('\n') ?? note.text,
+			fill: 'solid',
+			color: 'yellow',
+			size: 's',
+			align: 'middle',
+			verticalAlign: 'middle',
+		})
+	}
+
+	// pele draws a lollipop interface as its name, and the circle as a marker on the relation's end.
+	for (const { id, label } of model.interfaces) {
+		const svgNode = svgNodes.get(id)
+		if (!svgNode) continue
+		nodes.push({
+			id,
+			kind: 'interface',
+			x: svgNode.center.x - svgNode.width / 2,
+			y: svgNode.center.y - svgNode.height / 2,
+			w: svgNode.width,
+			h: svgNode.height,
+			label,
+			size: 'm',
+			align: 'middle',
+			verticalAlign: 'middle',
 		})
 	}
 
@@ -238,6 +301,25 @@ export function classToBlueprint(
 			// triangle or aggregation diamond at the other end. Relations rarely mix the two.
 			fill: type1 === COMPOSITION || type2 === COMPOSITION ? 'fill' : 'none',
 			dash: lineType === DOTTED_LINE ? 'dashed' : 'solid',
+			size: 'm',
+		})
+	}
+
+	for (const note of model.notes.values()) {
+		if (!note.class) continue
+		const svgEdge = claimEdge(svgEdges, claimed, { startId: note.id, endId: note.class })
+		const startBox = getLayoutBox(layout, note.id)
+		const endBox = getLayoutBox(layout, note.class)
+		const anchors =
+			svgEdge && startBox && endBox ? getRouteEndAnchors(svgEdge, startBox, endBox) : undefined
+		blueprintEdges.push({
+			startNodeId: note.id,
+			endNodeId: note.class,
+			bend: 0,
+			...anchors,
+			arrowheadStart: 'none',
+			arrowheadEnd: 'none',
+			dash: 'dotted',
 			size: 'm',
 		})
 	}

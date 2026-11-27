@@ -2,6 +2,7 @@ import {
 	BaseBoxShapeUtil,
 	createShapePropsMigrationSequence,
 	DefaultColorStyle,
+	DefaultFillStyle,
 	DefaultFontFaces,
 	DefaultFontStyle,
 	DefaultSizeStyle,
@@ -12,12 +13,15 @@ import {
 	RecordProps,
 	SvgExportContext,
 	T,
+	TLDefaultColor,
 	TLDefaultColorStyle,
+	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultSizeStyle,
 	TLFontFace,
 	TLShape,
 	TLTheme,
+	TLThemeColors,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -34,6 +38,8 @@ export interface TLMermaidClassShapeProps extends MermaidClassBox {
 	w: number
 	h: number
 	color: TLDefaultColorStyle
+	/** As a geo shape's: `semi`, the default, is the canvas colour, and `solid` a tint of `color`. */
+	fill: TLDefaultFillStyle
 	size: TLDefaultSizeStyle
 	font: TLDefaultFontStyle
 }
@@ -158,6 +164,7 @@ export class MermaidClassShapeUtil extends BaseBoxShapeUtil<TLMermaidClassShape>
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		color: DefaultColorStyle,
+		fill: DefaultFillStyle,
 		size: DefaultSizeStyle,
 		font: DefaultFontStyle,
 		annotations: T.arrayOf(T.string),
@@ -171,6 +178,7 @@ export class MermaidClassShapeUtil extends BaseBoxShapeUtil<TLMermaidClassShape>
 			w: 160,
 			h: 120,
 			color: 'black',
+			fill: 'semi',
 			size: 'm',
 			font: 'draw',
 			annotations: [],
@@ -225,6 +233,24 @@ interface ClassBoxDrawing {
 	stroke: string
 }
 
+// The colour variant each fill draws in, as tldraw's own `DEFAULT_FILL_COLOR_NAMES` has it. A
+// pattern fill is drawn flat in its colour: the box has no hatching of its own.
+const FILL_COLOR_VARIANTS: Record<
+	Exclude<TLDefaultFillStyle, 'none' | 'semi'>,
+	keyof TLDefaultColor
+> = {
+	solid: 'semi',
+	pattern: 'pattern',
+	fill: 'fill',
+	'lined-fill': 'linedFill',
+}
+
+function getFill(colors: TLThemeColors, { fill, color }: TLMermaidClassShapeProps) {
+	if (fill === 'none') return 'none'
+	if (fill === 'semi') return colors.solid
+	return getColorValue(colors, color, FILL_COLOR_VARIANTS[fill])
+}
+
 // The canvas and SVG export both draw from this, so they can't disagree.
 function getClassBoxDrawing(
 	theme: TLTheme,
@@ -237,7 +263,7 @@ function getClassBoxDrawing(
 		props,
 		metrics,
 		layout: layoutClassBox(props, metrics),
-		fill: colors.solid,
+		fill: getFill(colors, props),
 		stroke: getColorValue(colors, props.color, 'solid'),
 	}
 }

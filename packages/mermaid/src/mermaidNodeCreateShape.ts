@@ -151,6 +151,7 @@ function createMermaidClassShape(
 		...editor.getShapeUtil(MERMAID_CLASS_SHAPE_TYPE).getDefaultProps(),
 		...classBox,
 		color: node.color ?? 'black',
+		...(node.fill && { fill: node.fill }),
 		size: node.size ?? 'm',
 		...overrides,
 	} as TLMermaidClassShapeProps

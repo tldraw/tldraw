@@ -1513,5 +1513,21 @@ sequenceDiagram
     }
     Hotspot --> Crater : feeds
     Hotspot --> LavaFlow : feeds`,
+		`classDiagram
+    note "Payments, simplified"
+    class Order {
+        +total() Money
+    }
+    class Payment {
+        +capture()
+    }
+    class Refund
+    Order --> Payment : paid by
+    Payment --> Refund : reversed by
+    Comparable ()-- Order
+    note for Refund "within 30 days<br>of capture"
+    classDef money fill:#f96,stroke:#c60
+    class Payment:::money
+    style Refund fill:#9cf`,
 	],
 ]
