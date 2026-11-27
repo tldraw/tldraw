@@ -1,11 +1,15 @@
 name: i18n translate
 # Translates in the repo with the translate skill (skills/translate) and opens a PR for a person to
-# review. Manual only while it is being proven out; Lokalise still runs alongside it.
+# review. Runs weekly in incremental mode; dispatch it by hand for a full review or other locales.
+# A scheduled run has no inputs, hence the defaults below.
 on:
+  schedule:
+    # Monday 10:00 UTC, when the Lokalise download used to run.
+    - cron: '0 10 * * 1'
   workflow_dispatch:
     inputs:
       mode:
-        description: 'incremental: new, changed and unreviewed entries. full-review: every entry.'
+        description: 'incremental: new and changed entries. full-review: every entry, including those held back before.'
         type: choice
         options: [incremental, full-review]
         default: incremental
@@ -58,9 +62,9 @@ jobs:
       - name: Translate
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          MODE: ${{ inputs.mode }}
+          MODE: ${{ inputs.mode || 'incremental' }}
           LOCALES: ${{ inputs.locales }}
-          BUDGET: ${{ inputs.budget }}
+          BUDGET: ${{ inputs.budget || '25' }}
           LIMIT: ${{ inputs.limit }}
         run: |
           args=(--mode "$MODE" --budget "$BUDGET" --out "$RUNNER_TEMP/i18n-run")
@@ -107,7 +111,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.token.outputs.token }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          MODE: ${{ inputs.mode }}
+          MODE: ${{ inputs.mode || 'incremental' }}
           LOCALES: ${{ inputs.locales }}
         run: |
           if [ -z "$(git status --porcelain)" ]; then
@@ -129,7 +133,7 @@ jobs:
           git commit --no-verify -m "chore(i18n): ${MODE} translation run${LOCALES:+ for $LOCALES}"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
           {
-            echo "Translations from a \`${MODE}\` run of the translate skill. Review before merging, and disable the Lokalise workflows first: the weekly download would overwrite these files."
+            echo "Translations from a \`${MODE}\` run of the translate skill. Review before merging."
             echo
             head -c 60000 "$body"
             echo

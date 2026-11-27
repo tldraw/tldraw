@@ -73,7 +73,7 @@ test('run triages, generates blind, reviews and applies, holding back low confid
 	t.after(() => delete process.env.CLAUDE_BIN)
 
 	const summary = await run(root, {
-		mode: 'incremental',
+		mode: 'full-review',
 		locales: ['es', 'pl'],
 		budget: 1,
 		out,
@@ -124,7 +124,7 @@ test('run stops starting calls once the budget is spent and leaves the rest pend
 	t.after(() => delete process.env.CLAUDE_BIN)
 
 	const summary = await run(root, {
-		mode: 'incremental',
+		mode: 'full-review',
 		locales: ['es', 'pl'],
 		budget: 0.065,
 		out,
@@ -149,7 +149,7 @@ test('run records what it spent even when apply fails', async (t) => {
 
 	await assert.rejects(
 		run(root, {
-			mode: 'incremental',
+			mode: 'full-review',
 			locales: ['es', 'pl'],
 			budget: 1,
 			out,
@@ -161,4 +161,28 @@ test('run records what it spent even when apply fails', async (t) => {
 		/validator crashed/
 	)
 	assert.equal(JSON.parse(readFileSync(join(out, 'summary.json'), 'utf8')).budget.spent, 0.04)
+})
+
+test('incremental runs skip unverified entries and take only missing and changed ones', async (t) => {
+	const root = fixture(t)
+	const out = join(root, '..', `${root.split('/').pop()}-out`)
+	t.after(() => rmSync(out, { recursive: true, force: true }))
+	process.env.CLAUDE_BIN = join(root, 'bin/claude')
+	t.after(() => delete process.env.CLAUDE_BIN)
+
+	const summary = await run(root, {
+		mode: 'incremental',
+		locales: ['es', 'pl'],
+		budget: 1,
+		out,
+		log: () => {},
+		validate: () => ({}),
+	})
+	// es copy/cut, pl copy and dotcom es abc are unverified; the rest are missing.
+	assert.equal(summary.pending, 4)
+	assert.deepEqual(JSON.parse(readFileSync(join(root, 'assets/translations/es.json'), 'utf8')), {
+		copy: 'Copiar',
+		cut: 'Cortar',
+		paste: 'Paste-es',
+	})
 })

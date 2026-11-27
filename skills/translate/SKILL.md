@@ -9,7 +9,7 @@ Produce a translation PR for the requested locales, or all supported non-English
 
 | Mode                     | Scope and behavior                                                                                                                                                                                                                |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Incremental (default)    | Review missing, unverified or changed entries; preserve current translations. A full update covers all locales without automatically rewriting every string.                                                                      |
+| Incremental (default)    | Review missing and changed entries; preserve current translations. Unverified entries (held back by an earlier review) wait for a full review. The weekly workflow runs this mode.                                                                      |
 | Full review              | Judge every current English key against its existing translation and actual app behavior, including previously reviewed entries whose hashes still match. Retain correct text and generate replacements for contextual errors.    |
 | Retranslate from scratch | Generate fresh candidates for every current English key before exposing the generator to existing translations. Independently review all candidates against the code, then compare with the baseline and integrate accepted text. |
 

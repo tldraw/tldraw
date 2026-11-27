@@ -354,9 +354,14 @@ export async function run(
 	mkdirSync(out, { recursive: true })
 	const budget = new Budget(budgetUsd)
 	const state = statePlan(root, locales, { includeCurrent: mode === 'full-review' })
+	// Every unverified entry has had a full review that held it back (low confidence). Incremental
+	// runs leave them out, or each weekly run would pay to review the same ~7,000 again and could
+	// run out of budget before reaching new strings.
+	const pending =
+		mode === 'incremental' ? state.entries.filter((e) => e.reason !== 'unverified') : state.entries
 	// --limit keeps the first n messages, for a cheap trial run.
-	const keep = maxMessages ? new Set([...new Set(state.entries.map(messageId))].slice(0, maxMessages)) : null
-	const work = keep ? state.entries.filter((e) => keep.has(messageId(e))) : state.entries
+	const keep = maxMessages ? new Set([...new Set(pending.map(messageId))].slice(0, maxMessages)) : null
+	const work = keep ? pending.filter((e) => keep.has(messageId(e))) : pending
 	const summary = { mode, locales: locales ?? 'all', pending: work.length, counts: state.counts }
 	const spentSoFar = () => `$${budget.spent.toFixed(2)} spent so far`
 	if (!work.length) {
