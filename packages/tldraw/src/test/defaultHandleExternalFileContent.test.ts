@@ -137,24 +137,24 @@ describe('defaultHandleExternalFileContent', () => {
 })
 
 describe('createShapesForAssets', () => {
+	const videoAsset = (id: string, w: number, h: number): TLVideoAsset => ({
+		id: `asset:${id}` as TLVideoAsset['id'],
+		typeName: 'asset',
+		type: 'video',
+		props: {
+			name: id,
+			src: 'data:ok',
+			w,
+			h,
+			fileSize: 1,
+			mimeType: 'video/mp4',
+			isAnimated: true,
+		},
+		meta: {},
+	})
+
 	it('skips assets with no size and still places the others', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
-		const videoAsset = (id: string, w: number, h: number): TLVideoAsset => ({
-			id: `asset:${id}` as TLVideoAsset['id'],
-			typeName: 'asset',
-			type: 'video',
-			props: {
-				name: id,
-				src: 'data:ok',
-				w,
-				h,
-				fileSize: 1,
-				mimeType: 'video/mp4',
-				isAnimated: true,
-			},
-			meta: {},
-		})
-
 		await createShapesForAssets(editor, [videoAsset('empty', 0, 0), videoAsset('good', 160, 90)], {
 			x: 0,
 			y: 0,
@@ -164,6 +164,56 @@ describe('createShapesForAssets', () => {
 			{ assetId: 'asset:good', w: 160, h: 90 },
 		])
 		expect(editor.getAssets().map((a) => a.id)).toEqual(['asset:good'])
+	})
+
+	// The test viewport is 1080x720, so media is capped at 360x240 at 100% zoom.
+	it('scales media down to a third of the viewport, keeping its aspect ratio', async () => {
+		await createShapesForAssets(
+			editor,
+			[videoAsset('wide', 1920, 1080), videoAsset('tall', 500, 1000)],
+			{ x: 0, y: 0 }
+		)
+
+		expect(editor.getCurrentPageShapes().map((s) => s.props)).toMatchObject([
+			{ assetId: 'asset:wide', w: 360, h: 202.5 },
+			{ assetId: 'asset:tall', w: 120, h: 240 },
+		])
+		// The asset keeps its natural size; only the shape is scaled.
+		expect(editor.getAsset('asset:wide' as TLVideoAsset['id'])!.props).toMatchObject({
+			w: 1920,
+			h: 1080,
+		})
+	})
+
+	it('leaves media that already fits at its natural size', async () => {
+		await createShapesForAssets(editor, [videoAsset('small', 160, 90)], { x: 0, y: 0 })
+
+		expect(editor.getCurrentPageShapes()[0].props).toMatchObject({ w: 160, h: 90 })
+	})
+
+	it('keeps the 100% zoom limit when zoomed out, so media looks smaller on screen', async () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		await createShapesForAssets(editor, [videoAsset('wide', 1920, 1080)], { x: 0, y: 0 })
+
+		expect(editor.getCurrentPageShapes()[0].props).toMatchObject({ w: 360, h: 202.5 })
+	})
+
+	it('shrinks the limit when zoomed in, so media still takes up a third of the screen', async () => {
+		editor.setCamera({ x: 0, y: 0, z: 2 })
+		await createShapesForAssets(editor, [videoAsset('wide', 1920, 1080)], { x: 0, y: 0 })
+
+		expect(editor.getCurrentPageShapes()[0].props).toMatchObject({ w: 180, h: 101.25 })
+	})
+
+	it('can be turned off with the maxNewMediaViewportFraction option', async () => {
+		editor.dispose()
+		editor = new TestEditor({
+			assetUtils: defaultAssetUtils,
+			options: { maxNewMediaViewportFraction: Infinity },
+		})
+		await createShapesForAssets(editor, [videoAsset('wide', 1920, 1080)], { x: 0, y: 0 })
+
+		expect(editor.getCurrentPageShapes()[0].props).toMatchObject({ w: 1920, h: 1080 })
 	})
 })
 

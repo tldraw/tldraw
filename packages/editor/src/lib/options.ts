@@ -65,6 +65,15 @@ export type TLClipboardPasteRawInfo =
 export interface TldrawOptions {
 	readonly maxShapesPerPage: number
 	readonly maxFilesAtOnce: number
+	/**
+	 * The largest size, as a fraction of the viewport's width and height, that a dropped or pasted
+	 * image or video is created at. Bigger media is scaled down to fit, keeping its aspect ratio, so
+	 * it doesn't suddenly cover what collaborators are working on. The limit is measured against the
+	 * viewport at 100% zoom, so media dropped while zoomed out looks smaller on screen, and media
+	 * dropped while zoomed in still takes up at most this fraction of the screen. Set to `Infinity`
+	 * to create media at its natural size. Defaults to 1/3.
+	 */
+	readonly maxNewMediaViewportFraction: number
 	readonly maxPages: number
 	readonly animationMediumMs: number
 	readonly followChaseViewportSnap: number
@@ -290,6 +299,7 @@ export interface TldrawOptions {
 export const defaultTldrawOptions = {
 	maxShapesPerPage: 4000,
 	maxFilesAtOnce: 100,
+	maxNewMediaViewportFraction: 1 / 3,
 	maxPages: 40,
 	animationMediumMs: 320,
 	followChaseViewportSnap: 2,

@@ -55,11 +55,12 @@ The options object is readonly. Attempting to modify it has no effect and TypeSc
 
 Cap shape, page, and file counts:
 
-| Option             | Default | Description                         |
-| ------------------ | ------- | ----------------------------------- |
-| `maxShapesPerPage` | 4000    | Maximum shapes allowed on one page  |
-| `maxPages`         | 40      | Maximum pages in a document         |
-| `maxFilesAtOnce`   | 100     | Maximum files to handle in one drop |
+| Option                        | Default | Description                                                                        |
+| ----------------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `maxShapesPerPage`            | 4000    | Maximum shapes allowed on one page                                                 |
+| `maxPages`                    | 40      | Maximum pages in a document                                                        |
+| `maxFilesAtOnce`              | 100     | Maximum files to handle in one drop                                                |
+| `maxNewMediaViewportFraction` | 1/3     | Largest size for new images and videos, as a fraction of the viewport at 100% zoom |
 
 Setting `maxPages` to 1 effectively disables multi-page functionality and removes the page menu from the UI.
 
