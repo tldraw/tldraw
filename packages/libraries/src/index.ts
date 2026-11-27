@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
+
 export { AddSelectionTile, type AddSelectionTileProps } from './canvas/add-selection-tile'
 export {
 	AddToLibraryMenuItem,
@@ -90,7 +92,7 @@ export {
 	type ItemGridProps,
 	type ItemGridTileProps,
 } from './ui/item-grid'
-export { BoardIcon } from './ui/board-icon'
+export { BoardIcon, type BoardIconProps } from './ui/board-icon'
 export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
 export { ItemTile, type ItemTileProps } from './ui/item-tile'
 export {
@@ -153,3 +155,9 @@ export {
 	type TLLibraryItemId,
 	type TLLibraryThumbnail,
 } from '@tldraw/tlschema'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

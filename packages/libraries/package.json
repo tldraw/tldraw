@@ -1,15 +1,47 @@
 {
 	"name": "@tldraw/libraries",
-	"description": "Libraries of reusable shapes for tldraw. Unreleased: private until the release PR flips it.",
-	"version": "0.0.0",
-	"private": true,
+	"description": "Libraries of reusable shapes for tldraw.",
+	"version": "5.6.2",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:libraries",
+		"name": "Libraries",
+		"type": "feature",
+		"parent": "tldraw:collaboration",
+		"premium": true,
+		"licenseFlag": "FEAT_LIBRARIES"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./libraries.css",
+	"type": "module",
 	"files": [
 		"libraries.css"
 	],
-	"type": "module",
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
+	},
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/state": "workspace:*",
@@ -27,18 +59,11 @@
 		"react-dom": "^19.2.1",
 		"vitest": "^5.0.0"
 	},
-	"scripts": {
-		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test": "pnpm exec vitest --passWithNoTests",
-		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
-		"build-types": "tsc --build"
-	},
-	"engines": {
-		"node": ">=22.12.0"
-	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
 		"react-dom": "^18.2.0 || ^19.2.1"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

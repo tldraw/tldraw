@@ -1,11 +1,15 @@
 import type { SVGProps } from 'react'
 
+/** @public */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface BoardIconProps extends SVGProps<SVGSVGElement> {}
+
 /**
  * A page with a folded corner, for an owner that is a board, e.g. as a {@link TLLibraryOwner}'s
  * `icon`.
  * @public @react
  */
-export function BoardIcon(props: SVGProps<SVGSVGElement>) {
+export function BoardIcon(props: BoardIconProps) {
 	return (
 		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true" {...props}>
 			<path

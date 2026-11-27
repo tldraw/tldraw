@@ -69,7 +69,7 @@ const MAX_RENDER_SIZE = 4096
 // Exported alone, a frame draws only its contents, cropped like a slide (#5993), but a thumbnail
 // should show what gets placed: the frame, border and name. That rule only applies to a single id,
 // so the frame is passed twice (it's drawn once).
-function getThumbnailExport(
+export function getThumbnailExport(
 	editor: Editor,
 	shapeIds: TLShapeId[]
 ): TLImageExportOptions & { ids: TLShapeId[] } {

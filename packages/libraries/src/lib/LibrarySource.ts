@@ -8,6 +8,7 @@ import type { TLLibraryItem, TLLibraryItemContent } from './schema'
  *
  * Using items has no action: anything a source lists can be used. A library someone may not
  * use is simply not listed to them.
+ * @public
  */
 export type TLLibraryAction =
 	| 'createLibrary'
@@ -24,6 +25,7 @@ export type TLLibraryAction =
  * `{ ownerId }`, e.g. whether a library may be created for that owner. A library inside another has
  * no permissions of its own: it has those of the library at the top of its tree. With a library id,
  * `'createLibrary'` asks whether a library may be created, or moved, inside it.
+ * @public
  */
 export type TLLibraryTarget = TLLibraryId | { ownerId: string }
 
@@ -36,10 +38,14 @@ export type TLLibraryTarget = TLLibraryId | { ownerId: string }
  *   can't be renamed or deleted.
  * - `'document'`: it is the document's own library, kept in it, which the panel shows first under
  *   "This file", before the libraries housed in or added to the document.
+ * @public
  */
 export type TLLibraryPlacement = 'housed' | 'added' | 'default' | 'document'
 
-/** Something a library can belong to, such as a user or a workspace. */
+/**
+ * Something a library can belong to, such as a user or a workspace.
+ * @public
+ */
 export interface TLLibraryOwner {
 	id: string
 	name: string
@@ -47,7 +53,10 @@ export interface TLLibraryOwner {
 	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
 }
 
-/** Choices for a new library. */
+/**
+ * Choices for a new library.
+ * @public
+ */
 export interface TLNewLibraryOptions {
 	/**
 	 * Who it belongs to. Left out, the source decides, e.g. its default owner, or, inside a library,
@@ -63,7 +72,10 @@ export interface TLNewLibraryOptions {
 	meta?: JsonObject
 }
 
-/** Where {@link LibrarySource.copyLibrary} puts the copy, and how it names it. */
+/**
+ * Where {@link LibrarySource.copyLibrary} puts the copy, and how it names it.
+ * @public
+ */
 export interface TLCopyLibraryOptions {
 	/**
 	 * The library to put the copy inside, which must belong to the owner the copy goes to. Left out,
@@ -78,14 +90,17 @@ export interface TLCopyLibraryOptions {
 	getName?(name: string): string
 }
 
-/** What a source needs to store a new item. */
+/**
+ * What a source needs to store a new item.
+ * @public
+ */
 export interface TLNewLibraryItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
 	name?: string
 	content: TLLibraryItemContent
 	/**
 	 * A rendered preview, or a light and a dark one for an app with both modes. Leave it out and the
-	 * UI shows a placeholder.
+	 * UI renders one from the item's content when the item is shown, with its name in the meantime.
 	 */
 	thumbnail?: TLLibraryThumbnail<Blob>
 	/** Stored on the item as its `meta`, e.g. the category it had in the pack it was copied from. */
@@ -94,12 +109,14 @@ export interface TLNewLibraryItem {
 
 /**
  * The changes {@link LibrarySource.updateItem} makes to an item. Fields left out stay as they are.
+ * @public
  */
 export type TLLibraryItemPartial = Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
 
 /**
  * What a source knows about an item beyond its listing, shown in its details. Every field is
  * optional: the details leave out what a source doesn't know.
+ * @public
  */
 export interface TLLibraryItemDetails {
 	/** The name to show for whoever saved the item. */
@@ -110,6 +127,7 @@ export interface TLLibraryItemDetails {
 /**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
  * builds it each time it asks.
+ * @public
  */
 export interface TLLibraryThumbnailContext {
 	colorMode: 'light' | 'dark'
@@ -130,6 +148,7 @@ export interface TLLibraryThumbnailContext {
  *
  * The getters are reactive: read them inside a `computed`, `react` or `useValue` and the caller
  * updates when the source changes. Writes are async because most sources save to a server.
+ * @public
  */
 export interface LibrarySource {
 	readonly id: string
@@ -163,10 +182,11 @@ export interface LibrarySource {
 	/**
 	 * Fetches a library's items, for a source that lists them only once they are fetched, e.g. from
 	 * a download per library. The panel calls it for each library whose items it is about to show:
-	 * an unfolded section, and every library while a search is active. Only that library's items:
-	 * the libraries inside it load their own when the panel asks. Called again on each of
-	 * those, so return straight away once the items are fetched or being fetched. Failures are the
-	 * source's to report. Optional: a source that lists its items straight away leaves it out.
+	 * an unfolded section once it comes near the panel's scrolled view, and every library while a
+	 * search is active. Only that library's items: the libraries inside it load their own when the
+	 * panel asks. Called again on each of those, so return straight away once the items are fetched
+	 * or being fetched. Failures are the source's to report. Optional: a source that lists its items
+	 * straight away leaves it out.
 	 */
 	loadItems?(libraryId: TLLibraryId): void
 	/**
@@ -314,7 +334,10 @@ export interface LibrarySource {
 	removeLibraryFromDocument?(libraryId: TLLibraryId): Promise<void>
 }
 
-/** Thrown by a source when the current user isn't allowed to do something. */
+/**
+ * Thrown by a source when the current user isn't allowed to do something.
+ * @public
+ */
 export class LibraryPermissionError extends Error {
 	override name = 'LibraryPermissionError'
 	constructor(
@@ -327,7 +350,10 @@ export class LibraryPermissionError extends Error {
 	}
 }
 
-/** Thrown by a source when a library, item or owner doesn't exist (any more). */
+/**
+ * Thrown by a source when a library, item or owner doesn't exist (any more).
+ * @public
+ */
 export class LibraryNotFoundError extends Error {
 	override name = 'LibraryNotFoundError'
 	constructor(readonly id: string) {
@@ -338,6 +364,7 @@ export class LibraryNotFoundError extends Error {
 /**
  * Thrown by a source when a library can't go where it was asked to: inside a library of another
  * owner than the one named.
+ * @public
  */
 export class LibraryNestingError extends Error {
 	override name = 'LibraryNestingError'

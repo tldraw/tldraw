@@ -363,6 +363,19 @@
 	object-fit: contain;
 }
 
+.tlui-libraries-tile__placeholder {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	max-width: 80%;
+	overflow: hidden;
+	overflow-wrap: anywhere;
+	text-align: center;
+	font-size: 11px;
+	line-height: 1.3;
+	color: var(--tl-color-text-3);
+}
+
 /* Still loading, behind the image it replaces; laid out so that lazy loading still starts it. */
 .tlui-libraries-tile__thumbnail > img[data-loading] {
 	position: absolute;
