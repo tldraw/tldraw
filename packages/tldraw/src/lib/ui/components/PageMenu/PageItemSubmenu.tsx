@@ -1,5 +1,6 @@
 import {
 	defineMessages,
+	Editor,
 	PageRecordType,
 	TLPageId,
 	track,
@@ -32,6 +33,10 @@ const messages = defineMessages({
 	pageMenuSubmenuRename: { id: 'page-menu.submenu.rename', defaultMessage: 'Rename' },
 	pageMenuSubmenuTitle: { id: 'page-menu.submenu.title', defaultMessage: 'Menu' },
 })
+function getPageShapes(editor: Editor, pageId: string) {
+	return [...editor.getPageShapeIds(pageId as TLPageId)].map((id) => editor.getShape(id)!)
+}
+
 /** @public */
 export interface PageItemSubmenuProps {
 	index: number
@@ -52,16 +57,30 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	// A page's shapes are created and deleted with it
 	const canDuplicatePage = useValue(
 		'can duplicate page',
-		() => !editor.checkCapability(['create-page', 'create-shape']),
-		[editor]
+		() =>
+			!editor.checkCapability('create-page') &&
+			!editor.checkCapability('create-shapes', { shapes: getPageShapes(editor, item.id) }),
+		[editor, item.id]
 	)
-	const canEditPage = useValue('can edit page', () => !editor.checkCapability('edit-page'), [
-		editor,
-	])
+	const canEditPage = useValue(
+		'can edit page',
+		() => {
+			const page = editor.getPage(item.id as TLPageId)
+			return !!page && !editor.checkCapability('edit-page', { page })
+		},
+		[editor, item.id]
+	)
 	const canDeletePage = useValue(
 		'can delete page',
-		() => !editor.checkCapability(['delete-page', 'delete-shape']),
-		[editor]
+		() => {
+			const page = editor.getPage(item.id as TLPageId)
+			return (
+				!!page &&
+				!editor.checkCapability('delete-page', { page }) &&
+				!editor.checkCapability('delete-shapes', { shapes: getPageShapes(editor, item.id) })
+			)
+		},
+		[editor, item.id]
 	)
 
 	const onDuplicate = useCallback(() => {

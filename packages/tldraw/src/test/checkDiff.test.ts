@@ -1,4 +1,4 @@
-import { createShapeId, react, TLCheckDiff, TLShape } from '@tldraw/editor'
+import { atom, createShapeId, react, TLCheckDiff, TLShape } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 const ids = {
@@ -14,7 +14,7 @@ function setup(checkDiff: TLCheckDiff) {
 }
 
 describe('checkDiff in the editor', () => {
-	it('reverts a rejected operation as a whole and emits rejected', () => {
+	it('reverts a rejected operation as a whole and emits rejected', async () => {
 		const { editor, rejected } = setup((diff) => {
 			if (ids.b in diff.added) {
 				return { reason: 'no b' }
@@ -28,7 +28,20 @@ describe('checkDiff in the editor', () => {
 
 		expect(editor.getShape(ids.a)).toBeUndefined()
 		expect(editor.getShape(ids.b)).toBeUndefined()
+		expect(rejected).toEqual([])
+		await Promise.resolve()
 		expect(rejected).toEqual([{ reason: 'no b', source: 'local' }])
+	})
+
+	it('keeps what a rejected listener changes', async () => {
+		const { editor } = setup(() => false)
+		const lastReason = atom<string | null>('last reason', null)
+		editor.on('rejected', ({ reason }) => lastReason.set(reason))
+
+		editor.createShapes([{ id: ids.a, type: 'geo' }])
+		await Promise.resolve()
+
+		expect(lastReason.get()).toBe('rejected')
 	})
 
 	it('keeps an allowed operation', () => {
@@ -53,7 +66,7 @@ describe('checkDiff in the editor', () => {
 		expect(editor.getShape(ids.a)).toBeUndefined()
 	})
 
-	it('treats false as a rejection and a throw as reason error', () => {
+	it('treats false as a rejection and a throw as reason error', async () => {
 		let result: () => boolean = () => false
 		const { editor, rejected } = setup(() => result())
 		editor.createShapes([{ id: ids.a, type: 'geo' }])
@@ -66,6 +79,7 @@ describe('checkDiff in the editor', () => {
 		consoleError.mockRestore()
 
 		expect(editor.getShape(ids.a)).toBeUndefined()
+		await Promise.resolve()
 		expect(rejected.map((r) => r.reason)).toEqual(['rejected', 'error'])
 	})
 
@@ -88,6 +102,28 @@ describe('checkDiff in the editor', () => {
 		expect(typeNames.has('instance_page_state')).toBe(false)
 	})
 
+	it('does not check what side effects write in response to remote changes', () => {
+		let allow = true
+		const { editor, rejected } = setup(() => allow)
+		editor.createShapes([{ id: ids.a, type: 'geo' }])
+		const remoteShape = editor.getShape(ids.a)!
+		editor.deleteShapes([ids.a])
+		editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
+			if (shape.id === ids.a) {
+				editor.createShapes([{ id: ids.b, type: 'geo' }])
+			}
+		})
+
+		allow = false
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([remoteShape])
+		})
+
+		expect(editor.getShape(ids.a)).toBeDefined()
+		expect(editor.getShape(ids.b)).toBeDefined()
+		expect(rejected).toEqual([])
+	})
+
 	it('passes the session and the current user', () => {
 		const contexts: { sessionId: string; userId: string | null }[] = []
 		const { editor } = setup((_diff, { sessionId, userId }) => {
@@ -102,47 +138,57 @@ describe('checkDiff in the editor', () => {
 describe('capability checks', () => {
 	it('allows a capability with no check', () => {
 		const editor = new TestEditor()
-		expect(editor.checkCapability('create-shape')).toBeNull()
+		expect(editor.checkCapability('create-shapes')).toBeNull()
 	})
 
 	it('asks the registered checks, and the first rejection wins', () => {
 		const editor = new TestEditor()
-		const removeA = editor.registerCapabilityCheck('delete-shape', () => true)
-		const removeB = editor.registerCapabilityCheck('delete-shape', () => ({ reason: 'b' }))
-		editor.registerCapabilityCheck('delete-shape', () => ({ reason: 'c' }))
-		expect(editor.checkCapability('delete-shape')).toEqual({ reason: 'b' })
-		expect(editor.checkCapability('edit-shape')).toBeNull()
+		const removeA = editor.registerCapabilityCheck('delete-shapes', () => true)
+		const removeB = editor.registerCapabilityCheck('delete-shapes', () => ({ reason: 'b' }))
+		editor.registerCapabilityCheck('delete-shapes', () => ({ reason: 'c' }))
+		expect(editor.checkCapability('delete-shapes')).toEqual({ reason: 'b' })
+		expect(editor.checkCapability('edit-shapes')).toBeNull()
 
 		removeB()
-		expect(editor.checkCapability('delete-shape')).toEqual({ reason: 'c' })
+		expect(editor.checkCapability('delete-shapes')).toEqual({ reason: 'c' })
 		removeA()
 	})
 
-	it('checks several capabilities, and the first rejection wins', () => {
+	it('passes the data to the checks, which also run without it', () => {
 		const editor = new TestEditor()
-		editor.registerCapabilityCheck('edit-shape', () => ({ reason: 'edit' }))
-		editor.registerCapabilityCheck('delete-shape', () => ({ reason: 'delete' }))
-		expect(editor.checkCapability(['create-shape', 'delete-shape', 'edit-shape'])).toEqual({
-			reason: 'delete',
+		const seen: unknown[] = []
+		editor.registerCapabilityCheck('create-shapes', (data) => {
+			seen.push(data)
+			if (data?.shapes.some((shape) => shape.type === 'arrow')) {
+				return { reason: 'no arrows' }
+			}
 		})
-		expect(editor.checkCapability(['create-shape', 'create-page'])).toBeNull()
-		expect(editor.checkCapability([])).toBeNull()
+		expect(editor.checkCapability('create-shapes', { shapes: [{ type: 'geo' }] })).toBeNull()
+		expect(editor.checkCapability('create-shapes', { shapes: [{ type: 'arrow' }] })).toEqual({
+			reason: 'no arrows',
+		})
+		expect(editor.checkCapability('create-shapes')).toBeNull()
+		expect(seen).toEqual([
+			{ shapes: [{ type: 'geo' }] },
+			{ shapes: [{ type: 'arrow' }] },
+			undefined,
+		])
 	})
 
 	it('rejects every capability in a readonly editor', () => {
 		const editor = new TestEditor()
 		editor.updateInstanceState({ isReadonly: true })
-		expect(editor.checkCapability('create-shape')).toEqual({ reason: 'readonly' })
+		expect(editor.checkCapability('create-shapes')).toEqual({ reason: 'readonly' })
 	})
 
 	it('is reactive', () => {
 		const editor = new TestEditor()
 		let latest: string | null = null
 		const stop = react('capability', () => {
-			latest = editor.checkCapability('edit-shape')?.reason ?? null
+			latest = editor.checkCapability('edit-shapes')?.reason ?? null
 		})
 
-		const remove = editor.registerCapabilityCheck('edit-shape', () => {
+		const remove = editor.registerCapabilityCheck('edit-shapes', () => {
 			if (editor.getSelectedShapeIds().length > 1) {
 				return { reason: 'one at a time' }
 			}

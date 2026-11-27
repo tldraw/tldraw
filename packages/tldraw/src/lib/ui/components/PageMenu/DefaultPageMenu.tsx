@@ -128,9 +128,6 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		() => editor.checkCapability('create-page'),
 		[editor]
 	)
-	const cannotEditPage = useValue('cannot edit page', () => editor.checkCapability('edit-page'), [
-		editor,
-	])
 
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
@@ -384,31 +381,36 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		editor.timers.requestAnimationFrame(tickAutoScrollDuringDrag)
 	}, [editor, tickAutoScrollDuringDrag])
 
-	const handlePointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
-		if (e.button !== 0) return
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent<HTMLButtonElement>) => {
+			if (e.button !== 0) return
 
-		const { clientY, currentTarget } = e
-		const { id, index } = currentTarget.dataset
-		if (!id || index === undefined) return
+			const { clientY, currentTarget } = e
+			const { id, index } = currentTarget.dataset
+			if (!id || index === undefined) return
+			const page = editor.getPage(id as TLPageId)
+			if (!page || editor.checkCapability('edit-page', { page })) return
 
-		const startedOnDragHandle = currentTarget.dataset.dragHandle === 'true'
-		if (startedOnDragHandle) {
-			e.preventDefault()
-			e.stopPropagation()
-		}
+			const startedOnDragHandle = currentTarget.dataset.dragHandle === 'true'
+			if (startedOnDragHandle) {
+				e.preventDefault()
+				e.stopPropagation()
+			}
 
-		const mut = rMutables.current
-		setPointerCapture(currentTarget, e)
-		mut.justDragged = false
-		mut.status = 'pointing'
-		mut.id = id as TLPageId
-		mut.startIndex = +index
-		mut.dragIndex = +index
-		mut.startY = clientY
-		mut.lastClientY = clientY
-		mut.startScrollTop = rSortableContainer.current?.scrollTop ?? 0
-		mut.startedOnDragHandle = startedOnDragHandle
-	}, [])
+			const mut = rMutables.current
+			setPointerCapture(currentTarget, e)
+			mut.justDragged = false
+			mut.status = 'pointing'
+			mut.id = id as TLPageId
+			mut.startIndex = +index
+			mut.dragIndex = +index
+			mut.startY = clientY
+			mut.lastClientY = clientY
+			mut.startScrollTop = rSortableContainer.current?.scrollTop ?? 0
+			mut.startedOnDragHandle = startedOnDragHandle
+		},
+		[editor]
+	)
 
 	const handlePointerMove = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
@@ -501,9 +503,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [isOpen, resetDrag])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
-	const shouldUseDragHandle = !cannotEditPage && isCoarsePointer
+	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
 	const rowDragHandlers =
-		cannotEditPage || isCoarsePointer
+		isReadonlyMode || isCoarsePointer
 			? undefined
 			: {
 					onPointerDown: handlePointerDown,
@@ -514,7 +516,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
-			if (cannotEditPage) return
+			const page = editor.getPage(id)
+			if (!page || editor.checkCapability('edit-page', { page })) return
 			if (shouldUseWindowPrompt) {
 				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
@@ -525,7 +528,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			}
 			setEditingPageId(id)
 		},
-		[editor, msg, cannotEditPage, shouldUseWindowPrompt, trackEvent]
+		[editor, msg, shouldUseWindowPrompt, trackEvent]
 	)
 
 	const handleCreatePageClick = useCallback(() => {

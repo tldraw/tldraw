@@ -31,10 +31,13 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	// Styles for the next shape stay enabled: only the selection needs `edit-shape`.
+	// Styles for the next shape stay enabled: only the selection needs `edit-shapes`.
 	const cannotEditSelection = useValue(
 		'cannot edit selection',
-		() => editor.getSelectedShapeIds().length > 0 && !!editor.checkCapability('edit-shape'),
+		() => {
+			const shapes = editor.getSelectedShapes()
+			return shapes.length > 0 && !!editor.checkCapability('edit-shapes', { shapes })
+		},
 		[editor]
 	)
 

@@ -21,7 +21,8 @@ export class PointingSelection extends StateNode {
 	}
 
 	private startTranslating(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability('edit-shape')) return
+		if (this.editor.checkCapability('edit-shapes', { shapes: this.editor.getSelectedShapes() }))
+			return
 		this.parent.transition('translating', info)
 	}
 

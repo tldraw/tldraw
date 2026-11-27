@@ -27,7 +27,11 @@ export const DefaultVideoToolbarContent = track(function DefaultVideoToolbarCont
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'video-toolbar'
-	const cannotEdit = !!editor.checkCapability('edit-shape')
+	const shape = editor.getShape(videoShapeId)
+	const cannotEdit = !!editor.checkCapability(
+		'edit-shapes',
+		shape ? { shapes: [shape] } : undefined
+	)
 
 	const actions = useActions()
 

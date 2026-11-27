@@ -21,6 +21,7 @@ export class Erasing extends StateNode {
 				.filter((shape) => {
 					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
+					if (this.editor.checkCapability('delete-shapes', { shapes: [shape] })) return true
 					// A frame the press hit on its outline stays marked: a press just inside the outline
 					// is within the frame's bounds, so the containment check below would otherwise
 					// unmark it on the first move while a press just outside would erase it

@@ -193,7 +193,7 @@ import {
 } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
-import { TLCapability } from './types/capability-types'
+import { TLCapabilities, TLCapability } from './types/capability-types'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
@@ -1013,7 +1013,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 					)
 					if (rejection) {
 						rollback()
-						this.emit('rejected', { reason: rejection.reason, source: 'local' })
+						// Emitted after the rollback: a listener runs inside this operation, so what it
+						// changed, for example a toast, would be rolled back too.
+						queueMicrotask(() => {
+							if (this.isDisposed) {
+								return
+							}
+							this.emit('rejected', { reason: rejection.reason, source: 'local' })
+						})
 					}
 				})
 			)
@@ -1022,7 +1029,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private readonly _capabilityChecks = atom(
 		'capability checks',
-		new Map<TLCapability, (() => TLCheckResult)[]>()
+		new Map<TLCapability, ((data?: any) => TLCheckResult)[]>()
 	)
 
 	/**
@@ -1033,21 +1040,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerCapabilityCheck('create-shape', () => {
-	 *   if (!myPages.has(editor.getCurrentPageId())) {
-	 *     return { reason: 'This page is read only' }
+	 * editor.registerCapabilityCheck('delete-shapes', (data) => {
+	 *   const shapes = data?.shapes ?? editor.getSelectedShapes()
+	 *   if (shapes.some((shape) => shape.meta.owner !== myUserId)) {
+	 *     return { reason: 'You can only delete your own shapes' }
 	 *   }
 	 * })
 	 * ```
 	 *
 	 * @param capability - The capability to check.
-	 * @param handler - Returns nothing, `null` or `true` to allow, and `false` or a rejection to
-	 * reject.
+	 * @param handler - Gets the data the caller passed, if any. Returns nothing, `null` or `true` to
+	 * allow, and `false` or a rejection to reject.
 	 * @returns A function that removes the check.
 	 *
 	 * @public
 	 */
-	registerCapabilityCheck(capability: TLCapability, handler: () => TLCheckResult): () => void {
+	registerCapabilityCheck<C extends TLCapability>(
+		capability: C,
+		handler: (data?: TLCapabilities[C]) => TLCheckResult
+	): () => void {
 		this._capabilityChecks.update((checks) => {
 			const next = new Map(checks)
 			next.set(capability, [...(checks.get(capability) ?? []), handler])
@@ -1073,26 +1084,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * // Creating a shape by dragging also edits it
-	 * if (editor.checkCapability(['create-shape', 'edit-shape'])) return
+	 * const rejection = editor.checkCapability('create-shapes', {
+	 *   shapes: [{ type: 'geo', props: { geo: 'rectangle' } }],
+	 * })
 	 * ```
 	 *
-	 * @param capability - The capability to check, or several that must all be allowed.
-	 * @returns `null` if allowed, or the first rejection.
+	 * @param capability - The capability to check.
+	 * @param data - What the action works on. Leave it out when it isn't known yet.
+	 * @returns `null` if allowed, or the rejection.
 	 *
 	 * @public
 	 */
-	checkCapability(capability: TLCapability | TLCapability[]): TLCheckRejection | null {
+	checkCapability<C extends TLCapability>(
+		capability: C,
+		data?: TLCapabilities[C]
+	): TLCheckRejection | null {
 		if (this.getIsReadonly()) {
 			return { reason: 'readonly' }
 		}
-		const checks = this._capabilityChecks.get()
-		for (const c of Array.isArray(capability) ? capability : [capability]) {
-			for (const handler of checks.get(c) ?? EMPTY_ARRAY) {
-				const rejection = runCheck(handler)
-				if (rejection) {
-					return rejection
-				}
+		for (const handler of this._capabilityChecks.get().get(capability) ?? EMPTY_ARRAY) {
+			const rejection = runCheck(() => handler(data))
+			if (rejection) {
+				return rejection
 			}
 		}
 		return null
@@ -2949,7 +2962,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		// includes readonly
-		if (this.checkCapability('edit-shape') && !util.canEditInReadonly(_shape)) return false
+		if (
+			this.checkCapability('edit-shapes', { shapes: [_shape] }) &&
+			!util.canEditInReadonly(_shape)
+		)
+			return false
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -9715,7 +9732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		// includes readonly. Without this, an upload could start before the diff check sees a record.
-		if (!opts.force && this.checkCapability('create-shape')) return
+		if (!opts.force && this.checkCapability('create-shapes')) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -9730,7 +9747,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.checkCapability('edit-shape')) return
+		const shape = 'shapeId' in info && info.shapeId ? this.getShape(info.shapeId) : undefined
+		if (
+			!opts.force &&
+			this.checkCapability('edit-shapes', shape ? { shapes: [shape] } : undefined)
+		) {
+			return
+		}
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

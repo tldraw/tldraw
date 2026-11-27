@@ -4,11 +4,6 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onEnter(info: TLPointerEventInfo) {
-		// Checked here, not in Idle: other tools enter this state directly (accel-click in draw).
-		if (this.editor.checkCapability('delete-shape')) {
-			this.parent.transition('idle', info)
-			return
-		}
 		const onlyEraseTopShape = info.accelKey
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
@@ -30,6 +25,7 @@ export class Pointing extends StateNode {
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
+				if (this.editor.checkCapability('delete-shapes', { shapes: [hitShape] })) continue
 				// If we've hit a frame-like shape after hitting any other shape, stop here
 				if (this.editor.isShapeFrameLike(hitShape) && erasing.size > initialSize) {
 					break

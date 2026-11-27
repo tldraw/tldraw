@@ -933,7 +933,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
-    checkCapability(capability: TLCapability | TLCapability[]): null | TLCheckRejection;
+    checkCapability<C extends TLCapability>(capability: C, data?: TLCapabilities[C]): null | TLCheckRejection;
     // (undocumented)
     clearHistory(): this;
     // @internal
@@ -1555,7 +1555,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         force?: boolean;
     }): Promise<void>;
     redo(): this;
-    registerCapabilityCheck(capability: TLCapability, handler: () => TLCheckResult): () => void;
+    registerCapabilityCheck<C extends TLCapability>(capability: C, handler: (data?: TLCapabilities[C]) => TLCheckResult): () => void;
     registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
     registerExternalAssetHandler<T extends TLExternalAsset['type']>(type: T, handler: ((info: TLExternalAsset & {
         type: T;
@@ -3629,16 +3629,25 @@ export interface TLCanvasComponentProps {
 export interface TLCapabilities {
     // (undocumented)
     'create-page': null;
+    'create-shapes': {
+        shapes: TLCreateShapePartial[];
+    };
     // (undocumented)
-    'create-shape': null;
+    'delete-page': {
+        page: TLPage;
+    };
     // (undocumented)
-    'delete-page': null;
+    'delete-shapes': {
+        shapes: TLShape[];
+    };
     // (undocumented)
-    'delete-shape': null;
+    'edit-page': {
+        page: TLPage;
+    };
     // (undocumented)
-    'edit-page': null;
-    // (undocumented)
-    'edit-shape': null;
+    'edit-shapes': {
+        shapes: TLShape[];
+    };
 }
 
 // @public (undocumented)

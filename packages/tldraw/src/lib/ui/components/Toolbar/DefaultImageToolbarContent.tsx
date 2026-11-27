@@ -84,7 +84,11 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	const msg = useTranslation()
 	const source = 'image-toolbar'
 	const sliderRef = useRef<HTMLDivElement>(null)
-	const cannotEdit = !!editor.checkCapability('edit-shape')
+	const shape = editor.getShape(imageShapeId)
+	const cannotEdit = !!editor.checkCapability(
+		'edit-shapes',
+		shape ? { shapes: [shape] } : undefined
+	)
 
 	const crop = useValue('crop', () => editor.getShape<TLImageShape>(imageShapeId)!.props.crop, [
 		editor,

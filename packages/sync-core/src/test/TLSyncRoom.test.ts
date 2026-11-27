@@ -636,6 +636,25 @@ describe('22. Room construction (RC)', () => {
 		expect(clientBMessages[0].data[0].type).toBe('patch')
 	})
 
+	it('ignores push ids that name Object.prototype properties', async () => {
+		const { room, storage } = makeRoom()
+		const socket = connectSession(room, 'session-a')
+		const before = storage.getSnapshot().documents.map((r) => r.state)
+
+		room.handleMessage('session-a', {
+			type: 'push',
+			clientClock: 1,
+			diff: { constructor: ['remove'], toString: ['remove'] },
+		} as unknown as TLPushRequest<TLRecord>)
+		await Promise.resolve()
+
+		expect(storage.getSnapshot().documents.map((r) => r.state)).toEqual(before)
+		expect((sentMessages(socket).at(-1) as any).data[0]).toMatchObject({
+			type: 'push_result',
+			action: 'discard',
+		})
+	})
+
 	it('fires onCommittedChanges once with the committed document diff after a push', async () => {
 		const onCommittedChanges = vi.fn()
 		const { room } = makeRoom({ onCommittedChanges })
