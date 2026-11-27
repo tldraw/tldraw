@@ -40,15 +40,10 @@ interface KnownProblem {
 const KNOWN_PROBLEMS: KnownProblem[] = [
 	{
 		// tldraw squeezes an arrow's label to the arrow's width less a margin whenever the arrow is
-		// wider than it is tall.
+		// wider than it is tall. Self-loops bend deep enough to avoid it; an arrow between two close
+		// states can't.
 		reason: 'A label on a short, wide arrow wraps mid-word',
-		findings: [
-			midWordBreak('state', 15, 'reply received', 'receiv/ed'),
-			midWordBreak('state', 24, 'request\nmore\nchanges', 'reque/st'),
-			midWordBreak('state', 24, 'request\nmore\nchanges', 'chang/es'),
-			// The same squeezed self-loop label reaches up into its state.
-			overlap('state', 24, 'request\nmore\nchanges', 'Review'),
-		],
+		findings: [midWordBreak('state', 15, 'reply received', 'receiv/ed')],
 	},
 	{
 		reason:

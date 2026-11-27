@@ -3,6 +3,7 @@ import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import { parseMindmapLayout } from './mindmapDiagram'
 import { parsePathPoints, parsePeleDiagram, parsePeleLayout } from './peleDiagram'
 import { parseStateDiagramLayout, stateToBlueprint } from './stateDiagram'
+import { deepenSelfLoopForLabel } from './svgParsing'
 import { LAYOUT_SCALE } from './utils'
 
 async function render(text: string) {
@@ -258,6 +259,48 @@ describe("what the conversion relies on in pele's output", () => {
 				.map(([label]) => label)
 				.sort()
 		).toEqual(['go', 'waiting'])
+	})
+})
+
+describe('deepenSelfLoopForLabel', () => {
+	// The width of an arc's bounds: its chord, or its diameter once bent past half the chord.
+	const arcWidth = (chord: number, depth: number) =>
+		Math.abs(depth) > chord / 2 ? (chord * chord) / 4 / Math.abs(depth) + Math.abs(depth) : chord
+
+	it("bends a loop deep enough that tldraw's squeezed label still fits the longest word", () => {
+		const bend = deepenSelfLoopForLabel(-59, 113, 77)
+		expect(bend).toBeLessThan(-59)
+		expect(arcWidth(113, bend) - 64).toBeGreaterThanOrEqual(77)
+	})
+
+	it('leaves a loop that is already wide or deep enough', () => {
+		expect(deepenSelfLoopForLabel(-30, 200, 77)).toBe(-30)
+		expect(deepenSelfLoopForLabel(-200, 113, 77)).toBe(-200)
+		expect(deepenSelfLoopForLabel(40, 113, 77)).toBeGreaterThan(40)
+	})
+})
+
+describe('state self-loops', () => {
+	it('bend deeper on a narrow state so a long word in the label is not broken', async () => {
+		const { root, model } = await render(`stateDiagram-v2
+  direction LR
+  Draft --> Review: submit
+  Review --> Review: request more changes`)
+		const state = model as StateModel
+		const loopBend = (measure?: (label: string) => number) =>
+			stateToBlueprint(
+				parseStateDiagramLayout(root),
+				state.states,
+				state.relations,
+				undefined,
+				measure
+			).edges.find((e) => e.startNodeId === 'Review' && e.endNodeId === 'Review')!.bend
+
+		const shallow = loopBend()
+		const deep = loopBend(() => 300)
+
+		expect(Math.sign(deep)).toBe(Math.sign(shallow))
+		expect(Math.abs(deep)).toBeGreaterThan(Math.abs(shallow))
 	})
 })
 

@@ -3,6 +3,7 @@ import { Editor } from 'tldraw'
 import type { DiagramMermaidBlueprint } from './blueprint'
 import { flowchartToBlueprint, parseFlowchartLayout } from './flowchartDiagram'
 import {
+	createArrowLabelLongestWordMeasurer,
 	createLabelSizeMeasurer,
 	createLabelWidthMeasurer,
 	createLayoutTextMeasurer,
@@ -112,7 +113,8 @@ export async function createMermaidDiagram(
 							parseStateDiagramLayout(root),
 							state.states,
 							state.relations,
-							state.classes
+							state.classes,
+							createArrowLabelLongestWordMeasurer(editor)
 						)
 				)
 				break

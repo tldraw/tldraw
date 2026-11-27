@@ -1,5 +1,7 @@
 import type {
+	ArrowShapeUtil,
 	Editor,
+	TLArrowShape,
 	TLDefaultSizeStyle,
 	TLGeoShape,
 	TLShape,
@@ -155,6 +157,37 @@ export function createLabelSizeMeasurer(editor: Editor): MeasureLabelSize {
 		)
 		return { w: Math.ceil(w + dv.labelPadding * 2), h: Math.ceil(h + dv.labelPadding * 2) }
 	}
+}
+
+/** The width of a label's longest word, in the font tldraw draws an arrow's label at. */
+export type MeasureLongestWord = (label: string) => number
+
+export function createArrowLabelLongestWordMeasurer(
+	editor: Editor,
+	size: TLDefaultSizeStyle = 'm'
+): MeasureLongestWord {
+	const util = editor.getShapeUtil<ArrowShapeUtil>('arrow')
+	const shape = { type: 'arrow', props: { ...util.getDefaultProps(), size } } as TLArrowShape
+	const dv = getDisplayValues(util, shape)
+	return (label) =>
+		Math.max(
+			0,
+			...sanitizeDiagramText(label)
+				.split(/\s+/)
+				.filter(Boolean)
+				.map(
+					(word) =>
+						editor.textMeasure.measureText(word, {
+							fontFamily: dv.labelFontFamily,
+							fontSize: dv.labelFontSize,
+							lineHeight: dv.labelLineHeight,
+							fontWeight: 'normal',
+							fontStyle: 'normal',
+							padding: '0px',
+							maxWidth: null,
+						}).w
+				)
+		)
 }
 
 /** A geo shape's label font, at the size tldraw draws a node's label. */

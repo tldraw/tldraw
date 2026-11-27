@@ -194,6 +194,23 @@ export function getSelfLoopEdgeLayout(
 	}
 }
 
+/** What tldraw takes off an arrow's width for its label, when the arrow is wider than tall. */
+const ARROW_LABEL_SQUEEZE_MARGIN = 64
+
+/**
+ * tldraw squeezes an arrow's label to the arrow's width less 64px whenever the arrow is wider than
+ * tall, which a loop on a node's top or bottom edge always is, and breaks any word longer than
+ * that mid-word ("reque/st"). The loop's ends can't spread past its node, so a narrow node's loop
+ * is bent deeper instead: bent past half its chord, an arc bulges out to its full diameter,
+ * (chord² / 4 + depth²) / depth, which grows with the depth. Returns `bend`, deepened if needed.
+ */
+export function deepenSelfLoopForLabel(bend: number, chord: number, longestWord: number) {
+	const width = longestWord + ARROW_LABEL_SQUEEZE_MARGIN + 1
+	if (!(longestWord > 0) || width <= chord) return bend
+	const depth = (width + Math.sqrt(width * width - chord * chord)) / 2
+	return Math.abs(bend) >= depth ? bend : (Math.sign(bend) || -1) * depth
+}
+
 /** How far from a route's end toward its node's centre an arrow aims, as a share of the way. */
 const ANCHOR_INSET = 0.25
 

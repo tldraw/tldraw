@@ -5,9 +5,11 @@ import type {
 	MermaidBlueprintNode,
 } from './blueprint'
 import { buildClassDefColorMap, type ParsedNodeColors, toNodeColorProps } from './colors'
+import type { MeasureLongestWord } from './mermaidNodeCreateShape'
 import { parsePeleLayout } from './peleDiagram'
 import {
 	claimEdge,
+	deepenSelfLoopForLabel,
 	getLayoutBox,
 	getPositionAlongRoute,
 	getRouteEndAnchors,
@@ -240,7 +242,8 @@ export function stateToBlueprint(
 	layout: ParsedDiagramLayout,
 	states: Map<string, StateStmt>,
 	relations: DiagramEdge[],
-	classDefs?: StateModel['classes']
+	classDefs?: StateModel['classes'],
+	measureLongestWord?: MeasureLongestWord
 ): DiagramMermaidBlueprint {
 	const stateColorMap = buildClassDefColorMap(classDefs ?? new Map(), states)
 	const { nodes: svgNodes, clusters: svgClusters, edges: svgEdges } = layout
@@ -379,6 +382,19 @@ export function stateToBlueprint(
 				: undefined
 		const isNoteEdge = edge.id2.endsWith('----note') || edge.id1.endsWith('----note')
 		const label = svgEdge && layout.edgeLabels.get(svgEdge.id)
+		const labelText = label?.lines?.join('\n') ?? edge.relationTitle
+		const loopNode = nodeById.get(edge.id1)
+		if (
+			selfLoop &&
+			labelText &&
+			measureLongestWord &&
+			loopNode &&
+			selfLoop.anchorStartY === selfLoop.anchorEndY &&
+			(selfLoop.anchorStartY === 0 || selfLoop.anchorStartY === 1)
+		) {
+			const chord = Math.abs(selfLoop.anchorEndX - selfLoop.anchorStartX) * loopNode.w
+			selfLoop.bend = deepenSelfLoopForLabel(selfLoop.bend, chord, measureLongestWord(labelText))
+		}
 		const anchors =
 			svgEdge && !selfLoop && startBox && endBox
 				? getRouteEndAnchors(svgEdge, startBox, endBox)
@@ -392,7 +408,7 @@ export function stateToBlueprint(
 		blueprintEdges.push({
 			startNodeId: edge.id1,
 			endNodeId: edge.id2,
-			label: label?.lines?.join('\n') ?? edge.relationTitle,
+			label: labelText,
 			bend,
 			...anchors,
 			// Where the layout drew the label along the route; a loop places its label with its bend.
