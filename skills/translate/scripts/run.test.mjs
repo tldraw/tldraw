@@ -139,3 +139,26 @@ test('run stops starting calls once the budget is spent and leaves the rest pend
 		cut: 'Cortar',
 	})
 })
+
+test('run records what it spent even when apply fails', async (t) => {
+	const root = fixture(t)
+	const out = join(root, '..', `${root.split('/').pop()}-out`)
+	t.after(() => rmSync(out, { recursive: true, force: true }))
+	process.env.CLAUDE_BIN = join(root, 'bin/claude')
+	t.after(() => delete process.env.CLAUDE_BIN)
+
+	await assert.rejects(
+		run(root, {
+			mode: 'incremental',
+			locales: ['es', 'pl'],
+			budget: 1,
+			out,
+			log: () => {},
+			validate: () => {
+				throw new Error('validator crashed')
+			},
+		}),
+		/validator crashed/
+	)
+	assert.equal(JSON.parse(readFileSync(join(out, 'summary.json'), 'utf8')).budget.spent, 0.04)
+})

@@ -358,6 +358,7 @@ export async function run(
 	const keep = maxMessages ? new Set([...new Set(state.entries.map(messageId))].slice(0, maxMessages)) : null
 	const work = keep ? state.entries.filter((e) => keep.has(messageId(e))) : state.entries
 	const summary = { mode, locales: locales ?? 'all', pending: work.length, counts: state.counts }
+	const spentSoFar = () => `$${budget.spent.toFixed(2)} spent so far`
 	if (!work.length) {
 		log('Nothing to translate.')
 		writeFileSync(join(out, 'summary.json'), JSON.stringify(summary, null, 2) + '\n')
@@ -417,7 +418,7 @@ export async function run(
 	const toGenerate = work.filter((e) => e.translation === null || rejected.has(idOf(e)))
 	const candidates = new Map()
 	if (toGenerate.length) {
-		log(`generate: ${toGenerate.length} entries`)
+		log(`generate: ${toGenerate.length} entries (${spentSoFar()})`)
 		const snapshotDir = snapshot(root, join(out, 'snapshot'), { withGlossaries: true })
 		// Notes written this run aren't committed yet, so HEAD's snapshot lacks them.
 		cpSync(resolve(root, contextDirectory), join(snapshotDir, contextDirectory), { recursive: true })
@@ -440,7 +441,7 @@ export async function run(
 
 	// Review the candidates against the code, the existing text and why it was rejected.
 	const toReview = toGenerate.filter((e) => candidates.has(idOf(e)))
-	log(`review: ${toReview.length} candidates`)
+	log(`review: ${toReview.length} candidates (${spentSoFar()})`)
 	await pool(batchByMessage(toReview, ENTRIES_PER_CALL.review), concurrency, async (batch) => {
 		const payload = {
 			messages: group(batch, (e) => {
@@ -474,6 +475,10 @@ export async function run(
 		return true
 	})
 
+	log(`translated (${spentSoFar()})`)
+	const costs = () => ({ limit: budgetUsd, spent: Number(budget.spent.toFixed(2)), byPhase: budget.byPhase })
+	// Written before apply as well, so a run that fails there still records what it cost.
+	writeFileSync(join(out, 'summary.json'), JSON.stringify({ ...summary, budget: costs() }, null, 2) + '\n')
 	const result = { entries: dispositions, glossary: glossaryUpdates }
 	writeFileSync(join(out, 'dispositions.json'), JSON.stringify(result, null, 2) + '\n')
 	const applied = apply(root, result, validate ? { validate } : undefined)
@@ -486,7 +491,7 @@ export async function run(
 		unresolved: applied.unresolved.length,
 		// Entries with no decision at all: a failed call or the budget ran out. They stay pending.
 		undecided: work.filter((e) => !decided.has(idOf(e))).length,
-		budget: { limit: budgetUsd, spent: Number(budget.spent.toFixed(2)), byPhase: budget.byPhase },
+		budget: costs(),
 		byLocale: countByLocale(dispositions),
 	})
 	writeFileSync(join(out, 'summary.json'), JSON.stringify(summary, null, 2) + '\n')
