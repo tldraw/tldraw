@@ -483,7 +483,9 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const isCoarsePointer = instanceState.isCoarsePointer
 		const isChangingStyle = instanceState.isChangingStyle
 		// includes readonly
-		const cannotEdit = !!editor.checkCapability('edit-shape')
+		const cannotEdit = !!editor.checkCapability('edit-shapes', {
+			shapes: editor.getSelectedShapes(),
+		})
 		const zoom = editor.getZoomLevel()
 		const rotation = editor.getSelectionRotation()
 

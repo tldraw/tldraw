@@ -15,7 +15,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
+		if (this.editor.checkCapability('create-shapes', { shapes: [{ type: 'arrow' }] })) {
 			return
 		}
 		// A touch press arrives without a hover move, so the stored flag may belong to another target

@@ -107,12 +107,14 @@ describe('isActionRunnable', () => {
 	})
 
 	it('blocks while a capability is rejected', () => {
-		editor.registerCapabilityCheck('delete-shape', () => false)
-		expect(isActionRunnable(editor, action({ capabilities: ['edit-shape'] }))).toBe(true)
-		expect(isActionRunnable(editor, action({ capabilities: ['edit-shape', 'delete-shape'] }))).toBe(
-			false
-		)
-		expect(isActionRunnable(editor, action({ capabilities: [], readonlyOk: true }))).toBe(true)
+		editor.registerCapabilityCheck('delete-shapes', () => false)
+		const edit = (e: Editor) => e.checkCapability('edit-shapes')
+		const editAndDelete = (e: Editor) => edit(e) ?? e.checkCapability('delete-shapes')
+		expect(isActionRunnable(editor, action({ checkCapabilities: edit }))).toBe(true)
+		expect(isActionRunnable(editor, action({ checkCapabilities: editAndDelete }))).toBe(false)
+		expect(
+			isActionRunnable(editor, action({ checkCapabilities: () => null, readonlyOk: true }))
+		).toBe(true)
 	})
 
 	it.each(['isAvailable', 'isEnabled'] as const)(
@@ -196,15 +198,15 @@ describe('every action gates itself', () => {
 	})
 
 	// Without this, a new action that writes would skip the capability checks
-	it('declares capabilities on every default action that is not readonlyOk', async () => {
+	it('asks capabilities on every default action that is not readonlyOk', async () => {
 		const { actions } = await setup()
 		const undeclared = Object.values(actions())
-			.filter((action) => action.id !== 'custom' && !action.readonlyOk && !action.capabilities)
+			.filter((action) => action.id !== 'custom' && !action.readonlyOk && !action.checkCapabilities)
 			.map((action) => action.id)
 		expect(undeclared).toEqual([])
 	})
 
-	it('keeps the capabilities when an override replaces an action', async () => {
+	it('keeps the capability check when an override replaces an action', async () => {
 		const { editor, actions, onUiEvent } = await setup(
 			withCustom((_editor, actions) => {
 				actions['delete'] = { ...actions['delete'], onSelect: customOnSelect }
@@ -212,7 +214,7 @@ describe('every action gates itself', () => {
 			})
 		)
 		act(() => {
-			editor.registerCapabilityCheck('delete-shape', () => false)
+			editor.registerCapabilityCheck('delete-shapes', () => false)
 		})
 		const w = watch(editor, onUiEvent)
 		await act(async () => {

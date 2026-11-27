@@ -37,7 +37,11 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const msg = useTranslation()
 	const ref = useRef<HTMLInputElement>(null)
 	const trackEvent = useUiEvents()
-	const cannotEdit = !!editor.checkCapability('edit-shape')
+	const shape = editor.getShape(shapeId)
+	const cannotEdit = !!editor.checkCapability(
+		'edit-shapes',
+		shape ? { shapes: [shape] } : undefined
+	)
 
 	const handleComplete = useCallback(() => {
 		trackEvent('set-alt-text', { source })

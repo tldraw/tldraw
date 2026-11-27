@@ -45,14 +45,19 @@ describe('the default actions ask capabilities', () => {
 			true,
 		])
 
-		editor.registerCapabilityCheck('delete-shape', () => false)
-		editor.registerCapabilityCheck('create-shape', () => false)
-		editor.registerCapabilityCheck('edit-shape', () => false)
+		const seen: unknown[] = []
+		editor.registerCapabilityCheck('delete-shapes', (data) => {
+			seen.push(data)
+			return false
+		})
+		editor.registerCapabilityCheck('create-shapes', () => false)
+		editor.registerCapabilityCheck('edit-shapes', () => false)
 		expect([isEnabled('delete'), isEnabled('duplicate'), isEnabled('align-left')]).toEqual([
 			false,
 			false,
 			false,
 		])
+		expect(seen).toContainEqual({ shapes: editor.getSelectedShapes() })
 	})
 })
 
@@ -78,7 +83,7 @@ describe('the default tools ask capabilities', () => {
 		editor.setCurrentTool('select')
 
 		act(() => {
-			editor.registerCapabilityCheck('create-shape', () => false)
+			editor.registerCapabilityCheck('create-shapes', () => false)
 		})
 		expect(drawButton().disabled).toBe(true)
 		expect(
@@ -89,14 +94,31 @@ describe('the default tools ask capabilities', () => {
 		expect(editor.getCurrentToolId()).toBe('select')
 	})
 
-	it('does not drag a shape out of the toolbar without create-shape', async () => {
+	it('disables only the tools whose shape type create-shapes rejects', async () => {
 		const { editor } = await renderTldrawComponentWithEditor(
 			(onMount) => <Tldraw onMount={onMount} />,
 			{
 				waitForPatterns: false,
 			}
 		)
-		editor.registerCapabilityCheck('create-shape', () => false)
+		act(() => {
+			editor.registerCapabilityCheck('create-shapes', (data) =>
+				data?.shapes.every((shape) => shape.type !== 'geo' || shape.props?.geo !== 'rectangle')
+			)
+		})
+		const button = (tool: string) =>
+			document.querySelector(`[data-testid="tools.${tool}"]`) as HTMLButtonElement
+		expect([button('rectangle').disabled, button('draw').disabled]).toEqual([true, false])
+	})
+
+	it('does not drag a shape out of the toolbar without create-shapes', async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw onMount={onMount} />,
+			{
+				waitForPatterns: false,
+			}
+		)
+		editor.registerCapabilityCheck('create-shapes', () => false)
 		onDragFromToolbarToCreateShape(editor, editor.inputs as any, {
 			createShape: (shapeId) => editor.createShape({ id: shapeId, type: 'geo' }),
 		})

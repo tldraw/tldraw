@@ -18,7 +18,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.checkCapability(['create-shape', 'edit-shape'])) {
+		if (this.editor.checkCapability('create-shapes', { shapes: [{ type: 'text' }] })) {
 			return
 		}
 		this.parent.transition('pointing', info)
