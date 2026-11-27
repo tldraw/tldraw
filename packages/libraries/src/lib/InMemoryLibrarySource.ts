@@ -30,6 +30,7 @@ import {
 	type TLLibraryItemContent,
 } from './schema'
 
+/** @public */
 export interface InMemoryLibrarySourceOptions {
 	id?: string
 	/** Starting data, e.g. sample libraries while a real backend doesn't exist yet. */
@@ -93,6 +94,7 @@ const schema = StoreSchema.create<ListedRecord>({
  * Libraries and items live in a tldraw `Store`, which validates them and freezes them in
  * development. Item content and thumbnails stay outside it: content can be large, and thumbnails
  * are object URLs that have to be released.
+ * @public
  */
 export class InMemoryLibrarySource implements LibrarySource {
 	readonly id: string

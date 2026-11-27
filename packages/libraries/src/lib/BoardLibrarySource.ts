@@ -47,6 +47,7 @@ import { trackItemsStoring } from './whenItemsStored'
 
 const UPLOAD_CONCURRENCY = 4
 
+/** @public */
 export interface BoardLibrarySourceOptions {
 	id?: string
 	/**
@@ -88,6 +89,7 @@ const DOCUMENT_LIBRARY_ID = LibraryRecordType.createId('document')
  *
  * With the `documentLibrary` option, the document has one library of its own, which anyone who
  * can change the document can save to, rather than any number of libraries.
+ * @public
  */
 export class BoardLibrarySource implements LibrarySource {
 	readonly id: string
