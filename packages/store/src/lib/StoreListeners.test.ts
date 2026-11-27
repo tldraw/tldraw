@@ -665,3 +665,108 @@ describe('listeners: removing a listener (H)', () => {
 		expect(received).toEqual([[author.id], [hobbit().id]])
 	})
 })
+
+describe('listeners: flushing inside an open operation (H)', () => {
+	const added = (listener: ReturnType<typeof vi.fn>) =>
+		listener.mock.calls.flatMap(([entry]) => Object.keys(entry.changes.added))
+	const boom = () => {
+		throw new Error('boom')
+	}
+
+	it.each<[string, (removeOther: () => void) => void]>([
+		['a direct flush', () => store._flushHistory()],
+		['adding a listener', () => void store.listen(() => {})],
+		['removing a listener', (removeOther) => removeOther()],
+		['a flush in a nested transaction', () => transaction(() => store._flushHistory())],
+	])('[H11] %s inside an operation that rolls back delivers nothing from it', (_name, flush) => {
+		const listener = vi.fn()
+		store.listen(listener)
+		const removeOther = store.listen(() => {})
+
+		expect(() => transact(() => (store.put([tolkein()]), flush(removeOther), boom()))).toThrow()
+		transaction((rollback) => (store.put([hobbit()]), flush(removeOther), rollback()))
+		store._flushHistory()
+
+		expect(added(listener)).toEqual([])
+	})
+
+	it('[H16] a flush inside an operation delivers what committed before it, and the operation once it commits', () => {
+		const listener = vi.fn()
+		store.listen(listener)
+		const author = tolkein()
+		const book = hobbit()
+
+		store.put([author])
+		transact(() => {
+			store.put([book])
+			store._flushHistory()
+			expect(added(listener)).toEqual([author.id])
+		})
+		store._flushHistory()
+
+		expect(added(listener)).toEqual([author.id, book.id])
+	})
+
+	it.each([
+		['with another listener attached', true],
+		['as the only listener', false],
+	])(
+		'[H5] a listener added inside an operation, %s, hears only what came after',
+		(_name, other) => {
+			if (other) store.listen(() => {})
+			const book = hobbit()
+			const kept = Author.create({ name: 'Kept' })
+			const listener = vi.fn()
+
+			transact(() => {
+				store.put([tolkein()])
+				try {
+					transaction(() => {
+						store.put([Author.create({ name: 'Dropped' })])
+						store.listen(listener)
+						throw new Error('inner')
+					})
+				} catch {
+					// the outer transaction commits
+				}
+				// recorded at the version the dropped author had
+				store.put([kept])
+				store.put([book])
+			})
+			store._flushHistory()
+
+			expect(added(listener)).toEqual([kept.id, book.id])
+		}
+	)
+
+	it('[H5] a listener that flushes from its callback does not change what a late listener is given', () => {
+		const book = hobbit()
+		const late = vi.fn()
+		// flushes again while the operation's change-sets are being delivered
+		store.listen(() => store._flushHistory())
+
+		transact(() => {
+			store.put([tolkein()])
+			store.listen(late)
+			store.put([book])
+		})
+		store._flushHistory()
+
+		expect(added(late)).toEqual([book.id])
+	})
+
+	it('[H5] a late listener removed by another listener during the flush is not called', () => {
+		const late = vi.fn()
+		let removeLate = () => {}
+		store.listen(() => removeLate())
+
+		transact(() => {
+			store.put([tolkein()])
+			removeLate = store.listen(late)
+			store.put([hobbit()])
+		})
+		store._flushHistory()
+
+		expect(late).not.toHaveBeenCalled()
+	})
+})

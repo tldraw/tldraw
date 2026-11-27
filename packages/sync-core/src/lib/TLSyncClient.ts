@@ -817,13 +817,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				isReadonly: event.isReadonly,
 				objectAccess: event.objectAccess ?? 'write',
 			})
-			const presence = this.presenceState?.get()
-			if (presence) {
-				this.pushPresence(presence)
-			}
 		})
 
 		this.lastServerClock = event.serverClock
+
+		// After the transaction, not inside it: `pushPresence` flushes document changes so that
+		// they are sent before presence, and a flush cannot deliver an operation that is still open.
+		const presence = this.presenceState?.get()
+		if (presence) {
+			this.pushPresence(presence)
+		}
 	}
 
 	private incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []

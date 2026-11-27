@@ -36,6 +36,9 @@ export interface AtomOptions<Value, Diff> {
 }
 
 // @internal
+export function beforeTransactionCommit(fn: (rollback: () => void) => void): void;
+
+// @internal
 export interface Child {
     __debug_ancestor_epochs__: Map<Signal<any, any>, number> | null;
     isActivelyListening: boolean;
@@ -123,6 +126,9 @@ export const EMPTY_ARRAY: [];
 // @public
 export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(obj: Obj, propertyName: Prop): Computed<Obj[Prop] extends () => infer Value ? Value : Obj[Prop]>;
 
+// @internal
+export function getValueBeforeTransaction<T>(atom: Atom<T>): T;
+
 // @public
 export function isAtom(value: unknown): value is Atom<unknown>;
 
@@ -134,6 +140,9 @@ export function isUninitialized(value: any): value is UNINITIALIZED;
 
 // @public
 export function localStorageAtom<Value, Diff = unknown>(name: string, initialValue: Value, options?: AtomOptions<Value, Diff>): [Atom<Value, Diff>, () => void];
+
+// @internal
+export function onTransactionAbort(undo: () => void): void;
 
 // @public
 export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;
