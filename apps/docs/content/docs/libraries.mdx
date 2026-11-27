@@ -18,7 +18,7 @@ In tldraw, a library is a named list of items, and each item is a saved copy of 
 
 The `@tldraw/libraries` package works at two levels. `LibrariesPanel` is a panel you render in front of the canvas, and it handles the whole flow. Everything it reads and writes goes through a `LibrarySource`, so the same UI works over any backend.
 
-Libraries are a licensed feature. They run in development without a key. In production they need [a tldraw license](/sdk-features/license-key) that includes libraries, or one that includes collaboration.
+Libraries are a licensed feature. They run in development without a key. In production they need [a tldraw license](/sdk-features/license-key) that includes libraries, or one that includes collaboration. A [trial license](/community/license#Trial-license) includes collaboration, so libraries work for the length of a trial.
 
 ## Quick start
 
@@ -49,7 +49,7 @@ export default function App() {
 }
 ```
 
-Open the panel from the quick actions. A new `InMemoryLibrarySource` has no libraries, so pick **Create library** from the panel's ⋯ menu. Then select some shapes and click the library's + tile to save them. Click an item to place a copy in the middle of the viewport, or drag it out onto the canvas.
+Open the panel from the quick actions. A new `InMemoryLibrarySource` has no libraries, so pick **Create library** from the panel's menu. Then select some shapes and click the library's + tile to save them. Click an item to place a copy in the middle of the viewport, or drag it out onto the canvas.
 
 `InMemoryLibrarySource` keeps libraries in memory, so they're gone on reload. It's the place to start, and a reference for writing your own source. See [Setup](/sdk-features/libraries#Setup) for the context menu and command palette pieces.
 
@@ -67,7 +67,7 @@ const item = await saveShapesToLibrary(editor, source, libraryId, editor.getSele
 await placeLibraryItem(editor, source, item.id, { point: { x: 400, y: 300 }, select: false })
 ```
 
-An item's shapes don't change once it's saved. Its name and `meta` can be updated, but to change its shapes, delete it and save them again.
+Saving fixes the shapes an item holds. Its name and `meta` can still be updated, but to change the shapes, delete the item and save them again.
 
 ## Sources
 
@@ -79,15 +79,22 @@ A source decides where libraries live and who may change them. The package ships
 | `BoardLibrarySource`     | In the document, as records next to its shapes.                              |
 | `CompositeLibrarySource` | Nowhere itself. It combines several sources, each optionally under an owner. |
 
-To keep libraries in your own backend, implement `LibrarySource`. Its reads are reactive getters, read through tldraw's [signals](/sdk-features/signals), so the panel updates when your data does. See [Writing your own source](/sdk-features/libraries#Writing-your-own-source).
+To keep libraries in your own backend, implement `LibrarySource`. Its getters are reactive, built on tldraw's [signals](/sdk-features/signals), so the panel updates when your data does. See [Writing your own source](/sdk-features/libraries#Writing-your-own-source).
 
 ## Libraries you provide
 
 A pack is a set of items shipped as data, such as starter shapes. `copyPack` copies it into a source as an ordinary library.
 
-A shared read-only set comes from a source whose `can` refuses every change, such as an `InMemoryLibrarySource` with `can: () => false`. Its items can be placed but not changed.
+```ts
+import { copyPack, parseLibraryPack } from '@tldraw/libraries'
+import starterShapes from './starter-shapes.json'
 
-`CompositeLibrarySource` lists both next to people's own libraries. See [Packs](/sdk-features/libraries#Packs) and [Owners](/sdk-features/libraries#Owners).
+const library = await copyPack(source, parseLibraryPack(starterShapes))
+```
+
+A shared read-only set comes from a source whose permission check, `can`, refuses every change, such as an `InMemoryLibrarySource` with `can: () => false`. Its items can be placed but not changed. See [Permissions](#Permissions).
+
+`CompositeLibrarySource` combines several sources, each listed under its owner: people's own, one holding pack copies, and a read-only set. See [Packs](/sdk-features/libraries#Packs) and [Owners](/sdk-features/libraries#Owners).
 
 ## What you get
 
@@ -98,7 +105,7 @@ The panel covers the whole flow out of the box:
 | Saving                                      | The + tile, and **Add to library** in the context menu.                  |
 | Placing                                     | Click to place in the middle of the viewport, or drag onto the canvas.   |
 | [Search](/sdk-features/libraries#Searching) | Matches library and item names, across every library the document shows. |
-| Managing                                    | Create, rename, delete, copy and move, as far as the source allows.      |
+| Managing                                    | Create, rename, delete, copy, and move, as far as the source allows.     |
 | [Nesting](/sdk-features/libraries#Nesting)  | Libraries inside libraries, shown indented under their parent.           |
 | Command palette                             | Open the panel, save the selection, and place items by name.             |
 | Phones                                      | A sheet along the bottom of the screen, where tapping an item places it. |
@@ -113,13 +120,15 @@ A source's `can(action, target)` decides what the user may do, and the UI hides 
 
 ## Syncing
 
-`BoardLibrarySource` keeps libraries in the document, so they save and sync wherever the document does. Its record types aren't in the default schema, so register `librarySchemaRecords` on the store with `createTLStore({ schema: createTLSchema({ records: librarySchemaRecords }) })`. Pass `records: librarySchemaRecords` to `useSync` on the client, and the same map to `createTLSchema` on your sync server. See [Collaboration](/docs/collaboration) and [Board libraries](/sdk-features/libraries#Board-libraries).
+`BoardLibrarySource` keeps libraries in the document, so they save and sync wherever the document does. Its record types aren't in the default schema, so register `librarySchemaRecords` on the store with `createTLStore({ schema: createTLSchema({ records: librarySchemaRecords }) })`.
+
+To sync them, pass `records: librarySchemaRecords` to `useSync` on the client, and the same map to `createTLSchema` on your sync server. See [Collaboration](/docs/collaboration) and [Board libraries](/sdk-features/libraries#Board-libraries).
 
 Libraries kept outside documents, such as in a workspace, sync however your backend does. The source answers which of them a document shows, and the panel offers to add the rest. See [Libraries in documents](/sdk-features/libraries#Libraries-in-documents).
 
 ## Related
 
-- [Libraries](/sdk-features/libraries) — The full guide: sources, owners, permissions, packs and components
+- [Libraries](/sdk-features/libraries) — The full guide: sources, owners, permissions, packs, and components
 - [Collaboration](/docs/collaboration) — Adding multiplayer to your project
 - [Commenting](/docs/commenting) — Comment threads pinned to the canvas
 - [tldraw sync](/docs/sync) — Running a sync server
