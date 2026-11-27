@@ -193,6 +193,7 @@ export type ThumbnailErrorSurface =
 	| 'mcp_workspace_list'
 	| 'mcp_comment_read'
 	| 'mcp_comment_write'
+	| 'mcp_image'
 	| 'mcp_feedback'
 	| 'mcp_screenshot'
 	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
