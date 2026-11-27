@@ -599,6 +599,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const createdShapes = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
 
+		// A shape whose parent is gone stays saved but nobody can see it. Only local changes are
+		// tracked: a peer's change carries its own deletes. Creates and moves only count during undo
+		// and redo, since other writes may add a child before its parent.
+		const userCreatedShapeIds = new Set<TLShapeId>()
+		const userMovedShapes = new Map<TLShapeId, TLShape>()
+		const userRemovedParentIds = new Set<TLParentId>()
+
+		const removeOrphans = () => {
+			const removeIds = new Set<TLShapeId>()
+			const addWithDescendants = (id: TLShapeId) => {
+				removeIds.add(id)
+				this.visitDescendants(id, (childId) => {
+					removeIds.add(childId)
+				})
+			}
+			for (const parentId of userRemovedParentIds) {
+				// a handler refused the delete
+				if (this.store.has(parentId)) continue
+				for (const childId of this.getSortedChildIdsForParent(parentId)) addWithDescendants(childId)
+			}
+			for (const id of userCreatedShapeIds) {
+				const shape = this.getShape(id)
+				if (shape && !this.store.has(shape.parentId)) addWithDescendants(id)
+			}
+			// put it back where it was, never onto another page
+			const restored: TLShape[] = []
+			for (const [id, before] of userMovedShapes) {
+				const shape = this.getShape(id)
+				if (!shape || removeIds.has(id) || this.store.has(shape.parentId)) continue
+				if (!this.store.has(before.parentId)) continue
+				const { parentId, index, x, y, rotation } = before
+				restored.push({ ...shape, parentId, index, x, y, rotation })
+			}
+			userRemovedParentIds.clear()
+			userCreatedShapeIds.clear()
+			userMovedShapes.clear()
+			if (restored.length) this.store.put(restored)
+			if (removeIds.size) this.store.remove([...removeIds])
+		}
+
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
@@ -620,6 +660,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const justCreatedShapeIds = new Set(createdShapes)
 				createdShapes.clear()
+				removeOrphans()
 
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
@@ -659,13 +700,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
-					afterCreate: (shape) => {
+					afterCreate: (shape, source) => {
 						createdShapes.add(shape.id)
+						if (source === 'user' && this.isReplayingHistory()) userCreatedShapeIds.add(shape.id)
 						if (shape.parentId && isShapeId(shape.parentId)) {
 							invalidParents.add(shape.parentId)
 						}
 					},
-					afterChange: (shapeBefore, shapeAfter) => {
+					afterChange: (shapeBefore, shapeAfter, source) => {
+						if (
+							source === 'user' &&
+							this.isReplayingHistory() &&
+							shapeBefore.parentId !== shapeAfter.parentId &&
+							!userMovedShapes.has(shapeAfter.id)
+						) {
+							userMovedShapes.set(shapeAfter.id, shapeBefore)
+						}
+
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
 							if (binding.fromId === shapeAfter.id) {
@@ -742,7 +793,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							invalidParents.add(shapeAfter.parentId)
 						}
 					},
-					beforeDelete: (shape) => {
+					beforeDelete: (shape, source) => {
 						// if we triggered this delete with a recursive call, don't do anything
 						if (deletedShapeIds.has(shape.id)) return
 						// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
@@ -771,6 +822,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// refuse (readonly), e.g. for a deletion that arrived from a remote peer
 							this.store.remove(deleteBindingIds)
 						}
+
+						if (source === 'user') userRemovedParentIds.add(shape.id)
 					},
 				},
 				binding: {
@@ -804,6 +857,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 				},
 				page: {
+					beforeDelete: (page, source) => {
+						if (source === 'user') userRemovedParentIds.add(page.id)
+					},
 					afterCreate: (record) => {
 						const cameraId = CameraRecordType.createId(record.id)
 						const _pageStateId = InstancePageStateRecordType.createId(record.id)
