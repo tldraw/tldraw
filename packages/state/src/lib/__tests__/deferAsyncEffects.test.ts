@@ -154,6 +154,49 @@ describe('deferAsyncEffects (AT)', () => {
 		expect(b.get()).toBe(0)
 	})
 
+	it('[AT3][AT4] rolls back the joined transaction when an overlapping call that finishes first throws', async () => {
+		// Regression (#11368): the failing call rethrew without marking the shared transaction, so the
+		// call that finished last committed the failed call's changes.
+		const a = atom('', 0)
+		const b = atom('', 0)
+
+		const slow = deferAsyncEffects(async () => {
+			b.set(1)
+			await sleep(50)
+		})
+		const failing = deferAsyncEffects(async () => {
+			a.set(1)
+			await sleep(10)
+			throw new Error('boom')
+		})
+
+		await expect(failing).rejects.toThrow('boom')
+		await expect(slow).rejects.toThrow('boom')
+
+		expect(a.get()).toBe(0)
+		expect(b.get()).toBe(0)
+	})
+
+	it('[AT3][AT4] commits when the outer call catches a nested call that throws', async () => {
+		const a = atom('', 'initial')
+
+		await expect(
+			deferAsyncEffects(async () => {
+				try {
+					await deferAsyncEffects(async () => {
+						a.set('inner')
+						throw new Error('inner error')
+					})
+				} catch {
+					a.set('fallback')
+				}
+				return 'done'
+			})
+		).resolves.toBe('done')
+
+		expect(a.get()).toBe('fallback')
+	})
+
 	it('[AT4] nested async transactions join the outer one', async () => {
 		const a = atom('', 0)
 
