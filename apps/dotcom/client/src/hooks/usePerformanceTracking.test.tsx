@@ -70,6 +70,7 @@ beforeEach(() => {
 		rum_enabled: { enabled: true },
 		load_rum: { enabled: false },
 		libraries: { enabled: false },
+		thumbnail_render_worker: { enabled: false },
 		libraries_anonymous: { enabled: false },
 		headless_shadow: { enabled: false },
 		ui_v3: { enabled: false },

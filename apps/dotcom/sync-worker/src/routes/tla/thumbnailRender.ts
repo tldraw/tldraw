@@ -21,7 +21,6 @@ import {
 	ThumbnailBoardKind,
 	ThumbnailBoardRef,
 	ThumbnailRenderSurface,
-	envFlagWord,
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
@@ -223,6 +222,13 @@ function renderTransportFor(
 	return { kind: 'push', pushChars: script.length, script }
 }
 
+// Bucketed per board: a board whose retries moved between the two render paths would be compared
+// against itself rather than against the other path.
+async function isRenderWorkerRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
+	const flag = await getFeatureFlagValue(env, 'thumbnail_render_worker')
+	return evaluateFlagForUser(flag, 'thumbnail_render_worker', `${job.kind}/${job.slug}`)
+}
+
 // OG and thumbnail renders only, where the volume and the Browser Run spend are; MCP is left out so a
 // tool call never adds load to someone's session. Bucketed per board, like push, so a board's renders
 // are either all compared or none are.
@@ -324,13 +330,13 @@ export async function captureThumbnailScreenshot(
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
 
-	// Flag-gated hand-off to the private render worker (apps/dotcom/render-worker). Off by default;
-	// when on and bound it renders instead of the local path below. Push-only, so it needs the
-	// snapshot the caller read — without one there is nothing to push, so fall through to the local
-	// path. The worker writes browser_run_session and reports detail to its own Sentry; a failure
+	// Hand-off to the private render worker (apps/dotcom/render-worker), for the boards its flag has
+	// rolled out to, where it is bound; it renders instead of the local path below. Push-only, so it
+	// needs the snapshot the caller read — without one there is nothing to push, so fall through to
+	// the local path. The worker writes browser_run_session and reports detail to its own Sentry; a failure
 	// returns as a bounded reason, re-thrown as RenderWorkerError so this function's callers keep the
 	// same throw/catch and request-level telemetry. See the render worker's api.ts.
-	if (envFlagWord(env.THUMBNAIL_RENDER_VIA_WORKER) === 'true' && env.RENDER_WORKER && snapshot) {
+	if (env.RENDER_WORKER && snapshot && (await isRenderWorkerRolledOutFor(env, job))) {
 		const body = thumbnailSnapshotBodyFor(snapshot, job)
 		// The same page/shape re-check the snapshot route does; with no pull path, a vanished page or
 		// shape fails the render rather than falling back to a fetch.

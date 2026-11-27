@@ -446,6 +446,7 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'libraries',
+	'thumbnail_render_worker',
 	'libraries_anonymous',
 	'headless_shadow',
 	'ui_v3',

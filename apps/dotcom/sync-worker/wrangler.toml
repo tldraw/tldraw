@@ -167,10 +167,6 @@ MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
 # volume the trial is judged on; production stays on the export until it is.
 THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
-# Staging routes thumbnail and OG screenshots through the private render worker (the RENDER_WORKER
-# binding below) instead of the local render path. Production binds the worker but leaves this unset
-# (off), so the binding is wired yet dormant there until the flag flips.
-THUMBNAIL_RENDER_VIA_WORKER = "true"
 
 # The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
 # worker serves every environment's host, and it must exist before this one deploys.
@@ -205,8 +201,6 @@ MCP_HOST_ORIGIN = "https://mcp.tldraw.com"
 # scope. Off, the tool lists rather than searches and advertises no query — it does not accept a
 # query and ignore it. Unset reads as on, which is what previews and local dev get.
 MCP_SEARCH_NAME_MATCHING_ENABLED = "false"
-# THUMBNAIL_RENDER_VIA_WORKER is intentionally left unset here (off): the RENDER_WORKER binding below
-# is wired, but production stays on the local render path until this is set to "true".
 
 # The MCP host's landing page on mcp.tldraw.com. The same worker as staging's binding above.
 [[env.production.services]]
@@ -533,11 +527,9 @@ binding = "BROWSER"
 #################### Render worker (private screenshot/measure worker) ####################
 # RPC to the private render worker (apps/dotcom/render-worker), reached only here — it has no routes.
 # The RenderWorker entrypoint exposes screenshot()/measure(). Bound on dev, staging and production;
-# not on previews (they stay on the local render path). The call site is gated on
-# THUMBNAIL_RENDER_VIA_WORKER (types.ts): staging turns it on; production binds the worker but leaves
-# the flag unset (off), so the binding is wired yet nothing routes through it there until the flag
-# flips. deploy order: render-worker deploys before this worker (deploy-dotcom.ts dependsOn), or the
-# ref dangles.
+# not on previews (they stay on the local render path). Which boards render through it is the
+# `thumbnail_render_worker` flag. deploy order: render-worker deploys before this worker
+# (deploy-dotcom.ts dependsOn), or the ref dangles.
 [[env.dev.services]]
 binding = "RENDER_WORKER"
 service = "dev-tldraw-render-worker"
