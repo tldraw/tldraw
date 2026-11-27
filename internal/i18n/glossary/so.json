@@ -1,0 +1,34 @@
+{
+	"register": "impersonal for errors (Lama …)",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Helitaanka"
+		},
+		{
+			"term": "Arrow (tool)",
+			"translation": "Fallaadh"
+		},
+		{
+			"term": "browser",
+			"translation": "biraawsar"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "Furayaasha gaaban ee kiiboodhka"
+		},
+		{
+			"term": "menu",
+			"translation": "Liiska"
+		},
+		{
+			"term": "Paste",
+			"translation": "Dheji",
+			"note": "Don't reuse for Pin"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Dookhyada"
+		}
+	]
+}

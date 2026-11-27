@@ -343,6 +343,8 @@
 	"help-menu.privacy": "Siyaasadda qarsoonaanta",
 	"help-menu.terms": "Shuruudaha adeegga",
 	"help-menu.title": "Caawin iyo xogo muhiima",
+	"libraries.browse.more": "{count, plural, other {+ #}}",
+	"libraries.item-details.saved-on": "{date, date, medium}",
 	"menu.accessibility": "Helitaanka",
 	"menu.edit": "Bedel",
 	"menu.input-device": "Qalabka gelinta",

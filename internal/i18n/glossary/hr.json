@@ -1,0 +1,517 @@
+{
+	"register": "Controls use the singular imperative (Zatvori, Preimenuj). Messages address the user formally (vi).",
+	"terms": [
+		{
+			"term": "(fine) rotation step",
+			"translation": "(fino)"
+		},
+		{
+			"term": "Accessibility",
+			"translation": "Pristupačnost",
+			"note": "menu.accessibility"
+		},
+		{
+			"term": "account",
+			"translation": "račun"
+		},
+		{
+			"term": "Alt text",
+			"translation": "Alternativni tekst"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Strelica"
+		},
+		{
+			"term": "Arrow (arrowhead)",
+			"translation": "Strelica"
+		},
+		{
+			"term": "Arrow (geo shape)",
+			"translation": "Strelica"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Omjer slike"
+		},
+		{
+			"term": "Auto (automatic)",
+			"translation": "Automatski"
+		},
+		{
+			"term": "Auto (theme)",
+			"translation": "Automatski",
+			"note": "'auto' means car"
+		},
+		{
+			"term": "backup",
+			"translation": "sigurnosna kopija"
+		},
+		{
+			"term": "Bold",
+			"translation": "Podebljano"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Odustani"
+		},
+		{
+			"term": "Cancel (button)",
+			"translation": "Odustani"
+		},
+		{
+			"term": "canvas",
+			"translation": "platno",
+			"note": "drawing area"
+		},
+		{
+			"term": "Check box (shape)",
+			"translation": "Potvrdni okvir"
+		},
+		{
+			"term": "Checked (checkbox state)",
+			"translation": "Označeno"
+		},
+		{
+			"term": "clipboard",
+			"translation": "međuspremnik"
+		},
+		{
+			"term": "Color",
+			"translation": "Boja"
+		},
+		{
+			"term": "Command palette",
+			"translation": "Paleta naredbi"
+		},
+		{
+			"term": "Comment",
+			"translation": "komentar"
+		},
+		{
+			"term": "Confirm (button)",
+			"translation": "Potvrdi"
+		},
+		{
+			"term": "container (frame/group)",
+			"translation": "spremnik"
+		},
+		{
+			"term": "Context menu",
+			"translation": "Kontekstni izbornik"
+		},
+		{
+			"term": "cookie",
+			"translation": "kolačić"
+		},
+		{
+			"term": "Cookie policy",
+			"translation": "Politika kolačića"
+		},
+		{
+			"term": "cookies",
+			"translation": "kolačići"
+		},
+		{
+			"term": "Copy",
+			"translation": "Kopiraj"
+		},
+		{
+			"term": "Copy (action)",
+			"translation": "Kopiraj"
+		},
+		{
+			"term": "Copy (clipboard)",
+			"translation": "Kopiraj"
+		},
+		{
+			"term": "Could not open file",
+			"translation": "Nije moguće otvoriti datoteku"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Izreži"
+		},
+		{
+			"term": "dark mode",
+			"translation": "tamna tema"
+		},
+		{
+			"term": "Delete",
+			"translation": "Izbriši"
+		},
+		{
+			"term": "Download",
+			"translation": "Preuzmi"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Dupliciraj"
+		},
+		{
+			"term": "Edge scrolling",
+			"translation": "Rubno pomicanje"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Uredi"
+		},
+		{
+			"term": "Editor (sharing role)",
+			"translation": "Urednik"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Elipsa"
+		},
+		{
+			"term": "embed",
+			"translation": "ugradnja"
+		},
+		{
+			"term": "embed (noun)",
+			"translation": "ugradnja"
+		},
+		{
+			"term": "End (alignment)",
+			"translation": "Kraj"
+		},
+		{
+			"term": "eraser",
+			"translation": "Gumica"
+		},
+		{
+			"term": "Export",
+			"translation": "Izvezi"
+		},
+		{
+			"term": "file",
+			"translation": "datoteka"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Datoteka"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "datoteka"
+		},
+		{
+			"term": "Fill",
+			"translation": "Ispuna"
+		},
+		{
+			"term": "fill (style noun)",
+			"translation": "ispuna"
+		},
+		{
+			"term": "Flip",
+			"translation": "Okreni"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Prati",
+			"note": "imperative for the button; not 'Pratim'"
+		},
+		{
+			"term": "Forget",
+			"translation": "Zaboravi"
+		},
+		{
+			"term": "Frame",
+			"translation": "Okvir"
+		},
+		{
+			"term": "Grid",
+			"translation": "rešetka"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Grupiraj"
+		},
+		{
+			"term": "horizontally",
+			"translation": "vodoravno"
+		},
+		{
+			"term": "horizontally / vertically",
+			"translation": "vodoravno / okomito",
+			"note": "avoid H/V abbreviations; V reads as vodoravno"
+		},
+		{
+			"term": "Import file",
+			"translation": "Uvoz datoteke…"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Uvoz datoteke…",
+			"note": "Actual menu label ffcd73e997"
+		},
+		{
+			"term": "invite",
+			"translation": "pozivnica"
+		},
+		{
+			"term": "invite (noun)",
+			"translation": "pozivnica"
+		},
+		{
+			"term": "item",
+			"translation": "stavka"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "stavka"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "stavka"
+		},
+		{
+			"term": "keyboard shortcuts",
+			"translation": "tipkovnički prečaci"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Vodoravno"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Biblioteke"
+		},
+		{
+			"term": "library",
+			"translation": "biblioteka"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "Svijetlo<color> (closed compound, e.g. Svijetloplava, Svijetlozelena)",
+			"note": "Color names use the feminine form, agreeing with 'boja'"
+		},
+		{
+			"term": "link",
+			"translation": "veza"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Veza",
+			"note": "Matches 'Ukloni vezu'; avoid the English 'link'"
+		},
+		{
+			"term": "menu",
+			"translation": "izbornik"
+		},
+		{
+			"term": "minimap",
+			"translation": "minikarta"
+		},
+		{
+			"term": "mouse",
+			"translation": "miš"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Obavijesti"
+		},
+		{
+			"term": "OK",
+			"translation": "U redu"
+		},
+		{
+			"term": "Opacity",
+			"translation": "Neprozirnost"
+		},
+		{
+			"term": "owner",
+			"translation": "vlasnik"
+		},
+		{
+			"term": "page",
+			"translation": "stranica"
+		},
+		{
+			"term": "Paste",
+			"translation": "Zalijepi"
+		},
+		{
+			"term": "Pin (file)",
+			"translation": "Prikvači"
+		},
+		{
+			"term": "pipe (arrowhead glyph)",
+			"translation": "Okomita crta"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Okomito"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Postavke",
+			"note": "menu.preferences"
+		},
+		{
+			"term": "publish",
+			"translation": "objaviti"
+		},
+		{
+			"term": "Redo",
+			"translation": "Ponovi"
+		},
+		{
+			"term": "refresh (reload page)",
+			"translation": "osvježiti"
+		},
+		{
+			"term": "remove",
+			"translation": "Ukloni"
+		},
+		{
+			"term": "remove (from file)",
+			"translation": "ukloniti",
+			"note": "Different from delete (izbrisati)"
+		},
+		{
+			"term": "rename",
+			"translation": "preimenuj"
+		},
+		{
+			"term": "Reopen",
+			"translation": "Ponovno otvori"
+		},
+		{
+			"term": "Resolve (thread)",
+			"translation": "Riješi"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Romb"
+		},
+		{
+			"term": "rotate",
+			"translation": "zakreni"
+		},
+		{
+			"term": "Save",
+			"translation": "Spremi"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Spremi kopiju",
+			"note": "action.save-copy label"
+		},
+		{
+			"term": "selection",
+			"translation": "odabir"
+		},
+		{
+			"term": "Shape",
+			"translation": "Oblik"
+		},
+		{
+			"term": "Show",
+			"translation": "Prikaži"
+		},
+		{
+			"term": "Sign in",
+			"translation": "Prijavite se"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Odjavi se"
+		},
+		{
+			"term": "Size",
+			"translation": "Veličina"
+		},
+		{
+			"term": "Size values (Small/Medium/Large)",
+			"translation": "Mala/Srednja/Velika/Jako velika",
+			"note": "Feminine, agreeing with 'veličina'"
+		},
+		{
+			"term": "Start (alignment)",
+			"translation": "Početak"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Precrtano"
+		},
+		{
+			"term": "Styles",
+			"translation": "Stilovi"
+		},
+		{
+			"term": "tab (browser)",
+			"translation": "kartica"
+		},
+		{
+			"term": "Task list",
+			"translation": "Popis zadataka"
+		},
+		{
+			"term": "teammates",
+			"translation": "suradnici"
+		},
+		{
+			"term": "theme (colour)",
+			"translation": "tema"
+		},
+		{
+			"term": "thread",
+			"translation": "nit"
+		},
+		{
+			"term": "Toggle X (action)",
+			"translation": "Prebaci X"
+		},
+		{
+			"term": "tool lock",
+			"translation": "zaključavanje alata"
+		},
+		{
+			"term": "Tools",
+			"translation": "Alati"
+		},
+		{
+			"term": "trackpad",
+			"translation": "dodirna ploha"
+		},
+		{
+			"term": "Unchecked (checkbox state)",
+			"translation": "Neoznačeno"
+		},
+		{
+			"term": "Undo",
+			"translation": "Poništi"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Razgrupiraj"
+		},
+		{
+			"term": "vertically",
+			"translation": "okomito"
+		},
+		{
+			"term": "View (menu)",
+			"translation": "Prikaz"
+		},
+		{
+			"term": "workspace",
+			"translation": "radni prostor"
+		},
+		{
+			"term": "zoom (verb)",
+			"translation": "Zumiraj"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Uvećaj"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Smanji"
+		}
+	]
+}
