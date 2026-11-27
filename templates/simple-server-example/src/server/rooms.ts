@@ -2,6 +2,8 @@ import { mkdirSync } from 'fs'
 import { DatabaseSync } from 'node:sqlite'
 import { join } from 'path'
 import { NodeSqliteWrapper, SQLiteSyncStorage, TLSocketRoom } from '@tldraw/sync-core'
+import type { TLRecord } from 'tldraw'
+import { checkDiff } from './permissions'
 
 // For this example we're saving data to a SQLite database on the local filesystem
 const DIR = './.rooms'
@@ -27,10 +29,11 @@ export function makeOrLoadRoom(roomId: string): TLSocketRoom<any, void> {
 	// Open the database - file is created if it doesn't exist
 	const db = new DatabaseSync(join(DIR, `${roomId}.db`))
 	const sql = new NodeSqliteWrapper(db)
-	const storage = new SQLiteSyncStorage({ sql })
+	const storage = new SQLiteSyncStorage<TLRecord>({ sql })
 
-	const room = new TLSocketRoom({
+	const room = new TLSocketRoom<TLRecord, void>({
 		storage,
+		checkDiff,
 		onSessionRemoved(room, args) {
 			console.log('client disconnected', args.sessionId, roomId)
 			if (args.numSessionsRemaining === 0) {
