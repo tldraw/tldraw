@@ -30,7 +30,7 @@ process.stdin.on('data', (d) => (stdin += d)).on('end', () => {
 			decision: l.existing === 'Cortar' ? 'regenerate' : 'retain',
 			confidence: locale === 'pl' ? 'low' : 'high',
 			...(l.existing === 'Cortar' ? { reason: 'Reads as cutting material' } : {}),
-		})), glossary: { es: { terms: [{ term: 'Copy', translation: 'Copiar' }] } } }
+		})), glossary: { es: { terms: [{ term: 'Copy', translation: 'Copiar' }] }, es_: { terms: [] } } }
 	} else {
 		output = { entries: each((m, locale, l) => m.key === 'paste' && locale === 'pl'
 			? { project: m.project, locale, key: m.key, decision: 'revise', text: 'Wklej', confidence: 'high', reason: 'Imperative' }

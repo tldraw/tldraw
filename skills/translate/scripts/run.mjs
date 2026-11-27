@@ -298,8 +298,14 @@ function onlyRequested(results, requested) {
 	})
 }
 
-function mergeGlossaryUpdates(target, update) {
+/**
+ * Drops locales the batch didn't ask about: apply.mjs rejects the whole run over one unknown
+ * locale (a reviewer once returned "ru_"), after every phase has been paid for.
+ */
+function mergeGlossaryUpdates(target, update, batch) {
+	const requested = new Set(batch.map((e) => e.locale))
 	for (const [locale, value] of Object.entries(update ?? {})) {
+		if (!requested.has(locale)) continue
 		target[locale] ??= { terms: [] }
 		if (value.register) target[locale].register = value.register
 		target[locale].terms.push(...(value.terms ?? []))
@@ -403,7 +409,7 @@ export async function run(
 				dispositions.push({ project, locale, key, decision, confidence, ...(reason ? { reason } : {}) })
 			}
 		}
-		mergeGlossaryUpdates(glossaryUpdates, output.glossary)
+		mergeGlossaryUpdates(glossaryUpdates, output.glossary, batch)
 		return true
 	})
 
@@ -464,7 +470,7 @@ export async function run(
 				...(reason ? { reason } : {}),
 			})
 		}
-		mergeGlossaryUpdates(glossaryUpdates, output.glossary)
+		mergeGlossaryUpdates(glossaryUpdates, output.glossary, batch)
 		return true
 	})
 
