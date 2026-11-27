@@ -332,6 +332,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	readonly events = createNanoEvents<{
 		room_became_empty(): void
+		session_connected(args: { sessionId: string; meta: SessionMeta }): void
 		session_removed(args: { sessionId: string; meta: SessionMeta }): void
 	}>()
 
@@ -1164,6 +1165,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
+			// sending to a socket that has already closed cancels the session instead
+			if (this.sessions.get(session.sessionId)?.state === RoomSessionState.Connected) {
+				this.events.emit('session_connected', {
+					sessionId: session.sessionId,
+					meta: session.meta,
+				})
+			}
 		}
 
 		const { documentClock, result } = this.storage.transaction((txn) => {

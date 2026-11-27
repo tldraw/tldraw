@@ -221,6 +221,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **HS4** The connect response echoes `connectRequestId` and `isReadonly`, carries the server's schema and current clock, and `hydrationType: 'wipe_all'` when storage cannot produce an incremental diff since the client's `lastServerClock` (including when that clock is in the future), else `'wipe_presence'`.
 - **HS5** The connect response diff contains every _other_ session's presence record — the connecting session's own presence is excluded — plus the document changes since the client's `lastServerClock` (the full document set in the `wipe_all` case), all down-migrated when the client's schema is older.
 - **HS6** A successful handshake moves the session to `Connected`.
+- **HS7** After sending the connect reply, a successful handshake emits `session_connected` with the session id and meta, once per connect request. It is not emitted for a rejected connect request, nor when the reply could not be sent because the socket had already closed (the session is cancelled instead).
 
 ## 24. `TLSyncRoom` — push handling (RP)
 
@@ -279,6 +280,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SR13** `getSessionSnapshot` returns null unless the session is `Connected`; the snapshot carries the serialized schema, readonly flag, legacy/append flags, presence id, and the presence record with large fields stripped (`scribbles: []`, `chatMessage: ''`, `selectedShapeIds: []`, `brush: null`).
 - **SR14** `handleSocketResume` restores a session from a snapshot directly into `Connected` state without attaching socket listeners (hibernation environments deliver events via methods); the resumed session handles pings and pushes normally.
 - **SR15** `getPresenceRecords()` returns a map of presence id to presence record for every presence currently in the room.
+- **SR16** `onSessionConnected(room, { sessionId, meta })` fires on each HS7 `session_connected`, so a `sendCustomMessage` call made inside it is delivered after the connect reply. Every reconnect sends a new connect request and fires it again; rejected connects and `handleSocketResume` do not fire it. An error thrown by the callback is logged and leaves the session connected.
 
 ## 29. `updateStore` (US) — deprecated
 

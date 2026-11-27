@@ -1020,6 +1020,53 @@ describe('23. Connect handshake (HS)', () => {
 		expect(socket.__lastMessage?.type).toBe('connect')
 	})
 
+	it('[HS7] emits session_connected once, after the connect reply is sent', () => {
+		const { room } = makeRoom()
+		const connected = vi.fn()
+		const sentBeforeEmit: string[][] = []
+		room.events.on('session_connected', (args) => {
+			connected(args)
+			const socket = room.sessions.get(args.sessionId)!.socket as MockSocket
+			sentBeforeEmit.push(sentMessages(socket).map((m) => m.type))
+		})
+		connectSession(room, 's1', { clear: false })
+
+		expect(connected).toHaveBeenCalledTimes(1)
+		expect(connected).toHaveBeenCalledWith({ sessionId: 's1', meta: undefined })
+		expect(sentBeforeEmit).toEqual([['connect']])
+	})
+
+	it('[HS7] does not emit session_connected for a rejected connect request', () => {
+		const { room } = makeRoom()
+		const connected = vi.fn()
+		room.events.on('session_connected', connected)
+
+		const socket = connectSession(room, 'too-old', { protocolVersion: 4, clear: false })
+
+		expect(socket.close).toHaveBeenCalled()
+		expect(connected).not.toHaveBeenCalled()
+	})
+
+	it('[HS7] does not emit session_connected when the socket closed before the reply', () => {
+		const { room } = makeRoom()
+		const connected = vi.fn()
+		room.events.on('session_connected', connected)
+
+		const socket = makeSocket()
+		room.handleNewSession({ sessionId: 's1', socket, meta: undefined, isReadonly: false })
+		socket.isOpen = false
+		room.handleMessage('s1', {
+			type: 'connect',
+			connectRequestId: 'connect-s1',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+		} satisfies TLConnectRequest)
+
+		expect(room.sessions.get('s1')?.state).toBe(RoomSessionState.AwaitingRemoval)
+		expect(connected).not.toHaveBeenCalled()
+	})
+
 	it('[RC5][HS6] a wipeAll during a handshake closes connected sessions but hydrates the connecting one', async () => {
 		const { room, storage } = makeRoom()
 		const socketA = connectSession(room, 'a')
