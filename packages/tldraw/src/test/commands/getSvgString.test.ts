@@ -306,3 +306,34 @@ it('reads a single frame-like export background from the color style under any p
 	const svg = parseSvg(await editor.getSvgString([id], { background: true }))
 	expect(svg.style.backgroundColor).toBe(toCssColor(getColorValue(colors, 'red', 'frameFill')))
 })
+
+describe('embeds', () => {
+	const embedId = createShapeId('embed')
+	const exportEmbed = async (url: string, darkMode = false) => {
+		editor.createShapes([
+			{ id: embedId, type: 'embed', x: 0, y: 0, props: { w: 400, h: 225, url } },
+		])
+		return parseSvg(await editor.getSvgString([embedId], { darkMode }))
+	}
+	const texts = (svg: SVGSVGElement) => [...svg.querySelectorAll('text')].map((t) => t.textContent)
+
+	it('draws a card naming the service and the address, not a blank iframe', async () => {
+		const svg = await exportEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+		expect(svg.querySelector('foreignObject')).toBeNull()
+		expect(texts(svg)).toEqual(['YouTube', 'youtube.com'])
+	})
+
+	it('names an unknown site by its address alone', async () => {
+		const svg = await exportEmbed('https://example.com/some/page')
+		expect(texts(svg)).toEqual(['example.com'])
+	})
+
+	it('draws the card in the colour mode being exported', async () => {
+		const colors = editor.getCurrentTheme().colors
+		const light = await exportEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+		editor.deleteShapes([embedId])
+		const dark = await exportEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ', true)
+		expect(light.querySelector('text')!.getAttribute('fill')).toBe(colors.light.text)
+		expect(dark.querySelector('text')!.getAttribute('fill')).toBe(colors.dark.text)
+	})
+})
