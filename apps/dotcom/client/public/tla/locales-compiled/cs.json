@@ -2,7 +2,7 @@
   "0095a9fa74": [
     {
       "type": 0,
-      "value": "Exportovat"
+      "value": "Export"
     }
   ],
   "00b177e080": [
@@ -50,7 +50,7 @@
   "04a2dd56d6": [
     {
       "type": 0,
-      "value": "Pozvěte spoluhráče"
+      "value": "Pozvěte členy týmu"
     }
   ],
   "05b2656486": [
@@ -90,7 +90,7 @@
   "08331c1710": [
     {
       "type": 0,
-      "value": "Překročen limit sazby, zkuste to znovu později."
+      "value": "Překročen limit požadavků, zkuste to později."
     }
   ],
   "08bd40c754": [
@@ -128,7 +128,7 @@
   "0b9a4cde72": [
     {
       "type": 0,
-      "value": "Nabídka Soubor"
+      "value": "Nabídka souboru"
     }
   ],
   "0c4383617a": [
@@ -152,7 +152,7 @@
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Odstranit"
+      "value": "Odebrat"
     }
   ],
   "10fb1df194": [
@@ -171,6 +171,12 @@
     {
       "type": 0,
       "value": "Odepnout soubor"
+    }
+  ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Tento pracovní prostor dosáhl maximálního počtu knihoven. Před vytvořením nových smažte staré knihovny."
     }
   ],
   "13ddd375ad": [
@@ -227,6 +233,12 @@
       "value": "Pracovní prostor musí mít alespoň jednoho vlastníka. Nejprve nastavte vlastníkem někoho jiného."
     }
   ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Moje sbírka"
+    }
+  ],
   "21f66c9c00": [
     {
       "type": 0,
@@ -257,6 +269,12 @@
     {
       "type": 0,
       "value": "O tldraw"
+    }
+  ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Tato knihovna dosáhla maximálního počtu položek. Před přidáním nových smažte staré položky."
     }
   ],
   "28b2464e1f": [
@@ -336,7 +354,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Zvýraznění chybí"
+      "value": "i18n: Zvýraznit chybějící"
     }
   ],
   "324a0f3182": [
@@ -348,7 +366,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Duplicitní soubor"
+      "value": "Duplikovat soubor"
     }
   ],
   "335defdafe": [
@@ -421,6 +439,12 @@
     {
       "type": 0,
       "value": "Barevný motiv"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Nabídka knihovny"
     }
   ],
   "42e53c47c1": [
@@ -510,7 +534,7 @@
   "49ee308734": [
     {
       "type": 0,
-      "value": "Jméno"
+      "value": "Název"
     }
   ],
   "4a8165368a": [
@@ -533,6 +557,12 @@
     {
       "type": 0,
       "value": " okomentoval(a)"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "Tento soubor"
     }
   ],
   "4d0d3ddec9": [
@@ -562,7 +592,7 @@
   "51317dcad5": [
     {
       "type": 0,
-      "value": "Toto je váš soukromý pracovní prostor. Vytvořte nový pracovní prostor pro pozvání spoluhráčů."
+      "value": "Toto je váš soukromý pracovní prostor. Chcete-li pozvat členy týmu, vytvořte nový pracovní prostor."
     }
   ],
   "517bb809d9": [
@@ -592,7 +622,7 @@
   "542248f0ba": [
     {
       "type": 0,
-      "value": "Tento soubor je nyní pouze pro čtení."
+      "value": "Tento soubor je nyní jen pro čtení"
     }
   ],
   "54286b1d01": [
@@ -692,13 +722,13 @@
   "5f3c333678": [
     {
       "type": 0,
-      "value": "Odeslaná zpětná vazba"
+      "value": "Zpětná vazba odeslána"
     }
   ],
   "5fb63579fc": [
     {
       "type": 0,
-      "value": "Kopie"
+      "value": "Kopírovat"
     }
   ],
   "608e9d366e": [
@@ -734,7 +764,7 @@
   "639bae9ac6": [
     {
       "type": 0,
-      "value": "Vy"
+      "value": "vy"
     }
   ],
   "63a6a88c06": [
@@ -799,6 +829,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " další"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dalšího"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -806,7 +858,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " další"
             }
           ]
         },
@@ -817,7 +869,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " dalších"
             }
           ]
         }
@@ -855,10 +907,32 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Reagovali "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lidé"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 0,
+              "value": "Reagovalo "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lidí"
+            }
           ]
         },
         "one": {
@@ -872,11 +946,15 @@
         "other": {
           "value": [
             {
+              "type": 0,
+              "value": "Reagovalo "
+            },
+            {
               "type": 7
             },
             {
               "type": 0,
-              "value": " lidí reagovalo"
+              "value": " lidí"
             }
           ]
         }
@@ -1007,7 +1085,13 @@
   "7827371d1a": [
     {
       "type": 0,
-      "value": "Tento anonymní soubor pro více hráčů ve hře tldraw je nyní pouze pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte jej do svých souborů."
+      "value": "Tento anonymní sdílený soubor tldraw pro spolupráci je nyní jen pro čtení. Chcete-li pokračovat v úpravách, přihlaste se a zkopírujte si ho do svých souborů."
+    }
+  ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Zatím žádné knihovny."
     }
   ],
   "78e9815992": [
@@ -1019,7 +1103,7 @@
   "797799f35e": [
     {
       "type": 0,
-      "value": "Odešlete problém na GitHub"
+      "value": "Nahlásit problém na GitHubu"
     }
   ],
   "797c5be9a7": [
@@ -1202,6 +1286,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " další"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dalšího"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1209,7 +1315,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " další"
             }
           ]
         },
@@ -1220,7 +1326,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " dalších"
             }
           ]
         }
@@ -1267,7 +1373,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Sazba omezená"
+      "value": "Příliš mnoho požadavků"
     }
   ],
   "902b0d55fd": [
@@ -1323,7 +1429,7 @@
   "95d2109dc8": [
     {
       "type": 0,
-      "value": "Sestavení s tldraw SDK"
+      "value": "Vytvářejte s tldraw SDK"
     }
   ],
   "96165d6df5": [
@@ -1354,10 +1460,16 @@
       "value": "Podmínky použití"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Vyzkoušejte server MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
-      "value": "Světlo"
+      "value": "Světlý"
     }
   ],
   "9983381c21": [
@@ -1404,6 +1516,60 @@
       "value": "Zdá se, že jste offline. Zkontrolujte připojení a zkuste to znovu."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položky"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položky"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položka"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položek"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1416,6 +1582,98 @@
       "value": "Publikovat tento soubor"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Smazat "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " a "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "její "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položky"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "její "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položky"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "její "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položku"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "jejích "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " položek"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1425,7 +1683,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Odhlásit se"
+      "value": "Odmítnout"
     }
   ],
   "a078644c42": [
@@ -1505,7 +1763,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Vycpávka"
+      "value": "Odsazení"
     }
   ],
   "a18366b217": [
@@ -1547,7 +1805,7 @@
   "a4d3b161ce": [
     {
       "type": 0,
-      "value": "Předložit"
+      "value": "Odeslat"
     }
   ],
   "a52945dbe2": [
@@ -1565,13 +1823,19 @@
   "a768caa988": [
     {
       "type": 0,
-      "value": "Analytics"
+      "value": "Analytika"
     }
   ],
   "a8873770ab": [
     {
       "type": 0,
       "value": "Soubor se zvětšuje"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Smazat knihovnu"
     }
   ],
   "a9ded1e5ce": [
@@ -1689,7 +1953,7 @@
   "b6d4223e60": [
     {
       "type": 0,
-      "value": "Přihlaste se"
+      "value": "Přihlásit se"
     }
   ],
   "b6f4a2ec63": [
@@ -1925,7 +2189,7 @@
   "c4b39a1cc3": [
     {
       "type": 0,
-      "value": "Základní soubory cookie"
+      "value": "Nezbytné soubory cookie"
     }
   ],
   "c6a00f137b": [
@@ -1943,7 +2207,7 @@
   "c87aacf567": [
     {
       "type": 0,
-      "value": "Odhlaste se"
+      "value": "Odhlásit se"
     }
   ],
   "c8a59e7135": [
@@ -2003,7 +2267,7 @@
   "d3d2e61733": [
     {
       "type": 0,
-      "value": "Blízko"
+      "value": "Zavřít"
     }
   ],
   "d46632fe1f": [
@@ -2067,7 +2331,7 @@
   "d876a9fe1a": [
     {
       "type": 0,
-      "value": "Zkuste to znovu"
+      "value": "Zkusit znovu"
     }
   ],
   "d88ad2dc74": [
@@ -2091,19 +2355,25 @@
   "dbf9b24193": [
     {
       "type": 0,
-      "value": "Opusťte pracovní prostor"
+      "value": "Opustit pracovní prostor"
     }
   ],
   "dfdb78a4e4": [
     {
       "type": 0,
-      "value": "Příznaky ladění aplikací"
+      "value": "Ladicí příznaky aplikace"
     }
   ],
   "e0aa021e21": [
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Knihovnu se nepodařilo změnit"
     }
   ],
   "e2198d6228": [
@@ -2133,7 +2403,7 @@
   "ea13ecec38": [
     {
       "type": 0,
-      "value": "Historie souborů"
+      "value": "Historie souboru"
     }
   ],
   "ea4788705e": [
@@ -2175,7 +2445,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Duplikát"
+      "value": "Duplikovat"
     }
   ],
   "ede55d955f": [
@@ -2232,6 +2502,12 @@
     {
       "type": 0,
       "value": "Uživatelská nastavení"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Není v žádném souboru"
     }
   ],
   "f13001876b": [
@@ -2297,7 +2573,7 @@
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Prohlížeč"
+      "value": "Prohlížející"
     }
   ],
   "fc9d47046b": [
@@ -2310,6 +2586,12 @@
     {
       "type": 0,
       "value": "Zkopírován odkaz"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Veřejné knihovny"
     }
   ],
   "ff2fefd3c6": [
@@ -2329,7 +2611,7 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Vytvořte si bezplatný účet pro ukládání souborů a kreslení se spoluhráči."
+      "value": "Vytvořte si bezplatný účet, abyste mohli ukládat své soubory a kreslit v tldraw s kolegy."
     }
   ],
   "ffad261a48": [

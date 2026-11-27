@@ -1,0 +1,495 @@
+{
+	"register": "informal 'je'",
+	"terms": [
+		{
+			"term": "Accessibility",
+			"translation": "Toegankelijkheid"
+		},
+		{
+			"term": "account",
+			"translation": "account",
+			"note": "not 'rekening'"
+		},
+		{
+			"term": "Actions",
+			"translation": "Acties"
+		},
+		{
+			"term": "Align",
+			"translation": "uitlijnen",
+			"note": "verb comes after the direction: 'Links uitlijnen'"
+		},
+		{
+			"term": "Alternative text",
+			"translation": "Alternatieve tekst"
+		},
+		{
+			"term": "Arrow",
+			"translation": "Pijl"
+		},
+		{
+			"term": "arrowhead",
+			"translation": "pijlpunt"
+		},
+		{
+			"term": "Aspect ratio",
+			"translation": "Beeldverhouding"
+		},
+		{
+			"term": "Back (navigation)",
+			"translation": "Terug",
+			"note": "Not 'Rug' (body part)"
+		},
+		{
+			"term": "Bold",
+			"translation": "Vetgedrukt"
+		},
+		{
+			"term": "Cancel",
+			"translation": "Annuleren"
+		},
+		{
+			"term": "clipboard",
+			"translation": "klembord"
+		},
+		{
+			"term": "Close",
+			"translation": "Sluiten"
+		},
+		{
+			"term": "Close (button)",
+			"translation": "Sluiten",
+			"note": "Verb; never 'Dichtbij' (near)"
+		},
+		{
+			"term": "collaborator",
+			"translation": "bijdrager"
+		},
+		{
+			"term": "Color",
+			"translation": "Kleur"
+		},
+		{
+			"term": "command palette",
+			"translation": "opdrachtenpalet"
+		},
+		{
+			"term": "comment",
+			"translation": "opmerking",
+			"note": "'reactie' is reserved for emoji reactions"
+		},
+		{
+			"term": "comment (noun)",
+			"translation": "opmerking / opmerkingen",
+			"note": "Keep 'reactie' for emoji reactions; replies are 'antwoord(en)'"
+		},
+		{
+			"term": "Confirm",
+			"translation": "Bevestigen"
+		},
+		{
+			"term": "context menu",
+			"translation": "contextmenu"
+		},
+		{
+			"term": "Copy",
+			"translation": "Kopiëren"
+		},
+		{
+			"term": "Copy (clipboard action)",
+			"translation": "kopiëren",
+			"note": "The operation, not 'kopie' (a duplicate)"
+		},
+		{
+			"term": "Copy (verb)",
+			"translation": "Kopiëren"
+		},
+		{
+			"term": "Crop image",
+			"translation": "Afbeelding bijsnijden"
+		},
+		{
+			"term": "Cut (clipboard)",
+			"translation": "Knippen"
+		},
+		{
+			"term": "Delete",
+			"translation": "Verwijderen"
+		},
+		{
+			"term": "Diamond (shape)",
+			"translation": "Ruit"
+		},
+		{
+			"term": "Distribute (space evenly)",
+			"translation": "Verdelen"
+		},
+		{
+			"term": "Dotted",
+			"translation": "Gestippeld"
+		},
+		{
+			"term": "Duplicate",
+			"translation": "Dupliceren"
+		},
+		{
+			"term": "Duplicate (action)",
+			"translation": "Dupliceren"
+		},
+		{
+			"term": "duplicate (verb)",
+			"translation": "dupliceren"
+		},
+		{
+			"term": "Edge scrolling",
+			"translation": "Randscrollen"
+		},
+		{
+			"term": "Edit (menu)",
+			"translation": "Bewerken"
+		},
+		{
+			"term": "Edit (menu/category)",
+			"translation": "Bewerken"
+		},
+		{
+			"term": "Edit link",
+			"translation": "Link bewerken"
+		},
+		{
+			"term": "Ellipse",
+			"translation": "Ellips"
+		},
+		{
+			"term": "embed",
+			"translation": "embed"
+		},
+		{
+			"term": "Export",
+			"translation": "Exporteren"
+		},
+		{
+			"term": "file",
+			"translation": "bestand"
+		},
+		{
+			"term": "File (menu)",
+			"translation": "Bestand",
+			"note": "dotcom 0b27918290"
+		},
+		{
+			"term": "file (tldraw document)",
+			"translation": "bestand"
+		},
+		{
+			"term": "Fill (style, noun)",
+			"translation": "Vulling",
+			"note": "Not the verb 'Vullen'"
+		},
+		{
+			"term": "fill (style)",
+			"translation": "vulling"
+		},
+		{
+			"term": "Flatten (to image)",
+			"translation": "Afvlakken"
+		},
+		{
+			"term": "flip (mirror)",
+			"translation": "spiegelen"
+		},
+		{
+			"term": "Follow (viewport)",
+			"translation": "Volgen"
+		},
+		{
+			"term": "Font",
+			"translation": "Lettertype"
+		},
+		{
+			"term": "Forget (remove from list)",
+			"translation": "Vergeten"
+		},
+		{
+			"term": "Group (verb)",
+			"translation": "Groeperen"
+		},
+		{
+			"term": "Highlight (marker)",
+			"translation": "Markeren"
+		},
+		{
+			"term": "Import file…",
+			"translation": "Bestand importeren…",
+			"note": "dotcom ffcd73e997"
+		},
+		{
+			"term": "invite link",
+			"translation": "uitnodigingslink"
+		},
+		{
+			"term": "item",
+			"translation": "item"
+		},
+		{
+			"term": "item (library entry)",
+			"translation": "item"
+		},
+		{
+			"term": "item (library item)",
+			"translation": "item"
+		},
+		{
+			"term": "Keyboard shortcuts",
+			"translation": "Sneltoetsen"
+		},
+		{
+			"term": "Landscape (orientation)",
+			"translation": "Liggend"
+		},
+		{
+			"term": "Landscape / Portrait (orientation)",
+			"translation": "Liggend / Staand"
+		},
+		{
+			"term": "Libraries",
+			"translation": "Bibliotheken"
+		},
+		{
+			"term": "library",
+			"translation": "bibliotheek"
+		},
+		{
+			"term": "Light <color>",
+			"translation": "Licht<color>",
+			"note": "closed compound, e.g. Lichtblauw"
+		},
+		{
+			"term": "Link (hyperlink)",
+			"translation": "Link"
+		},
+		{
+			"term": "minimap",
+			"translation": "minikaart"
+		},
+		{
+			"term": "Mouse",
+			"translation": "Muis"
+		},
+		{
+			"term": "Move up/down",
+			"translation": "Omhoog/Omlaag verplaatsen"
+		},
+		{
+			"term": "notification",
+			"translation": "melding"
+		},
+		{
+			"term": "Notifications",
+			"translation": "Meldingen"
+		},
+		{
+			"term": "Oval",
+			"translation": "Ovaal"
+		},
+		{
+			"term": "overwrite",
+			"translation": "overschrijven"
+		},
+		{
+			"term": "owner",
+			"translation": "eigenaar"
+		},
+		{
+			"term": "Padding",
+			"translation": "Opvulling"
+		},
+		{
+			"term": "page",
+			"translation": "pagina",
+			"note": "plural pagina's"
+		},
+		{
+			"term": "Paste",
+			"translation": "Plakken"
+		},
+		{
+			"term": "pin (action)",
+			"translation": "vastmaken",
+			"note": "Pinned heading: 'Vastgemaakt'"
+		},
+		{
+			"term": "Pin file / Unpin file",
+			"translation": "Bestand vastmaken / Bestand losmaken"
+		},
+		{
+			"term": "Portrait (orientation)",
+			"translation": "Staand"
+		},
+		{
+			"term": "Preferences",
+			"translation": "Voorkeuren"
+		},
+		{
+			"term": "Privacy Policy",
+			"translation": "Privacybeleid"
+		},
+		{
+			"term": "Reduce motion",
+			"translation": "Verminder beweging"
+		},
+		{
+			"term": "Regenerate (invite link)",
+			"translation": "Opnieuw genereren"
+		},
+		{
+			"term": "Remove from file",
+			"translation": "Uit bestand halen",
+			"note": "Avoid 'verwijderen', which means Delete"
+		},
+		{
+			"term": "Rename",
+			"translation": "Hernoemen"
+		},
+		{
+			"term": "reply (noun)",
+			"translation": "antwoord / antwoorden"
+		},
+		{
+			"term": "Reset data",
+			"translation": "Gegevens resetten"
+		},
+		{
+			"term": "Resolved",
+			"translation": "Opgelost"
+		},
+		{
+			"term": "Rhombus",
+			"translation": "Ruit",
+			"note": "Diamond is 'Diamant'"
+		},
+		{
+			"term": "Rhombus (shape)",
+			"translation": "Parallellogram"
+		},
+		{
+			"term": "Save",
+			"translation": "Opslaan"
+		},
+		{
+			"term": "Save a copy",
+			"translation": "Bewaar een kopie",
+			"note": "SDK action.save-copy"
+		},
+		{
+			"term": "Search",
+			"translation": "Zoeken"
+		},
+		{
+			"term": "Search… (placeholder)",
+			"translation": "Zoeken…"
+		},
+		{
+			"term": "selected",
+			"translation": "geselecteerd"
+		},
+		{
+			"term": "shape",
+			"translation": "vorm"
+		},
+		{
+			"term": "Shape (geo)",
+			"translation": "Vorm"
+		},
+		{
+			"term": "Share (button)",
+			"translation": "Delen"
+		},
+		{
+			"term": "Sign out",
+			"translation": "Afmelden"
+		},
+		{
+			"term": "snap",
+			"translation": "magnetisch uitlijnen"
+		},
+		{
+			"term": "Solid (line style)",
+			"translation": "Doorgetrokken"
+		},
+		{
+			"term": "Square (shape)",
+			"translation": "Vierkant"
+		},
+		{
+			"term": "Strikethrough",
+			"translation": "Doorhalen"
+		},
+		{
+			"term": "Task list",
+			"translation": "Takenlijst"
+		},
+		{
+			"term": "teammate",
+			"translation": "teamgenoot"
+		},
+		{
+			"term": "Toggle",
+			"translation": "in-/uitschakelen",
+			"note": "not 'wisselen' (swap)"
+		},
+		{
+			"term": "Toggle (action)",
+			"translation": "in-/uitschakelen"
+		},
+		{
+			"term": "Toggle (command label)",
+			"translation": "in-/uitschakelen"
+		},
+		{
+			"term": "toggle (command)",
+			"translation": "in-/uitschakelen"
+		},
+		{
+			"term": "tool",
+			"translation": "hulpmiddel",
+			"note": "as in tool-panel.title 'Hulpmiddelen'"
+		},
+		{
+			"term": "Transparent",
+			"translation": "Transparant"
+		},
+		{
+			"term": "Trapezoid",
+			"translation": "Trapezium"
+		},
+		{
+			"term": "Triangle",
+			"translation": "Driehoek"
+		},
+		{
+			"term": "Undo",
+			"translation": "Ongedaan maken"
+		},
+		{
+			"term": "Ungroup",
+			"translation": "Groepering opheffen"
+		},
+		{
+			"term": "Viewer (access role)",
+			"translation": "Lezer"
+		},
+		{
+			"term": "workspace",
+			"translation": "werkruimte"
+		},
+		{
+			"term": "Zoom in",
+			"translation": "Inzoomen"
+		},
+		{
+			"term": "Zoom out",
+			"translation": "Uitzoomen"
+		}
+	]
+}

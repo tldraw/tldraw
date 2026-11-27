@@ -112,7 +112,7 @@
   "0a91f7fa87": [
     {
       "type": 0,
-      "value": "Berkas ini telah mencapai batas ukuran dan perubahan mungkin tidak dapat disimpan lagi. Hapus sebagian konten atau buat berkas baru."
+      "value": "File ini telah mencapai batas ukurannya dan perubahan mungkin tidak lagi tersimpan. Hapus sebagian konten atau mulai file baru."
     }
   ],
   "0b27918290": [
@@ -142,13 +142,13 @@
   "0e4a10d921": [
     {
       "type": 0,
-      "value": "Tandai semua notifikasi sebagai sudah dibaca."
+      "value": "Tandai semua notifikasi sebagai sudah dibaca"
     }
   ],
   "1063e38cb5": [
     {
       "type": 0,
-      "value": "Menghapus"
+      "value": "Keluarkan"
     }
   ],
   "10fb1df194": [
@@ -169,6 +169,12 @@
       "value": "Lepaskan sematan file"
     }
   ],
+  "13cad4c2e8": [
+    {
+      "type": 0,
+      "value": "Ruang kerja ini telah mencapai jumlah pustaka maksimum. Hapus pustaka lama sebelum membuat yang baru."
+    }
+  ],
   "13ddd375ad": [
     {
       "type": 0,
@@ -178,7 +184,7 @@
   "14b03eeeb5": [
     {
       "type": 0,
-      "value": "Opsi pemberitahuan"
+      "value": "Opsi notifikasi"
     }
   ],
   "15bf4fead9": [
@@ -202,7 +208,7 @@
   "1a7222b4e5": [
     {
       "type": 0,
-      "value": "Pindah ke"
+      "value": "Pindahkan ke"
     }
   ],
   "1da2e8106b": [
@@ -221,6 +227,12 @@
     {
       "type": 0,
       "value": "Suatu ruang kerja harus memiliki setidaknya satu pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
+    }
+  ],
+  "20746febc9": [
+    {
+      "type": 0,
+      "value": "Koleksiku"
     }
   ],
   "21f66c9c00": [
@@ -255,10 +267,16 @@
       "value": "Tentang tldraw"
     }
   ],
+  "26111f65cc": [
+    {
+      "type": 0,
+      "value": "Pustaka ini telah mencapai jumlah item maksimum. Hapus item lama sebelum menambahkan yang baru."
+    }
+  ],
   "28b2464e1f": [
     {
       "type": 0,
-      "value": "Tidak dapat mengirimkan umpan balik."
+      "value": "Tidak dapat mengirim masukan"
     }
   ],
   "2944edaa8d": [
@@ -280,13 +298,13 @@
   "2a1167f869": [
     {
       "type": 0,
-      "value": "Selamat datang di ruang kerja Anda."
+      "value": "Selamat datang di ruang kerja Anda"
     }
   ],
   "2a37324bb4": [
     {
       "type": 0,
-      "value": "Mencari..."
+      "value": "Cari..."
     }
   ],
   "2d3cdcfdd4": [
@@ -332,7 +350,7 @@
   "31418ce4ad": [
     {
       "type": 0,
-      "value": "i18n: Sorotan Tidak Ada"
+      "value": "i18n: Sorot yang Hilang"
     }
   ],
   "324a0f3182": [
@@ -344,7 +362,7 @@
   "32811caa8c": [
     {
       "type": 0,
-      "value": "Berkas duplikat"
+      "value": "Duplikat file"
     }
   ],
   "335defdafe": [
@@ -368,7 +386,7 @@
   "34e34c43ec": [
     {
       "type": 0,
-      "value": "Mengelola"
+      "value": "Kelola"
     }
   ],
   "375396d6e5": [
@@ -417,6 +435,12 @@
     {
       "type": 0,
       "value": "Tema warna"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Menu pustaka"
     }
   ],
   "42e53c47c1": [
@@ -478,13 +502,13 @@
   "477df802ca": [
     {
       "type": 0,
-      "value": "Untuk melanjutkan pengeditan, salin berkas ke berkas Anda."
+      "value": "Untuk melanjutkan pengeditan, silakan salin file ke file Anda."
     }
   ],
   "47f493a590": [
     {
       "type": 0,
-      "value": "Berkas pin"
+      "value": "Sematkan file"
     }
   ],
   "4970317944": [
@@ -529,6 +553,12 @@
     {
       "type": 0,
       "value": " berkomentar"
+    }
+  ],
+  "4c4a28e97a": [
+    {
+      "type": 0,
+      "value": "File ini"
     }
   ],
   "4d0d3ddec9": [
@@ -700,7 +730,7 @@
   "608e9d366e": [
     {
       "type": 0,
-      "value": "Anda sudah mengetahui semuanya."
+      "value": "Semuanya sudah terbaca."
     }
   ],
   "60a68c29d6": [
@@ -790,22 +820,11 @@
     },
     {
       "type": 0,
-      "value": " dan "
+      "value": ", dan "
     },
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -813,7 +832,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " orang lainnya"
             }
           ]
         }
@@ -856,7 +875,7 @@
             },
             {
               "type": 0,
-              "value": " orang-orang bereaksi"
+              "value": " orang bereaksi"
             }
           ]
         }
@@ -933,7 +952,7 @@
   "74ff4bad28": [
     {
       "type": 0,
-      "value": "Tidak ada berkas yang ditemukan."
+      "value": "Tidak ada file yang ditemukan"
     }
   ],
   "752b79f137": [
@@ -990,6 +1009,12 @@
       "value": "Berkas multipemain tldraw anonim ini sekarang hanya-baca. Untuk melanjutkan pengeditan, silakan masuk dan salin ke berkas Anda."
     }
   ],
+  "7897a855d3": [
+    {
+      "type": 0,
+      "value": "Belum ada pustaka."
+    }
+  ],
   "78e9815992": [
     {
       "type": 0,
@@ -999,7 +1024,7 @@
   "797799f35e": [
     {
       "type": 0,
-      "value": "Kirimkan masalah di GitHub"
+      "value": "Laporkan masalah di GitHub"
     }
   ],
   "797c5be9a7": [
@@ -1041,7 +1066,7 @@
   "7cb5f8b4a5": [
     {
       "type": 0,
-      "value": "Abaikan"
+      "value": "Lupakan"
     }
   ],
   "7d69b3cb4c": [
@@ -1059,7 +1084,7 @@
   "7fcdcc6455": [
     {
       "type": 0,
-      "value": "Abaikan file"
+      "value": "Lupakan file"
     }
   ],
   "801ab24683": [
@@ -1182,17 +1207,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1200,7 +1214,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " orang lainnya"
             }
           ]
         }
@@ -1247,7 +1261,7 @@
   "8ff3d0a705": [
     {
       "type": 0,
-      "value": "Laju dibatasi"
+      "value": "Batas permintaan tercapai"
     }
   ],
   "902b0d55fd": [
@@ -1334,10 +1348,16 @@
       "value": "Ketentuan Penggunaan"
     }
   ],
+  "987453f3dd": [
+    {
+      "type": 0,
+      "value": "Coba server MCP"
+    }
+  ],
   "9914a0ce04": [
     {
       "type": 0,
-      "value": "Cahaya"
+      "value": "Terang"
     }
   ],
   "9983381c21": [
@@ -1384,6 +1404,27 @@
       "value": "Anda tampaknya sedang offline. Periksa koneksi Anda dan coba lagi."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1396,6 +1437,49 @@
       "value": "Terbitkan file ini"
     }
   ],
+  "9d102330ee": [
+    {
+      "type": 0,
+      "value": "Hapus "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " beserta "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " di dalamnya?"
+    }
+  ],
   "9e076f5885": [
     {
       "type": 0,
@@ -1405,7 +1489,7 @@
   "9e93c98d88": [
     {
       "type": 0,
-      "value": "Memilih keluar"
+      "value": "Tolak"
     }
   ],
   "a078644c42": [
@@ -1452,7 +1536,7 @@
   "a104439641": [
     {
       "type": 0,
-      "value": "Alas"
+      "value": "Margin"
     }
   ],
   "a18366b217": [
@@ -1500,7 +1584,7 @@
   "a52945dbe2": [
     {
       "type": 0,
-      "value": "Meninggalkan"
+      "value": "Keluar"
     }
   ],
   "a6cc403d56": [
@@ -1519,6 +1603,12 @@
     {
       "type": 0,
       "value": "File menjadi besar"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Hapus pustaka"
     }
   ],
   "a9ded1e5ce": [
@@ -1542,7 +1632,7 @@
   "ab0df9ba36": [
     {
       "type": 0,
-      "value": "Batas berkas tercapai"
+      "value": "Batas file tercapai"
     }
   ],
   "ac863f346e": [
@@ -1554,7 +1644,7 @@
   "aeb428554a": [
     {
       "type": 0,
-      "value": "Perpustakaan"
+      "value": "Pustaka"
     }
   ],
   "af3dc88931": [
@@ -1606,7 +1696,7 @@
   "b2c3c2e30c": [
     {
       "type": 0,
-      "value": "File sudah penuh"
+      "value": "File penuh"
     }
   ],
   "b3205c1e45": [
@@ -1648,7 +1738,7 @@
   "b74dbb40c5": [
     {
       "type": 0,
-      "value": "Seret file ke bilah sisi pada halaman ini. Atau pilih opsi 'Impor file' dari menu File di kiri atas."
+      "value": "Seret file ke bilah sisi di halaman ini. Atau pilih opsi 'Impor berkas' dari menu File di kiri atas."
     }
   ],
   "b758336699": [
@@ -1821,7 +1911,7 @@
   "ce0547606c": [
     {
       "type": 0,
-      "value": "Berkas ini hampir mencapai batas ukurannya. Pertimbangkan untuk menghapus sebagian konten atau membuat berkas baru."
+      "value": "File ini mendekati batas ukurannya. Pertimbangkan untuk menghapus sebagian konten atau memulai file baru."
     }
   ],
   "cea291e45e": [
@@ -1927,7 +2017,7 @@
   "dbbebf3c03": [
     {
       "type": 0,
-      "value": "Hanya mengundang"
+      "value": "Hanya dengan undangan"
     }
   ],
   "dbf9b24193": [
@@ -1939,13 +2029,19 @@
   "dfdb78a4e4": [
     {
       "type": 0,
-      "value": "Bendera debug aplikasi"
+      "value": "Flag debug aplikasi"
     }
   ],
   "e0aa021e21": [
     {
       "type": 0,
-      "value": "OKE"
+      "value": "OK"
+    }
+  ],
+  "e1cbe6f097": [
+    {
+      "type": 0,
+      "value": "Tidak dapat mengubah pustaka"
     }
   ],
   "e2198d6228": [
@@ -2017,7 +2113,7 @@
   "ed75712b0e": [
     {
       "type": 0,
-      "value": "Duplikat"
+      "value": "Gandakan"
     }
   ],
   "ede55d955f": [
@@ -2074,6 +2170,12 @@
     {
       "type": 0,
       "value": "Pengaturan pengguna"
+    }
+  ],
+  "f129f24bec": [
+    {
+      "type": 0,
+      "value": "· Tidak ada di file mana pun"
     }
   ],
   "f13001876b": [
@@ -2139,7 +2241,7 @@
   "fb15c53f22": [
     {
       "type": 0,
-      "value": "Audiens"
+      "value": "Pelihat"
     }
   ],
   "fc9d47046b": [
@@ -2154,10 +2256,16 @@
       "value": "Tautan disalin"
     }
   ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Pustaka publik"
+    }
+  ],
   "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Apakah Anda yakin ingin menghapus "
+      "value": "Apakah Anda yakin ingin mengeluarkan "
     },
     {
       "type": 1,
@@ -2171,13 +2279,13 @@
   "ff52811b98": [
     {
       "type": 0,
-      "value": "Buat akun gratis untuk menyimpan file Anda dan menggambar bersama rekan tim Anda."
+      "value": "Buat akun gratis untuk menyimpan file Anda dan menggambar di tldraw bersama rekan tim."
     }
   ],
   "ffad261a48": [
     {
       "type": 0,
-      "value": "Terjadi kesalahan saat menerima undangan."
+      "value": "Gagal menerima undangan"
     }
   ],
   "ffba7e098c": [

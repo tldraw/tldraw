@@ -2,13 +2,12 @@
 	"0095a9fa74": {
 		"sourceHash": "af6bf132010338675bcff8cdef662277c41133c70e998d280e8471d966bff84c",
 		"role": "label",
-		"meaning": "Name of the Export tab in the file share menu, and title of the Export dialog, where the user exports the canvas as an image (SVG/PNG). Verb-noun 'export', not trade exports.",
+		"meaning": "Label of the Export tab in the file Share popover. The tab holds options for exporting the canvas as an image or file. It is a tab name, not an action button. Always shown.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/TlaFileShareMenu.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaExportDialog.tsx"
+			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/TlaFileShareMenu.tsx"
 		],
 		"constraints": [
-			"Tab label alongside 'Invite', 'Share', 'Publish'; keep short"
+			"Tab label; keep short"
 		]
 	},
 	"00b177e080": {
@@ -110,14 +109,12 @@
 	"08bd40c754": {
 		"sourceHash": "cdf31a5d7137c43badcaae7ce78d9b6f5af1fff434c704d8bec1b918c8439cbc",
 		"role": "label",
-		"meaning": "Name of the user's account: fallback text on the sidebar user-settings button and menu when the user has no name, and the heading of the account group in the command palette.",
+		"meaning": "Fallback text in the sidebar's user-settings button, shown in place of the user's name when they have no name. It labels the user's account, not an action.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsButton.tsx",
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx"
 		],
 		"constraints": [
-			"User account, not a bank account or an invoice"
+			"Sidebar row with limited width; keep short"
 		]
 	},
 	"093ac7483a": {
@@ -171,15 +168,13 @@
 	"0d1f2bb523": {
 		"sourceHash": "695fe9a6e76c0e3b3e7190d53c3d97f625d1744d0ce7d36d1f7b7d7aa8c0d2ca",
 		"role": "action",
-		"meaning": "Opens the feedback dialog (sidebar button, menus, settings), and is also that dialog's title and submit button that sends the feedback to tldraw.",
+		"meaning": "Opens the dialog for sending feedback to the tldraw team. 'Send' is a verb. Used as the tooltip of the icon-only feedback button at the bottom of the sidebar, and as a menu item.",
 		"callSites": [
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFeedbackButton.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/SubmitFeedbackDialog.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Used both as a title and a button; choose a form that works for both"
+			"Tooltip and menu item; keep short"
 		]
 	},
 	"0e4a10d921": {
@@ -278,17 +273,6 @@
 		"callSites": [
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarCreateFileButton.tsx",
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
-		]
-	},
-	"1914dedd04": {
-		"sourceHash": "0e125ba27f12a56a91f51e933fc568e01f18b01305bfcf205e19f0142921ab3d",
-		"role": "label",
-		"meaning": "Tab on the workspace home page that filters the file list to files the current user created. It sits next to the 'Recents' and 'Shared with me' tabs.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"constraints": [
-			"Tab label; keep short and parallel with 'Shared with me'"
 		]
 	},
 	"1a7222b4e5": {
@@ -429,14 +413,13 @@
 	},
 	"2a37324bb4": {
 		"sourceHash": "5664717de7fb2890056e15171aed53c4f31845009b736382609e6c649be4bcb1",
-		"role": "label",
-		"meaning": "Placeholder and label of the file search input in the sidebar and on the workspace home page.",
+		"role": "action",
+		"meaning": "Sidebar search row. It is the label of the row that turns into a search field, and the placeholder of the input that filters the file list by file name. The trailing '...' is a literal three-dot ellipsis.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarSearch.tsx",
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarSearch.tsx"
 		],
 		"constraints": [
-			"Input placeholder; keep the ellipsis"
+			"Used as a button label and as an input placeholder; keep short"
 		]
 	},
 	"2d3cdcfdd4": {
@@ -475,17 +458,6 @@
 			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
 		]
 	},
-	"2f42560ef5": {
-		"sourceHash": "0c8e50d26365e28a229634304aa8294e43be53bfe71101e322f80974c1beae71",
-		"role": "label",
-		"meaning": "Shows the current user's own name in the list of people who visited a board, marked as being them.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaBoardVisitors.tsx"
-		],
-		"placeholders": {
-			"name": "The current user's display name"
-		}
-	},
 	"31246941ad": {
 		"sourceHash": "c8e7ee7c75815b7fefe02cc4ffdd401032286a064101b03d648c4235670d9579",
 		"role": "error",
@@ -496,14 +468,13 @@
 	},
 	"31418ce4ad": {
 		"sourceHash": "4ebadb6de2fb32ce1aeee83a26b427dcf98e7e85289957cefe96dd1ba4943f9f",
-		"role": "action",
-		"meaning": "Developer/debug toggle, in the debug flags menu and the settings dialog, that visually highlights UI text that hasn't been translated. Internal tool for checking translations.",
+		"role": "label",
+		"meaning": "Developer-only debug checkbox in the app debug flags submenu. It highlights text in the UI that is not translated (not routed through the i18n system). 'i18n:' is a technical prefix. It only appears in local development.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Checkbox toggle; keep the 'i18n:' prefix as is"
+			"Internal developer tool; keep the 'i18n:' prefix"
 		]
 	},
 	"324a0f3182": {
@@ -608,10 +579,12 @@
 	"3c5e891bff": {
 		"sourceHash": "32fcf240235c4cbacb52b871be2178d8565f9da3f0c2a505fbff3a28a6d6940b",
 		"role": "heading",
-		"meaning": "Heading of the sidebar section listing files the user has pinned; also the accessible label of the pin icon on a pinned file card on the workspace home page. Describes files, so it's an adjective/state (plural in the section heading).",
+		"meaning": "Heading of the sidebar file group that holds the files the user has pinned. It comes before the date groups (Today, Yesterday, ...). 'Pinned' is an adjective meaning fixed to the top of the list, and it has a pin icon.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx",
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx"
+		],
+		"constraints": [
+			"Section heading in the sidebar; keep short"
 		]
 	},
 	"3d0238bf16": {
@@ -639,10 +612,12 @@
 	"402bf0c47e": {
 		"sourceHash": "0b1ddd98d837e50c9d7d71cb3f1f70175ade56d01dcc80cb626c8a3378060c52",
 		"role": "label",
-		"meaning": "Setting/submenu for choosing the app's colour theme (e.g. light, dark, system or other UI themes). Appears in the settings dialog, the main menu and the command palette.",
+		"meaning": "Label of the submenu for choosing the app's color theme (a named palette variation such as the default theme). It is separate from light/dark/system mode. It appears in the user settings menu and the command palette.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
+		],
+		"constraints": [
+			"Submenu label"
 		]
 	},
 	"4236087d6b": {
@@ -659,17 +634,6 @@
 		"meaning": "Message on the 'Invite only' error page shown when a user opens a file they don't have access to; tells them to ask the file's owner for access.",
 		"callSites": [
 			"apps/dotcom/client/src/tla/components/TlaFileError/TlaFileError.tsx"
-		]
-	},
-	"42ff290cc4": {
-		"sourceHash": "b0ba0a1bb2ca8c619b5ddba0e1ff721c010f77c9f669c1aaa2022681bbc94bcf",
-		"role": "action",
-		"meaning": "Item in the editor's top-left main menu that opens the command palette (a searchable list of all commands). The ellipsis signals it opens something further.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
-		],
-		"constraints": [
-			"Keep the trailing ellipsis character"
 		]
 	},
 	"44db318ee5": {
@@ -743,40 +707,15 @@
 			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx"
 		]
 	},
-	"4970317944": {
-		"sourceHash": "8f4f3ae79142629031e672080d284c4fae737f7b6290ac946a439749aa7a7e3e",
-		"role": "label",
-		"meaning": "Submenu in the editor's top-left main menu grouping commands that insert or act on canvas objects (shapes, embeds, media). Means a thing on the canvas, not grammatical object or 'to object'.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
-		]
-	},
-	"49800157c1": {
-		"sourceHash": "23938c882c7de42a735cac072d14001b3cb31f07c4810d9d60f309ddd7bb543a",
-		"role": "state",
-		"meaning": "Caption on a file card on the workspace home page showing when the file was last modified.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"placeholders": {
-			"time": "Already-localized relative time such as '5 minutes ago' or 'yesterday'"
-		},
-		"constraints": [
-			"The file was edited (past participle), not a command"
-		]
-	},
 	"49ee308734": {
 		"sourceHash": "f922fb4b826598e6821d8d914edbc3e4c90b0a8be92aae5644753cabefc7d482",
 		"role": "label",
-		"meaning": "Label for a name field: the user's display name in settings, a workspace's name in workspace settings and the create-workspace dialog, and the file-name placeholder when creating a new file from the command palette.",
+		"meaning": "Label above the workspace name input in the Manage workspace dialog. It names the field where the workspace is renamed.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
 			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
 		],
 		"constraints": [
-			"Noun, not the verb 'to name'"
+			"Form field label; keep short"
 		]
 	},
 	"4a8165368a": {
@@ -865,25 +804,6 @@
 		],
 		"constraints": [
 			"'Page' means a page of the drawing document, not a website page"
-		]
-	},
-	"517f5f3544": {
-		"sourceHash": "d6ec1fc6c49c21785838659ce1acc3c4f49784a4d03f102f9a7debeda9eee278",
-		"role": "body",
-		"meaning": "Empty-state message in the workspace home file list when the current tab has no files and there is no search query.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		]
-	},
-	"536b51486d": {
-		"sourceHash": "87d9141da4b06faf3ed7d7632735d4d128fb388fac8dc4eeef1d51bcc5a876f3",
-		"role": "action",
-		"meaning": "Menu item in the file menu (top-left) that opens the export dialog to save the drawing as an image (SVG/PNG). The ellipsis signals a dialog follows.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
-		],
-		"constraints": [
-			"Keep the trailing ellipsis character"
 		]
 	},
 	"53770fd374": {
@@ -984,14 +904,6 @@
 			"Use the conventional name for a privacy policy document"
 		]
 	},
-	"56cabd57d5": {
-		"sourceHash": "33d660770ca0f950d22c63a733001217ca876bcddba9bf287baa3d6272ccd1db",
-		"role": "body",
-		"meaning": "Empty-state message on the Archive tab of the workspace home when no files are archived.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		]
-	},
 	"5a95a425f7": {
 		"sourceHash": "e5b0f22ebac5b49b183831bb8ee1326d2a7af0b2037498ea0f2c12919f59e0a7",
 		"role": "action",
@@ -1016,15 +928,12 @@
 	"5bff3c9c88": {
 		"sourceHash": "d908263c5002c270481297f44effad81da6ad043715074b43e59ae7ec5416637",
 		"role": "label",
-		"meaning": "Name shown for the user's personal home workspace (in the workspace switcher, file move menu and command palette).",
+		"meaning": "Name of the user's own private home workspace. It is shown in the sidebar's workspace switcher when the workspace has no custom name. 'Workspace' is a space containing files, which may be shared with teammates. 'My' marks the personal, non-shared one.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
-			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher.tsx",
-			"apps/dotcom/client/src/tla/hooks/useWorkspaceName.ts"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher.tsx"
 		],
 		"constraints": [
-			"Acts as a name/label, not a sentence"
+			"Trigger label and dropdown item; truncated when long"
 		]
 	},
 	"5d04a002ea": {
@@ -1094,17 +1003,6 @@
 			"Means 'not now / remind me later', not the adjective 'later' as in more recent"
 		]
 	},
-	"623cddd380": {
-		"sourceHash": "2ac4d3c1e9ee25ec65d5a2a6f09f2077e703d6c4445ba80bebf168fffa0d7127",
-		"role": "label",
-		"meaning": "Tab on the workspace home listing recently opened files.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"constraints": [
-			"Short tab label; plural noun for recent files"
-		]
-	},
 	"625fd29749": {
 		"sourceHash": "b58984c808a4f3b10c3302d17ea9f63f3f96c9a6d4c5b1b4d18a2136b5f82938",
 		"role": "heading",
@@ -1172,15 +1070,12 @@
 	"681e10aecb": {
 		"sourceHash": "ecb9de6778f7281df1ac8ec78f387ee659e4b10b942fd58adb708fbf7ae45708",
 		"role": "action",
-		"meaning": "Button / command that creates a new tldraw file (board): sidebar action button, workspace home button, file switcher create row, and a command palette entry that prompts for the file name.",
+		"meaning": "Sidebar action row that creates a new, empty file (drawing) in the active workspace. 'New' is an adjective and 'file' is a drawing file, not a computer folder.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorFileSwitcher.tsx",
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions.tsx",
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions.tsx"
 		],
 		"constraints": [
-			"Short button/menu label; it is an action (create a file), not a description of a file that is new"
+			"Sidebar row; keep short"
 		]
 	},
 	"68240daa8f": {
@@ -1223,18 +1118,6 @@
 		"constraints": [
 			"Destructive, permanent action",
 			"Used both as button and dialog title"
-		]
-	},
-	"697c59072d": {
-		"sourceHash": "2c53b4306ac45ca0c17dce7ac26d437981f90fc92bc7abd99bcfc7c2f9a3bf73",
-		"role": "action",
-		"meaning": "Menu item in the editor's top-left file menu, shown to signed-out users (e.g. on the scratch board), that opens sign-in so their work can be saved to an account.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
-		],
-		"constraints": [
-			"Menu item; keep short",
-			"'save' means keep the file in an account, not a file download"
 		]
 	},
 	"69ce6a28fb": {
@@ -1297,17 +1180,6 @@
 		],
 		"constraints": [
 			"Ends with a colon introducing a list"
-		]
-	},
-	"6ea5359e01": {
-		"sourceHash": "c5cdcba903dc0503429e5084cee10baedf0a8ca58c1197d046440b013a772e18",
-		"role": "label",
-		"meaning": "Name of a tab/section in the user settings dialog holding canvas (drawing surface/editor) preferences.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
-		],
-		"constraints": [
-			"Tab label; the drawing canvas of the editor, not painting canvas fabric"
 		]
 	},
 	"70a6facb9d": {
@@ -1407,14 +1279,13 @@
 	"761e93ede9": {
 		"sourceHash": "197c2061f732ccf00d4e745c3dcfc68deeddeec34077dcb0bf811b45a6893c4a",
 		"role": "action",
-		"meaning": "Menu item / settings link that opens the cookie preferences dialog; also its dialog title.",
+		"meaning": "Menu item in the user settings menu that opens a dialog where the user manages their cookie consent preferences. 'Cookies' means browser cookies.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaManageCookiesDialog.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"'cookies' are browser cookies"
+			"Menu item"
 		]
 	},
 	"764671e008": {
@@ -1504,39 +1375,27 @@
 			"Keep 'GitHub' as is"
 		]
 	},
-	"797c5be9a7": {
-		"sourceHash": "3177dd41a92154f85d5386028f30b0ba180842b36c712bbf1913b6253ef5c2e5",
-		"role": "state",
-		"meaning": "Suffix shown after a person's name in the tooltip listing recent visitors of a board on the workspace home page, marking that this person currently has the board open. The leading '·' is a separator after the name.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaBoardVisitors.tsx"
-		],
-		"constraints": [
-			"Keep the leading '· ' separator",
-			"Short; appears inline after a name"
-		]
-	},
 	"7a1920d611": {
 		"sourceHash": "694936459ca37b785a5260770716d7a1ed65bf9f3035569903c742977e855771",
 		"role": "label",
-		"meaning": "Option in the color theme picker for the standard (built-in default) UI color theme, listed alongside named themes. It is the name of a theme choice, not 'default' as in a failure to pay.",
+		"meaning": "Name of the default color theme option in the Color theme list. It is the standard built-in theme, as opposed to other named themes. It is not a verb or a default setting.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/hooks/useColorThemes.ts"
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Single word option label"
+			"Checkbox menu option; keep short"
 		]
 	},
 	"7b1329f5ca": {
 		"sourceHash": "c39633784fdb6bc7b123570d899327fccbb16a8662fd7af17ff4552063184796",
 		"role": "action",
-		"meaning": "Menu item and button in the About settings that open tldraw's online user manual (help documentation) in a new tab.",
+		"meaning": "Menu item that opens the tldraw user manual / support site in a new tab. The code id is getHelp, but the text means the documentation.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Short menu label"
+			"Menu item"
 		]
 	},
 	"7be10fc592": {
@@ -1558,14 +1417,6 @@
 			"Keep 'tldraw' lowercase and untranslated"
 		]
 	},
-	"7c10d4771a": {
-		"sourceHash": "5e825cb273a318de85c8fe02f5636118b01d028180b19a3740ec496519805f0a",
-		"role": "action",
-		"meaning": "Sign-in button shown in the settings dialog to signed-out users; profile settings (name, etc.) can only be edited after signing in.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
-		]
-	},
 	"7cb5f8b4a5": {
 		"sourceHash": "6959e396642a9c11dd06a0f1a80c05af0563c48ef5cadb0a8c93759625410cf4",
 		"role": "action",
@@ -1577,17 +1428,6 @@
 		"constraints": [
 			"Must stay distinct from Delete",
 			"Short button/menu label"
-		]
-	},
-	"7d69b3cb4c": {
-		"sourceHash": "65f31a14978058afd801e7a8c73f2c23be13db1bb33875875bf0bb3749321a6c",
-		"role": "label",
-		"meaning": "Tab on the workspace home page that lists archived files (files moved out of the main list).",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"constraints": [
-			"Tab label; plural sense (archived files)"
 		]
 	},
 	"7daeced9ff": {
@@ -1625,17 +1465,12 @@
 	"8030793ce3": {
 		"sourceHash": "90d41d73f00320ef8882524c326643819613b920623ae025e90c4b5571d02499",
 		"role": "action",
-		"meaning": "Menu item / command in workspace switchers, the command palette and the file 'Move to' menu that creates a new workspace (a shared space of files and members). Also used as the prefilled default name in the create-workspace dialog.",
+		"meaning": "Item at the bottom of the sidebar workspace switcher dropdown that opens a dialog to create a new shared workspace. 'Workspace' is a space containing files, which may be shared with teammates.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorWorkspaceSwitcher.tsx",
-			"apps/dotcom/client/src/tla/components/TlaFileMenu/TlaFileMenu.tsx",
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/CreateWorkspaceDialog.tsx",
-			"apps/dotcom/client/src/tla/layouts/TlaWorkspaceLayout/TlaWorkspaceSwitcher.tsx"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceSwitcher.tsx"
 		],
 		"constraints": [
-			"Must read both as a command and as a default workspace name"
+			"Dropdown item with a plus icon; keep short"
 		]
 	},
 	"815e116a2e": {
@@ -1711,17 +1546,6 @@
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/sidebar-shared.ts"
 		]
 	},
-	"8718bcf921": {
-		"sourceHash": "8a343d578f6eb880aba42af6c7f273ece62a0ea57b024b79c2d329e97758109f",
-		"role": "label",
-		"meaning": "Fallback display name for a workspace that has no name set (other than the user's home workspace).",
-		"callSites": [
-			"apps/dotcom/client/src/tla/hooks/useWorkspaceName.ts"
-		],
-		"constraints": [
-			"Used as a name, not a sentence"
-		]
-	},
 	"87fdb09de6": {
 		"sourceHash": "d8499ac6c85f73dd36a5e2bea7f28538a865880314148b56e4b191e549b78713",
 		"role": "error",
@@ -1762,34 +1586,12 @@
 			"apps/dotcom/client/src/tla/components/dialogs/TlaSignInDialog.tsx"
 		]
 	},
-	"8cf04a9734": {
-		"sourceHash": "40e7589f51a347b2ead3d4d23270beb179f93b94de1d0c2df333883cca29a0ae",
-		"role": "action",
-		"meaning": "Button and menu item in the editor's top-left panel that navigates from the open file back to the workspace home page (file list). 'Home' is the app's start page, not a house.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
-		],
-		"constraints": [
-			"Single word; also used as button aria-label/tooltip"
-		]
-	},
 	"8eb2c00e96": {
 		"sourceHash": "db94fcb4b3292ee571415932141eb36d5d88b3aa0759b72c5c2e3211a0e622aa",
 		"role": "tooltip",
 		"meaning": "Tooltip on a sidebar file icon indicating the file was shared with the user by someone else (used when the owner's name is unknown).",
 		"callSites": [
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarFileLink.tsx"
-		]
-	},
-	"8f7f4c1ce7": {
-		"sourceHash": "8a30c86cc9777011e74b6c7361027c64b3e9b13dc0d8f4d4a7699a504136423a",
-		"role": "label",
-		"meaning": "Tab name in the settings dialog for the section with app information and links (user manual, legal, etc.).",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
-		],
-		"constraints": [
-			"Tab label, one word if possible"
 		]
 	},
 	"8ff3d0a705": {
@@ -1873,13 +1675,13 @@
 	"95d2109dc8": {
 		"sourceHash": "3a5bb7fd86b296e655e1a04d3c62853d6d75d9109de655cdec63126c133b2682",
 		"role": "action",
-		"meaning": "Link in the sidebar and settings dialog to tldraw.dev, inviting developers to build their own apps with the tldraw SDK.",
+		"meaning": "Sidebar link that opens the tldraw SDK developer website (tldraw.dev) in a new tab. It promotes the SDK to developers. 'tldraw' is a brand name and stays untranslated; 'SDK' is a software development kit.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarDotDevLink.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarDotDevLink.tsx"
 		],
 		"constraints": [
-			"'tldraw' and 'SDK' stay as is"
+			"Sidebar link with limited width; also the icon's accessible label",
+			"Keep 'tldraw' and 'SDK' as they are"
 		]
 	},
 	"96165d6df5": {
@@ -1940,24 +1742,13 @@
 	"9983381c21": {
 		"sourceHash": "6c91622e28bc35d289fa6a0e93348a4e4d0e24b79435063c5c8923237735aaf9",
 		"role": "action",
-		"meaning": "Button (usually an × icon label) that empties the search field in the sidebar and workspace home file search.",
+		"meaning": "Clears the sidebar's file search query and restores the full list. It is the tooltip of the X button in the search field, and the label of a button shown below the filtered file list while a search is active.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarSearch.tsx",
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarRecentFiles.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarSearch.tsx"
 		],
 		"constraints": [
-			"'Clear' means empty the field, not make transparent"
-		]
-	},
-	"9ac3b80777": {
-		"sourceHash": "e0d5994eaac9e2be36374150cdfb60cffa05e31a7bd7ff687994a28fc3e48112",
-		"role": "state",
-		"meaning": "Shown in the editor's top-left panel in place of a file name when a signed-out user is drawing in a file that isn't saved to an account; opens a menu prompting sign-in.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx"
-		],
-		"constraints": [
-			"Spaces are replaced with non-breaking spaces, so keep it short"
+			"Button label and tooltip"
 		]
 	},
 	"9b33f5c63c": {
@@ -2382,17 +2173,6 @@
 			"Form field label"
 		]
 	},
-	"b3d7c37eb8": {
-		"sourceHash": "a7c02b4d0e44a87f0bbbb036590c134e26653f0d21976ec368795cc6a6a1a42f",
-		"role": "tooltip",
-		"meaning": "Tooltip of the toggle button on the workspace home page that shows files as a grid of thumbnails (vs 'List view').",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"constraints": [
-			"Keep short; 'view' is a noun (display mode)"
-		]
-	},
 	"b48becc771": {
 		"sourceHash": "d9e5937ce5529b3f82136fe84ac8863be4d491435293a34b748a6cd3267c7ca5",
 		"role": "label",
@@ -2456,13 +2236,12 @@
 	"ba0318cb81": {
 		"sourceHash": "9e5438c76390241db049d38d0f7600b6a494a0447542bc0f64682bb7d2514a26",
 		"role": "action",
-		"meaning": "Sign-in button shown to signed-out users in the share menu and top-right of the editor; sharing requires an account.",
+		"meaning": "Call-to-action button in the top-right of the canvas, shown to signed-out visitors. It opens the sign-in dialog so they can share the file. The button does not share anything itself.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx",
-			"apps/dotcom/client/src/tla/components/TlaFileShareMenu/Tabs/TlaSignInTab.tsx"
+			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx"
 		],
 		"constraints": [
-			"Button label; keep short; consistent with 'Sign in'"
+			"Prominent CTA button with limited space; keep short"
 		]
 	},
 	"bbaaf8b6bf": {
@@ -2514,30 +2293,15 @@
 			"Short group label"
 		]
 	},
-	"bf9c7b5670": {
-		"sourceHash": "350c6482dcf7844c20b0a30843f83fc89c71a6f16fe33f81ec974be508a09db1",
-		"role": "label",
-		"meaning": "Placeholder text in the search field on the workspace home page, used to filter the workspace's files. Invites the user to type a search query.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"constraints": [
-			"Input placeholder; keep the trailing ellipsis character"
-		]
-	},
 	"c17466812d": {
 		"sourceHash": "f45995cf026b08a20e62339a4a94077fa9f048da6ed66a91f7cb928152979842",
-		"role": "action",
-		"meaning": "Menu item, sidebar button and command that opens the workspace settings dialog (name, members, invites); also the title of that dialog. 'Manage' means administer/configure the workspace.",
+		"role": "heading",
+		"meaning": "Title of the Manage workspace dialog. In it the user renames the workspace, invites teammates, manages members and libraries, and leaves or deletes the workspace. 'Manage' is a verb in the imperative.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaCommandPalette/TlaCommandPalette.tsx",
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorWorkspaceSwitcher.tsx",
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarWorkspaceActions.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx",
-			"apps/dotcom/client/src/tla/layouts/TlaWorkspaceLayout/TlaWorkspaceSwitcher.tsx"
+			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
 		],
 		"constraints": [
-			"Also used as a dialog title, so the form must work as both a command and a heading"
+			"Dialog title"
 		]
 	},
 	"c2276c9127": {
@@ -2612,13 +2376,13 @@
 	"c87aacf567": {
 		"sourceHash": "53b67a6376eac6174f8726e03876acc4056c04c9f10b99d2be4ff794977f2dc7",
 		"role": "action",
-		"meaning": "Menu item and button in settings that signs the user out of their tldraw account (log out).",
+		"meaning": "Signs the user out of their account. It is a menu item at the bottom of the user settings menu. It also clears local data.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Use the locale's standard 'log out' wording"
+			"Menu item"
 		]
 	},
 	"c8a59e7135": {
@@ -2630,28 +2394,6 @@
 		],
 		"constraints": [
 			"Icon-only button; label is the tooltip and aria-label"
-		]
-	},
-	"cb5feb1b73": {
-		"sourceHash": "1651cc2653152728db74905a10f3729f331aaaeb0a46675fe45389d146892f0b",
-		"role": "label",
-		"meaning": "Label of the swatch picker on the Profile settings page where the user chooses their personal colour, used for their cursor and presence indicator seen by collaborators. Not a drawing style colour.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
-		],
-		"constraints": [
-			"Also used as the radiogroup aria-label"
-		]
-	},
-	"cce99c598c": {
-		"sourceHash": "bb74a271afb0e1ce5108834fdee63c274dc1bca40971849fb704ae1c2cbf73f8",
-		"role": "label",
-		"meaning": "Tab name in the settings dialog for the user's account profile page (name, colour, email, sign out).",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
-		],
-		"constraints": [
-			"Short tab label"
 		]
 	},
 	"cceaefbc20": {
@@ -2693,17 +2435,6 @@
 		],
 		"constraints": [
 			"Link text; keep the full stop"
-		]
-	},
-	"d0834fcec6": {
-		"sourceHash": "84700794ec816f6a9f23e3bab25308a154f418dc6f4a83007b85f7a5f3351fb9",
-		"role": "label",
-		"meaning": "Tab name in the settings dialog for general app preferences (language, theme, etc.). Sibling tabs: Profile, Canvas, Accessibility.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx"
-		],
-		"constraints": [
-			"Short tab label; other strings may refer to this tab by name"
 		]
 	},
 	"d28d6bbc42": {
@@ -2881,13 +2612,13 @@
 	"e2ae80a510": {
 		"sourceHash": "5b0404cb1a90071fd07ea77048b5b25832dc37c3d17ba78a8978b43d3cca0dc7",
 		"role": "action",
-		"meaning": "Menu item / settings link that opens tldraw's legal summary page (an overview of terms, privacy and licensing) in a new tab.",
+		"meaning": "Menu item that opens the legal summary page (/legal.html), an overview of terms and privacy policies. It does not itself show the terms.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
+			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx",
 			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Menu item label; keep short"
+			"Menu item"
 		]
 	},
 	"e404559826": {
@@ -2976,14 +2707,6 @@
 			"Accessible label; keep short"
 		]
 	},
-	"ed6241a422": {
-		"sourceHash": "4e3306c6daecdb3d74dd1a958fb4dfb8c850ea567d200d910bd4312d053d4ca9",
-		"role": "state",
-		"meaning": "Empty-state text on the workspace home page when the search box has text but no files' names match it.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		]
-	},
 	"ed75712b0e": {
 		"sourceHash": "1e3b9e4ecfa67d70c4d84c1c81643a5868890e30169c3ad251c9f317e5b6bbf0",
 		"role": "action",
@@ -3037,14 +2760,6 @@
 			"Lowercase single word/adjective; agrees with 'file' where the language has gender"
 		]
 	},
-	"f07e75296c": {
-		"sourceHash": "de6376ec470b729a0eba8745786f2f6847628897cbf0cead46589f05e3426641",
-		"role": "heading",
-		"meaning": "Section heading on the workspace home page for files other people have shared with the current user.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		]
-	},
 	"f09b16bc5f": {
 		"sourceHash": "ab4224a6982c1bb677ad7dc7bd4e7a640d291c5c873304080b175db545ba7b63",
 		"role": "body",
@@ -3058,16 +2773,14 @@
 	},
 	"f0e8bff6f9": {
 		"sourceHash": "7b7e4ac8968851ab361812459576b0ef6d7a8d768d443ad037d7c97dafb9e8ce",
-		"role": "label",
-		"meaning": "Label for the sidebar button/menu that opens the signed-in user's personal settings (account, theme, language, etc.), as opposed to workspace settings.",
+		"role": "tooltip",
+		"meaning": "Accessible name and tooltip of the sidebar button that opens the user menu (theme, language, legal links, sign out). It is also the label of an account menu message. 'User settings' means the user's own settings.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsButton.tsx",
 			"apps/dotcom/client/src/tla/components/TlaSidebar/components/TlaSidebarUserSettingsMenu.tsx",
-			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx",
-			"apps/dotcom/client/src/tla/layouts/TlaWorkspaceLayout/TlaWorkspaceLayout.tsx"
+			"apps/dotcom/client/src/tla/components/menu-items/menu-items.tsx"
 		],
 		"constraints": [
-			"Button/menu label; keep short"
+			"Tooltip/title; keep short"
 		]
 	},
 	"f129f24bec": {
@@ -3079,17 +2792,6 @@
 		],
 		"constraints": [
 			"Keep the leading '· ' separator exactly"
-		]
-	},
-	"f13001876b": {
-		"sourceHash": "47d49a4eac074ce68137e4808668762ce976e99e283793c441554fff166115f1",
-		"role": "tooltip",
-		"meaning": "Tooltip and accessible label for the toggle button on the workspace home page that shows files as a list instead of a grid. 'View' is a display mode, not the verb 'to view'.",
-		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaWorkspaceHome/TlaWorkspaceHome.tsx"
-		],
-		"constraints": [
-			"Keep short"
 		]
 	},
 	"f2569594b2": {
@@ -3125,16 +2827,12 @@
 	"f4f70727dc": {
 		"sourceHash": "1012a4703ce0f5bd953921e7240ff8725e1ed3864b40b30613653085f2c11177",
 		"role": "label",
-		"meaning": "Generic 'Settings' label used in several places: the title of the user settings dialog, a menu item and settings icon button in the editor that open it, a tab in workspace settings for general workspace options, and the cookie banner button that opens the cookie preferences dialog.",
+		"meaning": "Label of the Settings tab in the Manage workspace dialog. The tab holds the invite switch, Regenerate invite link, Leave workspace and Delete workspace. It means workspace settings.",
 		"callSites": [
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopLeftPanel.tsx",
-			"apps/dotcom/client/src/tla/components/TlaEditor/TlaEditorTopRightPanel.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaCookieConsent.tsx",
-			"apps/dotcom/client/src/tla/components/dialogs/TlaSettingsDialog.tsx",
 			"apps/dotcom/client/src/tla/components/dialogs/WorkspaceSettingsDialog.tsx"
 		],
 		"constraints": [
-			"Must work as a dialog title, tab, menu item and button; use the plural noun form, keep short"
+			"Tab label; keep short"
 		]
 	},
 	"f5ddc8d9c1": {

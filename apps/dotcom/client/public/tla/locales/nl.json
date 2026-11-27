@@ -3,7 +3,7 @@
     "translation": "Exporteren"
   },
   "00b177e080": {
-    "translation": "Accepteer de uitnodiging"
+    "translation": "Uitnodiging accepteren"
   },
   "029f235f01": {
     "translation": "We werken aan ondersteuning voor bestanden van <a><strong>{appName}</strong></a>."
@@ -15,7 +15,7 @@
     "translation": "Nodig teamgenoten uit"
   },
   "05b2656486": {
-    "translation": "<name>{author}</name> noemde je"
+    "translation": "<name>{author}</name> heeft je vermeld"
   },
   "05f43078e9": {
     "translation": "Je hebt het maximale aantal werkruimtes bereikt. Je moet oude werkruimtes verwijderen voordat je nieuwe kunt aanmaken."
@@ -27,13 +27,13 @@
     "translation": "Bestand zonder titel"
   },
   "08331c1710": {
-    "translation": "Tarieflimiet overschreden, probeer het later opnieuw."
+    "translation": "Te veel verzoeken, probeer het later opnieuw."
   },
   "08bd40c754": {
-    "translation": "Rekening"
+    "translation": "Account"
   },
   "093ac7483a": {
-    "translation": "Kan {extension} bestanden nog niet openen."
+    "translation": "{extension}-bestanden kunnen nog niet worden geopend"
   },
   "0a91f7fa87": {
     "translation": "Dit bestand heeft de maximale bestandsgrootte bereikt en wijzigingen worden mogelijk niet meer opgeslagen. Verwijder wat inhoud of begin een nieuw bestand."
@@ -65,6 +65,9 @@
   "12a6766ba1": {
     "translation": "Bestand losmaken"
   },
+  "13cad4c2e8": {
+    "translation": "Deze werkruimte heeft het maximale aantal bibliotheken bereikt. Verwijder oude bibliotheken voordat je nieuwe maakt."
+  },
   "13ddd375ad": {
     "translation": "Exporteren als"
   },
@@ -92,6 +95,9 @@
   "1ffd709937": {
     "translation": "Een werkruimte moet minimaal één eigenaar hebben. Wijs eerst iemand anders aan als eigenaar."
   },
+  "20746febc9": {
+    "translation": "Mijn verzameling"
+  },
   "21f66c9c00": {
     "translation": "Werkruimtenaam"
   },
@@ -100,6 +106,9 @@
   },
   "250ddea65c": {
     "translation": "Over tldraw"
+  },
+  "26111f65cc": {
+    "translation": "Deze bibliotheek heeft het maximale aantal items bereikt. Verwijder oude items voordat je nieuwe toevoegt."
   },
   "28b2464e1f": {
     "translation": "Feedback verzenden is niet mogelijk"
@@ -114,10 +123,10 @@
     "translation": "Welkom in je werkruimte"
   },
   "2a37324bb4": {
-    "translation": "Zoekopdracht..."
+    "translation": "Zoeken..."
   },
   "2d3cdcfdd4": {
-    "translation": "Probeer het alstublieft opnieuw."
+    "translation": "Probeer het opnieuw."
   },
   "2de510be71": {
     "translation": "Door de link opnieuw te genereren, wordt de huidige uitnodigingslink vervangen door een nieuwe. Iedereen die de oude link gebruikt, heeft de nieuwe link nodig om deel te nemen."
@@ -132,16 +141,16 @@
     "translation": "{name} (jij)"
   },
   "31246941ad": {
-    "translation": "U moet zijn aangemeld om dit bestand te kunnen bekijken."
+    "translation": "Je moet inloggen om dit bestand te bekijken."
   },
   "31418ce4ad": {
-    "translation": "i18n: Markering ontbreekt"
+    "translation": "i18n: Ontbrekende markeren"
   },
   "324a0f3182": {
     "translation": "Terug naar tldraw"
   },
   "32811caa8c": {
-    "translation": "Dubbel bestand"
+    "translation": "Bestand dupliceren"
   },
   "335defdafe": {
     "translation": "Probeer de pagina te vernieuwen."
@@ -179,6 +188,9 @@
   "402bf0c47e": {
     "translation": "Kleurenthema"
   },
+  "4236087d6b": {
+    "translation": "Bibliotheekmenu"
+  },
   "42e53c47c1": {
     "translation": "Neem contact op met de eigenaar om toegang aan te vragen."
   },
@@ -195,7 +207,7 @@
     "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
   },
   "4630b65bb2": {
-    "translation": "Verplaats het bestand naar"
+    "translation": "Bestand verplaatsen naar"
   },
   "46de2de6bb": {
     "translation": "Gebruiksvoorwaarden accepteren"
@@ -204,7 +216,7 @@
     "translation": "Om door te kunnen gaan met bewerken, kopieer het bestand naar uw bestanden."
   },
   "47f493a590": {
-    "translation": "Pinbestand"
+    "translation": "Bestand vastmaken"
   },
   "4970317944": {
     "translation": "Voorwerp"
@@ -220,6 +232,9 @@
   },
   "4a95fa0c08": {
     "translation": "<name>{author}</name> reageerde"
+  },
+  "4c4a28e97a": {
+    "translation": "Dit bestand"
   },
   "4d0d3ddec9": {
     "translation": "Deze site maakt gebruik van cookies om de app te laten werken en om analyses te verzamelen."
@@ -255,7 +270,7 @@
     "translation": "Limiet voor bijdragers bereikt"
   },
   "550b25cc0c": {
-    "translation": "Uw lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
+    "translation": "Je lokale tekening kon niet worden hersteld. Probeer deze pagina opnieuw te laden."
   },
   "554a05155c": {
     "translation": "Nog steeds problemen? <a>Meld een probleem</a>"
@@ -279,13 +294,13 @@
     "translation": "Gearchiveerde bestanden verschijnen hier."
   },
   "5a95a425f7": {
-    "translation": "Deel"
+    "translation": "Delen"
   },
   "5bec508475": {
-    "translation": "Oude browser gedetecteerd. Werk uw browser bij om deze app te gebruiken."
+    "translation": "Verouderde browser gedetecteerd. Werk je browser bij om deze app te gebruiken."
   },
   "5bff3c9c88": {
-    "translation": "Mijn werkplek"
+    "translation": "Mijn werkruimte"
   },
   "5d04a002ea": {
     "translation": "Kan geen verbinding maken"
@@ -315,7 +330,7 @@
     "translation": "Ouder"
   },
   "639bae9ac6": {
-    "translation": "Jij"
+    "translation": "jij"
   },
   "63a6a88c06": {
     "translation": "Vernieuwen"
@@ -333,7 +348,7 @@
     "translation": "Nieuw bestand"
   },
   "68240daa8f": {
-    "translation": "<name>{a}</name>, <name>{b}</name> en {count, plural, one {# other} other {# others}} reageerden"
+    "translation": "<name>{a}</name>, <name>{b}</name> en {count, plural, one {# andere} other {# anderen}} hebben gereageerd"
   },
   "6832ac5936": {
     "translation": "Voer uw e-mailadres in"
@@ -375,7 +390,7 @@
     "translation": "Laad de pagina opnieuw"
   },
   "747ee44424": {
-    "translation": "Sla de inhoud op als een .tldr-bestand: selecteer 'Een kopie opslaan' in het menu linksboven."
+    "translation": "Sla de inhoud op als .tldr-bestand: kies 'Bewaar een kopie' in het menu linksboven."
   },
   "74ff4bad28": {
     "translation": "Geen bestanden gevonden"
@@ -405,10 +420,13 @@
     "translation": "Ongeldig verzoek."
   },
   "7827371d1a": {
-    "translation": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Om verder te gaan met bewerken, meld je aan en kopieer je het naar je bestanden."
+    "translation": "Dit anonieme tldraw-multiplayerbestand is nu alleen-lezen. Meld je aan en kopieer het naar je bestanden om verder te bewerken."
+  },
+  "7897a855d3": {
+    "translation": "Nog geen bibliotheken."
   },
   "78e9815992": {
-    "translation": "Ik heb het"
+    "translation": "Begrepen"
   },
   "797799f35e": {
     "translation": "Een probleem melden op GitHub"
@@ -447,7 +465,7 @@
     "translation": "Download"
   },
   "8030793ce3": {
-    "translation": "Nieuwe werkplek"
+    "translation": "Nieuwe werkruimte"
   },
   "815e116a2e": {
     "translation": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook <discord>met ons chatten op Discord</discord> of <github>een probleem melden op GitHub</github>."
@@ -474,13 +492,13 @@
     "translation": "Je bent al lid van deze werkruimte."
   },
   "887479cb61": {
-    "translation": "<name>{author}</name> en {count, plural, one {# other} other {# others}} reageerden"
+    "translation": "<name>{author}</name> en {count, plural, one {# andere} other {# anderen}} hebben gereageerd"
   },
   "88bf6ab42c": {
     "translation": "Deze uitnodigingslink is verlopen."
   },
   "8c2d3d730c": {
-    "translation": "Controleer uw e-mail voor een verificatiecode."
+    "translation": "Check je e-mail voor de verificatiecode."
   },
   "8cf04a9734": {
     "translation": "Thuis"
@@ -507,7 +525,7 @@
     "translation": "Bestanden"
   },
   "930390d222": {
-    "translation": "Kopieer de uitnodigingslink"
+    "translation": "Uitnodigingslink gekopieerd"
   },
   "95aacd4d4a": {
     "translation": "Aanmelden met Google"
@@ -523,6 +541,9 @@
   },
   "985a4b720f": {
     "translation": "Gebruiksvoorwaarden"
+  },
+  "987453f3dd": {
+    "translation": "Probeer de MCP-server"
   },
   "9914a0ce04": {
     "translation": "Licht"
@@ -542,17 +563,23 @@
   "9c228b6834": {
     "translation": "Je lijkt offline te zijn. Controleer je internetverbinding en probeer het opnieuw."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# item} other {# items}}"
+  },
   "9ccb565b86": {
     "translation": "We ondervinden problemen met de verbinding met onze authenticatieservice. Dit is meestal tijdelijk. Probeer de pagina te vernieuwen."
   },
   "9ceb927baa": {
     "translation": "Publiceer dit bestand"
   },
+  "9d102330ee": {
+    "translation": "<strong>{name}</strong> en {count, plural, one {# item} other {# items}} verwijderen?"
+  },
   "9e076f5885": {
     "translation": "Niet gevonden"
   },
   "9e93c98d88": {
-    "translation": "Afmelden"
+    "translation": "Weigeren"
   },
   "a078644c42": {
     "translation": "Je bent uitgenodigd om deel te nemen aan <strong>{workspaceName}</strong>."
@@ -579,7 +606,7 @@
     "translation": "Cookiebeleid"
   },
   "a4bef6414b": {
-    "translation": "Reacties zijbalk weergeven/verbergen"
+    "translation": "Zijbalk met opmerkingen tonen/verbergen"
   },
   "a4d3b161ce": {
     "translation": "Verzenden"
@@ -595,6 +622,9 @@
   },
   "a8873770ab": {
     "translation": "Het bestand wordt groot"
+  },
+  "a8c92ffd87": {
+    "translation": "Bibliotheek verwijderen"
   },
   "a9ded1e5ce": {
     "translation": "Achtergrond"
@@ -628,7 +658,7 @@
     "translation": "Alle"
   },
   "b2326c3a34": {
-    "translation": "Regenereren"
+    "translation": "Opnieuw genereren"
   },
   "b2c3c2e30c": {
     "translation": "Bestand is vol"
@@ -670,7 +700,7 @@
     "translation": "Gedeeld door {ownerName}"
   },
   "bd8aac2696": {
-    "translation": "Huidig ​​bestand"
+    "translation": "Huidig bestand"
   },
   "bf9c7b5670": {
     "translation": "Zoekopdracht…"
@@ -724,7 +754,7 @@
     "translation": "Voorkeuren"
   },
   "d28d6bbc42": {
-    "translation": "Bestand verwijderen"
+    "translation": "Publicatie van bestand ongedaan maken"
   },
   "d3d2e61733": {
     "translation": "Sluiten"
@@ -733,13 +763,13 @@
     "translation": "Te veel verzoeken. Doe het rustig aan."
   },
   "d4bbf74f3e": {
-    "translation": "Schakel zijbalk in"
+    "translation": "Zijbalk tonen/verbergen"
   },
   "d5e92609cf": {
     "translation": "Werkruimtes"
   },
   "d638a3344b": {
-    "translation": "Voordat u begint, accepteert u onze <tos>gebruiksvoorwaarden</tos> en ons <privacy>privacybeleid</privacy>."
+    "translation": "Accepteer voordat je begint onze <tos>gebruiksvoorwaarden</tos> en ons <privacy>privacybeleid</privacy>."
   },
   "d721757161": {
     "translation": "Thema"
@@ -765,6 +795,9 @@
   "e0aa021e21": {
     "translation": "OK"
   },
+  "e1cbe6f097": {
+    "translation": "Bibliotheek wijzigen mislukt"
+  },
   "e2198d6228": {
     "translation": "Kopieer uitnodigingslink"
   },
@@ -784,13 +817,13 @@
     "translation": "Annuleren"
   },
   "eb1e2b0542": {
-    "translation": "Vraag de eigenaar van de werkplek om een nieuwe."
+    "translation": "Vraag de eigenaar van de werkruimte om een nieuwe uitnodigingslink."
   },
   "ebfe9ce86e": {
     "translation": "Gisteren"
   },
   "ec59b960ea": {
-    "translation": "Dit bestand heeft het maximale aantal actieve medewerkers bereikt."
+    "translation": "Dit bestand heeft het maximale aantal actieve bijdragers bereikt."
   },
   "ec611e9a08": {
     "translation": "Accountmenu"
@@ -799,7 +832,7 @@
     "translation": "Er zijn geen bestanden gevonden die overeenkomen met uw zoekopdracht."
   },
   "ed75712b0e": {
-    "translation": "Duplicaat"
+    "translation": "Dupliceren"
   },
   "ede55d955f": {
     "translation": "Lees ons <a>cookiebeleid</a> voor meer informatie."
@@ -811,22 +844,25 @@
     "translation": "Leden"
   },
   "ef7de3f485": {
-    "translation": "gekozen"
+    "translation": "geselecteerd"
   },
   "f07e75296c": {
     "translation": "Met mij gedeeld"
   },
   "f09b16bc5f": {
-    "translation": "We gebruiken cookies om ervoor te zorgen dat u ingelogd blijft, om uw bestanden te synchroniseren en om analyses te verzamelen waarmee we tldraw kunnen verbeteren."
+    "translation": "We gebruiken cookies om je ingelogd te houden, je bestanden te synchroniseren en analysegegevens te verzamelen om tldraw te verbeteren."
   },
   "f0e8bff6f9": {
     "translation": "Gebruikersinstellingen"
+  },
+  "f129f24bec": {
+    "translation": "· In geen enkel bestand"
   },
   "f13001876b": {
     "translation": "Lijstweergave"
   },
   "f2569594b2": {
-    "translation": "Wij gebruiken deze cookies om uw bestanden en instellingen op te slaan."
+    "translation": "We gebruiken deze cookies om je bestanden en instellingen op te slaan."
   },
   "f2a6c498fb": {
     "translation": "Verwijderen"
@@ -838,25 +874,28 @@
     "translation": "Instellingen"
   },
   "f5ddc8d9c1": {
-    "translation": "Voorlopig kun je het <a>exporteren als een {extension} bestand</a> om het hier te gebruiken."
+    "translation": "Voorlopig kun je het <a>exporteren als {extension}-bestand</a> om het hier te gebruiken."
   },
   "fa2ead697d": {
     "translation": "Privacybeleid"
   },
   "fb15c53f22": {
-    "translation": "Kijker"
+    "translation": "Lezer"
   },
   "fc9d47046b": {
     "translation": "Weet je zeker dat je deze werkruimte wilt verlaten?"
   },
   "fed5ec05eb": {
-    "translation": "Gekopieerde link"
+    "translation": "Link gekopieerd"
+  },
+  "feebd72b89": {
+    "translation": "Openbare bibliotheken"
   },
   "ff2fefd3c6": {
     "translation": "Weet je zeker dat je {name} uit deze werkruimte wilt verwijderen?"
   },
   "ff52811b98": {
-    "translation": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten te tekenen (tldraw)."
+    "translation": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten in tldraw te tekenen."
   },
   "ffad261a48": {
     "translation": "Fout bij het accepteren van de uitnodiging"
